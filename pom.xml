@@ -93,7 +93,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.18</version>
+      <version>1.19-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
