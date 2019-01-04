@@ -10,6 +10,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
+
 public class HomePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
@@ -31,4 +32,5 @@ public class HomePage extends WebPage {
 
 		});
 	}
+
 }

@@ -7,18 +7,22 @@ import java.util.Map;
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.security.GetIntroNanopub;
 
 
 public class UserPage extends WebPage {
 
 	public UserPage(final PageParameters parameters) {
-		add(new Label("userid", parameters.getString("id")));
+		String userId = parameters.getString("id");
+		add(new Label("userid", userId));
 
 		Map<String,String> p = new HashMap<>();
-		p.put("user", parameters.getString("id"));
+		p.put("user", userId);
 		List<String> pubkeys = ApiAccess.getAll("get_publickeys_for_user", p, 0);
 		add(new DataView<String>("pubkeys", new ListDataProvider<String>(pubkeys)) {
 
@@ -33,7 +37,21 @@ public class UserPage extends WebPage {
 
 		});
 
-		
+		Nanopub introNanopub = null;
+		try {
+			introNanopub = GetIntroNanopub.get(userId);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		if (introNanopub != null) {
+			ExternalLink l = new ExternalLink("intro-nanopub", introNanopub.getUri().stringValue());
+			l.add(new Label("intro-nanopub-linktext", introNanopub.getUri().stringValue()));
+			add(l);
+		} else {
+			ExternalLink l = new ExternalLink("intro-nanopub", "#");
+			l.add(new Label("intro-nanopub-linktext", "none found"));
+			add(l);
+		}
 	}
 
 }
