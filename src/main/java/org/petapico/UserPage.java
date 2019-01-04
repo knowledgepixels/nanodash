@@ -14,24 +14,26 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 public class UserPage extends WebPage {
 
-    public UserPage(final PageParameters parameters) {
-    	add(new Label("userid", parameters.getString("id")));
+	public UserPage(final PageParameters parameters) {
+		add(new Label("userid", parameters.getString("id")));
 
-    	Map<String,String> p = new HashMap<>();
-    	p.put("user", parameters.getString("id"));
-    	List<String> pubkeys = ApiAccess.getAll("get_publickeys_for_user", p, 0);
-        add(new DataView<String>("pubkeys", new ListDataProvider<String>(pubkeys)) {
+		Map<String,String> p = new HashMap<>();
+		p.put("user", parameters.getString("id"));
+		List<String> pubkeys = ApiAccess.getAll("get_publickeys_for_user", p, 0);
+		add(new DataView<String>("pubkeys", new ListDataProvider<String>(pubkeys)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-        	protected void populateItem(Item<String> item) {
+			protected void populateItem(Item<String> item) {
 				String s = item.getModelObject();
 				if (s.length() > 50) s = s.substring(0, 10) + "..." + s.substring(s.length() - 20);
 				item.add(new Label("pubkey", s));
-        	}
+			}
 
-        });
-    }
+		});
+
+		
+	}
 
 }
