@@ -20,6 +20,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.mimeparse.MIMEParse;
 
+import com.opencsv.CSVReader;
+
 public class Utils {
 
 	private Utils() {}  // no instances allowed
@@ -49,26 +51,26 @@ public class Utils {
 	public static List<String> getUsers() {
 		Set<String> users = new HashSet<>();
 		for (String apiUrl : apiInstances) {
+			CSVReader csvReader = null;
 			try {
 				HttpGet get = new HttpGet(apiUrl + "get_all_users");
 				get.setHeader("Accept", "text/csv");
-				BufferedReader reader = null;
 				try {
 					HttpResponse resp = httpClient.execute(get);
 					if (!wasSuccessful(resp)) {
 						EntityUtils.consumeQuietly(resp.getEntity());
 						throw new IOException(resp.getStatusLine().toString());
 					}
-					reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-					String line = null;
+					csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
+					String[] line = null;
 					int n = 0;
-					while ((line = reader.readLine()) != null) {
+					while ((line = csvReader.readNext()) != null) {
 						n++;
 						if (n == 1) continue; // skip header
-						users.add(line);
+						users.add(line[0]);
 					}
 				} finally {
-					if (reader != null) reader.close();
+					if (csvReader != null) csvReader.close();
 				}
 			} catch (IOException ex) {
 				ex.printStackTrace();

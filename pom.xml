@@ -67,7 +67,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!--  WEB DEPENDENCIES  -->
+    <!--  OTHER DEPENDENCIES  -->
     <dependency>
       <groupId>org.commonjava.mimeparse</groupId>
       <artifactId>mimeparse</artifactId>
@@ -82,6 +82,11 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>[4.3.6,)</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>4.4</version>
     </dependency>
 
     <!--  NANOPUB DEPENDENCIES  -->
