@@ -142,22 +142,6 @@
           <downloadSources>true</downloadSources>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
-        <executions>
-          <execution>
-            <id>build-classpath</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>build-classpath</goal>
-            </goals>
-            <configuration>
-              <outputFile>classpath.txt</outputFile>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <properties>
