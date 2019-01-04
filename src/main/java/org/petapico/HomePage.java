@@ -31,7 +31,7 @@ public class HomePage extends WebPage {
 			@Override
         	protected void populateItem(Item<String> item) {
 				PageParameters params = new PageParameters();
-				params.put("userid", item.getModelObject());
+				params.put("id", item.getModelObject());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
 				l.add(new Label("linktext", item.getModelObject()));
 				item.add(l);
