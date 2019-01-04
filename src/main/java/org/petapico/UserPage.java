@@ -27,7 +27,8 @@ public class UserPage extends WebPage {
 			@Override
         	protected void populateItem(Item<String> item) {
 				String s = item.getModelObject();
-				item.add(new Label("pubkey", s.substring(0, 10) + "..." + s.substring(s.length() - 20)));
+				if (s.length() > 50) s = s.substring(0, 10) + "..." + s.substring(s.length() - 20);
+				item.add(new Label("pubkey", s));
         	}
 
         });
