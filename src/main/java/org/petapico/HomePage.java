@@ -1,8 +1,11 @@
 package org.petapico;
 
 import org.apache.wicket.PageParameters;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 /**
  * Homepage
@@ -20,10 +23,15 @@ public class HomePage extends WebPage {
 	 *            Page parameters
 	 */
     public HomePage(final PageParameters parameters) {
+        add(new DataView<String>("users", new ListDataProvider<String>(Utils.getUsers())) {
 
-        // Add the simplest type of label
-        add(new Label("message", "If you see this message wicket is properly configured and running"));
+			private static final long serialVersionUID = -7900012913964111340L;
 
-        // TODO Add your page's components here
+			@Override
+        	protected void populateItem(Item<String> item) {
+        		item.add(new Label("userid", item.getModelObject()));
+        	}
+
+        });
     }
 }
