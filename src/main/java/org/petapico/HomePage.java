@@ -3,7 +3,10 @@ package org.petapico;
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 /**
  * Homepage
@@ -21,16 +24,19 @@ public class HomePage extends WebPage {
 	 *            Page parameters
 	 */
     public HomePage(final PageParameters parameters) {
-//        add(new DataView<String>("users", new ListDataProvider<String>(Utils.getUsers())) {
-//			@Override
-//        	protected void populateItem(Item<String> item) {
-//        		item.add(new Label("userid", item.getModelObject()));
-//        	}
-//        });
-        RepeatingView userIdItems = new RepeatingView("userid");
-        for (String u : Utils.getUsers()) {
-        	userIdItems.add(new Label(userIdItems.newChildId(), u));
-        }
-        add(userIdItems);
+        add(new DataView<String>("users", new ListDataProvider<String>(Utils.getUsers())) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+        	protected void populateItem(Item<String> item) {
+				PageParameters params = new PageParameters();
+				params.put("userid", item.getModelObject());
+				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				l.add(new Label("linktext", item.getModelObject()));
+				item.add(l);
+        	}
+
+        });
     }
 }
