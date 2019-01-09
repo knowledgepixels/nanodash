@@ -52,6 +52,23 @@ public class UserPage extends WebPage {
 			l.add(new Label("intro-nanopub-linktext", "none found"));
 			add(l);
 		}
+
+		Map<String,String> nanopubParams = new HashMap<>();
+		nanopubParams.put("publickey", pubkeys.get(0));  // TODO: only using first public key here
+		nanopubParams.put("creator", userId);
+		List<String> nanopubs = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
+		add(new DataView<String>("nanopubs", new ListDataProvider<String>(nanopubs)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<String> item) {
+				ExternalLink l = new ExternalLink("nanopub", item.getModelObject());
+				l.add(new Label("nanopub-linktext", item.getModelObject()));
+				item.add(l);
+			}
+
+		});
 	}
 
 }
