@@ -53,7 +53,6 @@ public abstract class ApiAccess {
 		for (String apiUrl : apiInstances) {  // TODO: don't call all API instances
 			CSVReader csvReader = null;
 			try {
-				System.err.println("GET " + apiUrl + operation + paramString);
 				HttpGet get = new HttpGet(apiUrl + operation + paramString);
 				get.setHeader("Accept", "text/csv");
 				try {
