@@ -1,5 +1,6 @@
 package org.petapico;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.security.GetIntroNanopub;
+import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.KeyDeclaration;
 
 
 public class UserPage extends WebPage {
@@ -21,42 +23,53 @@ public class UserPage extends WebPage {
 		String userId = parameters.getString("id");
 		add(new Label("userid", userId));
 
-		Map<String,String> p = new HashMap<>();
-		p.put("user", userId);
-		List<String> pubkeys = ApiAccess.getAll("get_publickeys_for_user", p, 0);
-		add(new DataView<String>("pubkeys", new ListDataProvider<String>(pubkeys)) {
+
+		IntroNanopub introNanopub = null;
+		try {
+			introNanopub = IntroNanopub.get(userId);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		List<KeyDeclaration> keyDeclarations;
+		if (introNanopub != null && introNanopub.getNanopub() != null) {
+			Nanopub np = introNanopub.getNanopub();
+			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
+			l.add(new Label("intro-nanopub-linktext", np.getUri().stringValue()));
+			add(l);
+	
+			Map<String,String> p = new HashMap<>();
+			p.put("user", userId);
+			keyDeclarations = introNanopub.getKeyDeclarations();
+		} else {
+			ExternalLink l = new ExternalLink("intro-nanopub", "#");
+			l.add(new Label("intro-nanopub-linktext", "none found"));
+			add(l);
+			keyDeclarations = new ArrayList<>();
+		}
+		add(new DataView<KeyDeclaration>("pubkeys", new ListDataProvider<KeyDeclaration>(keyDeclarations)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<String> item) {
-				String s = item.getModelObject();
+			protected void populateItem(Item<KeyDeclaration> item) {
+				KeyDeclaration d = item.getModelObject();
+				String s = d.getPublicKeyString() + "";
 				if (s.length() > 50) s = s.substring(0, 10) + "..." + s.substring(s.length() - 20);
 				item.add(new Label("pubkey", s));
 			}
 
 		});
 
-		Nanopub introNanopub = null;
-		try {
-			introNanopub = GetIntroNanopub.get(userId);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		if (introNanopub != null) {
-			ExternalLink l = new ExternalLink("intro-nanopub", introNanopub.getUri().stringValue());
-			l.add(new Label("intro-nanopub-linktext", introNanopub.getUri().stringValue()));
-			add(l);
+		List<String> nanopubs;
+		if (keyDeclarations.isEmpty()) {
+			nanopubs = new ArrayList<>();
 		} else {
-			ExternalLink l = new ExternalLink("intro-nanopub", "#");
-			l.add(new Label("intro-nanopub-linktext", "none found"));
-			add(l);
+			Map<String,String> nanopubParams = new HashMap<>();
+			nanopubParams.put("publickey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
+			System.err.println(keyDeclarations.get(0).getPublicKeyString());
+			nanopubParams.put("creator", userId);
+			nanopubs = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
 		}
-
-		Map<String,String> nanopubParams = new HashMap<>();
-		nanopubParams.put("publickey", pubkeys.get(0));  // TODO: only using first public key here
-		nanopubParams.put("creator", userId);
-		List<String> nanopubs = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
 		add(new DataView<String>("nanopubs", new ListDataProvider<String>(nanopubs)) {
 
 			private static final long serialVersionUID = 1L;

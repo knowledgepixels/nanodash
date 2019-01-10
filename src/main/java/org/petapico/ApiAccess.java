@@ -50,35 +50,34 @@ public abstract class ApiAccess {
 			}
 		}
 
-		for (String apiUrl : apiInstances) {  // TODO: don't call all API instances
-			CSVReader csvReader = null;
+		String apiUrl = apiInstances[0];  // TODO: check several APIs
+		CSVReader csvReader = null;
+		try {
+			HttpGet get = new HttpGet(apiUrl + operation + paramString);
+			get.setHeader("Accept", "text/csv");
 			try {
-				HttpGet get = new HttpGet(apiUrl + operation + paramString);
-				get.setHeader("Accept", "text/csv");
-				try {
-					HttpResponse resp = httpClient.execute(get);
-					if (!wasSuccessful(resp)) {
-						EntityUtils.consumeQuietly(resp.getEntity());
-						throw new IOException(resp.getStatusLine().toString());
-					}
-					csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
-					String[] line = null;
-					int n = 0;
-					while ((line = csvReader.readNext()) != null) {
-						n++;
-						if (n == 1) {
-							processHeader(line);
-						} else {
-							processLine(line);
-						}
-					}
-				} finally {
-					if (csvReader != null) csvReader.close();
+				HttpResponse resp = httpClient.execute(get);
+				if (!wasSuccessful(resp)) {
+					EntityUtils.consumeQuietly(resp.getEntity());
+					throw new IOException(resp.getStatusLine().toString());
 				}
-			} catch (IOException ex) {
-				// TODO: proper logging
-				ex.printStackTrace();
+				csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
+				String[] line = null;
+				int n = 0;
+				while ((line = csvReader.readNext()) != null) {
+					n++;
+					if (n == 1) {
+						processHeader(line);
+					} else {
+						processLine(line);
+					}
+				}
+			} finally {
+				if (csvReader != null) csvReader.close();
 			}
+		} catch (IOException ex) {
+			// TODO: proper logging
+			ex.printStackTrace();
 		}
 	}
 
