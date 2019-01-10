@@ -54,7 +54,7 @@ public class UserPage extends WebPage {
 			protected void populateItem(Item<KeyDeclaration> item) {
 				KeyDeclaration d = item.getModelObject();
 				String s = d.getPublicKeyString() + "";
-				if (s.length() > 50) s = s.substring(0, 10) + "..." + s.substring(s.length() - 20);
+				if (s.length() > 30) s = s.substring(0, 10) + "..." + s.substring(s.length() - 10);
 				item.add(new Label("pubkey", s));
 			}
 
@@ -66,7 +66,6 @@ public class UserPage extends WebPage {
 		} else {
 			Map<String,String> nanopubParams = new HashMap<>();
 			nanopubParams.put("publickey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
-			System.err.println(keyDeclarations.get(0).getPublicKeyString());
 			nanopubParams.put("creator", userId);
 			nanopubs = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
 		}
