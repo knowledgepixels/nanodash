@@ -111,3 +111,4 @@ strong {
 .nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 10px; border-radius: 10px; }
 .nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 10px; border-radius: 10px; }
 .nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 10px; border-radius: 10px; }
+.nanopub-context-switch { display: none; }

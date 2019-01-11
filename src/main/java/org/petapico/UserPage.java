@@ -80,7 +80,7 @@ public class UserPage extends WebPage {
 //				ExternalLink l = new ExternalLink("nanopub", item.getModelObject());
 //				l.add(new Label("nanopub-linktext", item.getModelObject()));
 //				item.add(l);
-				String html = Nanopub2Html.createHtmlString(GetNanopub.get(item.getModelObject()), false);
+				String html = Nanopub2Html.createHtmlString(GetNanopub.get(item.getModelObject()), false, false);
 				Label l = new Label("nanopub", html);
 				l.setEscapeModelStrings(false);
 				item.add(l);
