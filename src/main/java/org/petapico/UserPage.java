@@ -13,8 +13,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.Nanopub;
+import org.nanopub.Nanopub2Html;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.server.GetNanopub;
 
 
 public class UserPage extends WebPage {
@@ -75,8 +77,12 @@ public class UserPage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<String> item) {
-				ExternalLink l = new ExternalLink("nanopub", item.getModelObject());
-				l.add(new Label("nanopub-linktext", item.getModelObject()));
+//				ExternalLink l = new ExternalLink("nanopub", item.getModelObject());
+//				l.add(new Label("nanopub-linktext", item.getModelObject()));
+//				item.add(l);
+				String html = Nanopub2Html.createHtmlString(GetNanopub.get(item.getModelObject()), false);
+				Label l = new Label("nanopub", html);
+				l.setEscapeModelStrings(false);
 				item.add(l);
 			}
 

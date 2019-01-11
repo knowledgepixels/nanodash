@@ -52,17 +52,17 @@ hr {
 }
 
 a {
-	color: #22b;
+	color: #000;
 	text-decoration: none;
 	background-color: transparent;
 }
 
 a:hover {
-	color: #66d;
+	color: #666;
 }
 
 a:active {
-	color: #66d;
+	color: #666;
 }
 
 a.button {
@@ -91,3 +91,10 @@ strong {
 .visible {
 	display:inline;
 }
+
+.nanopub { font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 30px 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }
+.nanopub-prefixes { display: none; margin-top: 10px; }
+.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 10px; border-radius: 10px; }
+.nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 10px; border-radius: 10px; }
+.nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 10px; border-radius: 10px; }
+.nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 10px; border-radius: 10px; }
