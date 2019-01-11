@@ -5,24 +5,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.Nanopub2Html;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.server.GetNanopub;
 
-
 public class UserPage extends WebPage {
 
+	private static final long serialVersionUID = 1L;
+
 	public UserPage(final PageParameters parameters) {
-		String userId = parameters.getString("id");
+		String userId = parameters.get("id").toString();
 		add(new Label("userid", userId));
 
 

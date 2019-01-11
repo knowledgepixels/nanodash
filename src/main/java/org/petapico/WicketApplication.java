@@ -14,7 +14,7 @@ public class WicketApplication extends WebApplication {
 	@Override
 	protected void init() {
 		super.init();
-		mountBookmarkablePage("/user", UserPage.class);
+		mountPage("/user", UserPage.class);
 	}
 
 }
