@@ -3,7 +3,7 @@ body {
 	background-color: white;
 	font-family: Verdana, Helvetica, sans-serif;
 	font-size: 11pt;
-	margin: 1cm;
+	margin: 0px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -90,6 +90,19 @@ strong {
 
 .visible {
 	display:inline;
+}
+
+#titlebar {
+	clear: both;
+	padding: 5px 20px;
+	background-color: #eee;
+	border-color: #888;
+	border-style: solid;
+	border-width: 0 0 1px 0;
+}
+
+#content {
+	margin: 20px;
 }
 
 .nanopub { font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 30px 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }

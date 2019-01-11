@@ -10,19 +10,25 @@
 
 <body>
 
+<div id="titlebar">
+
 <h1><span wicket:id="userid"></span></h1>
 
-<p>Intro nanopub: <a wicket:id="intro-nanopub"><span wicket:id="intro-nanopub-linktext"></span></a></p>
-
-
-<p>Public keys: <span wicket:id="pubkeys">
+<p>
+<a wicket:id="intro-nanopub"><span wicket:id="intro-nanopub-linktext"></span></a>.
+Public keys: <span wicket:id="pubkeys">
 <code class="pubkey"><span wicket:id="pubkey"></span></code>
-</span></p>
+</span>
+</p>
 
-<p>Nanopublications:</p>
+</div>
+
+<div id="content">
 
 <div wicket:id="nanopubs">
 <p wicket:id="nanopub"></p>
+</div>
+
 </div>
 
 </body>

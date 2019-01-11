@@ -36,7 +36,7 @@ public class UserPage extends WebPage {
 		if (introNanopub != null && introNanopub.getNanopub() != null) {
 			Nanopub np = introNanopub.getNanopub();
 			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
-			l.add(new Label("intro-nanopub-linktext", np.getUri().stringValue()));
+			l.add(new Label("intro-nanopub-linktext", "Introduction"));
 			add(l);
 	
 			Map<String,String> p = new HashMap<>();
@@ -44,7 +44,7 @@ public class UserPage extends WebPage {
 			keyDeclarations = introNanopub.getKeyDeclarations();
 		} else {
 			ExternalLink l = new ExternalLink("intro-nanopub", "#");
-			l.add(new Label("intro-nanopub-linktext", "none found"));
+			l.add(new Label("intro-nanopub-linktext", "No introduction found"));
 			add(l);
 			keyDeclarations = new ArrayList<>();
 		}
