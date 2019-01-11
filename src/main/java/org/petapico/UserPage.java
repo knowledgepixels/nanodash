@@ -14,6 +14,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.Nanopub2Html;
+import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.server.GetNanopub;
@@ -78,10 +79,12 @@ public class UserPage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<String> item) {
-//				ExternalLink l = new ExternalLink("nanopub", item.getModelObject());
-//				l.add(new Label("nanopub-linktext", item.getModelObject()));
-//				item.add(l);
-				String html = Nanopub2Html.createHtmlString(GetNanopub.get(item.getModelObject()), false, false);
+				ExternalLink link = new ExternalLink("nanopub-id-link", item.getModelObject());
+				link.add(new Label("nanopub-id-text", item.getModelObject()));
+				item.add(link);
+				Nanopub np = GetNanopub.get(item.getModelObject());
+				item.add(new Label("datetime", SimpleTimestampPattern.getCreationTime(np).getTime().toString()));
+				String html = Nanopub2Html.createHtmlString(np, false, false);
 				Label l = new Label("nanopub", html);
 				l.setEscapeModelStrings(false);
 				item.add(l);
