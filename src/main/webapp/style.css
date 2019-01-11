@@ -1,6 +1,5 @@
 body {
 	color: #222;
-	background-color: #222;
 	font-family: Verdana, Helvetica, sans-serif;
 	font-size: 11pt;
 	margin: 0px;
@@ -95,14 +94,18 @@ strong {
 #titlebar {
 	clear: both;
 	padding: 5px 20px;
-	background-color: #fff;
+	background-color: #f8f8f8;
 	border-color: #888;
 	border-style: solid;
 	border-width: 0 0 1px 0;
 }
 
 #content {
-	margin: 20px;
+	padding: 10px 20px 100px 20px;
+}
+
+.backpane {
+	background-color: #222;
 }
 
 .nanopub { background-color: #fff; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 30px 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }
