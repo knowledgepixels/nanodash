@@ -6,10 +6,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -82,7 +80,7 @@ public abstract class ApiAccess {
 	}
 
 	public static List<String> getAll(String operation, Map<String,String> params, final int column) {
-		final Set<String> result = new HashSet<>();
+		final List<String> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {
 			
 			@Override
@@ -97,7 +95,7 @@ public abstract class ApiAccess {
 
 		};
 		a.call(operation, params);
-		return new ArrayList<String>(result);
+		return result;
 	}
 
 	private static boolean wasSuccessful(HttpResponse resp) {
