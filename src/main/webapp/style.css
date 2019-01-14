@@ -114,6 +114,10 @@ strong {
 	height:100%;
 }
 
+.backpane {
+	background-color: #222;
+}
+
 .meta {
 	color: #ddd;
 	margin: 10px 10px 0 5px;
