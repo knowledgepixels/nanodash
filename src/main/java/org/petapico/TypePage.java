@@ -15,6 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.Nanopub2Html;
 import org.nanopub.SimpleTimestampPattern;
+import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 
 public class TypePage extends WebPage {
@@ -45,6 +46,19 @@ public class TypePage extends WebPage {
 				item.add(link);
 				Nanopub np = GetNanopub.get(item.getModelObject());
 				item.add(new Label("datetime", SimpleTimestampPattern.getCreationTime(np).getTime().toString()));
+				String signatureNote = "not signed";
+				if (SignatureUtils.seemsToHaveSignature(np)) {
+					try {
+						if (SignatureUtils.hasValidSignature(SignatureUtils.getSignatureElement(np))) {
+							signatureNote = "valid signature";
+						} else {
+							signatureNote = "invalid signature";
+						}
+					} catch (Exception ex) {
+						signatureNote = "malformed signature";
+					}
+				}
+				item.add(new Label("notes", signatureNote));
 				String html = Nanopub2Html.createHtmlString(np, false, false);
 				Label l = new Label("nanopub", html);
 				l.setEscapeModelStrings(false);

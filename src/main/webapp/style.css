@@ -131,7 +131,12 @@ a.meta:hover, a.meta:active {
 	color: #fff;
 }
 
-.nanopub { background-color: #fff; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 20px 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }
+.postmeta {
+	margin: 0 10px 20px 10px;
+	color: #cc4;
+}
+
+.nanopub { background-color: #fff; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }
 .nanopub-prefixes { display: none; margin-top: 10px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 10px; border-radius: 10px; }
 .nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 10px; border-radius: 10px; }
