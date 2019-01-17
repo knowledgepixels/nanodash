@@ -13,12 +13,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
-import org.nanopub.Nanopub2Html;
-import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
-import org.nanopub.extra.security.SignatureUtils;
-import org.nanopub.extra.server.GetNanopub;
 
 public class UserPage extends WebPage {
 
@@ -80,28 +76,7 @@ public class UserPage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<String> item) {
-				ExternalLink link = new ExternalLink("nanopub-id-link", item.getModelObject());
-				link.add(new Label("nanopub-id-text", item.getModelObject()));
-				item.add(link);
-				Nanopub np = GetNanopub.get(item.getModelObject());
-				item.add(new Label("datetime", SimpleTimestampPattern.getCreationTime(np).getTime().toString()));
-				String signatureNote = "not signed";
-				if (SignatureUtils.seemsToHaveSignature(np)) {
-					try {
-						if (SignatureUtils.hasValidSignature(SignatureUtils.getSignatureElement(np))) {
-							signatureNote = "valid signature";
-						} else {
-							signatureNote = "invalid signature";
-						}
-					} catch (Exception ex) {
-						signatureNote = "malformed signature";
-					}
-				}
-				item.add(new Label("notes", signatureNote));
-				String html = Nanopub2Html.createHtmlString(np, false, false);
-				Label l = new Label("nanopub", html);
-				l.setEscapeModelStrings(false);
-				item.add(l);
+				item.add(new NanopubItem("nanopub", item.getModelObject()));
 			}
 
 		});
