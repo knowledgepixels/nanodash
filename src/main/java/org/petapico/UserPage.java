@@ -61,21 +61,26 @@ public class UserPage extends WebPage {
 
 		});
 
-		List<String> nanopubs;
+		List<String> nanopubUris;
 		if (keyDeclarations.isEmpty()) {
-			nanopubs = new ArrayList<>();
+			nanopubUris = new ArrayList<>();
 		} else {
 			Map<String,String> nanopubParams = new HashMap<>();
 			nanopubParams.put("publickey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
 			nanopubParams.put("creator", userId);
-			nanopubs = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
+			nanopubUris = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
 		}
-		add(new DataView<String>("nanopubs", new ListDataProvider<String>(nanopubs)) {
+
+		List<NanopubElement> nanopubs = new ArrayList<>();
+		for (String uri : nanopubUris) {
+			nanopubs.add(new NanopubElement(uri));
+		}
+		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<String> item) {
+			protected void populateItem(Item<NanopubElement> item) {
 				item.add(new NanopubItem("nanopub", item.getModelObject()));
 			}
 

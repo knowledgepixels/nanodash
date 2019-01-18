@@ -22,19 +22,19 @@ public class TypePage extends WebPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("type", typeId);
-		List<String> nanopubs = ApiAccess.getAll("find_latest_nanopubs_with_type", nanopubParams, 0);
+		List<String> nanopubUris = ApiAccess.getAll("find_latest_nanopubs_with_type", nanopubParams, 0);
 
-		List<String> displayNanopubs = new ArrayList<String>();
-		for (int i = 0 ; i < 10 && i < nanopubs.size() ; i++) {
-			displayNanopubs.add(nanopubs.get(i));
+		List<NanopubElement> nanopubs = new ArrayList<>();
+		for (int i = 0 ; i < 10 && i < nanopubUris.size() ; i++) {
+			nanopubs.add(new NanopubElement(nanopubUris.get(i)));
 		}
 
-		add(new DataView<String>("nanopubs", new ListDataProvider<String>(displayNanopubs)) {
+		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<String> item) {
+			protected void populateItem(Item<NanopubElement> item) {
 				item.add(new NanopubItem("nanopub", item.getModelObject()));
 			}
 

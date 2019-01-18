@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.mimeparse.MIMEParse;
+import org.openrdf.model.URI;
 
 public class Utils {
 
@@ -19,6 +20,16 @@ public class Utils {
 			mimeType = MIMEParse.bestMatch(supportedList, req.getHeader("Accept"));
 		} catch (Exception ex) {}
 		return mimeType;
+	}
+
+	public static String getShortNameFromURI(URI uri) {
+		String u = uri.stringValue();
+		u = u.replaceFirst("[/#]$", "");
+		u = u.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
+		u = u.replaceFirst("^.*[/#]([^/#]*[^0-9][^/#]*)$", "$1");
+		u = u.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
+		u = u.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
+		return u;
 	}
 
 }
