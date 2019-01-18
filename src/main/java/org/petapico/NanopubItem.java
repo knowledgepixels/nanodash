@@ -10,7 +10,7 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubItem(String id, NanopubElement n) {
+	public NanopubItem(String id, NanopubElement n, boolean markAsRetracted) {
 		super(id);
 
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
@@ -22,19 +22,25 @@ public class NanopubItem extends Panel {
 			types += " " + Utils.getShortNameFromURI(type).replaceFirst("Nanopub$", "");
 		}
 		add(new Label("types", types));
-		String signatureNote = "not signed";
+		String positiveNotes = "";
+		String negativeNotes = "";
 		if (n.seemsToHaveSignature()) {
 			try {
 				if (n.hasValidSignature()) {
-					signatureNote = "valid signature";
+					positiveNotes = "valid signature";
 				} else {
-					signatureNote = "invalid signature";
+					negativeNotes = "invalid signature";
 				}
 			} catch (Exception ex) {
-				signatureNote = "malformed signature";
+				negativeNotes = "malformed or legacy signature";
 			}
 		}
-		add(new Label("notes", signatureNote));
+		if (markAsRetracted) {
+			positiveNotes = "";
+			negativeNotes = "retracted";
+		}
+		add(new Label("positive-notes", positiveNotes));
+		add(new Label("negative-notes", negativeNotes));
 		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
 		Label l = new Label("nanopub", html);
 		l.setEscapeModelStrings(false);

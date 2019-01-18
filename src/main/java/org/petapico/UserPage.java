@@ -15,6 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
+import org.openrdf.model.URI;
 
 public class UserPage extends WebPage {
 
@@ -72,8 +73,14 @@ public class UserPage extends WebPage {
 		}
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
+		final Map<String,Boolean> retracted = new HashMap<>();
 		for (String uri : nanopubUris) {
-			nanopubs.add(new NanopubElement(uri));
+			NanopubElement ne = new NanopubElement(uri);
+			URI retractionTarget = ne.getRetractionTarget();
+			if (retractionTarget != null) {
+				retracted.put(retractionTarget.stringValue(), true);
+			}
+			nanopubs.add(ne);
 		}
 		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
 
@@ -81,7 +88,8 @@ public class UserPage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				item.add(new NanopubItem("nanopub", item.getModelObject()));
+				NanopubElement ne = item.getModelObject();
+				item.add(new NanopubItem("nanopub", item.getModelObject(), retracted.containsKey(ne.getUri())));
 			}
 
 		});
