@@ -12,10 +12,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
-import org.openrdf.model.URI;
 
 public class UserPage extends WebPage {
 
@@ -76,7 +76,7 @@ public class UserPage extends WebPage {
 		final Map<String,Boolean> retracted = new HashMap<>();
 		for (String uri : nanopubUris) {
 			NanopubElement ne = new NanopubElement(uri);
-			URI retractionTarget = ne.getRetractionTarget();
+			IRI retractionTarget = ne.getRetractionTarget();
 			if (retractionTarget != null) {
 				retracted.put(retractionTarget.stringValue(), true);
 			}

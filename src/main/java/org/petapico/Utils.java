@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.mimeparse.MIMEParse;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 public class Utils {
 
@@ -22,7 +22,7 @@ public class Utils {
 		return mimeType;
 	}
 
-	public static String getShortNameFromURI(URI uri) {
+	public static String getShortNameFromURI(IRI uri) {
 		String u = uri.stringValue();
 		u = u.replaceFirst("[/#]$", "");
 		u = u.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");

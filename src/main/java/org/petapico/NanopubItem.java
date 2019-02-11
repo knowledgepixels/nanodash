@@ -3,8 +3,8 @@ package org.petapico;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub2Html;
-import org.openrdf.model.URI;
 
 public class NanopubItem extends Panel {
 	
@@ -18,7 +18,7 @@ public class NanopubItem extends Panel {
 		add(link);
 		add(new Label("datetime", n.getCreationTime().getTime().toString()));
 		String types = "";
-		for (URI type : n.getTypes()) {
+		for (IRI type : n.getTypes()) {
 			types += " " + Utils.getShortNameFromURI(type).replaceFirst("Nanopub$", "");
 		}
 		add(new Label("types", types));
