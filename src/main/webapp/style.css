@@ -110,44 +110,40 @@ strong {
 }
 
 #outer {
-	background-color: #222;
+	background-color: #fff;
 	height:100%;
 }
 
 .backpane {
-	background-color: #222;
+	background-color: #fff;
 }
 
 .meta {
-	color: #ddd;
+	color: #666;
 	margin: 10px 10px 0 5px;
 }
 
-a.meta {
-	color: #888;
-}
-
 a.meta:hover, a.meta:active {
-	color: #fff;
+	color: #aaa;
 }
 
 .postmeta {
 	margin: 0 10px 20px 10px;
-	color: #cc4;
+	color: #666;
 }
 
 .positive {
-	color: #4f4;
+	color: #080;
 }
 
 .negative {
-	color: #f44;
+	color: #800;
 }
 
-.nanopub { background-color: #fff; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0px 10px 10px 10px; border-radius: 10px; border: solid; border-width: 1px; }
-.nanopub-prefixes { display: none; margin-top: 10px; }
-.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 10px; border-radius: 10px; }
-.nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 10px; border-radius: 10px; }
-.nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 10px; border-radius: 10px; }
-.nanopub-pubinfo { display: none; background: #ffff66; padding: 10px; margin-top: 10px; border-radius: 10px; }
+.nanopub { background-color: #666; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+.nanopub-prefixes { display: none; margin-top: 3px; }
+.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
+.nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 3px; border-radius: 10px; }
+.nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 3px; border-radius: 10px; }
+.nanopub-pubinfo { display: none; background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }

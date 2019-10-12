@@ -22,7 +22,7 @@ public class TypePage extends WebPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("type", typeId);
-		List<String> nanopubUris = ApiAccess.getAll("find_latest_nanopubs_with_type", nanopubParams, 0);
+		List<String> nanopubUris = ApiAccess.getAll("find_nanopubs_with_type", nanopubParams, 0);
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
 		for (int i = 0 ; i < 10 && i < nanopubUris.size() ; i++) {

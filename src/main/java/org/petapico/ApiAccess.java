@@ -29,8 +29,8 @@ public abstract class ApiAccess {
 	}
 
 	public static String[] apiInstances = new String[] {
-		"http://grlc.io/api/peta-pico/nanopub-api/",
-		"http://grlc.nanopubs.d2s.labs.vu.nl/api/local/local/"
+		"http://130.60.24.146:7881/api/local/local/",
+		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/"
 	};
 
 	protected abstract void processHeader(String[] line);

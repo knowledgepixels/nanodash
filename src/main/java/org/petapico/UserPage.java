@@ -67,9 +67,9 @@ public class UserPage extends WebPage {
 			nanopubUris = new ArrayList<>();
 		} else {
 			Map<String,String> nanopubParams = new HashMap<>();
-			nanopubParams.put("publickey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
+			nanopubParams.put("pubkey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
 			nanopubParams.put("creator", userId);
-			nanopubUris = ApiAccess.getAll("find_latest_nanopubs", nanopubParams, 0);
+			nanopubUris = ApiAccess.getAll("find_signed_nanopubs", nanopubParams, 0);
 		}
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
