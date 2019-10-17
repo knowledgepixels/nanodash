@@ -16,7 +16,11 @@ public class NanopubItem extends Panel {
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
 		link.add(new Label("nanopub-id-text", n.getUri()));
 		add(link);
-		add(new Label("datetime", n.getCreationTime().getTime().toString()));
+		if (n.getCreationTime() != null) {
+			add(new Label("datetime", n.getCreationTime().getTime().toString()));
+		} else {
+			add(new Label("datetime", "(undated)"));
+		}
 		String types = "";
 		for (IRI type : n.getTypes()) {
 			types += " " + Utils.getShortNameFromURI(type).replaceFirst("Nanopub$", "");

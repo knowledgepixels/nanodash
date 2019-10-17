@@ -16,6 +16,7 @@ public class WicketApplication extends WebApplication {
 		super.init();
 		mountPage("/user", UserPage.class);
 		mountPage("/type", TypePage.class);
+		mountPage("/search", FreeTextSearchPage.class);
 	}
 
 }
