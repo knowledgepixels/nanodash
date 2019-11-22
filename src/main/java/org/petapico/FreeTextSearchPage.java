@@ -1,6 +1,8 @@
 package org.petapico;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,12 @@ public class FreeTextSearchPage extends WebPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("text", searchText);
-		List<String> nanopubUris = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams, 0);
+		List<String[]> nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+		Collections.sort(nanopubResults, nanopubResultComparator);
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
-		for (int i = 0 ; i < 10 && i < nanopubUris.size() ; i++) {
-			nanopubs.add(new NanopubElement(nanopubUris.get(i)));
+		for (int i = 0 ; i < 10 && i < nanopubResults.size() ; i++) {
+			nanopubs.add(new NanopubElement(nanopubResults.get(i)[0]));
 		}
 
 		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
@@ -40,5 +43,12 @@ public class FreeTextSearchPage extends WebPage {
 
 		});
 	}
+
+	private static Comparator<String[]> nanopubResultComparator = new Comparator<String[]>() {
+		@Override
+		public int compare(String[] e1, String[] e2) {
+			return e2[2].compareTo(e1[2]);
+		}
+	};
 
 }

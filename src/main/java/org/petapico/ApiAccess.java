@@ -29,8 +29,8 @@ public abstract class ApiAccess {
 	}
 
 	public static String[] apiInstances = new String[] {
-		"http://130.60.24.146:7881/api/local/local/",
-		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/"
+		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/",
+		"http://130.60.24.146:7881/api/local/local/"
 	};
 
 	protected abstract void processHeader(String[] line);
@@ -86,6 +86,25 @@ public abstract class ApiAccess {
 			@Override
 			protected void processLine(String[] line) {
 				result.add(line[column]);
+			}
+			
+			@Override
+			protected void processHeader(String[] line) {
+				// ignore
+			}
+
+		};
+		a.call(operation, params);
+		return result;
+	}
+
+	public static List<String[]> getAllFull(String operation, Map<String,String> params) {
+		final List<String[]> result = new ArrayList<>();
+		ApiAccess a = new ApiAccess() {
+			
+			@Override
+			protected void processLine(String[] line) {
+				result.add(line);
 			}
 			
 			@Override
