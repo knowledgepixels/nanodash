@@ -8,19 +8,37 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class FreeTextSearchPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	private TextField<String> searchField;
+
 	public FreeTextSearchPage(final PageParameters parameters) {
 		String searchText = parameters.get("query").toString();
-		add(new Label("searchtext", searchText));
+		
+		Form<?> form = new Form<Void>("form") {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void onSubmit() {
+				String searchText = searchField.getModelObject();
+				PageParameters params = new PageParameters();
+				params.add("query", searchText);
+				setResponsePage(FreeTextSearchPage.class, params);
+			}
+		};
+		add(form);
+
+		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("text", searchText);

@@ -88,6 +88,12 @@ strong {
 	font-weight: bold;
 }
 
+input {
+  font-size: 12pt;
+  padding: 5px;
+  line-height: 32px;
+}
+
 .hidden {
 	display:none;
 }
