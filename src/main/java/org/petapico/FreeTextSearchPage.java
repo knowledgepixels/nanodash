@@ -56,7 +56,7 @@ public class FreeTextSearchPage extends WebPage {
 				searchQuery += " " + s;
 				previous = s;
 			}
-			System.err.println("QUERY: " + searchQuery);
+			searchQuery = searchQuery.replaceFirst("^ ", "");
 			nanopubParams.put("text", searchQuery);
 			nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
 		}
