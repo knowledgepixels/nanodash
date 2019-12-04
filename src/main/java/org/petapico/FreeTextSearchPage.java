@@ -41,8 +41,25 @@ public class FreeTextSearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
 		Map<String,String> nanopubParams = new HashMap<>();
-		nanopubParams.put("text", searchText);
-		List<String[]> nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+		List<String[]> nanopubResults = new ArrayList<>();
+		if (searchText != null) {
+			String searchQuery = "";
+			String previous = "and";
+			for (String s : searchText.replaceAll("\\(\\s+", "(").replaceAll("\\s+\\)", ")").split("[^\\p{L}0-9\\-_\\(\\)]+")) {
+				if (!s.toLowerCase().matches("and|or|\\(+|\\)+|\\(?not")) {
+					if (!previous.toLowerCase().matches("and|or|\\(?not")) {
+						searchQuery += " AND";
+					}
+				} else {
+					s = s.toUpperCase();
+				}
+				searchQuery += " " + s;
+				previous = s;
+			}
+			System.err.println("QUERY: " + searchQuery);
+			nanopubParams.put("text", searchQuery);
+			nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+		}
 		Collections.sort(nanopubResults, nanopubResultComparator);
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
