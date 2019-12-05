@@ -30,7 +30,7 @@ public class FreeTextSearchPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void onSubmit() {
-				String searchText = searchField.getModelObject();
+				String searchText = searchField.getModelObject().trim();
 				PageParameters params = new PageParameters();
 				params.add("query", searchText);
 				setResponsePage(FreeTextSearchPage.class, params);
@@ -46,6 +46,7 @@ public class FreeTextSearchPage extends WebPage {
 			String searchQuery = "";
 			String previous = "and";
 			for (String s : searchText.replaceAll("\\(\\s+", "(").replaceAll("\\s+\\)", ")").split("[^\\p{L}0-9\\-_\\(\\)]+")) {
+				if (s.matches("[0-9].*")) continue;
 				if (!s.toLowerCase().matches("and|or|\\(+|\\)+|\\(?not")) {
 					if (!previous.toLowerCase().matches("and|or|\\(?not")) {
 						searchQuery += " AND";
@@ -57,8 +58,11 @@ public class FreeTextSearchPage extends WebPage {
 				previous = s;
 			}
 			searchQuery = searchQuery.replaceFirst("^ ", "");
-			nanopubParams.put("text", searchQuery);
-			nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+			System.err.println("QUERY: " + searchQuery);
+			if (!searchQuery.isEmpty()) {
+				nanopubParams.put("text", searchQuery);
+				nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+			}
 		}
 		Collections.sort(nanopubResults, nanopubResultComparator);
 
