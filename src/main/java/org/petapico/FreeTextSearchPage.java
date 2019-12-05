@@ -76,23 +76,23 @@ public class FreeTextSearchPage extends WebPage {
 		for (String s : searchText.replaceAll("\\(\\s+", "(").replaceAll("\\s+\\)", ")").replaceAll("@", "").split("\"")) {
 			inQuote = !inQuote;
 			if (inQuote) {
-				s = "\\\"" + String.join("@", s.split("[^\\p{L}0-9\\-_\\(\\)@]+")) + "\\\"";
+				s = "\\\"" + String.join("@", s.split("[^\\p{L}0-9\\-_]+")) + "\\\"";
 			}
 			preprocessed += s;
 		}
 		preprocessed = preprocessed.trim();
-		for (String s : preprocessed.split(" ")) {
+		for (String s : preprocessed.split("[^\\p{L}0-9\\-_\\(\\)@\\\"\\\\]+")) {
 			if (s.matches("[0-9].*")) continue;
 			if (!s.matches("AND|OR|\\(+|\\)+|\\(?NOT")) {
 				if (s.toLowerCase().matches("and|or|not")) {
 					// ignore lower-case and/or/not
 					continue;
 				}
-				if (!previous.toLowerCase().matches("and|or|\\(?not")) {
+				if (!previous.matches("AND|OR|\\(?NOT")) {
 					searchQuery += " AND";
 				}
 			}
-			searchQuery += " " + s;
+			searchQuery += " " + s.toLowerCase();
 			previous = s;
 		}
 		searchQuery = searchQuery.replaceAll("@", " ").trim();
