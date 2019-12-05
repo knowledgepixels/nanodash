@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,18 +99,24 @@ public abstract class ApiAccess {
 		return result;
 	}
 
-	public static List<String[]> getAllFull(String operation, Map<String,String> params) {
-		final List<String[]> result = new ArrayList<>();
+	public static List<Map<String,String>> getAllFull(String operation, Map<String,String> params) {
+		final List<Map<String,String>> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {
-			
-			@Override
-			protected void processLine(String[] line) {
-				result.add(line);
-			}
+
+			String[] header;
 			
 			@Override
 			protected void processHeader(String[] line) {
-				// ignore
+				header = line;
+			}
+
+			@Override
+			protected void processLine(String[] line) {
+				Map<String,String> entry = new HashMap<String,String>();
+				for (int i = 0 ; i < line.length ; i++) {
+					entry.put(header[i], line[i]);
+				}
+				result.add(entry);
 			}
 
 		};

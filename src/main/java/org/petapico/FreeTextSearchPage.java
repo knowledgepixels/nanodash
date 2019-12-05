@@ -41,19 +41,30 @@ public class FreeTextSearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
 		Map<String,String> nanopubParams = new HashMap<>();
-		List<String[]> nanopubResults = new ArrayList<>();
+		List<Map<String,String>> nanopubResults = new ArrayList<>();
 		if (searchText != null) {
-			String searchQuery = getSearchQuery(searchText);
-			if (!searchQuery.isEmpty()) {
-				nanopubParams.put("text", searchQuery);
-				nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+			searchText = searchText.trim();
+			if (searchText.matches("https?://[^\\s]+")) {
+				System.err.println("URI QUERY: " + searchText);
+				nanopubParams.put("ref", searchText);
+				nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_uri", nanopubParams);
+			} else {
+				String freeTextQuery = getFreeTextQuery(searchText);
+				if (!freeTextQuery.isEmpty()) {
+					System.err.println("FREE TEXT QUERY: " + freeTextQuery);
+					nanopubParams.put("text", freeTextQuery);
+					nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+				}
 			}
 		}
 		Collections.sort(nanopubResults, nanopubResultComparator);
-
 		List<NanopubElement> nanopubs = new ArrayList<>();
-		for (int i = 0 ; i < 10 && i < nanopubResults.size() ; i++) {
-			nanopubs.add(new NanopubElement(nanopubResults.get(i)[0]));
+		Map<String,Boolean> nanopubUris = new HashMap<>();
+		while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
+			String npUri = nanopubResults.remove(0).get("np");
+			if (nanopubUris.containsKey(npUri)) continue;
+			nanopubUris.put(npUri, true);
+			nanopubs.add(new NanopubElement(npUri));
 		}
 
 		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
@@ -68,8 +79,8 @@ public class FreeTextSearchPage extends WebPage {
 		});
 	}
 
-	private static String getSearchQuery(String searchText) {
-		String searchQuery = "";
+	private static String getFreeTextQuery(String searchText) {
+		String freeTextQuery = "";
 		String previous = "AND";
 		String preprocessed = "";
 		boolean inQuote = true;
@@ -89,21 +100,20 @@ public class FreeTextSearchPage extends WebPage {
 					continue;
 				}
 				if (!previous.matches("AND|OR|\\(?NOT")) {
-					searchQuery += " AND";
+					freeTextQuery += " AND";
 				}
 			}
-			searchQuery += " " + s.toLowerCase();
+			freeTextQuery += " " + s.toLowerCase();
 			previous = s;
 		}
-		searchQuery = searchQuery.replaceAll("@", " ").trim();
-		System.err.println("QUERY: " + searchQuery);
-		return searchQuery;
+		freeTextQuery = freeTextQuery.replaceAll("@", " ").trim();
+		return freeTextQuery;
 	}
 
-	private static Comparator<String[]> nanopubResultComparator = new Comparator<String[]>() {
+	private static Comparator<Map<String,String>> nanopubResultComparator = new Comparator<Map<String,String>>() {
 		@Override
-		public int compare(String[] e1, String[] e2) {
-			return e2[2].compareTo(e1[2]);
+		public int compare(Map<String,String> e1, Map<String,String> e2) {
+			return e2.get("date").compareTo(e1.get("date"));
 		}
 	};
 
