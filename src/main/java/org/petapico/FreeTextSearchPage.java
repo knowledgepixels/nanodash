@@ -43,22 +43,7 @@ public class FreeTextSearchPage extends WebPage {
 		Map<String,String> nanopubParams = new HashMap<>();
 		List<String[]> nanopubResults = new ArrayList<>();
 		if (searchText != null) {
-			String searchQuery = "";
-			String previous = "and";
-			for (String s : searchText.replaceAll("\\(\\s+", "(").replaceAll("\\s+\\)", ")").split("[^\\p{L}0-9\\-_\\(\\)]+")) {
-				if (s.matches("[0-9].*")) continue;
-				if (!s.toLowerCase().matches("and|or|\\(+|\\)+|\\(?not")) {
-					if (!previous.toLowerCase().matches("and|or|\\(?not")) {
-						searchQuery += " AND";
-					}
-				} else {
-					s = s.toUpperCase();
-				}
-				searchQuery += " " + s;
-				previous = s;
-			}
-			searchQuery = searchQuery.replaceFirst("^ ", "");
-			System.err.println("QUERY: " + searchQuery);
+			String searchQuery = getSearchQuery(searchText);
 			if (!searchQuery.isEmpty()) {
 				nanopubParams.put("text", searchQuery);
 				nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
@@ -81,6 +66,38 @@ public class FreeTextSearchPage extends WebPage {
 			}
 
 		});
+	}
+
+	private static String getSearchQuery(String searchText) {
+		String searchQuery = "";
+		String previous = "AND";
+		String preprocessed = "";
+		boolean inQuote = true;
+		for (String s : searchText.replaceAll("\\(\\s+", "(").replaceAll("\\s+\\)", ")").replaceAll("@", "").split("\"")) {
+			inQuote = !inQuote;
+			if (inQuote) {
+				s = "\\\"" + String.join("@", s.split("[^\\p{L}0-9\\-_\\(\\)@]+")) + "\\\"";
+			}
+			preprocessed += s;
+		}
+		preprocessed = preprocessed.trim();
+		for (String s : preprocessed.split(" ")) {
+			if (s.matches("[0-9].*")) continue;
+			if (!s.matches("AND|OR|\\(+|\\)+|\\(?NOT")) {
+				if (s.toLowerCase().matches("and|or|not")) {
+					// ignore lower-case and/or/not
+					continue;
+				}
+				if (!previous.toLowerCase().matches("and|or|\\(?not")) {
+					searchQuery += " AND";
+				}
+			}
+			searchQuery += " " + s;
+			previous = s;
+		}
+		searchQuery = searchQuery.replaceAll("@", " ").trim();
+		System.err.println("QUERY: " + searchQuery);
+		return searchQuery;
 	}
 
 	private static Comparator<String[]> nanopubResultComparator = new Comparator<String[]>() {
