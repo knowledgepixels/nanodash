@@ -5,10 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -24,8 +29,8 @@ public abstract class ApiAccess {
 	private static HttpClient httpClient;
 
 	static {
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(10000)
-				.setConnectionRequestTimeout(100).setSocketTimeout(10000).build();
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(50000)
+				.setConnectionRequestTimeout(500).setSocketTimeout(50000).build();
 		httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 	}
 
@@ -99,7 +104,7 @@ public abstract class ApiAccess {
 		return result;
 	}
 
-	public static List<Map<String,String>> getAllFull(String operation, Map<String,String> params) {
+	public static List<Map<String,String>> getAll(String operation, Map<String,String> params) {
 		final List<Map<String,String>> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {
 
@@ -124,6 +129,66 @@ public abstract class ApiAccess {
 		return result;
 	}
 
+	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params) {
+		Map<String,Map<String,String>> resultEntries = new HashMap<>();
+		Calendar day = Calendar.getInstance();
+		day.setTimeZone(timeZone);
+		int level = 3;
+		while (true) {
+			Map<String,String> paramsx = new HashMap<>(params);
+			if (level == 0) {
+				System.err.println("Checking " + getDayString(day));
+				paramsx.put("day", "http://purl.org/nanopub/admin/date/" + getDayString(day));
+			} else if (level == 1) {
+				System.err.println("Checking " + getMonthString(day));
+				paramsx.put("month", "http://purl.org/nanopub/admin/date/" + getMonthString(day));
+			} else if (level == 2) {
+				System.err.println("Checking " + getYearString(day));
+				paramsx.put("year", "http://purl.org/nanopub/admin/date/" + getYearString(day));
+			} else {
+				System.err.println("Checking overall");
+			}
+			List<Map<String,String>> tempResult = getAll(operation, paramsx);
+			if (tempResult.size() == 1000 && level > 0) {
+				level--;
+				System.err.println("MOVE DOWN");
+				continue;
+			}
+			for (Map<String,String> r : tempResult) {
+				resultEntries.put(r.get("np"), r);
+			}
+			System.err.println("RESULT SIZE:" + resultEntries.size());
+			if (resultEntries.size() < 10) {
+				if (level == 0) {
+					if (day.get(Calendar.DAY_OF_MONTH) > 1) {
+						day.add(Calendar.DATE, -1);
+						System.err.println("MOVE LEFT");
+						continue;
+					}
+				} else if (level == 1) {
+					if (day.get(Calendar.MONTH) > 1) {
+						day.add(Calendar.MONTH, -1);
+						day.set(Calendar.DAY_OF_MONTH, day.getActualMaximum(Calendar.DAY_OF_MONTH));
+						System.err.println("MOVE LEFT");
+						continue;
+					}
+				} else if (level == 2) {
+					if (day.get(Calendar.YEAR) > 2013) {
+						day.set(Calendar.DAY_OF_MONTH, 31);
+						day.set(Calendar.MONTH, 11);
+						day.add(Calendar.YEAR, -1);
+						System.err.println("MOVE LEFT");
+						continue;
+					}
+				}
+			}
+			break;
+		}
+		List<Map<String,String>> result = new ArrayList<>(resultEntries.values());
+		Collections.sort(result, nanopubResultComparator);
+		return result;
+	}
+
 	private static boolean wasSuccessful(HttpResponse resp) {
 		int c = resp.getStatusLine().getStatusCode();
 		return c >= 200 && c < 300;
@@ -136,5 +201,32 @@ public abstract class ApiAccess {
 			throw new RuntimeException(ex);
 		}
 	}
+
+	private static TimeZone timeZone = TimeZone.getTimeZone("UTC");
+
+	private static String getDayString(Calendar c) {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		df.setTimeZone(timeZone);
+		return df.format(c.getTime());
+	}
+
+	private static String getMonthString(Calendar c) {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM");
+		df.setTimeZone(timeZone);
+		return df.format(c.getTime());
+	}
+
+	private static String getYearString(Calendar c) {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy");
+		df.setTimeZone(timeZone);
+		return df.format(c.getTime());
+	}
+
+	private static Comparator<Map<String,String>> nanopubResultComparator = new Comparator<Map<String,String>>() {
+		@Override
+		public int compare(Map<String,String> e1, Map<String,String> e2) {
+			return e2.get("date").compareTo(e1.get("date"));
+		}
+	};
 
 }

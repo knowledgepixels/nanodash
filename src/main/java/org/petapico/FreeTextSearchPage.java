@@ -1,8 +1,6 @@
 package org.petapico;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,23 +46,19 @@ public class FreeTextSearchPage extends WebPage {
 			if (searchText.matches("https?://[^\\s]+")) {
 				System.err.println("URI QUERY: " + searchText);
 				nanopubParams.put("ref", searchText);
-				nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_uri", nanopubParams);
+				nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams);
 			} else {
 				String freeTextQuery = getFreeTextQuery(searchText);
 				if (!freeTextQuery.isEmpty()) {
 					System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 					nanopubParams.put("text", freeTextQuery);
-					nanopubResults = ApiAccess.getAllFull("find_nanopubs_with_text", nanopubParams);
+					nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams);
 				}
 			}
 		}
-		Collections.sort(nanopubResults, nanopubResultComparator);
 		List<NanopubElement> nanopubs = new ArrayList<>();
-		Map<String,Boolean> nanopubUris = new HashMap<>();
 		while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
 			String npUri = nanopubResults.remove(0).get("np");
-			if (nanopubUris.containsKey(npUri)) continue;
-			nanopubUris.put(npUri, true);
 			nanopubs.add(new NanopubElement(npUri));
 		}
 
@@ -110,12 +104,5 @@ public class FreeTextSearchPage extends WebPage {
 		freeTextQuery = freeTextQuery.replaceAll("@", " ").trim();
 		return freeTextQuery;
 	}
-
-	private static Comparator<Map<String,String>> nanopubResultComparator = new Comparator<Map<String,String>>() {
-		@Override
-		public int compare(Map<String,String> e1, Map<String,String> e2) {
-			return e2.get("date").compareTo(e1.get("date"));
-		}
-	};
 
 }
