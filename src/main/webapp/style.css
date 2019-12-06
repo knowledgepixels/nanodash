@@ -120,6 +120,18 @@ input {
 	height:100%;
 }
 
+.na {
+  color: #99ccff;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+}
+
+.no {
+  color: #f3a08c;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+}
+
 .backpane {
 	background-color: #fff;
 }

@@ -41,6 +41,7 @@ public class FreeTextSearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
 		Map<String,String> nanopubParams = new HashMap<>();
+//		nanopubParams.put("day", "http://purl.org/nanopub/admin/date/2019-08-11");
 		List<Map<String,String>> nanopubResults = new ArrayList<>();
 		if (searchText != null) {
 			searchText = searchText.trim();
