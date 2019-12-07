@@ -22,11 +22,11 @@
       <version>${wicket.version}</version>
       <type>pom</type>
     </dependency>
-    <!--
-      OPTIONAL <dependency> <groupId>org.apache.wicket</groupId>
+    <dependency>
+      <groupId>org.apache.wicket</groupId>
       <artifactId>wicket-extensions</artifactId>
-      <version>${wicket.version}</version> </dependency>
-    -->
+      <version>${wicket.version}</version>
+    </dependency>
 
     <!-- LOGGING DEPENDENCIES - LOG4J -->
     <dependency>
