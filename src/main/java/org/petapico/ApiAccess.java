@@ -21,6 +21,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.wicket.model.Model;
 
 import com.opencsv.CSVReader;
 
@@ -129,7 +130,7 @@ public abstract class ApiAccess {
 		return result;
 	}
 
-	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params) {
+	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params, Model<String> progressModel) {
 		Map<String,Map<String,String>> resultEntries = new HashMap<>();
 		Calendar day = Calendar.getInstance();
 		day.setTimeZone(timeZone);
@@ -137,16 +138,16 @@ public abstract class ApiAccess {
 		while (true) {
 			Map<String,String> paramsx = new HashMap<>(params);
 			if (level == 0) {
-				System.err.println("Checking " + getDayString(day));
+				progressModel.setObject("Searching for results in " + getDayString(day) + "...");
 				paramsx.put("day", "http://purl.org/nanopub/admin/date/" + getDayString(day));
 			} else if (level == 1) {
-				System.err.println("Checking " + getMonthString(day));
+				progressModel.setObject("Searching for results in " + getMonthString(day) + "...");
 				paramsx.put("month", "http://purl.org/nanopub/admin/date/" + getMonthString(day));
 			} else if (level == 2) {
-				System.err.println("Checking " + getYearString(day));
+				progressModel.setObject("Searching for results in " + getYearString(day) + "...");
 				paramsx.put("year", "http://purl.org/nanopub/admin/date/" + getYearString(day));
 			} else {
-				System.err.println("Checking overall");
+				progressModel.setObject("Searching for results...");
 			}
 			List<Map<String,String>> tempResult = getAll(operation, paramsx);
 			if (tempResult.size() == 1000 && level > 0) {

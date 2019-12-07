@@ -132,6 +132,10 @@ input {
   -webkit-text-stroke-color: black;
 }
 
+.status {
+  color: #888888;
+}
+
 .backpane {
 	background-color: #fff;
 }
