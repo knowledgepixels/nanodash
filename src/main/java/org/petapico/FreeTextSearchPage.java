@@ -45,7 +45,7 @@ public class FreeTextSearchPage extends WebPage {
 		progressModel = new Model<>();
 		final Label progressLabel = new Label("progress", progressModel);
 		progressLabel.setOutputMarkupId(true);
-		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(200)));
+		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(500)));
 		add(progressLabel);
 
 		final List<NanopubElement> nanopubs = new ArrayList<>();

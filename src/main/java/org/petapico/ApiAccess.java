@@ -30,8 +30,8 @@ public abstract class ApiAccess {
 	private static HttpClient httpClient;
 
 	static {
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(50000)
-				.setConnectionRequestTimeout(500).setSocketTimeout(50000).build();
+		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(10000)
+				.setConnectionRequestTimeout(100).setSocketTimeout(10000).build();
 		httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 	}
 
