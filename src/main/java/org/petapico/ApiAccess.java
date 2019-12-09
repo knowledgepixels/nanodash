@@ -44,7 +44,7 @@ public abstract class ApiAccess {
 
 	protected abstract void processLine(String[] line);
 
-	public void call(String operation, Map<String,String> params) {
+	public void call(String operation, Map<String,String> params) throws IOException {
 		String paramString = "";
 		if (params != null) {
 			paramString = "?";
@@ -57,36 +57,31 @@ public abstract class ApiAccess {
 
 		String apiUrl = apiInstances[0];  // TODO: check several APIs
 		CSVReader csvReader = null;
+		HttpGet get = new HttpGet(apiUrl + operation + paramString);
+		get.setHeader("Accept", "text/csv");
 		try {
-			HttpGet get = new HttpGet(apiUrl + operation + paramString);
-			get.setHeader("Accept", "text/csv");
-			try {
-				HttpResponse resp = httpClient.execute(get);
-				if (!wasSuccessful(resp)) {
-					EntityUtils.consumeQuietly(resp.getEntity());
-					throw new IOException(resp.getStatusLine().toString());
-				}
-				csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
-				String[] line = null;
-				int n = 0;
-				while ((line = csvReader.readNext()) != null) {
-					n++;
-					if (n == 1) {
-						processHeader(line);
-					} else {
-						processLine(line);
-					}
-				}
-			} finally {
-				if (csvReader != null) csvReader.close();
+			HttpResponse resp = httpClient.execute(get);
+			if (!wasSuccessful(resp)) {
+				EntityUtils.consumeQuietly(resp.getEntity());
+				throw new IOException(resp.getStatusLine().toString());
 			}
-		} catch (IOException ex) {
-			// TODO: proper logging
-			ex.printStackTrace();
+			csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
+			String[] line = null;
+			int n = 0;
+			while ((line = csvReader.readNext()) != null) {
+				n++;
+				if (n == 1) {
+					processHeader(line);
+				} else {
+					processLine(line);
+				}
+			}
+		} finally {
+			if (csvReader != null) csvReader.close();
 		}
 	}
 
-	public static List<String> getAll(String operation, Map<String,String> params, final int column) {
+	public static List<String> getAll(String operation, Map<String,String> params, final int column) throws IOException {
 		final List<String> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {
 			
@@ -105,7 +100,7 @@ public abstract class ApiAccess {
 		return result;
 	}
 
-	public static List<Map<String,String>> getAll(String operation, Map<String,String> params) {
+	public static List<Map<String,String>> getAll(String operation, Map<String,String> params) throws IOException {
 		final List<Map<String,String>> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {
 
@@ -130,29 +125,47 @@ public abstract class ApiAccess {
 		return result;
 	}
 
-	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params, Model<String> progressModel) {
+	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params, Model<String> progress) {
 		Map<String,Map<String,String>> resultEntries = new HashMap<>();
+		Map<String,Map<String,String>> overflowEntries = new HashMap<>();
+		int moveLeftCount = 0;
 		Calendar day = Calendar.getInstance();
 		day.setTimeZone(timeZone);
 		int level = 3;
 		while (true) {
 			Map<String,String> paramsx = new HashMap<>(params);
 			if (level == 0) {
-				progressModel.setObject("Searching for results in " + getDayString(day) + "...");
+				progress.setObject("Searching for results in " + getDayString(day) + "...");
 				paramsx.put("day", "http://purl.org/nanopub/admin/date/" + getDayString(day));
 			} else if (level == 1) {
-				progressModel.setObject("Searching for results in " + getMonthString(day) + "...");
+				progress.setObject("Searching for results in " + getMonthString(day) + "...");
 				paramsx.put("month", "http://purl.org/nanopub/admin/date/" + getMonthString(day));
 			} else if (level == 2) {
-				progressModel.setObject("Searching for results in " + getYearString(day) + "...");
+				progress.setObject("Searching for results in " + getYearString(day) + "...");
 				paramsx.put("year", "http://purl.org/nanopub/admin/date/" + getYearString(day));
 			} else {
-				progressModel.setObject("Searching for results...");
+				progress.setObject("Searching for results...");
 			}
-			List<Map<String,String>> tempResult = getAll(operation, paramsx);
+			List<Map<String,String>> tempResult;
+			try {
+				tempResult = getAll(operation, paramsx);
+			} catch (IOException ex) {
+				// TODO distinguish between different types of exceptions
+				ex.printStackTrace();
+				if (level > 0) {
+					level--;
+					System.err.println("MOVE DOWN");
+					continue;
+				}
+				break;
+			}
+			System.err.println("LIST SIZE:" + tempResult.size());
 			if (tempResult.size() == 1000 && level > 0) {
 				level--;
 				System.err.println("MOVE DOWN");
+				for (Map<String,String> r : tempResult) {
+					overflowEntries.put(r.get("np"), r);
+				}
 				continue;
 			}
 			for (Map<String,String> r : tempResult) {
@@ -162,15 +175,19 @@ public abstract class ApiAccess {
 			if (resultEntries.size() < 10) {
 				if (level == 0) {
 					if (day.get(Calendar.DAY_OF_MONTH) > 1) {
+						if (moveLeftCount > 90) break;
 						day.add(Calendar.DATE, -1);
 						System.err.println("MOVE LEFT");
+						moveLeftCount += 1;
 						continue;
 					}
 				} else if (level == 1) {
 					if (day.get(Calendar.MONTH) > 1) {
+						if (moveLeftCount > 730) break;
 						day.add(Calendar.MONTH, -1);
 						day.set(Calendar.DAY_OF_MONTH, day.getActualMaximum(Calendar.DAY_OF_MONTH));
 						System.err.println("MOVE LEFT");
+						moveLeftCount += 30;
 						continue;
 					}
 				} else if (level == 2) {
@@ -179,12 +196,14 @@ public abstract class ApiAccess {
 						day.set(Calendar.MONTH, 11);
 						day.add(Calendar.YEAR, -1);
 						System.err.println("MOVE LEFT");
+						moveLeftCount += 365;
 						continue;
 					}
 				}
 			}
 			break;
 		}
+		resultEntries.putAll(overflowEntries);
 		List<Map<String,String>> result = new ArrayList<>(resultEntries.values());
 		Collections.sort(result, nanopubResultComparator);
 		return result;

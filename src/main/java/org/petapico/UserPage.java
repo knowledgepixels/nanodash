@@ -1,5 +1,6 @@
 package org.petapico;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,13 @@ public class UserPage extends WebPage {
 			Map<String,String> nanopubParams = new HashMap<>();
 			nanopubParams.put("pubkey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
 			nanopubParams.put("creator", userId);
-			nanopubUris = ApiAccess.getAll("find_signed_nanopubs", nanopubParams, 0);
+			nanopubUris = new ArrayList<>();
+			try {
+				nanopubUris = ApiAccess.getAll("find_signed_nanopubs", nanopubParams, 0);
+			} catch (IOException ex) {
+				// TODO do something here
+				ex.printStackTrace();
+			}
 		}
 
 		List<NanopubElement> nanopubs = new ArrayList<>();

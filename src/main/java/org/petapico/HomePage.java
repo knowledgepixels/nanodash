@@ -1,5 +1,7 @@
 package org.petapico;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.markup.html.WebPage;
@@ -35,7 +37,13 @@ public class HomePage extends WebPage {
 		add(form);
 		form.add(searchField = new TextField<String>("search", Model.of("")));
 
-		List<String> users = ApiAccess.getAll("get_all_users", null, 0);
+		List<String> users = new ArrayList<>();
+		try {
+			users = ApiAccess.getAll("get_all_users", null, 0);
+		} catch (IOException ex) {
+			// TODO do something here
+			ex.printStackTrace();
+		}
 		add(new DataView<String>("users", new ListDataProvider<String>(users)) {
 
 			private static final long serialVersionUID = 1L;

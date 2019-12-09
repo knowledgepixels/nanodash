@@ -20,7 +20,7 @@ public class FreeTextSearchPage extends WebPage {
 	private static final long serialVersionUID = 1L;
 
 	private TextField<String> searchField;
-	private Model<String> progressModel;
+	private Model<String> progress;
 	private boolean nanopubsReady = false;
 
 	public FreeTextSearchPage(final PageParameters parameters) {
@@ -42,8 +42,8 @@ public class FreeTextSearchPage extends WebPage {
 
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
-		progressModel = new Model<>();
-		final Label progressLabel = new Label("progress", progressModel);
+		progress = new Model<>();
+		final Label progressLabel = new Label("progress", progress);
 		progressLabel.setOutputMarkupId(true);
 		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(500)));
 		add(progressLabel);
@@ -66,7 +66,7 @@ public class FreeTextSearchPage extends WebPage {
 
 			@Override
 			public NanopubResults getLazyLoadComponent(String markupId) {
-				progressModel.setObject("");
+				progress.setObject("");
 				return new NanopubResults(markupId, nanopubs);
 			}
 		});
@@ -83,13 +83,13 @@ public class FreeTextSearchPage extends WebPage {
 					if (s.matches("https?://[^\\s]+")) {
 						System.err.println("URI QUERY: " + s);
 						nanopubParams.put("ref", s);
-						nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progressModel);
+						nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
 					} else {
 						String freeTextQuery = getFreeTextQuery(s);
 						if (!freeTextQuery.isEmpty()) {
 							System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 							nanopubParams.put("text", freeTextQuery);
-							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progressModel);
+							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
 						}
 					}
 				}

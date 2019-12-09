@@ -1,5 +1,6 @@
 package org.petapico;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,13 @@ public class TypePage extends WebPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("type", typeId);
-		List<String> nanopubUris = ApiAccess.getAll("find_nanopubs_with_type", nanopubParams, 0);
+		List<String> nanopubUris = new ArrayList<>();
+		try {
+			nanopubUris = ApiAccess.getAll("find_nanopubs_with_type", nanopubParams, 0);
+		} catch (IOException ex) {
+			// TODO do something here
+			ex.printStackTrace();
+		}
 
 		List<NanopubElement> nanopubs = new ArrayList<>();
 		for (int i = 0 ; i < 10 && i < nanopubUris.size() ; i++) {
