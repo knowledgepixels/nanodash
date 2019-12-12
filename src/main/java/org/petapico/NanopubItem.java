@@ -1,5 +1,8 @@
 package org.petapico;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -21,6 +24,23 @@ public class NanopubItem extends Panel {
 		} else {
 			add(new Label("datetime", "(undated)"));
 		}
+		String userString = "";
+		try {
+			if (n.hasValidSignature()) {
+				Set<String> users = new HashSet<>();
+				try {
+					users = Utils.getUsers(n.getPubkey());
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				if (users.size() == 1) {
+					userString = users.iterator().next().replaceFirst("^https?://orcid.org/", "orcid:");
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		add(new Label("user", userString));
 		String types = "";
 		for (IRI type : n.getTypes()) {
 			types += " " + Utils.getShortNameFromURI(type).replaceFirst("Nanopub$", "");
@@ -36,6 +56,7 @@ public class NanopubItem extends Panel {
 					negativeNotes = "invalid signature";
 				}
 			} catch (Exception ex) {
+				ex.printStackTrace();
 				negativeNotes = "malformed or legacy signature";
 			}
 		}

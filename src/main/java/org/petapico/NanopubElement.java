@@ -64,6 +64,11 @@ public class NanopubElement implements Serializable {
 		return seemsToHaveSignature;
 	}
 
+	public String getPubkey() throws GeneralSecurityException, MalformedCryptoElementException {
+		if (!hasValidSignature()) return null;
+		return SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
+	}
+
 	public boolean hasValidSignature() throws GeneralSecurityException, MalformedCryptoElementException {
 		if (hasValidSignature == null) {
 			hasValidSignature = SignatureUtils.hasValidSignature(SignatureUtils.getSignatureElement(nanopub));

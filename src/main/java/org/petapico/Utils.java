@@ -1,9 +1,12 @@
 package org.petapico;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -50,4 +53,46 @@ public class Utils {
 		return introNanopub;
 	}
 
+	private static Map<String,Set<String>> pubkeysForUser;
+
+	private static Map<String,Set<String>> usersForPubkey;
+
+	private static void collectUserData() {
+		pubkeysForUser = new HashMap<>();
+		usersForPubkey = new HashMap<>();
+		List<Map<String,String>> userResults;
+		try {
+			userResults = ApiAccess.getAll("get_all_users", null);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			// TODO
+			return;
+		}
+		for (Map<String,String> entry : userResults) {
+			String userId = entry.get("user");
+			String pubkey = entry.get("pubkey");
+			Set<String> pubkeys = pubkeysForUser.get(userId);
+			if (pubkeys == null) {
+				pubkeys = new HashSet<>();
+				pubkeysForUser.put(userId, pubkeys);
+			}
+			pubkeys.add(pubkey);
+			Set<String> users = usersForPubkey.get(pubkey);
+			if (users == null) {
+				users = new HashSet<>();
+				usersForPubkey.put(pubkey, users);
+			}
+			users.add(userId);
+		}
+	}
+
+	public static Set<String> getPubkeys(String userId) {
+		if (pubkeysForUser == null) collectUserData();
+		return pubkeysForUser.get(userId);
+	}
+
+	public static Set<String> getUsers(String pubkey) {
+		if (usersForPubkey == null) collectUserData();
+		return usersForPubkey.get(pubkey);
+	}
 }
