@@ -42,7 +42,7 @@ public class TypePage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				item.add(new NanopubItem("nanopub", item.getModelObject(), false));
+				item.add(new NanopubItem("nanopub", item.getModelObject()));
 			}
 
 		});

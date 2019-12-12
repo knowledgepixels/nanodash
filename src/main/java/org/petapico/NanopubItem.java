@@ -10,7 +10,7 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubItem(String id, NanopubElement n, boolean markAsRetracted) {
+	public NanopubItem(String id, NanopubElement n) {
 		super(id);
 
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
@@ -39,7 +39,7 @@ public class NanopubItem extends Panel {
 				negativeNotes = "malformed or legacy signature";
 			}
 		}
-		if (markAsRetracted) {
+		if (n.isRetracted()) {
 			positiveNotes = "";
 			negativeNotes = "retracted";
 		}

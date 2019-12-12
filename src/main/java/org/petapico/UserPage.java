@@ -1,19 +1,21 @@
 package org.petapico;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
+import org.apache.wicket.util.time.Duration;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -21,6 +23,9 @@ import org.nanopub.extra.security.KeyDeclaration;
 public class UserPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
+
+	private Model<String> progress;
+	private boolean nanopubsReady = false;
 
 	public UserPage(final PageParameters parameters) {
 		String userId = parameters.get("id").toString();
@@ -63,43 +68,53 @@ public class UserPage extends WebPage {
 
 		});
 
-		List<String> nanopubUris;
-		if (keyDeclarations.isEmpty()) {
-			nanopubUris = new ArrayList<>();
-		} else {
-			Map<String,String> nanopubParams = new HashMap<>();
-			nanopubParams.put("pubkey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
-			nanopubParams.put("creator", userId);
-			nanopubUris = new ArrayList<>();
-			try {
-				nanopubUris = ApiAccess.getAll("find_signed_nanopubs", nanopubParams, 0);
-			} catch (IOException ex) {
-				// TODO do something here
-				ex.printStackTrace();
-			}
-		}
+		progress = new Model<>();
+		final Label progressLabel = new Label("progress", progress);
+		progressLabel.setOutputMarkupId(true);
+		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(500)));
+		add(progressLabel);
 
-		List<NanopubElement> nanopubs = new ArrayList<>();
-		final Map<String,Boolean> retracted = new HashMap<>();
-		for (String uri : nanopubUris) {
-			NanopubElement ne = new NanopubElement(uri);
-			IRI retractionTarget = ne.getRetractionTarget();
-			if (retractionTarget != null) {
-				retracted.put(retractionTarget.stringValue(), true);
-			}
-			nanopubs.add(ne);
-		}
-		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
+		final List<NanopubElement> nanopubs = new ArrayList<>();
+
+		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<NanopubElement> item) {
-				NanopubElement ne = item.getModelObject();
-				item.add(new NanopubItem("nanopub", item.getModelObject(), retracted.containsKey(ne.getUri())));
-			}
+			protected boolean isContentReady() {
+				return nanopubsReady;
+			};
 
+			@Override
+			protected Duration getUpdateInterval() {
+				return Duration.milliseconds(1000);
+			};
+
+			@Override
+			public NanopubResults getLazyLoadComponent(String markupId) {
+				progress.setObject("");
+				return new NanopubResults(markupId, nanopubs);
+			}
 		});
+		
+
+		Thread loadContent = new Thread() {
+			@Override
+			public void run() {
+				Map<String,String> nanopubParams = new HashMap<>();
+				List<Map<String,String>> nanopubResults = new ArrayList<>();
+				nanopubParams.put("pubkey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
+				nanopubParams.put("creator", userId);
+				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress);
+				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
+					Map<String,String> resultEntry = nanopubResults.remove(0);
+					String npUri = resultEntry.get("np");
+					nanopubs.add(new NanopubElement(npUri, !resultEntry.get("retraction").isEmpty()));
+				}
+				nanopubsReady = true;
+			}
+		};
+		loadContent.start();
 	}
 
 }

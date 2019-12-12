@@ -27,17 +27,23 @@ public class NanopubElement implements Serializable {
 	private Boolean isRetraction;
 	private Boolean hasRetractionTarget;
 	private IRI retractionTarget;
-
-	public NanopubElement(Nanopub nanopub) {
-		this.nanopub = nanopub;
-	}
+	private boolean retracted;
 
 	public NanopubElement(String uri) {
+		this(uri, false);
+	}
+
+	public NanopubElement(String uri, boolean retracted) {
 		this.nanopub = GetNanopub.get(uri);
+		this.retracted = retracted;
 	}
 
 	public Nanopub getNanopub() {
 		return nanopub;
+	}
+
+	public boolean isRetracted() {
+		return retracted;
 	}
 
 	public String getUri() {
