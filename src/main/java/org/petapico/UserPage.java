@@ -24,21 +24,6 @@ public class UserPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	private static Map<String,IntroNanopub> introNanopubs = new HashMap<>();
-
-	public static IntroNanopub getIntroNanopub(String userId) {
-		IntroNanopub introNanopub = introNanopubs.get(userId);
-		if (introNanopub == null) {
-			try {
-				introNanopub = IntroNanopub.get(userId);
-				introNanopubs.put(userId, introNanopub);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-		return introNanopub;
-	}
-
 	private Model<String> progress;
 	private boolean nanopubsReady = false;
 
@@ -46,7 +31,7 @@ public class UserPage extends WebPage {
 		String userId = parameters.get("id").toString();
 		add(new Label("userid", userId));
 
-		IntroNanopub introNanopub = getIntroNanopub(userId);
+		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
 		List<KeyDeclaration> keyDeclarations;
 		if (introNanopub != null && introNanopub.getNanopub() != null) {
 			Nanopub np = introNanopub.getNanopub();

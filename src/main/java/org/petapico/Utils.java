@@ -1,13 +1,16 @@
 package org.petapico;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.security.IntroNanopub;
 
 public class Utils {
 
@@ -30,6 +33,21 @@ public class Utils {
 		u = u.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
 		u = u.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
 		return u;
+	}
+
+	private static Map<String,IntroNanopub> introNanopubs = new HashMap<>();
+
+	public static IntroNanopub getIntroNanopub(String userId) {
+		IntroNanopub introNanopub = introNanopubs.get(userId);
+		if (introNanopub == null) {
+			try {
+				introNanopub = IntroNanopub.get(userId);
+				introNanopubs.put(userId, introNanopub);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		return introNanopub;
 	}
 
 }
