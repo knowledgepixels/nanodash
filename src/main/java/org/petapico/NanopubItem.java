@@ -27,14 +27,15 @@ public class NanopubItem extends Panel {
 		String userString = "";
 		try {
 			if (n.hasValidSignature()) {
-				Set<String> users = new HashSet<>();
-				try {
-					users = Utils.getUsers(n.getPubkey());
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-				if (users.size() == 1) {
-					userString = users.iterator().next().replaceFirst("^https?://orcid.org/", "orcid:");
+				String userName = Utils.getUserName(n.getPubkey());
+				if (userName != null && !userName.isEmpty()) {
+					userString = userName;
+				} else {
+					Set<String> userIds = new HashSet<>();
+					userIds = Utils.getUserIds(n.getPubkey());
+					if (userIds.size() == 1) {
+						userString = userIds.iterator().next().replaceFirst("^https?://orcid.org/", "orcid:");
+					}
 				}
 			}
 		} catch (Exception ex) {

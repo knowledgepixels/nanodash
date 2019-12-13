@@ -55,11 +55,14 @@ public class Utils {
 
 	private static Map<String,Set<String>> pubkeysForUser;
 
-	private static Map<String,Set<String>> usersForPubkey;
+	private static Map<String,Set<String>> userIdsForPubkey;
+
+	private static Map<String,String> userNameForPubkey;
 
 	private static void collectUserData() {
 		pubkeysForUser = new HashMap<>();
-		usersForPubkey = new HashMap<>();
+		userIdsForPubkey = new HashMap<>();
+		userNameForPubkey = new HashMap<>();
 		List<Map<String,String>> userResults;
 		try {
 			userResults = ApiAccess.getAll("get_all_users", null);
@@ -71,18 +74,22 @@ public class Utils {
 		for (Map<String,String> entry : userResults) {
 			String userId = entry.get("user");
 			String pubkey = entry.get("pubkey");
+			String userName = entry.get("name");
 			Set<String> pubkeys = pubkeysForUser.get(userId);
 			if (pubkeys == null) {
 				pubkeys = new HashSet<>();
 				pubkeysForUser.put(userId, pubkeys);
 			}
 			pubkeys.add(pubkey);
-			Set<String> users = usersForPubkey.get(pubkey);
-			if (users == null) {
-				users = new HashSet<>();
-				usersForPubkey.put(pubkey, users);
+			Set<String> userIds = userIdsForPubkey.get(pubkey);
+			if (userIds == null) {
+				userIds = new HashSet<>();
+				userIdsForPubkey.put(pubkey, userIds);
 			}
-			users.add(userId);
+			userIds.add(userId);
+			if (!userName.isEmpty()) {
+				userNameForPubkey.put(pubkey, userName);
+			}
 		}
 	}
 
@@ -91,8 +98,14 @@ public class Utils {
 		return pubkeysForUser.get(userId);
 	}
 
-	public static Set<String> getUsers(String pubkey) {
-		if (usersForPubkey == null) collectUserData();
-		return usersForPubkey.get(pubkey);
+	public static Set<String> getUserIds(String pubkey) {
+		if (userIdsForPubkey == null) collectUserData();
+		return userIdsForPubkey.get(pubkey);
 	}
+
+	public static String getUserName(String pubkey) {
+		if (userNameForPubkey == null) collectUserData();
+		return userNameForPubkey.get(pubkey);
+	}
+
 }
