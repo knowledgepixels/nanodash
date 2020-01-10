@@ -12,6 +12,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 
@@ -71,7 +72,12 @@ public class NanopubElement implements Serializable {
 
 	public boolean hasValidSignature() throws GeneralSecurityException, MalformedCryptoElementException {
 		if (hasValidSignature == null) {
-			hasValidSignature = SignatureUtils.hasValidSignature(SignatureUtils.getSignatureElement(nanopub));
+			NanopubSignatureElement se = SignatureUtils.getSignatureElement(nanopub);
+			if (se != null) {
+				hasValidSignature = SignatureUtils.hasValidSignature(se);
+			} else {
+				hasValidSignature = false;
+			}
 		}
 		return hasValidSignature;
 	}

@@ -7,10 +7,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -55,29 +57,37 @@ public abstract class ApiAccess {
 			}
 		}
 
-		String apiUrl = apiInstances[0];  // TODO: check several APIs
+		List<String> apiInstancesToTry = new LinkedList<>(Arrays.asList(apiInstances));
 		CSVReader csvReader = null;
-		HttpGet get = new HttpGet(apiUrl + operation + paramString);
-		get.setHeader("Accept", "text/csv");
-		try {
-			HttpResponse resp = httpClient.execute(get);
-			if (!wasSuccessful(resp)) {
-				EntityUtils.consumeQuietly(resp.getEntity());
-				throw new IOException(resp.getStatusLine().toString());
-			}
-			csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
-			String[] line = null;
-			int n = 0;
-			while ((line = csvReader.readNext()) != null) {
-				n++;
-				if (n == 1) {
-					processHeader(line);
-				} else {
-					processLine(line);
+		boolean success = false;
+		while (success == false && !apiInstancesToTry.isEmpty()) {
+			int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
+			String apiUrl = apiInstancesToTry.get(randomIndex);
+			System.err.println("Trying API " + apiUrl);
+			apiInstancesToTry.remove(randomIndex);
+			HttpGet get = new HttpGet(apiUrl + operation + paramString);
+			get.setHeader("Accept", "text/csv");
+			try {
+				HttpResponse resp = httpClient.execute(get);
+				if (!wasSuccessful(resp)) {
+					EntityUtils.consumeQuietly(resp.getEntity());
+					throw new IOException(resp.getStatusLine().toString());
 				}
+				csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
+				String[] line = null;
+				int n = 0;
+				while ((line = csvReader.readNext()) != null) {
+					n++;
+					if (n == 1) {
+						processHeader(line);
+					} else {
+						processLine(line);
+					}
+				}
+				success = true;
+			} finally {
+				if (csvReader != null) csvReader.close();
 			}
-		} finally {
-			if (csvReader != null) csvReader.close();
 		}
 	}
 
