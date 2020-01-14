@@ -4,4 +4,4 @@ services:
     image: nanopub/nanobench
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - 7901:8080
