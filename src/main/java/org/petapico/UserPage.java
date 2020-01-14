@@ -28,11 +28,11 @@ public class UserPage extends WebPage {
 	private boolean nanopubsReady = false;
 
 	public UserPage(final PageParameters parameters) {
-		String userId = parameters.get("id").toString();
+		final String userId = parameters.get("id").toString();
 		add(new Label("userid", userId));
 
 		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
-		List<KeyDeclaration> keyDeclarations;
+		final List<KeyDeclaration> keyDeclarations;
 		if (introNanopub != null && introNanopub.getNanopub() != null) {
 			Nanopub np = introNanopub.getNanopub();
 			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
