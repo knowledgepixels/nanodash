@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -29,12 +28,11 @@ import com.opencsv.CSVReader;
 
 public abstract class ApiAccess {
 
-	private static HttpClient httpClient;
+	private static RequestConfig requestConfig;
 
 	static {
-		RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(10000)
+		requestConfig = RequestConfig.custom().setConnectTimeout(10000)
 				.setConnectionRequestTimeout(100).setSocketTimeout(10000).build();
-		httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 	}
 
 	public static String[] apiInstances = new String[] {
@@ -68,7 +66,7 @@ public abstract class ApiAccess {
 			HttpGet get = new HttpGet(apiUrl + operation + paramString);
 			get.setHeader("Accept", "text/csv");
 			try {
-				HttpResponse resp = httpClient.execute(get);
+				HttpResponse resp = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build().execute(get);
 				if (!wasSuccessful(resp)) {
 					EntityUtils.consumeQuietly(resp.getEntity());
 					throw new IOException(resp.getStatusLine().toString());
