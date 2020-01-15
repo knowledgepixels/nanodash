@@ -40,6 +40,15 @@ public abstract class ApiAccess {
 		"http://130.60.24.146:7881/api/local/local/"
 	};
 
+	static {
+		String env = System.getenv("NANOBENCH_API_INSTANCES");
+		if (env != null && !env.isBlank()) {
+			apiInstances = env.trim().split(" ");
+			System.err.println("API Instances:");
+			for (String s : apiInstances) System.err.println("- " + s);
+		}
+	}
+
 	protected abstract void processHeader(String[] line);
 
 	protected abstract void processLine(String[] line);
