@@ -29,7 +29,6 @@ public class UserPage extends WebPage {
 
 	public UserPage(final PageParameters parameters) {
 		final String userId = parameters.get("id").toString();
-		add(new Label("userid", userId));
 
 		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
 		final List<KeyDeclaration> keyDeclarations;
@@ -48,6 +47,17 @@ public class UserPage extends WebPage {
 			add(l);
 			keyDeclarations = new ArrayList<>();
 		}
+		String userName = null;
+		for (KeyDeclaration kd : keyDeclarations) {
+			userName = Utils.getUserName(kd.getPublicKeyString());
+			if (userName != null) break;
+		}
+		if (userName == null) {
+			userName = userId;
+		} else {
+			userName += " (" + userId.replaceFirst("^https?://orcid.org/", "") + ")";
+		}
+		add(new Label("username", userName));
 		add(new DataView<KeyDeclaration>("pubkeys", new ListDataProvider<KeyDeclaration>(keyDeclarations)) {
 
 			private static final long serialVersionUID = 1L;
