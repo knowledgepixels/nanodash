@@ -69,17 +69,15 @@ a:active {
 }
 
 a.button {
-	font-size: 10pt;
-	padding: 2px 10px;
+	padding: 5px 10px;
 	margin: 3px;
-	background-color: #66d;
+	background-color: #888;
 	color: #fff;
-	font-weight: bold;
 	display:inline-block;
 }
 
 a.button:hover {
-	background-color: #22d;
+	background-color: #aaa;
 }
 
 strong {

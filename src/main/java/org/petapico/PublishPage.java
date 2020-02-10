@@ -24,6 +24,8 @@ public class PublishPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	private IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
+
 	private String templateLabel;
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,Boolean> templateStatementIris = new HashMap<>();
@@ -39,9 +41,9 @@ public class PublishPage extends WebPage {
 		List<List<IRI>> statements = new ArrayList<>();
 		for (IRI st : templateStatementIris.keySet()) {
 			List<IRI> triple = new ArrayList<>();
-			triple.add(templateStatementSubjects.get(st));
-			triple.add(templateStatementPredicates.get(st));
-			triple.add((IRI) templateStatementObjects.get(st));
+			triple.add(processIri(templateStatementSubjects.get(st)));
+			triple.add(processIri(templateStatementPredicates.get(st)));
+			triple.add(processIri((IRI) templateStatementObjects.get(st)));
 			statements.add(triple);
 		}
 
@@ -56,12 +58,19 @@ public class PublishPage extends WebPage {
 		});
 	}
 
+	private IRI processIri(IRI iri) {
+		if (iri.equals(CREATOR_PLACEHOLDER)) {
+			return userIri;
+		}
+		return iri;
+	}
+
 	private void processTemplate(Nanopub templateNp) {
 		for (Statement st : templateNp.getAssertion()) {
 			if (st.getSubject().equals(templateNp.getAssertionUri())) {
 				if (st.getPredicate().equals(RDFS.LABEL)) {
 					templateLabel = st.getObject().stringValue();
-				} else if (st.getPredicate().equals(NTEMPLATE_HAS_STATEMENT) && st.getObject() instanceof IRI) {
+				} else if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE) && st.getObject() instanceof IRI) {
 					templateStatementIris.put((IRI) st.getObject(), true);
 				}
 			}
@@ -88,7 +97,8 @@ public class PublishPage extends WebPage {
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
-	public static final IRI NTEMPLATE_HAS_STATEMENT = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
-	public static final IRI NTEMPLATE_URI_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
+	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
+	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
+	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
 
 }
