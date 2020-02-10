@@ -1,5 +1,6 @@
 package org.petapico;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,8 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.extra.security.SignNanopub;
+import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.GetNanopub;
 
 public class PublishPage extends WebPage {
@@ -60,8 +63,10 @@ public class PublishPage extends WebPage {
 			protected void onSubmit() {
 				try {
 					Nanopub np = createNanopub();
-					System.err.println(NanopubUtils.writeToString(np, RDFFormat.TRIG));
-				} catch (MalformedNanopubException ex) {
+					KeyPair keyPair = SignNanopub.loadKey("~/.nanopub/id_rsa", SignatureAlgorithm.RSA);
+					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, keyPair);
+					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
+				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
