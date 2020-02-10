@@ -18,7 +18,12 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubUtils;
+import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.server.GetNanopub;
 
 public class PublishPage extends WebPage {
@@ -53,7 +58,12 @@ public class PublishPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void onSubmit() {
-				System.err.println("PUBLISH");
+				try {
+					Nanopub np = createNanopub();
+					System.err.println(NanopubUtils.writeToString(np, RDFFormat.TRIG));
+				} catch (MalformedNanopubException ex) {
+					ex.printStackTrace();
+				}
 			}
 			
 		};
@@ -69,6 +79,20 @@ public class PublishPage extends WebPage {
 		});
 
 		add(form);
+	}
+
+	private Nanopub createNanopub() throws MalformedNanopubException {
+		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/np/"));
+		npCreator.addNamespace("prov", vf.createIRI("http://www.w3.org/ns/prov#"));
+		for (IRI st : templateStatementIris.keySet()) {
+			npCreator.addAssertionStatement(processIri(templateStatementSubjects.get(st)),
+					processIri(templateStatementPredicates.get(st)),
+					processIri((IRI) templateStatementObjects.get(st)));
+		}
+		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
+		npCreator.addTimestampNow();
+		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, userIri);
+		return npCreator.finalizeNanopub();
 	}
 
 	private IRI processIri(IRI iri) {
