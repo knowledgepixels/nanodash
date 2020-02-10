@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -34,10 +36,24 @@ public class PublishPage extends WebPage {
 		Nanopub templateNanopub = GetNanopub.get(templateId);
 		processTemplate(templateNanopub);
 		add(new Label("templatename", templateLabel));
+		List<List<IRI>> statements = new ArrayList<>();
 		for (IRI st : templateStatementIris.keySet()) {
-			System.err.println(templateStatementSubjects.get(st) + " - " + templateStatementPredicates.get(st) + " - " + templateStatementObjects.get(st));
-			for (IRI t : typeMap.get((IRI) templateStatementObjects.get(st))) System.err.println("- " + t);
+			List<IRI> triple = new ArrayList<>();
+			triple.add(templateStatementSubjects.get(st));
+			triple.add(templateStatementPredicates.get(st));
+			triple.add((IRI) templateStatementObjects.get(st));
+			statements.add(triple);
 		}
+
+		add(new ListView<List<IRI>>("statements", statements) {
+
+			private static final long serialVersionUID = -1L;
+
+			protected void populateItem(ListItem<List<IRI>> item) {
+				item.add(new HList("statement", item.getModelObject()));
+			}
+			
+		});
 	}
 
 	private void processTemplate(Nanopub templateNp) {
