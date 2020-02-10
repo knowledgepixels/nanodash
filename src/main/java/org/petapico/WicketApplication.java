@@ -18,6 +18,7 @@ public class WicketApplication extends WebApplication {
 		mountPage("/user", UserPage.class);
 		mountPage("/type", TypePage.class);
 		mountPage("/search", FreeTextSearchPage.class);
+		mountPage("/publish", PublishPage.class);
 	}
 
 	@Override
