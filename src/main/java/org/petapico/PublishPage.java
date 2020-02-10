@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -47,15 +48,27 @@ public class PublishPage extends WebPage {
 			statements.add(triple);
 		}
 
-		add(new ListView<List<IRI>>("statements", statements) {
+		Form<?> form = new Form<Void>("form") {
 
-			private static final long serialVersionUID = -1L;
+			private static final long serialVersionUID = 1L;
+
+			protected void onSubmit() {
+				System.err.println("PUBLISH");
+			}
+			
+		};
+
+		form.add(new ListView<List<IRI>>("statements", statements) {
+
+			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<List<IRI>> item) {
 				item.add(new HList("statement", item.getModelObject()));
 			}
 			
 		});
+
+		add(form);
 	}
 
 	private IRI processIri(IRI iri) {
