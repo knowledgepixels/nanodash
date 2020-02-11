@@ -1,6 +1,7 @@
 package org.petapico;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -11,7 +12,7 @@ public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public StatementItem(String id, List<IRI> items) {
+	public StatementItem(String id, List<IRI> items, final Map<IRI,List<IRI>> typeMap) {
 		super(id);
 
 		add(new ListView<IRI>("items", items) {
@@ -19,7 +20,7 @@ public class StatementItem extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<IRI> item) {
-				item.add(new ValueItem("item", item.getModelObject()));
+				item.add(new ValueItem("item", item.getModelObject(), typeMap));
 			}
 			
 		});

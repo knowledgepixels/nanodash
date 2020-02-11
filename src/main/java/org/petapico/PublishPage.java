@@ -78,7 +78,7 @@ public class PublishPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<List<IRI>> item) {
-				item.add(new StatementItem("statement", item.getModelObject()));
+				item.add(new StatementItem("statement", item.getModelObject(), typeMap));
 			}
 			
 		});

@@ -1,6 +1,8 @@
 package org.petapico;
 
-import org.apache.wicket.markup.html.basic.Label;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 
@@ -8,11 +10,13 @@ public class ValueItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ValueItem(String id, IRI iri) {
+	public ValueItem(String id, IRI iri, Map<IRI,List<IRI>> typeMap) {
 		super(id);
-		String s = "null";
-		if (iri != null) s = iri.stringValue();
-		add(new Label("thing", s));
+		if (typeMap.containsKey(iri) && typeMap.get(iri).contains(PublishPage.URI_PLACEHOLDER_CLASS)) {
+			add(new TextfieldItem("value"));
+		} else {
+			add(new IriItem("value", iri));
+		}
 	}
 
 }
