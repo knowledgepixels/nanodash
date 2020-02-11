@@ -35,6 +35,7 @@ public class PublishPage extends WebPage {
 
 	private IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
 
+	private Nanopub templateNanopub;
 	private String templateLabel;
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,Boolean> templateStatementIris = new HashMap<>();
@@ -44,7 +45,7 @@ public class PublishPage extends WebPage {
 
 	public PublishPage(final PageParameters parameters) {
 		final String templateId = parameters.get("template").toString();
-		Nanopub templateNanopub = GetNanopub.get(templateId);
+		templateNanopub = GetNanopub.get(templateId);
 		processTemplate(templateNanopub);
 		add(new Label("templatename", templateLabel));
 		List<List<IRI>> statements = new ArrayList<>();
@@ -97,6 +98,7 @@ public class PublishPage extends WebPage {
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
 		npCreator.addTimestampNow();
 		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, userIri);
+		npCreator.addPubinfoStatement(WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateNanopub.getUri());
 		return npCreator.finalizeNanopub();
 	}
 
@@ -142,5 +144,6 @@ public class PublishPage extends WebPage {
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
+	public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
 
 }
