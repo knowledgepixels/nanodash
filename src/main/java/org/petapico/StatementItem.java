@@ -7,19 +7,19 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 
-public class HList extends Panel {
+public class StatementItem extends Panel {
 
-	private static final long serialVersionUID = -8506288478189670570L;
+	private static final long serialVersionUID = 1L;
 
-	public HList(String id, List<IRI> items) {
+	public StatementItem(String id, List<IRI> items) {
 		super(id);
 
 		add(new ListView<IRI>("items", items) {
 
-			private static final long serialVersionUID = -6222434246491371652L;
+			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<IRI> item) {
-				item.add(new ThingItem("item", item.getModelObject()));
+				item.add(new ValueItem("item", item.getModelObject()));
 			}
 			
 		});
