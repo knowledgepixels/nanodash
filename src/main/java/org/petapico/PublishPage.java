@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -42,8 +43,10 @@ public class PublishPage extends WebPage {
 	private Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
 	private Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
 	private Map<IRI,Value> templateStatementObjects = new HashMap<>();
+	private Map<IRI,TextField<String>> textFields = new HashMap<>();
 
 	public PublishPage(final PageParameters parameters) {
+		super();
 		final String templateId = parameters.get("template").toString();
 		templateNanopub = GetNanopub.get(templateId);
 		processTemplate(templateNanopub);
@@ -51,9 +54,9 @@ public class PublishPage extends WebPage {
 		List<List<IRI>> statements = new ArrayList<>();
 		for (IRI st : templateStatementIris.keySet()) {
 			List<IRI> triple = new ArrayList<>();
-			triple.add(processIri(templateStatementSubjects.get(st)));
-			triple.add(processIri(templateStatementPredicates.get(st)));
-			triple.add(processIri((IRI) templateStatementObjects.get(st)));
+			triple.add(processIri(templateStatementSubjects.get(st), false));
+			triple.add(processIri(templateStatementPredicates.get(st), false));
+			triple.add(processIri((IRI) templateStatementObjects.get(st), false));
 			statements.add(triple);
 		}
 
@@ -79,11 +82,10 @@ public class PublishPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<List<IRI>> item) {
-				item.add(new StatementItem("statement", item.getModelObject(), typeMap));
+				item.add(new StatementItem("statement", item.getModelObject(), typeMap, textFields));
 			}
 			
 		});
-
 		add(form);
 	}
 
@@ -91,9 +93,9 @@ public class PublishPage extends WebPage {
 		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/np/"));
 		npCreator.addNamespace("prov", vf.createIRI("http://www.w3.org/ns/prov#"));
 		for (IRI st : templateStatementIris.keySet()) {
-			npCreator.addAssertionStatement(processIri(templateStatementSubjects.get(st)),
-					processIri(templateStatementPredicates.get(st)),
-					processIri((IRI) templateStatementObjects.get(st)));
+			npCreator.addAssertionStatement(processIri(templateStatementSubjects.get(st), true),
+					processIri(templateStatementPredicates.get(st), true),
+					processIri((IRI) templateStatementObjects.get(st), true));
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
 		npCreator.addTimestampNow();
@@ -102,9 +104,17 @@ public class PublishPage extends WebPage {
 		return npCreator.finalizeNanopub();
 	}
 
-	private IRI processIri(IRI iri) {
+	private IRI processIri(IRI iri, boolean fillPlaceholders) {
 		if (iri.equals(CREATOR_PLACEHOLDER)) {
 			return userIri;
+		}
+		if (fillPlaceholders) {
+			if (typeMap.containsKey(iri) && typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS)) {
+				TextField<String> tf = textFields.get(iri);
+				if (tf != null && tf.getModelObject() != null && !tf.getModelObject().isBlank()) {
+					return vf.createIRI(tf.getModelObject());
+				}
+			}
 		}
 		return iri;
 	}
