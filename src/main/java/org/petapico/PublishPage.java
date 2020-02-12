@@ -9,9 +9,9 @@ import java.util.Map;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -43,7 +43,7 @@ public class PublishPage extends WebPage {
 	private Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
 	private Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
 	private Map<IRI,Value> templateStatementObjects = new HashMap<>();
-	private Map<IRI,TextField<String>> textFields = new HashMap<>();
+	private Map<IRI,IModel<String>> textFieldModels = new HashMap<>();
 
 	public PublishPage(final PageParameters parameters) {
 		super();
@@ -82,7 +82,7 @@ public class PublishPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<List<IRI>> item) {
-				item.add(new StatementItem("statement", item.getModelObject(), typeMap, textFields));
+				item.add(new StatementItem("statement", item.getModelObject(), typeMap, textFieldModels));
 			}
 			
 		});
@@ -110,9 +110,9 @@ public class PublishPage extends WebPage {
 		}
 		if (fillPlaceholders) {
 			if (typeMap.containsKey(iri) && typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS)) {
-				TextField<String> tf = textFields.get(iri);
-				if (tf != null && tf.getModelObject() != null && !tf.getModelObject().isBlank()) {
-					return vf.createIRI(tf.getModelObject());
+				IModel<String> tf = textFieldModels.get(iri);
+				if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+					return vf.createIRI(tf.getObject());
 				}
 			}
 		}
