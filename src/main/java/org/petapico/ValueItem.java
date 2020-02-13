@@ -10,9 +10,9 @@ public class ValueItem extends Panel {
 	public ValueItem(String id, IRI iri, final PublishPage page) {
 		super(id);
 		if (page.typeMap.containsKey(iri) && page.typeMap.get(iri).contains(PublishPage.URI_PLACEHOLDER_CLASS)) {
-			add(new TextfieldItem("value", iri, page));
+			add(new IriTextfieldItem("value", iri, page));
 		} else if (page.typeMap.containsKey(iri) && page.typeMap.get(iri).contains(PublishPage.LITERAL_PLACEHOLDER_CLASS)) {
-				add(new TextfieldItem("value", iri, page));
+				add(new LiteralTextfieldItem("value", iri, page));
 		} else {
 			add(new IriItem("value", iri));
 		}

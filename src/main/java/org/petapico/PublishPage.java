@@ -113,7 +113,7 @@ public class PublishPage extends WebPage {
 		for (IRI st : templateStatementIris.keySet()) {
 			npCreator.addAssertionStatement(processIri(templateStatementSubjects.get(st), true),
 					processIri(templateStatementPredicates.get(st), true),
-					processIri((IRI) templateStatementObjects.get(st), true));
+					processValue(templateStatementObjects.get(st), true));
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
 		npCreator.addTimestampNow();
@@ -123,14 +123,27 @@ public class PublishPage extends WebPage {
 	}
 
 	private IRI processIri(IRI iri, boolean fillPlaceholders) {
+		Value v = processValue(iri, fillPlaceholders);
+		if (v instanceof IRI) return (IRI) v;
+		return iri;
+	}
+
+	private Value processValue(Value value, boolean fillPlaceholders) {
+		if (!(value instanceof IRI)) return value;
+		IRI iri = (IRI) value;
 		if (iri.equals(CREATOR_PLACEHOLDER)) {
 			return userIri;
 		}
-		if (fillPlaceholders) {
-			if (typeMap.containsKey(iri) && typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS)) {
+		if (fillPlaceholders && typeMap.containsKey(iri)) {
+			if (typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS)) {
 				IModel<String> tf = textFieldModels.get(iri);
 				if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
 					return vf.createIRI(tf.getObject());
+				}
+			} else if (typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS)) {
+				IModel<String> tf = textFieldModels.get(iri);
+				if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+					return vf.createLiteral(tf.getObject());
 				}
 			}
 		}

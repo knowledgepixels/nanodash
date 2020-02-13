@@ -8,11 +8,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 
-public class TextfieldItem extends Panel {
+public class IriTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public TextfieldItem(String id, IRI iri, final PublishPage page) {
+	public IriTextfieldItem(String id, IRI iri, final PublishPage page) {
 		super(id);
 		IModel<String> model = page.textFieldModels.get(iri);
 		if (model == null) {
