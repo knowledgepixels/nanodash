@@ -14,8 +14,12 @@ public class TextfieldItem extends Panel {
 
 	public TextfieldItem(String id, IRI iri, Map<IRI,IModel<String>> textFields) {
 		super(id);
-		TextField<String> textfield = new TextField<>("textfield", Model.of(""));
-		textFields.put(iri, textfield.getModel());
+		IModel<String> model = textFields.get(iri);
+		if (model == null) {
+			model = Model.of("");
+			textFields.put(iri, model);
+		}
+		TextField<String> textfield = new TextField<>("textfield", model);
 		add(textfield);
 	}
 

@@ -15,6 +15,8 @@ public class ValueItem extends Panel {
 		super(id);
 		if (typeMap.containsKey(iri) && typeMap.get(iri).contains(PublishPage.URI_PLACEHOLDER_CLASS)) {
 			add(new TextfieldItem("value", iri, textFields));
+		} else if (typeMap.containsKey(iri) && typeMap.get(iri).contains(PublishPage.LITERAL_PLACEHOLDER_CLASS)) {
+				add(new TextfieldItem("value", iri, textFields));
 		} else {
 			add(new IriItem("value", iri));
 		}
