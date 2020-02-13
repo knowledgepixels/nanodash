@@ -2,6 +2,7 @@ package org.petapico;
 
 import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.IntegerLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -43,6 +45,7 @@ public class PublishPage extends WebPage {
 	private Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
 	private Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
 	private Map<IRI,Value> templateStatementObjects = new HashMap<>();
+	private Map<IRI,Integer> templateStatementOrder = new HashMap<>();
 	private Map<IRI,IModel<String>> textFieldModels = new HashMap<>();
 
 	public PublishPage(final PageParameters parameters) {
@@ -52,7 +55,19 @@ public class PublishPage extends WebPage {
 		processTemplate(templateNanopub);
 		add(new Label("templatename", templateLabel));
 		List<List<IRI>> statements = new ArrayList<>();
-		for (IRI st : templateStatementIris.keySet()) {
+		List<IRI> statementIris = new ArrayList<>(templateStatementIris.keySet());
+		statementIris.sort(new Comparator<IRI>() {
+			@Override
+			public int compare(IRI arg0, IRI arg1) {
+				Integer i0 = templateStatementOrder.get(arg0);
+				Integer i1 = templateStatementOrder.get(arg1);
+				if (i0 == null && i1 == null) return arg0.stringValue().compareTo(arg1.stringValue());
+				if (i0 == null) return 1;
+				if (i1 == null) return -1;
+				return i0-i1;
+			}
+		});
+		for (IRI st : statementIris) {
 			List<IRI> triple = new ArrayList<>();
 			triple.add(processIri(templateStatementSubjects.get(st), false));
 			triple.add(processIri(templateStatementPredicates.get(st), false));
@@ -145,6 +160,10 @@ public class PublishPage extends WebPage {
 					templateStatementPredicates.put((IRI) st.getSubject(), (IRI) st.getObject());
 				} else if (st.getPredicate().equals(RDF.OBJECT)) {
 					templateStatementObjects.put((IRI) st.getSubject(), st.getObject());
+				} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
+					if (st.getObject() instanceof IntegerLiteral) {
+						templateStatementOrder.put((IRI) st.getSubject(), ((IntegerLiteral) st.getObject()).intValue());
+					}
 				}
 			}
 		}
@@ -156,5 +175,6 @@ public class PublishPage extends WebPage {
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
 	public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
+	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
 
 }
