@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -40,13 +41,15 @@ public class PublishPage extends WebPage {
 
 	private Nanopub templateNanopub;
 	private String templateLabel;
-	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
-	private Map<IRI,Boolean> templateStatementIris = new HashMap<>();
-	private Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
-	private Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
-	private Map<IRI,Value> templateStatementObjects = new HashMap<>();
-	private Map<IRI,Integer> templateStatementOrder = new HashMap<>();
-	private Map<IRI,IModel<String>> textFieldModels = new HashMap<>();
+	protected Map<IRI,List<IRI>> typeMap = new HashMap<>();
+	protected Map<IRI,Boolean> templateStatementIris = new HashMap<>();
+	protected Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
+	protected Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
+	protected Map<IRI,Value> templateStatementObjects = new HashMap<>();
+	protected Map<IRI,Integer> templateStatementOrder = new HashMap<>();
+	protected Map<IRI,IModel<String>> textFieldModels = new HashMap<>();
+	protected List<TextField<String>> textFields = new ArrayList<>();
+	protected Form<?> form;
 
 	public PublishPage(final PageParameters parameters) {
 		super();
@@ -75,7 +78,7 @@ public class PublishPage extends WebPage {
 			statements.add(triple);
 		}
 
-		Form<?> form = new Form<Void>("form") {
+		form = new Form<Void>("form") {
 
 			private static final long serialVersionUID = 1L;
 
@@ -97,9 +100,9 @@ public class PublishPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<List<IRI>> item) {
-				item.add(new StatementItem("statement", item.getModelObject(), typeMap, textFieldModels));
+				item.add(new StatementItem("statement", item.getModelObject(), PublishPage.this));
 			}
-			
+
 		});
 		add(form);
 	}
