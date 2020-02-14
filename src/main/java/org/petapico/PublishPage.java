@@ -29,6 +29,7 @@ import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
+import org.nanopub.NanopubWithNs;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
@@ -110,8 +111,14 @@ public class PublishPage extends WebPage {
 	}
 
 	private Nanopub createNanopub() throws MalformedNanopubException {
-		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/np/"));
-		npCreator.addNamespace("prov", vf.createIRI("http://www.w3.org/ns/prov#"));
+		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/"));
+		if (templateNanopub instanceof NanopubWithNs) {
+			NanopubWithNs np = (NanopubWithNs) templateNanopub;
+			for (String p : np.getNsPrefixes()) {
+				npCreator.addNamespace(p, np.getNamespace(p));
+			}
+		}
+		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/");
 		for (IRI st : templateStatementIris.keySet()) {
 			npCreator.addAssertionStatement(processIri(templateStatementSubjects.get(st), true),
 					processIri(templateStatementPredicates.get(st), true),
