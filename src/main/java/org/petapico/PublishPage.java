@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -37,11 +38,12 @@ public class PublishPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	private IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
+	protected IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
 
-	private Nanopub templateNanopub;
-	private String templateLabel;
+	protected Nanopub templateNanopub;
+	protected String templateLabel;
 	protected Map<IRI,List<IRI>> typeMap = new HashMap<>();
+	protected Map<IRI,String> labelMap = new HashMap<>();
 	protected Map<IRI,Boolean> templateStatementIris = new HashMap<>();
 	protected Map<IRI,IRI> templateStatementSubjects = new HashMap<>();
 	protected Map<IRI,IRI> templateStatementPredicates = new HashMap<>();
@@ -131,9 +133,6 @@ public class PublishPage extends WebPage {
 	private Value processValue(Value value, boolean fillPlaceholders) {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
-		if (iri.equals(CREATOR_PLACEHOLDER)) {
-			return userIri;
-		}
 		if (fillPlaceholders && typeMap.containsKey(iri)) {
 			if (typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS)) {
 				IModel<String> tf = textFieldModels.get(iri);
@@ -166,6 +165,8 @@ public class PublishPage extends WebPage {
 					typeMap.put((IRI) st.getSubject(), l);
 				}
 				l.add((IRI) st.getObject());
+			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
+				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			}
 		}
 		for (Statement st : templateNp.getAssertion()) {

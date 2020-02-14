@@ -1,5 +1,6 @@
 package org.petapico;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.TextField;
@@ -21,6 +22,9 @@ public class IriTextfieldItem extends Panel {
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
 		page.textFields.add(textfield);
+		if (page.labelMap.containsKey(iri)) {
+			textfield.add(new AttributeModifier("placeholder", page.labelMap.get(iri)));
+		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;

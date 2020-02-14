@@ -170,3 +170,40 @@ a.meta:hover, a.meta:active {
 .nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-pubinfo { display: none; background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 5px;
+  white-space: nowrap;
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip .tooltiptext {
+  top: -5px;
+  left: 105%;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip .tooltiptext::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent black transparent transparent;
+}

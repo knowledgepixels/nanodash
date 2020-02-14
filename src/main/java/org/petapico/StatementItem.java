@@ -17,9 +17,11 @@ public class StatementItem extends Panel {
 		add(new ListView<IRI>("items", items) {
 
 			private static final long serialVersionUID = 1L;
+			private int count = 0;
 
 			protected void populateItem(ListItem<IRI> item) {
-				item.add(new ValueItem("item", item.getModelObject(), page));
+				item.add(new ValueItem("item", item.getModelObject(), count > 1, page));
+				count++;
 			}
 
 		});
