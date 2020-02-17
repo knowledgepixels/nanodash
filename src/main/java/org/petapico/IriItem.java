@@ -11,7 +11,7 @@ public class IriItem extends Panel {
 	public IriItem(String id, IRI iri, boolean objectPosition, PublishForm form) {
 		super(id);
 		String labelString = null;
-		if (iri.equals(PublishForm.CREATOR_PLACEHOLDER)) {
+		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = form.userIri;
 			if (objectPosition) {
 				labelString = "me";
@@ -19,8 +19,8 @@ public class IriItem extends Panel {
 				labelString = "I";
 			}
 		}
-		if (form.labelMap.containsKey(iri)) {
-			labelString = form.labelMap.get(iri);
+		if (form.template.getLabel(iri) != null) {
+			labelString = form.template.getLabel(iri);
 		} else if (labelString == null) {
 			labelString = getShortNameFromURI(iri.stringValue());
 		}

@@ -9,9 +9,9 @@ public class ValueItem extends Panel {
 
 	public ValueItem(String id, IRI iri, boolean objectPosition, PublishForm form) {
 		super(id);
-		if (form.typeMap.containsKey(iri) && form.typeMap.get(iri).contains(PublishForm.URI_PLACEHOLDER_CLASS)) {
+		if (form.template.isUriPlaceholder(iri)) {
 			add(new IriTextfieldItem("value", iri, form));
-		} else if (form.typeMap.containsKey(iri) && form.typeMap.get(iri).contains(PublishForm.LITERAL_PLACEHOLDER_CLASS)) {
+		} else if (form.template.isLiteralPlaceholder(iri)) {
 				add(new LiteralTextfieldItem("value", iri, form));
 		} else {
 			add(new IriItem("value", iri, objectPosition, form));

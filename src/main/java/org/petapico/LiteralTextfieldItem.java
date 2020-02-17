@@ -13,8 +13,8 @@ public class LiteralTextfieldItem extends Panel {
 	public LiteralTextfieldItem(String id, IRI iri, final PublishForm form) {
 		super(id);
 		TextField<String> textfield = new TextField<>("textfield", Model.of(""));
-		if (form.labelMap.containsKey(iri)) {
-			textfield.add(new AttributeModifier("placeholder", form.labelMap.get(iri)));
+		if (form.template.getLabel(iri) != null) {
+			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
 		}
 		form.textFieldModels.put(iri, textfield.getModel());
 		form.textFields.add(textfield);

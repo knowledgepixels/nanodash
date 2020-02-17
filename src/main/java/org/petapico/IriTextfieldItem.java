@@ -22,8 +22,8 @@ public class IriTextfieldItem extends Panel {
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
 		form.textFields.add(textfield);
-		if (form.labelMap.containsKey(iri)) {
-			textfield.add(new AttributeModifier("placeholder", form.labelMap.get(iri)));
+		if (form.template.getLabel(iri) != null) {
+			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
