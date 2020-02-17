@@ -113,7 +113,7 @@ public class UserPage extends WebPage {
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
 					Map<String,String> resultEntry = nanopubResults.remove(0);
 					String npUri = resultEntry.get("np");
-					nanopubs.add(new NanopubElement(npUri, !resultEntry.get("retraction").isEmpty()));
+					nanopubs.add(new NanopubElement(npUri, resultEntry.get("retracted").equals("1") || resultEntry.get("retracted").equals("true")));
 				}
 				nanopubsReady = true;
 			}
