@@ -8,19 +8,19 @@ public class IriItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriItem(String id, IRI iri, boolean objectPosition, PublishPage page) {
+	public IriItem(String id, IRI iri, boolean objectPosition, PublishForm form) {
 		super(id);
 		String labelString = null;
-		if (iri.equals(PublishPage.CREATOR_PLACEHOLDER)) {
-			iri = page.userIri;
+		if (iri.equals(PublishForm.CREATOR_PLACEHOLDER)) {
+			iri = form.userIri;
 			if (objectPosition) {
 				labelString = "me";
 			} else {
 				labelString = "I";
 			}
 		}
-		if (page.labelMap.containsKey(iri)) {
-			labelString = page.labelMap.get(iri);
+		if (form.labelMap.containsKey(iri)) {
+			labelString = form.labelMap.get(iri);
 		} else if (labelString == null) {
 			labelString = getShortNameFromURI(iri.stringValue());
 		}

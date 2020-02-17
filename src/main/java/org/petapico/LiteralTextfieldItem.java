@@ -10,14 +10,14 @@ public class LiteralTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public LiteralTextfieldItem(String id, IRI iri, final PublishPage page) {
+	public LiteralTextfieldItem(String id, IRI iri, final PublishForm form) {
 		super(id);
 		TextField<String> textfield = new TextField<>("textfield", Model.of(""));
-		if (page.labelMap.containsKey(iri)) {
-			textfield.add(new AttributeModifier("placeholder", page.labelMap.get(iri)));
+		if (form.labelMap.containsKey(iri)) {
+			textfield.add(new AttributeModifier("placeholder", form.labelMap.get(iri)));
 		}
-		page.textFieldModels.put(iri, textfield.getModel());
-		page.textFields.add(textfield);
+		form.textFieldModels.put(iri, textfield.getModel());
+		form.textFields.add(textfield);
 		add(textfield);
 	}
 

@@ -11,7 +11,7 @@ public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public StatementItem(String id, List<IRI> items, final PublishPage page) {
+	public StatementItem(String id, List<IRI> items, final PublishForm form) {
 		super(id);
 
 		add(new ListView<IRI>("items", items) {
@@ -20,7 +20,7 @@ public class StatementItem extends Panel {
 			private int count = 0;
 
 			protected void populateItem(ListItem<IRI> item) {
-				item.add(new ValueItem("item", item.getModelObject(), count > 1, page));
+				item.add(new ValueItem("item", item.getModelObject(), count > 1, form));
 				count++;
 			}
 

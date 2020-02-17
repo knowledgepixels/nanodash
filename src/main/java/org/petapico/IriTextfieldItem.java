@@ -13,17 +13,17 @@ public class IriTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriTextfieldItem(String id, IRI iri, final PublishPage page) {
+	public IriTextfieldItem(String id, IRI iri, final PublishForm form) {
 		super(id);
-		IModel<String> model = page.textFieldModels.get(iri);
+		IModel<String> model = form.textFieldModels.get(iri);
 		if (model == null) {
 			model = Model.of("");
-			page.textFieldModels.put(iri, model);
+			form.textFieldModels.put(iri, model);
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
-		page.textFields.add(textfield);
-		if (page.labelMap.containsKey(iri)) {
-			textfield.add(new AttributeModifier("placeholder", page.labelMap.get(iri)));
+		form.textFields.add(textfield);
+		if (form.labelMap.containsKey(iri)) {
+			textfield.add(new AttributeModifier("placeholder", form.labelMap.get(iri)));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
@@ -31,7 +31,7 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (TextField<String> t : page.textFields) {
+				for (TextField<String> t : form.textFields) {
 					if (t == textfield) continue;
 					if (t.getModel() == textfield.getModel()) {
 						t.modelChanged();
