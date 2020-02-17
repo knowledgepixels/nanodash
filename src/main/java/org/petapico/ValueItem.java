@@ -12,7 +12,9 @@ public class ValueItem extends Panel {
 		if (form.template.isUriPlaceholder(iri)) {
 			add(new IriTextfieldItem("value", iri, form));
 		} else if (form.template.isLiteralPlaceholder(iri)) {
-				add(new LiteralTextfieldItem("value", iri, form));
+			add(new LiteralTextfieldItem("value", iri, form));
+		} else if (form.template.isRestrictedChoicePlaceholder(iri)) {
+			add(new RestrictedChoiceItem("value", iri, form));
 		} else {
 			add(new IriItem("value", iri, objectPosition, form));
 		}

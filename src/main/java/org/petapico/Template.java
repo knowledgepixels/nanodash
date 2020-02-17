@@ -64,14 +64,17 @@ public class Template implements Serializable {
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
+	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
 	public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
 	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
+	public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
 
 
 	private Nanopub nanopub;
 	private String label;
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
+	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,String> labelMap = new HashMap<>();
 	private List<IRI> statementIri;
 	private Map<IRI,IRI> statementSubjects = new HashMap<>();
@@ -124,6 +127,14 @@ public class Template implements Serializable {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS);
 	}
 
+	public boolean isRestrictedChoicePlaceholder(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS);
+	}
+
+	public List<Value> getPossibleValues(IRI iri) {
+		return possibleValueMap.get(iri);
+	}
+
 	private void processTemplate(Nanopub templateNp) {
 		Map<IRI,Boolean> statementIriMap = new HashMap<>();
 		for (Statement st : templateNp.getAssertion()) {
@@ -141,6 +152,13 @@ public class Template implements Serializable {
 					typeMap.put((IRI) st.getSubject(), l);
 				}
 				l.add((IRI) st.getObject());
+			} else if (st.getPredicate().equals(POSSIBLE_VALUE_PREDICATE)) {
+				List<Value> l = possibleValueMap.get(st.getSubject());
+				if (l == null) {
+					l = new ArrayList<>();
+					possibleValueMap.put((IRI) st.getSubject(), l);
+				}
+				l.add(st.getObject());
 			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
 				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			}

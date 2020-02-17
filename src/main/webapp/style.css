@@ -85,7 +85,7 @@ strong {
 	font-weight: bold;
 }
 
-input {
+input, select {
   font-size: 12pt;
   padding: 5px;
   line-height: 32px;
