@@ -1,8 +1,5 @@
 package org.petapico;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -17,19 +14,17 @@ public class TemplateList extends Panel {
 
 	public TemplateList(String id) {
 		super(id);
-		List<String> templateIds = new ArrayList<>();
-		templateIds.add("RAqCjmtXsi8vJ8j7cFLiC6FMkEVZ-8gFbjHwmwRQ-sdbo");
 
-		add(new DataView<String>("list", new ListDataProvider<String>(templateIds)) {
+		add(new DataView<Template>("list", new ListDataProvider<Template>(Template.getTemplates())) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<String> item) {
+			protected void populateItem(Item<Template> item) {
 				PageParameters params = new PageParameters();
-				params.add("template", item.getModelObject());
+				params.add("template", item.getModelObject().getId());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("link", PublishPage.class, params);
-				l.add(new Label("text", item.getModelObject()));
+				l.add(new Label("text", item.getModelObject().getId()));
 				item.add(l);
 			}
 
