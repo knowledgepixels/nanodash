@@ -90,6 +90,7 @@ public class PublishForm extends Panel {
 			}
 		}
 		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/");
+		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/#");
 		for (IRI st : template.getStatementIris()) {
 			npCreator.addAssertionStatement(processIri(template.getSubject(st), true),
 					processIri(template.getPredicate(st), true),
