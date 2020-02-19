@@ -46,9 +46,9 @@ public class PublishForm extends Panel {
 		List<List<IRI>> statements = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
 			List<IRI> triple = new ArrayList<>();
-			triple.add(processIri(template.getSubject(st), false));
-			triple.add(processIri(template.getPredicate(st), false));
-			triple.add(processIri((IRI) template.getObject(st), false));
+			triple.add(template.getSubject(st));
+			triple.add(template.getPredicate(st));
+			triple.add((IRI) template.getObject(st));
 			statements.add(triple);
 		}
 
@@ -92,9 +92,9 @@ public class PublishForm extends Panel {
 		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/");
 		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/#");
 		for (IRI st : template.getStatementIris()) {
-			npCreator.addAssertionStatement(processIri(template.getSubject(st), true),
-					processIri(template.getPredicate(st), true),
-					processValue(template.getObject(st), true));
+			npCreator.addAssertionStatement(processIri(template.getSubject(st)),
+					processIri(template.getPredicate(st)),
+					processValue(template.getObject(st)));
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
 		npCreator.addTimestampNow();
@@ -103,14 +103,13 @@ public class PublishForm extends Panel {
 		return npCreator.finalizeNanopub();
 	}
 
-	private IRI processIri(IRI iri, boolean fillPlaceholders) {
-		Value v = processValue(iri, fillPlaceholders);
+	private IRI processIri(IRI iri) {
+		Value v = processValue(iri);
 		if (v instanceof IRI) return (IRI) v;
 		return iri;
 	}
 
-	private Value processValue(Value value, boolean fillPlaceholders) {
-		if (!fillPlaceholders) return value;
+	private Value processValue(Value value) {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
 		if (template.isUriPlaceholder(iri)) {
