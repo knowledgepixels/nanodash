@@ -112,6 +112,9 @@ public class PublishForm extends Panel {
 	private Value processValue(Value value) {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
+		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
+			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/"));
+		}
 		if (template.isUriPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
