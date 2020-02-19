@@ -3,6 +3,7 @@ package org.petapico;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -15,13 +16,13 @@ public class IriTextfieldItem extends Panel {
 
 	public IriTextfieldItem(String id, IRI iri, final PublishForm form) {
 		super(id);
-		IModel<String> model = form.textFieldModels.get(iri);
+		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
 			model = Model.of("");
-			form.textFieldModels.put(iri, model);
+			form.formComponentModels.put(iri, model);
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
-		form.textFields.add(textfield);
+		form.formComponents.add(textfield);
 		if (form.template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
 		}
@@ -31,11 +32,11 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (TextField<String> t : form.textFields) {
-					if (t == textfield) continue;
-					if (t.getModel() == textfield.getModel()) {
-						t.modelChanged();
-						target.add(t);
+				for (FormComponent<String> fc : form.formComponents) {
+					if (fc == textfield) continue;
+					if (fc.getModel() == textfield.getModel()) {
+						fc.modelChanged();
+						target.add(fc);
 					}
 				}
 			}

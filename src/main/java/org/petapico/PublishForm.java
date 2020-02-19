@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -35,8 +35,8 @@ public class PublishForm extends Panel {
 	protected IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
 
 	protected Template template;
-	protected Map<IRI,IModel<String>> textFieldModels = new HashMap<>();
-	protected List<TextField<String>> textFields = new ArrayList<>();
+	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
+	protected List<FormComponent<String>> formComponents = new ArrayList<>();
 	protected Form<?> form;
 
 	public PublishForm(String id, final String templateId) {
@@ -114,13 +114,21 @@ public class PublishForm extends Panel {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
 		if (template.isUriPlaceholder(iri)) {
-			IModel<String> tf = textFieldModels.get(iri);
+			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
 				return vf.createIRI(tf.getObject());
 			}
 		} else if (template.isLiteralPlaceholder(iri)) {
-			IModel<String> tf = textFieldModels.get(iri);
+			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+				return vf.createLiteral(tf.getObject());
+			}
+		} else if (template.isRestrictedChoicePlaceholder(iri)) {
+			IModel<String> tf = formComponentModels.get(iri);
+			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+				if (tf.getObject().matches("https?://.*")) {
+					return vf.createIRI(tf.getObject());
+				}
 				return vf.createLiteral(tf.getObject());
 			}
 		}

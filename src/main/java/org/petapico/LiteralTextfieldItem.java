@@ -16,8 +16,8 @@ public class LiteralTextfieldItem extends Panel {
 		if (form.template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
 		}
-		form.textFieldModels.put(iri, textfield.getModel());
-		form.textFields.add(textfield);
+		form.formComponentModels.put(iri, textfield.getModel());
+		form.formComponents.add(textfield);
 		add(textfield);
 	}
 
