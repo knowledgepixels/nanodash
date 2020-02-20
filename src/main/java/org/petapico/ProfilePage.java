@@ -1,6 +1,9 @@
 package org.petapico;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.KeyPair;
 
 import javax.xml.bind.DatatypeConverter;
@@ -23,7 +26,46 @@ public class ProfilePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String ORCID_PATTERN = "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]";
+
+	public ProfilePage(final PageParameters parameters) {
+		super();
+		Model<String> model = Model.of("");
+		if (getOrcid() != null) {
+			model.setObject(getOrcid().stringValue().replaceFirst("^https://orcid.org/", ""));
+		}
+		final TextField<String> orcidField = new TextField<>("orcidfield", model);
+		orcidField.add(new PatternValidator(ORCID_PATTERN));
+		Form<Void> form = new Form<Void>("form") {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void onSubmit() {
+				setOrcid(orcidField.getModelObject());
+			}
+
+		};
+		form.add(orcidField);
+		add(form);
+		add(new FeedbackPanel("feedback"));
+
+		add(new Label("keyfile", keyFile.getPath()));
+		if (keyFile.exists()) {
+			if (getKeyPair() == null) {
+				add(new Label("pubkey", "Error loading key file"));
+			} else {
+				String pubkeyString = DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
+				add(new Label("pubkey", pubkeyString));
+			}
+		} else {
+			add(new Label("pubkey", "Key file not found"));
+		}
+	}
+
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	private static File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
+	private static File keyFile = new File(System.getProperty("user.home") + "/.nanopub/id_rsa");
 
 	private static KeyPair keyPair;
 	private static IRI userIri;
@@ -43,44 +85,32 @@ public class ProfilePage extends WebPage {
 		return userIri;
 	}
 
-	public ProfilePage(final PageParameters parameters) {
-		super();
-		Model<String> model = Model.of("");
-		if (userIri != null) {
-			model.setObject(userIri.stringValue().replaceFirst("^https://orcid.org/", ""));
-		}
-		final TextField<String> orcidField = new TextField<>("orcidfield", model);
-		orcidField.add(new PatternValidator("[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]"));
-		Form<Void> form = new Form<Void>("form") {
-
-			private static final long serialVersionUID = 1L;
-
-			protected void onSubmit() {
-				setOrcid(orcidField.getModelObject());
+	private static IRI getOrcid() {
+		if (userIri == null) {
+			File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
+			if (orcidFile.exists()) {
+				try {
+					String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
+					if (orcid.matches(ORCID_PATTERN)) {
+						userIri = vf.createIRI("https://orcid.org/" + orcid);
+					}
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
 			}
-
-		};
-		form.add(orcidField);
-		add(form);
-		add(new FeedbackPanel("feedback"));
-
-		String keyFilename = System.getProperty("user.home") + "/.nanopub/id_rsa";
-		File keyFile = new File(keyFilename);
-		add(new Label("keyfile", keyFilename));
-		if (keyFile.exists()) {
-			if (getKeyPair() == null) {
-				add(new Label("pubkey", "Error loading key file"));
-			} else {
-				String pubkeyString = DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
-				add(new Label("pubkey", pubkeyString));
-			}
-		} else {
-			add(new Label("pubkey", "Key file not found"));
 		}
+		return userIri;
 	}
 
 	private static void setOrcid(String orcid) {
-		userIri = vf.createIRI("https://orcid.org/" + orcid);
+		if (orcid.matches(ORCID_PATTERN)) {
+			try {
+				Files.writeString(orcidFile.toPath(), orcid + "\n");
+				userIri = vf.createIRI("https://orcid.org/" + orcid);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 
 }
