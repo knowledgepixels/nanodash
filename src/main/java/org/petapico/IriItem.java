@@ -12,7 +12,7 @@ public class IriItem extends Panel {
 		super(id);
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = form.userIri;
+			iri = ProfilePage.getUserIri();
 			if (objectPosition) {
 				labelString = "me";
 			} else {

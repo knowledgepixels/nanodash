@@ -96,8 +96,7 @@ code {
 
 input, select {
   font-size: 12pt;
-  padding: 5px;
-  line-height: 32px;
+  padding: 8px 3px;
 }
 
 .hidden {

@@ -39,7 +39,6 @@ public class PublishForm extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
-	protected IRI userIri = vf.createIRI("https://orcid.org/0000-0002-1267-0234");  // TODO: Use actual user ID here
 
 	protected Template template;
 	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
@@ -142,9 +141,9 @@ public class PublishForm extends Panel {
 					processIri(template.getPredicate(st)),
 					processValue(template.getObject(st)));
 		}
-		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
+		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
 		npCreator.addTimestampNow();
-		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, userIri);
+		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, template.getNanopub().getUri());
 		return npCreator.finalizeNanopub();
 	}
