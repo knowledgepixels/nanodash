@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -18,6 +19,10 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -58,6 +63,21 @@ public class PublishForm extends Panel {
 			triple.add((IRI) template.getObject(st));
 			statements.add(triple);
 		}
+
+		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
+		consentCheck.setRequired(true);
+		consentCheck.add(new IValidator<Boolean>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void validate(IValidatable<Boolean> validatable) {
+				if (!Boolean.TRUE.equals(validatable.getValue())) {
+					validatable.error(new ValidationError("You need to check the checkbox that you understand the consequences."));
+				}
+			}
+			
+		});
 
 		form = new Form<Void>("form") {
 
@@ -102,6 +122,8 @@ public class PublishForm extends Panel {
 			}
 
 		});
+
+		form.add(consentCheck);
 		add(form);
 
 		feedbackPanel = new FeedbackPanel("feedback");
