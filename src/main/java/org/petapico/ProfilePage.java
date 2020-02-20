@@ -80,7 +80,7 @@ public class ProfilePage extends WebPage {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private static File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
-	private static File keyFile = new File(System.getProperty("user.home") + "/.nanopub/id_rsa");
+	private static File keyFile = new File(System.getProperty("user.home") + "/.nanopub/idx_rsa");
 
 	private static KeyPair keyPair;
 	private static IRI userIri;
@@ -92,7 +92,7 @@ public class ProfilePage extends WebPage {
 	static KeyPair getKeyPair() {
 		if (keyPair == null) {
 			try {
-				keyPair = SignNanopub.loadKey("~/.nanopub/id_rsa", SignatureAlgorithm.RSA);
+				keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -106,7 +106,6 @@ public class ProfilePage extends WebPage {
 
 	private static IRI getOrcid() {
 		if (userIri == null) {
-			File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
 			if (orcidFile.exists()) {
 				try {
 					String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
