@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.validation.validator.UrlValidator;
 import org.eclipse.rdf4j.model.IRI;
 
 public class IriTextfieldItem extends Panel {
@@ -22,6 +23,8 @@ public class IriTextfieldItem extends Panel {
 			form.formComponentModels.put(iri, model);
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
+		textfield.isRequired();
+		textfield.add(new UrlValidator());
 		form.formComponents.add(textfield);
 		if (form.template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));

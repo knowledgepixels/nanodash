@@ -6,13 +6,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
+import org.apache.wicket.validation.validator.UrlValidator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -38,6 +47,7 @@ public class PublishForm extends Panel {
 	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
 	protected List<FormComponent<String>> formComponents = new ArrayList<>();
 	protected Form<?> form;
+	protected FeedbackPanel feedbackPanel;
 
 	public PublishForm(String id, final String templateId) {
 		super(id);
@@ -66,7 +76,18 @@ public class PublishForm extends Panel {
 					ex.printStackTrace();
 				}
 			}
-			
+
+			@Override
+		    protected void onValidate() {
+				super.onValidate();
+				for (FormComponent<String> fc : formComponents) {
+					fc.processInput();
+					for (FeedbackMessage fm : fc.getFeedbackMessages()) {
+						form.getFeedbackMessages().add(fm);
+					}
+				}
+			}
+
 		};
 
 		form.add(new ListView<List<IRI>>("statements", statements) {
@@ -79,6 +100,10 @@ public class PublishForm extends Panel {
 
 		});
 		add(form);
+
+		feedbackPanel = new FeedbackPanel("feedback");
+		feedbackPanel.setOutputMarkupId(true);
+		add(feedbackPanel);
 	}
 
 	private Nanopub createNanopub() throws MalformedNanopubException {
