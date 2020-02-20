@@ -52,10 +52,10 @@ public class RestrictedChoiceItem extends Panel {
 				return id;
 			}
 
-//			@Override
-//			public void detach() {
-//				IChoiceRenderer.super.detach();
-//			}
+			@Override
+			public void detach() {
+				IChoiceRenderer.super.detach();
+			}
 
 		};
 		DropDownChoice<String> dropdown = new DropDownChoice<String>("dropdown", model, dropdownValues, choiceRenderer);
