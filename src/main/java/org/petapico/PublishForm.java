@@ -3,10 +3,8 @@ package org.petapico;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,7 +44,7 @@ public class PublishForm extends Panel {
 
 	protected Template template;
 	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
-	protected Set<FormComponent<String>> formComponents = new HashSet<>();
+	protected List<FormComponent<String>> formComponents = new ArrayList<>();
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
 
