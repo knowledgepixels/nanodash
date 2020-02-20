@@ -51,8 +51,11 @@ public class RestrictedChoiceItem extends Panel {
 			public String getObject(String id, IModel<? extends List<? extends String>> choices) {
 				return id;
 			}
+
 		};
 		DropDownChoice<String> dropdown = new DropDownChoice<String>("dropdown", model, dropdownValues, choiceRenderer);
+		dropdown.setRequired(true);
+		form.formComponents.add(dropdown);
 		add(dropdown);
 	}
 

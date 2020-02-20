@@ -3,25 +3,20 @@ package org.petapico;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
-import org.apache.wicket.validation.validator.UrlValidator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -45,7 +40,7 @@ public class PublishForm extends Panel {
 
 	protected Template template;
 	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
-	protected List<FormComponent<String>> formComponents = new ArrayList<>();
+	protected Set<FormComponent<String>> formComponents = new HashSet<>();
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
 
@@ -65,6 +60,12 @@ public class PublishForm extends Panel {
 		form = new Form<Void>("form") {
 
 			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onConfigure() {
+				super.onConfigure();
+				formComponents.clear();
+			}
 
 			protected void onSubmit() {
 				try {

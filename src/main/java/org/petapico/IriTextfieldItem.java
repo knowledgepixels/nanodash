@@ -23,11 +23,12 @@ public class IriTextfieldItem extends Panel {
 			form.formComponentModels.put(iri, model);
 		}
 		final TextField<String> textfield = new TextField<>("textfield", model);
-		textfield.isRequired();
+		textfield.setRequired(true);
 		textfield.add(new UrlValidator());
 		form.formComponents.add(textfield);
 		if (form.template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
+			textfield.setLabel(Model.of(form.template.getLabel(iri)));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
