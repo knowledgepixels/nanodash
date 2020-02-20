@@ -55,17 +55,17 @@ hr {
 }
 
 a {
-	color: #000;
+	color: #0066cc;
 	text-decoration: none;
 	background-color: transparent;
 }
 
 a:hover {
-	color: #666;
+	color: #3399ff;
 }
 
 a:active {
-	color: #666;
+	color: #3399ff;
 }
 
 a.button {

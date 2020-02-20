@@ -12,6 +12,7 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -47,6 +48,7 @@ public class PublishForm extends Panel {
 	public PublishForm(String id, final String templateId) {
 		super(id);
 		template = Template.getTemplate(templateId);
+		add(new ExternalLink("templatelink", templateId));
 		add(new Label("templatename", template.getLabel()));
 		List<List<IRI>> statements = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
