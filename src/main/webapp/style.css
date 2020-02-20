@@ -163,6 +163,10 @@ a.meta:hover, a.meta:active {
 	margin-right: 15px;
 }
 
+.nanopub a { color: #000; }
+.nanopub a:hover { color: #666; }
+.nanopub a:active { color: #666; }
+
 .nanopub { background-color: #666; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 .nanopub-prefixes { display: none; margin-top: 3px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
