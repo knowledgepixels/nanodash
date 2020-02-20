@@ -80,7 +80,7 @@ public class ProfilePage extends WebPage {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private static File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
-	private static File keyFile = new File(System.getProperty("user.home") + "/.nanopub/idx_rsa");
+	private static File keyFile = new File(System.getProperty("user.home") + "/.nanopub/id_rsa");
 
 	private static KeyPair keyPair;
 	private static IRI userIri;
