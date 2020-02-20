@@ -85,6 +85,15 @@ strong {
 	font-weight: bold;
 }
 
+code {
+  border-width: 1px;
+  border-radius: 3px;
+  border-style: solid;
+  border-color: #ccc;
+  background: #f8f8f8;
+  padding: 2px 5px;
+}
+
 input, select {
   font-size: 12pt;
   padding: 5px;

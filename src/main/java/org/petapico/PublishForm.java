@@ -1,6 +1,5 @@
 package org.petapico;
 
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -90,8 +89,7 @@ public class PublishForm extends Panel {
 			protected void onSubmit() {
 				try {
 					Nanopub np = createNanopub();
-					KeyPair keyPair = SignNanopub.loadKey("~/.nanopub/id_rsa", SignatureAlgorithm.RSA);
-					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, keyPair);
+					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
 					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 				} catch (Exception ex) {
 					ex.printStackTrace();
