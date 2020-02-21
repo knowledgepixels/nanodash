@@ -52,9 +52,9 @@ public class RestrictedChoiceItem extends Panel {
 				return id;
 			}
 
+			// Getting strange errors with Tomcat if this method is not overridden:
 			@Override
 			public void detach() {
-				IChoiceRenderer.super.detach();
 			}
 
 		};
