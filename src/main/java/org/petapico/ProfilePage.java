@@ -8,17 +8,22 @@ import java.security.KeyPair;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 
@@ -57,6 +62,27 @@ public class ProfilePage extends WebPage {
 		add(form);
 		add(new FeedbackPanel("feedback"));
 
+		Label keymessage = new Label("keymessage", "No key file found.");
+		Link<String> link = new Link<String>("createkey") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public MarkupContainer setDefaultModel(IModel<?> arg0) {
+				return null;
+			}
+
+			@Override
+			public void onClick() {
+				try {
+					MakeKeys.make(keyFile.getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
+					throw new RedirectToUrlException("./profile");
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
+
+		};
 		add(new Label("keyfile", keyFile.getPath()));
 		if (keyFile.exists()) {
 			if (getKeyPair() == null) {
@@ -65,9 +91,13 @@ public class ProfilePage extends WebPage {
 				String pubkeyString = DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
 				add(new Label("pubkey", pubkeyString));
 			}
+			keymessage.setVisible(false);
+			link.setVisible(false);
 		} else {
-			add(new Label("pubkey", "Key file not found"));
+			add(new Label("pubkey", ""));
 		}
+		add(keymessage);
+		add(link);
 	}
 
 	private void updateMessage() {

@@ -34,7 +34,7 @@ public class HomePage extends WebPage {
 		add(form);
 		form.add(searchField = new TextField<String>("search", Model.of("")));
 
-		add(new DataView<User>("users", new ListDataProvider<User>(User.getUsers(false))) {
+		add(new DataView<User>("users", new ListDataProvider<User>(User.getUsers(true))) {
 
 			private static final long serialVersionUID = 1L;
 
