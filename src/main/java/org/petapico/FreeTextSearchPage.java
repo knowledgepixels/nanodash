@@ -24,6 +24,7 @@ public class FreeTextSearchPage extends WebPage {
 	private boolean nanopubsReady = false;
 
 	public FreeTextSearchPage(final PageParameters parameters) {
+		add(new ProfileItem("profile"));
 
 		final String searchText = parameters.get("query").toString();
 		

@@ -109,7 +109,7 @@ input, select {
 
 #titlebar {
 	clear: both;
-	padding: 5px 20px;
+	padding: 0px 20px 80px 20px;
 	background-color: #f8f8f8;
 	border-color: #888;
 	border-style: solid;
@@ -218,4 +218,18 @@ a.meta:hover, a.meta:active {
   border-width: 5px;
   border-style: solid;
   border-color: transparent black transparent transparent;
+}
+
+
+.alignleft {
+	float: left;
+}
+
+.alignright {
+	float: right;
+}
+
+.profilelink {
+	float: right;
+	padding: 15px 20px;
 }

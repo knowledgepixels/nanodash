@@ -21,6 +21,8 @@ public class UserPage extends WebPage {
 	private boolean nanopubsReady = false;
 
 	public UserPage(final PageParameters parameters) {
+		add(new ProfileItem("profile"));
+
 		final User user = User.getUser(parameters.get("id").toString());
 		add(new Label("username", user.getDisplayName()));
 

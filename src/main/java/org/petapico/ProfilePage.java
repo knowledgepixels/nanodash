@@ -32,13 +32,14 @@ public class ProfilePage extends WebPage {
 
 	public ProfilePage(final PageParameters parameters) {
 		super();
+		add(new ProfileItem("profile"));
 
 		add(new Label("message", messageModel));
 		updateMessage();
 
 		Model<String> model = Model.of("");
-		if (getOrcid() != null) {
-			model.setObject(getOrcid().stringValue().replaceFirst("^https://orcid.org/", ""));
+		if (getUserIri() != null) {
+			model.setObject(getUserIri().stringValue().replaceFirst("^https://orcid.org/", ""));
 		}
 		final TextField<String> orcidField = new TextField<>("orcidfield", model);
 		orcidField.add(new PatternValidator(ORCID_PATTERN));
@@ -86,7 +87,7 @@ public class ProfilePage extends WebPage {
 	private static IRI userIri;
 
 	static boolean isComplete() {
-		return getOrcid() != null && getKeyPair() != null;
+		return getUserIri() != null && getKeyPair() != null;
 	}
 
 	static KeyPair getKeyPair() {
@@ -101,10 +102,6 @@ public class ProfilePage extends WebPage {
 	}
 
 	static IRI getUserIri() {
-		return userIri;
-	}
-
-	private static IRI getOrcid() {
 		if (userIri == null) {
 			if (orcidFile.exists()) {
 				try {

@@ -19,6 +19,7 @@ public class HomePage extends WebPage {
 	private TextField<String> searchField;
 
 	public HomePage(final PageParameters parameters) {
+		add(new ProfileItem("profile"));
 		Form<?> form = new Form<Void>("form") {
 
 			private static final long serialVersionUID = 1L;

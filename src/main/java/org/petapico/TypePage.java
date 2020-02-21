@@ -18,6 +18,7 @@ public class TypePage extends WebPage {
 	private static final long serialVersionUID = 1L;
 
 	public TypePage(final PageParameters parameters) {
+		add(new ProfileItem("profile"));
 		String typeId = parameters.get("id").toString();
 		add(new Label("typeid", typeId));
 
