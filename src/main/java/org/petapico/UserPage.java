@@ -10,15 +10,8 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.Nanopub;
-import org.nanopub.extra.security.IntroNanopub;
-import org.nanopub.extra.security.KeyDeclaration;
 
 public class UserPage extends WebPage {
 
@@ -28,49 +21,50 @@ public class UserPage extends WebPage {
 	private boolean nanopubsReady = false;
 
 	public UserPage(final PageParameters parameters) {
-		final String userId = parameters.get("id").toString();
+		final User user = User.getUser(parameters.get("id").toString());
+		add(new Label("username", user.getDisplayName()));
 
-		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
-		final List<KeyDeclaration> keyDeclarations;
-		if (introNanopub != null && introNanopub.getNanopub() != null) {
-			Nanopub np = introNanopub.getNanopub();
-			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
-			l.add(new Label("intro-nanopub-linktext", "Introduction"));
-			add(l);
-	
-			Map<String,String> p = new HashMap<>();
-			p.put("user", userId);
-			keyDeclarations = introNanopub.getKeyDeclarations();
-		} else {
-			ExternalLink l = new ExternalLink("intro-nanopub", "#");
-			l.add(new Label("intro-nanopub-linktext", "No introduction found"));
-			add(l);
-			keyDeclarations = new ArrayList<>();
-		}
-		String userName = null;
-		for (KeyDeclaration kd : keyDeclarations) {
-			userName = Utils.getUserName(kd.getPublicKeyString());
-			if (userName != null) break;
-		}
-		if (userName == null) {
-			userName = userId;
-		} else {
-			userName += " (" + userId.replaceFirst("^https?://orcid.org/", "") + ")";
-		}
-		add(new Label("username", userName));
-		add(new DataView<KeyDeclaration>("pubkeys", new ListDataProvider<KeyDeclaration>(keyDeclarations)) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<KeyDeclaration> item) {
-				KeyDeclaration d = item.getModelObject();
-				String s = d.getPublicKeyString() + "";
-				if (s.length() > 30) s = s.substring(0, 10) + "..." + s.substring(s.length() - 10);
-				item.add(new Label("pubkey", s));
-			}
-
-		});
+//		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
+//		final List<KeyDeclaration> keyDeclarations;
+//		if (introNanopub != null && introNanopub.getNanopub() != null) {
+//			Nanopub np = introNanopub.getNanopub();
+//			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
+//			l.add(new Label("intro-nanopub-linktext", "Introduction"));
+//			add(l);
+//	
+//			Map<String,String> p = new HashMap<>();
+//			p.put("user", userId);
+//			keyDeclarations = introNanopub.getKeyDeclarations();
+//		} else {
+//			ExternalLink l = new ExternalLink("intro-nanopub", "#");
+//			l.add(new Label("intro-nanopub-linktext", "No introduction found"));
+//			add(l);
+//			keyDeclarations = new ArrayList<>();
+//		}
+//		String userName = null;
+//		for (KeyDeclaration kd : keyDeclarations) {
+//			userName = Utils.getUserName(kd.getPublicKeyString());
+//			if (userName != null) break;
+//		}
+//		if (userName == null) {
+//			userName = userId;
+//		} else {
+//			userName += " (" + userId.replaceFirst("^https?://orcid.org/", "") + ")";
+//		}
+//		add(new Label("username", userName));
+//		add(new DataView<KeyDeclaration>("pubkeys", new ListDataProvider<KeyDeclaration>(keyDeclarations)) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected void populateItem(Item<KeyDeclaration> item) {
+//				KeyDeclaration d = item.getModelObject();
+//				String s = d.getPublicKeyString() + "";
+//				if (s.length() > 30) s = s.substring(0, 10) + "..." + s.substring(s.length() - 10);
+//				item.add(new Label("pubkey", s));
+//			}
+//
+//		});
 
 		progress = new Model<>();
 		final Label progressLabel = new Label("progress", progress);
@@ -107,8 +101,8 @@ public class UserPage extends WebPage {
 			public void run() {
 				Map<String,String> nanopubParams = new HashMap<>();
 				List<Map<String,String>> nanopubResults = new ArrayList<>();
-				nanopubParams.put("pubkey", keyDeclarations.get(0).getPublicKeyString());  // TODO: only using first public key here
-				nanopubParams.put("creator", userId);
+				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
+				nanopubParams.put("creator", user.getId().stringValue());
 				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress);
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
 					Map<String,String> resultEntry = nanopubResults.remove(0);

@@ -1,9 +1,5 @@
 package org.petapico;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -37,23 +33,16 @@ public class HomePage extends WebPage {
 		add(form);
 		form.add(searchField = new TextField<String>("search", Model.of("")));
 
-		List<String> users = new ArrayList<>();
-		try {
-			users = ApiAccess.getAll("get_all_users", null, 0);
-		} catch (IOException ex) {
-			// TODO do something here
-			ex.printStackTrace();
-		}
-		add(new DataView<String>("users", new ListDataProvider<String>(users)) {
+		add(new DataView<User>("users", new ListDataProvider<User>(User.getUsers(false))) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<String> item) {
+			protected void populateItem(Item<User> item) {
 				PageParameters params = new PageParameters();
-				params.add("id", item.getModelObject());
+				params.add("id", item.getModelObject().getId());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", item.getModelObject()));
+				l.add(new Label("linktext", item.getModelObject().getDisplayName()));
 				item.add(l);
 			}
 
