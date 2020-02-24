@@ -240,7 +240,9 @@ public class ProfilePage extends WebPage {
 		if (userIri == null) {
 			if (orcidFile.exists()) {
 				try {
-					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8);
+					System.err.println("pORCID!");
+					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8).trim();
+					System.err.println("ORCID!");
 //					String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
