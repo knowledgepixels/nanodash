@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -18,18 +20,26 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubCreator;
+import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.GetNanopub;
+import org.nanopub.extra.server.PublishNanopub;
+
+import net.trustyuri.TrustyUriException;
 
 public class ProfilePage extends WebPage {
 
@@ -61,7 +71,7 @@ public class ProfilePage extends WebPage {
 			protected void onSubmit() {
 				setOrcid(orcidField.getModelObject());
 				introNp = null;
-				throw new RedirectToUrlException("./profile");
+				throw new RestartResponseException(ProfilePage.class);
 			}
 
 		};
@@ -83,7 +93,7 @@ public class ProfilePage extends WebPage {
 			public void onClick() {
 				try {
 					MakeKeys.make(keyFile.getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
-					throw new RedirectToUrlException("./profile");
+					throw new RestartResponseException(ProfilePage.class);
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
@@ -119,7 +129,17 @@ public class ProfilePage extends WebPage {
 
 			@Override
 			public void onClick() {
-				System.err.println("CLICKED");
+				if (userIri == null || keyPair == null) return;
+				try {
+					Nanopub np = createIntroNanopub();
+					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
+					PublishNanopub.publish(signedNp);
+					introNp = new IntroNanopub(signedNp, userIri);
+//					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
+					throw new RestartResponseException(ProfilePage.class);
+				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
+					ex.printStackTrace();
+				}
 			}
 
 		};
@@ -149,6 +169,27 @@ public class ProfilePage extends WebPage {
 		add(introlink);
 		add(intromessage);
 		add(createIntroLink);
+	}
+
+	private Nanopub createIntroNanopub() throws MalformedNanopubException {
+		if (userIri == null || keyPair == null) return null;
+		String tns = "http://purl.org/nanopub/temp/";
+		NanopubCreator npCreator = new NanopubCreator(vf.createIRI(tns));
+		npCreator.addNamespace("", tns);
+		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/#");
+		npCreator.addNamespace("xsd", "http://www.w3.org/2001/XMLSchema#");
+		npCreator.addNamespace("dct", "http://purl.org/dc/terms/");
+		npCreator.addNamespace("prov", "http://www.w3.org/ns/prov#");
+		npCreator.addNamespace("orcid", "https://orcid.org/");
+		npCreator.addNamespace("np", "http://www.nanopub.org/nschema#");
+		npCreator.addNamespace("npx", "http://purl.org/nanopub/x/");
+		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), CryptoElement.HAS_ALGORITHM, vf.createLiteral("RSA"));
+		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(getPubkeyString()));
+		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), KeyDeclaration.DECLARED_BY, userIri);
+		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
+		npCreator.addTimestampNow();
+		npCreator.addPubinfoStatement(DCTERMS.CREATOR, userIri);
+		return npCreator.finalizeNanopub();
 	}
 
 	private void updateMessage() {

@@ -117,4 +117,12 @@ public class UserPage extends WebPage {
 		loadContent.start();
 	}
 
+	@Override
+	public void onBeforeRender() {
+		super.onBeforeRender();
+		if (hasBeenRendered()) {
+			setResponsePage(getPageClass(), getPageParameters());
+		}
+	}
+
 }

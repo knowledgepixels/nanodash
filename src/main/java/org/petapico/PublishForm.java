@@ -1,10 +1,12 @@
 package org.petapico;
 
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -17,6 +19,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -24,15 +27,15 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.rio.RDFFormat;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubWithNs;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+
+import net.trustyuri.TrustyUriException;
 
 public class PublishForm extends Panel {
 
@@ -89,8 +92,12 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
-				} catch (Exception ex) {
+//					PublishNanopub.publish(signedNp);
+//					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
+					PageParameters params = new PageParameters();
+					params.add("id", ProfilePage.getUserIri().stringValue());
+					throw new RestartResponseException(UserPage.class, params);
+				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}
 			}
