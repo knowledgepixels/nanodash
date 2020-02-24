@@ -13,6 +13,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
@@ -37,6 +38,8 @@ public class ProfilePage extends WebPage {
 
 	public ProfilePage(final PageParameters parameters) {
 		super();
+		User.getUsers(true);  // refresh
+
 		add(new ProfileItem("profile"));
 
 		add(new Label("message", messageModel));
@@ -54,7 +57,8 @@ public class ProfilePage extends WebPage {
 
 			protected void onSubmit() {
 				setOrcid(orcidField.getModelObject());
-				updateMessage();
+				introIri = null;
+				throw new RedirectToUrlException("./profile");
 			}
 
 		};
@@ -63,7 +67,7 @@ public class ProfilePage extends WebPage {
 		add(new FeedbackPanel("feedback"));
 
 		Label keymessage = new Label("keymessage", "No key file found.");
-		Link<String> link = new Link<String>("createkey") {
+		Link<String> createKeyLink = new Link<String>("createkey") {
 
 			private static final long serialVersionUID = 1L;
 
@@ -92,19 +96,56 @@ public class ProfilePage extends WebPage {
 				add(new Label("pubkey", pubkeyString));
 			}
 			keymessage.setVisible(false);
-			link.setVisible(false);
+			createKeyLink.setVisible(false);
 		} else {
 			add(new Label("pubkey", ""));
 		}
 		add(keymessage);
-		add(link);
+		add(createKeyLink);
+
+		ExternalLink introlink = null;
+		Label intromessage = new Label("intromessage", "No introduction nanopublication found.");
+		Link<String> createIntroLink = new Link<String>("createintro") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public MarkupContainer setDefaultModel(IModel<?> arg0) {
+				return null;
+			}
+
+			@Override
+			public void onClick() {
+				System.err.println("CLICKED");
+			}
+
+		};
+		if (getUserIri() != null && getKeyPair() != null) {
+			if (getIntroIri() != null) {
+				introlink = new ExternalLink("introlink", getIntroIri().stringValue());
+				introlink.add(new Label("introlinktext", getIntroIri().stringValue()));
+				intromessage.setVisible(false);
+				createIntroLink.setVisible(false);
+			}
+		}
+		if (introlink == null) {
+			introlink = new ExternalLink("introlink", "#");
+			introlink.add(new Label("introlinktext", ""));
+		}
+		if (getUserIri() == null || getKeyPair() == null) {
+			intromessage.setVisible(false);
+			createIntroLink.setVisible(false);
+		}
+		add(introlink);
+		add(intromessage);
+		add(createIntroLink);
 	}
 
 	private void updateMessage() {
 		if (isComplete()) {
 			messageModel.setObject("");
 		} else {
-			messageModel.setObject("You need to set an ORCID identifier and load the signature keys before you can publish nanopublications.");
+			messageModel.setObject("You need to set an ORCID identifier, load the signature keys, and publish an introduction before you can publish nanopublications.");
 		}
 	}
 
@@ -115,9 +156,10 @@ public class ProfilePage extends WebPage {
 
 	private static KeyPair keyPair;
 	private static IRI userIri;
+	private static IRI introIri;
 
 	static boolean isComplete() {
-		return getUserIri() != null && getKeyPair() != null;
+		return getUserIri() != null && getKeyPair() != null && getIntroIri() != null;
 	}
 
 	static KeyPair getKeyPair() {
@@ -156,6 +198,16 @@ public class ProfilePage extends WebPage {
 				ex.printStackTrace();
 			}
 		}
+	}
+
+	static IRI getIntroIri() {
+		if (introIri == null) {
+			User user = User.getUser(getUserIri().toString());
+			if (user != null) {
+				introIri = user.getIntropubIri();
+			}
+		}
+		return introIri;
 	}
 
 }
