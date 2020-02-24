@@ -166,6 +166,9 @@ public class PublishForm extends Panel {
 	private Value processValue(Value value) {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
+		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+			iri = ProfilePage.getUserIri();
+		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/"));
 		}
