@@ -1,4 +1,4 @@
-package org.petapico;
+package org.petapico.nanobench;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;

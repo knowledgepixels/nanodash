@@ -1,4 +1,4 @@
-package org.petapico;
+package org.petapico.nanobench;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;

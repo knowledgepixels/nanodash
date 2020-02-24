@@ -1,5 +1,6 @@
-package org.petapico;
+package org.petapico.nanobench;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import org.nanopub.NanopubWithNs;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.server.PublishNanopub;
 
 import net.trustyuri.TrustyUriException;
 
@@ -92,12 +94,12 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-//					PublishNanopub.publish(signedNp);
+					PublishNanopub.publish(signedNp);
 //					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(UserPage.class, params);
-				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
+				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}
 			}

@@ -1,4 +1,4 @@
-package org.petapico;
+package org.petapico.nanobench;
 
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.protocol.http.WebApplication;

@@ -1,4 +1,4 @@
-package org.petapico;
+package org.petapico.nanobench;
 
 import java.util.HashSet;
 import java.util.Set;

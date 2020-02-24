@@ -1,4 +1,4 @@
-package org.petapico;
+package org.petapico.nanobench;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
