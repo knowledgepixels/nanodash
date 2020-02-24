@@ -75,7 +75,7 @@ public class User implements Serializable, Comparable<User> {
 	}
 
 	public String getDisplayName() {
-		if (name == null || name.isBlank()) return getShortId();
+		if (name == null || name.isEmpty()) return getShortId();
 		return name + " (" + getShortId() + ")";
 	}
 

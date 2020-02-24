@@ -44,7 +44,7 @@ public abstract class ApiAccess {
 
 	static {
 		String env = System.getenv("NANOBENCH_API_INSTANCES");
-		if (env != null && !env.isBlank()) {
+		if (env != null && !env.isEmpty()) {
 			apiInstances = env.trim().split(" ");
 			System.err.println("API Instances:");
 			for (String s : apiInstances) System.err.println("- " + s);

@@ -174,17 +174,17 @@ public class PublishForm extends Panel {
 		}
 		if (template.isUriPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				return vf.createIRI(tf.getObject());
 			}
 		} else if (template.isLiteralPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				return vf.createLiteral(tf.getObject());
 			}
 		} else if (template.isRestrictedChoicePlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isBlank()) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				if (tf.getObject().matches("https?://.*")) {
 					return vf.createIRI(tf.getObject());
 				}

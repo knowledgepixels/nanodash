@@ -1,6 +1,5 @@
 package org.petapico.nanobench;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +13,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.time.Duration;
 
 public class FreeTextSearchPage extends WebPage {
 
@@ -46,7 +46,7 @@ public class FreeTextSearchPage extends WebPage {
 		progress = new Model<>();
 		final Label progressLabel = new Label("progress", progress);
 		progressLabel.setOutputMarkupId(true);
-		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(1000)));
+		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
 		final List<NanopubElement> nanopubs = new ArrayList<>();
@@ -62,7 +62,7 @@ public class FreeTextSearchPage extends WebPage {
 
 			@Override
 			protected Duration getUpdateInterval() {
-				return Duration.ofMillis(1000);
+				return Duration.milliseconds(1000);
 			};
 
 			@Override

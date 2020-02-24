@@ -3,12 +3,12 @@ package org.petapico.nanobench;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
@@ -240,7 +240,8 @@ public class ProfilePage extends WebPage {
 		if (userIri == null) {
 			if (orcidFile.exists()) {
 				try {
-					String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
+					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8);
+//					String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
 					}
@@ -255,7 +256,8 @@ public class ProfilePage extends WebPage {
 	private static void setOrcid(String orcid) {
 		if (orcid.matches(ORCID_PATTERN)) {
 			try {
-				Files.writeString(orcidFile.toPath(), orcid + "\n");
+				FileUtils.writeStringToFile(orcidFile, orcid + "\n", StandardCharsets.UTF_8);
+//				Files.writeString(orcidFile.toPath(), orcid + "\n");
 				userIri = vf.createIRI("https://orcid.org/" + orcid);
 			} catch (IOException ex) {
 				ex.printStackTrace();

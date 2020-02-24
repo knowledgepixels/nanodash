@@ -151,7 +151,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>9.0.0-M4</wicket.version>
+    <wicket.version>8.7.0</wicket.version>
     <jetty.version>9.4.24.v20191120</jetty.version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
