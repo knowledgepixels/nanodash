@@ -24,9 +24,12 @@ import org.apache.wicket.validation.validator.PatternValidator;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.server.GetNanopub;
 
 public class ProfilePage extends WebPage {
 
@@ -57,7 +60,7 @@ public class ProfilePage extends WebPage {
 
 			protected void onSubmit() {
 				setOrcid(orcidField.getModelObject());
-				introIri = null;
+				introNp = null;
 				throw new RedirectToUrlException("./profile");
 			}
 
@@ -104,7 +107,7 @@ public class ProfilePage extends WebPage {
 		add(createKeyLink);
 
 		ExternalLink introlink = null;
-		Label intromessage = new Label("intromessage", "No introduction nanopublication found.");
+		Label intromessage = null;
 		Link<String> createIntroLink = new Link<String>("createintro") {
 
 			private static final long serialVersionUID = 1L;
@@ -121,16 +124,23 @@ public class ProfilePage extends WebPage {
 
 		};
 		if (getUserIri() != null && getKeyPair() != null) {
-			if (getIntroIri() != null) {
-				introlink = new ExternalLink("introlink", getIntroIri().stringValue());
-				introlink.add(new Label("introlinktext", getIntroIri().stringValue()));
-				intromessage.setVisible(false);
+			if (getIntroNanopub() != null) {
+				String id = getIntroNanopub().getNanopub().getUri().stringValue();
+				introlink = new ExternalLink("introlink", id);
+				introlink.add(new Label("introlinktext", id));
+				if (doPubkeysMatch()) {
+					intromessage = new Label("intromessage", "");
+					intromessage.setVisible(false);
+				} else {
+					intromessage = new Label("intromessage", "Public key of the introduction nanopublication doesn't match.");
+				}
 				createIntroLink.setVisible(false);
 			}
 		}
 		if (introlink == null) {
 			introlink = new ExternalLink("introlink", "#");
 			introlink.add(new Label("introlinktext", ""));
+			intromessage = new Label("intromessage", "No introduction nanopublication found.");
 		}
 		if (getUserIri() == null || getKeyPair() == null) {
 			intromessage.setVisible(false);
@@ -156,10 +166,22 @@ public class ProfilePage extends WebPage {
 
 	private static KeyPair keyPair;
 	private static IRI userIri;
-	private static IRI introIri;
+	private static IntroNanopub introNp;
 
 	static boolean isComplete() {
-		return getUserIri() != null && getKeyPair() != null && getIntroIri() != null;
+		return getUserIri() != null && getKeyPair() != null && getIntroNanopub() != null && doPubkeysMatch();
+	}
+
+	static boolean doPubkeysMatch() {
+		if (keyPair == null) return false;
+		if (introNp == null) return false;
+		// TODO: Handle case of multiple key declarations
+		return getPubkeyString().equals(introNp.getKeyDeclarations().get(0).getPublicKeyString());
+	}
+
+	static String getPubkeyString() {
+		if (keyPair == null) return null;
+		return DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
 	}
 
 	static KeyPair getKeyPair() {
@@ -200,14 +222,15 @@ public class ProfilePage extends WebPage {
 		}
 	}
 
-	static IRI getIntroIri() {
-		if (introIri == null) {
+	static IntroNanopub getIntroNanopub() {
+		if (introNp == null) {
 			User user = User.getUser(getUserIri().toString());
 			if (user != null) {
-				introIri = user.getIntropubIri();
+				Nanopub np = GetNanopub.get(user.getIntropubIri().stringValue());
+				introNp = new IntroNanopub(np, user.getId());
 			}
 		}
-		return introIri;
+		return introNp;
 	}
 
 }
