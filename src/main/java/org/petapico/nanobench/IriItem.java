@@ -25,7 +25,11 @@ public class IriItem extends Panel {
 			labelString = getShortNameFromURI(iri.stringValue());
 		}
 		add(new Label("label", labelString));
-		add(new Label("iri", iri.stringValue()));
+		String iriString = iri.stringValue();
+		if (form.template.isLocalResource(iri)) {
+			iriString = iriString.replaceFirst("^.*[/#]", "local:");
+		}
+		add(new Label("iri", iriString));
 	}
 
 	public static String getShortNameFromURI(String uri) {

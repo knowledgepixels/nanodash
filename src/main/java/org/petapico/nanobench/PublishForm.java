@@ -170,12 +170,17 @@ public class PublishForm extends Panel {
 			iri = ProfilePage.getUserIri();
 		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
+			// TODO: deprecate this (use LocalResource instead)
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/"));
 		}
-		if (template.isUriPlaceholder(iri)) {
+		if (template.isLocalResource(iri)) {
+			return vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/"));
+		} else if (template.isUriPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				return vf.createIRI(tf.getObject());
+				String prefix = template.getPrefix(iri);
+				if (prefix == null) prefix = "";
+				return vf.createIRI(prefix + tf.getObject());
 			}
 		} else if (template.isLiteralPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
@@ -185,8 +190,10 @@ public class PublishForm extends Panel {
 		} else if (template.isRestrictedChoicePlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				if (tf.getObject().matches("https?://.*")) {
-					return vf.createIRI(tf.getObject());
+				String prefix = template.getPrefix(iri);
+				if (prefix == null) prefix = "";
+				if (tf.getObject().matches("https?://.*") || prefix.matches("https?://.*")) {
+					return vf.createIRI(prefix + tf.getObject());
 				}
 				return vf.createLiteral(tf.getObject());
 			}

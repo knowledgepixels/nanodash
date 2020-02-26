@@ -62,6 +62,7 @@ public class Template implements Serializable {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 	public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
+	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
 	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
@@ -69,6 +70,8 @@ public class Template implements Serializable {
 	public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
 	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
 	public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
+	public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
+	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
 
 
 	private Nanopub nanopub;
@@ -76,6 +79,8 @@ public class Template implements Serializable {
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,String> labelMap = new HashMap<>();
+	private Map<IRI,String> prefixMap = new HashMap<>();
+	private Map<IRI,String> prefixLabelMap = new HashMap<>();
 	private List<IRI> statementIri;
 	private Map<IRI,IRI> statementSubjects = new HashMap<>();
 	private Map<IRI,IRI> statementPredicates = new HashMap<>();
@@ -103,6 +108,14 @@ public class Template implements Serializable {
 		return labelMap.get(iri);
 	}
 
+	public String getPrefix(IRI iri) {
+		return prefixMap.get(iri);
+	}
+
+	public String getPrefixLabel(IRI iri) {
+		return prefixLabelMap.get(iri);
+	}
+
 	public List<IRI> getStatementIris() {
 		return statementIri;
 	}
@@ -117,6 +130,10 @@ public class Template implements Serializable {
 
 	public Value getObject(IRI statementIri) {
 		return statementObjects.get(statementIri);
+	}
+
+	public boolean isLocalResource(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS);
 	}
 
 	public boolean isUriPlaceholder(IRI iri) {
@@ -161,6 +178,10 @@ public class Template implements Serializable {
 				l.add(st.getObject());
 			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
 				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+			} else if (st.getPredicate().equals(HAS_PREFIX_PREDICATE) && st.getObject() instanceof Literal) {
+				prefixMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+			} else if (st.getPredicate().equals(HAS_PREFIX_LABEL_PREDICATE) && st.getObject() instanceof Literal) {
+				prefixLabelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			}
 		}
 		for (Statement st : templateNp.getAssertion()) {
