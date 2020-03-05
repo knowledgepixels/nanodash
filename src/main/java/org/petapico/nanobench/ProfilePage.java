@@ -72,6 +72,7 @@ public class ProfilePage extends WebPage {
 			protected void onSubmit() {
 				setOrcid(orcidField.getModelObject());
 				introNp = null;
+				isOrcidLinked = null;
 				throw new RestartResponseException(ProfilePage.class);
 			}
 
@@ -172,25 +173,18 @@ public class ProfilePage extends WebPage {
 		add(createIntroLink);
 
 		if (userIri != null && introNp != null) {
-			try {
-				IntroNanopub inp = IntroNanopub.get(userIri.stringValue());
-				if (inp.getNanopub() == null) {
-					add(new Label("orcidlinkmessage", "ORCID is not yet linked (1)."));
-				} else if (inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
-					add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
-				} else {
-					add(new Label("orcidlinkmessage", "Error: ORCID is linked to another introduction nanopublication."));
-				}
-			} catch (RDF4JException | IOException ex) {
-				ex.printStackTrace();
-				add(new Label("orcidlinkmessage", "Error while checking whether ORCID is linked."));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				add(new Label("orcidlinkmessage", "ORCID is not yet linked (2)."));
+			Boolean linked = isOrcidLinked();
+			if (linked == null) {
+				add(new Label("orcidlinkmessage", ""));
+			} else if (linked) {
+				add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
+			} else {
+				add(new Label("orcidlinkmessage", "ORCID is not yet linked."));
 			}
 		} else {
 			add(new Label("orcidlinkmessage", "..."));
 		}
+		add(new Label("orcidlinkerror", orcidLinkError));
 	}
 
 	private Nanopub createIntroNanopub() throws MalformedNanopubException {
@@ -230,6 +224,8 @@ public class ProfilePage extends WebPage {
 	private static KeyPair keyPair;
 	private static IRI userIri;
 	private static IntroNanopub introNp;
+	private static Boolean isOrcidLinked;
+	private static String orcidLinkError;
 
 	static boolean isComplete() {
 		return getUserIri() != null && getKeyPair() != null && getIntroNanopub() != null && doPubkeysMatch();
@@ -296,6 +292,30 @@ public class ProfilePage extends WebPage {
 			}
 		}
 		return introNp;
+	}
+
+	static Boolean isOrcidLinked() {
+		if (isOrcidLinked == null) {
+			orcidLinkError = null;
+			try {
+				IntroNanopub inp = IntroNanopub.get(userIri.stringValue());
+				if (inp.getNanopub() == null) {
+					isOrcidLinked = false;
+				} else if (inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
+					isOrcidLinked = true;
+				} else {
+					isOrcidLinked = false;
+					orcidLinkError = "Error: ORCID is linked to another introduction nanopublication.";
+				}
+			} catch (RDF4JException | IOException ex) {
+				ex.printStackTrace();
+				orcidLinkError = "Error while checking whether ORCID is linked.";
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				isOrcidLinked = false;
+			}
+		}
+		return isOrcidLinked;
 	}
 
 }
