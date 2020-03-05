@@ -22,6 +22,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -169,6 +170,27 @@ public class ProfilePage extends WebPage {
 		add(introlink);
 		add(intromessage);
 		add(createIntroLink);
+
+		if (userIri != null && introNp != null) {
+			try {
+				IntroNanopub inp = IntroNanopub.get(userIri.stringValue());
+				if (inp.getNanopub() == null) {
+					add(new Label("orcidlinkmessage", "ORCID is not yet linked (1)."));
+				} else if (inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
+					add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
+				} else {
+					add(new Label("orcidlinkmessage", "Error: ORCID is linked to another introduction nanopublication."));
+				}
+			} catch (RDF4JException | IOException ex) {
+				ex.printStackTrace();
+				add(new Label("orcidlinkmessage", "Error while checking whether ORCID is linked."));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				add(new Label("orcidlinkmessage", "ORCID is not yet linked (2)."));
+			}
+		} else {
+			add(new Label("orcidlinkmessage", "..."));
+		}
 	}
 
 	private Nanopub createIntroNanopub() throws MalformedNanopubException {
