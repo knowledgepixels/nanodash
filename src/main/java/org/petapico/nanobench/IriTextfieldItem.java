@@ -35,6 +35,9 @@ public class IriTextfieldItem extends Panel {
 		String prefixLabel = form.template.getPrefixLabel(iri);
 		if (prefixLabel == null) prefixLabel = "";
 		add(new Label("prefix", prefixLabel));
+		String prefixTooltip = prefix;
+		if (!prefix.isEmpty()) prefixTooltip += "...";
+		add(new Label("prefixtooltiptext", prefixTooltip));
 		final TextField<String> textfield = new TextField<>("textfield", model);
 		textfield.setRequired(true);
 		textfield.add(new IValidator<String>() {
