@@ -172,10 +172,27 @@ public class ProfilePage extends WebPage {
 		add(intromessage);
 		add(createIntroLink);
 
+		Link<String> retryLink = new Link<String>("retry") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public MarkupContainer setDefaultModel(IModel<?> arg0) {
+				return null;
+			}
+
+			@Override
+			public void onClick() {
+				throw new RestartResponseException(ProfilePage.class);
+			}
+
+		};
+		retryLink.setVisible(false);
 		if (userIri != null && introNp != null) {
 			Boolean linked = isOrcidLinked();
 			if (linked == null) {
 				add(new Label("orcidlinkmessage", ""));
+				retryLink.setVisible(true);
 			} else if (linked) {
 				add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
 			} else {
@@ -185,6 +202,7 @@ public class ProfilePage extends WebPage {
 			add(new Label("orcidlinkmessage", "..."));
 		}
 		add(new Label("orcidlinkerror", orcidLinkError));
+		add(retryLink);
 	}
 
 	private Nanopub createIntroNanopub() throws MalformedNanopubException {
