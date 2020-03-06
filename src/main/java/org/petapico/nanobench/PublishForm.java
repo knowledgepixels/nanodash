@@ -98,7 +98,7 @@ public class PublishForm extends Panel {
 //					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
-					throw new RestartResponseException(UserPage.class, params);
+					throw new RestartResponseException(new PublishConfirmPage(signedNp));
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}

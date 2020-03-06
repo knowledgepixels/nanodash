@@ -36,7 +36,7 @@ public class User implements Serializable, Comparable<User> {
 		}
 	}
 
-	public static List<User> getUsers(boolean refresh) {
+	public static synchronized List<User> getUsers(boolean refresh) {
 		if (users == null || refresh) {
 			loadUsers();
 		}

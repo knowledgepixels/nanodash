@@ -39,6 +39,10 @@ public class NanopubElement implements Serializable {
 		this.retracted = retracted;
 	}
 
+	public NanopubElement(Nanopub nanopub) {
+		this.nanopub = nanopub;
+	}
+
 	public Nanopub getNanopub() {
 		return nanopub;
 	}

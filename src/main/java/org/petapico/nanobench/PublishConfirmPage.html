@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>nanobench</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body id="backpane">
+
+<div id="outer">
+
+<div id="titlebar">
+
+<div wicket:id="profile"></div>
+
+<div class="alignleft">
+<h1><a href="."><span class="na">na</span><span class="no">no</span></a>publish</h1>
+</div>
+
+</div>
+
+<div id="content" class="backpane">
+
+<h3>Successful Publication</h3>
+
+<p>Congratulations, you have just published the nanopublication below.</p>
+
+<p>It will shortly show up in <a wicket:id="userlink">your timeline</a>.</p>
+
+<h3>Nanopublication</h3>
+
+<div wicket:id="nanopub">
+</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
