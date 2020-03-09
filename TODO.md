@@ -10,4 +10,5 @@ nanobench TODOs
   - retracting nanopubs
   - foaf:knows
   - approves/confirms/acknowledges
+- Retrieve names for users via ORCID?
 
