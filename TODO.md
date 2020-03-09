@@ -4,6 +4,7 @@ nanobench TODOs
 - More links to improve navigation
 - Improving calls to the network API; make more reliable
 - Make templating (more or less) future-proof
+- Check for whether user is using latest version of nanobench?
 - ORCID linking instructions
 - Make more templates:
   - commenting on things (including nanopubs)
@@ -11,4 +12,3 @@ nanobench TODOs
   - foaf:knows
   - approves/confirms/acknowledges
 - More Ajax components
-
