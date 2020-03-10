@@ -40,8 +40,8 @@ public class ApiCall {
 	public static String[] apiInstances = new String[] {
 		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/",
 		"http://130.60.24.146:7881/api/local/local/",
-		"https://openphacts.cs.man.ac.uk/nanopub/grlc/api/local/local/"
-//		"https://grlc.nanopubs.knows.idlab.ugent.be/api/local/local/"
+		"https://openphacts.cs.man.ac.uk/nanopub/grlc/api/local/local/",
+		"https://grlc.nanopubs.knows.idlab.ugent.be/api/local/local/"
 	};
 
 	private String operation;
