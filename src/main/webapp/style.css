@@ -115,11 +115,17 @@ input, select {
 
 #titlebar {
 	clear: both;
-	padding: 0px 20px 80px 20px;
+	padding: 0px 20px 0px 20px;
 	background-color: #f8f8f8;
 	border-color: #888;
 	border-style: solid;
 	border-width: 0 0 1px 0;
+}
+
+#titlebar::after {
+  content: "";
+  clear: both;
+  display: table;
 }
 
 #content {
@@ -225,7 +231,6 @@ a.meta:hover, a.meta:active {
   border-style: solid;
   border-color: transparent black transparent transparent;
 }
-
 
 .alignleft {
 	float: left;
