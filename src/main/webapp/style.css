@@ -23,12 +23,12 @@ h4, h5, h6 {
 }
 
 .title {
-	font-size: 24pt;
+	font-size: 22pt;
 	font-weight: bold;
 }
 
 .menu {
-	font-size: 18pt;
+	font-size: 16pt;
 	margin-left: 1em;
 }
 
@@ -99,6 +99,11 @@ a.button:hover, input.button:hover {
 strong {
 	color: black;
 	font-weight: bold;
+}
+
+.detail {
+	font-size: 9pt;
+	font-weight: normal;
 }
 
 code {
