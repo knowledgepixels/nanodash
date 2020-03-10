@@ -1,16 +1,23 @@
 nanobench TODOs
 ===============
 
+Highest priority:
+
 - Make templating (more or less) future-proof
 - ORCID linking instructions
 - Make more templates:
   - commenting on things (including nanopubs)
   - retracting nanopubs
   - foaf:knows
-  - approves/confirms/acknowledges
   - arbitrary triple
+- empty results label on search page
+
+Lower priority:
+
 - More Ajax components
 - Define ntemplate vocabulary
+- Make more templates:
+  - approves/confirms/acknowledges
 
 Later:
 
