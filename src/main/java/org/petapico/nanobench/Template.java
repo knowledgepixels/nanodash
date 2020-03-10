@@ -71,16 +71,20 @@ public class Template implements Serializable {
 	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
 	public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
 	public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
+	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
 
 
 	private Nanopub nanopub;
 	private String label;
+
+	// TODO: Make all these maps more generic and the code simpler:
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,String> labelMap = new HashMap<>();
 	private Map<IRI,String> prefixMap = new HashMap<>();
 	private Map<IRI,String> prefixLabelMap = new HashMap<>();
+	private Map<IRI,String> regexMap = new HashMap<>();
 	private List<IRI> statementIri;
 	private Map<IRI,IRI> statementSubjects = new HashMap<>();
 	private Map<IRI,IRI> statementPredicates = new HashMap<>();
@@ -114,6 +118,10 @@ public class Template implements Serializable {
 
 	public String getPrefixLabel(IRI iri) {
 		return prefixLabelMap.get(iri);
+	}
+
+	public String getRegex(IRI iri) {
+		return regexMap.get(iri);
 	}
 
 	public List<IRI> getStatementIris() {
@@ -182,6 +190,8 @@ public class Template implements Serializable {
 				prefixMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			} else if (st.getPredicate().equals(HAS_PREFIX_LABEL_PREDICATE) && st.getObject() instanceof Literal) {
 				prefixLabelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+			} else if (st.getPredicate().equals(HAS_REGEX_PREDICATE) && st.getObject() instanceof Literal) {
+				regexMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			}
 		}
 		for (Statement st : templateNp.getAssertion()) {

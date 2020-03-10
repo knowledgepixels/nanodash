@@ -23,7 +23,7 @@ public class IriTextfieldItem extends Panel {
 
 	private String prefix;
 
-	public IriTextfieldItem(String id, IRI iri, final PublishForm form) {
+	public IriTextfieldItem(String id, final IRI iri, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -53,6 +53,12 @@ public class IriTextfieldItem extends Panel {
 					}
 				} catch (URISyntaxException ex) {
 					s.error(new ValidationError("IRI not well-formed"));
+				}
+				String regex = form.template.getRegex(iri);
+				if (regex != null) {
+					if (!s.getValue().matches(regex)) {
+						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+					}
 				}
 			}
 

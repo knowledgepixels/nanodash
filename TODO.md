@@ -3,7 +3,6 @@ nanobench TODOs
 
 - Improving calls to the network API; make more reliable
 - Make templating (more or less) future-proof
-- Regular expression restrictions for template values?
 - ORCID linking instructions
 - Make more templates:
   - commenting on things (including nanopubs)
@@ -12,6 +11,7 @@ nanobench TODOs
   - approves/confirms/acknowledges
   - arbitrary triple
 - More Ajax components
+- Define ntemplate vocabulary
 
 Later:
 

@@ -99,6 +99,7 @@ public class PublishForm extends Panel {
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
+//				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}
