@@ -1,7 +1,6 @@
 package org.petapico.nanobench;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,16 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.rio.turtle.TurtleParser;
+import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 
 public class User implements Serializable, Comparable<User> {
@@ -110,34 +103,18 @@ public class User implements Serializable, Comparable<User> {
 
 	public String getNameFromOrcid(String userId) {
 		if (!nameFromOrcidMap.containsKey(userId)) {
-			RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(1000)
-					.setConnectionRequestTimeout(100).setSocketTimeout(1000).build();
-			HttpClient c = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
-			HttpGet get = new HttpGet(userId);
-			get.setHeader("Accept", "text/turtle");
-			InputStream in = null;
 			try {
-				HttpResponse resp = c.execute(get);
-				if (!wasSuccessful(resp)) {
-					EntityUtils.consumeQuietly(resp.getEntity());
-					throw new IOException(resp.getStatusLine().toString());
+				IntroExtractor ie = IntroNanopub.extract(userId, null);
+				if (ie != null) {
+					nameFromOrcidMap.put(userId, ie.getName());
+				} else {
+					nameFromOrcidMap.put(userId, null);
 				}
-				in = resp.getEntity().getContent();
-				IntroExtractor ie = new IntroExtractor(userId);
-				TurtleParser parser = new TurtleParser();
-				parser.setRDFHandler(ie);
-				parser.parse(in, userId);
-				nameFromOrcidMap.put(userId, ie.getName());
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
 		return nameFromOrcidMap.get(userId);
-	}
-	
-	private static boolean wasSuccessful(HttpResponse resp) {
-		int c = resp.getStatusLine().getStatusCode();
-		return c >= 200 && c < 300;
 	}
 
 }
