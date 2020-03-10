@@ -11,7 +11,7 @@ public class PublishConfirmPage extends WebPage {
 
 	public PublishConfirmPage(Nanopub np) {
 		super();
-		add(new ProfileItem("profile"));
+		add(new TitleBar("titlebar"));
 		PageParameters params = new PageParameters();
 		params.add("id", ProfilePage.getUserIri());
 		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params));

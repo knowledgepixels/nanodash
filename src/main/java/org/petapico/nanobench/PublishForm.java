@@ -95,7 +95,7 @@ public class PublishForm extends Panel {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
 					PublishNanopub.publish(signedNp);
-//					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
+//					System.err.println(org.nanopub.NanopubUtils.writeToString(signedNp, org.eclipse.rdf4j.rio.RDFFormat.TRIG));
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));

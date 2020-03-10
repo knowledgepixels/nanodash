@@ -1,8 +1,5 @@
 package org.petapico.nanobench;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -27,15 +24,9 @@ public class NanopubItem extends Panel {
 		String userString = "";
 		try {
 			if (n.hasValidSignature()) {
-				String userName = Utils.getUserName(n.getPubkey());
-				if (userName != null && !userName.isEmpty()) {
-					userString = userName;
-				} else {
-					Set<String> userIds = new HashSet<>();
-					userIds = Utils.getUserIds(n.getPubkey());
-					if (userIds.size() == 1) {
-						userString = userIds.iterator().next().replaceFirst("^https?://orcid.org/", "orcid:");
-					}
+				User user = User.getUserForPubkey(n.getPubkey());
+				if (user != null) {
+					userString = user.getDisplayName();
 				}
 			}
 		} catch (Exception ex) {

@@ -21,17 +21,20 @@ public class User implements Serializable, Comparable<User> {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private static List<User> users;
-	private static Map<String,User> userMap;
+	private static Map<String,User> userIdMap;
+	private static Map<String,User> userPubkeyMap;
 	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
 
 	private static synchronized void loadUsers() {
 		users = new ArrayList<>();
-		userMap = new HashMap<String,User>();
+		userIdMap = new HashMap<String,User>();
+		userPubkeyMap = new HashMap<String,User>();
 		try {
 			for (Map<String,String> entry : ApiAccess.getAll("get_all_users", null)) {
 				User user = new User(entry);
 				users.add(user);
-				userMap.put(user.getId().stringValue(), user);
+				userIdMap.put(user.getId().stringValue(), user);
+				userPubkeyMap.put(user.getPubkeyString(), user);
 			}
 			Collections.sort(users);
 		} catch (IOException ex) {
@@ -47,10 +50,17 @@ public class User implements Serializable, Comparable<User> {
 	}
 
 	public static User getUser(String id) {
-		if (userMap == null) {
+		if (userIdMap == null) {
 			loadUsers();
 		}
-		return userMap.get(id);
+		return userIdMap.get(id);
+	}
+
+	public static User getUserForPubkey(String pubkey) {
+		if (userPubkeyMap == null) {
+			loadUsers();
+		}
+		return userPubkeyMap.get(pubkey);
 	}
 
 	private IRI id;
