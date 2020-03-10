@@ -10,7 +10,7 @@ public class PublishPage extends WebPage {
 
 	public PublishPage(final PageParameters parameters) {
 		super();
-		add(new ProfileItem("profile"));
+		add(new TitleBar("titlebar"));
 		if (!ProfilePage.isComplete()) {
 			throw new RedirectToUrlException("./profile");
 		}

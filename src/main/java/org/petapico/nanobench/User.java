@@ -24,7 +24,7 @@ public class User implements Serializable, Comparable<User> {
 	private static Map<String,User> userMap;
 	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
 
-	private static void loadUsers() {
+	private static synchronized void loadUsers() {
 		users = new ArrayList<>();
 		userMap = new HashMap<String,User>();
 		try {

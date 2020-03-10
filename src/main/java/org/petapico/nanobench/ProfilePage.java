@@ -56,7 +56,7 @@ public class ProfilePage extends WebPage {
 		super();
 		User.getUsers(true);  // refresh
 
-		add(new ProfileItem("profile"));
+		add(new TitleBar("titlebar"));
 
 		add(new Label("message", messageModel));
 		updateMessage();

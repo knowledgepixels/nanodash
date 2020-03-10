@@ -15,7 +15,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
-public class FreeTextSearchPage extends WebPage {
+public class SearchPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -23,8 +23,8 @@ public class FreeTextSearchPage extends WebPage {
 	private Model<String> progress;
 	private boolean nanopubsReady = false;
 
-	public FreeTextSearchPage(final PageParameters parameters) {
-		add(new ProfileItem("profile"));
+	public SearchPage(final PageParameters parameters) {
+		add(new TitleBar("titlebar"));
 
 		final String searchText = parameters.get("query").toString();
 		
@@ -36,7 +36,7 @@ public class FreeTextSearchPage extends WebPage {
 				String searchText = searchField.getModelObject().trim();
 				PageParameters params = new PageParameters();
 				params.add("query", searchText);
-				setResponsePage(FreeTextSearchPage.class, params);
+				setResponsePage(SearchPage.class, params);
 			}
 		};
 		add(form);
