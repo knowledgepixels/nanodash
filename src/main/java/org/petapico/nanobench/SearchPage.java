@@ -87,13 +87,23 @@ public class SearchPage extends WebPage {
 						if (s.matches("https?://[^\\s]+")) {
 							System.err.println("URI QUERY: " + s);
 							nanopubParams.put("ref", s);
-							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
+							try {
+								nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+//							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
 						} else {
 							String freeTextQuery = getFreeTextQuery(s);
 							if (!freeTextQuery.isEmpty()) {
 								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 								nanopubParams.put("text", freeTextQuery);
-								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
+								try {
+									nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams);
+								} catch (Exception ex) {
+									ex.printStackTrace();
+								}
+//								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
 							}
 						}
 					}

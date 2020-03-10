@@ -1,7 +1,6 @@
 nanobench TODOs
 ===============
 
-- Improving calls to the network API; make more reliable
 - Make templating (more or less) future-proof
 - ORCID linking instructions
 - Make more templates:

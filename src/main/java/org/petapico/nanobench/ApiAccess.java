@@ -3,100 +3,44 @@ package org.petapico.nanobench;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.apache.wicket.model.Model;
 
 import com.opencsv.CSVReader;
 
 public abstract class ApiAccess {
 
-	private static RequestConfig requestConfig;
-
-	static {
-		requestConfig = RequestConfig.custom().setConnectTimeout(10000)
-				.setConnectionRequestTimeout(100).setSocketTimeout(10000).build();
-	}
-
-	public static String[] apiInstances = new String[] {
-		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/",
-//		"http://130.60.24.146:7881/api/local/local/",
-		"https://openphacts.cs.man.ac.uk/nanopub/grlc/api/local/local/"
-//		"https://grlc.nanopubs.knows.idlab.ugent.be/api/local/local/"
-	};
-
-	static {
-		String env = System.getenv("NANOBENCH_API_INSTANCES");
-		if (env != null && !env.isEmpty()) {
-			apiInstances = env.trim().split(" ");
-			System.err.println("API Instances:");
-			for (String s : apiInstances) System.err.println("- " + s);
-		}
-	}
-
 	protected abstract void processHeader(String[] line);
 
 	protected abstract void processLine(String[] line);
 
 	public void call(String operation, Map<String,String> params) throws IOException {
-		String paramString = "";
-		if (params != null) {
-			paramString = "?";
-			for (String k : params.keySet()) {
-				if (paramString.length() > 1) paramString += "&";
-				paramString += k + "=";
-				paramString += urlEncode(params.get(k));
-			}
-		}
-
-		List<String> apiInstancesToTry = new LinkedList<>(Arrays.asList(apiInstances));
 		CSVReader csvReader = null;
-		boolean success = false;
-		while (success == false && !apiInstancesToTry.isEmpty()) {
-			int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
-			String apiUrl = apiInstancesToTry.get(randomIndex);
-			System.err.println("Trying API " + apiUrl);
-			apiInstancesToTry.remove(randomIndex);
-			HttpGet get = new HttpGet(apiUrl + operation + paramString);
-			get.setHeader("Accept", "text/csv");
-			try {
-				HttpResponse resp = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build().execute(get);
-				if (!wasSuccessful(resp)) {
-					EntityUtils.consumeQuietly(resp.getEntity());
-					throw new IOException(resp.getStatusLine().toString());
+		try {
+			HttpResponse resp = ApiCall.run(operation, params);
+			csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
+			String[] line = null;
+			int n = 0;
+			while ((line = csvReader.readNext()) != null) {
+				n++;
+				if (n == 1) {
+					processHeader(line);
+				} else {
+					processLine(line);
 				}
-				csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
-				String[] line = null;
-				int n = 0;
-				while ((line = csvReader.readNext()) != null) {
-					n++;
-					if (n == 1) {
-						processHeader(line);
-					} else {
-						processLine(line);
-					}
-				}
-				success = true;
-			} finally {
-				if (csvReader != null) csvReader.close();
 			}
+		} finally {
+			if (csvReader != null) csvReader.close();
 		}
 	}
 
@@ -168,7 +112,7 @@ public abstract class ApiAccess {
 			List<Map<String,String>> tempResult;
 			try {
 				tempResult = getAll(operation, paramsx);
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 				// TODO distinguish between different types of exceptions
 				ex.printStackTrace();
 				if (level > 0) {
@@ -226,19 +170,6 @@ public abstract class ApiAccess {
 		List<Map<String,String>> result = new ArrayList<>(resultEntries.values());
 		Collections.sort(result, nanopubResultComparator);
 		return result;
-	}
-
-	private static boolean wasSuccessful(HttpResponse resp) {
-		int c = resp.getStatusLine().getStatusCode();
-		return c >= 200 && c < 300;
-	}
-
-	private static String urlEncode(String s) {
-		try {
-			return URLEncoder.encode(s, "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(ex);
-		}
 	}
 
 	private static TimeZone timeZone = TimeZone.getTimeZone("UTC");
