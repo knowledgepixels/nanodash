@@ -16,11 +16,12 @@ public class WicketApplication extends WebApplication {
 	protected void init() {
 		super.init();
 		mountPage("/user", UserPage.class);
-		mountPage("/type", TypePage.class);
+//		mountPage("/type", TypePage.class);
 		mountPage("/search", SearchPage.class);
 		mountPage("/publish", PublishPage.class);
 		mountPage("/publishconfirm", PublishConfirmPage.class);
 		mountPage("/profile", ProfilePage.class);
+		mountPage("/userlist", UserListPage.class);
 	}
 
 	@Override

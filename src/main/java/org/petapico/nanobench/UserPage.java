@@ -21,52 +21,10 @@ public class UserPage extends WebPage {
 	private boolean nanopubsReady = false;
 
 	public UserPage(final PageParameters parameters) {
-		add(new ProfileItem("profile"));
+		add(new TitleBar("titlebar"));
 
 		final User user = User.getUser(parameters.get("id").toString());
 		add(new Label("username", user.getDisplayName()));
-
-//		IntroNanopub introNanopub = Utils.getIntroNanopub(userId);
-//		final List<KeyDeclaration> keyDeclarations;
-//		if (introNanopub != null && introNanopub.getNanopub() != null) {
-//			Nanopub np = introNanopub.getNanopub();
-//			ExternalLink l = new ExternalLink("intro-nanopub", np.getUri().stringValue());
-//			l.add(new Label("intro-nanopub-linktext", "Introduction"));
-//			add(l);
-//	
-//			Map<String,String> p = new HashMap<>();
-//			p.put("user", userId);
-//			keyDeclarations = introNanopub.getKeyDeclarations();
-//		} else {
-//			ExternalLink l = new ExternalLink("intro-nanopub", "#");
-//			l.add(new Label("intro-nanopub-linktext", "No introduction found"));
-//			add(l);
-//			keyDeclarations = new ArrayList<>();
-//		}
-//		String userName = null;
-//		for (KeyDeclaration kd : keyDeclarations) {
-//			userName = Utils.getUserName(kd.getPublicKeyString());
-//			if (userName != null) break;
-//		}
-//		if (userName == null) {
-//			userName = userId;
-//		} else {
-//			userName += " (" + userId.replaceFirst("^https?://orcid.org/", "") + ")";
-//		}
-//		add(new Label("username", userName));
-//		add(new DataView<KeyDeclaration>("pubkeys", new ListDataProvider<KeyDeclaration>(keyDeclarations)) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected void populateItem(Item<KeyDeclaration> item) {
-//				KeyDeclaration d = item.getModelObject();
-//				String s = d.getPublicKeyString() + "";
-//				if (s.length() > 30) s = s.substring(0, 10) + "..." + s.substring(s.length() - 10);
-//				item.add(new Label("pubkey", s));
-//			}
-//
-//		});
 
 		progress = new Model<>();
 		final Label progressLabel = new Label("progress", progress);

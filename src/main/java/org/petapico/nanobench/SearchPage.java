@@ -51,57 +51,61 @@ public class SearchPage extends WebPage {
 
 		final List<NanopubElement> nanopubs = new ArrayList<>();
 
-		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean isContentReady() {
-				return nanopubsReady;
-			};
-
-			@Override
-			protected Duration getUpdateInterval() {
-				return Duration.milliseconds(1000);
-			};
-
-			@Override
-			public NanopubResults getLazyLoadComponent(String markupId) {
-				progress.setObject("");
-				return new NanopubResults(markupId, nanopubs);
-			}
-		});
-		
-
-		Thread loadContent = new Thread() {
-			@Override
-			public void run() {
-				Map<String,String> nanopubParams = new HashMap<>();
-				List<Map<String,String>> nanopubResults = new ArrayList<>();
-				String s = searchText;
-				if (s != null) {
-					s = s.trim();
-					if (s.matches("https?://[^\\s]+")) {
-						System.err.println("URI QUERY: " + s);
-						nanopubParams.put("ref", s);
-						nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
-					} else {
-						String freeTextQuery = getFreeTextQuery(s);
-						if (!freeTextQuery.isEmpty()) {
-							System.err.println("FREE TEXT QUERY: " + freeTextQuery);
-							nanopubParams.put("text", freeTextQuery);
-							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
+		if (searchText == null || searchText.isEmpty()) {
+			add(new Label("nanopubs", "Enter a search term above."));
+		} else {
+			add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected boolean isContentReady() {
+					return nanopubsReady;
+				};
+	
+				@Override
+				protected Duration getUpdateInterval() {
+					return Duration.milliseconds(1000);
+				};
+	
+				@Override
+				public NanopubResults getLazyLoadComponent(String markupId) {
+					progress.setObject("");
+					return new NanopubResults(markupId, nanopubs);
+				}
+			});
+			
+	
+			Thread loadContent = new Thread() {
+				@Override
+				public void run() {
+					Map<String,String> nanopubParams = new HashMap<>();
+					List<Map<String,String>> nanopubResults = new ArrayList<>();
+					String s = searchText;
+					if (s != null) {
+						s = s.trim();
+						if (s.matches("https?://[^\\s]+")) {
+							System.err.println("URI QUERY: " + s);
+							nanopubParams.put("ref", s);
+							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
+						} else {
+							String freeTextQuery = getFreeTextQuery(s);
+							if (!freeTextQuery.isEmpty()) {
+								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
+								nanopubParams.put("text", freeTextQuery);
+								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
+							}
 						}
 					}
+					while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
+						String npUri = nanopubResults.remove(0).get("np");
+						nanopubs.add(new NanopubElement(npUri));
+					}
+					nanopubsReady = true;
 				}
-				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
-					String npUri = nanopubResults.remove(0).get("np");
-					nanopubs.add(new NanopubElement(npUri));
-				}
-				nanopubsReady = true;
-			}
-		};
-		loadContent.start();
+			};
+			loadContent.start();
+		}
 	}
 	
 	private static String getFreeTextQuery(String searchText) {

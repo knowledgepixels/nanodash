@@ -8,22 +8,17 @@
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body id="backpane">
-
-<div id="outer">
+<body>
 
 <div wicket:id="titlebar"></div>
 
-<div id="content" class="backpane">
+<div id="content">
 
-<h2>Nanopublications by <span wicket:id="username"></span></h2>
+<h2>User List</h2>
 
-<div wicket:id="nanopubs">
-</div>
-
-<div class="status" wicket:id="progress"></div>
-
-</div>
+<ul wicket:id="users">
+<li><a wicket:id="userlink"><span wicket:id="linktext"></span></a></li>
+</ul>
 
 </div>
 
