@@ -27,12 +27,14 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
@@ -78,6 +80,12 @@ public class ProfilePage extends WebPage {
 
 		};
 		form.add(orcidField);
+		String orcidName = getOrcidName();
+		if (orcidName == null) {
+			form.add(new Label("orcidname", ""));
+		} else {
+			form.add(new Label("orcidname", orcidName));
+		}
 		add(form);
 		add(new FeedbackPanel("feedback"));
 
@@ -140,6 +148,7 @@ public class ProfilePage extends WebPage {
 //					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 					throw new RestartResponseException(ProfilePage.class);
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
+//				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}
 			}
@@ -189,17 +198,16 @@ public class ProfilePage extends WebPage {
 		};
 		retryLink.setVisible(false);
 		if (userIri != null && introNp != null) {
-			Boolean linked = isOrcidLinked();
-			if (linked == null) {
+			if (isOrcidLinked == null) {
 				add(new Label("orcidlinkmessage", ""));
 				retryLink.setVisible(true);
-			} else if (linked) {
+			} else if (isOrcidLinked) {
 				add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
 			} else {
 				add(new Label("orcidlinkmessage", "ORCID is not yet linked."));
 			}
 		} else {
-			add(new Label("orcidlinkmessage", "..."));
+			add(new Label("orcidlinkmessage", ""));
 		}
 		add(new Label("orcidlinkerror", orcidLinkError));
 		add(retryLink);
@@ -215,11 +223,17 @@ public class ProfilePage extends WebPage {
 		npCreator.addNamespace("dct", "http://purl.org/dc/terms/");
 		npCreator.addNamespace("prov", "http://www.w3.org/ns/prov#");
 		npCreator.addNamespace("orcid", "https://orcid.org/");
+		npCreator.addNamespace("foaf", "http://xmlns.com/foaf/0.1/");
 		npCreator.addNamespace("np", "http://www.nanopub.org/nschema#");
 		npCreator.addNamespace("npx", "http://purl.org/nanopub/x/");
-		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), CryptoElement.HAS_ALGORITHM, vf.createLiteral("RSA"));
-		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(getPubkeyString()));
-		npCreator.addAssertionStatement(vf.createIRI(tns + "keyDeclaration"), KeyDeclaration.DECLARED_BY, userIri);
+		IRI keyDecl = vf.createIRI(tns + "keyDeclaration");
+		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_ALGORITHM, vf.createLiteral("RSA"));
+		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(getPubkeyString()));
+		npCreator.addAssertionStatement(keyDecl, KeyDeclaration.DECLARED_BY, userIri);
+		String orcidName = getOrcidName();
+		if (orcidName != null) {
+			npCreator.addAssertionStatement(userIri, FOAF.NAME, vf.createLiteral(orcidName));
+		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, userIri);
 		npCreator.addTimestampNow();
 		npCreator.addPubinfoStatement(DCTERMS.CREATOR, userIri);
@@ -242,6 +256,7 @@ public class ProfilePage extends WebPage {
 	private static KeyPair keyPair;
 	private static IRI userIri;
 	private static IntroNanopub introNp;
+	private static IntroExtractor introExtractor;
 	private static Boolean isOrcidLinked;
 	private static String orcidLinkError;
 
@@ -312,11 +327,13 @@ public class ProfilePage extends WebPage {
 		return introNp;
 	}
 
-	static Boolean isOrcidLinked() {
+	static void checkOrcidLink() {
 		if (isOrcidLinked == null) {
 			orcidLinkError = null;
+			introExtractor = null;
 			try {
-				IntroNanopub inp = IntroNanopub.get(userIri.stringValue());
+				introExtractor = IntroNanopub.extract(userIri.stringValue(), null);
+				IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
 				if (inp.getNanopub() == null) {
 					isOrcidLinked = false;
 				} else if (inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
@@ -327,13 +344,20 @@ public class ProfilePage extends WebPage {
 				}
 			} catch (RDF4JException | IOException ex) {
 				ex.printStackTrace();
-				orcidLinkError = "Error while checking whether ORCID is linked.";
+				orcidLinkError = "ORCID check failed.";
+				isOrcidLinked = false;
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				isOrcidLinked = false;
 			}
 		}
-		return isOrcidLinked;
+	}
+
+	static String getOrcidName() {
+		checkOrcidLink();
+		if (introExtractor == null || introExtractor.getName() == null) return null;
+		if (introExtractor.getName().trim().isEmpty()) return null;
+		return introExtractor.getName();
 	}
 
 }

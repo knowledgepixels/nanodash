@@ -32,8 +32,11 @@
 <form wicket:id="form">
 <code>https://orcid.org/</code><input wicket:id="orcidfield" type="text" size="20" />
 <input type="submit" class="button" value="update" />
+<span wicket:id="orcidname" ></span>
 </form>
 <div wicket:id="feedback" class="negative">feedbackmessages will be put here</div>
+
+<p><span wicket:id="orcidlinkmessage"></span> <span wicket:id="orcidlinkerror" class="negative"></span> <a wicket:id="retry" class="button">retry</a></p>
 
 
 <h3>Keys for Digital Signatures</h3>
@@ -49,12 +52,7 @@
 
 <p>Introduction Nanopublication: <a wicket:id="introlink"><span wicket:id="introlinktext"></span></a></p>
 
-<p><span wicket:id="intromessage" class="negative"></span> <a wicket:id="createintro" class="button">create introduction nanopublication</a></p>
-
-
-<h3>Introduction Nanopublication Linked from ORCID Profile</h3>
-
-<p><span wicket:id="orcidlinkmessage"></span> <span wicket:id="orcidlinkerror" class="negative"></span> <a wicket:id="retry" class="button">retry</a></p>
+<p><span wicket:id="intromessage" class="negative"></span> <a wicket:id="createintro" class="button">publish introduction nanopublication</a></p>
 
 </div>
 

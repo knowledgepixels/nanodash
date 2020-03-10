@@ -18,3 +18,4 @@ Later:
 
 - Check for whether user is using latest version of nanobench
 - Support long text comments in templates
+- Check whether ORCID links to same public key, not necessarily to the same intro nanopub
