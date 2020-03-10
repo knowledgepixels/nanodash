@@ -1,7 +1,6 @@
 nanobench TODOs
 ===============
 
-- Hide retracted and retractions
 - Make templating (more or less) future-proof
 - ORCID linking instructions
 - Make more templates:
