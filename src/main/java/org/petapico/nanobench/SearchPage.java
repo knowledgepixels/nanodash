@@ -71,6 +71,7 @@ public class SearchPage extends WebPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					progress.setObject("");
+					if (nanopubs.isEmpty()) progress.setObject("nothing found");
 					return new NanopubResults(markupId, nanopubs);
 				}
 			});

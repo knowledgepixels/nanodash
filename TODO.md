@@ -10,7 +10,6 @@ Highest priority:
   - retracting nanopubs
   - foaf:knows
   - arbitrary triple
-- empty results label on search page
 
 Lower priority:
 
