@@ -10,3 +10,4 @@ cp target/nanobench-$VERSION*.jar package/nanobench.jar
 cd package
 rm nanobench-$VERSION.zip
 zip -r nanobench-$VERSION.zip nanobench.jar run run.bat
+rm nanobench.jar
