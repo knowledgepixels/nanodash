@@ -3,6 +3,7 @@ nanobench TODOs
 
 Highest priority:
 
+- Prefixes introduce blank space when empty
 - General instructions
 - ORCID linking instructions
 - Make templating (more or less) future-proof
