@@ -33,8 +33,14 @@ public class IriTextfieldItem extends Panel {
 		prefix = form.template.getPrefix(iri);
 		if (prefix == null) prefix = "";
 		String prefixLabel = form.template.getPrefixLabel(iri);
-		if (prefixLabel == null) prefixLabel = "";
-		add(new Label("prefix", prefixLabel));
+		Label prefixLabelComp;
+		if (prefixLabel == null) {
+			prefixLabelComp = new Label("prefix", "");
+			prefixLabelComp.setVisible(false);
+		} else {
+			prefixLabelComp = new Label("prefix", prefixLabel);
+		}
+		add(prefixLabelComp);
 		String prefixTooltip = prefix;
 		if (!prefix.isEmpty()) prefixTooltip += "...";
 		add(new Label("prefixtooltiptext", prefixTooltip));
