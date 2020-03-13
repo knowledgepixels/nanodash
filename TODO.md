@@ -3,6 +3,7 @@ nanobench TODOs
 
 Highest priority:
 
+- Fix syncing text fields with prefix
 - General instructions
 - ORCID linking instructions
 - Make templating (more or less) future-proof
