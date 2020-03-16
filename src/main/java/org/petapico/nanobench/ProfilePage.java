@@ -39,7 +39,6 @@ import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
-import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.server.PublishNanopub;
 
 import net.trustyuri.TrustyUriException;
@@ -320,7 +319,7 @@ public class ProfilePage extends WebPage {
 		if (introNp == null) {
 			User user = User.getUser(getUserIri().toString());
 			if (user != null) {
-				Nanopub np = GetNanopub.get(user.getIntropubIri().stringValue());
+				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
 				introNp = new IntroNanopub(np, user.getId());
 			}
 		}

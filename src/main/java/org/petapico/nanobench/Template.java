@@ -18,7 +18,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.server.GetNanopub;
 
 public class Template implements Serializable {
 
@@ -92,7 +91,7 @@ public class Template implements Serializable {
 	private Map<IRI,Integer> statementOrder = new HashMap<>();
 
 	private Template(String templateId) {
-		nanopub = GetNanopub.get(templateId);
+		nanopub = Utils.getNanopub(templateId);
 		processTemplate(nanopub);
 	}
 

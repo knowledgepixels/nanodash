@@ -14,7 +14,6 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
-import org.nanopub.extra.server.GetNanopub;
 
 public class NanopubElement implements Serializable {
 
@@ -35,7 +34,7 @@ public class NanopubElement implements Serializable {
 	}
 
 	public NanopubElement(String uri, boolean retracted) {
-		this.nanopub = GetNanopub.get(uri);
+		this.nanopub = Utils.getNanopub(uri);
 		this.retracted = retracted;
 	}
 
