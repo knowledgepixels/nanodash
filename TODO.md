@@ -11,6 +11,7 @@ Highest priority:
   - retracting nanopubs
   - foaf:knows
   - arbitrary triple
+  - defining new individual/class/relation
 
 Lower priority:
 
