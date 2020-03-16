@@ -54,7 +54,9 @@ public class Template implements Serializable {
 
 	public static Template getTemplate(String id) {
 		if (templates == null) initTemplates();
-		return templateMap.get(id);
+		Template template = templateMap.get(id);
+		if (template != null) return template;
+		return new Template(id);
 	}
 
 
@@ -192,6 +194,10 @@ public class Template implements Serializable {
 			} else if (st.getPredicate().equals(HAS_REGEX_PREDICATE) && st.getObject() instanceof Literal) {
 				regexMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			}
+		}
+		List<IRI> assertionTypes = typeMap.get(templateNp.getAssertionUri());
+		if (assertionTypes == null || !assertionTypes.contains(ASSERTION_TEMPLATE_CLASS)) {
+			throw new RuntimeException("Unknown template type");
 		}
 		for (Statement st : templateNp.getAssertion()) {
 			if (statementIriMap.containsKey(st.getSubject())) {
