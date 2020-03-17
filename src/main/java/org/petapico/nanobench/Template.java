@@ -65,6 +65,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
+	public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
 	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
@@ -146,7 +147,12 @@ public class Template implements Serializable {
 	}
 
 	public boolean isUriPlaceholder(IRI iri) {
-		return typeMap.containsKey(iri) && typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS);
+		return typeMap.containsKey(iri) && 
+				(typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS) || typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS));
+	}
+
+	public boolean isTrustyUriPlaceholder(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isLiteralPlaceholder(IRI iri) {

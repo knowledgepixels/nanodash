@@ -17,6 +17,8 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class IriTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
@@ -64,6 +66,11 @@ public class IriTextfieldItem extends Panel {
 				if (regex != null) {
 					if (!s.getValue().matches(regex)) {
 						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+					}
+				}
+				if (form.template.isTrustyUriPlaceholder(iri)) {
+					if (!TrustyUriUtils.isPotentialTrustyUri(prefix + s.getValue())) {
+						s.error(new ValidationError("Not a trusty URI"));
 					}
 				}
 			}

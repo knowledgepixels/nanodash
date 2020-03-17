@@ -8,7 +8,6 @@ Highest priority:
 - Make templating (more or less) future-proof
 - Make more templates:
   - commenting on things (including nanopubs)
-  - retracting nanopubs
   - foaf:knows
   - arbitrary triple
   - defining new individual/class/relation
