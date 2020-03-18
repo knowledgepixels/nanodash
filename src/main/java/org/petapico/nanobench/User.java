@@ -98,6 +98,17 @@ public class User implements Serializable, Comparable<User> {
 		return getShortId();
 	}
 
+	public String getShortDisplayName() {
+		if (name != null && !name.isEmpty()) {
+			return name;
+		}
+		String nameFromOrcid = getNameFromOrcid(id.stringValue());
+		if (nameFromOrcid != null && !nameFromOrcid.isEmpty()) {
+			return nameFromOrcid;
+		}
+		return getShortId();
+	}
+
 	public IRI getIntropubIri() {
 		return introNpIri;
 	}

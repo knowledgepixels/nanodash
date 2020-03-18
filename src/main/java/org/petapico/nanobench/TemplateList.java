@@ -15,6 +15,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.SimpleTimestampPattern;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 
 public class TemplateList extends Panel {
 	
@@ -46,7 +48,18 @@ public class TemplateList extends Panel {
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("link", PublishPage.class, params);
 				l.add(new Label("name", item.getModelObject().getLabel()));
 				item.add(l);
-				String timeString = "undated";
+				String userString = "somebody";
+				try {
+					NanopubSignatureElement se = SignatureUtils.getSignatureElement(item.getModelObject().getNanopub());
+					if (se != null) {
+						User user = User.getUserForPubkey(se.getPublicKeyString());
+						if (user != null) userString = user.getShortDisplayName();
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				item.add(new Label("user", userString));
+				String timeString = "unknown date";
 				Calendar c = getTime(item.getModelObject());
 				if (c != null) {
 					timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());

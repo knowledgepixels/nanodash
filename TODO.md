@@ -9,7 +9,6 @@ Highest priority:
 - Make more templates:
   - commenting on things (including nanopubs)
   - foaf:knows
-  - arbitrary triple
   - defining new individual/class/relation
 
 Lower priority:
