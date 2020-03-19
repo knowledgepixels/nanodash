@@ -132,7 +132,7 @@ public class User implements Serializable, Comparable<User> {
 					nameFromOrcidMap.put(userId, null);
 				}
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				System.err.println("Could not get name from ORCID account: " + userId);
 			}
 		}
 		return nameFromOrcidMap.get(userId);

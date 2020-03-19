@@ -28,7 +28,9 @@ public class WicketApplication extends WebApplication {
 		System.err.println(" If not, point your browser to:");
 		System.err.println(" http://localhost:37373");
 		System.err.println("----------------------------------------");
-		System.err.println(""); 
+		System.err.println("");
+
+		ProfilePage.loadProfileInfo();
 	}
 
 	public Class<HomePage> getHomePage() {
