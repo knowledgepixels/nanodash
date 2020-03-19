@@ -49,16 +49,17 @@ public class ProfilePage extends WebPage {
 
 	private static final String ORCID_PATTERN = "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]";
 
-	Model<String> messageModel = Model.of("");
-
 	public ProfilePage(final PageParameters parameters) {
 		super();
 		User.getUsers(true);  // refresh
 
 		add(new TitleBar("titlebar"));
 
-		add(new Label("message", messageModel));
-		updateMessage();
+		if (isComplete()) {
+			add(new Label("message", ""));
+		} else {
+			add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an introduction before you can publish nanopublications."));
+		}
 
 		Model<String> model = Model.of("");
 		if (getUserIri() != null) {
@@ -239,14 +240,6 @@ public class ProfilePage extends WebPage {
 		return npCreator.finalizeNanopub();
 	}
 
-	private void updateMessage() {
-		if (isComplete()) {
-			messageModel.setObject("");
-		} else {
-			messageModel.setObject("You need to set an ORCID identifier, load the signature keys, and publish an introduction before you can publish nanopublications.");
-		}
-	}
-
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private static File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
@@ -327,7 +320,7 @@ public class ProfilePage extends WebPage {
 	}
 
 	static void checkOrcidLink() {
-		if (isOrcidLinked == null) {
+		if (isOrcidLinked == null && userIri != null) {
 			orcidLinkError = null;
 			introExtractor = null;
 			try {
