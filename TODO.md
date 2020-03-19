@@ -5,7 +5,6 @@ Highest priority:
 
 - General instructions
 - ORCID linking instructions
-- Make templating (more or less) future-proof
 - Make more templates:
   - commenting on things (including nanopubs)
   - foaf:knows

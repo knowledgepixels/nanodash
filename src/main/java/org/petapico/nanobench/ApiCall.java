@@ -120,7 +120,8 @@ public class ApiCall {
 				}
 				finished(resp, apiUrl);
 			} catch (Exception ex) {
-				ex.printStackTrace();
+//				ex.printStackTrace();
+				System.err.println("Request to " + apiUrl + " was not successful");
 			}
 			calls.remove(this);
 		}

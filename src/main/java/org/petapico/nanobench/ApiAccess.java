@@ -114,7 +114,8 @@ public abstract class ApiAccess {
 				tempResult = getAll(operation, paramsx);
 			} catch (Exception ex) {
 				// TODO distinguish between different types of exceptions
-				ex.printStackTrace();
+				//ex.printStackTrace();
+				System.err.println("Request not successful");
 				if (level > 0) {
 					level--;
 					System.err.println("MOVE DOWN");
