@@ -44,7 +44,7 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (isComplete()) {
-			add(new Label("message", ""));
+			add(new Label("message", "Congratulations, your profile is complete. You can use the menu items above to explore or publish nanopublications."));
 		} else {
 			add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
 					"introduction before you can publish nanopublications."));
