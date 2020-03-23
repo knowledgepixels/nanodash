@@ -36,12 +36,22 @@ public class ProfilePage extends WebPage {
 
 	public ProfilePage(final PageParameters parameters) {
 		super();
+		loadProfileInfo();
 		User.getUsers(true);  // refresh
 
 		add(new TitleBar("titlebar"));
 
 		if (isComplete()) {
-			add(new Label("message", "Congratulations, your profile is complete. You can use the menu items above to explore or publish nanopublications."));
+			if (isOrcidLinked == null) {
+				add(new Label("message", "Congratulations, your profile is complete (but we couldn't verify whether your ORCID account is linked; see below)."));
+			} else if (isOrcidLinked) {
+				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications. " +
+						"See the menu items above."));
+			} else {
+				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications. " +
+						"However, to prove that you are the one in control of the given ORCID account, you should also take the additional optional step of " +
+						"linking your ORCID account as explained below."));
+			}
 		} else {
 			add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
 					"introduction before you can publish nanopublications."));
@@ -69,6 +79,7 @@ public class ProfilePage extends WebPage {
 				setOrcid(orcidField.getModelObject());
 				introNp = null;
 				isOrcidLinked = null;
+				getSession().invalidateNow();
 				throw new RestartResponseException(ProfilePage.class);
 			}
 
@@ -115,29 +126,34 @@ public class ProfilePage extends WebPage {
 	private static String orcidLinkError;
 
 	static void loadProfileInfo() {
-		if (orcidFile.exists()) {
-			try {
-				String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8).trim();
-//				String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
-				if (orcid.matches(ORCID_PATTERN)) {
-					userIri = vf.createIRI("https://orcid.org/" + orcid);
+		if (userIri == null) {
+			if (orcidFile.exists()) {
+				try {
+					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8).trim();
+	//				String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
+					if (orcid.matches(ORCID_PATTERN)) {
+						userIri = vf.createIRI("https://orcid.org/" + orcid);
+					}
+				} catch (IOException ex) {
+					ex.printStackTrace();
 				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
 			}
 		}
-		try {
-			keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
-		} catch (Exception ex) {
-			System.err.println("Key pair not found");
+		if (keyPair == null) {
+			try {
+				keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
+			} catch (Exception ex) {
+				System.err.println("Key pair not found");
+			}
 		}
-		if (userIri != null) {
+		if (userIri != null && introNp == null) {
 			User user = User.getUser(getUserIri().toString());
 			if (user != null) {
 				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
 				introNp = new IntroNanopub(np, user.getId());
 			}
 		}
+		checkOrcidLink();
 	}
 
 	static boolean isComplete() {
@@ -228,7 +244,6 @@ public class ProfilePage extends WebPage {
 	}
 
 	static String getOrcidName() {
-		checkOrcidLink();
 		if (introExtractor == null || introExtractor.getName() == null) return null;
 		if (introExtractor.getName().trim().isEmpty()) return null;
 		return introExtractor.getName();
