@@ -25,18 +25,19 @@ public class ProfileOrcidLinkItem extends Panel {
 
 			@Override
 			public void onClick() {
+				getSession().invalidateNow();
+				ProfilePage.resetOrcidLinked();
 				throw new RestartResponseException(ProfilePage.class);
 			}
 
 		};
-		retryLink.setVisible(false);
 		if (ProfilePage.isOrcidLinked() == null) {
 			add(new Label("orcidlinkmessage", ""));
-			retryLink.setVisible(true);
+		} else if (!ProfilePage.isOrcidLinked()) {
+			add(new Label("orcidlinkmessage", "Follow <a href=\"./orcidlinking\">these instructions</a> to link it, and then press 'retry'.").setEscapeModelStrings(false));
 		} else if (ProfilePage.isOrcidLinked()) {
 			add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
-		} else {
-			add(new Label("orcidlinkmessage", "ORCID is not yet linked."));
+			retryLink.setVisible(false);
 		}
 		add(new Label("orcidlinkerror", ProfilePage.getOrcidLinkError()));
 		add(retryLink);

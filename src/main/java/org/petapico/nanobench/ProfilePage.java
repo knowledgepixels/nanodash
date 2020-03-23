@@ -17,7 +17,6 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
-import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -43,14 +42,12 @@ public class ProfilePage extends WebPage {
 
 		if (isComplete()) {
 			if (isOrcidLinked == null) {
-				add(new Label("message", "Congratulations, your profile is complete (but we couldn't verify whether your ORCID account is linked; see below)."));
+				add(new Label("message", "Congratulations, your profile is complete, but we couldn't verify whether your ORCID account is linked (see below)."));
 			} else if (isOrcidLinked) {
-				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications. " +
-						"See the menu items above."));
+				add(new Label("message", "Congratulations, your profile complete. Use the menu items above to browse and publish nanopublications."));
 			} else {
-				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications. " +
-						"However, to prove that you are the one in control of the given ORCID account, you should also take the additional optional step of " +
-						"linking your ORCID account as explained below."));
+				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications, " +
+						"but consider also linking your ORCID account as explained below."));
 			}
 		} else {
 			add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
@@ -211,28 +208,31 @@ public class ProfilePage extends WebPage {
 
 	static void checkOrcidLink() {
 		if (isOrcidLinked == null && userIri != null) {
-			orcidLinkError = null;
+			orcidLinkError = "";
 			introExtractor = null;
 			try {
 				introExtractor = IntroNanopub.extract(userIri.stringValue(), null);
-				IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
-				if (inp.getNanopub() == null) {
+				if (introExtractor.getIntroNanopub() == null) {
+					orcidLinkError = "ORCID account is not linked.";
 					isOrcidLinked = false;
-				} else if (introNp != null && inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
-					isOrcidLinked = true;
 				} else {
-					isOrcidLinked = false;
-					orcidLinkError = "Error: ORCID is linked to another introduction nanopublication.";
+					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
+					if (introNp != null && inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
+						isOrcidLinked = true;
+					} else {
+						isOrcidLinked = false;
+						orcidLinkError = "Error: ORCID is linked to another introduction nanopublication.";
+					}
 				}
-			} catch (RDF4JException | IOException ex) {
-				System.err.println("ORCID check failed");
-				orcidLinkError = "ORCID check failed. Try again by clicking on 'update' once more.";
-				isOrcidLinked = false;
 			} catch (Exception ex) {
 				System.err.println("ORCID check failed");
-				isOrcidLinked = false;
+				orcidLinkError = "ORCID check failed.";
 			}
 		}
+	}
+
+	static void resetOrcidLinked() {
+		isOrcidLinked = null;
 	}
 
 	static Boolean isOrcidLinked() {
