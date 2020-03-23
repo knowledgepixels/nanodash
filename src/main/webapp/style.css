@@ -264,8 +264,9 @@ a.meta:hover, a.meta:active {
   border-style: solid;
   border-width: 1px;
   border-color: #888;
+  margin: 10px;
 }
 
 .widthlimit {
-  width: 980px;
+  width: 1000px;
 }
