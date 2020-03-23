@@ -4,7 +4,6 @@ nanobench TODOs
 Highest priority:
 
 - General instructions
-- ORCID linking instructions
 - Make more templates:
   - commenting on things (including nanopubs)
   - foaf:knows

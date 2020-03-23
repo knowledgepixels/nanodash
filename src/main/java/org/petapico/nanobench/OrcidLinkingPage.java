@@ -1,6 +1,7 @@
 package org.petapico.nanobench;
 
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -15,6 +16,7 @@ public class OrcidLinkingPage extends WebPage {
 		if (!ProfilePage.isComplete()) {
 			throw new RedirectToUrlException("./profile");
 		}
+		add(new Label("introuri", ProfilePage.getIntroNanopub().getNanopub().getUri().stringValue()));
 	}
 
 }
