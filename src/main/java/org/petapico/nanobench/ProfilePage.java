@@ -8,15 +8,12 @@ import java.security.KeyPair;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
@@ -86,38 +83,6 @@ public class ProfilePage extends WebPage {
 		add(form);
 		add(new FeedbackPanel("feedback"));
 
-
-		Link<String> retryLink = new Link<String>("retry") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public MarkupContainer setDefaultModel(IModel<?> arg0) {
-				return null;
-			}
-
-			@Override
-			public void onClick() {
-				throw new RestartResponseException(ProfilePage.class);
-			}
-
-		};
-		retryLink.setVisible(false);
-		if (userIri != null && introNp != null) {
-			if (isOrcidLinked == null) {
-				add(new Label("orcidlinkmessage", ""));
-				retryLink.setVisible(true);
-			} else if (isOrcidLinked) {
-				add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
-			} else {
-				add(new Label("orcidlinkmessage", "ORCID is not yet linked."));
-			}
-		} else {
-			add(new Label("orcidlinkmessage", ""));
-		}
-		add(new Label("orcidlinkerror", orcidLinkError));
-		add(retryLink);
-
 		if (userIri != null) {
 			add(new ProfileSigItem("sigpart"));
 		} else {
@@ -128,6 +93,12 @@ public class ProfilePage extends WebPage {
 			add(new ProfileIntroItem("intropart"));
 		} else {
 			add(new Label("intropart"));
+		}
+
+		if (userIri != null && keyPair != null && introNp != null) {
+			add(new ProfileOrcidLinkItem("orcidlinkpart"));
+		} else {
+			add(new Label("orcidlinkpart"));
 		}
 	}
 
@@ -246,6 +217,14 @@ public class ProfilePage extends WebPage {
 				isOrcidLinked = false;
 			}
 		}
+	}
+
+	static Boolean isOrcidLinked() {
+		return isOrcidLinked;
+	}
+
+	static String getOrcidLinkError() {
+		return orcidLinkError;
 	}
 
 	static String getOrcidName() {
