@@ -47,6 +47,7 @@ public class WicketApplication extends WebApplication {
 		mountPage("/publishconfirm", PublishConfirmPage.class);
 		mountPage("/profile", ProfilePage.class);
 		mountPage("/userlist", UserListPage.class);
+		mountPage("/orcidlinking", OrcidLinkingPage.class);
 	}
 
 	@Override

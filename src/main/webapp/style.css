@@ -259,3 +259,13 @@ a.meta:hover, a.meta:active {
 	float: right;
 	padding: 15px 20px;
 }
+
+.figure {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #888;
+}
+
+.widthlimit {
+  width: 980px;
+}
