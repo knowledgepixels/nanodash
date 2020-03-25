@@ -13,7 +13,7 @@ If you are unsure about whether you have Java installed, you can continue with t
 ## 2. Download and Unpack Nanobench ZIP File
 
 Download the Nanobench ZIP file for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
-Unpack the ZIP file at a convenient location in your file system, which should show three files.
+Unpack the ZIP file at a convenient location in your file system, which should create three files.
 
 
 ## 3. Run Nanobench and Follow Instructions
