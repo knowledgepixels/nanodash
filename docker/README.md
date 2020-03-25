@@ -1,4 +1,3 @@
-nanobench
-=========
+Make Docker container:
 
-A local client to browse and publish nanopublications.
+    $ docker build -t nanopub/nanobench .
