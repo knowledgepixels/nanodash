@@ -6,25 +6,16 @@ Nanobench is a client application that you can run on your own computer to brows
 
 ## 1. Install Java
 
-In order to run Nanobench, you need to have Java installed (version 1.8 or higher), which you can <a href="https://www.java.com/download/" target="_blank">download here</a>.
+In order to run Nanobench, you need to have Java installed (version 1.8 or higher), which you can [download here](https://www.java.com/download/).
 If you are unsure about whether you have Java installed, you can continue with the steps below and you will see an error message if Java is not found.
 
 
-## 2. Download Nanobench ZIP File
+## 2. Download and Unpack Nanobench ZIP File
 
-Download the Nanobench ZIP file for the latest release <a href="https://github.com/peta-pico/nanobench/releases/latest" target="_blank">here</a>[here].
-
-
-## 3. Unpack ZIP File
-
-...
+Download the Nanobench ZIP file for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
+Unpack the ZIP file at a convenient location in your file system, which should show three files.
 
 
-## 4. Run Nanobench
-
-...
-
-
-## 5. Follow Instructions in Nanobench
+## 3. Run Nanobench and Follow Instructions
 
 ...
