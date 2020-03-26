@@ -10,6 +10,7 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
@@ -24,6 +25,7 @@ public class UserPage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		final User user = User.getUser(parameters.get("id").toString());
+		if (user == null) throw new RedirectToUrlException("./profile");
 		add(new Label("username", user.getDisplayName()));
 
 		progress = new Model<>();
