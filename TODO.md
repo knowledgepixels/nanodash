@@ -3,7 +3,6 @@ nanobench TODOs
 
 Highest priority:
 
-- General instructions
 - Make more templates:
   - commenting on things (including nanopubs)
   - foaf:knows
