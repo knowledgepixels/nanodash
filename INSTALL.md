@@ -4,6 +4,7 @@ Nanobench Installation Instructions
 Nanobench is a client application that you can run on your own computer to browse and publish nanopublications by connecting to a decentralized network of services.
 
 Follow the three simple steps below to install and run Nanobench.
+(Alternatively, see [these instructions](INSTALL-with-Docker.md) to run it with Docker Compose, if you are familiar with that technology.)
 
 
 ## Step 1: Install Java
@@ -14,7 +15,7 @@ If you are unsure whether you have Java installed already, you can continue with
 
 ## Step 2: Download and Unpack Nanobench ZIP File
 
-Download the Nanobench ZIP file for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
+Download the ZIP file with a name like `nanobench-1.2.zip` for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
 Unpack it at a convenient location in your file system.
 This should create three files: `nanobench.jar`, `run`, and `run-under-windows.bat`.
 
