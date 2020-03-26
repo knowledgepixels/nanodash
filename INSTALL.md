@@ -9,7 +9,7 @@ Follow the three simple steps below to install and run Nanobench.
 
 ## Step 1: Install Java
 
-You need to have Java installed (version 1.8 or higher), which you can [download here](https://www.java.com/download/).
+You need to have Java installed (version 1.7 or higher), which you can [download here](https://www.java.com/download/).
 If you are unsure whether you have Java installed already, you can continue with the steps below and you will see an error message if Java is not found.
 
 
