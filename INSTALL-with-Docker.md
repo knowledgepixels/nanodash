@@ -14,8 +14,8 @@ Make sure you have [Docker](https://www.docker.com/) and [Docker Compose](https:
 
 ## Step 2: Download and Run docker-compose.yml
 
-Download [docker-compose.yml](docker-compose.yml) to a convenient location in your file system.
-Then run `docker-compose up` on a command line in the same directory.
+Download [docker-compose.yml](https://github.com/peta-pico/nanobench/raw/master/docker-compose.yml) to a convenient location in your file system.
+Then run `docker-compose up` on the command line in the same directory.
 
 
 ## Step 3: Follow Instructions
