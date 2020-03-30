@@ -29,3 +29,8 @@ If not, open [http://localhost:37373](http://localhost:37373) manually.
 Follow the instructions to complete your profile as shown on your [profile page](http://localhost:37373/profile).
 
 Now you are ready to publish your own nanopublications via the "publish" menu item at the top.
+
+
+## Problems?
+
+If you run into problems, [open an issue](https://github.com/peta-pico/nanobench/issues) or contact [Tobias Kuhn](mailto:kuhntobias@gmail.com).
