@@ -28,7 +28,7 @@ Now you are ready to publish your own nanopublications via the "publish" menu it
 
 ## Update
 
-To update to the latest version of Nanobench, delete all the files you downloaded and then redo Step 2.
+To update to the latest version of Nanobench, run `docker-compose pull && docker-compose up` in the directory of `docker-compose.yml`. Then start Nanobench as in Step 2.
 
 
 ## Problems?
