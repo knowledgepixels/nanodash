@@ -1,17 +1,12 @@
 nanobench TODOs
 ===============
 
-Highest priority:
-
-- Make more templates:
-  - foaf:knows
-  - defining new individual/class/relation
-
 Lower priority:
 
 - More Ajax components
 - Define ntemplate vocabulary
 - Make more templates:
+  - defining new individual/class/relation
   - approves/confirms/acknowledges
 
 Later:
