@@ -33,7 +33,7 @@ Now you are ready to publish your own nanopublications via the "publish" menu it
 
 ## Update
 
-To update to the latest version of Nanobench, delete all the files you downloaded and then do Step 2 again.
+To update to the latest version of Nanobench, delete all the files you downloaded and then redo Step 2.
 
 
 ## Problems?
