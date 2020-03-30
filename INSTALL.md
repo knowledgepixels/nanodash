@@ -31,6 +31,11 @@ Follow the instructions to complete your profile as shown on your [profile page]
 Now you are ready to publish your own nanopublications via the "publish" menu item at the top.
 
 
+## Update
+
+To update to the latest version of Nanobench, delete all the files you downloaded and then do Step 2 again.
+
+
 ## Problems?
 
 If you run into problems, [open an issue](https://github.com/peta-pico/nanobench/issues) or contact [Tobias Kuhn](mailto:kuhntobias@gmail.com).
