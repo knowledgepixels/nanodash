@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 mvn clean tomcat7:run
