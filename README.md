@@ -11,14 +11,14 @@ To use Nanobench, see the [installation instructions](INSTALL.md) (or the [insta
 
 ## Screenshots
 
-Feed:
+##### Feed
 
 ![screenshot 1](screenshot1.png)
 
-Publishing:
+##### Publishing
 
 ![screenshot 2](screenshot2.png)
 
-Search:
+##### Search
 
 ![screenshot 3](screenshot3.png)
