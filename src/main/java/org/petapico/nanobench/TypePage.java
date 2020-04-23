@@ -13,6 +13,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+// This page is currently inactive!
+
 public class TypePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
@@ -26,6 +28,7 @@ public class TypePage extends WebPage {
 		nanopubParams.put("type", typeId);
 		List<String> nanopubUris = new ArrayList<>();
 		try {
+			// This operation of the nanopub-api is currently disabled:
 			nanopubUris = ApiAccess.getAll("find_nanopubs_with_type", nanopubParams, 0);
 		} catch (IOException ex) {
 			// TODO do something here
