@@ -8,7 +8,7 @@ public class IriItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriItem(String id, IRI iri, boolean objectPosition, PublishForm form) {
+	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, PublishForm form) {
 		super(id);
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
@@ -23,6 +23,10 @@ public class IriItem extends Panel {
 			labelString = form.template.getLabel(iri);
 		} else if (labelString == null) {
 			labelString = getShortNameFromURI(iri.stringValue());
+		}
+		if (labelString != null && labelString.length() > 0 && parentId.equals("subj")) {
+			// Capitalize first letter of label if at subject position:
+			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
 		add(new Label("label", labelString));
 		String iriString = iri.stringValue();

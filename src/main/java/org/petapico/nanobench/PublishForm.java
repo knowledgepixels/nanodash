@@ -90,7 +90,8 @@ public class PublishForm extends Panel {
 			@Override
 			protected void onConfigure() {
 				super.onConfigure();
-				formComponents.clear();
+				form.getFeedbackMessages().clear();
+//				formComponents.clear();
 			}
 
 			protected void onSubmit() {

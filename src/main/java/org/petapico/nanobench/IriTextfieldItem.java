@@ -25,7 +25,7 @@ public class IriTextfieldItem extends Panel {
 
 	private String prefix;
 
-	public IriTextfieldItem(String id, final IRI iri, boolean optional, final PublishForm form) {
+	public IriTextfieldItem(String id, String parentId, final IRI iri, boolean optional, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -40,6 +40,10 @@ public class IriTextfieldItem extends Panel {
 			prefixLabelComp = new Label("prefix", "");
 			prefixLabelComp.setVisible(false);
 		} else {
+			if (prefixLabel.length() > 0 && parentId.equals("subj")) {
+				// Capitalize first letter of label if at subject position:
+				prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
+			}
 			prefixLabelComp = new Label("prefix", prefixLabel);
 		}
 		add(prefixLabelComp);
