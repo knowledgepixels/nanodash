@@ -58,14 +58,13 @@ public class PublishForm extends Panel {
 		add(new Label("templatename", template.getLabel()));
 		List<Panel> statementItems = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
-			List<IRI> triple = new ArrayList<>();
-			triple.add(template.getSubject(st));
-			triple.add(template.getPredicate(st));
-			triple.add((IRI) template.getObject(st));
+			IRI subj = template.getSubject(st);
+			IRI pred = template.getPredicate(st);
+			IRI obj = (IRI) template.getObject(st);
 			if (template.hasType(st, Template.OPTIONAL_STATEMENT_CLASS)) {
-				statementItems.add(new OptionalStatementItem("statement", triple, PublishForm.this));
+				statementItems.add(new OptionalStatementItem("statement", subj, pred, obj, PublishForm.this));
 			} else {
-				statementItems.add(new StatementItem("statement", triple, PublishForm.this));
+				statementItems.add(new StatementItem("statement", subj, pred, obj, PublishForm.this));
 			}
 		}
 
