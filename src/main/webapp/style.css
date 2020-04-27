@@ -117,7 +117,7 @@ code {
 
 input, select {
   font-size: 12pt;
-  padding: 8px 3px;
+  padding: 3px;
 }
 
 .hidden {
@@ -210,6 +210,12 @@ a.meta:hover, a.meta:active {
 .nanopub-pubinfo { display: none; background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }
 
+.nanopub-statement input { margin: 2px; }
+
+.nanopub table {
+  width: 100%;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -270,3 +276,6 @@ a.meta:hover, a.meta:active {
 .widthlimit {
   width: 1000px;
 }
+
+.nanopub-optional { background: rgba(255, 255, 255, 0.5); padding: 8px; border-radius: 8px; margin-top: 3px; }
+.optional-label { color: rgba(0, 0, 0, 0.3); font-family: Verdana, Helvetica, sans-serif; font-style: italic; margin-left: 15px; }

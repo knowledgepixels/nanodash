@@ -11,7 +11,7 @@ public class LiteralTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public LiteralTextfieldItem(String id, IRI iri, final PublishForm form) {
+	public LiteralTextfieldItem(String id, IRI iri, boolean optional, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -19,7 +19,7 @@ public class LiteralTextfieldItem extends Panel {
 			form.formComponentModels.put(iri, model);
 		}
 		TextField<String> textfield = new TextField<>("textfield", model);
-		textfield.setRequired(true);
+		if (!optional) textfield.setRequired(true);
 		if (form.template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
 		}

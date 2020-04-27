@@ -56,13 +56,17 @@ public class PublishForm extends Panel {
 		template = Template.getTemplate(templateId);
 		add(new ExternalLink("templatelink", templateId));
 		add(new Label("templatename", template.getLabel()));
-		List<List<IRI>> statements = new ArrayList<>();
+		List<Panel> statementItems = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
 			List<IRI> triple = new ArrayList<>();
 			triple.add(template.getSubject(st));
 			triple.add(template.getPredicate(st));
 			triple.add((IRI) template.getObject(st));
-			statements.add(triple);
+			if (template.hasType(st, Template.OPTIONAL_STATEMENT_CLASS)) {
+				statementItems.add(new OptionalStatementItem("statement", triple, PublishForm.this));
+			} else {
+				statementItems.add(new StatementItem("statement", triple, PublishForm.this));
+			}
 		}
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
@@ -118,12 +122,12 @@ public class PublishForm extends Panel {
 
 		};
 
-		form.add(new ListView<List<IRI>>("statements", statements) {
+		form.add(new ListView<Panel>("statements", statementItems) {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<List<IRI>> item) {
-				item.add(new StatementItem("statement", item.getModelObject(), PublishForm.this));
+			protected void populateItem(ListItem<Panel> item) {
+				item.add(item.getModelObject());
 			}
 
 		});

@@ -25,7 +25,7 @@ public class IriTextfieldItem extends Panel {
 
 	private String prefix;
 
-	public IriTextfieldItem(String id, final IRI iri, final PublishForm form) {
+	public IriTextfieldItem(String id, final IRI iri, boolean optional, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -47,7 +47,7 @@ public class IriTextfieldItem extends Panel {
 		if (!prefix.isEmpty()) prefixTooltip += "...";
 		add(new Label("prefixtooltiptext", prefixTooltip));
 		final TextField<String> textfield = new TextField<>("textfield", model);
-		textfield.setRequired(true);
+		if (!optional) textfield.setRequired(true);
 		textfield.add(new IValidator<String>() {
 
 			private static final long serialVersionUID = 1L;

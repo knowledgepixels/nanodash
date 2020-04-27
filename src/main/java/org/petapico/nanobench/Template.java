@@ -79,6 +79,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
 	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
+	public static final IRI OPTIONAL_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/OptionalStatement");
 
 
 	private Nanopub nanopub;
@@ -155,6 +156,14 @@ public class Template implements Serializable {
 
 	public Value getObject(IRI statementIri) {
 		return statementObjects.get(statementIri);
+	}
+
+	public List<IRI> getTypes(IRI iri) {
+		return typeMap.get(iri);
+	}
+
+	public boolean hasType(IRI iri, IRI type) {
+		return typeMap.get(iri).contains(type);
 	}
 
 	public boolean isLocalResource(IRI iri) {

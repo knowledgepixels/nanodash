@@ -7,11 +7,11 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 
-public class StatementItem extends Panel {
+public class OptionalStatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public StatementItem(String id, List<IRI> items, final PublishForm form) {
+	public OptionalStatementItem(String id, List<IRI> items, final PublishForm form) {
 		super(id);
 
 		add(new ListView<IRI>("items", items) {
@@ -20,7 +20,7 @@ public class StatementItem extends Panel {
 			private int count = 0;
 
 			protected void populateItem(ListItem<IRI> item) {
-				item.add(new ValueItem("item", item.getModelObject(), count > 1, false, form));
+				item.add(new ValueItem("item", item.getModelObject(), count > 1, true, form));
 				count++;
 			}
 

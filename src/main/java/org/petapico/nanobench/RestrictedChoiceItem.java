@@ -17,7 +17,7 @@ public class RestrictedChoiceItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public RestrictedChoiceItem(String id, IRI iri, final PublishForm form) {
+	public RestrictedChoiceItem(String id, IRI iri, boolean optional, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -59,7 +59,7 @@ public class RestrictedChoiceItem extends Panel {
 
 		};
 		DropDownChoice<String> dropdown = new DropDownChoice<String>("dropdown", model, dropdownValues, choiceRenderer);
-		dropdown.setRequired(true);
+		if (!optional) dropdown.setRequired(true);
 		form.formComponents.add(dropdown);
 		add(dropdown);
 	}
