@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.util.file.File;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -17,7 +18,10 @@ import org.eclipse.rdf4j.model.impl.IntegerLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubImpl;
+import org.nanopub.trusty.TrustyNanopubUtils;
 
 public class Template implements Serializable {
 
@@ -94,7 +98,18 @@ public class Template implements Serializable {
 	private Map<IRI,Integer> statementOrder = new HashMap<>();
 
 	private Template(String templateId) {
-		nanopub = Utils.getNanopub(templateId);
+		if (templateId.startsWith("file://")) {
+			try {
+				nanopub = new NanopubImpl(new File(templateId.substring(7)));
+				if (!TrustyNanopubUtils.isValidTrustyNanopub(nanopub)) {
+					throw new MalformedNanopubException("not trusty");
+				}
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
+			}
+		} else {
+			nanopub = Utils.getNanopub(templateId);
+		}
 		processTemplate(nanopub);
 	}
 
