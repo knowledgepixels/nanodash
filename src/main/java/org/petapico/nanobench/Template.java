@@ -102,9 +102,6 @@ public class Template implements Serializable {
 		if (templateId.startsWith("file://")) {
 			try {
 				nanopub = new NanopubImpl(new File(templateId.substring(7)));
-				if (!TrustyNanopubUtils.isValidTrustyNanopub(nanopub)) {
-					throw new MalformedNanopubException("not trusty");
-				}
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
@@ -158,14 +155,6 @@ public class Template implements Serializable {
 		return statementObjects.get(statementIri);
 	}
 
-	public List<IRI> getTypes(IRI iri) {
-		return typeMap.get(iri);
-	}
-
-	public boolean hasType(IRI iri, IRI type) {
-		return typeMap.get(iri).contains(type);
-	}
-
 	public boolean isLocalResource(IRI iri) {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS);
 	}
@@ -185,6 +174,10 @@ public class Template implements Serializable {
 
 	public boolean isRestrictedChoicePlaceholder(IRI iri) {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS);
+	}
+
+	public boolean isOptionalStatement(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(OPTIONAL_STATEMENT_CLASS);
 	}
 
 	public List<Value> getPossibleValues(IRI iri) {

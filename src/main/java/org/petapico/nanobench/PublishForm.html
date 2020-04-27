@@ -8,6 +8,8 @@
 
 <h3>Template: <span wicket:id="templatename"></span></h3>
 
+<p><a wicket:id="local-reload-link" href="." class="button">Reload local file</a></p>
+
 <form wicket:id="form">
 
 <p>
@@ -27,6 +29,7 @@
 
 <p>
 <input type="submit" class="button" value="Publish" />
+<span wicket:id="local-file-text" class="negative"></span>
 </p>
 
 </form>

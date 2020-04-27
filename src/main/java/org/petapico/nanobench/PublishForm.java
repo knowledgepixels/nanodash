@@ -3,6 +3,7 @@ package org.petapico.nanobench;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -51,17 +53,18 @@ public class PublishForm extends Panel {
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
 
-	public PublishForm(String id, final String templateId) {
+	public PublishForm(String id, final String templateId, final PublishPage page) {
 		super(id);
 		template = Template.getTemplate(templateId);
 		add(new ExternalLink("templatelink", templateId));
 		add(new Label("templatename", template.getLabel()));
+
 		List<Panel> statementItems = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
 			IRI subj = template.getSubject(st);
 			IRI pred = template.getPredicate(st);
 			IRI obj = (IRI) template.getObject(st);
-			if (template.hasType(st, Template.OPTIONAL_STATEMENT_CLASS)) {
+			if (template.isOptionalStatement(st)) {
 				statementItems.add(new OptionalStatementItem("statement", subj, pred, obj, PublishForm.this));
 			} else {
 				statementItems.add(new StatementItem("statement", subj, pred, obj, PublishForm.this));
@@ -98,12 +101,19 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					PublishNanopub.publish(signedNp);
-//					System.err.println(org.nanopub.NanopubUtils.writeToString(signedNp, org.eclipse.rdf4j.rio.RDFFormat.TRIG));
+					if (templateId.startsWith("file://")) {
+						// Testing mode
+						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
+						System.err.println("----------");
+						System.err.println(org.nanopub.NanopubUtils.writeToString(signedNp, org.eclipse.rdf4j.rio.RDFFormat.TRIG));
+						System.err.println("----------");
+					} else {
+						PublishNanopub.publish(signedNp);
+						System.err.println("Published " + signedNp.getUri());
+					}
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
-//				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
 				}
@@ -135,25 +145,49 @@ public class PublishForm extends Panel {
 		form.add(consentCheck);
 		add(form);
 
+		if (templateId.startsWith("file://")) {
+			add(new Link<Object>("local-reload-link") {
+				private static final long serialVersionUID = 1L;
+				public void onClick() {
+					setResponsePage(page.getPageClass(), page.getPageParameters());
+				};
+			});
+			form.add(new Label("local-file-text", "TEST MODE. Nanopublication will not actually be published."));
+		} else {
+			Label l = new Label("local-reload-link", "");
+			l.setVisible(false);
+			add(l);
+			form.add(new Label("local-file-text", ""));
+		}
+
 		feedbackPanel = new FeedbackPanel("feedback");
 		feedbackPanel.setOutputMarkupId(true);
 		add(feedbackPanel);
 	}
 
 	private Nanopub createNanopub() throws MalformedNanopubException {
-		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/"));
+		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		if (template.getNanopub() instanceof NanopubWithNs) {
 			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
 			for (String p : np.getNsPrefixes()) {
 				npCreator.addNamespace(p, np.getNamespace(p));
 			}
 		}
-		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/");
-		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/#");
+		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
+		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
 		for (IRI st : template.getStatementIris()) {
-			npCreator.addAssertionStatement(processIri(template.getSubject(st)),
-					processIri(template.getPredicate(st)),
-					processValue(template.getObject(st)));
+			IRI subj = processIri(template.getSubject(st));
+			IRI pred = processIri(template.getPredicate(st));
+			Value obj = processValue(template.getObject(st));
+			if (subj == null || pred == null || obj == null) {
+				if (template.isOptionalStatement(st)) {
+					continue;
+				} else {
+					throw new MalformedNanopubException("Field of non-optional statement not set.");
+				}
+			} else {
+				npCreator.addAssertionStatement(subj, pred, obj);
+			}
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
 		npCreator.addTimestampNow();
@@ -186,11 +220,15 @@ public class PublishForm extends Panel {
 				String prefix = template.getPrefix(iri);
 				if (prefix == null) prefix = "";
 				return vf.createIRI(prefix + tf.getObject());
+			} else {
+				return null;
 			}
 		} else if (template.isLiteralPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				return vf.createLiteral(tf.getObject());
+			} else {
+				return null;
 			}
 		} else if (template.isRestrictedChoicePlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
@@ -201,6 +239,8 @@ public class PublishForm extends Panel {
 					return vf.createIRI(prefix + tf.getObject());
 				}
 				return vf.createLiteral(tf.getObject());
+			} else {
+				return null;
 			}
 		}
 		return iri;
