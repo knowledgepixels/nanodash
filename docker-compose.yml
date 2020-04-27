@@ -6,5 +6,6 @@ services:
       - 37373:37373
     volumes:
       - ~/.nanopub:/root/.nanopub
+      - .:/local
 #    environment:
 #      - NANOBENCH_API_INSTANCES=http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/ http://130.60.24.146:7881/api/local/local/
