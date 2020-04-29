@@ -5,4 +5,5 @@ Nanobench: Notes
 
 Make Docker container:
 
+    $ package/package.sh
     $ docker build -t nanopub/nanobench .
