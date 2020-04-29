@@ -209,10 +209,10 @@ public class PublishForm extends Panel {
 		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			// TODO: deprecate this (use LocalResource instead)
-			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/"));
+			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		}
 		if (template.isLocalResource(iri)) {
-			return vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/"));
+			return vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		} else if (template.isUriPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
