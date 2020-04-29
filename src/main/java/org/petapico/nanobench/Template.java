@@ -18,20 +18,19 @@ import org.eclipse.rdf4j.model.impl.IntegerLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
-import org.nanopub.trusty.TrustyNanopubUtils;
 
 public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private static List<Template> templates;
-	private static Map<String,Template> templateMap = new HashMap<>();
+	private static Map<String,Template> templateMap;
 
-	private static void initTemplates() {
+	static void refreshTemplates() {
 		templates = new ArrayList<>();
+		templateMap = new HashMap<>();
 		Map<String,String> params = new HashMap<>();
 		params.put("pred", RDF.TYPE.toString());
 		params.put("obj", ASSERTION_TEMPLATE_CLASS.toString());
@@ -52,12 +51,12 @@ public class Template implements Serializable {
 	}
 
 	public static List<Template> getTemplates() {
-		if (templates == null) initTemplates();
+		if (templates == null) refreshTemplates();
 		return templates;
 	}
 
 	public static Template getTemplate(String id) {
-		if (templates == null) initTemplates();
+		if (templates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
 		return new Template(id);
