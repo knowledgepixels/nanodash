@@ -63,6 +63,9 @@ public class IriTextfieldItem extends Panel {
 					if (!piri.isAbsolute()) {
 						s.error(new ValidationError("IRI not well-formed"));
 					}
+					if (prefix.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
+						s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
+					}
 				} catch (URISyntaxException ex) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
@@ -91,6 +94,8 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+				textfield.getModel().setObject("rdf:foo");
+				textfield.modelChanged();
 				for (FormComponent<String> fc : form.formComponents) {
 					if (fc == textfield) continue;
 					if (fc.getModel() == textfield.getModel()) {

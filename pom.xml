@@ -83,7 +83,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.30</version>
+      <version>1.31</version>
     </dependency>
 
   </dependencies>
