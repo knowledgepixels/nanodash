@@ -94,8 +94,6 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				textfield.getModel().setObject("rdf:foo");
-				textfield.modelChanged();
 				for (FormComponent<String> fc : form.formComponents) {
 					if (fc == textfield) continue;
 					if (fc.getModel() == textfield.getModel()) {
