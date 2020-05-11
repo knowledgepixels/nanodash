@@ -120,6 +120,10 @@ input, select {
   padding: 3px;
 }
 
+select {
+  width: 500px;
+}
+
 .hidden {
 	display:none;
 }

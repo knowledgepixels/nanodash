@@ -1,10 +1,9 @@
 package org.petapico.nanobench;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -12,6 +11,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
 
 public class RestrictedChoiceItem extends Panel {
 	
@@ -24,16 +26,17 @@ public class RestrictedChoiceItem extends Panel {
 			model = Model.of("");
 			form.formComponentModels.put(iri, model);
 		}
-		List<String> dropdownValues = new ArrayList<>();
+		final List<String> dropdownValues = new ArrayList<>();
 		for (Value v : form.template.getPossibleValues(iri)) {
 			dropdownValues.add(v.toString());
 		}
-		IChoiceRenderer<String> choiceRenderer = new IChoiceRenderer<String>() {
+		ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Object getDisplayValue(String object) {
+			public String getDisplayValue(String object) {
+				if (object == null || object.isEmpty()) return "";
 				IRI valueIri = vf.createIRI(object);
 				if (form.template.getLabel(valueIri) != null) {
 					return form.template.getLabel(valueIri);
@@ -43,13 +46,8 @@ public class RestrictedChoiceItem extends Panel {
 			}
 
 			@Override
-			public String getIdValue(String object, int index) {
+			public String getIdValue(String object) {
 				return object;
-			}
-
-			@Override
-			public String getObject(String id, IModel<? extends List<? extends String>> choices) {
-				return id;
 			}
 
 			// Getting strange errors with Tomcat if this method is not overridden:
@@ -57,11 +55,24 @@ public class RestrictedChoiceItem extends Panel {
 			public void detach() {
 			}
 
+			@Override
+			public void query(String term, int page, Response<String> response) {
+				for (String s : dropdownValues) {
+					if (term == null || s.toLowerCase().contains(term.toLowerCase())) response.add(s);
+				}
+			}
+
+			@Override
+			public Collection<String> toChoices(Collection<String> ids) {
+				return ids;
+			}
+
 		};
-		DropDownChoice<String> dropdown = new DropDownChoice<String>("dropdown", model, dropdownValues, choiceRenderer);
-		if (!optional) dropdown.setRequired(true);
-		form.formComponents.add(dropdown);
-		add(dropdown);
+		Select2Choice<String> choice = new Select2Choice<String>("choice", model, choiceProvider);
+		if (!optional) choice.setRequired(true);
+		choice.getSettings().setCloseOnSelect(true);
+		form.formComponents.add(choice);
+		add(choice);
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();

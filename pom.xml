@@ -27,6 +27,11 @@
       <artifactId>wicket-extensions</artifactId>
       <version>${wicket.version}</version>
     </dependency>
+<dependency>
+    <groupId>org.wicketstuff</groupId>
+    <artifactId>wicketstuff-select2</artifactId>
+    <version>8.8.0</version>
+</dependency>
 
     <!-- LOGGING DEPENDENCIES - LOG4J -->
     <dependency>
