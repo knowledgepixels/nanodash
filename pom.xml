@@ -27,11 +27,11 @@
       <artifactId>wicket-extensions</artifactId>
       <version>${wicket.version}</version>
     </dependency>
-<dependency>
-    <groupId>org.wicketstuff</groupId>
-    <artifactId>wicketstuff-select2</artifactId>
-    <version>8.8.0</version>
-</dependency>
+    <dependency>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-select2</artifactId>
+      <version>${wicket.version}</version>
+    </dependency>
 
     <!-- LOGGING DEPENDENCIES - LOG4J -->
     <dependency>
@@ -156,7 +156,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>8.7.0</wicket.version>
+    <wicket.version>8.8.0</wicket.version>
     <jetty.version>9.4.24.v20191120</jetty.version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
