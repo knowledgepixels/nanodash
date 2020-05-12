@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -75,6 +76,7 @@ public class Template implements Serializable {
 	public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
 	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
 	public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
+	public static final IRI POSSIBLE_VALUES_FROM_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFrom");
 	public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
 	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
@@ -87,6 +89,7 @@ public class Template implements Serializable {
 	// TODO: Make all these maps more generic and the code simpler:
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
+	private Map<IRI,List<IRI>> possibleValuesToLoadMap = new HashMap<>();
 	private Map<IRI,String> labelMap = new HashMap<>();
 	private Map<IRI,String> prefixMap = new HashMap<>();
 	private Map<IRI,String> prefixLabelMap = new HashMap<>();
@@ -180,7 +183,29 @@ public class Template implements Serializable {
 	}
 
 	public List<Value> getPossibleValues(IRI iri) {
-		return possibleValueMap.get(iri);
+		List<Value> l = possibleValueMap.get(iri);
+		if (l == null) {
+			l = new ArrayList<>();
+			possibleValueMap.put(iri, l);
+		}
+		List<IRI> nanopubList = possibleValuesToLoadMap.get(iri);
+		if (nanopubList != null) {
+			for (IRI npIri : new ArrayList<>(nanopubList)) {
+				try {
+					Nanopub valuesNanopub = new NanopubImpl(new URL(npIri.stringValue()));
+					for (Statement st : valuesNanopub.getAssertion()) {
+						if (st.getPredicate().equals(RDFS.LABEL)) {
+							l.add((IRI) st.getSubject());
+							labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+						}
+					}
+					nanopubList.remove(npIri);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
+		return l;
 	}
 
 	private void processTemplate(Nanopub templateNp) {
@@ -207,6 +232,15 @@ public class Template implements Serializable {
 					possibleValueMap.put((IRI) st.getSubject(), l);
 				}
 				l.add(st.getObject());
+			} else if (st.getPredicate().equals(POSSIBLE_VALUES_FROM_PREDICATE)) {
+				List<IRI> l = possibleValuesToLoadMap.get(st.getSubject());
+				if (l == null) {
+					l = new ArrayList<>();
+					possibleValuesToLoadMap.put((IRI) st.getSubject(), l);
+				}
+				if (st.getObject() instanceof IRI) {
+					l.add((IRI) st.getObject());
+				}
 			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
 				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			} else if (st.getPredicate().equals(HAS_PREFIX_PREDICATE) && st.getObject() instanceof Literal) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -19,7 +20,7 @@ public class RestrictedChoiceItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public RestrictedChoiceItem(String id, IRI iri, boolean optional, final PublishForm form) {
+	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishForm form) {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
@@ -30,6 +31,21 @@ public class RestrictedChoiceItem extends Panel {
 		for (Value v : form.template.getPossibleValues(iri)) {
 			dropdownValues.add(v.toString());
 		}
+
+		String prefixLabel = form.template.getPrefixLabel(iri);
+		Label prefixLabelComp;
+		if (prefixLabel == null) {
+			prefixLabelComp = new Label("prefix", "");
+			prefixLabelComp.setVisible(false);
+		} else {
+			if (prefixLabel.length() > 0 && parentId.equals("subj")) {
+				// Capitalize first letter of label if at subject position:
+				prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
+			}
+			prefixLabelComp = new Label("prefix", prefixLabel);
+		}
+		add(prefixLabelComp);
+
 		ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
@@ -57,8 +73,13 @@ public class RestrictedChoiceItem extends Panel {
 
 			@Override
 			public void query(String term, int page, Response<String> response) {
+				if (term == null) {
+					response.addAll(dropdownValues);
+					return;
+				}
+				term = term.toLowerCase();
 				for (String s : dropdownValues) {
-					if (term == null || s.toLowerCase().contains(term.toLowerCase())) response.add(s);
+					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
 				}
 			}
 
