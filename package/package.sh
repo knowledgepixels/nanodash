@@ -9,4 +9,4 @@ mvn -o clean install tomcat7:exec-war-only
 cp target/nanobench-$VERSION*.jar package/nanobench.jar
 cd package
 rm -f nanobench-$VERSION.zip
-zip -r nanobench-$VERSION.zip nanobench.jar run run-under-windows.bat
+zip -r nanobench-$VERSION.zip nanobench.jar run run-under-windows.bat update update-under-windows.bat
