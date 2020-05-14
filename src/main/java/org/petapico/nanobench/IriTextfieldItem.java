@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -34,6 +35,9 @@ public class IriTextfieldItem extends Panel {
 		}
 		prefix = form.template.getPrefix(iri);
 		if (prefix == null) prefix = "";
+		if (form.template.isLocalResource(iri)) {
+			prefix = iri.stringValue().replaceFirst("^(.*[/#]).*$", "$1");
+		}
 		String prefixLabel = form.template.getPrefixLabel(iri);
 		Label prefixLabelComp;
 		if (prefixLabel == null) {
@@ -48,10 +52,18 @@ public class IriTextfieldItem extends Panel {
 		}
 		add(prefixLabelComp);
 		String prefixTooltip = prefix;
-		if (!prefix.isEmpty()) prefixTooltip += "...";
+		if (!prefix.isEmpty()) {
+			prefixTooltip += "...";
+			if (form.template.isLocalResource(iri)) {
+				prefixTooltip = "local:...";
+			}
+		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
 		final TextField<String> textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
+		if (form.template.isLocalResource(iri)) {
+			textfield.add(new AttributeAppender("style", "width:250px;"));
+		}
 		textfield.add(new IValidator<String>() {
 
 			private static final long serialVersionUID = 1L;
