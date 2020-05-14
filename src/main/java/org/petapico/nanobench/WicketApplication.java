@@ -21,6 +21,8 @@ public class WicketApplication extends WebApplication {
 	private static final String LATEST_RELEASE_URL = "https://github.com/peta-pico/nanobench/releases/latest";
 
 	public WicketApplication() {
+		getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
+
 		String runParam = System.getProperty("nanobench.run");
 		if (runParam != null) {
 			if (runParam.equals("update")) {
