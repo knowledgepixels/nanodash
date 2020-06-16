@@ -68,6 +68,7 @@ public class Template implements Serializable {
 	public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
+	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
@@ -158,7 +159,13 @@ public class Template implements Serializable {
 	}
 
 	public boolean isLocalResource(IRI iri) {
-		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS);
+		return typeMap.containsKey(iri) && (
+				typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS) || typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS)
+			);
+	}
+
+	public boolean isIntroducedResource(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS);
 	}
 
 	public boolean isUriPlaceholder(IRI iri) {

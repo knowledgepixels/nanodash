@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -164,7 +166,12 @@ public class PublishForm extends Panel {
 		add(feedbackPanel);
 	}
 
-	private Nanopub createNanopub() throws MalformedNanopubException {
+	private Set<IRI> introducedIris = new HashSet<>();
+
+	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
+
+	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
+		introducedIris.clear();
 		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		if (template.getNanopub() instanceof NanopubWithNs) {
 			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
@@ -189,6 +196,9 @@ public class PublishForm extends Panel {
 			}
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
+		for (IRI introducedIri : introducedIris) {
+			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
+		}
 		npCreator.addTimestampNow();
 		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, template.getNanopub().getUri());
@@ -217,12 +227,20 @@ public class PublishForm extends Panel {
 				String prefix = template.getPrefix(iri);
 				if (prefix == null) prefix = "";
 				if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
-				return vf.createIRI(prefix + tf.getObject());
+				IRI processedIri = vf.createIRI(prefix + tf.getObject());
+				if (template.isIntroducedResource(iri)) {
+					introducedIris.add(processedIri);
+				}
+				return processedIri;
 			} else {
 				return null;
 			}
 		} else if (template.isLocalResource(iri)) {
-			iri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
+			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
+			if (template.isIntroducedResource(iri)) {
+				introducedIris.add(processedIri);
+			}
+			return processedIri;
 		} else if (template.isLiteralPlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
