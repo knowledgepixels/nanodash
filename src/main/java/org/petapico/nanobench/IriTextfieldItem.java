@@ -30,7 +30,12 @@ public class IriTextfieldItem extends Panel {
 		super(id);
 		IModel<String> model = form.formComponentModels.get(iri);
 		if (model == null) {
-			model = Model.of("");
+			String value = "";
+			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+			if (form.params.containsKey(postfix)) {
+				value = form.params.get(postfix);
+			}
+			model = Model.of(value);
 			form.formComponentModels.put(iri, model);
 		}
 		prefix = form.template.getPrefix(iri);

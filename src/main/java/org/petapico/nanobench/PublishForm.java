@@ -53,9 +53,11 @@ public class PublishForm extends Panel {
 	protected List<FormComponent<String>> formComponents = new ArrayList<>();
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
+	protected Map<String,String> params;
 
-	public PublishForm(String id, final String templateId, final PublishPage page) {
+	public PublishForm(String id, final String templateId, Map<String,String> params, final PublishPage page) {
 		super(id);
+		this.params = params;
 		template = Template.getTemplate(templateId);
 		add(new ExternalLink("templatelink", templateId));
 		add(new Label("templatename", template.getLabel()));

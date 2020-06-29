@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -16,7 +19,11 @@ public class PublishPage extends WebPage {
 		}
 		String templateId = parameters.get("template").toString();
 		if (templateId != null) {
-			add(new PublishForm("form", templateId, this));
+			Map<String,String> params = new HashMap<String,String>();
+			for (String k : parameters.getNamedKeys()) {
+				if (k.startsWith("param_")) params.put(k.substring(6), parameters.get(k).toString());
+			}
+			add(new PublishForm("form", templateId, params, this));
 		} else {
 			add(new TemplateList("form"));
 		}
