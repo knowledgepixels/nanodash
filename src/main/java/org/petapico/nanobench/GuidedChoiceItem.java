@@ -156,7 +156,7 @@ public class GuidedChoiceItem extends Panel {
 		textfield.getSettings().setAllowClear(true);
 
 		if (!optional) textfield.setRequired(true);
-		textfield.add(new AttributeAppender("style", "width:500px;"));
+		textfield.add(new AttributeAppender("style", "width:750px;"));
 		textfield.add(new IValidator<String>() {
 
 			private static final long serialVersionUID = 1L;
