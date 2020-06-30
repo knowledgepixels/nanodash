@@ -229,6 +229,7 @@ public class PublishForm extends Panel {
 				String prefix = template.getPrefix(iri);
 				if (prefix == null) prefix = "";
 				if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
+				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 				IRI processedIri = vf.createIRI(prefix + tf.getObject());
 				if (template.isIntroducedResource(iri)) {
 					introducedIris.add(processedIri);

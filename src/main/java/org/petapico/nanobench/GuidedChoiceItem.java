@@ -62,9 +62,6 @@ public class GuidedChoiceItem extends Panel {
 
 		prefix = form.template.getPrefix(iri);
 		if (prefix == null) prefix = "";
-		if (form.template.isLocalResource(iri)) {
-			prefix = iri.stringValue().replaceFirst("^(.*[/#]).*$", "$1");
-		}
 		String prefixLabel = form.template.getPrefixLabel(iri);
 		Label prefixLabelComp;
 		if (prefixLabel == null) {
@@ -81,9 +78,6 @@ public class GuidedChoiceItem extends Panel {
 		String prefixTooltip = prefix;
 		if (!prefix.isEmpty()) {
 			prefixTooltip += "...";
-			if (form.template.isLocalResource(iri)) {
-				prefixTooltip = "local:...";
-			}
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
 
@@ -97,9 +91,8 @@ public class GuidedChoiceItem extends Panel {
 			public String getDisplayValue(String id) {
 				if (id == null || id.isEmpty()) return "";
 				String label = null;
-				IRI valueIri = vf.createIRI(id);
-				if (form.template.getLabel(valueIri) != null) {
-					label = form.template.getLabel(valueIri);
+				if (id.matches("(https?|file)://.+") && form.template.getLabel(vf.createIRI(id)) != null) {
+					label = form.template.getLabel(vf.createIRI(id));
 				} else if (labelMap.containsKey(id)) {
 					label = labelMap.get(id);
 				}
@@ -163,21 +156,21 @@ public class GuidedChoiceItem extends Panel {
 		textfield.getSettings().setAllowClear(true);
 
 		if (!optional) textfield.setRequired(true);
-		if (form.template.isLocalResource(iri)) {
-			textfield.add(new AttributeAppender("style", "width:250px;"));
-		}
+		textfield.add(new AttributeAppender("style", "width:500px;"));
 		textfield.add(new IValidator<String>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void validate(IValidatable<String> s) {
+				String p = prefix;
+				if (s.getValue().matches("(https?|file)://.+")) p = "";
 				try {
-					ParsedIRI piri = new ParsedIRI(prefix + s.getValue());
+					ParsedIRI piri = new ParsedIRI(p + s.getValue());
 					if (!piri.isAbsolute()) {
 						s.error(new ValidationError("IRI not well-formed"));
 					}
-					if (prefix.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
+					if (p.isEmpty() && !(s.getValue().matches("(https?|file)://.+"))) {
 						s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
 					}
 				} catch (URISyntaxException ex) {
@@ -190,7 +183,7 @@ public class GuidedChoiceItem extends Panel {
 					}
 				}
 				if (form.template.isTrustyUriPlaceholder(iri)) {
-					if (!TrustyUriUtils.isPotentialTrustyUri(prefix + s.getValue())) {
+					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
 						s.error(new ValidationError("Not a trusty URI"));
 					}
 				}

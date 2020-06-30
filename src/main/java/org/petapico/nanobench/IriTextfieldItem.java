@@ -75,12 +75,14 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			public void validate(IValidatable<String> s) {
+				String p = prefix;
+				if (s.getValue().matches("(https?|file)://.+")) p = "";
 				try {
-					ParsedIRI piri = new ParsedIRI(prefix + s.getValue());
+					ParsedIRI piri = new ParsedIRI(p + s.getValue());
 					if (!piri.isAbsolute()) {
 						s.error(new ValidationError("IRI not well-formed"));
 					}
-					if (prefix.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
+					if (p.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
 						s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
 					}
 				} catch (URISyntaxException ex) {
@@ -93,7 +95,7 @@ public class IriTextfieldItem extends Panel {
 					}
 				}
 				if (form.template.isTrustyUriPlaceholder(iri)) {
-					if (!TrustyUriUtils.isPotentialTrustyUri(prefix + s.getValue())) {
+					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
 						s.error(new ValidationError("Not a trusty URI"));
 					}
 				}
