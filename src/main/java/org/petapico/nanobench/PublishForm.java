@@ -223,7 +223,7 @@ public class PublishForm extends Panel {
 			// TODO: deprecate this (use LocalResource instead)
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		}
-		if (template.isUriPlaceholder(iri)) {
+		if (template.isUriPlaceholder(iri) || template.isGuidedChoicePlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				String prefix = template.getPrefix(iri);

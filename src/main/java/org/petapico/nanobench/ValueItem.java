@@ -15,6 +15,8 @@ public class ValueItem extends Panel {
 			add(new LiteralTextfieldItem("value", iri, optional, form));
 		} else if (form.template.isRestrictedChoicePlaceholder(iri)) {
 			add(new RestrictedChoiceItem("value", id, iri, optional, form));
+		} else if (form.template.isGuidedChoicePlaceholder(iri)) {
+			add(new GuidedChoiceItem("value", id, iri, optional, form));
 		} else {
 			add(new IriItem("value", id, iri, id.equals("obj"), form));
 		}
