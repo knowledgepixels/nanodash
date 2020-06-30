@@ -5,8 +5,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -23,6 +25,9 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -50,6 +55,11 @@ public class GuidedChoiceItem extends Panel {
 			model = Model.of(value);
 			form.formComponentModels.put(iri, model);
 		}
+		final List<String> possibleValues = new ArrayList<>();
+		for (Value v : form.template.getPossibleValues(iri)) {
+			possibleValues.add(v.toString());
+		}
+
 		prefix = form.template.getPrefix(iri);
 		if (prefix == null) prefix = "";
 		if (form.template.isLocalResource(iri)) {
@@ -84,12 +94,19 @@ public class GuidedChoiceItem extends Panel {
 			private Map<String,String> labelMap = new HashMap<>();
 
 			@Override
-			public String getDisplayValue(String object) {
-				if (object == null || object.isEmpty()) return "";
-				if (labelMap.containsKey(object)) {
-					return labelMap.get(object) + " (" + object.replaceFirst("^http://www.wikidata.org/entity/", "wd:") + ")";
+			public String getDisplayValue(String id) {
+				if (id == null || id.isEmpty()) return "";
+				String label = null;
+				IRI valueIri = vf.createIRI(id);
+				if (form.template.getLabel(valueIri) != null) {
+					label = form.template.getLabel(valueIri);
+				} else if (labelMap.containsKey(id)) {
+					label = labelMap.get(id);
+				}
+				if (label != null) {
+					return label + " (" + id + ")";
 				} else {
-					return object;
+					return id;
 				}
 			}
 
@@ -105,7 +122,14 @@ public class GuidedChoiceItem extends Panel {
 
 			@Override
 			public void query(String term, int page, Response<String> response) {
-				if (term == null) return;
+				if (term == null) {
+					response.addAll(possibleValues);
+					return;
+				}
+				term = term.toLowerCase();
+				for (String s : possibleValues) {
+					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
+				}
 				try {
 					String apiString = "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&search=";
 					URL url = new URL(apiString + URLEncoder.encode(term, "UTF-8"));
@@ -195,5 +219,7 @@ public class GuidedChoiceItem extends Panel {
 		});
 		add(textfield);
 	}
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 }
