@@ -6,7 +6,7 @@
 
 <p>Publish a new nanopublication below with the chosen template (<a href="#" wicket:id="templatelink">source</a>) or <a href="./publish">choose a different template</a>.</p>
 
-<h3>Template: <span wicket:id="templatename"></span></h3>
+<h3>Assertion Template: <span wicket:id="templatename"></span></h3>
 
 <p><a wicket:id="local-reload-link" href="." class="button">Reload local file</a></p>
 
@@ -18,6 +18,20 @@
 <div wicket:id="statements">
 <table><tr><td>
 <div wicket:id="statement" class="nanopub-statement"></div>
+</td></tr></table>
+</div>
+</div>
+</div>
+</p>
+
+<h3>Provenance:</h3>
+
+<p>
+<div class="nanopub">
+<div class="nanopub-provenance">
+<div wicket:id="prov-statements">
+<table><tr><td>
+<div wicket:id="prov-statement" class="nanopub-statement"></div>
 </td></tr></table>
 </div>
 </div>

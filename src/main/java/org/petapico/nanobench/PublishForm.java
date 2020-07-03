@@ -74,6 +74,10 @@ public class PublishForm extends Panel {
 			}
 		}
 
+		List<Panel> provStatementItems = new ArrayList<>();
+		provStatementItems.add(new StatementItem("prov-statement",
+				Template.ASSERTION_PLACEHOLDER, SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, Template.CREATOR_PLACEHOLDER, PublishForm.this));
+
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
 		consentCheck.add(new IValidator<Boolean>() {
@@ -136,6 +140,16 @@ public class PublishForm extends Panel {
 		};
 
 		form.add(new ListView<Panel>("statements", statementItems) {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void populateItem(ListItem<Panel> item) {
+				item.add(item.getModelObject());
+			}
+
+		});
+
+		form.add(new ListView<Panel>("prov-statements", provStatementItems) {
 
 			private static final long serialVersionUID = 1L;
 

@@ -1,8 +1,10 @@
 package org.petapico.nanobench;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.SimpleCreatorPattern;
 
 public class IriItem extends Panel {
 	
@@ -19,8 +21,14 @@ public class IriItem extends Panel {
 				labelString = "I";
 			}
 		}
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			labelString = "the assertion above";
+		}
 		if (form.template.getLabel(iri) != null) {
 			labelString = form.template.getLabel(iri);
+		} else if (iri.equals(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO)) {
+			// temporary solution until we have full provenance graph support
+			labelString = "is attributed to";
 		} else if (labelString == null) {
 			labelString = getShortNameFromURI(iri.stringValue());
 		}
@@ -28,9 +36,16 @@ public class IriItem extends Panel {
 			// Capitalize first letter of label if at subject position:
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
-		add(new Label("label", labelString));
+		Label labelComp = new Label("label", labelString);
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
+			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+		}
+		add(labelComp);
 		String iriString = iri.stringValue();
-		if (form.template.isLocalResource(iri)) {
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			iriString = "local:assertion";
+		} else if (form.template.isLocalResource(iri)) {
 			iriString = iriString.replaceFirst("^.*[/#]", "local:");
 		}
 		add(new Label("iri", iriString));
