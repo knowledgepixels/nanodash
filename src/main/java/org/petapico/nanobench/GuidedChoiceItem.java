@@ -123,6 +123,31 @@ public class GuidedChoiceItem extends Panel {
 				for (String s : possibleValues) {
 					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
 				}
+				// Nanopub API:
+				try {
+					Map<String,String> params = new HashMap<>();
+					params.put("searchterm", " " + term);
+					params.put("type", "http://www.w3.org/2002/07/owl#Class");
+					List<Map<String,String>> result = ApiAccess.getAll("find_signed_things", params);
+					int count = 0;
+					for (Map<String,String> r : result) {
+						if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
+						String uri = r.get("thing");
+						response.add(uri);
+						String desc = r.get("description");
+						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+						if (!desc.isEmpty()) desc = " - " + desc;
+						String userString = "";
+						User user = User.getUserForPubkey(r.get("pubkey"));
+						if (user != null) userString = " - by " + user.getShortDisplayName();
+						labelMap.put(uri, r.get("label") + desc + userString);
+						count++;
+						if (count > 5) return;
+					}
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				// Wikidata API:
 				try {
 					String apiString = "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&search=";
 					URL url = new URL(apiString + URLEncoder.encode(term, "UTF-8"));

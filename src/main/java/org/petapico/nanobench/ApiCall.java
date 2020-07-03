@@ -46,6 +46,12 @@ public class ApiCall {
 		"http://grlc.np.dumontierlab.com/api/local/local/"
 	};
 
+	private static String experimentalApi = "http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/";
+
+	private boolean isExperimentalOperation(String op) {
+		return op.equals("find_things") || op.equals("find_signed_things");
+	}
+
 	private String operation;
 	private String paramString;
 	private int parallelCallCount = 2;
@@ -69,12 +75,16 @@ public class ApiCall {
 
 	private void run() {
 		List<String> apiInstancesToTry = new LinkedList<>(Arrays.asList(apiInstances));
-		while (!apiInstancesToTry.isEmpty() && apisToCall.size() < parallelCallCount) {
-			int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
-			String apiUrl = apiInstancesToTry.get(randomIndex);
-			apisToCall.add(apiUrl);
-			System.err.println("Trying API (" + apisToCall.size() + ") " + apiUrl);
-			apiInstancesToTry.remove(randomIndex);
+		if (!isExperimentalOperation(operation)) {
+			while (!apiInstancesToTry.isEmpty() && apisToCall.size() < parallelCallCount) {
+				int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
+				String apiUrl = apiInstancesToTry.get(randomIndex);
+				apisToCall.add(apiUrl);
+				System.err.println("Trying API (" + apisToCall.size() + ") " + apiUrl);
+				apiInstancesToTry.remove(randomIndex);
+			}
+		} else {
+			apisToCall.add(experimentalApi);
 		}
 		for (String api : apisToCall) {
 			Call call = new Call(api);
