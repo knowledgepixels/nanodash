@@ -44,25 +44,6 @@ public abstract class ApiAccess {
 		}
 	}
 
-	public static List<String> getAll(String operation, Map<String,String> params, final int column) throws IOException {
-		final List<String> result = new ArrayList<>();
-		ApiAccess a = new ApiAccess() {
-			
-			@Override
-			protected void processLine(String[] line) {
-				result.add(line[column]);
-			}
-			
-			@Override
-			protected void processHeader(String[] line) {
-				// ignore
-			}
-
-		};
-		a.call(operation, params);
-		return result;
-	}
-
 	public static List<Map<String,String>> getAll(String operation, Map<String,String> params) throws IOException {
 		final List<Map<String,String>> result = new ArrayList<>();
 		ApiAccess a = new ApiAccess() {

@@ -108,7 +108,6 @@ public class WicketApplication extends WebApplication {
 		getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
 		mountPage("/user", UserPage.class);
-//		mountPage("/type", TypePage.class);
 		mountPage("/search", SearchPage.class);
 		mountPage("/publish", PublishPage.class);
 		mountPage("/publishconfirm", PublishConfirmPage.class);
