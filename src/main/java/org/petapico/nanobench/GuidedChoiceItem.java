@@ -1,10 +1,12 @@
 package org.petapico.nanobench;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -149,7 +153,7 @@ public class GuidedChoiceItem extends Panel {
 				}
 				// Wikidata API:
 				try {
-					String apiString = "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&search=";
+					String apiString = "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&limit=5&search=";
 					URL url = new URL(apiString + URLEncoder.encode(term, "UTF-8"));
 					String jsonString = IOUtils.toString(url, Charset.forName("UTF-8"));
 					JSONObject json = new JSONObject(jsonString);
@@ -162,6 +166,26 @@ public class GuidedChoiceItem extends Panel {
 						if (o.has("description")) desc = o.getString("description");
 						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 						labelMap.put(uri, o.getString("label") + " - " + desc);
+					}
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				// BioPortal API:
+				try {
+					String apiString = "http://data.bioontology.org/search?pagesize=5&apikey=fd451bec-eacd-4519-b972-90fb6c7007cb&q=";
+					HttpGet get = new HttpGet(apiString + URLEncoder.encode(term, "UTF-8"));
+					InputStream in = HttpClientBuilder.create().build().execute(get).getEntity().getContent();
+					String jsonString = IOUtils.toString(in, StandardCharsets.UTF_8);
+					JSONObject json = new JSONObject(jsonString);
+					JSONArray l = (JSONArray) json.get("collection");
+					for (int i = 0; i < l.length(); i++) {
+						JSONObject o = (JSONObject) l.get(i);
+						String uri = o.getString("@id");
+						response.add(uri);
+						String desc = "";
+						if (o.has("defintion")) desc = o.getString("defintion");
+						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+						labelMap.put(uri, o.getString("prefLabel") + " - " + desc);
 					}
 				} catch (IOException ex) {
 					ex.printStackTrace();
