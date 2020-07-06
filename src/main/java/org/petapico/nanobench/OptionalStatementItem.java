@@ -7,12 +7,12 @@ public class OptionalStatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public OptionalStatementItem(String id, IRI subj, IRI pred, IRI obj, final PublishForm form) {
+	public OptionalStatementItem(String id, IRI subj, IRI pred, IRI obj, PublishFormContext context) {
 		super(id);
 
-		add(new ValueItem("subj", subj, true, form));
-		add(new ValueItem("pred", pred, true, form));
-		add(new ValueItem("obj", obj, true, form));
+		add(new ValueItem("subj", subj, true, context));
+		add(new ValueItem("pred", pred, true, context));
+		add(new ValueItem("obj", obj, true, context));
 	}
 
 }

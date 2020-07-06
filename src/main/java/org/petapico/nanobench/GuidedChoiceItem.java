@@ -47,26 +47,27 @@ public class GuidedChoiceItem extends Panel {
 
 	private String prefix;
 
-	public GuidedChoiceItem(String id, String parentId, final IRI iri, boolean optional, final PublishForm form) {
+	public GuidedChoiceItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
-		IModel<String> model = form.formComponentModels.get(iri);
+		final Template template = context.getTemplate();
+		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
 			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (form.params.containsKey(postfix)) {
-				value = form.params.get(postfix);
+			if (context.hasParam(postfix)) {
+				value = context.getParam(postfix);
 			}
 			model = Model.of(value);
-			form.formComponentModels.put(iri, model);
+			context.getFormComponentModels().put(iri, model);
 		}
 		final List<String> possibleValues = new ArrayList<>();
-		for (Value v : form.template.getPossibleValues(iri)) {
+		for (Value v : template.getPossibleValues(iri)) {
 			possibleValues.add(v.toString());
 		}
 
-		prefix = form.template.getPrefix(iri);
+		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
-		String prefixLabel = form.template.getPrefixLabel(iri);
+		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
 		if (prefixLabel == null) {
 			prefixLabelComp = new Label("prefix", "");
@@ -95,8 +96,8 @@ public class GuidedChoiceItem extends Panel {
 			public String getDisplayValue(String id) {
 				if (id == null || id.isEmpty()) return "";
 				String label = null;
-				if (id.matches("(https?|file)://.+") && form.template.getLabel(vf.createIRI(id)) != null) {
-					label = form.template.getLabel(vf.createIRI(id));
+				if (id.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(id)) != null) {
+					label = template.getLabel(vf.createIRI(id));
 				} else if (labelMap.containsKey(id)) {
 					label = labelMap.get(id);
 				}
@@ -225,13 +226,13 @@ public class GuidedChoiceItem extends Panel {
 				} catch (URISyntaxException ex) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				String regex = form.template.getRegex(iri);
+				String regex = template.getRegex(iri);
 				if (regex != null) {
 					if (!s.getValue().matches(regex)) {
 						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
 					}
 				}
-				if (form.template.isTrustyUriPlaceholder(iri)) {
+				if (template.isTrustyUriPlaceholder(iri)) {
 					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
 						s.error(new ValidationError("Not a trusty URI"));
 					}
@@ -239,9 +240,9 @@ public class GuidedChoiceItem extends Panel {
 			}
 
 		});
-		form.formComponents.add(textfield);
-		if (form.template.getLabel(iri) != null) {
-			textfield.getSettings().setPlaceholder(form.template.getLabel(iri));
+		context.getFormComponents().add(textfield);
+		if (template.getLabel(iri) != null) {
+			textfield.getSettings().setPlaceholder(template.getLabel(iri));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
@@ -249,7 +250,7 @@ public class GuidedChoiceItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : form.formComponents) {
+				for (FormComponent<String> fc : context.getFormComponents()) {
 					if (fc == textfield) continue;
 					if (fc.getModel() == textfield.getModel()) {
 						fc.modelChanged();

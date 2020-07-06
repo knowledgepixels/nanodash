@@ -7,18 +7,19 @@ public class ValueItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ValueItem(String id, IRI iri, boolean optional, PublishForm form) {
+	public ValueItem(String id, IRI iri, boolean optional, PublishFormContext context) {
 		super(id);
-		if (form.template.isUriPlaceholder(iri)) {
-			add(new IriTextfieldItem("value", id, iri, optional, form));
-		} else if (form.template.isLiteralPlaceholder(iri)) {
-			add(new LiteralTextfieldItem("value", iri, optional, form));
-		} else if (form.template.isRestrictedChoicePlaceholder(iri)) {
-			add(new RestrictedChoiceItem("value", id, iri, optional, form));
-		} else if (form.template.isGuidedChoicePlaceholder(iri)) {
-			add(new GuidedChoiceItem("value", id, iri, optional, form));
+		final Template template = context.getTemplate();
+		if (template.isUriPlaceholder(iri)) {
+			add(new IriTextfieldItem("value", id, iri, optional, context));
+		} else if (template.isLiteralPlaceholder(iri)) {
+			add(new LiteralTextfieldItem("value", iri, optional, context));
+		} else if (template.isRestrictedChoicePlaceholder(iri)) {
+			add(new RestrictedChoiceItem("value", id, iri, optional, context));
+		} else if (template.isGuidedChoicePlaceholder(iri)) {
+			add(new GuidedChoiceItem("value", id, iri, optional, context));
 		} else {
-			add(new IriItem("value", id, iri, id.equals("obj"), form));
+			add(new IriItem("value", id, iri, id.equals("obj"), context));
 		}
 	}
 

@@ -10,8 +10,9 @@ public class IriItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, PublishForm form) {
+	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, PublishFormContext context) {
 		super(id);
+		final Template template = context.getTemplate();
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = ProfilePage.getUserIri();
@@ -24,8 +25,8 @@ public class IriItem extends Panel {
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelString = "the assertion above";
 		}
-		if (form.template.getLabel(iri) != null) {
-			labelString = form.template.getLabel(iri);
+		if (template.getLabel(iri) != null) {
+			labelString = template.getLabel(iri);
 		} else if (iri.equals(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO)) {
 			// temporary solution until we have full provenance graph support
 			labelString = "is attributed to";
@@ -45,7 +46,7 @@ public class IriItem extends Panel {
 		String iriString = iri.stringValue();
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			iriString = "local:assertion";
-		} else if (form.template.isLocalResource(iri)) {
+		} else if (template.isLocalResource(iri)) {
 			iriString = iriString.replaceFirst("^.*[/#]", "local:");
 		}
 		add(new Label("iri", iriString));

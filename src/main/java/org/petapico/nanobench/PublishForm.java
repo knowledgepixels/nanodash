@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -21,7 +19,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.IValidatable;
@@ -39,6 +36,7 @@ import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.PublishNanopub;
+import org.petapico.nanobench.PublishFormContext.ContextType;
 
 import net.trustyuri.TrustyUriException;
 
@@ -48,17 +46,25 @@ public class PublishForm extends Panel {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	protected Template template;
-	protected Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
-	protected List<FormComponent<String>> formComponents = new ArrayList<>();
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
-	protected Map<String,String> params;
+	private final PublishFormContext assertionContext;
 
-	public PublishForm(String id, final String templateId, Map<String,String> params, final PublishPage page) {
+	public PublishForm(String id, PageParameters pageParams, final PublishPage page) {
 		super(id);
-		this.params = params;
-		template = Template.getTemplate(templateId);
+		final String templateId = pageParams.get("template").toString();
+		Map<String,String> params = new HashMap<String,String>();
+		Map<String,String> prParams = new HashMap<String,String>();
+		Map<String,String> piParams = new HashMap<String,String>();
+		for (String k : pageParams.getNamedKeys()) {
+			if (k.startsWith("param_")) params.put(k.substring(6), pageParams.get(k).toString());
+			if (k.startsWith("prparam_")) prParams.put(k.substring(8), pageParams.get(k).toString());
+			if (k.startsWith("piparam_")) piParams.put(k.substring(8), pageParams.get(k).toString());
+		}
+		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId);
+//		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, templateId);
+
+		final Template template = assertionContext.getTemplate();
 		add(new ExternalLink("templatelink", templateId));
 		add(new Label("templatename", template.getLabel()));
 
@@ -68,15 +74,15 @@ public class PublishForm extends Panel {
 			IRI pred = template.getPredicate(st);
 			IRI obj = (IRI) template.getObject(st);
 			if (template.isOptionalStatement(st)) {
-				statementItems.add(new OptionalStatementItem("statement", subj, pred, obj, PublishForm.this));
+				statementItems.add(new OptionalStatementItem("statement", subj, pred, obj, assertionContext));
 			} else {
-				statementItems.add(new StatementItem("statement", subj, pred, obj, PublishForm.this));
+				statementItems.add(new StatementItem("statement", subj, pred, obj, assertionContext));
 			}
 		}
 
 		List<Panel> provStatementItems = new ArrayList<>();
 		provStatementItems.add(new StatementItem("prov-statement",
-				Template.ASSERTION_PLACEHOLDER, SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, Template.CREATOR_PLACEHOLDER, PublishForm.this));
+				Template.ASSERTION_PLACEHOLDER, SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, Template.CREATOR_PLACEHOLDER, assertionContext));
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
@@ -129,7 +135,7 @@ public class PublishForm extends Panel {
 			@Override
 		    protected void onValidate() {
 				super.onValidate();
-				for (FormComponent<String> fc : formComponents) {
+				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
 					fc.processInput();
 					for (FeedbackMessage fm : fc.getFeedbackMessages()) {
 						form.getFeedbackMessages().add(fm);
@@ -182,12 +188,11 @@ public class PublishForm extends Panel {
 		add(feedbackPanel);
 	}
 
-	private Set<IRI> introducedIris = new HashSet<>();
-
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
-		introducedIris.clear();
+		Template template = assertionContext.getTemplate();
+		assertionContext.getIntroducedIris().clear();
 		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		if (template.getNanopub() instanceof NanopubWithNs) {
 			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
@@ -198,9 +203,9 @@ public class PublishForm extends Panel {
 		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
 		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
 		for (IRI st : template.getStatementIris()) {
-			IRI subj = processIri(template.getSubject(st));
-			IRI pred = processIri(template.getPredicate(st));
-			Value obj = processValue(template.getObject(st));
+			IRI subj = assertionContext.processIri(template.getSubject(st));
+			IRI pred = assertionContext.processIri(template.getPredicate(st));
+			Value obj = assertionContext.processValue(template.getObject(st));
 			if (subj == null || pred == null || obj == null) {
 				if (template.isOptionalStatement(st)) {
 					continue;
@@ -212,73 +217,13 @@ public class PublishForm extends Panel {
 			}
 		}
 		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
-		for (IRI introducedIri : introducedIris) {
+		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
 		npCreator.addTimestampNow();
 		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, template.getNanopub().getUri());
 		return npCreator.finalizeNanopub();
-	}
-
-	private IRI processIri(IRI iri) {
-		Value v = processValue(iri);
-		if (v instanceof IRI) return (IRI) v;
-		return iri;
-	}
-
-	private Value processValue(Value value) {
-		if (!(value instanceof IRI)) return value;
-		IRI iri = (IRI) value;
-		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = ProfilePage.getUserIri();
-		}
-		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
-			// TODO: deprecate this (use LocalResource instead)
-			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
-		}
-		if (template.isUriPlaceholder(iri) || template.isGuidedChoicePlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				String prefix = template.getPrefix(iri);
-				if (prefix == null) prefix = "";
-				if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
-				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-				IRI processedIri = vf.createIRI(prefix + tf.getObject());
-				if (template.isIntroducedResource(iri)) {
-					introducedIris.add(processedIri);
-				}
-				return processedIri;
-			} else {
-				return null;
-			}
-		} else if (template.isLocalResource(iri)) {
-			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
-			if (template.isIntroducedResource(iri)) {
-				introducedIris.add(processedIri);
-			}
-			return processedIri;
-		} else if (template.isLiteralPlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				return vf.createLiteral(tf.getObject());
-			} else {
-				return null;
-			}
-		} else if (template.isRestrictedChoicePlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				String prefix = template.getPrefix(iri);
-				if (prefix == null) prefix = "";
-				if (tf.getObject().matches("https?://.*") || prefix.matches("https?://.*")) {
-					return vf.createIRI(prefix + tf.getObject());
-				}
-				return vf.createLiteral(tf.getObject());
-			} else {
-				return null;
-			}
-		}
-		return iri;
 	}
 
 }

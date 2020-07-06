@@ -11,25 +11,25 @@ public class LiteralTextfieldItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public LiteralTextfieldItem(String id, IRI iri, boolean optional, final PublishForm form) {
+	public LiteralTextfieldItem(String id, IRI iri, boolean optional, PublishFormContext context) {
 		super(id);
-		IModel<String> model = form.formComponentModels.get(iri);
+		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
 			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (form.params.containsKey(postfix)) {
-				value = form.params.get(postfix);
+			if (context.hasParam(postfix)) {
+				value = context.getParam(postfix);
 			}
 			model = Model.of(value);
-			form.formComponentModels.put(iri, model);
+			context.getFormComponentModels().put(iri, model);
 		}
 		TextField<String> textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
-		if (form.template.getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
+		if (context.getTemplate().getLabel(iri) != null) {
+			textfield.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
 		}
-		form.formComponentModels.put(iri, textfield.getModel());
-		form.formComponents.add(textfield);
+		context.getFormComponentModels().put(iri, textfield.getModel());
+		context.getFormComponents().add(textfield);
 		add(textfield);
 	}
 

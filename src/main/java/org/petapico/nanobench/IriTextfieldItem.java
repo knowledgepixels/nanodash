@@ -26,24 +26,25 @@ public class IriTextfieldItem extends Panel {
 
 	private String prefix;
 
-	public IriTextfieldItem(String id, String parentId, final IRI iri, boolean optional, final PublishForm form) {
+	public IriTextfieldItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
-		IModel<String> model = form.formComponentModels.get(iri);
+		final Template template = context.getTemplate();
+		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
 			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (form.params.containsKey(postfix)) {
-				value = form.params.get(postfix);
+			if (context.hasParam(postfix)) {
+				value = context.getParam(postfix);
 			}
 			model = Model.of(value);
-			form.formComponentModels.put(iri, model);
+			context.getFormComponentModels().put(iri, model);
 		}
-		prefix = form.template.getPrefix(iri);
+		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
-		if (form.template.isLocalResource(iri)) {
+		if (template.isLocalResource(iri)) {
 			prefix = iri.stringValue().replaceFirst("^(.*[/#]).*$", "$1");
 		}
-		String prefixLabel = form.template.getPrefixLabel(iri);
+		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
 		if (prefixLabel == null) {
 			prefixLabelComp = new Label("prefix", "");
@@ -59,14 +60,14 @@ public class IriTextfieldItem extends Panel {
 		String prefixTooltip = prefix;
 		if (!prefix.isEmpty()) {
 			prefixTooltip += "...";
-			if (form.template.isLocalResource(iri)) {
+			if (template.isLocalResource(iri)) {
 				prefixTooltip = "local:...";
 			}
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
 		final TextField<String> textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
-		if (form.template.isLocalResource(iri)) {
+		if (template.isLocalResource(iri)) {
 			textfield.add(new AttributeAppender("style", "width:250px;"));
 		}
 		textfield.add(new IValidator<String>() {
@@ -88,13 +89,13 @@ public class IriTextfieldItem extends Panel {
 				} catch (URISyntaxException ex) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				String regex = form.template.getRegex(iri);
+				String regex = template.getRegex(iri);
 				if (regex != null) {
 					if (!s.getValue().matches(regex)) {
 						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
 					}
 				}
-				if (form.template.isTrustyUriPlaceholder(iri)) {
+				if (template.isTrustyUriPlaceholder(iri)) {
 					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
 						s.error(new ValidationError("Not a trusty URI"));
 					}
@@ -102,10 +103,10 @@ public class IriTextfieldItem extends Panel {
 			}
 
 		});
-		form.formComponents.add(textfield);
-		if (form.template.getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", form.template.getLabel(iri)));
-			textfield.setLabel(Model.of(form.template.getLabel(iri)));
+		context.getFormComponents().add(textfield);
+		if (template.getLabel(iri) != null) {
+			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
+			textfield.setLabel(Model.of(template.getLabel(iri)));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
@@ -113,7 +114,7 @@ public class IriTextfieldItem extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : form.formComponents) {
+				for (FormComponent<String> fc : context.getFormComponents()) {
 					if (fc == textfield) continue;
 					if (fc.getModel() == textfield.getModel()) {
 						fc.modelChanged();

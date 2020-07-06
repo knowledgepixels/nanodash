@@ -20,24 +20,25 @@ public class RestrictedChoiceItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishForm form) {
+	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
-		IModel<String> model = form.formComponentModels.get(iri);
+		final Template template = context.getTemplate();
+		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
 			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (form.params.containsKey(postfix)) {
-				value = form.params.get(postfix);
+			if (context.hasParam(postfix)) {
+				value = context.getParam(postfix);
 			}
 			model = Model.of(value);
-			form.formComponentModels.put(iri, model);
+			context.getFormComponentModels().put(iri, model);
 		}
 		final List<String> dropdownValues = new ArrayList<>();
-		for (Value v : form.template.getPossibleValues(iri)) {
+		for (Value v : template.getPossibleValues(iri)) {
 			dropdownValues.add(v.toString());
 		}
 
-		String prefixLabel = form.template.getPrefixLabel(iri);
+		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
 		if (prefixLabel == null) {
 			prefixLabelComp = new Label("prefix", "");
@@ -59,8 +60,8 @@ public class RestrictedChoiceItem extends Panel {
 			public String getDisplayValue(String object) {
 				if (object == null || object.isEmpty()) return "";
 				IRI valueIri = vf.createIRI(object);
-				if (form.template.getLabel(valueIri) != null) {
-					return form.template.getLabel(valueIri);
+				if (template.getLabel(valueIri) != null) {
+					return template.getLabel(valueIri);
 				} else {
 					return IriItem.getShortNameFromURI(object);
 				}
@@ -97,7 +98,7 @@ public class RestrictedChoiceItem extends Panel {
 		Select2Choice<String> choice = new Select2Choice<String>("choice", model, choiceProvider);
 		if (!optional) choice.setRequired(true);
 		choice.getSettings().setCloseOnSelect(true);
-		form.formComponents.add(choice);
+		context.getFormComponents().add(choice);
 		add(choice);
 	}
 
