@@ -147,8 +147,6 @@ public class PublishForm extends Panel {
 
 		});
 
-		form.add(new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId()));
-		form.add(new Label("prtemplatename", provenanceContext.getTemplate().getLabel()));
 		ChoiceProvider<String> prTemplateChoiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
@@ -232,6 +230,7 @@ public class PublishForm extends Panel {
 	}
 
 	private void addProvStatements(AjaxRequestTarget target) {
+		ExternalLink link = new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId());
 		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
 		ListView<Panel> list = new ListView<Panel>("pr-statements", provStatementItems) {
 
@@ -244,8 +243,11 @@ public class PublishForm extends Panel {
 		};
 		list.setOutputMarkupId(true);
 		if (target == null) {
+			form.add(link);
 			form.add(list);
 		} else {
+			form.remove("prtemplatelink");
+			form.add(link);
 			form.remove("pr-statements");
 			form.add(list);
 			target.add(form);
