@@ -30,6 +30,7 @@ public class LiteralTextfieldItem extends Panel {
 		}
 		context.getFormComponentModels().put(iri, textfield.getModel());
 		context.getFormComponents().add(textfield);
+		textfield.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		add(textfield);
 	}
 

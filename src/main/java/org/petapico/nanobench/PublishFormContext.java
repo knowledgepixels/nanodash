@@ -37,9 +37,11 @@ public class PublishFormContext implements Serializable {
 	private List<FormComponent<String>> formComponents = new ArrayList<>();
 	private Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
+	private boolean isLocal;
 
 	public PublishFormContext(ContextType contextType, String templateId) {
 		this.contextType = contextType;
+		this.isLocal = templateId.startsWith("file://");
 		this.template = Template.getTemplate(templateId);
 	}
 
@@ -181,7 +183,7 @@ public class PublishFormContext implements Serializable {
 	}
 
 	public boolean isLocal() {
-		return getTemplate().getId().startsWith("file://");
+		return isLocal;
 	}
 
 }

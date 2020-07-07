@@ -98,6 +98,7 @@ public class RestrictedChoiceItem extends Panel {
 		Select2Choice<String> choice = new Select2Choice<String>("choice", model, choiceProvider);
 		if (!optional) choice.setRequired(true);
 		choice.getSettings().setCloseOnSelect(true);
+		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		context.getFormComponents().add(choice);
 		add(choice);
 	}

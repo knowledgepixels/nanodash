@@ -1,10 +1,12 @@
 package org.petapico.nanobench;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 
 public class ValueItem extends Panel {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public ValueItem(String id, IRI iri, boolean optional, PublishFormContext context) {
@@ -21,6 +23,17 @@ public class ValueItem extends Panel {
 		} else {
 			add(new IriItem("value", id, iri, id.equals("obj"), context));
 		}
+	}
+
+	public static class KeepValueAfterRefreshBehavior extends OnChangeAjaxBehavior {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void onUpdate(AjaxRequestTarget target) {
+			// No actual action needed here; Ajax request alone ensures values are kept after refreshing.
+		}
+
 	}
 
 }

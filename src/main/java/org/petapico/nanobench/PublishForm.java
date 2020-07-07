@@ -197,7 +197,6 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				System.err.println(prTemplateModel.getObject());
 				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject());
 				addProvStatements(target);
 			}
