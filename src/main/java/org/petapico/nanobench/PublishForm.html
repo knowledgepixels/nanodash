@@ -4,18 +4,18 @@
 
 <wicket:panel>
 
-<p>
-<strong>Assertion Template:</strong>
+<p><a wicket:id="local-reload-link" href="." class="button">Reload local files</a></p>
+
+
+<form wicket:id="form">
+
+<p class="graphheader">
+<strong>Assertion:</strong>
 <em><span wicket:id="templatename"></span></em>
 <a href="#" target="_blank" wicket:id="templatelink">&#x1F855</a>
 (<a href="./publish">change</a>)
 </p>
 
-<p><a wicket:id="local-reload-link" href="." class="button">Reload local file</a></p>
-
-<form wicket:id="form">
-
-<p>
 <div class="nanopub">
 <div class="nanopub-assertion">
 <div wicket:id="statements">
@@ -25,24 +25,27 @@
 </div>
 </div>
 </div>
+
+<p class="graphheader">
+<strong>Provenance:</strong>
+<em><span wicket:id="prtemplatename"></span></em>
+<a href="#" target="_blank" wicket:id="prtemplatelink">&#x1F855</a>
 </p>
 
-<p><strong>Provenance:</strong></p>
-
-<p>
 <div class="nanopub">
 <div class="nanopub-provenance">
-<div wicket:id="prov-statements">
+<div wicket:id="pr-statements">
 <table><tr><td>
-<div wicket:id="prov-statement" class="nanopub-statement"></div>
+<div wicket:id="pr-statement" class="nanopub-statement"></div>
 </td></tr></table>
 </div>
 </div>
 </div>
-</p>
 
+<p>
 <input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
 <label for="consentcheck">I understand that publishing cannot be undone and that the provided information will be publicly visible and openly connected to my ORCID identifier.</label>
+</p>
 
 <p>
 <input type="submit" class="button" value="Publish" />

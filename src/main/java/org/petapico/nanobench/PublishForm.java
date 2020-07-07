@@ -2,7 +2,6 @@ package org.petapico.nanobench;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
@@ -48,11 +46,13 @@ public class PublishForm extends Panel {
 
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
-	private final PublishFormContext assertionContext;
+	private final PublishFormContext assertionContext, provenanceContext;
 
 	public PublishForm(String id, PageParameters pageParams, final PublishPage page) {
 		super(id);
 		final String templateId = pageParams.get("template").toString();
+		final String prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+
 		Map<String,String> params = new HashMap<String,String>();
 		Map<String,String> prParams = new HashMap<String,String>();
 		Map<String,String> piParams = new HashMap<String,String>();
@@ -62,27 +62,10 @@ public class PublishForm extends Panel {
 			if (k.startsWith("piparam_")) piParams.put(k.substring(8), pageParams.get(k).toString());
 		}
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId);
-//		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, templateId);
+		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
 
-		final Template template = assertionContext.getTemplate();
-		add(new ExternalLink("templatelink", templateId));
-		add(new Label("templatename", template.getLabel()));
-
-		List<Panel> statementItems = new ArrayList<>();
-		for (IRI st : template.getStatementIris()) {
-			IRI subj = template.getSubject(st);
-			IRI pred = template.getPredicate(st);
-			IRI obj = (IRI) template.getObject(st);
-			if (template.isOptionalStatement(st)) {
-				statementItems.add(new OptionalStatementItem("statement", subj, pred, obj, assertionContext));
-			} else {
-				statementItems.add(new StatementItem("statement", subj, pred, obj, assertionContext));
-			}
-		}
-
-		List<Panel> provStatementItems = new ArrayList<>();
-		provStatementItems.add(new StatementItem("prov-statement",
-				Template.ASSERTION_PLACEHOLDER, SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, Template.CREATOR_PLACEHOLDER, assertionContext));
+		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
+		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
@@ -114,7 +97,7 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					if (templateId.startsWith("file://")) {
+					if (templateId.startsWith("file://") || prTemplateId.startsWith("file://")) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
 						System.err.println("----------");
@@ -145,6 +128,9 @@ public class PublishForm extends Panel {
 
 		};
 
+		form.add(new ExternalLink("templatelink", templateId));
+		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
+
 		form.add(new ListView<Panel>("statements", statementItems) {
 
 			private static final long serialVersionUID = 1L;
@@ -155,7 +141,10 @@ public class PublishForm extends Panel {
 
 		});
 
-		form.add(new ListView<Panel>("prov-statements", provStatementItems) {
+		form.add(new ExternalLink("prtemplatelink", prTemplateId));
+		form.add(new Label("prtemplatename", provenanceContext.getTemplate().getLabel()));
+
+		form.add(new ListView<Panel>("pr-statements", provStatementItems) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -168,7 +157,7 @@ public class PublishForm extends Panel {
 		form.add(consentCheck);
 		add(form);
 
-		if (templateId.startsWith("file://")) {
+		if (templateId.startsWith("file://") || prTemplateId.startsWith("file://")) {
 			add(new Link<Object>("local-reload-link") {
 				private static final long serialVersionUID = 1L;
 				public void onClick() {
@@ -193,7 +182,8 @@ public class PublishForm extends Panel {
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
 		Template template = assertionContext.getTemplate();
 		assertionContext.getIntroducedIris().clear();
-		NanopubCreator npCreator = new NanopubCreator(vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
+		NanopubCreator npCreator = new NanopubCreator(PublishFormContext.NP_TEMP_IRI);
+		npCreator.setAssertionUri(PublishFormContext.ASSERTION_TEMP_IRI);
 		if (template.getNanopub() instanceof NanopubWithNs) {
 			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
 			for (String p : np.getNsPrefixes()) {
@@ -202,21 +192,8 @@ public class PublishForm extends Panel {
 		}
 		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
 		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
-		for (IRI st : template.getStatementIris()) {
-			IRI subj = assertionContext.processIri(template.getSubject(st));
-			IRI pred = assertionContext.processIri(template.getPredicate(st));
-			Value obj = assertionContext.processValue(template.getObject(st));
-			if (subj == null || pred == null || obj == null) {
-				if (template.isOptionalStatement(st)) {
-					continue;
-				} else {
-					throw new MalformedNanopubException("Field of non-optional statement not set.");
-				}
-			} else {
-				npCreator.addAssertionStatement(subj, pred, obj);
-			}
-		}
-		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
+		assertionContext.propagateStatements(npCreator);
+		provenanceContext.propagateStatements(npCreator);
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}

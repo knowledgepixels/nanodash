@@ -9,11 +9,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.MalformedNanopubException;
+import org.nanopub.NanopubCreator;
 
 public class PublishFormContext implements Serializable {
 
@@ -24,6 +27,9 @@ public class PublishFormContext implements Serializable {
 	public static enum ContextType {
 		ASSERTION, PROVENANCE, PUBINFO
 	}
+
+	public static IRI NP_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/");
+	public static IRI ASSERTION_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/assertion");
 
 	private final ContextType contextType;
 	private final Template template;
@@ -85,6 +91,9 @@ public class PublishFormContext implements Serializable {
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = ProfilePage.getUserIri();
 		}
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			iri = ASSERTION_TEMP_IRI;
+		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			// TODO: deprecate this (use LocalResource instead)
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
@@ -131,6 +140,44 @@ public class PublishFormContext implements Serializable {
 			}
 		}
 		return iri;
+	}
+
+	public List<Panel> makeStatementItems(String componentId) {
+		List<Panel> statementItems = new ArrayList<>();
+		for (IRI st : template.getStatementIris()) {
+			IRI subj = template.getSubject(st);
+			IRI pred = template.getPredicate(st);
+			IRI obj = (IRI) template.getObject(st);
+			if (template.isOptionalStatement(st)) {
+				statementItems.add(new OptionalStatementItem(componentId, subj, pred, obj, this));
+			} else {
+				statementItems.add(new StatementItem(componentId, subj, pred, obj, this));
+			}
+		}
+		return statementItems;
+	}
+
+	public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException {
+		for (IRI st : template.getStatementIris()) {
+			IRI subj = processIri(template.getSubject(st));
+			IRI pred = processIri(template.getPredicate(st));
+			Value obj = processValue(template.getObject(st));
+			if (subj == null || pred == null || obj == null) {
+				if (template.isOptionalStatement(st)) {
+					continue;
+				} else {
+					throw new MalformedNanopubException("Field of non-optional statement not set.");
+				}
+			} else {
+				if (contextType == ContextType.ASSERTION) {
+					npCreator.addAssertionStatement(subj, pred, obj);
+				} else if (contextType == ContextType.PROVENANCE) {
+					npCreator.addProvenanceStatement(subj, pred, obj);
+				} else if (contextType == ContextType.PUBINFO) {
+					npCreator.addPubinfoStatement(subj, pred, obj);
+				}
+			}
+		}
 	}
 
 }
