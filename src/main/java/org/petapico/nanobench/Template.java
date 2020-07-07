@@ -26,15 +26,21 @@ public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static List<Template> templates;
+	private static List<Template> assertionTemplates, provenanceTemplates;
 	private static Map<String,Template> templateMap;
 
 	static void refreshTemplates() {
-		templates = new ArrayList<>();
+		assertionTemplates = new ArrayList<>();
+		provenanceTemplates = new ArrayList<>();
 		templateMap = new HashMap<>();
+		refreshTemplates(assertionTemplates, ASSERTION_TEMPLATE_CLASS);
+		refreshTemplates(provenanceTemplates, PROVENANCE_TEMPLATE_CLASS);
+	}
+
+	private static void refreshTemplates(List<Template> templates, IRI type) {
 		Map<String,String> params = new HashMap<>();
 		params.put("pred", RDF.TYPE.toString());
-		params.put("obj", ASSERTION_TEMPLATE_CLASS.toString());
+		params.put("obj", type.toString());
 		params.put("graphpred", Nanopub.HAS_ASSERTION_URI.toString());
 		List<Map<String,String>> templateEntries;
 		try {
@@ -51,13 +57,18 @@ public class Template implements Serializable {
 		}
 	}
 
-	public static List<Template> getTemplates() {
-		if (templates == null) refreshTemplates();
-		return templates;
+	public static List<Template> getAssertionTemplates() {
+		if (assertionTemplates == null) refreshTemplates();
+		return assertionTemplates;
+	}
+
+	public static List<Template> getProvenanceTemplates() {
+		if (provenanceTemplates == null) refreshTemplates();
+		return provenanceTemplates;
 	}
 
 	public static Template getTemplate(String id) {
-		if (templates == null) refreshTemplates();
+		if (assertionTemplates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
 		return new Template(id);

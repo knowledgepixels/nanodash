@@ -46,7 +46,7 @@ public class TemplateList extends Panel {
 
 		});
 
-		List<Template> templateList = new ArrayList<>(Template.getTemplates());
+		List<Template> templateList = new ArrayList<>(Template.getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
 			@Override
 			public int compare(Template t1, Template t2) {
