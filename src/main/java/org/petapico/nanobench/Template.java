@@ -22,6 +22,8 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -71,7 +73,8 @@ public class Template implements Serializable {
 		if (assertionTemplates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
-		return new Template(id);
+		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) return new Template(id);
+		return null;
 	}
 
 

@@ -180,4 +180,8 @@ public class PublishFormContext implements Serializable {
 		}
 	}
 
+	public boolean isLocal() {
+		return getTemplate().getId().startsWith("file://");
+	}
+
 }

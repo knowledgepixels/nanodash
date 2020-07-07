@@ -2,11 +2,14 @@ package org.petapico.nanobench;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -18,6 +21,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.IValidatable;
@@ -35,6 +39,9 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.PublishNanopub;
 import org.petapico.nanobench.PublishFormContext.ContextType;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
 
 import net.trustyuri.TrustyUriException;
 
@@ -46,12 +53,11 @@ public class PublishForm extends Panel {
 
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
-	private final PublishFormContext assertionContext, provenanceContext;
+	private final PublishFormContext assertionContext;
+	private PublishFormContext provenanceContext;
 
-	public PublishForm(String id, PageParameters pageParams, final PublishPage page) {
+	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
-		final String templateId = pageParams.get("template").toString();
-		final String prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 
 		Map<String,String> params = new HashMap<String,String>();
 		Map<String,String> prParams = new HashMap<String,String>();
@@ -61,11 +67,10 @@ public class PublishForm extends Panel {
 			if (k.startsWith("prparam_")) prParams.put(k.substring(8), pageParams.get(k).toString());
 			if (k.startsWith("piparam_")) piParams.put(k.substring(8), pageParams.get(k).toString());
 		}
-		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId);
-		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
+		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString());
+		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM");
 
 		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
-		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
@@ -97,7 +102,7 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					if (templateId.startsWith("file://") || prTemplateId.startsWith("file://")) {
+					if (assertionContext.isLocal() || provenanceContext.isLocal()) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
 						System.err.println("----------");
@@ -127,8 +132,9 @@ public class PublishForm extends Panel {
 			}
 
 		};
+		form.setOutputMarkupId(true);
 
-		form.add(new ExternalLink("templatelink", templateId));
+		form.add(new ExternalLink("templatelink", assertionContext.getTemplate().getId()));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 
 		form.add(new ListView<Panel>("statements", statementItems) {
@@ -141,23 +147,71 @@ public class PublishForm extends Panel {
 
 		});
 
-		form.add(new ExternalLink("prtemplatelink", prTemplateId));
+		form.add(new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId()));
 		form.add(new Label("prtemplatename", provenanceContext.getTemplate().getLabel()));
-
-		form.add(new ListView<Panel>("pr-statements", provStatementItems) {
+		ChoiceProvider<String> prTemplateChoiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<Panel> item) {
-				item.add(item.getModelObject());
+			@Override
+			public String getDisplayValue(String object) {
+				if (object == null || object.isEmpty()) return "";
+				Template t = Template.getTemplate(object);
+				if (t != null) return t.getLabel();
+				return "";
+			}
+
+			@Override
+			public String getIdValue(String object) {
+				return object;
+			}
+
+			// Getting strange errors with Tomcat if this method is not overridden:
+			@Override
+			public void detach() {
+			}
+
+			@Override
+			public void query(String term, int page, Response<String> response) {
+				if (term == null) term = "";
+				term = term.toLowerCase();
+				for (Template t : Template.getProvenanceTemplates()) {
+					String s = t.getLabel();
+					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+						response.add(t.getId());
+					}
+				}
+			}
+
+			@Override
+			public Collection<String> toChoices(Collection<String> ids) {
+				return ids;
+			}
+
+		};
+		final IModel<String> prTemplateModel = Model.of(provenanceContext.getTemplate().getId());
+		Select2Choice<String> prTemplateChoice = new Select2Choice<String>("prtemplate", prTemplateModel, prTemplateChoiceProvider);
+		prTemplateChoice.setRequired(true);
+		prTemplateChoice.getSettings().setCloseOnSelect(true);
+		prTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				System.err.println(prTemplateModel.getObject());
+				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject());
+				addProvStatements(target);
 			}
 
 		});
+		form.add(prTemplateChoice);
+		addProvStatements(null);
 
 		form.add(consentCheck);
 		add(form);
 
-		if (templateId.startsWith("file://") || prTemplateId.startsWith("file://")) {
+		if (assertionContext.isLocal() || provenanceContext.isLocal()) {
 			add(new Link<Object>("local-reload-link") {
 				private static final long serialVersionUID = 1L;
 				public void onClick() {
@@ -175,6 +229,27 @@ public class PublishForm extends Panel {
 		feedbackPanel = new FeedbackPanel("feedback");
 		feedbackPanel.setOutputMarkupId(true);
 		add(feedbackPanel);
+	}
+
+	private void addProvStatements(AjaxRequestTarget target) {
+		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
+		ListView<Panel> list = new ListView<Panel>("pr-statements", provStatementItems) {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void populateItem(ListItem<Panel> item) {
+				item.add(item.getModelObject());
+			}
+
+		};
+		list.setOutputMarkupId(true);
+		if (target == null) {
+			form.add(list);
+		} else {
+			form.remove("pr-statements");
+			form.add(list);
+			target.add(form);
+		}
 	}
 
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
