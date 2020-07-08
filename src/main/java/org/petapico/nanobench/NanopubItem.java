@@ -3,7 +3,6 @@ package org.petapico.nanobench;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub2Html;
 
 public class NanopubItem extends Panel {
@@ -33,11 +32,6 @@ public class NanopubItem extends Panel {
 			ex.printStackTrace();
 		}
 		add(new Label("user", userString));
-		String types = "";
-		for (IRI type : n.getTypes()) {
-			types += " " + Utils.getShortNameFromURI(type).replaceFirst("Nanopub$", "");
-		}
-		add(new Label("types", types));
 		String positiveNotes = "";
 		String negativeNotes = "";
 		if (n.seemsToHaveSignature()) {
