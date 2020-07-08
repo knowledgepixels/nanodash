@@ -33,7 +33,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubWithNs;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
@@ -256,26 +255,22 @@ public class PublishForm extends Panel {
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
-		Template template = assertionContext.getTemplate();
 		assertionContext.getIntroducedIris().clear();
 		NanopubCreator npCreator = new NanopubCreator(PublishFormContext.NP_TEMP_IRI);
 		npCreator.setAssertionUri(PublishFormContext.ASSERTION_TEMP_IRI);
-		if (template.getNanopub() instanceof NanopubWithNs) {
-			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
-			for (String p : np.getNsPrefixes()) {
-				npCreator.addNamespace(p, np.getNamespace(p));
-			}
-		}
-		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
-		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
 		assertionContext.propagateStatements(npCreator);
 		provenanceContext.propagateStatements(npCreator);
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
+		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
+		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
 		npCreator.addTimestampNow();
 		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
-		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, template.getNanopub().getUri());
+		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
+		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
+		IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
+		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
 		return npCreator.finalizeNanopub();
 	}
 

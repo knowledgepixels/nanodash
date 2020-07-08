@@ -17,6 +17,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubWithNs;
 
 public class PublishFormContext implements Serializable {
 
@@ -160,6 +161,12 @@ public class PublishFormContext implements Serializable {
 	}
 
 	public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException {
+		if (template.getNanopub() instanceof NanopubWithNs) {
+			NanopubWithNs np = (NanopubWithNs) template.getNanopub();
+			for (String p : np.getNsPrefixes()) {
+				npCreator.addNamespace(p, np.getNamespace(p));
+			}
+		}
 		for (IRI st : template.getStatementIris()) {
 			IRI subj = processIri(template.getSubject(st));
 			IRI pred = processIri(template.getPredicate(st));
