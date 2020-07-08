@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -21,9 +24,10 @@ public class NanopubItem extends Panel {
 			add(new Label("datetime", "(undated)"));
 		}
 		String userString = "";
+		User user = null;
 		try {
 			if (n.hasValidSignature()) {
-				User user = User.getUserForPubkey(n.getPubkey());
+				user = User.getUserForPubkey(n.getPubkey());
 				if (user != null) {
 					userString = user.getDisplayName();
 				}
@@ -32,6 +36,17 @@ public class NanopubItem extends Panel {
 			ex.printStackTrace();
 		}
 		add(new Label("user", userString));
+
+		ExternalLink retractLink = new ExternalLink("retract-link", "./publish?" +
+				"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE&" +
+				"param_nanopubToBeRetracted=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8));
+		if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
+			retractLink.add(new Label("retract-text", "retract"));
+		} else {
+			retractLink.add(new Label("retract-text", ""));
+		}
+		add(retractLink);
+
 		String positiveNotes = "";
 		String negativeNotes = "";
 		if (n.seemsToHaveSignature()) {

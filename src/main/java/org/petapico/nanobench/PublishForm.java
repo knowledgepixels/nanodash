@@ -3,9 +3,7 @@ package org.petapico.nanobench;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,16 +56,12 @@ public class PublishForm extends Panel {
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
 
-		Map<String,String> params = new HashMap<String,String>();
-		Map<String,String> prParams = new HashMap<String,String>();
-		Map<String,String> piParams = new HashMap<String,String>();
-		for (String k : pageParams.getNamedKeys()) {
-			if (k.startsWith("param_")) params.put(k.substring(6), pageParams.get(k).toString());
-			if (k.startsWith("prparam_")) prParams.put(k.substring(8), pageParams.get(k).toString());
-			if (k.startsWith("piparam_")) piParams.put(k.substring(8), pageParams.get(k).toString());
-		}
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString());
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM");
+		for (String k : pageParams.getNamedKeys()) {
+			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
+			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
+		}
 
 		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
 
