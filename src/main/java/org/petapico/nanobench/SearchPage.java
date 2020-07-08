@@ -49,7 +49,7 @@ public class SearchPage extends WebPage {
 		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
-		final List<NanopubElement> nanopubs = new ArrayList<>();
+		final List<String> nanopubIds = new ArrayList<>();
 
 		if (searchText == null || searchText.isEmpty()) {
 			add(new Label("nanopubs", "Enter a search term above."));
@@ -71,7 +71,9 @@ public class SearchPage extends WebPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					progress.setObject("");
-					if (nanopubs.isEmpty()) progress.setObject("nothing found");
+					if (nanopubIds.isEmpty()) progress.setObject("nothing found");
+					List<NanopubElement> nanopubs = new ArrayList<>();
+					for (String id : nanopubIds) nanopubs.add(new NanopubElement(id));
 					return new NanopubResults(markupId, nanopubs);
 				}
 			});
@@ -108,9 +110,9 @@ public class SearchPage extends WebPage {
 							}
 						}
 					}
-					while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
+					while (!nanopubResults.isEmpty() && nanopubIds.size() < 10) {
 						String npUri = nanopubResults.remove(0).get("np");
-						nanopubs.add(new NanopubElement(npUri));
+						if (!nanopubIds.contains(npUri)) nanopubIds.add(npUri);
 					}
 					nanopubsReady = true;
 				}
