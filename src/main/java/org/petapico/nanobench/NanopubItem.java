@@ -41,11 +41,17 @@ public class NanopubItem extends Panel {
 				"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE&" +
 				"param_nanopubToBeRetracted=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8));
 		if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
-			retractLink.add(new Label("retract-text", "retract"));
+			retractLink.add(new Label("retract-label", "retract"));
 		} else {
-			retractLink.add(new Label("retract-text", ""));
+			retractLink.add(new Label("retract-label", ""));
 		}
 		add(retractLink);
+
+		ExternalLink commentLink = new ExternalLink("comment-link", "./publish?" +
+				"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0&" +
+				"param_thing=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8));
+//		commentLink.add(new Label("comment-label", "comment"));
+		add(commentLink);
 
 		String positiveNotes = "";
 		String negativeNotes = "";

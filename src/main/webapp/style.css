@@ -180,6 +180,10 @@ select {
 	background-color: #fff;
 }
 
+.meta-action {
+	margin: 10px 3px 0 3px;
+}
+
 .meta {
 	color: #666;
 	margin: 10px 10px 0 5px;
