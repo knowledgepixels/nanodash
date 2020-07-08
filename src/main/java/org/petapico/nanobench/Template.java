@@ -1,14 +1,23 @@
 package org.petapico.nanobench;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.util.file.File;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -21,6 +30,9 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -96,6 +108,7 @@ public class Template implements Serializable {
 	public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
 	public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
 	public static final IRI POSSIBLE_VALUES_FROM_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFrom");
+	public static final IRI POSSIBLE_VALUES_FROM_API_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFromApi");
 	public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
 	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
@@ -109,6 +122,7 @@ public class Template implements Serializable {
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,List<IRI>> possibleValuesToLoadMap = new HashMap<>();
+	private Map<IRI,List<String>> apiMap = new HashMap<>();
 	private Map<IRI,String> labelMap = new HashMap<>();
 	private Map<IRI,String> prefixMap = new HashMap<>();
 	private Map<IRI,String> prefixLabelMap = new HashMap<>();
@@ -237,6 +251,101 @@ public class Template implements Serializable {
 		return l;
 	}
 
+	public List<String> getPossibleValuesFromApi(IRI iri, String searchterm, Map<String,String> labelMap) {
+		List<String> values = new ArrayList<>();
+		List<String> apiList = apiMap.get(iri);
+		if (apiList != null) {
+			for (String apiString : apiList) {
+				if (apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
+					List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
+					getPossibleValuesFromNanopubApi(urlParams, searchterm, labelMap, values);
+				} else {
+					getPossibleValuesFromApi(apiString, searchterm, labelMap, values);
+				}
+			}
+		}
+		return values;
+	}
+
+	private void getPossibleValuesFromNanopubApi(List<NameValuePair> urlParams, String searchterm, Map<String,String> labelMap, List<String> values) {
+		try {
+			Map<String,String> params = new HashMap<>();
+			for (NameValuePair p : urlParams) {
+				params.put(p.getName(), p.getValue());
+			}
+			params.put("searchterm", " " + searchterm);
+			List<Map<String,String>> result = ApiAccess.getAll("find_signed_things", params);
+			int count = 0;
+			for (Map<String,String> r : result) {
+				if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
+				String uri = r.get("thing");
+				values.add(uri);
+				String desc = r.get("description");
+				if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+				if (!desc.isEmpty()) desc = " - " + desc;
+				String userString = "";
+				User user = User.getUserForPubkey(r.get("pubkey"));
+				if (user != null) userString = " - by " + user.getShortDisplayName();
+				labelMap.put(uri, r.get("label") + desc + userString);
+				count++;
+				if (count > 9) return;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	private void getPossibleValuesFromApi(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
+		try {
+			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
+			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
+			// TODO: support other content types (CSV, XML, ...)
+//			System.err.println(resp.getHeaders("Content-Type")[0]);
+			InputStream in = resp.getEntity().getContent();
+			String jsonString = IOUtils.toString(in, StandardCharsets.UTF_8);
+			JSONObject json = new JSONObject(jsonString);
+			for (String key : json.keySet()) {
+				if (values.size() > 9) break;
+				if (!(json.get(key) instanceof JSONArray)) continue;
+				JSONArray a = json.getJSONArray(key);
+				for (int i = 0; i < a.length(); i++) {
+					if (values.size() > 9) break;
+					if (!(a.get(i) instanceof JSONObject)) continue;
+					JSONObject o = a.getJSONObject(i);
+					String uri = null;
+					for (String s : new String[] { "@id", "concepturi", "uri" }) {
+						if (o.has(s)) {
+							uri = o.get(s).toString();
+							break;
+						}
+					}
+					if (uri != null) {
+						values.add(uri);
+						String label = "";
+						for (String s : new String[] { "prefLabel", "label" }) {
+							if (o.has(s)) {
+								label = o.get(s).toString();
+								break;
+							}
+						}
+						String desc = "";
+						for (String s : new String[] { "definition", "description" }) {
+							if (o.has(s)) {
+								desc = o.get(s).toString();
+								break;
+							}
+						}
+						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
+						labelMap.put(uri, label + desc);
+					}
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	private void processTemplate(Nanopub templateNp) {
 		Map<IRI,Boolean> statementIriMap = new HashMap<>();
 		for (Statement st : templateNp.getAssertion()) {
@@ -269,6 +378,15 @@ public class Template implements Serializable {
 				}
 				if (st.getObject() instanceof IRI) {
 					l.add((IRI) st.getObject());
+				}
+			} else if (st.getPredicate().equals(POSSIBLE_VALUES_FROM_API_PREDICATE)) {
+				List<String> l = apiMap.get(st.getSubject());
+				if (l == null) {
+					l = new ArrayList<>();
+					apiMap.put((IRI) st.getSubject(), l);
+				}
+				if (st.getObject() instanceof Literal) {
+					l.add(st.getObject().stringValue());
 				}
 			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
 				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());

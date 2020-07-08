@@ -1,21 +1,12 @@
 package org.petapico.nanobench;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -35,9 +26,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -128,68 +116,8 @@ public class GuidedChoiceItem extends Panel {
 				for (String s : possibleValues) {
 					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
 				}
-				// Nanopub API:
-				try {
-					Map<String,String> params = new HashMap<>();
-					params.put("searchterm", " " + term);
-					params.put("type", "http://www.w3.org/2002/07/owl#Class");
-					List<Map<String,String>> result = ApiAccess.getAll("find_signed_things", params);
-					int count = 0;
-					for (Map<String,String> r : result) {
-						if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
-						String uri = r.get("thing");
-						response.add(uri);
-						String desc = r.get("description");
-						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-						if (!desc.isEmpty()) desc = " - " + desc;
-						String userString = "";
-						User user = User.getUserForPubkey(r.get("pubkey"));
-						if (user != null) userString = " - by " + user.getShortDisplayName();
-						labelMap.put(uri, r.get("label") + desc + userString);
-						count++;
-						if (count > 5) return;
-					}
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-				// Wikidata API:
-				try {
-					String apiString = "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&limit=5&search=";
-					URL url = new URL(apiString + URLEncoder.encode(term, "UTF-8"));
-					String jsonString = IOUtils.toString(url, Charset.forName("UTF-8"));
-					JSONObject json = new JSONObject(jsonString);
-					JSONArray l = (JSONArray) json.get("search");
-					for (int i = 0; i < l.length(); i++) {
-						JSONObject o = (JSONObject) l.get(i);
-						String uri = o.getString("concepturi");
-						response.add(uri);
-						String desc = "";
-						if (o.has("description")) desc = o.getString("description");
-						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-						labelMap.put(uri, o.getString("label") + " - " + desc);
-					}
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-				// BioPortal API:
-				try {
-					String apiString = "http://data.bioontology.org/search?pagesize=5&apikey=fd451bec-eacd-4519-b972-90fb6c7007cb&q=";
-					HttpGet get = new HttpGet(apiString + URLEncoder.encode(term, "UTF-8"));
-					InputStream in = HttpClientBuilder.create().build().execute(get).getEntity().getContent();
-					String jsonString = IOUtils.toString(in, StandardCharsets.UTF_8);
-					JSONObject json = new JSONObject(jsonString);
-					JSONArray l = (JSONArray) json.get("collection");
-					for (int i = 0; i < l.length(); i++) {
-						JSONObject o = (JSONObject) l.get(i);
-						String uri = o.getString("@id");
-						response.add(uri);
-						String desc = "";
-						if (o.has("defintion")) desc = o.getString("defintion");
-						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-						labelMap.put(uri, o.getString("prefLabel") + " - " + desc);
-					}
-				} catch (IOException ex) {
-					ex.printStackTrace();
+				for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
+					response.add(v);
 				}
 			}
 
