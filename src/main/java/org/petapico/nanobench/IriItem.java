@@ -24,6 +24,8 @@ public class IriItem extends Panel {
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelString = "the assertion above";
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			labelString = "this nanopublication";
 		}
 		if (template.getLabel(iri) != null) {
 			labelString = template.getLabel(iri);
@@ -41,11 +43,15 @@ public class IriItem extends Panel {
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
 			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			labelComp.add(new AttributeAppender("style", "background: #ffffff; border-width: 1px; border-color: #666; border-style: solid; padding: 4px; border-radius: 4px;"));
 		}
 		add(labelComp);
 		String iriString = iri.stringValue();
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			iriString = "local:assertion";
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			iriString = "local:nanopub";
 		} else if (template.isLocalResource(iri)) {
 			iriString = iriString.replaceFirst("^.*[/#]", "local:");
 		}

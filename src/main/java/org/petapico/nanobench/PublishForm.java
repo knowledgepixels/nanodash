@@ -52,6 +52,7 @@ public class PublishForm extends Panel {
 	protected FeedbackPanel feedbackPanel;
 	private final PublishFormContext assertionContext;
 	private PublishFormContext provenanceContext;
+//	private PublishFormContext pubInfoContext;
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
@@ -62,6 +63,7 @@ public class PublishForm extends Panel {
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
+//		pubInfoContext = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
@@ -201,6 +203,19 @@ public class PublishForm extends Panel {
 		});
 		form.add(prTemplateChoice);
 		addProvStatements(null);
+
+//		List<Panel> pubinfoStatementItems = new ArrayList<>();
+//		pubinfoStatementItems.add(new StatementItem("pi-statement",
+//				Template.NANOPUB_PLACEHOLDER, SimpleCreatorPattern.DCT_CREATOR, Template.CREATOR_PLACEHOLDER, pubInfoContext));
+//		form.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			protected void populateItem(ListItem<Panel> item) {
+//				item.add(item.getModelObject());
+//			}
+//
+//		});
 
 		form.add(consentCheck);
 		add(form);

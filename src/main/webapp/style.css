@@ -291,3 +291,7 @@ a.meta:hover, a.meta:active {
 
 .nanopub-optional { background: rgba(255, 255, 255, 0.5); padding: 8px; border-radius: 8px; margin-top: 3px; }
 .optional-label { color: rgba(0, 0, 0, 0.3); font-family: Verdana, Helvetica, sans-serif; font-style: italic; margin-left: 15px; }
+
+.nowrap {
+  white-space: nowrap;
+}

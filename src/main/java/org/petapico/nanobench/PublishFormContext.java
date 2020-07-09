@@ -42,7 +42,7 @@ public class PublishFormContext implements Serializable {
 
 	public PublishFormContext(ContextType contextType, String templateId) {
 		this.contextType = contextType;
-		this.isLocal = templateId.startsWith("file://");
+		this.isLocal = templateId != null && templateId.startsWith("file://");
 		this.template = Template.getTemplate(templateId);
 	}
 
