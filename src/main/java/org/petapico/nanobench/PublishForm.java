@@ -57,7 +57,11 @@ public class PublishForm extends Panel {
 		super(id);
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString());
-		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM");
+		String prTemplateId = pageParams.get("prtemplate").toString();;
+		if (prTemplateId == null) {
+			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+		}
+		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
