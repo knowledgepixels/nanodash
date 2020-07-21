@@ -31,7 +31,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
-import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.PublishNanopub;
@@ -52,7 +51,7 @@ public class PublishForm extends Panel {
 	protected FeedbackPanel feedbackPanel;
 	private final PublishFormContext assertionContext;
 	private PublishFormContext provenanceContext;
-//	private PublishFormContext pubInfoContext;
+	private PublishFormContext pubInfoContext;
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
@@ -62,11 +61,13 @@ public class PublishForm extends Panel {
 		if (prTemplateId == null) {
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
+		String piTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
-//		pubInfoContext = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
+		pubInfoContext = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
+//			if (k.startsWith("piparam_")) pubInfoContext.setParam(k.substring(8), pageParams.get(k).toString());
 		}
 
 		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
@@ -101,7 +102,7 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					if (assertionContext.isLocal() || provenanceContext.isLocal()) {
+					if (assertionContext.isLocal() || provenanceContext.isLocal() || pubInfoContext.isLocal()) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
 						System.err.println("----------");
@@ -204,23 +205,22 @@ public class PublishForm extends Panel {
 		form.add(prTemplateChoice);
 		addProvStatements(null);
 
-//		List<Panel> pubinfoStatementItems = new ArrayList<>();
-//		pubinfoStatementItems.add(new StatementItem("pi-statement",
-//				Template.NANOPUB_PLACEHOLDER, SimpleCreatorPattern.DCT_CREATOR, Template.CREATOR_PLACEHOLDER, pubInfoContext));
-//		form.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			protected void populateItem(ListItem<Panel> item) {
-//				item.add(item.getModelObject());
-//			}
-//
-//		});
+		form.add(new ExternalLink("pitemplatelink", pubInfoContext.getTemplate().getId()));
+		List<Panel> pubinfoStatementItems = pubInfoContext.makeStatementItems("pi-statement");
+		form.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void populateItem(ListItem<Panel> item) {
+				item.add(item.getModelObject());
+			}
+
+		});
 
 		form.add(consentCheck);
 		add(form);
 
-		if (assertionContext.isLocal() || provenanceContext.isLocal()) {
+		if (assertionContext.isLocal() || provenanceContext.isLocal() || pubInfoContext.isLocal()) {
 			add(new Link<Object>("local-reload-link") {
 				private static final long serialVersionUID = 1L;
 				public void onClick() {
@@ -273,17 +273,20 @@ public class PublishForm extends Panel {
 		npCreator.setAssertionUri(PublishFormContext.ASSERTION_TEMP_IRI);
 		assertionContext.propagateStatements(npCreator);
 		provenanceContext.propagateStatements(npCreator);
+		pubInfoContext.propagateStatements(npCreator);
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
 		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
 		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
 		npCreator.addTimestampNow();
-		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
+//		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
 		IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
+		IRI piTemplateUri = pubInfoContext.getTemplate().getNanopub().getUri();
+		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
 		return npCreator.finalizeNanopub();
 	}
 

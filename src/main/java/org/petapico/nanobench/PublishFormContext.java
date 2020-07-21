@@ -96,6 +96,8 @@ public class PublishFormContext implements Serializable {
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			iri = ASSERTION_TEMP_IRI;
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			iri = NP_TEMP_IRI;
 		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			// TODO: deprecate this (use LocalResource instead)

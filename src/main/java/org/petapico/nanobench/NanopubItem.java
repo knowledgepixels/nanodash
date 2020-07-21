@@ -12,7 +12,7 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubItem(String id, NanopubElement n) {
+	public NanopubItem(String id, NanopubElement n, boolean hidePubinfo) {
 		super(id);
 
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
@@ -74,8 +74,10 @@ public class NanopubItem extends Panel {
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
 		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
-		// Hide pubinfo graph:
-		html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
+		if (hidePubinfo) {
+			// Hide pubinfo graph:
+			html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
+		}
 		Label l = new Label("nanopub", html);
 		l.setEscapeModelStrings(false);
 		add(l);
