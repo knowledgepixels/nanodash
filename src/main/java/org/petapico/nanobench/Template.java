@@ -93,6 +93,7 @@ public class Template implements Serializable {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 	public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");
 	public static final IRI PROVENANCE_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ProvenanceTemplate");
+	public static final IRI PUBINFO_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/PubinfoTemplate");
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
@@ -400,7 +401,8 @@ public class Template implements Serializable {
 			}
 		}
 		List<IRI> assertionTypes = typeMap.get(templateNp.getAssertionUri());
-		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) && !assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS))) {
+		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) &&
+				!assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS) && !assertionTypes.contains(PUBINFO_TEMPLATE_CLASS))) {
 			throw new RuntimeException("Unknown template type");
 		}
 		for (Statement st : templateNp.getAssertion()) {
