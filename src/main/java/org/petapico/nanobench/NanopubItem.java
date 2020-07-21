@@ -74,6 +74,8 @@ public class NanopubItem extends Panel {
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
 		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
+		// Hide pubinfo graph:
+		html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
 		Label l = new Label("nanopub", html);
 		l.setEscapeModelStrings(false);
 		add(l);

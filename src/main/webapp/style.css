@@ -36,6 +36,11 @@ p.graphheader {
 	margin-bottom: 1.5mm;
 }
 
+p.graphsubheader {
+	margin-top: 1.5mm;
+	margin-bottom: 1.5mm;
+}
+
 table {
 	font-size: inherit;
 }
@@ -219,7 +224,7 @@ a.meta:hover, a.meta:active {
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 3px; border-radius: 10px; }
-.nanopub-pubinfo { display: none; background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
+.nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }
 
 .nanopub-statement input { margin: 2px; }
