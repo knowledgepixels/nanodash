@@ -329,6 +329,7 @@ public class PublishForm extends Panel {
 
 			protected void populateItem(ListItem<PublishFormContext> item) {
 				final PublishFormContext pic = item.getModelObject();
+				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
 				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
 				item.add(new Link<String>("piremovelink") {
 
