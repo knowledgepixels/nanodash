@@ -38,7 +38,7 @@ p.graphheader {
 
 p.graphsubheader {
 	margin-top: 1.5mm;
-	margin-bottom: 1.5mm;
+	margin-bottom: 0;
 }
 
 table {

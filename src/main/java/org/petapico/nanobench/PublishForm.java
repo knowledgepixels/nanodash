@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,7 +52,7 @@ public class PublishForm extends Panel {
 	protected FeedbackPanel feedbackPanel;
 	private final PublishFormContext assertionContext;
 	private PublishFormContext provenanceContext;
-	private PublishFormContext pubInfoContext;
+	private List<PublishFormContext> pubInfoContexts = new ArrayList<>();
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
@@ -61,9 +62,9 @@ public class PublishForm extends Panel {
 		if (prTemplateId == null) {
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
-		String piTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
-		pubInfoContext = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
+		String piTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
+		pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, piTemplateId));
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
@@ -102,7 +103,7 @@ public class PublishForm extends Panel {
 				try {
 					Nanopub np = createNanopub();
 					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
-					if (assertionContext.isLocal() || provenanceContext.isLocal() || pubInfoContext.isLocal()) {
+					if (isLocal()) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
 						System.err.println("----------");
@@ -205,14 +206,23 @@ public class PublishForm extends Panel {
 		form.add(prTemplateChoice);
 		addProvStatements(null);
 
-		form.add(new ExternalLink("pitemplatelink", pubInfoContext.getTemplate().getId()));
-		List<Panel> pubinfoStatementItems = pubInfoContext.makeStatementItems("pi-statement");
-		form.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+		form.add(new ListView<PublishFormContext>("pis", pubInfoContexts) {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<Panel> item) {
-				item.add(item.getModelObject());
+			protected void populateItem(ListItem<PublishFormContext> item) {
+				PublishFormContext pic = item.getModelObject();
+				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
+				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
+				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+
+					private static final long serialVersionUID = 1L;
+
+					protected void populateItem(ListItem<Panel> item) {
+						item.add(item.getModelObject());
+					}
+
+				});
 			}
 
 		});
@@ -220,7 +230,7 @@ public class PublishForm extends Panel {
 		form.add(consentCheck);
 		add(form);
 
-		if (assertionContext.isLocal() || provenanceContext.isLocal() || pubInfoContext.isLocal()) {
+		if (isLocal()) {
 			add(new Link<Object>("local-reload-link") {
 				private static final long serialVersionUID = 1L;
 				public void onClick() {
@@ -273,7 +283,9 @@ public class PublishForm extends Panel {
 		npCreator.setAssertionUri(PublishFormContext.ASSERTION_TEMP_IRI);
 		assertionContext.propagateStatements(npCreator);
 		provenanceContext.propagateStatements(npCreator);
-		pubInfoContext.propagateStatements(npCreator);
+		for (PublishFormContext c : pubInfoContexts) {
+			c.propagateStatements(npCreator);
+		}
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
@@ -285,9 +297,20 @@ public class PublishForm extends Panel {
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
 		IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
-		IRI piTemplateUri = pubInfoContext.getTemplate().getNanopub().getUri();
-		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
+		for (PublishFormContext c : pubInfoContexts) {
+			IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
+			npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
+		}
 		return npCreator.finalizeNanopub();
+	}
+
+	private boolean isLocal() {
+		if (assertionContext.isLocal()) return true;
+		if (provenanceContext.isLocal()) return true;
+		for (PublishFormContext c : pubInfoContexts) {
+			if (c.isLocal()) return true;
+		}
+		return false;
 	}
 
 }
