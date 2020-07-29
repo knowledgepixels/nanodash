@@ -40,7 +40,7 @@ public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static List<Template> assertionTemplates, provenanceTemplates;
+	private static List<Template> assertionTemplates, provenanceTemplates, pubInfoTemplates;
 	private static Map<String,Template> templateMap;
 
 	static void refreshTemplates() {
@@ -49,6 +49,7 @@ public class Template implements Serializable {
 		templateMap = new HashMap<>();
 		refreshTemplates(assertionTemplates, ASSERTION_TEMPLATE_CLASS);
 		refreshTemplates(provenanceTemplates, PROVENANCE_TEMPLATE_CLASS);
+		refreshTemplates(pubInfoTemplates, PUBINFO_TEMPLATE_CLASS);
 	}
 
 	private static void refreshTemplates(List<Template> templates, IRI type) {
@@ -79,6 +80,11 @@ public class Template implements Serializable {
 	public static List<Template> getProvenanceTemplates() {
 		if (provenanceTemplates == null) refreshTemplates();
 		return provenanceTemplates;
+	}
+
+	public static List<Template> getPubInfoTemplates() {
+		if (pubInfoTemplates == null) refreshTemplates();
+		return pubInfoTemplates;
 	}
 
 	public static Template getTemplate(String id) {
