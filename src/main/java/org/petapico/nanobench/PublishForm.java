@@ -199,33 +199,14 @@ public class PublishForm extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject());
-				addProvStatements(target);
+				refreshProvenance(target);
 			}
 
 		});
 		form.add(prTemplateChoice);
-		addProvStatements(null);
+		refreshProvenance(null);
 
-		form.add(new ListView<PublishFormContext>("pis", pubInfoContexts) {
-
-			private static final long serialVersionUID = 1L;
-
-			protected void populateItem(ListItem<PublishFormContext> item) {
-				PublishFormContext pic = item.getModelObject();
-				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
-				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
-				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
-
-					private static final long serialVersionUID = 1L;
-
-					protected void populateItem(ListItem<Panel> item) {
-						item.add(item.getModelObject());
-					}
-
-				});
-			}
-
-		});
+		refreshPubInfo(null);
 
 		form.add(consentCheck);
 		add(form);
@@ -250,7 +231,7 @@ public class PublishForm extends Panel {
 		add(feedbackPanel);
 	}
 
-	private void addProvStatements(AjaxRequestTarget target) {
+	private void refreshProvenance(AjaxRequestTarget target) {
 		ExternalLink link = new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId());
 		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
 		ListView<Panel> list = new ListView<Panel>("pr-statements", provStatementItems) {
@@ -270,6 +251,37 @@ public class PublishForm extends Panel {
 			form.remove("prtemplatelink");
 			form.add(link);
 			form.remove("pr-statements");
+			form.add(list);
+			target.add(form);
+		}
+	}
+
+	private void refreshPubInfo(AjaxRequestTarget target) {
+		ListView<PublishFormContext> list = new ListView<PublishFormContext>("pis", pubInfoContexts) {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void populateItem(ListItem<PublishFormContext> item) {
+				PublishFormContext pic = item.getModelObject();
+				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
+				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
+				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+
+					private static final long serialVersionUID = 1L;
+
+					protected void populateItem(ListItem<Panel> item) {
+						item.add(item.getModelObject());
+					}
+
+				});
+			}
+
+		};
+		list.setOutputMarkupId(true);
+		if (target == null) {
+			form.add(list);
+		} else {
+			form.remove("pis");
 			form.add(list);
 			target.add(form);
 		}
