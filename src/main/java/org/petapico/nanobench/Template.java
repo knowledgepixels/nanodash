@@ -46,6 +46,7 @@ public class Template implements Serializable {
 	static void refreshTemplates() {
 		assertionTemplates = new ArrayList<>();
 		provenanceTemplates = new ArrayList<>();
+		pubInfoTemplates = new ArrayList<>();
 		templateMap = new HashMap<>();
 		refreshTemplates(assertionTemplates, ASSERTION_TEMPLATE_CLASS);
 		refreshTemplates(provenanceTemplates, PROVENANCE_TEMPLATE_CLASS);

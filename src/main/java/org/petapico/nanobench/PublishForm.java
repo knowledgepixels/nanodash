@@ -206,6 +206,72 @@ public class PublishForm extends Panel {
 		form.add(prTemplateChoice);
 		refreshProvenance(null);
 
+		ChoiceProvider<String> piTemplateChoiceProvider = new ChoiceProvider<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getDisplayValue(String object) {
+				if (object == null || object.isEmpty()) return "";
+				Template t = Template.getTemplate(object);
+				if (t != null) return t.getLabel();
+				return "";
+			}
+
+			@Override
+			public String getIdValue(String object) {
+				return object;
+			}
+
+			// Getting strange errors with Tomcat if this method is not overridden:
+			@Override
+			public void detach() {
+			}
+
+			@Override
+			public void query(String term, int page, Response<String> response) {
+				if (term == null) term = "";
+				term = term.toLowerCase();
+				for (Template t : Template.getPubInfoTemplates()) {
+					String s = t.getLabel();
+					boolean isAlreadyUsed = false;
+					for (PublishFormContext c : pubInfoContexts) {
+						// TODO: make this more efficient/nicer
+						if (c.getTemplate().equals(t)) {
+							isAlreadyUsed = true;
+							break;
+						}
+					}
+					if (isAlreadyUsed) continue;
+					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+						response.add(t.getId());
+					}
+				}
+			}
+
+			@Override
+			public Collection<String> toChoices(Collection<String> ids) {
+				return ids;
+			}
+
+		};
+		final IModel<String> newPiTemplateModel = Model.of();
+		Select2Choice<String> piTemplateChoice = new Select2Choice<String>("pitemplate", newPiTemplateModel, piTemplateChoiceProvider);
+		piTemplateChoice.getSettings().setCloseOnSelect(true);
+		piTemplateChoice.getSettings().setPlaceholder("add element...");
+		piTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject()));
+				newPiTemplateModel.setObject(null);
+				refreshPubInfo(target);
+			}
+
+		});
+		form.add(piTemplateChoice);
 		refreshPubInfo(null);
 
 		form.add(consentCheck);
@@ -262,8 +328,18 @@ public class PublishForm extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<PublishFormContext> item) {
-				PublishFormContext pic = item.getModelObject();
+				final PublishFormContext pic = item.getModelObject();
 				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
+				item.add(new Link<String>("piremovelink") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick() {
+						pubInfoContexts.remove(pic);
+					}
+
+				});
 				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
 				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
 
