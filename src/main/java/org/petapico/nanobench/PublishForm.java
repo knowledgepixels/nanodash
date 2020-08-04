@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,6 +60,7 @@ public class PublishForm extends Panel {
 	private final PublishFormContext assertionContext;
 	private PublishFormContext provenanceContext;
 	private List<PublishFormContext> pubInfoContexts = new ArrayList<>();
+	private Map<String,PublishFormContext> pubInfoContextMap = new HashMap<>();
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
@@ -70,11 +73,41 @@ public class PublishForm extends Panel {
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
 		for (PublishFormContext c : requiredPubInfoContexts) {
 			pubInfoContexts.add(c);
+			pubInfoContextMap.put(c.getTemplate().getId(), c);
+		}
+		Map<Integer,PublishFormContext> piParamIdMap = new HashMap<>();
+		for (String k : pageParams.getNamedKeys()) {
+			if (!k.matches("pitemplate[1-9][0-9]*")) continue;
+			Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
+			String piTemplateId = pageParams.get(k).toString();
+			PublishFormContext c;
+			if (pubInfoContextMap.containsKey(piTemplateId)) {
+				c = pubInfoContextMap.get(piTemplateId);
+			} else {
+				c = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
+				pubInfoContextMap.put(piTemplateId, c);
+			}
+			if (piParamIdMap.containsKey(i)) {
+				// TODO: handle this error better
+				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
+			}
+			piParamIdMap.put(i, c);
+			if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
 		}
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
-//			if (k.startsWith("piparam_")) pubInfoContext.setParam(k.substring(8), pageParams.get(k).toString());
+			if (k.matches("piparam[1-9][0-9]*_.*")) {
+				Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
+				if (!piParamIdMap.containsKey(i)) {
+					// TODO: handle this error better
+					System.err.println("ERROR: pitemplate param identifier not found: " + i);
+					continue;
+				}
+				String n = k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1");
+				System.err.println(n);
+				piParamIdMap.get(i).setParam(n, pageParams.get(k).toString());
+			}
 		}
 
 		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
