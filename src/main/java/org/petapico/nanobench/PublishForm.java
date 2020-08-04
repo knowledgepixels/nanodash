@@ -276,7 +276,7 @@ public class PublishForm extends Panel {
 					boolean isAlreadyUsed = false;
 					for (PublishFormContext c : pubInfoContexts) {
 						// TODO: make this more efficient/nicer
-						if (c.getTemplate().equals(t)) {
+						if (c.getTemplate().getId().equals(t.getId())) {
 							isAlreadyUsed = true;
 							break;
 						}
