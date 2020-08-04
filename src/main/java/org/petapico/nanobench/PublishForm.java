@@ -48,6 +48,11 @@ public class PublishForm extends Panel {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+	private static List<PublishFormContext> requiredPubInfoContexts = new ArrayList<>();
+	static {
+		requiredPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM"));
+	}
+
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
 	private final PublishFormContext assertionContext;
@@ -63,8 +68,9 @@ public class PublishForm extends Panel {
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
-		String piTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
-		pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, piTemplateId));
+		for (PublishFormContext c : requiredPubInfoContexts) {
+			pubInfoContexts.add(c);
+		}
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
@@ -331,7 +337,7 @@ public class PublishForm extends Panel {
 				final PublishFormContext pic = item.getModelObject();
 				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
 				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
-				item.add(new Link<String>("piremovelink") {
+				Link<String> removeLink = new Link<String>("piremovelink") {
 
 					private static final long serialVersionUID = 1L;
 
@@ -340,7 +346,9 @@ public class PublishForm extends Panel {
 						pubInfoContexts.remove(pic);
 					}
 
-				});
+				};
+				item.add(removeLink);
+				if (requiredPubInfoContexts.contains(pic)) removeLink.setVisible(false);
 				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
 				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
 
