@@ -123,6 +123,8 @@ public class Template implements Serializable {
 	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
 	public static final IRI OPTIONAL_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/OptionalStatement");
+	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
+	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
 
 
 	private Nanopub nanopub;
@@ -142,6 +144,8 @@ public class Template implements Serializable {
 	private Map<IRI,IRI> statementPredicates = new HashMap<>();
 	private Map<IRI,Value> statementObjects = new HashMap<>();
 	private Map<IRI,Integer> statementOrder = new HashMap<>();
+	private IRI defaultProvenance;
+	private List<IRI> requiredPubinfoElements = new ArrayList<>();
 
 	private Template(String templateId) {
 		if (templateId.startsWith("file://")) {
@@ -261,6 +265,14 @@ public class Template implements Serializable {
 		return l;
 	}
 
+	public IRI getDefaultProvenance() {
+		return defaultProvenance;
+	}
+
+	public List<IRI> getRequiredPubinfoElements() {
+		return requiredPubinfoElements;
+	}
+
 	public List<String> getPossibleValuesFromApi(IRI iri, String searchterm, Map<String,String> labelMap) {
 		List<String> values = new ArrayList<>();
 		List<String> apiList = apiMap.get(iri);
@@ -362,8 +374,14 @@ public class Template implements Serializable {
 			if (st.getSubject().equals(templateNp.getAssertionUri())) {
 				if (st.getPredicate().equals(RDFS.LABEL)) {
 					label = st.getObject().stringValue();
-				} else if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE) && st.getObject() instanceof IRI) {
-					statementIriMap.put((IRI) st.getObject(), true);
+				} else if (st.getObject() instanceof IRI) {
+					if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE)) {
+						statementIriMap.put((IRI) st.getObject(), true);
+					} else if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
+						defaultProvenance = (IRI) st.getObject();
+					} else if (st.getPredicate().equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
+						requiredPubinfoElements.add((IRI) st.getObject());
+					}
 				}
 			}
 			if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {

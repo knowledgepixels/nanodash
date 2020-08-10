@@ -50,9 +50,9 @@ public class PublishForm extends Panel {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	private static List<PublishFormContext> requiredPubInfoContexts = new ArrayList<>();
+	private static List<PublishFormContext> fixedPubInfoContexts = new ArrayList<>();
 	static {
-		requiredPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM"));
+		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM"));
 	}
 
 	protected Form<?> form;
@@ -61,19 +61,32 @@ public class PublishForm extends Panel {
 	private PublishFormContext provenanceContext;
 	private List<PublishFormContext> pubInfoContexts = new ArrayList<>();
 	private Map<String,PublishFormContext> pubInfoContextMap = new HashMap<>();
+	private List<PublishFormContext> requiredPubInfoContexts = new ArrayList<>();
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString());
-		String prTemplateId = pageParams.get("prtemplate").toString();;
+		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
-			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+			if (assertionContext.getTemplate().getDefaultProvenance() != null) {
+				prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
+			} else {
+				prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+			}
 		}
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
-		for (PublishFormContext c : requiredPubInfoContexts) {
+		for (PublishFormContext c : fixedPubInfoContexts) {
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
+			requiredPubInfoContexts.add(c);
+		}
+		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue());
+			if (pubInfoContextMap.containsKey(c.getTemplate().getId())) continue;
+			pubInfoContexts.add(c);
+			pubInfoContextMap.put(c.getTemplate().getId(), c);
+			requiredPubInfoContexts.add(c);
 		}
 		Map<Integer,PublishFormContext> piParamIdMap = new HashMap<>();
 		for (String k : pageParams.getNamedKeys()) {
