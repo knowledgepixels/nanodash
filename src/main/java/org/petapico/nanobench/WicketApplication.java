@@ -109,6 +109,7 @@ public class WicketApplication extends WebApplication {
 
 		mountPage("/user", UserPage.class);
 		mountPage("/search", SearchPage.class);
+		mountPage("/explore", ExplorePage.class);
 		mountPage("/publish", PublishPage.class);
 		mountPage("/publishconfirm", PublishConfirmPage.class);
 		mountPage("/profile", ProfilePage.class);
