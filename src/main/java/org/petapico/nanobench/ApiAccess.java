@@ -4,12 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -44,34 +42,28 @@ public abstract class ApiAccess {
 		}
 	}
 
-	public static List<Map<String,String>> getAll(String operation, Map<String,String> params) throws IOException {
-		final List<Map<String,String>> result = new ArrayList<>();
+	public static ApiResponse getAll(String operation, Map<String,String> params) throws IOException {
+		final ApiResponse response = new ApiResponse();
 		ApiAccess a = new ApiAccess() {
 
-			String[] header;
-			
 			@Override
 			protected void processHeader(String[] line) {
-				header = line;
+				response.setHeader(line);
 			}
 
 			@Override
 			protected void processLine(String[] line) {
-				Map<String,String> entry = new HashMap<String,String>();
-				for (int i = 0 ; i < line.length ; i++) {
-					entry.put(header[i], line[i]);
-				}
-				result.add(entry);
+				response.add(line);
 			}
 
 		};
 		a.call(operation, params);
-		return result;
+		return response;
 	}
 
-	public static List<Map<String,String>> getRecent(String operation, Map<String,String> params, Model<String> progress) {
-		Map<String,Map<String,String>> resultEntries = new HashMap<>();
-		Map<String,Map<String,String>> overflowEntries = new HashMap<>();
+	public static ApiResponse getRecent(String operation, Map<String,String> params, Model<String> progress) {
+		Map<String,ApiResponseEntry> resultEntries = new HashMap<>();
+		Map<String,ApiResponseEntry> overflowEntries = new HashMap<>();
 		int moveLeftCount = 0;
 		Calendar day = Calendar.getInstance();
 		day.setTimeZone(timeZone);
@@ -90,7 +82,7 @@ public abstract class ApiAccess {
 			} else {
 				progress.setObject("Searching for results...");
 			}
-			List<Map<String,String>> tempResult;
+			ApiResponse tempResult;
 			try {
 				tempResult = getAll(operation, paramsx);
 			} catch (Exception ex) {
@@ -108,12 +100,12 @@ public abstract class ApiAccess {
 			if (tempResult.size() == 1000 && level > 0) {
 				level--;
 				System.err.println("MOVE DOWN");
-				for (Map<String,String> r : tempResult) {
+				for (ApiResponseEntry r : tempResult.getData()) {
 					overflowEntries.put(r.get("np"), r);
 				}
 				continue;
 			}
-			for (Map<String,String> r : tempResult) {
+			for (ApiResponseEntry r : tempResult.getData()) {
 				resultEntries.put(r.get("np"), r);
 			}
 			System.err.println("RESULT SIZE:" + resultEntries.size());
@@ -149,9 +141,9 @@ public abstract class ApiAccess {
 			break;
 		}
 		resultEntries.putAll(overflowEntries);
-		List<Map<String,String>> result = new ArrayList<>(resultEntries.values());
-		Collections.sort(result, nanopubResultComparator);
-		return result;
+		ApiResponse response = new ApiResponse(resultEntries.values());
+		Collections.sort(response.getData(), nanopubResultComparator);
+		return response;
 	}
 
 	private static TimeZone timeZone = TimeZone.getTimeZone("UTC");
@@ -174,9 +166,9 @@ public abstract class ApiAccess {
 		return df.format(c.getTime());
 	}
 
-	private static Comparator<Map<String,String>> nanopubResultComparator = new Comparator<Map<String,String>>() {
+	private static Comparator<ApiResponseEntry> nanopubResultComparator = new Comparator<ApiResponseEntry>() {
 		@Override
-		public int compare(Map<String,String> e1, Map<String,String> e2) {
+		public int compare(ApiResponseEntry e1, ApiResponseEntry e2) {
 			return e2.get("date").compareTo(e1.get("date"));
 		}
 	};

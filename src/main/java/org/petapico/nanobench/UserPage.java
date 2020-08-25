@@ -62,13 +62,13 @@ public class UserPage extends WebPage {
 			@Override
 			public void run() {
 				Map<String,String> nanopubParams = new HashMap<>();
-				List<Map<String,String>> nanopubResults = new ArrayList<>();
+				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
 				// TODO: switch to this operation once all services are updated:
 				//nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress);
-				nanopubResults = ApiAccess.getRecent("find_user_nanopubs", nanopubParams, progress);
+				nanopubResults = ApiAccess.getRecent("find_user_nanopubs", nanopubParams, progress).getData();
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
-					Map<String,String> resultEntry = nanopubResults.remove(0);
+					ApiResponseEntry resultEntry = nanopubResults.remove(0);
 					String npUri = resultEntry.get("np");
 					// Hide retracted nanopublications:
 					if (resultEntry.get("retracted").equals("1") || resultEntry.get("retracted").equals("true")) continue;

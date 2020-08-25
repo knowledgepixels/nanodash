@@ -58,10 +58,10 @@ public class Template implements Serializable {
 		params.put("pred", RDF.TYPE.toString());
 		params.put("obj", type.toString());
 		params.put("graphpred", Nanopub.HAS_ASSERTION_URI.toString());
-		List<Map<String,String>> templateEntries;
+		ApiResponse templateEntries;
 		try {
 			templateEntries = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params);
-			for (Map<String,String> entry : templateEntries) {
+			for (ApiResponseEntry entry : templateEntries.getData()) {
 				if (entry.get("superseded").equals("1") || entry.get("superseded").equals("true")) continue;
 				if (entry.get("retracted").equals("1") || entry.get("retracted").equals("true")) continue;
 				Template t = new Template(entry.get("np"));
@@ -296,9 +296,9 @@ public class Template implements Serializable {
 				params.put(p.getName(), p.getValue());
 			}
 			params.put("searchterm", " " + searchterm);
-			List<Map<String,String>> result = ApiAccess.getAll("find_signed_things", params);
+			ApiResponse result = ApiAccess.getAll("find_signed_things", params);
 			int count = 0;
-			for (Map<String,String> r : result) {
+			for (ApiResponseEntry r : result.getData()) {
 				if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
 				String uri = r.get("thing");
 				values.add(uri);

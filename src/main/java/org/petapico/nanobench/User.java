@@ -30,7 +30,7 @@ public class User implements Serializable, Comparable<User> {
 		userIdMap = new HashMap<String,User>();
 		userPubkeyMap = new HashMap<String,User>();
 		try {
-			for (Map<String,String> entry : ApiAccess.getAll("get_all_users", null)) {
+			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
 				User user = new User(entry);
 				users.add(user);
 				userIdMap.put(user.getId().stringValue(), user);
@@ -68,7 +68,7 @@ public class User implements Serializable, Comparable<User> {
 	private IRI introNpIri;
 	private String pubkeyString;
 
-	private User(Map<String,String> entry) {
+	private User(ApiResponseEntry entry) {
 		id = vf.createIRI(entry.get("user"));
 		name = entry.get("name");
 		introNpIri = vf.createIRI(entry.get("intronp"));

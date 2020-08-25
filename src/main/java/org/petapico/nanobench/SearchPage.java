@@ -83,7 +83,7 @@ public class SearchPage extends WebPage {
 				@Override
 				public void run() {
 					Map<String,String> nanopubParams = new HashMap<>();
-					List<Map<String,String>> nanopubResults = new ArrayList<>();
+					List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 					String s = searchText;
 					if (s != null) {
 						s = s.trim();
@@ -91,7 +91,7 @@ public class SearchPage extends WebPage {
 							System.err.println("URI QUERY: " + s);
 							nanopubParams.put("ref", s);
 							try {
-								nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams);
+								nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}
@@ -102,7 +102,7 @@ public class SearchPage extends WebPage {
 								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 								nanopubParams.put("text", freeTextQuery);
 								try {
-									nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams);
+									nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}

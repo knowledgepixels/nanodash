@@ -49,7 +49,7 @@ public class ApiCall {
 	private static String experimentalApi = "http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/";
 
 	private boolean isExperimentalOperation(String op) {
-		return op.equals("find_things") || op.equals("find_signed_things") || op.equals("get_uri_usage");
+		return op.equals("find_things") || op.equals("find_signed_things") || op.equals("get_uri_usage") || op.equals("find_signed_nanopubs_with_pattern");
 	}
 
 	private String operation;
