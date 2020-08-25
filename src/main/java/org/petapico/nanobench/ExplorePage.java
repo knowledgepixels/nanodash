@@ -78,8 +78,9 @@ public class ExplorePage extends WebPage {
 				}
 				
 			});
-			 
-			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<ApiResponseEntry,String>("datatable", columns, new DataProvider(dataResponse.getData()), 10);
+
+			DataProvider dp = new DataProvider(dataResponse.getData());
+			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<>("datatable", columns, dp, 100);
 			add(table);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -90,11 +91,14 @@ public class ExplorePage extends WebPage {
 
 		private static final long serialVersionUID = 1L;
 
-		private List<ApiResponseEntry> data;
+		private List<ApiResponseEntry> data = new ArrayList<>();
 		private SingleSortState<String> sortState = new SingleSortState<>();
 
 		public DataProvider(List<ApiResponseEntry> data) {
-			this.data = data;
+			for (ApiResponseEntry r : data) {
+				if (r.getAsBoolean("retracted") || r.getAsBoolean("superseded")) continue;
+				this.data.add(r);
+			}
 		}
 
 		@Override
