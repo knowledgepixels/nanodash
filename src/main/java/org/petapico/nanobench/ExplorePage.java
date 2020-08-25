@@ -2,13 +2,25 @@ package org.petapico.nanobench;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.Nanopub;
 
 public class ExplorePage extends WebPage {
 
@@ -23,10 +35,9 @@ public class ExplorePage extends WebPage {
 		add(link);
 
 		Map<String,String> nanopubParams = new HashMap<>();
-		List<Map<String,String>> nanopubResults = new ArrayList<>();
 		nanopubParams.put("ref", id);
 		try {
-			nanopubResults = ApiAccess.getAll("get_uri_usage", nanopubParams);
+			List<ApiResponseEntry> nanopubResults = ApiAccess.getAll("get_uri_usage", nanopubParams).getData();
 			int subjCount = Integer.valueOf(nanopubResults.get(0).get("subj"));
 			int relCount = Integer.valueOf(nanopubResults.get(0).get("pred"));
 			int objCount = Integer.valueOf(nanopubResults.get(0).get("obj"));
@@ -35,9 +46,67 @@ public class ExplorePage extends WebPage {
 			add(new Label("indcount", indCount));
 			add(new Label("classcount", classCount));
 			add(new Label("relcount", relCount));
+
+			Map<String,String> params = new HashMap<>();
+			params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
+			params.put("pred", id);
+			ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params);
+			final List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
+			for (final String s : new String[] {"subj", "obj", "date", "pubkey"}) {
+				columns.add(new AbstractColumn<ApiResponseEntry,String>(new Model<String>(s)) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
+						cellItem.add(new Label(componentId, rowModel.getObject().get(s)));
+					}
+					
+				});
+			}
+			 
+			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<ApiResponseEntry,String>("datatable", columns, new DataProvider(dataResponse.getData()), 10);
+			add(table);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+	
+	private class DataProvider implements ISortableDataProvider<ApiResponseEntry,String> {
+
+		private static final long serialVersionUID = 1L;
+
+		private List<ApiResponseEntry> data;
+		private SingleSortState<String> sortState = new SingleSortState<>();
+
+		public DataProvider(List<ApiResponseEntry> data) {
+			this.data = data;
+		}
+
+		@Override
+		public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
+			return data.subList((int)first, (int)(first + count)).iterator();
+		}
+
+		@Override
+		public IModel<ApiResponseEntry> model(ApiResponseEntry object) {
+			return new Model<ApiResponseEntry>(object);
+		}
+
+		@Override
+		public long size() {
+			return data.size();
+		}
+
+		@Override
+		public ISortState<String> getSortState() {
+			return sortState;
+		}
+
+		@Override
+		public void detach() {
+		}
+		
 	}
 
 }
