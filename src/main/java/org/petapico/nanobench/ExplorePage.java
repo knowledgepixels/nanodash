@@ -1,6 +1,9 @@
 package org.petapico.nanobench;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -9,10 +12,13 @@ import java.util.Map;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -67,7 +73,9 @@ public class ExplorePage extends WebPage {
 				dp = new DataProvider();
 				add(new Label("message", "This term is too frequent to show a detailed table."));
 			}
-			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<>("datatable", columns, dp, 100);
+			DataTable<ApiResponseEntry,String> table = new DataTable<>("datatable", columns, dp, 100);
+			table.addBottomToolbar(new NavigationToolbar(table));
+			table.addTopToolbar(new HeadersToolbar<String>(table, dp));
 			table.setVisible(subjCount + relCount + objCount < maxDetailTableCount);
 			add(table);
 		} catch (Exception ex) {
@@ -83,7 +91,7 @@ public class ExplorePage extends WebPage {
 		private String key;
 
 		public Column(String title, String key) {
-			super(new Model<String>(title));
+			super(new Model<String>(title), key);
 			this.key = key;
 		}
 
@@ -111,9 +119,11 @@ public class ExplorePage extends WebPage {
 		private SingleSortState<String> sortState = new SingleSortState<>();
 
 		public DataProvider() {
+			sortState.setSort(new SortParam<String>("subj", false));
 		}
 
 		public DataProvider(List<ApiResponseEntry> data) {
+			this();
 			for (ApiResponseEntry r : data) {
 				if (r.getAsBoolean("retracted") || r.getAsBoolean("superseded")) continue;
 				this.data.add(r);
@@ -122,7 +132,10 @@ public class ExplorePage extends WebPage {
 
 		@Override
 		public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
-			return data.subList((int)first, (int)(first + count)).iterator();
+			List<ApiResponseEntry> copy = new ArrayList<>(data);
+			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
+			Collections.sort(copy, comparator);
+			return copy.subList((int)first, (int)(first + count)).iterator();
 		}
 
 		@Override
@@ -144,6 +157,25 @@ public class ExplorePage extends WebPage {
 		public void detach() {
 		}
 		
+	}
+
+	private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+		private SortParam<String> sortParam;
+
+		public ApiResponseComparator(SortParam<String> sortParam) {
+			this.sortParam = sortParam;
+		}
+
+		@Override
+		public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
+			String p = sortParam.getProperty();
+			int result = o1.get(p).compareTo(o2.get(p));
+			if (!sortParam.isAscending()) result = -result;
+			return result;
+		}
+
 	}
 
 }
