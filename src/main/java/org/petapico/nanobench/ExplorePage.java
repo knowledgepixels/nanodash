@@ -52,7 +52,7 @@ public class ExplorePage extends WebPage {
 			params.put("pred", id);
 			ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params);
 			final List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
-			for (final String s : new String[] {"subj", "obj", "date", "pubkey"}) {
+			for (final String s : new String[] {"subj", "obj", "date"}) {
 				columns.add(new AbstractColumn<ApiResponseEntry,String>(new Model<String>(s)) {
 
 					private static final long serialVersionUID = 1L;
@@ -64,6 +64,20 @@ public class ExplorePage extends WebPage {
 					
 				});
 			}
+			columns.add(new AbstractColumn<ApiResponseEntry,String>(new Model<String>("user")) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
+					String s = "(unknown)";
+					String pubkey = rowModel.getObject().get("pubkey");
+					User user = User.getUserForPubkey(pubkey);
+					if (user != null) s = user.getShortDisplayName();
+					cellItem.add(new Label(componentId, s));
+				}
+				
+			});
 			 
 			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<ApiResponseEntry,String>("datatable", columns, new DataProvider(dataResponse.getData()), 10);
 			add(table);
