@@ -26,6 +26,8 @@ public class ExplorePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final int maxDetailTableCount = 10000;
+
 	public ExplorePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
@@ -37,11 +39,11 @@ public class ExplorePage extends WebPage {
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", id);
 		try {
-			List<ApiResponseEntry> nanopubResults = ApiAccess.getAll("get_uri_usage", nanopubParams).getData();
-			int subjCount = Integer.valueOf(nanopubResults.get(0).get("subj"));
-			int relCount = Integer.valueOf(nanopubResults.get(0).get("pred"));
-			int objCount = Integer.valueOf(nanopubResults.get(0).get("obj"));
-			int classCount = Integer.valueOf(nanopubResults.get(0).get("class"));
+			List<ApiResponseEntry> usageResponse = ApiAccess.getAll("get_uri_usage", nanopubParams).getData();
+			int subjCount = Integer.valueOf(usageResponse.get(0).get("subj"));
+			int relCount = Integer.valueOf(usageResponse.get(0).get("pred"));
+			int objCount = Integer.valueOf(usageResponse.get(0).get("obj"));
+			int classCount = Integer.valueOf(usageResponse.get(0).get("class"));
 			int indCount = subjCount + objCount - classCount;
 			add(new Label("indcount", indCount));
 			add(new Label("classcount", classCount));
@@ -49,43 +51,57 @@ public class ExplorePage extends WebPage {
 
 			Map<String,String> params = new HashMap<>();
 			params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
-			params.put("pred", id);
-			ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params);
-			final List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
-			for (final String s : new String[] {"subj", "obj", "date"}) {
-				columns.add(new AbstractColumn<ApiResponseEntry,String>(new Model<String>(s)) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
-						cellItem.add(new Label(componentId, rowModel.getObject().get(s)));
-					}
-					
-				});
+			params.put("ref", id);
+			List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
+			DataProvider dp;
+			if (subjCount + relCount + objCount < maxDetailTableCount) {
+				ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
+				columns.add(new Column("Subject", "subj"));
+				columns.add(new Column("Relation", "pred"));
+				columns.add(new Column("Object", "obj"));
+				columns.add(new Column("By", "pubkey"));
+				columns.add(new Column("On", "date"));
+				dp = new DataProvider(dataResponse.getData());
+				add(new Label("message", ""));
+			} else {
+				dp = new DataProvider();
+				add(new Label("message", "This term is too frequent to show a detailed table."));
 			}
-			columns.add(new AbstractColumn<ApiResponseEntry,String>(new Model<String>("user")) {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
-					String s = "(unknown)";
-					String pubkey = rowModel.getObject().get("pubkey");
-					User user = User.getUserForPubkey(pubkey);
-					if (user != null) s = user.getShortDisplayName();
-					cellItem.add(new Label(componentId, s));
-				}
-				
-			});
-
-			DataProvider dp = new DataProvider(dataResponse.getData());
 			DefaultDataTable<ApiResponseEntry,String> table = new DefaultDataTable<>("datatable", columns, dp, 100);
+			table.setVisible(subjCount + relCount + objCount < maxDetailTableCount);
 			add(table);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
+
+	
+	private class Column extends AbstractColumn<ApiResponseEntry,String> {
+
+		private static final long serialVersionUID = 1L;
+
+		private String key;
+
+		public Column(String title, String key) {
+			super(new Model<String>(title));
+			this.key = key;
+		}
+
+		@Override
+		public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
+			if (key.equals("pubkey")) {
+				String s = "(unknown)";
+				String pubkey = rowModel.getObject().get("pubkey");
+				User user = User.getUserForPubkey(pubkey);
+				if (user != null) s = user.getShortDisplayName();
+				cellItem.add(new Label(componentId, s));
+			} else {
+				cellItem.add(new Label(componentId, rowModel.getObject().get(key)));
+			}
+		}
+
+	}
+
 	
 	private class DataProvider implements ISortableDataProvider<ApiResponseEntry,String> {
 
@@ -93,6 +109,9 @@ public class ExplorePage extends WebPage {
 
 		private List<ApiResponseEntry> data = new ArrayList<>();
 		private SingleSortState<String> sortState = new SingleSortState<>();
+
+		public DataProvider() {
+		}
 
 		public DataProvider(List<ApiResponseEntry> data) {
 			for (ApiResponseEntry r : data) {
