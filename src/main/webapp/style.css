@@ -42,6 +42,8 @@ p.graphsubheader {
 }
 
 table {
+	margin-bottom: 10px;
+	width: 100%;
 	font-size: inherit;
 }
 
@@ -52,6 +54,15 @@ table, th, td {
 td, th {
 	padding: 5px;
 	vertical-align: top;
+	text-align: left;
+}
+
+th {
+	border-bottom: 1px solid #000;
+}
+
+tbody tr:nth-child(even) {
+	background-color: #efefef;
 }
 
 ul {
