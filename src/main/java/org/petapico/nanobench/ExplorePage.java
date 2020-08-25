@@ -32,7 +32,7 @@ public class ExplorePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int maxDetailTableCount = 10000;
+	private static final int maxDetailTableCount = 1000000;
 
 	public ExplorePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
