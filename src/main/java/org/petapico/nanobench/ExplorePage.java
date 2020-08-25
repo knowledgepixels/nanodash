@@ -62,11 +62,11 @@ public class ExplorePage extends WebPage {
 			DataProvider dp;
 			if (subjCount + relCount + objCount < maxDetailTableCount) {
 				ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
-				columns.add(new Column("Subject", "subj"));
-				columns.add(new Column("Relation", "pred"));
-				columns.add(new Column("Object", "obj"));
-				columns.add(new Column("By", "pubkey"));
-				columns.add(new Column("On", "date"));
+				columns.add(new Column("Subject", "subj", id));
+				columns.add(new Column("Relation", "pred", id));
+				columns.add(new Column("Object", "obj", id));
+				columns.add(new Column("Published By", "pubkey", id));
+				columns.add(new Column("Published On", "date", id));
 				dp = new DataProvider(dataResponse.getData());
 				add(new Label("message", ""));
 			} else {
@@ -88,23 +88,28 @@ public class ExplorePage extends WebPage {
 
 		private static final long serialVersionUID = 1L;
 
-		private String key;
+		private String key, current;
 
-		public Column(String title, String key) {
+		public Column(String title, String key, String current) {
 			super(new Model<String>(title), key);
 			this.key = key;
+			this.current = current;
 		}
 
 		@Override
 		public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
-			if (key.equals("pubkey")) {
+			String value = rowModel.getObject().get(key);
+			if (value.equals(current)) {
+				cellItem.add(new Label(componentId, "<strong>" + IriItem.getShortNameFromURI(value) + "</strong>").setEscapeModelStrings(false));
+			} else if (key.equals("pubkey")) {
 				String s = "(unknown)";
-				String pubkey = rowModel.getObject().get("pubkey");
-				User user = User.getUserForPubkey(pubkey);
+				User user = User.getUserForPubkey(value);
 				if (user != null) s = user.getShortDisplayName();
 				cellItem.add(new Label(componentId, s));
+			} else if (value.matches("(https?|file)://.+")) {
+				cellItem.add(new Link(componentId, value));
 			} else {
-				cellItem.add(new Label(componentId, rowModel.getObject().get(key)));
+				cellItem.add(new Label(componentId, value));
 			}
 		}
 

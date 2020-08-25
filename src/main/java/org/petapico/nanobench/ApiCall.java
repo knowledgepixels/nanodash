@@ -1,7 +1,6 @@
 package org.petapico.nanobench;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -68,7 +68,7 @@ public class ApiCall {
 			for (String k : params.keySet()) {
 				if (paramString.length() > 1) paramString += "&";
 				paramString += k + "=";
-				paramString += urlEncode(params.get(k));
+				paramString += URLEncoder.encode(params.get(k), Charsets.UTF_8);
 			}
 		}
 	}
@@ -97,14 +97,6 @@ public class ApiCall {
 		if (this.resp != null) return; // result already in
 		System.err.println("Result in from " + apiUrl);
 		this.resp = resp;
-	}
-
-	private static String urlEncode(String s) {
-		try {
-			return URLEncoder.encode(s, "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(ex);
-		}
 	}
 
 	private static boolean wasSuccessful(HttpResponse resp) {
