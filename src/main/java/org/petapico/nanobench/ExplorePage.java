@@ -62,8 +62,9 @@ public class ExplorePage extends WebPage {
 			DataProvider dp;
 			if (subjCount + relCount + objCount < maxDetailTableCount) {
 				ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
+				columns.add(new Column("Nanopublication", "np", id));
 				columns.add(new Column("Subject", "subj", id));
-				columns.add(new Column("Relation", "pred", id));
+				columns.add(new Column("Predicate", "pred", id));
 				columns.add(new Column("Object", "obj", id));
 				columns.add(new Column("Published By", "pubkey", id));
 				columns.add(new Column("Published On", "date", id));
@@ -124,7 +125,7 @@ public class ExplorePage extends WebPage {
 		private SingleSortState<String> sortState = new SingleSortState<>();
 
 		public DataProvider() {
-			sortState.setSort(new SortParam<String>("subj", false));
+			sortState.setSort(new SortParam<String>("date", false));
 		}
 
 		public DataProvider(List<ApiResponseEntry> data) {
