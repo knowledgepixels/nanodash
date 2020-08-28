@@ -2,11 +2,18 @@ package org.petapico.nanobench;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.nanopub.Nanopub2Html;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 public class NanopubItem extends Panel {
 	
@@ -73,14 +80,52 @@ public class NanopubItem extends Panel {
 		}
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
-		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
-		if (hidePubinfo) {
-			// Hide pubinfo graph:
-			html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
-		}
-		Label l = new Label("nanopub", html);
-		l.setEscapeModelStrings(false);
-		add(l);
+
+//		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
+//		if (hidePubinfo) {
+//			// Hide pubinfo graph:
+//			html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
+//		}
+//		Label l = new Label("nanopub", html);
+//		l.setEscapeModelStrings(false);
+//		add(l);
+
+		List<Statement> assertionStatements = new ArrayList<>(n.getNanopub().getAssertion());
+		add(new DataView<Statement>("assertion-statements", new ListDataProvider<Statement>(assertionStatements)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				Statement st = item.getModelObject();
+				item.add(new StatementItem("assertion-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+			}
+
+		});
+		List<Statement> provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+		add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				Statement st = item.getModelObject();
+				item.add(new StatementItem("provenance-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+			}
+
+		});
+		List<Statement> pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+		add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				Statement st = item.getModelObject();
+				item.add(new StatementItem("pubinfo-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+			}
+
+		});
 	}
 
 }
