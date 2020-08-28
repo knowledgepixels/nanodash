@@ -64,9 +64,7 @@ public class UserPage extends WebPage {
 				Map<String,String> nanopubParams = new HashMap<>();
 				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
-				// TODO: switch to this operation once all services are updated:
-				//nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress);
-				nanopubResults = ApiAccess.getRecent("find_user_nanopubs", nanopubParams, progress).getData();
+				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
 					ApiResponseEntry resultEntry = nanopubResults.remove(0);
 					String npUri = resultEntry.get("np");
