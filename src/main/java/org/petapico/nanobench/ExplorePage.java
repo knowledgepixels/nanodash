@@ -43,9 +43,7 @@ public class ExplorePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		final String id = parameters.get("id").toString();
-		ExternalLink link = new ExternalLink("urilink", id);
-		link.add(new Label("urilinktext", id));
-		add(link);
+		add(new ExternalLink("urilink", id, IriItem.getShortNameFromURI(id)));
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", id);
