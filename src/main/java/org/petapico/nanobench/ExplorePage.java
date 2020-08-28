@@ -1,6 +1,7 @@
 package org.petapico.nanobench;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,6 +18,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolb
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebPage;
@@ -27,6 +29,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubImpl;
+
+import net.trustyuri.TrustyUriUtils;
 
 public class ExplorePage extends WebPage {
 
@@ -45,15 +50,31 @@ public class ExplorePage extends WebPage {
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", id);
 		try {
+			Nanopub np = null;
+			if (TrustyUriUtils.isPotentialTrustyUri(id)) {
+				try {
+					np = new NanopubImpl(new URL(id));
+				} catch (Exception ex) {
+					// wasn't a known nanopublication
+				}	
+			}
 			List<ApiResponseEntry> usageResponse = ApiAccess.getAll("get_uri_usage", nanopubParams).getData();
 			int subjCount = Integer.valueOf(usageResponse.get(0).get("subj"));
 			int relCount = Integer.valueOf(usageResponse.get(0).get("pred"));
 			int objCount = Integer.valueOf(usageResponse.get(0).get("obj"));
 			int classCount = Integer.valueOf(usageResponse.get(0).get("class"));
 			int indCount = subjCount + objCount - classCount;
-			add(new Label("indcount", indCount));
-			add(new Label("classcount", classCount));
-			add(new Label("relcount", relCount));
+			if (np == null) {
+				add(new Label("name", "Term"));
+				add(new Label("nanopub", ""));
+				add(new Label("counts", "This term is used <strong>" + indCount + "</strong> times as individual,\n" + 
+						"<strong>" + classCount + "</strong> times as class, and\n" + 
+						"<strong>" + relCount + "</strong> times as relation.").setEscapeModelStrings(false));
+			} else {
+				add(new Label("name", "Nanopublication"));
+				add(new NanopubItem("nanopub", new NanopubElement(np), true));
+				add(new Label("counts", ""));
+			}
 
 			Map<String,String> params = new HashMap<>();
 			params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
@@ -76,6 +97,7 @@ public class ExplorePage extends WebPage {
 			}
 			DataTable<ApiResponseEntry,String> table = new DataTable<>("datatable", columns, dp, 100);
 			table.addBottomToolbar(new NavigationToolbar(table));
+			table.addBottomToolbar(new NoRecordsToolbar(table));
 			table.addTopToolbar(new HeadersToolbar<String>(table, dp));
 			table.setVisible(subjCount + relCount + objCount < maxDetailTableCount);
 			add(table);
