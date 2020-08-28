@@ -75,13 +75,14 @@ public class ExplorePage extends WebPage {
 			}
 
 			Map<String,String> params = new HashMap<>();
-			params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
+//			params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
 			params.put("ref", id);
 			List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
 			DataProvider dp;
 			if (subjCount + relCount + objCount < maxDetailTableCount) {
 				ApiResponse dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
 				columns.add(new Column("Nanopublication", "np", id));
+				columns.add(new Column("Part", "graphpred", id));
 				columns.add(new Column("Subject", "subj", id));
 				columns.add(new Column("Predicate", "pred", id));
 				columns.add(new Column("Object", "obj", id));
