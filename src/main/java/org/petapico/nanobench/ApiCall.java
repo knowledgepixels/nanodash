@@ -46,7 +46,8 @@ public class ApiCall {
 		"http://grlc.np.dumontierlab.com/api/local/local/"
 	};
 
-	private static String experimentalApi = "http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/";
+	private static String experimentalApi1 = "http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/";
+	private static String experimentalApi2 = "http://130.60.24.146:7881/api/local/local/";
 
 	private boolean isExperimentalOperation(String op) {
 		return op.equals("find_things") || op.equals("find_signed_things") || op.equals("get_uri_usage") || op.equals("find_signed_nanopubs_with_uri");
@@ -84,7 +85,8 @@ public class ApiCall {
 				apiInstancesToTry.remove(randomIndex);
 			}
 		} else {
-			apisToCall.add(experimentalApi);
+			apisToCall.add(experimentalApi1);
+			apisToCall.add(experimentalApi2);
 		}
 		for (String api : apisToCall) {
 			Call call = new Call(api);
