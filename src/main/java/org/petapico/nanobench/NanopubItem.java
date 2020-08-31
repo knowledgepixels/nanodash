@@ -19,7 +19,7 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubItem(String id, NanopubElement n, boolean hidePubinfo) {
+	public NanopubItem(String id, final NanopubElement n, boolean hidePubinfo) {
 		super(id);
 
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
@@ -98,7 +98,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new StatementItem("assertion-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+				item.add(new StatementItem("assertion-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject(), n.getNanopub()));
 			}
 
 		});
@@ -110,7 +110,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new StatementItem("provenance-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+				item.add(new StatementItem("provenance-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject(), n.getNanopub()));
 			}
 
 		});
@@ -122,7 +122,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new StatementItem("pubinfo-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject()));
+				item.add(new StatementItem("pubinfo-statement", (IRI) st.getSubject(), st.getPredicate(), (Value) st.getObject(), n.getNanopub()));
 			}
 
 		});

@@ -87,7 +87,7 @@ public class ExplorePage extends WebPage {
 				columns.add(new Column("Object", "obj", id));
 				columns.add(new Column("Published By", "pubkey", id));
 				columns.add(new Column("Published On", "date", id));
-				dp = new DataProvider(dataResponse.getData());
+				dp = new DataProvider(filterData(dataResponse.getData(), np));
 				add(new Label("message", ""));
 			} else {
 				dp = new DataProvider();
@@ -105,6 +105,16 @@ public class ExplorePage extends WebPage {
 	}
 
 	
+	private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, Nanopub np) {
+		if (np == null) return data;
+		List<ApiResponseEntry> filteredList = new ArrayList<>(data);
+		for (ApiResponseEntry e : data) {
+			if (np.getUri().stringValue().equals(e.get("np"))) filteredList.remove(e);
+		}
+		return filteredList;
+	}
+
+
 	private class Column extends AbstractColumn<ApiResponseEntry,String> {
 
 		private static final long serialVersionUID = 1L;
@@ -128,7 +138,7 @@ public class ExplorePage extends WebPage {
 				if (user != null) s = user.getShortDisplayName();
 				cellItem.add(new Label(componentId, s));
 			} else if (value.matches("(https?|file)://.+")) {
-				cellItem.add(new Link(componentId, value));
+				cellItem.add(new NanobenchLink(componentId, value));
 			} else {
 				cellItem.add(new Label(componentId, value));
 			}
