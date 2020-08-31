@@ -229,6 +229,15 @@ a.meta:hover, a.meta:active {
 .nanopub a { color: #000; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
+a.nanopub-assertion { color: #000; }
+a:hover.nanopub-assertion { color: #666; }
+a:active.nanopub-assertion { color: #666; }
+a.nanopub-provenance { color: #000; }
+a:hover.nanopub-provenance { color: #666; }
+a:active.nanopub-provenance { color: #666; }
+a.nanopub-pubinfo { color: #000; }
+a:hover.nanopub-pubinfo { color: #666; }
+a:active.nanopub-pubinfo { color: #666; }
 
 #.nanopub { background-color: #666; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 .nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
