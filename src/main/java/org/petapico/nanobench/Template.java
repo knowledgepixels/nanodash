@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.util.file.File;
@@ -321,11 +322,17 @@ public class Template implements Serializable {
 		try {
 			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
 			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
+			if (resp.getStatusLine().getStatusCode() == 405) {
+				// Method not allowed, trying POST
+				HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
+				resp = HttpClientBuilder.create().build().execute(post);
+			}
 			// TODO: support other content types (CSV, XML, ...)
-//			System.err.println(resp.getHeaders("Content-Type")[0]);
+			// System.err.println(resp.getHeaders("Content-Type")[0]);
 			InputStream in = resp.getEntity().getContent();
 			String jsonString = IOUtils.toString(in, StandardCharsets.UTF_8);
 			JSONObject json = new JSONObject(jsonString);
+			boolean foundId = false;
 			for (String key : json.keySet()) {
 				if (values.size() > 9) break;
 				if (!(json.get(key) instanceof JSONArray)) continue;
@@ -338,6 +345,7 @@ public class Template implements Serializable {
 					for (String s : new String[] { "@id", "concepturi", "uri" }) {
 						if (o.has(s)) {
 							uri = o.get(s).toString();
+							foundId = true;
 							break;
 						}
 					}
@@ -361,6 +369,23 @@ public class Template implements Serializable {
 						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
 						labelMap.put(uri, label + desc);
 					}
+				}
+			}
+			if (foundId == false) {
+				// ID key not found, try to get results for following format
+				// {result1: ["label 1", "label 2"], result2: ["label 3", "label 4"]}
+				for (String key : json.keySet()) {
+					if (!(json.get(key) instanceof JSONArray)) continue;
+					JSONArray labelArray = json.getJSONArray(key);
+					String uri = key;
+					String label = "";
+					String desc = "";
+					if (labelArray.length() > 0) label = labelArray.getString(0);
+					if (labelArray.length() > 1) desc = labelArray.getString(1);
+					if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+					if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
+					values.add(uri);
+					labelMap.put(uri, label + desc);
 				}
 			}
 		} catch (Exception ex) {
