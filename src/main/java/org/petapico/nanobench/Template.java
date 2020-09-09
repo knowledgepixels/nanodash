@@ -355,7 +355,7 @@ public class Template implements Serializable {
 			// System.err.println(resp.getHeaders("Content-Type")[0]);
 			InputStream in = resp.getEntity().getContent();
 			String respString = IOUtils.toString(in, StandardCharsets.UTF_8);
-			System.out.println(respString);
+			// System.out.println(respString);
 			JSONObject json = new JSONObject(respString);
 
 			if (apiString.startsWith("http://grlc.nanopubs.")) {
@@ -414,6 +414,10 @@ public class Template implements Serializable {
 						if (labelArray.length() > 1) desc = labelArray.getString(1);
 						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
+						// Quick fix to convert CURIE to URI, as Nanobench only accept URI here
+						if (!(uri.startsWith("http://") || uri.startsWith("https://"))) {
+							uri = "https://identifiers.org/" + uri;
+						}
 						values.add(uri);
 						labelMap.put(uri, label + desc);
 					}
