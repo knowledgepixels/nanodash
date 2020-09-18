@@ -30,11 +30,52 @@ Follow the instructions to complete your profile as shown on your [profile page]
 
 Now you are ready to publish your own nanopublications via the "publish" menu item at the top.
 
-
 ## Update
 
 To update to the latest version of Nanobench, delete all the files you downloaded and then redo Step 2.
 
+## Install from source
+
+You can also install Nanobench from the source code to get the latest updates, or improve it. 
+
+You will need to have [maven installed](https://maven.apache.org/install.html) to build the application.
+
+First clone the repository:
+
+```bash
+git clone https://github.com/peta-pico/nanobench.git
+cd nanobench
+```
+
+### Run for development
+
+Build and run Nanobench on http://localhost:37373
+
+```bash
+mvn clean tomcat7:run
+```
+
+### Build the jar
+
+Build the `.jar` using maven at the root of the repository:
+
+```bash
+mvn clean install tomcat7:exec-war-only
+```
+
+> It will generate a `.jar` and a `.war` file in the `target` folder
+
+Rename the jar:
+
+```bash
+cp target/nanobench-*.jar target/nanobench.jar
+```
+
+Start Nanobench:
+
+```bash
+java -jar target/nanobench.jar -httpPort 37373 -resetExtract
+```
 
 ## Problems?
 
