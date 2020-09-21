@@ -17,6 +17,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.util.file.File;
@@ -318,10 +319,33 @@ public class Template implements Serializable {
 		}
 	}
 
+	private void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String,String> labelMap, List<String> values) throws IOException {
+		// Aimed to resolve Nanopub grlc API: http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_signed_nanopubs_with_text?text=covid
+		JSONArray resultsArray = grlcJsonObject.getJSONObject("results").getJSONArray("bindings");
+		for (int i = 0; i < resultsArray.length(); i++) {
+			JSONObject resultObject = resultsArray.getJSONObject(i);
+			// Get the nanopub URI
+			String uri = resultObject.getJSONObject("np").getString("value");
+			// Get the string which matched with the search term  
+			String label = resultObject.getJSONObject("v").getString("value");
+			values.add(uri);
+			labelMap.put(uri, label);
+		}
+	}
+
 	private void getPossibleValuesFromApi(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
 		try {
 			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
+			
+			// Quick fix to resolve Nanopubs grlc API as JSON
+			// Otherwise call fails if no ACCEPT header provided
+			// TODO: can also be done using the Nanobench ApiAccess class:
+			// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
+			if (apiString.startsWith("http://purl.org/nanopub/api/"))
+				get.setHeader(HttpHeaders.ACCEPT, "application/json");
+			
 			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
+
 			if (resp.getStatusLine().getStatusCode() == 405) {
 				// Method not allowed, trying POST
 				HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
@@ -330,62 +354,73 @@ public class Template implements Serializable {
 			// TODO: support other content types (CSV, XML, ...)
 			// System.err.println(resp.getHeaders("Content-Type")[0]);
 			InputStream in = resp.getEntity().getContent();
-			String jsonString = IOUtils.toString(in, StandardCharsets.UTF_8);
-			JSONObject json = new JSONObject(jsonString);
-			boolean foundId = false;
-			for (String key : json.keySet()) {
-				if (values.size() > 9) break;
-				if (!(json.get(key) instanceof JSONArray)) continue;
-				JSONArray a = json.getJSONArray(key);
-				for (int i = 0; i < a.length(); i++) {
+			String respString = IOUtils.toString(in, StandardCharsets.UTF_8);
+			// System.out.println(respString);
+			JSONObject json = new JSONObject(respString);
+
+			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
+				parseNanopubGrlcApi(json, labelMap, values);
+			} else {
+				// TODO: create parseJsonApi() ?
+				boolean foundId = false;
+				for (String key : json.keySet()) {
 					if (values.size() > 9) break;
-					if (!(a.get(i) instanceof JSONObject)) continue;
-					JSONObject o = a.getJSONObject(i);
-					String uri = null;
-					for (String s : new String[] { "@id", "concepturi", "uri" }) {
-						if (o.has(s)) {
-							uri = o.get(s).toString();
-							foundId = true;
-							break;
-						}
-					}
-					if (uri != null) {
-						values.add(uri);
-						String label = "";
-						for (String s : new String[] { "prefLabel", "label" }) {
+					if (!(json.get(key) instanceof JSONArray)) continue;
+					JSONArray a = json.getJSONArray(key);
+					for (int i = 0; i < a.length(); i++) {
+						if (values.size() > 9) break;
+						if (!(a.get(i) instanceof JSONObject)) continue;
+						JSONObject o = a.getJSONObject(i);
+						String uri = null;
+						for (String s : new String[] { "@id", "concepturi", "uri" }) {
 							if (o.has(s)) {
-								label = o.get(s).toString();
+								uri = o.get(s).toString();
+								foundId = true;
 								break;
 							}
 						}
-						String desc = "";
-						for (String s : new String[] { "definition", "description" }) {
-							if (o.has(s)) {
-								desc = o.get(s).toString();
-								break;
+						if (uri != null) {
+							values.add(uri);
+							String label = "";
+							for (String s : new String[] { "prefLabel", "label" }) {
+								if (o.has(s)) {
+									label = o.get(s).toString();
+									break;
+								}
 							}
+							String desc = "";
+							for (String s : new String[] { "definition", "description" }) {
+								if (o.has(s)) {
+									desc = o.get(s).toString();
+									break;
+								}
+							}
+							if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+							if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
+							labelMap.put(uri, label + desc);
 						}
-						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
-						labelMap.put(uri, label + desc);
 					}
 				}
-			}
-			if (foundId == false) {
-				// ID key not found, try to get results for following format
-				// {result1: ["label 1", "label 2"], result2: ["label 3", "label 4"]}
-				for (String key : json.keySet()) {
-					if (!(json.get(key) instanceof JSONArray)) continue;
-					JSONArray labelArray = json.getJSONArray(key);
-					String uri = key;
-					String label = "";
-					String desc = "";
-					if (labelArray.length() > 0) label = labelArray.getString(0);
-					if (labelArray.length() > 1) desc = labelArray.getString(1);
-					if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-					if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
-					values.add(uri);
-					labelMap.put(uri, label + desc);
+				if (foundId == false) {
+					// ID key not found, try to get results for following format
+					// {result1: ["label 1", "label 2"], result2: ["label 3", "label 4"]}
+					for (String key : json.keySet()) {
+						if (!(json.get(key) instanceof JSONArray)) continue;
+						JSONArray labelArray = json.getJSONArray(key);
+						String uri = key;
+						String label = "";
+						String desc = "";
+						if (labelArray.length() > 0) label = labelArray.getString(0);
+						if (labelArray.length() > 1) desc = labelArray.getString(1);
+						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
+						// Quick fix to convert CURIE to URI, as Nanobench only accept URI here
+						if (!(uri.startsWith("http://") || uri.startsWith("https://"))) {
+							uri = "https://identifiers.org/" + uri;
+						}
+						values.add(uri);
+						labelMap.put(uri, label + desc);
+					}
 				}
 			}
 		} catch (Exception ex) {
