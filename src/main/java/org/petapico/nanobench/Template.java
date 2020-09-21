@@ -341,7 +341,7 @@ public class Template implements Serializable {
 			// Otherwise call fails if no ACCEPT header provided
 			// TODO: can also be done using the Nanobench ApiAccess class:
 			// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-			if (apiString.startsWith("http://grlc.nanopubs."))
+			if (apiString.startsWith("http://purl.org/nanopub/api/"))
 				get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			
 			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
@@ -358,7 +358,7 @@ public class Template implements Serializable {
 			// System.out.println(respString);
 			JSONObject json = new JSONObject(respString);
 
-			if (apiString.startsWith("http://grlc.nanopubs.")) {
+			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
 				parseNanopubGrlcApi(json, labelMap, values);
 			} else {
 				// TODO: create parseJsonApi() ?
