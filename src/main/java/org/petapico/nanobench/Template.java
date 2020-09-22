@@ -335,7 +335,7 @@ public class Template implements Serializable {
 
 	private void getPossibleValuesFromApi(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
 		try {
-			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
+			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
 			
 			// Quick fix to resolve Nanopubs grlc API as JSON
 			// Otherwise call fails if no ACCEPT header provided
@@ -348,7 +348,7 @@ public class Template implements Serializable {
 
 			if (resp.getStatusLine().getStatusCode() == 405) {
 				// Method not allowed, trying POST
-				HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8));
+				HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
 				resp = HttpClientBuilder.create().build().execute(post);
 			}
 			// TODO: support other content types (CSV, XML, ...)

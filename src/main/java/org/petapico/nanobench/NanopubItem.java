@@ -44,21 +44,29 @@ public class NanopubItem extends Panel {
 		}
 		add(new Label("user", userString));
 
-		ExternalLink retractLink = new ExternalLink("retract-link", "./publish?" +
-				"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE&" +
-				"param_nanopubToBeRetracted=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8));
-		if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
-			retractLink.add(new Label("retract-label", "retract"));
-		} else {
-			retractLink.add(new Label("retract-label", ""));
+		try {
+			ExternalLink retractLink = new ExternalLink("retract-link", "./publish?" +
+					"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE&" +
+					"param_nanopubToBeRetracted=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8.toString()));
+			if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
+				retractLink.add(new Label("retract-label", "retract"));
+			} else {
+				retractLink.add(new Label("retract-label", ""));
+			}
+			add(retractLink);
+		} catch (java.io.UnsupportedEncodingException e) {
+			e.printStackTrace();
 		}
-		add(retractLink);
 
-		ExternalLink commentLink = new ExternalLink("comment-link", "./publish?" +
-				"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0&" +
-				"param_thing=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8));
-//		commentLink.add(new Label("comment-label", "comment"));
-		add(commentLink);
+		try {
+			ExternalLink commentLink = new ExternalLink("comment-link", "./publish?" +
+					"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0&" +
+					"param_thing=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8.toString()));
+	//		commentLink.add(new Label("comment-label", "comment"));
+			add(commentLink);
+		} catch (java.io.UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 
 		String positiveNotes = "";
 		String negativeNotes = "";
