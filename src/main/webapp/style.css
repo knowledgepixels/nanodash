@@ -239,8 +239,8 @@ a.nanopub-pubinfo { color: #000; }
 a:hover.nanopub-pubinfo { color: #666; }
 a:active.nanopub-pubinfo { color: #666; }
 
-#.nanopub { background-color: #666; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
-.nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+.nanopub { background-color: #666; font-family: monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+#.nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 .nanopub-prefixes { display: none; margin-top: 3px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 3px; border-radius: 10px; }
