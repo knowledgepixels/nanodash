@@ -50,7 +50,7 @@ public class ApiCall {
 	private static String experimentalApi2 = "http://130.60.24.146:7881/api/local/local/";
 
 	private boolean isExperimentalOperation(String op) {
-		return op.equals("find_things") || op.equals("find_signed_things") || op.equals("get_uri_usage") || op.equals("find_signed_nanopubs_with_uri");
+		return false;
 	}
 
 	private String operation;
