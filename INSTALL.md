@@ -22,7 +22,7 @@ This should create three files: `nanobench.jar`, `run`, and `run-under-windows.b
 
 ## Step 3: Run Nanobench and Follow Instructions
 
-To start Nanobench, double-click on `run-under-windows.bat` (for Windows) or `run` (otherwise).
+To start Nanobench, double-click on `run-under-windows.bat` (for Windows) or `run` (other operating systems, such as Mac or Linux).
 Under Unix systems, you might have to start it from the commandline with `./run`.
 After a few seconds, a new browser tab with the Nanobench interface should automatically open.
 If not, open [http://localhost:37373](http://localhost:37373) manually.
