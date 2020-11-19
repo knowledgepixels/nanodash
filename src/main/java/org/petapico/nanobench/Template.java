@@ -368,7 +368,7 @@ public class Template implements Serializable {
 				for (int i = 0; i < responseArray.length(); i++) {
 					String uri = responseArray.getJSONObject(i).getString("iri");
 					String label = responseArray.getJSONObject(i).getString("label");
-					if (!values.contains("uri")) {
+					if (!values.contains(uri)) {
 						values.add(uri);
 						labelMap.put(uri, label);
 					}
