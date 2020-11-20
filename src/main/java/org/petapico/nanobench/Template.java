@@ -360,6 +360,19 @@ public class Template implements Serializable {
 
 			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
 				parseNanopubGrlcApi(json, labelMap, values);
+			} else if (apiString.startsWith("https://www.ebi.ac.uk/ols/api/select")) {
+				// Resolve EBI Ontology Lookup Service
+				// e.g. https://www.ebi.ac.uk/ols/api/select?q=interacts%20with 
+				// response.docs.[].iri/label
+				JSONArray responseArray = json.getJSONObject("response").getJSONArray("docs");
+				for (int i = 0; i < responseArray.length(); i++) {
+					String uri = responseArray.getJSONObject(i).getString("iri");
+					String label = responseArray.getJSONObject(i).getString("label");
+					if (!values.contains(uri)) {
+						values.add(uri);
+						labelMap.put(uri, label);
+					}
+				}
 			} else {
 				// TODO: create parseJsonApi() ?
 				boolean foundId = false;
@@ -404,6 +417,7 @@ public class Template implements Serializable {
 				if (foundId == false) {
 					// ID key not found, try to get results for following format
 					// {result1: ["label 1", "label 2"], result2: ["label 3", "label 4"]}
+					// Aims to resolve https://name-resolution-sri.renci.org/docs#
 					for (String key : json.keySet()) {
 						if (!(json.get(key) instanceof JSONArray)) continue;
 						JSONArray labelArray = json.getJSONArray(key);
