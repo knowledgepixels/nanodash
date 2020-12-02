@@ -162,7 +162,7 @@
   </build>
   <properties>
     <wicket.version>8.8.0</wicket.version>
-    <jetty.version>9.4.24.v20191120</jetty.version>
+    <jetty.version>9.4.35.v20201120</jetty.version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
