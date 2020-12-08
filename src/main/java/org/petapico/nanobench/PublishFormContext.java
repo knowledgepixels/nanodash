@@ -154,11 +154,8 @@ public class PublishFormContext implements Serializable {
 			IRI subj = template.getSubject(st);
 			IRI pred = template.getPredicate(st);
 			IRI obj = (IRI) template.getObject(st);
-			if (template.isOptionalStatement(st)) {
-				statementItems.add(new OptionalStatementItem(componentId, subj, pred, obj, this));
-			} else {
-				statementItems.add(new StatementItem(componentId, subj, pred, obj, this));
-			}
+			boolean optional = template.isOptionalStatement(st);
+			statementItems.add(new StatementItem(componentId, subj, pred, obj, this, optional));
 		}
 		return statementItems;
 	}
