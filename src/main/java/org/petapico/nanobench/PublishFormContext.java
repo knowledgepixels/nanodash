@@ -151,11 +151,16 @@ public class PublishFormContext implements Serializable {
 	public List<Panel> makeStatementItems(String componentId) {
 		List<Panel> statementItems = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
-			IRI subj = template.getSubject(st);
-			IRI pred = template.getPredicate(st);
-			IRI obj = (IRI) template.getObject(st);
 			boolean optional = template.isOptionalStatement(st);
-			statementItems.add(new StatementItem(componentId, subj, pred, obj, this, optional));
+//			TODO: Implement statement groups:
+//			if (template.isStatementGroup()) {
+//				...
+//			} else {
+				IRI subj = template.getSubject(st);
+				IRI pred = template.getPredicate(st);
+				IRI obj = (IRI) template.getObject(st);
+				statementItems.add(new StatementItem(componentId, subj, pred, obj, this, optional));
+//			}
 		}
 		return statementItems;
 	}
