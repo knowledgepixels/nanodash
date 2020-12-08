@@ -173,24 +173,33 @@ public class PublishFormContext implements Serializable {
 			}
 		}
 		for (IRI st : template.getStatementIris()) {
-			IRI subj = processIri(template.getSubject(st));
-			IRI pred = processIri(template.getPredicate(st));
-			Value obj = processValue(template.getObject(st));
-			if (subj == null || pred == null || obj == null) {
-				if (template.isOptionalStatement(st)) {
-					continue;
-				} else {
-					throw new MalformedNanopubException("Field of non-optional statement not set.");
+			boolean optional = template.isOptionalStatement(st);
+//			TODO: Implement statement groups:
+//			if (template.isStatementGroup()) {
+//				...
+//			} else {
+				IRI subj = processIri(template.getSubject(st));
+				IRI pred = processIri(template.getPredicate(st));
+				Value obj = processValue(template.getObject(st));
+				if (subj == null || pred == null || obj == null) {
+					if (optional) {
+						continue;
+					} else {
+						throw new MalformedNanopubException("Field of non-optional statement not set.");
+					}
 				}
-			} else {
-				if (contextType == ContextType.ASSERTION) {
-					npCreator.addAssertionStatement(subj, pred, obj);
-				} else if (contextType == ContextType.PROVENANCE) {
-					npCreator.addProvenanceStatement(subj, pred, obj);
-				} else if (contextType == ContextType.PUBINFO) {
-					npCreator.addPubinfoStatement(subj, pred, obj);
-				}
-			}
+				addStatement(npCreator, subj, pred, obj);
+//			}
+		}
+	}
+
+	private void addStatement(NanopubCreator npCreator, IRI subj, IRI pred, Value obj) {
+		if (contextType == ContextType.ASSERTION) {
+			npCreator.addAssertionStatement(subj, pred, obj);
+		} else if (contextType == ContextType.PROVENANCE) {
+			npCreator.addProvenanceStatement(subj, pred, obj);
+		} else if (contextType == ContextType.PUBINFO) {
+			npCreator.addPubinfoStatement(subj, pred, obj);
 		}
 	}
 
