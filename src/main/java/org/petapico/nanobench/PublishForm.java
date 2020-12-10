@@ -123,7 +123,7 @@ public class PublishForm extends Panel {
 			}
 		}
 
-		List<Panel> statementItems = assertionContext.makeStatementItems("statement");
+		List<StatementItem> statementItems = assertionContext.makeStatementItems("statement");
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
@@ -179,6 +179,7 @@ public class PublishForm extends Panel {
 				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
 					fc.processInput();
 					for (FeedbackMessage fm : fc.getFeedbackMessages()) {
+						System.err.println(fm.getMessage());
 						form.getFeedbackMessages().add(fm);
 					}
 				}
@@ -190,11 +191,11 @@ public class PublishForm extends Panel {
 		form.add(new ExternalLink("templatelink", assertionContext.getTemplate().getId()));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 
-		form.add(new ListView<Panel>("statements", statementItems) {
+		form.add(new ListView<StatementItem>("statements", statementItems) {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<Panel> item) {
+			protected void populateItem(ListItem<StatementItem> item) {
 				item.add(item.getModelObject());
 			}
 
@@ -351,12 +352,12 @@ public class PublishForm extends Panel {
 
 	private void refreshProvenance(AjaxRequestTarget target) {
 		ExternalLink link = new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId());
-		List<Panel> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
-		ListView<Panel> list = new ListView<Panel>("pr-statements", provStatementItems) {
+		List<StatementItem> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
+		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provStatementItems) {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<Panel> item) {
+			protected void populateItem(ListItem<StatementItem> item) {
 				item.add(item.getModelObject());
 			}
 
@@ -395,12 +396,12 @@ public class PublishForm extends Panel {
 				};
 				item.add(removeLink);
 				if (requiredPubInfoContexts.contains(pic)) removeLink.setVisible(false);
-				List<Panel> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
-				item.add(new ListView<Panel>("pi-statements", pubinfoStatementItems) {
+				List<StatementItem> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
+				item.add(new ListView<StatementItem>("pi-statements", pubinfoStatementItems) {
 
 					private static final long serialVersionUID = 1L;
 
-					protected void populateItem(ListItem<Panel> item) {
+					protected void populateItem(ListItem<StatementItem> item) {
 						item.add(item.getModelObject());
 					}
 
