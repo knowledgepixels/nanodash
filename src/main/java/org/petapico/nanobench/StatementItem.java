@@ -32,9 +32,9 @@ public class StatementItem extends Panel {
 		subj = template.getSubject(statementId);
 		pred = template.getPredicate(statementId);
 		obj = (IRI) template.getObject(statementId);
-		statement.add(new ValueItem("subj", subj, true, context));
-		statement.add(new ValueItem("pred", pred, true, context));
-		statement.add(new ValueItem("obj", obj, true, context));
+		statement.add(new ValueItem("subj", subj, optional, context));
+		statement.add(new ValueItem("pred", pred, optional, context));
+		statement.add(new ValueItem("obj", obj, optional, context));
 		if (optional) {
 			statement.add(new Label("label", "(optional)"));
 		} else {

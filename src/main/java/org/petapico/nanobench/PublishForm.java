@@ -179,7 +179,6 @@ public class PublishForm extends Panel {
 				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
 					fc.processInput();
 					for (FeedbackMessage fm : fc.getFeedbackMessages()) {
-						System.err.println(fm.getMessage());
 						form.getFeedbackMessages().add(fm);
 					}
 				}
