@@ -74,22 +74,10 @@ public class StatementItem extends Panel {
 		return optional;
 	}
 
-	public IRI getSubject() {
-		return subj;
-	}
-
-	public IRI getPredicate() {
-		return pred;
-	}
-
-	public IRI getObject() {
-		return obj;
-	}
-
 	public void addStatementTo(NanopubCreator npCreator) throws MalformedNanopubException {
-		IRI pSubj = context.processIri(getSubject());
-		IRI pPred = context.processIri(getPredicate());
-		Value pObj = context.processValue(getObject());
+		IRI pSubj = context.processIri(subj);
+		IRI pPred = context.processIri(pred);
+		Value pObj = context.processValue(obj);
 		if (pSubj == null || pPred == null || pObj == null) {
 			if (optional) {
 				return;
