@@ -19,16 +19,16 @@ public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean optional;
+	private final boolean optional;
 	private PublishFormContext context;
 	private IRI subj, pred, obj;
 
-	public StatementItem(String id, IRI statementId, PublishFormContext context, boolean optional) {
+	public StatementItem(String id, IRI statementId, PublishFormContext context) {
 		super(id);
-		this.optional = optional;
 		this.context = context;
 
 		Template template = context.getTemplate();
+		optional = template.isOptionalStatement(statementId);
 
 		List<IRI> statementPartIds = new ArrayList<>();
 		statementPartIds.add(statementId);
@@ -70,11 +70,7 @@ public class StatementItem extends Panel {
 
 	}
 
-	public boolean isOptional() {
-		return optional;
-	}
-
-	public void addStatementTo(NanopubCreator npCreator) throws MalformedNanopubException {
+	public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
 		IRI pSubj = context.processIri(subj);
 		IRI pPred = context.processIri(pred);
 		Value pObj = context.processValue(obj);
