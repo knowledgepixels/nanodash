@@ -125,6 +125,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
 	public static final IRI OPTIONAL_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/OptionalStatement");
+	public static final IRI GROUPED_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GroupedStatement");
 	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
 
@@ -133,6 +134,7 @@ public class Template implements Serializable {
 	private String label;
 
 	// TODO: Make all these maps more generic and the code simpler:
+	private IRI assertionIri;
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,List<IRI>> possibleValuesToLoadMap = new HashMap<>();
@@ -141,7 +143,7 @@ public class Template implements Serializable {
 	private Map<IRI,String> prefixMap = new HashMap<>();
 	private Map<IRI,String> prefixLabelMap = new HashMap<>();
 	private Map<IRI,String> regexMap = new HashMap<>();
-	private List<IRI> statementIri;
+	private Map<IRI,List<IRI>> statementMap = new HashMap<>();
 	private Map<IRI,IRI> statementSubjects = new HashMap<>();
 	private Map<IRI,IRI> statementPredicates = new HashMap<>();
 	private Map<IRI,Value> statementObjects = new HashMap<>();
@@ -191,7 +193,11 @@ public class Template implements Serializable {
 	}
 
 	public List<IRI> getStatementIris() {
-		return statementIri;
+		return statementMap.get(assertionIri);
+	}
+
+	public List<IRI> getStatementIris(IRI groupIri) {
+		return statementMap.get(groupIri);
 	}
 
 	public IRI getSubject(IRI statementIri) {
@@ -239,6 +245,10 @@ public class Template implements Serializable {
 
 	public boolean isOptionalStatement(IRI iri) {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(OPTIONAL_STATEMENT_CLASS);
+	}
+
+	public boolean isGroupedStatement(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GROUPED_STATEMENT_CLASS);
 	}
 
 	public List<Value> getPossibleValues(IRI iri) {
@@ -443,15 +453,13 @@ public class Template implements Serializable {
 	}
 
 	private void processTemplate(Nanopub templateNp) {
-		Map<IRI,Boolean> statementIriMap = new HashMap<>();
+		assertionIri = templateNp.getAssertionUri();
 		for (Statement st : templateNp.getAssertion()) {
-			if (st.getSubject().equals(templateNp.getAssertionUri())) {
+			if (st.getSubject().equals(assertionIri)) {
 				if (st.getPredicate().equals(RDFS.LABEL)) {
 					label = st.getObject().stringValue();
 				} else if (st.getObject() instanceof IRI) {
-					if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE)) {
-						statementIriMap.put((IRI) st.getObject(), true);
-					} else if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
+					if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
 						defaultProvenance = (IRI) st.getObject();
 					} else if (st.getPredicate().equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
 						requiredPubinfoElements.add((IRI) st.getObject());
@@ -463,6 +471,13 @@ public class Template implements Serializable {
 				if (l == null) {
 					l = new ArrayList<>();
 					typeMap.put((IRI) st.getSubject(), l);
+				}
+				l.add((IRI) st.getObject());
+			} else if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE) && st.getObject() instanceof IRI) {
+				List<IRI> l = statementMap.get(st.getSubject());
+				if (l == null) {
+					l = new ArrayList<>();
+					statementMap.put((IRI) st.getSubject(), l);
 				}
 				l.add((IRI) st.getObject());
 			} else if (st.getPredicate().equals(POSSIBLE_VALUE_PREDICATE)) {
@@ -498,40 +513,45 @@ public class Template implements Serializable {
 				prefixLabelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 			} else if (st.getPredicate().equals(HAS_REGEX_PREDICATE) && st.getObject() instanceof Literal) {
 				regexMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+			} else if (st.getPredicate().equals(RDF.SUBJECT) && st.getObject() instanceof IRI) {
+				statementSubjects.put((IRI) st.getSubject(), (IRI) st.getObject());
+			} else if (st.getPredicate().equals(RDF.PREDICATE) && st.getObject() instanceof IRI) {
+				statementPredicates.put((IRI) st.getSubject(), (IRI) st.getObject());
+			} else if (st.getPredicate().equals(RDF.OBJECT)) {
+				statementObjects.put((IRI) st.getSubject(), st.getObject());
+			} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
+				if (st.getObject() instanceof IntegerLiteral) {
+					statementOrder.put((IRI) st.getSubject(), ((IntegerLiteral) st.getObject()).intValue());
+				}
 			}
 		}
-		List<IRI> assertionTypes = typeMap.get(templateNp.getAssertionUri());
+		List<IRI> assertionTypes = typeMap.get(assertionIri);
 		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) &&
 				!assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS) && !assertionTypes.contains(PUBINFO_TEMPLATE_CLASS))) {
 			throw new RuntimeException("Unknown template type");
 		}
-		for (Statement st : templateNp.getAssertion()) {
-			if (statementIriMap.containsKey(st.getSubject())) {
-				if (st.getPredicate().equals(RDF.SUBJECT) && st.getObject() instanceof IRI) {
-					statementSubjects.put((IRI) st.getSubject(), (IRI) st.getObject());
-				} else if (st.getPredicate().equals(RDF.PREDICATE) && st.getObject() instanceof IRI) {
-					statementPredicates.put((IRI) st.getSubject(), (IRI) st.getObject());
-				} else if (st.getPredicate().equals(RDF.OBJECT)) {
-					statementObjects.put((IRI) st.getSubject(), st.getObject());
-				} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
-					if (st.getObject() instanceof IntegerLiteral) {
-						statementOrder.put((IRI) st.getSubject(), ((IntegerLiteral) st.getObject()).intValue());
-					}
-				}
-			}
+		for (List<IRI> l : statementMap.values()) {
+			l.sort(statementComparator);
 		}
-		statementIri = new ArrayList<>(statementIriMap.keySet());
-		statementIri.sort(new Comparator<IRI>() {
-			@Override
-			public int compare(IRI arg0, IRI arg1) {
-				Integer i0 = statementOrder.get(arg0);
-				Integer i1 = statementOrder.get(arg1);
-				if (i0 == null && i1 == null) return arg0.stringValue().compareTo(arg1.stringValue());
-				if (i0 == null) return 1;
-				if (i1 == null) return -1;
-				return i0-i1;
-			}
-		});
+	}
+
+
+	private StatementComparator statementComparator = new StatementComparator();
+
+	private class StatementComparator implements Comparator<IRI>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public int compare(IRI arg0, IRI arg1) {
+			Integer i0 = statementOrder.get(arg0);
+			Integer i1 = statementOrder.get(arg1);
+			if (i0 == null && i1 == null) return arg0.stringValue().compareTo(arg1.stringValue());
+			if (i0 == null) return 1;
+			if (i1 == null) return -1;
+			return i0-i1;
+		}
+
 	}
 
 }
