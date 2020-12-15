@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.HttpHeaders;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.util.file.File;
@@ -26,7 +26,6 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.IntegerLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -520,8 +519,8 @@ public class Template implements Serializable {
 			} else if (st.getPredicate().equals(RDF.OBJECT)) {
 				statementObjects.put((IRI) st.getSubject(), st.getObject());
 			} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
-				if (st.getObject() instanceof IntegerLiteral) {
-					statementOrder.put((IRI) st.getSubject(), ((IntegerLiteral) st.getObject()).intValue());
+				if (st.getObject() instanceof Literal && st.getObject().stringValue().matches("[0-9]+")) {
+					statementOrder.put((IRI) st.getSubject(), Integer.valueOf(st.getObject().stringValue()));
 				}
 			}
 		}
