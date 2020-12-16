@@ -249,6 +249,13 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-context-switch { display: none; }
 
 .nanopub-statement input { margin: 2px; }
+.nanopub-statement:after { 
+   content: "."; 
+   visibility: hidden; 
+   display: block; 
+   height: 0; 
+   clear: both;
+}
 
 .nanopub table {
   width: 100%;
@@ -316,7 +323,7 @@ a:active.nanopub-pubinfo { color: #666; }
 }
 
 .nanopub-optional { background: rgba(255, 255, 255, 0.5); padding: 8px; border-radius: 8px; margin-top: 3px; }
-.optional-label { color: rgba(0, 0, 0, 0.3); font-family: Verdana, Helvetica, sans-serif; font-style: italic; margin-left: 15px; }
+.optional-label { color: rgba(0, 0, 0, 0.3); font-family: Verdana, Helvetica, sans-serif; font-style: italic; margin-left: 15px; margin-right: 10px; margin-top: 3px; float:right; }
 
 .nanopub-group { padding: 8px; border-radius: 8px; margin-top: 3px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.3); }
 
