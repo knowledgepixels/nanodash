@@ -125,6 +125,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
 	public static final IRI OPTIONAL_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/OptionalStatement");
 	public static final IRI GROUPED_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GroupedStatement");
+	public static final IRI REPEATABLE_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RepeatableStatement");
 	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
 
@@ -248,6 +249,10 @@ public class Template implements Serializable {
 
 	public boolean isGroupedStatement(IRI iri) {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GROUPED_STATEMENT_CLASS);
+	}
+
+	public boolean isRepeatableStatement(IRI iri) {
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(REPEATABLE_STATEMENT_CLASS);
 	}
 
 	public List<Value> getPossibleValues(IRI iri) {

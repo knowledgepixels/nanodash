@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -48,6 +49,18 @@ public class StatementItem extends Panel {
 				statement.add(new Label("label", "(optional)"));
 			} else {
 				statement.add(new Label("label", "").setVisible(false));
+			}
+			if (isRepeatable() && statements.size() == 1) {
+				statement.add(new Link<Object>("add-repetition") {
+					private static final long serialVersionUID = 1L;
+					public void onClick() {
+						
+					};
+				});
+			} else {
+				Label l = new Label("add-repetition", "");
+				l.setVisible(false);
+				statement.add(l);
 			}
 		}
 
@@ -109,6 +122,10 @@ public class StatementItem extends Panel {
 
 	private boolean isGrouped() {
 		return getTemplate().isGroupedStatement(statementId);
+	}
+
+	private boolean isRepeatable() {
+		return getTemplate().isRepeatableStatement(statementId);
 	}
 
 	private boolean hasEmptyElements() {
