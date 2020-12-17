@@ -177,7 +177,7 @@ public class Template implements Serializable {
 	}
 
 	public String getLabel(IRI iri) {
-		return labelMap.get(iri);
+		return labelMap.get(transform(iri));
 	}
 
 	public String getPrefix(IRI iri) {
@@ -537,6 +537,15 @@ public class Template implements Serializable {
 		for (List<IRI> l : statementMap.values()) {
 			l.sort(statementComparator);
 		}
+	}
+
+
+	private IRI transform(IRI iri) {
+		if (iri.stringValue().contains("__")) {
+			// TODO: Check that this double-underscore pattern isn't used otherwise:
+			return vf.createIRI(iri.stringValue().replaceFirst("__.*$", ""));
+		}
+		return iri;
 	}
 
 
