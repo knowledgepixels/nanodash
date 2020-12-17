@@ -23,6 +23,7 @@ public class StatementItem extends Panel {
 	private PublishFormContext context;
 	private IRI statementId;
 	private List<IRI> statementPartIds = new ArrayList<>();
+	private List<WebMarkupContainer> statements = new ArrayList<>();
 
 	public StatementItem(String id, IRI statementId, PublishFormContext context) {
 		super(id);
@@ -35,34 +36,7 @@ public class StatementItem extends Panel {
 			statementPartIds.add(statementId);
 		}
 
-		List<WebMarkupContainer> statements = new ArrayList<>();
-		for (IRI s : statementPartIds) {
-			WebMarkupContainer statement = new WebMarkupContainer("statement");
-			IRI subj = getTemplate().getSubject(s);
-			IRI pred = getTemplate().getPredicate(s);
-			IRI obj = (IRI) getTemplate().getObject(s);
-			statement.add(new ValueItem("subj", subj, isOptional(), context));
-			statement.add(new ValueItem("pred", pred, isOptional(), context));
-			statement.add(new ValueItem("obj", obj, isOptional(), context));
-			statements.add(statement);
-			if (isOptional() && statements.size() == statementPartIds.size()) {
-				statement.add(new Label("label", "(optional)"));
-			} else {
-				statement.add(new Label("label", "").setVisible(false));
-			}
-			if (isRepeatable() && statements.size() == 1) {
-				statement.add(new Link<Object>("add-repetition") {
-					private static final long serialVersionUID = 1L;
-					public void onClick() {
-						
-					};
-				});
-			} else {
-				Label l = new Label("add-repetition", "");
-				l.setVisible(false);
-				statement.add(l);
-			}
-		}
+		createStatements();
 
 		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", statements) {
 
@@ -88,6 +62,37 @@ public class StatementItem extends Panel {
 			add(new AttributeModifier("class", htmlClassString));
 		}
 
+	}
+
+	private void createStatements() {
+		for (IRI s : statementPartIds) {
+			WebMarkupContainer statement = new WebMarkupContainer("statement");
+			IRI subj = getTemplate().getSubject(s);
+			IRI pred = getTemplate().getPredicate(s);
+			IRI obj = (IRI) getTemplate().getObject(s);
+			statement.add(new ValueItem("subj", subj, isOptional(), context));
+			statement.add(new ValueItem("pred", pred, isOptional(), context));
+			statement.add(new ValueItem("obj", obj, isOptional(), context));
+			statements.add(statement);
+			if (isOptional() && statements.size() == statementPartIds.size()) {
+				statement.add(new Label("label", "(optional)"));
+			} else {
+				statement.add(new Label("label", "").setVisible(false));
+			}
+			if (isRepeatable() && statements.size() == 1) {
+				statement.add(new Link<Object>("add-repetition") {
+					private static final long serialVersionUID = 1L;
+					public void onClick() {
+						// TODO: This doesn't really work yet
+						createStatements();
+					};
+				});
+			} else {
+				Label l = new Label("add-repetition", "");
+				l.setVisible(false);
+				statement.add(l);
+			}
+		}
 	}
 
 	public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
