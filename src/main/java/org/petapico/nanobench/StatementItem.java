@@ -53,7 +53,20 @@ public class StatementItem extends Panel {
 		};
 		v.setOutputMarkupId(true);
 		add(v);
+	}
 
+	private void createStatements(boolean isFirst) {
+		RepetitionGroup rg = new RepetitionGroup(isFirst);
+		repetitionGroups.add(rg);
+		rg.load();
+		refreshStatements();
+	}
+
+	private void refreshStatements() {
+		allStatements.clear();
+		for (RepetitionGroup r : repetitionGroups) {
+			allStatements.addAll(r.getStatements());
+		}
 		String htmlClassString = "";
 		if (isOptional()) {
 			htmlClassString += "nanopub-optional ";
@@ -63,19 +76,6 @@ public class StatementItem extends Panel {
 		}
 		if (!htmlClassString.isEmpty()) {
 			add(new AttributeModifier("class", htmlClassString));
-		}
-
-	}
-
-	private void createStatements(boolean isFirst) {
-		repetitionGroups.add(new RepetitionGroup(isFirst));
-		refreshStatements();
-	}
-
-	private void refreshStatements() {
-		allStatements.clear();
-		for (RepetitionGroup r : repetitionGroups) {
-			allStatements.addAll(r.getStatements());
 		}
 	}
 
@@ -106,7 +106,7 @@ public class StatementItem extends Panel {
 	}
 
 	private boolean isOptional() {
-		return getTemplate().isOptionalStatement(statementId);
+		return repetitionGroups.size() == 1 && getTemplate().isOptionalStatement(statementId);
 	}
 
 	private boolean isGrouped() {
@@ -132,8 +132,13 @@ public class StatementItem extends Panel {
 		private static final long serialVersionUID = 1L;
 
 		private List<WebMarkupContainer> statements = new ArrayList<>();
+		private boolean isFirst;
 
 		public RepetitionGroup(boolean isFirst) {
+			this.isFirst = isFirst;
+		}
+
+		public void load() {
 			for (IRI s : statementPartIds) {
 				WebMarkupContainer statement = new WebMarkupContainer("statement");
 				IRI subj = getTemplate().getSubject(s);
