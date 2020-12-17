@@ -328,6 +328,8 @@ a:active.nanopub-pubinfo { color: #666; }
 
 .nanopub-group { padding: 8px; border-radius: 8px; margin-top: 3px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.3); }
 
+.separate-statement { border-top: 1px solid rgba(0, 0, 0, 0.3); padding-top: 10px; margin-top: 10px; }
+
 .nowrap {
   white-space: nowrap;
 }

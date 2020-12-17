@@ -1,9 +1,11 @@
 package org.petapico.nanobench;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
@@ -23,7 +25,8 @@ public class StatementItem extends Panel {
 	private PublishFormContext context;
 	private IRI statementId;
 	private List<IRI> statementPartIds = new ArrayList<>();
-	private List<WebMarkupContainer> statements = new ArrayList<>();
+	private List<WebMarkupContainer> allStatements = new ArrayList<>();
+	private List<RepetitionGroup> repetitionGroups = new ArrayList<>();
 
 	public StatementItem(String id, IRI statementId, PublishFormContext context) {
 		super(id);
@@ -36,9 +39,9 @@ public class StatementItem extends Panel {
 			statementPartIds.add(statementId);
 		}
 
-		createStatements();
+		createStatements(true);
 
-		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", statements) {
+		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", allStatements) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -64,34 +67,15 @@ public class StatementItem extends Panel {
 
 	}
 
-	private void createStatements() {
-		for (IRI s : statementPartIds) {
-			WebMarkupContainer statement = new WebMarkupContainer("statement");
-			IRI subj = getTemplate().getSubject(s);
-			IRI pred = getTemplate().getPredicate(s);
-			IRI obj = (IRI) getTemplate().getObject(s);
-			statement.add(new ValueItem("subj", subj, isOptional(), context));
-			statement.add(new ValueItem("pred", pred, isOptional(), context));
-			statement.add(new ValueItem("obj", obj, isOptional(), context));
-			statements.add(statement);
-			if (isOptional() && statements.size() == statementPartIds.size()) {
-				statement.add(new Label("label", "(optional)"));
-			} else {
-				statement.add(new Label("label", "").setVisible(false));
-			}
-			if (isRepeatable() && statements.size() == 1) {
-				statement.add(new Link<Object>("add-repetition") {
-					private static final long serialVersionUID = 1L;
-					public void onClick() {
-						// TODO: This doesn't really work yet
-						createStatements();
-					};
-				});
-			} else {
-				Label l = new Label("add-repetition", "");
-				l.setVisible(false);
-				statement.add(l);
-			}
+	private void createStatements(boolean isFirst) {
+		repetitionGroups.add(new RepetitionGroup(isFirst));
+		refreshStatements();
+	}
+
+	private void refreshStatements() {
+		allStatements.clear();
+		for (RepetitionGroup r : repetitionGroups) {
+			allStatements.addAll(r.getStatements());
 		}
 	}
 
@@ -140,6 +124,66 @@ public class StatementItem extends Panel {
 			if (context.processValue(getTemplate().getObject(s)) == null) return true;
 		}
 		return false;
+	}
+
+
+	private class RepetitionGroup implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		private List<WebMarkupContainer> statements = new ArrayList<>();
+
+		public RepetitionGroup(boolean isFirst) {
+			for (IRI s : statementPartIds) {
+				WebMarkupContainer statement = new WebMarkupContainer("statement");
+				IRI subj = getTemplate().getSubject(s);
+				IRI pred = getTemplate().getPredicate(s);
+				IRI obj = (IRI) getTemplate().getObject(s);
+				statement.add(new ValueItem("subj", subj, isOptional(), context));
+				statement.add(new ValueItem("pred", pred, isOptional(), context));
+				statement.add(new ValueItem("obj", obj, isOptional(), context));
+				statements.add(statement);
+				if (statements.size() == 1 && !isFirst) {
+					statement.add(new AttributeAppender("class", " separate-statement"));
+				}
+				if (isFirst && isOptional() && statements.size() == statementPartIds.size()) {
+					statement.add(new Label("label", "(optional)"));
+				} else {
+					statement.add(new Label("label", "").setVisible(false));
+				}
+				if (isRepeatable() && statements.size() == 1 && isFirst) {
+					statement.add(new Link<Object>("add-repetition") {
+						private static final long serialVersionUID = 1L;
+						public void onClick() {
+							// TODO: This doesn't really work yet
+							createStatements(false);
+						};
+					});
+				} else {
+					Label l = new Label("add-repetition", "");
+					l.setVisible(false);
+					statement.add(l);
+				}
+				if (isRepeatable() && statements.size() == 1 && !isFirst) {
+					statement.add(new Link<Object>("remove-repetition") {
+						private static final long serialVersionUID = 1L;
+						public void onClick() {
+							repetitionGroups.remove(RepetitionGroup.this);
+							refreshStatements();
+						};
+					});
+				} else {
+					Label l = new Label("remove-repetition", "");
+					l.setVisible(false);
+					statement.add(l);
+				}
+			}
+		}
+
+		public List<WebMarkupContainer> getStatements() {
+			return statements;
+		}
+
 	}
 
 }
