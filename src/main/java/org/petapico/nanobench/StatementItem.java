@@ -97,17 +97,8 @@ public class StatementItem extends Panel {
 				throw new MalformedNanopubException("Field of statement not set.");
 			}
 		}
-		for (IRI s : statementPartIds) {
-			IRI pSubj = context.processIri(getTemplate().getSubject(s));
-			IRI pPred = context.processIri(getTemplate().getPredicate(s));
-			Value pObj = context.processValue(getTemplate().getObject(s));
-			if (context.getType() == ContextType.ASSERTION) {
-				npCreator.addAssertionStatement(pSubj, pPred, pObj);
-			} else if (context.getType() == ContextType.PROVENANCE) {
-				npCreator.addProvenanceStatement(pSubj, pPred, pObj);
-			} else if (context.getType() == ContextType.PUBINFO) {
-				npCreator.addPubinfoStatement(pSubj, pPred, pObj);
-			}
+		for (RepetitionGroup rg : repetitionGroups) {
+			rg.addTriplesTo(npCreator);
 		}
 	}
 
@@ -238,6 +229,21 @@ public class StatementItem extends Panel {
 				return vf.createIRI(iri.stringValue() + "__" + getRepeatIndex());
 			}
 			return iri;
+		}
+
+		public void addTriplesTo(NanopubCreator npCreator) {
+			for (IRI s : statementPartIds) {
+				IRI pSubj = context.processIri(transform(getTemplate().getSubject(s)));
+				IRI pPred = context.processIri(transform(getTemplate().getPredicate(s)));
+				Value pObj = context.processValue(transform((IRI) getTemplate().getObject(s)));
+				if (context.getType() == ContextType.ASSERTION) {
+					npCreator.addAssertionStatement(pSubj, pPred, pObj);
+				} else if (context.getType() == ContextType.PROVENANCE) {
+					npCreator.addProvenanceStatement(pSubj, pPred, pObj);
+				} else if (context.getType() == ContextType.PUBINFO) {
+					npCreator.addPubinfoStatement(pSubj, pPred, pObj);
+				}
+			}
 		}
 
 	}
