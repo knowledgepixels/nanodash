@@ -223,24 +223,37 @@ public class Template implements Serializable {
 	}
 
 	public boolean isUriPlaceholder(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && 
 				(typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS) || typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS));
 	}
 
 	public boolean isTrustyUriPlaceholder(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isLiteralPlaceholder(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isRestrictedChoicePlaceholder(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isGuidedChoicePlaceholder(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
+	}
+
+	public boolean isPlaceholder(IRI iri) {
+		iri = transform(iri);
+		if (!typeMap.containsKey(iri)) return false;
+		List<IRI> m = typeMap.get(iri);
+		return m.contains(URI_PLACEHOLDER_CLASS) || m.contains(TRUSTY_URI_PLACEHOLDER_CLASS) || m.contains(LITERAL_PLACEHOLDER_CLASS) ||
+				m.contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS) || m.contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isOptionalStatement(IRI iri) {

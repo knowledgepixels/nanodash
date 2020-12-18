@@ -16,6 +16,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
 import org.petapico.nanobench.PublishFormContext.ContextType;
@@ -201,7 +203,7 @@ public class StatementItem extends Panel {
 		}
 
 		private void makeValueItem(String id, IRI iri, WebMarkupContainer statement) {
-			ValueItem vi = new ValueItem(id, iri, this);
+			ValueItem vi = new ValueItem(id, transform(iri), this);
 			items.add(vi);
 			statement.add(vi);
 		}
@@ -230,6 +232,16 @@ public class StatementItem extends Panel {
 			return StatementItem.this.isOptional();
 		}
 
+		private IRI transform(IRI iri) {
+			if (context.getTemplate().isPlaceholder(iri) && getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
+				// TODO: Check that this double-underscore pattern isn't used otherwise:
+				return vf.createIRI(iri.stringValue() + "__" + getRepeatIndex());
+			}
+			return iri;
+		}
+
 	}
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 }
