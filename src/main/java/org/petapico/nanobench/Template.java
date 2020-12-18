@@ -66,7 +66,7 @@ public class Template implements Serializable {
 				if (entry.get("superseded").equals("1") || entry.get("superseded").equals("true")) continue;
 				if (entry.get("retracted").equals("1") || entry.get("retracted").equals("true")) continue;
 				Template t = new Template(entry.get("np"));
-				templates.add(t);
+				if (!t.isUnlisted()) templates.add(t);
 				templateMap.put(t.getId(), t);
 			}
 		} catch (IOException ex) {
@@ -102,6 +102,7 @@ public class Template implements Serializable {
 	public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");
 	public static final IRI PROVENANCE_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ProvenanceTemplate");
 	public static final IRI PUBINFO_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/PubinfoTemplate");
+	public static final IRI UNLISTED_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UnlistedTemplate");
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
@@ -162,6 +163,10 @@ public class Template implements Serializable {
 			nanopub = Utils.getNanopub(templateId);
 		}
 		processTemplate(nanopub);
+	}
+
+	public boolean isUnlisted() {
+		return typeMap.get(nanopub.getAssertionUri()).contains(UNLISTED_TEMPLATE_CLASS);
 	}
 
 	public Nanopub getNanopub() {
