@@ -81,7 +81,7 @@ public class StatementItem extends Panel {
 		if (isOptional()) {
 			htmlClassString += "nanopub-optional ";
 		}
-		if (isGrouped()) {
+		if (isGrouped() || isRepeatable()) {
 			htmlClassString += "nanopub-group ";
 		}
 		if (!htmlClassString.isEmpty()) {
