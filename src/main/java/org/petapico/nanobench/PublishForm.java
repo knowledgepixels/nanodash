@@ -52,7 +52,7 @@ public class PublishForm extends Panel {
 
 	private static List<PublishFormContext> fixedPubInfoContexts = new ArrayList<>();
 	static {
-		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM"));
+		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM", "pi-statement"));
 	}
 
 	protected Form<?> form;
@@ -66,7 +66,7 @@ public class PublishForm extends Panel {
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
 
-		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString());
+		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
 			if (assertionContext.getTemplate().getDefaultProvenance() != null) {
@@ -75,14 +75,14 @@ public class PublishForm extends Panel {
 				prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 			}
 		}
-		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId);
+		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
 		for (PublishFormContext c : fixedPubInfoContexts) {
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue());
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
 			if (pubInfoContextMap.containsKey(c.getTemplate().getId())) continue;
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
@@ -97,7 +97,7 @@ public class PublishForm extends Panel {
 			if (pubInfoContextMap.containsKey(piTemplateId)) {
 				c = pubInfoContextMap.get(piTemplateId);
 			} else {
-				c = new PublishFormContext(ContextType.PUBINFO, piTemplateId);
+				c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement");
 				pubInfoContextMap.put(piTemplateId, c);
 			}
 			if (piParamIdMap.containsKey(i)) {
@@ -122,8 +122,6 @@ public class PublishForm extends Panel {
 				piParamIdMap.get(i).setParam(n, pageParams.get(k).toString());
 			}
 		}
-
-		List<StatementItem> statementItems = assertionContext.makeStatementItems("statement");
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
@@ -177,10 +175,22 @@ public class PublishForm extends Panel {
 		    protected void onValidate() {
 				super.onValidate();
 				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
-					fc.processInput();
-					for (FeedbackMessage fm : fc.getFeedbackMessages()) {
-						form.getFeedbackMessages().add(fm);
+					processFeedback(fc);
+				}
+				for (FormComponent<String> fc : provenanceContext.getFormComponents()) {
+					processFeedback(fc);
+				}
+				for (PublishFormContext c : pubInfoContexts) {
+					for (FormComponent<String> fc : c.getFormComponents()) {
+						processFeedback(fc);
 					}
+				}
+			}
+
+			private void processFeedback(FormComponent<String> fc) {
+				fc.processInput();
+				for (FeedbackMessage fm : fc.getFeedbackMessages()) {
+					form.getFeedbackMessages().add(fm);
 				}
 			}
 
@@ -190,7 +200,7 @@ public class PublishForm extends Panel {
 		form.add(new ExternalLink("templatelink", assertionContext.getTemplate().getId()));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 
-		form.add(new ListView<StatementItem>("statements", statementItems) {
+		form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -250,7 +260,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject());
+				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement");
 				refreshProvenance(target);
 			}
 
@@ -317,7 +327,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject()));
+				pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement"));
 				newPiTemplateModel.setObject(null);
 				refreshPubInfo(target);
 			}
@@ -351,8 +361,7 @@ public class PublishForm extends Panel {
 
 	private void refreshProvenance(AjaxRequestTarget target) {
 		ExternalLink link = new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId());
-		List<StatementItem> provStatementItems = provenanceContext.makeStatementItems("pr-statement");
-		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provStatementItems) {
+		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -395,8 +404,7 @@ public class PublishForm extends Panel {
 				};
 				item.add(removeLink);
 				if (requiredPubInfoContexts.contains(pic)) removeLink.setVisible(false);
-				List<StatementItem> pubinfoStatementItems = pic.makeStatementItems("pi-statement");
-				item.add(new ListView<StatementItem>("pi-statements", pubinfoStatementItems) {
+				item.add(new ListView<StatementItem>("pi-statements", pic.getStatementItems()) {
 
 					private static final long serialVersionUID = 1L;
 
