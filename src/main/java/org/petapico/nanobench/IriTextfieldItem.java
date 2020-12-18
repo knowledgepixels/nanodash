@@ -20,14 +20,17 @@ import org.eclipse.rdf4j.model.IRI;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class IriTextfieldItem extends Panel {
+public class IriTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 
 	private String prefix;
+	private PublishFormContext context;
+	private TextField<String> textfield;
 
 	public IriTextfieldItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
+		this.context = context;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -65,7 +68,7 @@ public class IriTextfieldItem extends Panel {
 			}
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
-		final TextField<String> textfield = new TextField<>("textfield", model);
+		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		if (template.isLocalResource(iri)) {
 			textfield.add(new AttributeAppender("style", "width:250px;"));
@@ -125,6 +128,11 @@ public class IriTextfieldItem extends Panel {
 
 		});
 		add(textfield);
+	}
+
+	@Override
+	public void removeFromContext() {
+		context.getFormComponents().remove(textfield);
 	}
 
 }

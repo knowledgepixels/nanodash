@@ -10,12 +10,15 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 
-public class LiteralTextfieldItem extends Panel {
+public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
+	private PublishFormContext context;
+	private TextField<String> textfield;
 
 	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
 		super(id);
+		this.context = context;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -27,7 +30,7 @@ public class LiteralTextfieldItem extends Panel {
 			model = Model.of(value);
 			context.getFormComponentModels().put(iri, model);
 		}
-		TextField<String> textfield = new TextField<>("textfield", model);
+		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		if (context.getTemplate().getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
@@ -51,6 +54,11 @@ public class LiteralTextfieldItem extends Panel {
 		context.getFormComponents().add(textfield);
 		textfield.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		add(textfield);
+	}
+
+	@Override
+	public void removeFromContext() {
+		context.getFormComponents().remove(textfield);
 	}
 
 }

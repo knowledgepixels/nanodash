@@ -29,14 +29,17 @@ import org.wicketstuff.select2.Select2Choice;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class GuidedChoiceItem extends Panel {
+public class GuidedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
+	private PublishFormContext context;
+	private Select2Choice<String> textfield;
 
 	private String prefix;
 
 	public GuidedChoiceItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
+		this.context = context;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -127,7 +130,7 @@ public class GuidedChoiceItem extends Panel {
 			}
 
 		};
-		final Select2Choice<String> textfield = new Select2Choice<String>("textfield", model, choiceProvider);
+		textfield = new Select2Choice<String>("textfield", model, choiceProvider);
 		textfield.getSettings().setCloseOnSelect(true);
 		textfield.getSettings().setTags(true);
 		textfield.getSettings().setPlaceholder("");
@@ -189,6 +192,11 @@ public class GuidedChoiceItem extends Panel {
 
 		});
 		add(textfield);
+	}
+
+	@Override
+	public void removeFromContext() {
+		context.getFormComponents().remove(textfield);
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();

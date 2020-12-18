@@ -30,6 +30,7 @@ public class StatementItem extends Panel {
 	private List<WebMarkupContainer> allStatements = new ArrayList<>();
 	private List<RepetitionGroup> repetitionGroups = new ArrayList<>();
 	private Set<IRI> iriSet = new HashSet<>();
+	private List<ValueItem> items = new ArrayList<>();
 
 	public StatementItem(String id, IRI statementId, PublishFormContext context) {
 		super(id);
@@ -42,7 +43,7 @@ public class StatementItem extends Panel {
 			statementPartIds.add(statementId);
 		}
 
-		createStatements();
+		repeat();
 
 		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", allStatements) {
 
@@ -58,15 +59,18 @@ public class StatementItem extends Panel {
 		add(v);
 	}
 
-	private void createStatements() {
+	private void repeat() {
 		RepetitionGroup rg = new RepetitionGroup();
 		repetitionGroups.add(rg);
-		rg.refresh();
 		refreshStatements();
 	}
 
 	private void refreshStatements() {
 		allStatements.clear();
+		for (ValueItem vi : items) {
+			vi.removeFromContext();
+		}
+		items.clear();
 		for (RepetitionGroup r : repetitionGroups) {
 			r.refresh();
 			allStatements.addAll(r.getStatements());
@@ -156,9 +160,9 @@ public class StatementItem extends Panel {
 					iriSet.add(pred);
 					iriSet.add(obj);
 				}
-				statement.add(new ValueItem("subj", subj, this));
-				statement.add(new ValueItem("pred", pred, this));
-				statement.add(new ValueItem("obj", obj, this));
+				makeValueItem("subj", subj, statement);
+				makeValueItem("pred", pred, statement);
+				makeValueItem("obj", obj, statement);
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
@@ -172,8 +176,7 @@ public class StatementItem extends Panel {
 					statement.add(new Link<Object>("add-repetition") {
 						private static final long serialVersionUID = 1L;
 						public void onClick() {
-							createStatements();
-							refresh();
+							repeat();
 						};
 					});
 				} else {
@@ -195,6 +198,12 @@ public class StatementItem extends Panel {
 					statement.add(l);
 				}
 			}
+		}
+
+		private void makeValueItem(String id, IRI iri, WebMarkupContainer statement) {
+			ValueItem vi = new ValueItem(id, iri, this);
+			items.add(vi);
+			statement.add(vi);
 		}
 
 		public List<WebMarkupContainer> getStatements() {

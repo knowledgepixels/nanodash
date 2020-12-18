@@ -16,12 +16,15 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-public class RestrictedChoiceItem extends Panel {
+public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
+	private PublishFormContext context;
+	private Select2Choice<String> choice;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
+		this.context = context;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -95,7 +98,7 @@ public class RestrictedChoiceItem extends Panel {
 			}
 
 		};
-		Select2Choice<String> choice = new Select2Choice<String>("choice", model, choiceProvider);
+		choice = new Select2Choice<String>("choice", model, choiceProvider);
 		if (!optional) choice.setRequired(true);
 		choice.getSettings().setCloseOnSelect(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
@@ -104,5 +107,10 @@ public class RestrictedChoiceItem extends Panel {
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	@Override
+	public void removeFromContext() {
+		context.getFormComponents().remove(choice);
+	}
 
 }

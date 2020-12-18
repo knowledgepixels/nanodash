@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -7,24 +10,32 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-public class ValueItem extends Panel {
+public class ValueItem extends Panel implements ContextComponent {
 
 	private static final long serialVersionUID = 1L;
 
 	private StatementItem.RepetitionGroup s;
+	private List<ContextComponent> components = new ArrayList<>();
 
 	public ValueItem(String id, IRI iri, StatementItem.RepetitionGroup s) {
 		super(id);
 		this.s = s;
 		final Template template = s.getContext().getTemplate();
 		if (template.isUriPlaceholder(iri)) {
-			add(new IriTextfieldItem("value", id, transform(iri), s.isOptional(), s.getContext()));
+			IriTextfieldItem item = new IriTextfieldItem("value", id, transform(iri), s.isOptional(), s.getContext());
+			components.add(item);
+			add(item);
 		} else if (template.isLiteralPlaceholder(iri)) {
-			add(new LiteralTextfieldItem("value", transform(iri), s.isOptional(), s.getContext()));
+			LiteralTextfieldItem item = new LiteralTextfieldItem("value", transform(iri), s.isOptional(), s.getContext());
+			components.add(item);
+			add(item);
 		} else if (template.isRestrictedChoicePlaceholder(iri)) {
-			add(new RestrictedChoiceItem("value", id, transform(iri), s.isOptional(), s.getContext()));
+			RestrictedChoiceItem item = new RestrictedChoiceItem("value", id, transform(iri), s.isOptional(), s.getContext());
+			components.add(item);
+			add(item);
 		} else if (template.isGuidedChoicePlaceholder(iri)) {
-			add(new GuidedChoiceItem("value", id, transform(iri), s.isOptional(), s.getContext()));
+			GuidedChoiceItem item = new GuidedChoiceItem("value", id, transform(iri), s.isOptional(), s.getContext());
+			add(item);
 		} else {
 			add(new IriItem("value", id, iri, id.equals("obj"), s.getContext()));
 		}
@@ -49,6 +60,13 @@ public class ValueItem extends Panel {
 			// No actual action needed here; Ajax request alone ensures values are kept after refreshing.
 		}
 
+	}
+
+	@Override
+	public void removeFromContext() {
+		for (ContextComponent c : components) {
+			c.removeFromContext();
+		}
 	}
 
 }
