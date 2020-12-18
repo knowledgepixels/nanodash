@@ -177,18 +177,22 @@ public class Template implements Serializable {
 	}
 
 	public String getLabel(IRI iri) {
-		return labelMap.get(transform(iri));
+		iri = transform(iri);
+		return labelMap.get(iri);
 	}
 
 	public String getPrefix(IRI iri) {
+		iri = transform(iri);
 		return prefixMap.get(iri);
 	}
 
 	public String getPrefixLabel(IRI iri) {
+		iri = transform(iri);
 		return prefixLabelMap.get(iri);
 	}
 
 	public String getRegex(IRI iri) {
+		iri = transform(iri);
 		return regexMap.get(iri);
 	}
 
@@ -213,12 +217,14 @@ public class Template implements Serializable {
 	}
 
 	public boolean isLocalResource(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && (
 				typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS) || typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS)
 			);
 	}
 
 	public boolean isIntroducedResource(IRI iri) {
+		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS);
 	}
 

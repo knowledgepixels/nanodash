@@ -119,12 +119,7 @@ public class StatementItem extends Panel {
 	}
 
 	private boolean hasEmptyElements() {
-		for (IRI s : statementPartIds) {
-			if (context.processIri(getTemplate().getSubject(s)) == null) return true;
-			if (context.processIri(getTemplate().getPredicate(s)) == null) return true;
-			if (context.processValue(getTemplate().getObject(s)) == null) return true;
-		}
-		return false;
+		return repetitionGroups.get(0).hasEmptyElements();
 	}
 
 	public Set<IRI> getIriSet() {
@@ -145,17 +140,9 @@ public class StatementItem extends Panel {
 			statements = new ArrayList<>();
 			for (IRI s : statementPartIds) {
 				WebMarkupContainer statement = new WebMarkupContainer("statement");
-				IRI subj = getTemplate().getSubject(s);
-				IRI pred = getTemplate().getPredicate(s);
-				IRI obj = (IRI) getTemplate().getObject(s);
-				if (isFirst()) {
-					iriSet.add(subj);
-					iriSet.add(pred);
-					iriSet.add(obj);
-				}
-				makeValueItem("subj", subj, statement);
-				makeValueItem("pred", pred, statement);
-				makeValueItem("obj", obj, statement);
+				makeValueItem("subj", getTemplate().getSubject(s), statement);
+				makeValueItem("pred", getTemplate().getPredicate(s), statement);
+				makeValueItem("obj", (IRI) getTemplate().getObject(s), statement);
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
@@ -194,6 +181,9 @@ public class StatementItem extends Panel {
 		}
 
 		private void makeValueItem(String id, IRI iri, WebMarkupContainer statement) {
+			if (isFirst()) {
+				iriSet.add(iri);
+			}
 			ValueItem vi = new ValueItem(id, transform(iri), this);
 			items.add(vi);
 			statement.add(vi);
@@ -224,9 +214,13 @@ public class StatementItem extends Panel {
 		}
 
 		private IRI transform(IRI iri) {
-			if (context.getTemplate().isPlaceholder(iri) && getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
-				// TODO: Check that this double-underscore pattern isn't used otherwise:
-				return vf.createIRI(iri.stringValue() + "__" + getRepeatIndex());
+			// Only add "__N" to URI from second repetition group on; for the first group, information about
+			// narrow scopes is not yet complete.
+			if (getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
+				if (context.getTemplate().isPlaceholder(iri) || context.getTemplate().isLocalResource(iri)) {
+					// TODO: Check that this double-underscore pattern isn't used otherwise:
+					return vf.createIRI(iri.stringValue() + "__" + getRepeatIndex());
+				}
 			}
 			return iri;
 		}
@@ -244,6 +238,15 @@ public class StatementItem extends Panel {
 					npCreator.addPubinfoStatement(pSubj, pPred, pObj);
 				}
 			}
+		}
+
+		private boolean hasEmptyElements() {
+			for (IRI s : statementPartIds) {
+				if (context.processIri(transform(getTemplate().getSubject(s))) == null) return true;
+				if (context.processIri(transform(getTemplate().getPredicate(s))) == null) return true;
+				if (context.processValue(transform((IRI) getTemplate().getObject(s))) == null) return true;
+			}
+			return false;
 		}
 
 	}
