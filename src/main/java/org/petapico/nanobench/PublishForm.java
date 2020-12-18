@@ -168,6 +168,7 @@ public class PublishForm extends Panel {
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
 					ex.printStackTrace();
+					feedbackPanel.error(ex.getMessage());
 				}
 			}
 
