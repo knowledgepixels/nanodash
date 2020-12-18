@@ -5,6 +5,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleCreatorPattern;
+import org.petapico.nanobench.PublishFormContext.ContextType;
 
 public class IriItem extends Panel {
 	
@@ -23,7 +24,11 @@ public class IriItem extends Panel {
 			}
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			labelString = "the assertion above";
+			if (context.getType() == ContextType.ASSERTION) {
+				labelString = "this assertion";
+			} else {
+				labelString = "the assertion above";
+			}
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
 			labelString = "this nanopublication";
 		}
