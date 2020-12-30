@@ -280,6 +280,7 @@ public class Template implements Serializable {
 	}
 
 	public List<Value> getPossibleValues(IRI iri) {
+		iri = transform(iri);
 		List<Value> l = possibleValueMap.get(iri);
 		if (l == null) {
 			l = new ArrayList<>();
@@ -314,6 +315,7 @@ public class Template implements Serializable {
 	}
 
 	public List<String> getPossibleValuesFromApi(IRI iri, String searchterm, Map<String,String> labelMap) {
+		iri = transform(iri);
 		List<String> values = new ArrayList<>();
 		List<String> apiList = apiMap.get(iri);
 		if (apiList != null) {
