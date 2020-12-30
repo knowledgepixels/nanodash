@@ -33,7 +33,7 @@ public class ValueItem extends Panel implements ContextComponent {
 			GuidedChoiceItem item = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
 			add(item);
 		} else {
-			add(new IriItem("value", id, iri, id.equals("obj"), s.getContext()));
+			add(new IriItem("value", id, iri, id.equals("obj"), s));
 		}
 	}
 

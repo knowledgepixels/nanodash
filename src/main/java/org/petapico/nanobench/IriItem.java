@@ -11,9 +11,9 @@ public class IriItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, PublishFormContext context) {
+	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, StatementItem.RepetitionGroup s) {
 		super(id);
-		final Template template = context.getTemplate();
+		final Template template = s.getContext().getTemplate();
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = ProfilePage.getUserIri();
@@ -24,7 +24,7 @@ public class IriItem extends Panel {
 			}
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			if (context.getType() == ContextType.ASSERTION) {
+			if (s.getContext().getType() == ContextType.ASSERTION) {
 				labelString = "this assertion";
 			} else {
 				labelString = "the assertion above";
@@ -44,6 +44,7 @@ public class IriItem extends Panel {
 			// Capitalize first letter of label if at subject position:
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
+		labelString = labelString.replaceAll("%I%", "" + s.getRepeatIndex());
 		Label labelComp = new Label("label", labelString);
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
