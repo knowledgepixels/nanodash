@@ -111,7 +111,21 @@ a.button, input.button {
 	cursor: pointer;
 }
 
-a.button:hover, input.button:hover {
+a.smallbutton {
+	font-size: 10pt;
+	padding: 0px 5px;
+	margin: 0;
+	background-color: #eee;
+	color: #000;
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 5px;
+	border-color: black;
+	display:inline-block;
+	cursor: pointer;
+}
+
+a.button:hover, a.smallbutton:hover, input.button:hover {
 	background-color: #f8f8f8;
 }
 
