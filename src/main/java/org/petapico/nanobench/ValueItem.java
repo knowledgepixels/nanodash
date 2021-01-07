@@ -17,20 +17,20 @@ public class ValueItem extends Panel implements ContextComponent {
 	public ValueItem(String id, IRI iri, StatementItem.RepetitionGroup s) {
 		super(id);
 		final Template template = s.getContext().getTemplate();
-		if (template.isUriPlaceholder(iri)) {
+		if (template.isRestrictedChoicePlaceholder(iri)) {
+			RestrictedChoiceItem item = new RestrictedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
+			components.add(item);
+			add(item);
+		} else if (template.isGuidedChoicePlaceholder(iri)) {
+			GuidedChoiceItem item = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
+			add(item);
+		} else if (template.isUriPlaceholder(iri)) {
 			IriTextfieldItem item = new IriTextfieldItem("value", id, iri, s.isOptional(), s.getContext());
 			components.add(item);
 			add(item);
 		} else if (template.isLiteralPlaceholder(iri)) {
 			LiteralTextfieldItem item = new LiteralTextfieldItem("value", iri, s.isOptional(), s.getContext());
 			components.add(item);
-			add(item);
-		} else if (template.isRestrictedChoicePlaceholder(iri)) {
-			RestrictedChoiceItem item = new RestrictedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
-			components.add(item);
-			add(item);
-		} else if (template.isGuidedChoicePlaceholder(iri)) {
-			GuidedChoiceItem item = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
 			add(item);
 		} else {
 			add(new IriItem("value", id, iri, id.equals("obj"), s));

@@ -235,8 +235,14 @@ public class Template implements Serializable {
 
 	public boolean isUriPlaceholder(IRI iri) {
 		iri = transform(iri);
-		return typeMap.containsKey(iri) && 
-				(typeMap.get(iri).contains(URI_PLACEHOLDER_CLASS) || typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS));
+		if (!typeMap.containsKey(iri)) return false;
+		for (IRI t : typeMap.get(iri)) {
+			if (t.equals(URI_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(TRUSTY_URI_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
+		}
+		return false;
 	}
 
 	public boolean isTrustyUriPlaceholder(IRI iri) {
@@ -262,9 +268,14 @@ public class Template implements Serializable {
 	public boolean isPlaceholder(IRI iri) {
 		iri = transform(iri);
 		if (!typeMap.containsKey(iri)) return false;
-		List<IRI> m = typeMap.get(iri);
-		return m.contains(URI_PLACEHOLDER_CLASS) || m.contains(TRUSTY_URI_PLACEHOLDER_CLASS) || m.contains(LITERAL_PLACEHOLDER_CLASS) ||
-				m.contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS) || m.contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
+		for (IRI t : typeMap.get(iri)) {
+			if (t.equals(URI_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(TRUSTY_URI_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(LITERAL_PLACEHOLDER_CLASS)) return true;
+		}
+		return false;
 	}
 
 	public boolean isOptionalStatement(IRI iri) {
