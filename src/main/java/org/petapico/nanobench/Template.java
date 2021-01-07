@@ -104,7 +104,7 @@ public class Template implements Serializable {
 	public static final IRI PUBINFO_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/PubinfoTemplate");
 	public static final IRI UNLISTED_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UnlistedTemplate");
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
-	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");  // TODO: Deprecate this
+	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
@@ -223,9 +223,12 @@ public class Template implements Serializable {
 
 	public boolean isLocalResource(IRI iri) {
 		iri = transform(iri);
-		return typeMap.containsKey(iri) && (
-				typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS) || typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS)
-			);
+		if (!typeMap.containsKey(iri)) return false;
+		for (IRI t : typeMap.get(iri)) {
+			if (t.equals(LOCAL_RESOURCE_CLASS)) return true;
+			if (t.equals(INTRODUCED_RESOURCE_CLASS)) return true;
+		}
+		return false;
 	}
 
 	public boolean isIntroducedResource(IRI iri) {
