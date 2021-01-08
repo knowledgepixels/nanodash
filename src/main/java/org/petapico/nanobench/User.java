@@ -1,6 +1,9 @@
 package org.petapico.nanobench;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,14 +14,23 @@ import java.util.Map;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.nanopub.MalformedNanopubException;
+import org.nanopub.MultiNanopubRdfHandler;
+import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
+import org.nanopub.extra.server.FetchIndex;
 
 public class User implements Serializable, Comparable<User> {
 
 	private static final long serialVersionUID = 1L;
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	private static String authorityIndex = "http://purl.org/np/RAZ4KCC6EceKwJP602FI4WG0UgsjS0OaGDuKvadd6z-jI";
 
 	private static List<User> users;
 	private static Map<String,User> userIdMap;
@@ -38,6 +50,22 @@ public class User implements Serializable, Comparable<User> {
 			}
 			Collections.sort(users);
 		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+
+		// TODO: use piped out-in stream here:
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new FetchIndex(authorityIndex, out, RDFFormat.TRIG, false, true, null).run();
+		InputStream in = new ByteArrayInputStream(out.toByteArray());
+		try {
+			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
+				@Override
+				public void handleNanopub(Nanopub np) {
+					System.err.println("Authority index element: " + np.getUri());
+					// TODO: process these authority index nanopublications
+				}
+			});
+		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
 			ex.printStackTrace();
 		}
 	}
