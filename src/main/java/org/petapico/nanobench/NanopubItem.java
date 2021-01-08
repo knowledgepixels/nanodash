@@ -1,5 +1,6 @@
 package org.petapico.nanobench;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -42,29 +43,24 @@ public class NanopubItem extends Panel {
 		}
 		add(new Label("user", userString));
 
-		try {
-			ExternalLink retractLink = new ExternalLink("retract-link", "./publish?" +
-					"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE&" +
-					"param_nanopubToBeRetracted=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8.toString()));
-			if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
-				retractLink.add(new Label("retract-label", "retract"));
-			} else {
-				retractLink.add(new Label("retract-label", ""));
-			}
-			add(retractLink);
-		} catch (java.io.UnsupportedEncodingException e) {
-			e.printStackTrace();
+		if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
+			// Own nanopublication
+			add(new ExternalLink("retract-link", "./publish?" +
+						"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE" +
+						"&param_nanopubToBeRetracted=" + urlEncode(n.getUri()))
+					.add(new Label("retract-label", "retract")));
+			add(new ExternalLink("approve-link", ".").add(new Label("approve-label", "")));  // Hide approve/disapprove link
+		} else {
+			// Somebody else's nanopublication
+			add(new ExternalLink("retract-link", ".").add(new Label("retract-label", "")));  // Hide retract link
+			add(new ExternalLink("approve-link", "./publish?" +
+					"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
+					"&param_nanopub=" + urlEncode(n.getUri()))
+				.add(new Label("approve-label", "approve/disapprove")));
 		}
-
-		try {
-			ExternalLink commentLink = new ExternalLink("comment-link", "./publish?" +
-					"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0&" +
-					"param_thing=" + URLEncoder.encode(n.getUri(), StandardCharsets.UTF_8.toString()));
-	//		commentLink.add(new Label("comment-label", "comment"));
-			add(commentLink);
-		} catch (java.io.UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
+		add(new ExternalLink("comment-link", "./publish?" +
+				"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0" +
+				"&param_thing=" + urlEncode(n.getUri())));
 
 		String positiveNotes = "";
 		String negativeNotes = "";
@@ -132,6 +128,15 @@ public class NanopubItem extends Panel {
 			}
 
 		});
+	}
+
+	private static String urlEncode(String s) {
+		try {
+			return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+		}
+		return "";
 	}
 
 }
