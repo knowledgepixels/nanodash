@@ -35,12 +35,13 @@ public class PublishFormContext implements Serializable {
 
 	private final ContextType contextType;
 	private final Template template;
+	private final String componentId;
 	private final Map<String,String> params = new HashMap<>();
 	private List<FormComponent<String>> formComponents = new ArrayList<>();
 	private Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
 	private boolean isLocal;
-	private List<StatementItem> statementItems = new ArrayList<>();
+	private List<StatementItem> statementItems;
 	private Bag<IRI> iriBag = new HashBag<>();
 
 	public PublishFormContext(ContextType contextType, String templateId, String componentId) {
@@ -48,7 +49,12 @@ public class PublishFormContext implements Serializable {
 		this.isLocal = templateId != null && templateId.startsWith("file://");
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
+		this.componentId = componentId;
+	}
 
+	public void initStatements() {
+		if (statementItems != null) return;
+		statementItems = new ArrayList<>();
 		for (IRI st : template.getStatementIris()) {
 			StatementItem si = new StatementItem(componentId, st, this);
 			statementItems.add(si);

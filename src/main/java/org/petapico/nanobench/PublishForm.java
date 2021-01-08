@@ -123,6 +123,13 @@ public class PublishForm extends Panel {
 			}
 		}
 
+		// Init statements only now, in order to pick up parameter values:
+		assertionContext.initStatements();
+		provenanceContext.initStatements();
+		for (PublishFormContext c : pubInfoContexts) {
+			c.initStatements();
+		}
+
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
 		consentCheck.add(new IValidator<Boolean>() {
@@ -262,6 +269,7 @@ public class PublishForm extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement");
+				provenanceContext.initStatements();
 				refreshProvenance(target);
 			}
 
@@ -328,7 +336,9 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				pubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement"));
+				PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement");
+				c.initStatements();
+				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
 				refreshPubInfo(target);
 			}
