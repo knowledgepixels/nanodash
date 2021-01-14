@@ -16,7 +16,22 @@ public class UserListPage extends WebPage {
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new DataView<User>("users", new ListDataProvider<User>(User.getUsers(true))) {
+		add(new DataView<User>("approved-users", new ListDataProvider<User>(User.getUsers(true, true))) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<User> item) {
+				PageParameters params = new PageParameters();
+				params.add("id", item.getModelObject().getId());
+				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				l.add(new Label("linktext", item.getModelObject().getDisplayName()));
+				item.add(l);
+			}
+
+		});
+
+		add(new DataView<User>("other-users", new ListDataProvider<User>(User.getUsers(false, true))) {
 
 			private static final long serialVersionUID = 1L;
 

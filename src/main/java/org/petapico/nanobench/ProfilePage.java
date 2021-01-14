@@ -36,7 +36,7 @@ public class ProfilePage extends WebPage {
 	public ProfilePage(final PageParameters parameters) {
 		super();
 		loadProfileInfo();
-		User.getUsers(true);  // refresh
+		User.refreshUsers();
 
 		add(new TitleBar("titlebar"));
 
