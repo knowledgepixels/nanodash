@@ -69,18 +69,25 @@ public class User implements Serializable, Comparable<User> {
 		try {
 			Map<String,String> params = new HashMap<>();
 			params.put("pred", "http://purl.org/nanopub/x/approves-of");
-			for (ApiResponseEntry entry : ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData()) {
-				if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
-				String subj = entry.get("subj");
-				String pubkey = entry.get("pubkey");
-				String obj = entry.get("obj");
-				if (userPubkeyMap.containsKey(pubkey)) {
-					User u = userPubkeyMap.get(pubkey);
-					if (u.getId().stringValue().equals(subj)) {
-						Nanopub np = GetNanopub.get(obj);
-						User.createUser(np, true);
+			List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
+			while (true) {
+				boolean keepLooping = false;
+				for (ApiResponseEntry entry : new ArrayList<>(results)) {
+					if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
+					String subj = entry.get("subj");
+					String pubkey = entry.get("pubkey");
+					String obj = entry.get("obj");
+					if (userPubkeyMap.containsKey(pubkey)) {
+						User u = userPubkeyMap.get(pubkey);
+						if (u.getId().stringValue().equals(subj)) {
+							Nanopub np = GetNanopub.get(obj);
+							User.createUser(np, true);
+						}
+						results.remove(entry);
+						keepLooping = true;
 					}
 				}
+				if (!keepLooping) break;
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
