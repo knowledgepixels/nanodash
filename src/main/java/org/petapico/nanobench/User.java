@@ -98,8 +98,8 @@ public class User implements Serializable, Comparable<User> {
 		Collections.sort(unapprovedUsers);
 	}
 
-	public static synchronized List<User> getUsers(boolean approved, boolean refresh) {
-		if (unapprovedUsers == null || refresh) {
+	public static synchronized List<User> getUsers(boolean approved) {
+		if (unapprovedUsers == null) {
 			refreshUsers();
 		}
 		if (approved) {
