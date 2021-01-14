@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +46,15 @@ public class Utils {
 			nanopubs.put(uri, GetNanopub.get(uri));
 		}
 		return nanopubs.get(uri);
+	}
+
+	public static String urlEncode(String s) {
+		try {
+			return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+		}
+		return "";
 	}
 
 }
