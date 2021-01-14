@@ -135,13 +135,12 @@ public class User implements Serializable, Comparable<User> {
 		this.pubkeyString = pubkeyString;
 	}
 
-	private static User createUser(ApiResponseEntry entry, boolean approved) {
+	private static void createUser(ApiResponseEntry entry, boolean approved) {
 		User user = new User(vf.createIRI(entry.get("user")), entry.get("name"), vf.createIRI(entry.get("intronp")), entry.get("pubkey"));
 		registerUser(user, approved);
-		return user;
 	}
 
-	private static User createUser(Nanopub np, boolean approved) {
+	private static void createUser(Nanopub np, boolean approved) {
 		IRI userId = null;
 		String publicKey = null;
 		String name = null;
@@ -155,14 +154,17 @@ public class User implements Serializable, Comparable<User> {
 				name = st.getObject().stringValue();
 			}
 		}
-		if (userId == null || publicKey == null) return null;
+		if (userId == null || publicKey == null) return;
 		User user = new User(userId, name, np.getUri(), publicKey);
 		registerUser(user, approved);
-		return user;
 	}
 
 	private static void registerUser(User user, boolean approved) {
 		String userId = user.getId().stringValue();
+		if (userId.startsWith("https://orcid.org/")) {
+			// Some simple ORCID ID wellformedness check:
+			if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
+		}
 		String publicKey = user.getPubkeyString();
 		if (userIdMap.containsKey(userId)) {
 			System.err.println("User ID already registered: " + userId);

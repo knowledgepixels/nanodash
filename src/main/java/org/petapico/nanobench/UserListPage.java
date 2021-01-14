@@ -31,7 +31,7 @@ public class UserListPage extends WebPage {
 
 		});
 
-		add(new DataView<User>("other-users", new ListDataProvider<User>(User.getUsers(false, true))) {
+		add(new DataView<User>("other-users", new ListDataProvider<User>(User.getUsers(false, false))) {
 
 			private static final long serialVersionUID = 1L;
 
