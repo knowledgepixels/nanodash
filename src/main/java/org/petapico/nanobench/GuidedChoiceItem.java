@@ -131,6 +131,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 		};
 		textfield = new Select2Choice<String>("textfield", model, choiceProvider);
+		textfield.getSettings().getAjax(true).setDelay(500);
 		textfield.getSettings().setCloseOnSelect(true);
 		textfield.getSettings().setTags(true);
 		textfield.getSettings().setPlaceholder("");
