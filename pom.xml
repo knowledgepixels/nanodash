@@ -88,6 +88,11 @@
       <artifactId>json</artifactId>
       <version>20200518</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <version>2.11.1</version>
+    </dependency>
 
     <!--  NANOPUB DEPENDENCIES  -->
     <dependency>
