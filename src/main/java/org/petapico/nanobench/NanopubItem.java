@@ -3,6 +3,7 @@ package org.petapico.nanobench;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -10,10 +11,22 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.Statement;
+import org.petapico.nanobench.action.ApprovalAction;
+import org.petapico.nanobench.action.CommentAction;
+import org.petapico.nanobench.action.NanopubAction;
+import org.petapico.nanobench.action.RetractionAction;
 
 public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
+
+	private static List<NanopubAction> actions = new ArrayList<>();
+
+	static {
+		actions.add(new CommentAction());
+		actions.add(new RetractionAction());
+		actions.add(new ApprovalAction());
+	}
 
 	public NanopubItem(String id, final NanopubElement n, boolean hidePubinfo) {
 		super(id);
@@ -40,24 +53,27 @@ public class NanopubItem extends Panel {
 		}
 		add(new Label("user", userString));
 
-		if (ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId())) {
-			// Own nanopublication
-			add(new ExternalLink("retract-link", "./publish?" +
-						"template=http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE" +
-						"&param_nanopubToBeRetracted=" + Utils.urlEncode(n.getUri()))
-					.add(new Label("retract-label", "retract...")));
-			add(new ExternalLink("approve-link", ".").add(new Label("approve-label", "")));  // Hide approve/disapprove link
-		} else {
-			// Somebody else's nanopublication
-			add(new ExternalLink("retract-link", ".").add(new Label("retract-label", "")));  // Hide retract link
-			add(new ExternalLink("approve-link", "./publish?" +
-					"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
-					"&param_nanopub=" + Utils.urlEncode(n.getUri()))
-				.add(new Label("approve-label", "approve/disapprove...")));
+		List<MarkupContainer> actionLinks = new ArrayList<>();
+		boolean isOwnNanopub = ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId());
+		for (NanopubAction action : actions) {
+			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
+			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
+			actionLinks.add(
+				new ExternalLink("action-link", action.getLinkTarget(n.getNanopub()))
+				 .add(new Label("action-link-label", action.getLinkLabel() + "..."))
+			);
 		}
-		add(new ExternalLink("comment-link", "./publish?" +
-				"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0" +
-				"&param_thing=" + Utils.urlEncode(n.getUri())));
+
+		add(new DataView<MarkupContainer>("action-links", new ListDataProvider<MarkupContainer>(actionLinks)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<MarkupContainer> item) {
+				item.add(item.getModelObject());
+			}
+
+		});
 
 		String positiveNotes = "";
 		String negativeNotes = "";
