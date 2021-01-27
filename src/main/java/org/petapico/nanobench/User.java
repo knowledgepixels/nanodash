@@ -174,11 +174,11 @@ public class User implements Serializable, Comparable<User> {
 		}
 		String publicKey = user.getPubkeyString();
 		if (userIdMap.containsKey(userId)) {
-			System.err.println("User ID already registered: " + userId);
+			//System.err.println("User ID already registered: " + userId);
 			return;
 		}
 		if (userPubkeyMap.containsKey(publicKey)) {
-			System.err.println("User public key already registered: " + publicKey);
+			//System.err.println("User public key already registered: " + publicKey);
 			return;
 		}
 		userIdMap.put(userId, user);
