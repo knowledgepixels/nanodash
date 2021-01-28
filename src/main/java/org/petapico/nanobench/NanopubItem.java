@@ -45,7 +45,10 @@ public class NanopubItem extends Panel {
 
 		List<MarkupContainer> actionLinks = new ArrayList<>();
 		boolean isOwnNanopub = ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId());
-		for (NanopubAction action : NanopubAction.getDefaultActions()) {
+		List<NanopubAction> actions = new ArrayList<>();
+		actions.addAll(NanopubAction.getDefaultActions());
+		actions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
+		for (NanopubAction action : actions) {
 			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
 			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
 			Nanopub np = n.getNanopub();

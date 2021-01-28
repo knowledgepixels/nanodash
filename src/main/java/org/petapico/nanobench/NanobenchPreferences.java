@@ -23,9 +23,10 @@ public class NanobenchPreferences {
 
 	public static NanobenchPreferences get() {
 		if (obj == null) {
+			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanobench-preferences.yml");
+			if (!prefFile.exists()) return null;
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 			try {
-				File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanobench-preferences.yml");
 				obj = mapper.readValue(prefFile, NanobenchPreferences.class);
 			} catch (IOException ex) {
 				ex.printStackTrace();
