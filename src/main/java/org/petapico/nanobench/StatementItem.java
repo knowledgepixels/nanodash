@@ -131,7 +131,7 @@ public class StatementItem extends Panel {
 
 		private static final long serialVersionUID = 1L;
 
-		private List<WebMarkupContainer> statements;
+		private List<StatementPartItem> statements;
 
 		public RepetitionGroup() {
 		}
@@ -139,10 +139,11 @@ public class StatementItem extends Panel {
 		public void refresh() {
 			statements = new ArrayList<>();
 			for (IRI s : statementPartIds) {
-				WebMarkupContainer statement = new WebMarkupContainer("statement");
-				statement.add(makeValueItem("subj", getTemplate().getSubject(s)));
-				statement.add(makeValueItem("pred", getTemplate().getPredicate(s)));
-				statement.add(makeValueItem("obj", (IRI) getTemplate().getObject(s)));
+				StatementPartItem statement = new StatementPartItem("statement",
+						makeValueItem("subj", getTemplate().getSubject(s)),
+						makeValueItem("pred", getTemplate().getPredicate(s)),
+						makeValueItem("obj", (IRI) getTemplate().getObject(s))
+					);
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
@@ -189,7 +190,7 @@ public class StatementItem extends Panel {
 			return vi;
 		}
 
-		public List<WebMarkupContainer> getStatements() {
+		public List<StatementPartItem> getStatements() {
 			return statements;
 		}
 
