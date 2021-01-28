@@ -140,9 +140,9 @@ public class StatementItem extends Panel {
 			statements = new ArrayList<>();
 			for (IRI s : statementPartIds) {
 				WebMarkupContainer statement = new WebMarkupContainer("statement");
-				makeValueItem("subj", getTemplate().getSubject(s), statement);
-				makeValueItem("pred", getTemplate().getPredicate(s), statement);
-				makeValueItem("obj", (IRI) getTemplate().getObject(s), statement);
+				statement.add(makeValueItem("subj", getTemplate().getSubject(s)));
+				statement.add(makeValueItem("pred", getTemplate().getPredicate(s)));
+				statement.add(makeValueItem("obj", (IRI) getTemplate().getObject(s)));
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
@@ -180,13 +180,13 @@ public class StatementItem extends Panel {
 			}
 		}
 
-		private void makeValueItem(String id, IRI iri, WebMarkupContainer statement) {
+		private ValueItem makeValueItem(String id, IRI iri) {
 			if (isFirst()) {
 				iriSet.add(iri);
 			}
 			ValueItem vi = new ValueItem(id, transform(iri), this);
 			items.add(vi);
-			statement.add(vi);
+			return vi;
 		}
 
 		public List<WebMarkupContainer> getStatements() {
