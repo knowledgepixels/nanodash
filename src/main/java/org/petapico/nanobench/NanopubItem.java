@@ -11,22 +11,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.Statement;
-import org.petapico.nanobench.action.ApprovalAction;
-import org.petapico.nanobench.action.CommentAction;
+import org.nanopub.Nanopub;
 import org.petapico.nanobench.action.NanopubAction;
-import org.petapico.nanobench.action.RetractionAction;
 
 public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
-
-	private static List<NanopubAction> actions = new ArrayList<>();
-
-	static {
-		actions.add(new CommentAction());
-		actions.add(new RetractionAction());
-		actions.add(new ApprovalAction());
-	}
 
 	public NanopubItem(String id, final NanopubElement n, boolean hidePubinfo) {
 		super(id);
@@ -55,12 +45,14 @@ public class NanopubItem extends Panel {
 
 		List<MarkupContainer> actionLinks = new ArrayList<>();
 		boolean isOwnNanopub = ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId());
-		for (NanopubAction action : actions) {
+		for (NanopubAction action : NanopubAction.getDefaultActions()) {
 			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
 			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
+			Nanopub np = n.getNanopub();
+			if (!action.isApplicableTo(np)) continue;
+			String linkUrl = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(np)) + "&" + action.getParamString(np);
 			actionLinks.add(
-				new ExternalLink("action-link", action.getLinkTarget(n.getNanopub()))
-				 .add(new Label("action-link-label", action.getLinkLabel() + "..."))
+				new ExternalLink("action-link", linkUrl).add(new Label("action-link-label", action.getLinkLabel(np) + "..."))
 			);
 		}
 

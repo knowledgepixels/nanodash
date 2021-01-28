@@ -4,16 +4,21 @@ import org.nanopub.Nanopub;
 
 public class CommentAction extends NanopubAction {
 
+	public static final String TEMPLATE_URI = "http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0";
+
 	@Override
-	public String getLinkLabel() {
+	public String getLinkLabel(Nanopub np) {
 		return "comment";
 	}
 
 	@Override
-	public String getLinkTarget(Nanopub np) {
-		return "./publish?" +
-			"template=http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0" +
-			"&param_thing=" + getEncodedUri(np);
+	public String getTemplateUri(Nanopub np) {
+		return TEMPLATE_URI;
+	}
+
+	@Override
+	public String getParamString(Nanopub np) {
+		return "param_thing=" + getEncodedUri(np);
 	}
 
 	@Override
@@ -23,6 +28,11 @@ public class CommentAction extends NanopubAction {
 
 	@Override
 	public boolean isApplicableToOthersNanopubs() {
+		return true;
+	}
+
+	@Override
+	public boolean isApplicableTo(Nanopub np) {
 		return true;
 	}
 
