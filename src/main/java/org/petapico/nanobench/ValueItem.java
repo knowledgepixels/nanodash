@@ -1,8 +1,6 @@
 package org.petapico.nanobench;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -12,29 +10,23 @@ public class ValueItem extends Panel implements ContextComponent {
 
 	private static final long serialVersionUID = 1L;
 
-	private List<ContextComponent> components = new ArrayList<>();
+	private ContextComponent component;
 
 	public ValueItem(String id, IRI iri, StatementItem.RepetitionGroup s) {
 		super(id);
 		final Template template = s.getContext().getTemplate();
 		if (template.isRestrictedChoicePlaceholder(iri)) {
-			RestrictedChoiceItem item = new RestrictedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
-			components.add(item);
-			add(item);
+			component = new RestrictedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
 		} else if (template.isGuidedChoicePlaceholder(iri)) {
-			GuidedChoiceItem item = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
-			add(item);
+			component = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
 		} else if (template.isUriPlaceholder(iri)) {
-			IriTextfieldItem item = new IriTextfieldItem("value", id, iri, s.isOptional(), s.getContext());
-			components.add(item);
-			add(item);
+			component = new IriTextfieldItem("value", id, iri, s.isOptional(), s.getContext());
 		} else if (template.isLiteralPlaceholder(iri)) {
-			LiteralTextfieldItem item = new LiteralTextfieldItem("value", iri, s.isOptional(), s.getContext());
-			components.add(item);
-			add(item);
+			component = new LiteralTextfieldItem("value", iri, s.isOptional(), s.getContext());
 		} else {
-			add(new IriItem("value", id, iri, id.equals("obj"), s));
+			component = new IriItem("value", id, iri, id.equals("obj"), s);
 		}
+		add((Component) component);
 	}
 
 	public static class KeepValueAfterRefreshBehavior extends OnChangeAjaxBehavior {
@@ -50,9 +42,7 @@ public class ValueItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		for (ContextComponent c : components) {
-			c.removeFromContext();
-		}
+		component.removeFromContext();
 	}
 
 }

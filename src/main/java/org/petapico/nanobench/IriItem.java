@@ -7,7 +7,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleCreatorPattern;
 import org.petapico.nanobench.PublishFormContext.ContextType;
 
-public class IriItem extends Panel {
+public class IriItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 
@@ -71,6 +71,11 @@ public class IriItem extends Panel {
 		uri = uri.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
 		uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
 		return uri;
+	}
+
+	@Override
+	public void removeFromContext() {
+		// Nothing to be done here.
 	}
 
 }
