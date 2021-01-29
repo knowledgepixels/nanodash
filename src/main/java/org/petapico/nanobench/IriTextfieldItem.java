@@ -17,6 +17,7 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -27,10 +28,12 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	private String prefix;
 	private PublishFormContext context;
 	private TextField<String> textfield;
+	private IRI iri;
 
-	public IriTextfieldItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
+	public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
+		this.iri = iriP;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -133,6 +136,32 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		context.getFormComponents().remove(textfield);
+	}
+
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		if (v instanceof IRI) {
+			// TODO: Check also regex, prefix etc.
+			if (textfield.getModelObject().isEmpty()) {
+				return true;
+			}
+			String iriString = v.stringValue();
+			if (context.getTemplate().isLocalResource(iri)) {
+				iriString = iriString.replaceFirst("^.*[/#](.*)$", "$1");
+			}
+			return iriString.equals(textfield.getModelObject());
+		}
+		return false;
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+		if (prefix != null && v.stringValue().startsWith(prefix)) {
+			textfield.setModelObject(v.stringValue().substring(prefix.length()));
+		} else {
+			textfield.setModelObject(v.stringValue());
+		}
 	}
 
 }

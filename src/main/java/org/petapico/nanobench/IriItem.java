@@ -4,6 +4,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
 import org.petapico.nanobench.PublishFormContext.ContextType;
 
@@ -11,8 +12,11 @@ public class IriItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 
-	public IriItem(String id, String parentId, IRI iri, boolean objectPosition, StatementItem.RepetitionGroup s) {
+	private IRI iri;
+
+	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, StatementItem.RepetitionGroup s) {
 		super(id);
+		this.iri = iriP;
 		final Template template = s.getContext().getTemplate();
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
@@ -76,6 +80,17 @@ public class IriItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		// Nothing to be done here.
+	}
+
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		return iri.equals(v);
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+		// Nothing left to be done here.
 	}
 
 }

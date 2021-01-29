@@ -5,6 +5,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
 public class ValueItem extends Panel implements ContextComponent {
 
@@ -43,6 +44,16 @@ public class ValueItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		component.removeFromContext();
+	}
+
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		return component.isUnifiableWith(v);
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		component.unifyWith(v);
 	}
 
 }

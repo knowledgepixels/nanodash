@@ -21,6 +21,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
 	private Select2Choice<String> choice;
+	private final List<String> dropdownValues;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
@@ -36,7 +37,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			model = Model.of(value);
 			context.getFormComponentModels().put(iri, model);
 		}
-		final List<String> dropdownValues = new ArrayList<>();
+		dropdownValues = new ArrayList<>();
 		for (Value v : template.getPossibleValues(iri)) {
 			dropdownValues.add(v.toString());
 		}
@@ -111,6 +112,26 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		context.getFormComponents().remove(choice);
+	}
+
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		if (v instanceof IRI) {
+			if (!dropdownValues.contains(v.stringValue())) {
+				return false;
+			}
+			if (choice.getModelObject().isEmpty()) {
+				return true;
+			}
+			return v.stringValue().equals(choice.getModelObject());
+		}
+		return false;
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+		choice.setModelObject(v.stringValue());
 	}
 
 }

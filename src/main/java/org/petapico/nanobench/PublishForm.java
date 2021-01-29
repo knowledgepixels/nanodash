@@ -130,6 +130,17 @@ public class PublishForm extends Panel {
 			c.initStatements();
 		}
 
+		ValueFiller filler = null;
+		if (!pageParams.get("fill").isNull()) {
+			filler = new ValueFiller(pageParams.get("fill").toString(), assertionContext);
+			filler.fill();
+		}
+		if (filler != null && filler.getWarningMessage() != null) {
+			add(new Label("warnings", filler.getWarningMessage()));
+		} else {
+			add(new Label("warnings", "").setVisible(false));
+		}
+
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
 		consentCheck.add(new IValidator<Boolean>() {

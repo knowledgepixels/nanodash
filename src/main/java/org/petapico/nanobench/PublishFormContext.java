@@ -13,6 +13,7 @@ import org.apache.commons.collections4.bag.HashBag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -119,6 +120,7 @@ public class PublishFormContext implements Serializable {
 			// TODO: deprecate this (use LocalResource instead)
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		}
+		// TODO: Move this code below to the respective placeholder classes:
 		if (template.isRestrictedChoicePlaceholder(iri)) {
 			IModel<String> tf = formComponentModels.get(iri);
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
@@ -185,6 +187,12 @@ public class PublishFormContext implements Serializable {
 
 	public boolean hasNarrowScope(IRI iri) {
 		return iriBag.getCount(iri) == 1;
+	}
+
+	public void fill(Set<Statement> statements) throws UnificationException {
+		for (StatementItem si : statementItems) {
+			si.fill(statements);
+		}
 	}
 
 }

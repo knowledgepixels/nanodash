@@ -9,17 +9,21 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
 
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
 	private TextField<String> textfield;
+	private final String regex;
 
 	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
 		super(id);
 		this.context = context;
 		final Template template = context.getTemplate();
+		regex = template.getRegex(iri);
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
@@ -41,7 +45,6 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
 			@Override
 			public void validate(IValidatable<String> s) {
-				String regex = template.getRegex(iri);
 				if (regex != null) {
 					if (!s.getValue().matches(regex)) {
 						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
@@ -59,6 +62,26 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		context.getFormComponents().remove(textfield);
+	}
+
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		if (v instanceof Literal) {
+			if (regex != null && !v.stringValue().matches(regex)) {
+				return false;
+			}
+			if (textfield.getModelObject().isEmpty()) {
+				return true;
+			}
+			return v.stringValue().equals(textfield.getModelObject());
+		}
+		return false;
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+		textfield.setModelObject(v.stringValue());
 	}
 
 }

@@ -200,6 +200,24 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		context.getFormComponents().remove(textfield);
 	}
 
+	@Override
+	public boolean isUnifiableWith(Value v) {
+		if (v instanceof IRI) {
+			// TODO: Check also regex, prefix etc.
+			if (textfield.getModelObject().isEmpty()) {
+				return true;
+			}
+			return v.stringValue().equals(textfield.getModelObject());
+		}
+		return false;
+	}
+
+	@Override
+	public void unifyWith(Value v) throws UnificationException {
+		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+		textfield.setModelObject(v.stringValue());
+	}
+
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 }

@@ -15,6 +15,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -124,6 +125,12 @@ public class StatementItem extends Panel {
 
 	public Set<IRI> getIriSet() {
 		return iriSet;
+	}
+
+	public void fill(Set<Statement> statements) throws UnificationException {
+		for (RepetitionGroup rg : repetitionGroups) {
+			rg.fill(statements);
+		}
 	}
 
 
@@ -248,6 +255,43 @@ public class StatementItem extends Panel {
 				if (context.processValue(transform((IRI) getTemplate().getObject(s))) == null) return true;
 			}
 			return false;
+		}
+
+		public void fill(Set<Statement> st) throws UnificationException {
+//			System.err.println("Trying to unify");
+			for (StatementPartItem p : statements) {
+				boolean matchFound = false;
+				for (Statement s : st) {
+//					System.err.println("S: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
+					if (
+							p.getSubject().isUnifiableWith(s.getSubject()) &&
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
+							p.getObject().isUnifiableWith(s.getObject())) {
+						matchFound = true;
+						break;
+					}
+				}
+				if (!matchFound) return;
+			}
+//			System.err.println("Unifying...");
+			for (StatementPartItem p : statements) {
+				boolean matchFound = false;
+				for (Statement s : st) {
+					if (
+							p.getSubject().isUnifiableWith(s.getSubject()) &&
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
+							p.getObject().isUnifiableWith(s.getObject())) {
+						p.getSubject().unifyWith(s.getSubject());
+						p.getPredicate().unifyWith(s.getPredicate());
+						p.getObject().unifyWith(s.getObject());
+						st.remove(s);
+						matchFound = true;
+						break;
+					}
+				}
+				if (!matchFound) throw new UnificationException("Unification seemed to work but then didn't");
+			}
+//			System.err.println("Unified!");
 		}
 
 	}
