@@ -1,6 +1,5 @@
 package org.petapico.nanobench;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,31 +14,29 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
+import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.petapico.nanobench.IriTextfieldItem.Validator;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
-
-import net.trustyuri.TrustyUriUtils;
 
 public class GuidedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
 	private Select2Choice<String> textfield;
+	private IRI iri;
 
 	private String prefix;
 
-	public GuidedChoiceItem(String id, String parentId, final IRI iri, boolean optional, final PublishFormContext context) {
+	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
+		this.iri = iriP;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -139,39 +136,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new AttributeAppender("style", "width:750px;"));
-		textfield.add(new IValidator<String>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void validate(IValidatable<String> s) {
-				String p = prefix;
-				if (s.getValue().matches("(https?|file)://.+")) p = "";
-				try {
-					ParsedIRI piri = new ParsedIRI(p + s.getValue());
-					if (!piri.isAbsolute()) {
-						s.error(new ValidationError("IRI not well-formed"));
-					}
-					if (p.isEmpty() && !(s.getValue().matches("(https?|file)://.+"))) {
-						s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
-					}
-				} catch (URISyntaxException ex) {
-					s.error(new ValidationError("IRI not well-formed"));
-				}
-				String regex = template.getRegex(iri);
-				if (regex != null) {
-					if (!s.getValue().matches(regex)) {
-						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
-					}
-				}
-				if (template.isTrustyUriPlaceholder(iri)) {
-					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
-						s.error(new ValidationError("Not a trusty URI"));
-					}
-				}
-			}
-
-		});
+		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
 			textfield.getSettings().setPlaceholder(template.getLabel(iri));
@@ -203,11 +168,20 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			// TODO: Check also regex, prefix etc.
+			String iriString = v.stringValue();
+			if (iriString.startsWith(prefix)) iriString = iriString.replace(prefix, "");
+			Validatable<String> validatable = new Validatable<>(iriString);
+			if (context.getTemplate().isLocalResource(iri)) {
+				iriString = iriString.replaceFirst("^.*[/#](.*)$", "$1");
+			}
+			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
+			if (!validatable.isValid()) {
+				return false;
+			}
 			if (textfield.getModelObject().isEmpty()) {
 				return true;
 			}
-			return v.stringValue().equals(textfield.getModelObject());
+			return iriString.equals(textfield.getModelObject());
 		}
 		return false;
 	}

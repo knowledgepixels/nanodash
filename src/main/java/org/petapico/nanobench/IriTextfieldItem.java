@@ -14,6 +14,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
@@ -76,39 +77,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		if (template.isLocalResource(iri)) {
 			textfield.add(new AttributeAppender("style", "width:250px;"));
 		}
-		textfield.add(new IValidator<String>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void validate(IValidatable<String> s) {
-				String p = prefix;
-				if (s.getValue().matches("(https?|file)://.+")) p = "";
-				try {
-					ParsedIRI piri = new ParsedIRI(p + s.getValue());
-					if (!piri.isAbsolute()) {
-						s.error(new ValidationError("IRI not well-formed"));
-					}
-					if (p.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
-						s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
-					}
-				} catch (URISyntaxException ex) {
-					s.error(new ValidationError("IRI not well-formed"));
-				}
-				String regex = template.getRegex(iri);
-				if (regex != null) {
-					if (!s.getValue().matches(regex)) {
-						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
-					}
-				}
-				if (template.isTrustyUriPlaceholder(iri)) {
-					if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
-						s.error(new ValidationError("Not a trusty URI"));
-					}
-				}
-			}
-
-		});
+		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
@@ -141,13 +110,18 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			// TODO: Check also regex, prefix etc.
-			if (textfield.getModelObject().isEmpty()) {
-				return true;
-			}
 			String iriString = v.stringValue();
+			if (iriString.startsWith(prefix)) iriString = iriString.replace(prefix, "");
+			Validatable<String> validatable = new Validatable<>(iriString);
 			if (context.getTemplate().isLocalResource(iri)) {
 				iriString = iriString.replaceFirst("^.*[/#](.*)$", "$1");
+			}
+			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
+			if (!validatable.isValid()) {
+				return false;
+			}
+			if (textfield.getModelObject().isEmpty()) {
+				return true;
 			}
 			return iriString.equals(textfield.getModelObject());
 		}
@@ -162,6 +136,51 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		} else {
 			textfield.setModelObject(v.stringValue());
 		}
+	}
+
+
+	protected static class Validator implements IValidator<String> {
+
+		private static final long serialVersionUID = 1L;
+
+		private IRI iri;
+		private Template template;
+		private String prefix;
+
+		public Validator(IRI iri, Template template, String prefix) {
+			this.iri = iri;
+			this.template = template;
+			this.prefix = prefix;
+		}
+
+		@Override
+		public void validate(IValidatable<String> s) {
+			String p = prefix;
+			if (s.getValue().matches("(https?|file)://.+")) p = "";
+			try {
+				ParsedIRI piri = new ParsedIRI(p + s.getValue());
+				if (!piri.isAbsolute()) {
+					s.error(new ValidationError("IRI not well-formed"));
+				}
+				if (p.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
+					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
+				}
+			} catch (URISyntaxException ex) {
+				s.error(new ValidationError("IRI not well-formed"));
+			}
+			String regex = template.getRegex(iri);
+			if (regex != null) {
+				if (!s.getValue().matches(regex)) {
+					s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+				}
+			}
+			if (template.isTrustyUriPlaceholder(iri)) {
+				if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
+					s.error(new ValidationError("Not a trusty URI"));
+				}
+			}
+		}
+
 	}
 
 }
