@@ -26,7 +26,6 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 import org.nanopub.extra.server.FetchIndex;
-import org.nanopub.extra.server.GetNanopub;
 
 public class User implements Serializable, Comparable<User> {
 
@@ -80,7 +79,7 @@ public class User implements Serializable, Comparable<User> {
 					if (userPubkeyMap.containsKey(pubkey)) {
 						User u = userPubkeyMap.get(pubkey);
 						if (u.getId().stringValue().equals(subj)) {
-							Nanopub np = GetNanopub.get(obj);
+							Nanopub np = Utils.getNanopub(obj);
 							User.createUser(np, true);
 						}
 						results.remove(entry);

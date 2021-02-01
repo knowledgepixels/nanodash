@@ -10,7 +10,6 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.server.GetNanopub;
 
 public class ValueFiller {
 
@@ -21,7 +20,7 @@ public class ValueFiller {
 	private String warningMessage;
 
 	public ValueFiller(String fillNpId, PublishFormContext context) {
-		fillNp = GetNanopub.get(fillNpId);
+		fillNp = Utils.getNanopub(fillNpId);
 		this.context = context;
 	}
 

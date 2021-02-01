@@ -28,7 +28,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.server.GetNanopub;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -50,7 +49,7 @@ public class ExplorePage extends WebPage {
 			Nanopub np = null;
 			if (TrustyUriUtils.isPotentialTrustyUri(id)) {
 				try {
-					np = GetNanopub.get(id);
+					np = Utils.getNanopub(id);
 				} catch (Exception ex) {
 					// wasn't a known nanopublication
 				}	
