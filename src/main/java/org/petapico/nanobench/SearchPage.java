@@ -110,6 +110,7 @@ public class SearchPage extends WebPage {
 							}
 						}
 					}
+					nanopubResults.sort(new ApiResponseEntry.DataComparator());
 					while (!nanopubResults.isEmpty() && nanopubIds.size() < 10) {
 						String npUri = nanopubResults.remove(0).get("np");
 						if (!nanopubIds.contains(npUri)) nanopubIds.add(npUri);
