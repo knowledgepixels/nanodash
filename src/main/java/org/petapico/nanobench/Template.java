@@ -9,8 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -616,4 +618,16 @@ public class Template implements Serializable {
 		}
 		return null;
 	}
+
+	public static Set<IRI> getPubinfoTemplateIds(Nanopub nanopub) {
+		Set<IRI> iriSet = new HashSet<>();
+		for (Statement st : nanopub.getPubinfo()) {
+			if (!st.getSubject().equals(nanopub.getUri())) continue;
+			if (!st.getPredicate().equals(WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) continue;
+			if (!(st.getObject() instanceof IRI)) continue;
+			iriSet.add((IRI) st.getObject());
+		}
+		return iriSet;
+	}
+
 }

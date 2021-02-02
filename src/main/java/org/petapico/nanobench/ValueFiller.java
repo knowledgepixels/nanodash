@@ -1,8 +1,5 @@
 package org.petapico.nanobench;
 
-import static org.petapico.nanobench.PublishFormContext.ContextType.ASSERTION;
-import static org.petapico.nanobench.PublishFormContext.ContextType.PROVENANCE;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,51 +9,90 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.security.CryptoElement;
+import org.nanopub.extra.security.NanopubSignatureElement;
 
 public class ValueFiller {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private Nanopub fillNp;
-	private PublishFormContext context;
-	private String warningMessage;
+	private Set<Statement> unusedStatements = new HashSet<>();
+	private int initialSize;
 
-	public ValueFiller(Nanopub fillNp, PublishFormContext context) {
+	public ValueFiller(Nanopub fillNp, ContextType contextType) {
 		this.fillNp = fillNp;
-		this.context = context;
+		Set<Statement> statements;
+		if (contextType == ContextType.ASSERTION) {
+			statements = fillNp.getAssertion();
+		} else if (contextType == ContextType.PROVENANCE) {
+			statements = fillNp.getProvenance();
+		} else {
+			statements = fillNp.getPubinfo();
+		}
+		for (Statement st : statements) {
+			Statement stT = transform(st);
+			if (stT != null) unusedStatements.add(stT);
+		}
+		initialSize = unusedStatements.size();
 	}
 
-	public void fill() {
-		Set<Statement> statements = new HashSet<>();
-		Set<Statement> originalStatements;
-		if (context.getType() == ASSERTION) {
-			originalStatements = fillNp.getAssertion();
-		} else if (context.getType() == PROVENANCE) {
-			originalStatements = fillNp.getProvenance();
-		} else {
-			originalStatements = fillNp.getPubinfo();
-		}
-		for (Statement st : originalStatements) {
-			statements.add(transform(st));
-		}
+	public void fill(PublishFormContext context) {
 		try {
-			context.fill(statements);
+			context.fill(unusedStatements);
 		} catch (UnificationException ex) {
 			ex.printStackTrace();
 		}
-		if (originalStatements.size() == statements.size()) {
-			warningMessage = "Could not fill in form with content from given existing nanopublication.";
-		} else if (!statements.isEmpty()) {
-			warningMessage = "Content from given existing nanopublication could only partially be filled in.";
-		}
+//		if (unusedStatements.size() == initialSize) {
+//			warningMessage = "Could not fill in form with content from given existing nanopublication.";
+//		} else if (!statements.isEmpty()) {
+//			warningMessage = "Content from given existing nanopublication could only partially be filled in.";
+//		}
+	}
+
+	public boolean hasStatements() {
+		return initialSize > 0;
+	}
+
+	public boolean hasUsedStatements() {
+		return unusedStatements.size() < initialSize;
+	}
+
+	public boolean hasUnusedStatements() {
+		return unusedStatements.size() > 0;
 	}
 
 	public String getWarningMessage() {
-		return warningMessage;
+		if (!hasStatements()) return null;
+//		for (Statement st : unusedStatements) {
+//			System.err.println("UNUSED: " + st.getSubject() + " " + st.getPredicate() + " " + st.getObject());
+//		}
+		if (!hasUsedStatements()) {
+			return "Could not fill in form with content from given existing nanopublication.";
+		} else if (hasUnusedStatements()) {
+			return "Content from given existing nanopublication could only partially be filled in.";
+		}
+		return null;
 	}
 
 	private Statement transform(Statement st) {
+		if (st.getContext().equals(fillNp.getPubinfoUri())) {
+			IRI pred = st.getPredicate();
+			if (st.getSubject().equals(fillNp.getUri())) {
+				if (pred.equals(DCTERMS.CREATED)) return null;
+				if (pred.equals(Nanopub.SUPERSEDES)) return null;
+				if (pred.equals(PublishForm.INTRODUCES_PREDICATE)) return null;
+				if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
+				if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
+				if (pred.equals(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) return null;
+			}
+			if (pred.equals(CryptoElement.HAS_ALGORITHM)) return null;
+			if (pred.equals(CryptoElement.HAS_PUBLIC_KEY)) return null;
+			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
+			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
+		}
 		return vf.createStatement(
 				(Resource) transform(st.getSubject()),
 				(IRI) transform(st.getPredicate()),
@@ -71,7 +107,7 @@ public class ValueFiller {
 			return Template.ASSERTION_PLACEHOLDER;
 		} else if (v instanceof IRI) {
 			// TODO: Check that there are no regex characters in nanopub URI:
-			return vf.createIRI(v.stringValue().replaceFirst("^" + fillNp.getUri().stringValue(), context.getTemplateId()));
+			return vf.createIRI(v.stringValue().replaceFirst("^" + fillNp.getUri().stringValue(), "local:"));
 		}
 		return v;
 	}

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,7 +38,6 @@ import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.server.PublishNanopub;
-import org.petapico.nanobench.PublishFormContext.ContextType;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -149,18 +149,28 @@ public class PublishForm extends Panel {
 			c.initStatements();
 		}
 
-		ValueFiller filler = null;
-		ValueFiller prFiller = null;
+		String warningMessage = "";
 		if (fillNp != null) {
-			filler = new ValueFiller(fillNp, assertionContext);
-			filler.fill();
+			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION);
+			filler.fill(assertionContext);
+			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
 			if (Template.getProvenanceTemplateId(fillNp) != null) {
-				prFiller = new ValueFiller(fillNp, provenanceContext);
-				prFiller.fill();
+				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
+				prFiller.fill(provenanceContext);
+				warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
+			}
+			Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
+			if (!pubinfoTemplateIds.isEmpty()) {
+				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+				for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
+					// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
+					piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
+				}
+				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
 			}
 		}
-		if (filler != null && filler.getWarningMessage() != null) {
-			add(new Label("warnings", filler.getWarningMessage()));
+		if (!warningMessage.isEmpty()) {
+			add(new Label("warnings", warningMessage));
 		} else {
 			add(new Label("warnings", "").setVisible(false));
 		}

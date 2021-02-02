@@ -21,7 +21,6 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
-import org.petapico.nanobench.PublishFormContext.ContextType;
 
 public class StatementItem extends Panel {
 

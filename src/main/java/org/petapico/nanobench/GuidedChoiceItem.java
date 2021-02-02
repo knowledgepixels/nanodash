@@ -168,11 +168,12 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			String iriString = v.stringValue();
-			if (iriString.startsWith(prefix)) iriString = iriString.replace(prefix, "");
-			Validatable<String> validatable = new Validatable<>(iriString);
+			String vs = v.stringValue();
+			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
+			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+			Validatable<String> validatable = new Validatable<>(vs);
 			if (context.getTemplate().isLocalResource(iri)) {
-				iriString = iriString.replaceFirst("^.*[/#](.*)$", "$1");
+				vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
 			if (!validatable.isValid()) {
@@ -181,7 +182,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			if (textfield.getModelObject().isEmpty()) {
 				return true;
 			}
-			return iriString.equals(textfield.getModelObject());
+			return vs.equals(textfield.getModelObject());
 		}
 		return false;
 	}
@@ -189,7 +190,14 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		textfield.setModelObject(v.stringValue());
+		String vs = v.stringValue();
+		if (prefix != null && vs.startsWith(prefix)) {
+			textfield.setModelObject(vs.substring(prefix.length()));
+		} else if (vs.startsWith("local:")) {
+			textfield.setModelObject(vs.replaceFirst("^local:[#/]?", ""));
+		} else {
+			textfield.setModelObject(vs);
+		}
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();

@@ -6,6 +6,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.petapico.nanobench.StatementItem.RepetitionGroup;
 
 public class ValueItem extends Panel implements ContextComponent {
 
@@ -13,19 +14,19 @@ public class ValueItem extends Panel implements ContextComponent {
 
 	private ContextComponent component;
 
-	public ValueItem(String id, IRI iri, StatementItem.RepetitionGroup s) {
+	public ValueItem(String id, IRI iri, RepetitionGroup rg) {
 		super(id);
-		final Template template = s.getContext().getTemplate();
+		final Template template = rg.getContext().getTemplate();
 		if (template.isRestrictedChoicePlaceholder(iri)) {
-			component = new RestrictedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
+			component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 		} else if (template.isGuidedChoicePlaceholder(iri)) {
-			component = new GuidedChoiceItem("value", id, iri, s.isOptional(), s.getContext());
+			component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 		} else if (template.isUriPlaceholder(iri)) {
-			component = new IriTextfieldItem("value", id, iri, s.isOptional(), s.getContext());
+			component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
 		} else if (template.isLiteralPlaceholder(iri)) {
-			component = new LiteralTextfieldItem("value", iri, s.isOptional(), s.getContext());
+			component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
 		} else {
-			component = new IriItem("value", id, iri, id.equals("obj"), s);
+			component = new IriItem("value", id, iri, id.equals("obj"), rg);
 		}
 		add((Component) component);
 	}

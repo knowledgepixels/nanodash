@@ -6,18 +6,20 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
-import org.petapico.nanobench.PublishFormContext.ContextType;
+import org.petapico.nanobench.StatementItem.RepetitionGroup;
 
 public class IriItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 
 	private IRI iri;
+	private PublishFormContext context;
 
-	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, StatementItem.RepetitionGroup s) {
+	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, RepetitionGroup rg) {
 		super(id);
 		this.iri = iriP;
-		final Template template = s.getContext().getTemplate();
+		this.context = rg.getContext();
+		final Template template = context.getTemplate();
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = ProfilePage.getUserIri();
@@ -28,7 +30,7 @@ public class IriItem extends Panel implements ContextComponent {
 			}
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			if (s.getContext().getType() == ContextType.ASSERTION) {
+			if (context.getType() == ContextType.ASSERTION) {
 				labelString = "this assertion";
 			} else {
 				labelString = "the assertion above";
@@ -48,7 +50,7 @@ public class IriItem extends Panel implements ContextComponent {
 			// Capitalize first letter of label if at subject position:
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
-		labelString = labelString.replaceAll("%I%", "" + s.getRepeatIndex());
+		labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
 		Label labelComp = new Label("label", labelString);
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
@@ -84,7 +86,9 @@ public class IriItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
-		return iri.equals(v);
+		if (!(v instanceof IRI)) return false;
+		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId(), "local:");
+		return iriS.equals(v.stringValue());
 	}
 
 	@Override

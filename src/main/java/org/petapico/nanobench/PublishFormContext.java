@@ -27,10 +27,6 @@ public class PublishFormContext implements Serializable {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	public static enum ContextType {
-		ASSERTION, PROVENANCE, PUBINFO
-	}
-
 	public static IRI NP_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/");
 	public static IRI ASSERTION_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanobench-new-nanopub/assertion");
 
