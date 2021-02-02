@@ -50,9 +50,13 @@ public class PublishForm extends Panel {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+	private static String creatorPubinfoTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
+	private static String defaultProvTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+	private static String supersedesPubinfoTemplateId = "http://purl.org/np/RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI";
+
 	private static List<PublishFormContext> fixedPubInfoContexts = new ArrayList<>();
 	static {
-		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM", "pi-statement"));
+		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement"));
 	}
 
 	protected Form<?> form;
@@ -70,6 +74,7 @@ public class PublishForm extends Panel {
 		if (!pageParams.get("fill").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("fill").toString());
 		}
+		PublishFormContext supersedesPubinfoContext = null;
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
 		String prTemplateId = pageParams.get("prtemplate").toString();
@@ -79,7 +84,7 @@ public class PublishForm extends Panel {
 			} else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
 				prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
 			} else {
-				prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+				prTemplateId = defaultProvTemplateId;
 			}
 		}
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
@@ -87,6 +92,13 @@ public class PublishForm extends Panel {
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
+		}
+		if (fillNp != null) {
+			supersedesPubinfoContext = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement");
+			pubInfoContexts.add(supersedesPubinfoContext);
+			pubInfoContextMap.put(supersedesPubinfoTemplateId, supersedesPubinfoContext);
+			//requiredPubInfoContexts.add(supersedesPubinfoContext);
+			supersedesPubinfoContext.setParam("np", fillNp.getUri().stringValue());
 		}
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
 			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
