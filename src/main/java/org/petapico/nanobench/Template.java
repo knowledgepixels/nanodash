@@ -607,4 +607,13 @@ public class Template implements Serializable {
 
 	}
 
+	public static IRI getProvenanceTemplateId(Nanopub nanopub) {
+		for (Statement st : nanopub.getPubinfo()) {
+			if (!st.getSubject().equals(nanopub.getUri())) continue;
+			if (!st.getPredicate().equals(WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) continue;
+			if (!(st.getObject() instanceof IRI)) continue;
+			return (IRI) st.getObject();
+		}
+		return null;
+	}
 }

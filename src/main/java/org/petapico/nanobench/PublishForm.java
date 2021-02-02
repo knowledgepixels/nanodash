@@ -66,10 +66,17 @@ public class PublishForm extends Panel {
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
 
+		Nanopub fillNp = null;
+		if (!pageParams.get("fill").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("fill").toString());
+		}
+
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
-			if (assertionContext.getTemplate().getDefaultProvenance() != null) {
+			if (fillNp != null && Template.getProvenanceTemplateId(fillNp) != null) {
+				prTemplateId = Template.getProvenanceTemplateId(fillNp).stringValue();
+			} else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
 				prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
 			} else {
 				prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
@@ -131,9 +138,14 @@ public class PublishForm extends Panel {
 		}
 
 		ValueFiller filler = null;
-		if (!pageParams.get("fill").isNull()) {
-			filler = new ValueFiller(pageParams.get("fill").toString(), assertionContext);
+		ValueFiller prFiller = null;
+		if (fillNp != null) {
+			filler = new ValueFiller(fillNp, assertionContext);
 			filler.fill();
+			if (Template.getProvenanceTemplateId(fillNp) != null) {
+				prFiller = new ValueFiller(fillNp, provenanceContext);
+				prFiller.fill();
+			}
 		}
 		if (filler != null && filler.getWarningMessage() != null) {
 			add(new Label("warnings", filler.getWarningMessage()));
