@@ -128,7 +128,20 @@ public class StatementItem extends Panel {
 
 	public void fill(Set<Statement> statements) throws UnificationException {
 		for (RepetitionGroup rg : repetitionGroups) {
-			rg.fill(statements);
+			if (rg.canMatch(statements)) {
+				rg.fill(statements);
+			}
+		}
+		while (true) {
+			RepetitionGroup newGroup = new RepetitionGroup();
+			newGroup.refresh();
+			if (newGroup.canMatch(statements)) {
+				newGroup.fill(statements);
+				repetitionGroups.add(newGroup);
+				refreshStatements();
+			} else {
+				return;
+			}
 		}
 	}
 
@@ -201,6 +214,7 @@ public class StatementItem extends Panel {
 		}
 
 		public int getRepeatIndex() {
+			if (!repetitionGroups.contains(this)) return repetitionGroups.size();
 			return repetitionGroups.indexOf(this);
 		}
 
@@ -256,12 +270,10 @@ public class StatementItem extends Panel {
 			return false;
 		}
 
-		public void fill(Set<Statement> st) throws UnificationException {
-//			System.err.println("Trying to unify");
+		public boolean canMatch(Set<Statement> st) {
 			for (StatementPartItem p : statements) {
 				boolean matchFound = false;
 				for (Statement s : st) {
-//					System.err.println("S: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
 					if (
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
 							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
@@ -270,9 +282,12 @@ public class StatementItem extends Panel {
 						break;
 					}
 				}
-				if (!matchFound) return;
+				if (!matchFound) return false;
 			}
-//			System.err.println("Unifying...");
+			return true;
+		}
+
+		public void fill(Set<Statement> st) throws UnificationException {
 			for (StatementPartItem p : statements) {
 				boolean matchFound = false;
 				for (Statement s : st) {
@@ -290,7 +305,6 @@ public class StatementItem extends Panel {
 				}
 				if (!matchFound) throw new UnificationException("Unification seemed to work but then didn't");
 			}
-//			System.err.println("Unified!");
 		}
 
 	}
