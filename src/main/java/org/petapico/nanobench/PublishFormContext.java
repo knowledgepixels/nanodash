@@ -185,7 +185,7 @@ public class PublishFormContext implements Serializable {
 		return iriBag.getCount(iri) == 1;
 	}
 
-	public void fill(Set<Statement> statements) throws UnificationException {
+	public void fill(List<Statement> statements) throws UnificationException {
 		for (StatementItem si : statementItems) {
 			si.fill(statements);
 		}

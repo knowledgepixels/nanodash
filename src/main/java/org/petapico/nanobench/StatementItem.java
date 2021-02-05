@@ -126,7 +126,7 @@ public class StatementItem extends Panel {
 		return iriSet;
 	}
 
-	public void fill(Set<Statement> statements) throws UnificationException {
+	public void fill(List<Statement> statements) throws UnificationException {
 		boolean hasMatch = false;
 		for (RepetitionGroup rg : repetitionGroups) {
 			hasMatch = rg.canMatch(statements);
@@ -273,7 +273,7 @@ public class StatementItem extends Panel {
 			return false;
 		}
 
-		public boolean canMatch(Set<Statement> st) {
+		public boolean canMatch(List<Statement> st) {
 			//System.err.println("Try to match repetition group...");
 			for (StatementPartItem p : statements) {
 				//System.err.println("Try to match: " + p);
@@ -298,7 +298,7 @@ public class StatementItem extends Panel {
 			return true;
 		}
 
-		public void fill(Set<Statement> st) throws UnificationException {
+		public void fill(List<Statement> st) throws UnificationException {
 			for (StatementPartItem p : statements) {
 				boolean matchFound = false;
 				for (Statement s : st) {

@@ -1,6 +1,9 @@
 package org.petapico.nanobench;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -19,7 +22,7 @@ public class ValueFiller {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private Nanopub fillNp;
-	private Set<Statement> unusedStatements = new HashSet<>();
+	private List<Statement> unusedStatements = new ArrayList<>();
 	private int initialSize;
 
 	public ValueFiller(Nanopub fillNp, ContextType contextType) {
@@ -36,6 +39,14 @@ public class ValueFiller {
 			Statement stT = transform(st);
 			if (stT != null) unusedStatements.add(stT);
 		}
+		Collections.sort(unusedStatements, new Comparator<Statement>() {
+			@Override
+			public int compare(Statement st1, Statement st2) {
+				String st1s = st1.getSubject() + " " + st1.getPredicate() + " " + st1.getObject();
+				String st2s = st2.getSubject() + " " + st2.getPredicate() + " " + st2.getObject();
+				return st1s.compareTo(st2s);
+			}
+		});
 		initialSize = unusedStatements.size();
 	}
 
@@ -66,9 +77,11 @@ public class ValueFiller {
 
 	public String getWarningMessage() {
 		if (!hasStatements()) return null;
+//		System.err.println("UNUSED: ");
 //		for (Statement st : unusedStatements) {
-//			System.err.println("UNUSED: " + st.getSubject() + " " + st.getPredicate() + " " + st.getObject());
+//			System.err.println(st.getSubject() + " " + st.getPredicate() + " " + st.getObject());
 //		}
+//		System.err.println("---");
 		if (!hasUsedStatements()) {
 			return "Could not fill in form with content from given existing nanopublication.";
 		} else if (hasUnusedStatements()) {

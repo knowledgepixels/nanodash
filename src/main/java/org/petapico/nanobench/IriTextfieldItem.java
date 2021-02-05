@@ -161,6 +161,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		public void validate(IValidatable<String> s) {
 			String p = prefix;
 			if (s.getValue().matches("(https?|file)://.+")) p = "";
+			// TODO: Make IRI placeholders to also include local IRIs:
+			//if ((p + s.getValue()).matches("[^/# ]+")) p = "local:";
 			try {
 				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {
