@@ -127,11 +127,14 @@ public class StatementItem extends Panel {
 	}
 
 	public void fill(Set<Statement> statements) throws UnificationException {
+		boolean hasMatch = false;
 		for (RepetitionGroup rg : repetitionGroups) {
-			if (rg.canMatch(statements)) {
+			hasMatch = rg.canMatch(statements);
+			if (hasMatch) {
 				rg.fill(statements);
 			}
 		}
+		if (!hasMatch) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
 			newGroup.refresh();
@@ -271,19 +274,27 @@ public class StatementItem extends Panel {
 		}
 
 		public boolean canMatch(Set<Statement> st) {
+			//System.err.println("Try to match repetition group...");
 			for (StatementPartItem p : statements) {
+				//System.err.println("Try to match: " + p);
 				boolean matchFound = false;
 				for (Statement s : st) {
+					//System.err.println("Checking statement: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
 					if (
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
 							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
 						matchFound = true;
+						//System.err.println("Statement matched.");
 						break;
 					}
 				}
-				if (!matchFound) return false;
+				if (!matchFound) {
+					//System.err.println("Not matched.");
+					return false;
+				}
 			}
+			//System.err.println("Repetition group matched.");
 			return true;
 		}
 

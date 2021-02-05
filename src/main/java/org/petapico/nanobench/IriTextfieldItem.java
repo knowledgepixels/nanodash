@@ -112,7 +112,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:[#/]?", "");
+			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
 			if (context.getTemplate().isLocalResource(iri)) {
 				vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
@@ -136,7 +136,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		if (prefix != null && vs.startsWith(prefix)) {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
-			textfield.setModelObject(vs.replaceFirst("^local:[#/]?", ""));
+			textfield.setModelObject(vs.replaceFirst("^local:", ""));
 		} else {
 			textfield.setModelObject(vs);
 		}
@@ -185,6 +185,10 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			}
 		}
 
+	}
+
+	public String toString() {
+		return "[IRI textfield item: " + iri + "]";
 	}
 
 }

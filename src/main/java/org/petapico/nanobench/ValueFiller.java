@@ -107,7 +107,7 @@ public class ValueFiller {
 			return Template.ASSERTION_PLACEHOLDER;
 		} else if (v instanceof IRI) {
 			// TODO: Check that there are no regex characters in nanopub URI:
-			return vf.createIRI(v.stringValue().replaceFirst("^" + fillNp.getUri().stringValue(), "local:"));
+			return vf.createIRI(v.stringValue().replaceFirst("^" + fillNp.getUri().stringValue() + "[#/]?", "local:"));
 		}
 		return v;
 	}

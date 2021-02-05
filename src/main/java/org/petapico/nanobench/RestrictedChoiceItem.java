@@ -20,12 +20,14 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
+	private IRI iri;
 	private Select2Choice<String> choice;
 	private final List<String> dropdownValues;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
+		this.iri = iri;
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
@@ -132,6 +134,10 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		choice.setModelObject(v.stringValue());
+	}
+
+	public String toString() {
+		return "[Restricted choice item: " + iri + "]";
 	}
 
 }

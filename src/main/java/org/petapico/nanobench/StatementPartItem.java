@@ -30,4 +30,8 @@ public class StatementPartItem extends Panel {
 		return objItem;
 	}
 
+	public String toString() {
+		return subjItem + " " + predItem + " " + objItem;
+	}
+
 }

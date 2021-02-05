@@ -84,4 +84,8 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		textfield.setModelObject(v.stringValue());
 	}
 
+	public String toString() {
+		return "[Literal textfield item]";
+	}
+
 }

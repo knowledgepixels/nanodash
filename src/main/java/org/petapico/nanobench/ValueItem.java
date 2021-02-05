@@ -57,4 +57,8 @@ public class ValueItem extends Panel implements ContextComponent {
 		component.unifyWith(v);
 	}
 
+	public String toString() {
+		return component.toString();
+	}
+
 }

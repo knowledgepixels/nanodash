@@ -87,7 +87,7 @@ public class IriItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (!(v instanceof IRI)) return false;
-		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId(), "local:");
+		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", "local:");
 		return iriS.equals(v.stringValue());
 	}
 
@@ -95,6 +95,10 @@ public class IriItem extends Panel implements ContextComponent {
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		// Nothing left to be done here.
+	}
+
+	public String toString() {
+		return "[IRI item: " + iri + "]";
 	}
 
 }

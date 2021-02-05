@@ -194,12 +194,16 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		if (prefix != null && vs.startsWith(prefix)) {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
-			textfield.setModelObject(vs.replaceFirst("^local:[#/]?", ""));
+			textfield.setModelObject(vs.replaceFirst("^local:", ""));
 		} else {
 			textfield.setModelObject(vs);
 		}
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	public String toString() {
+		return "[Guided choiced item: " + iri + "]";
+	}
 
 }
