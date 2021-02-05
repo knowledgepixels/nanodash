@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -159,15 +158,21 @@ public class PublishForm extends Panel {
 				prFiller.fill(provenanceContext);
 				warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
 			}
-			Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
-			if (!pubinfoTemplateIds.isEmpty()) {
-				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
-				for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
-					// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
-					piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
-				}
-				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
+			ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+			for (PublishFormContext c : pubInfoContexts) {
+				piFiller.fill(c);
 			}
+			warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
+			// TODO: Also use pubinfo templates stated in nanopub to be filled in?
+//			Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
+//			if (!pubinfoTemplateIds.isEmpty()) {
+//				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+//				for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
+//					// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
+//					piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
+//				}
+//				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
+//			}
 		}
 		if (!warningMessage.isEmpty()) {
 			add(new Label("warnings", warningMessage));
