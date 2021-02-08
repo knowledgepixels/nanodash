@@ -1,7 +1,5 @@
 package org.petapico.nanobench;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,8 +38,6 @@ import org.nanopub.extra.server.PublishNanopub;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
-
-import net.trustyuri.TrustyUriException;
 
 public class PublishForm extends Panel {
 
@@ -223,7 +219,7 @@ public class PublishForm extends Panel {
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
-				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
 					feedbackPanel.error(ex.getMessage());
 				}
