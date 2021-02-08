@@ -43,7 +43,8 @@ public class Utils {
 
 	public static Nanopub getNanopub(String uri) {
 		if (!nanopubs.containsKey(uri)) {
-			nanopubs.put(uri, GetNanopub.get(uri));
+			Nanopub np = GetNanopub.get(uri);
+			if (np != null) nanopubs.put(uri, np);
 		}
 		return nanopubs.get(uri);
 	}

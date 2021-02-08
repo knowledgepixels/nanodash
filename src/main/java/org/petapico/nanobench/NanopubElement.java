@@ -20,6 +20,7 @@ public class NanopubElement implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Nanopub nanopub;
+	private String uriString; // Keeping URI separately, as nanopub might be null when it cannot be fetched
 	private Calendar creationTime;
 	private Boolean seemsToHaveSignature;
 	private Boolean hasValidSignature;
@@ -34,11 +35,13 @@ public class NanopubElement implements Serializable {
 	}
 
 	public NanopubElement(String uri, boolean retracted) {
+		this.uriString = uri;
 		this.nanopub = Utils.getNanopub(uri);
 		this.retracted = retracted;
 	}
 
 	public NanopubElement(Nanopub nanopub) {
+		this.uriString = nanopub.getUri().stringValue();
 		this.nanopub = nanopub;
 	}
 
@@ -51,10 +54,11 @@ public class NanopubElement implements Serializable {
 	}
 
 	public String getUri() {
-		return nanopub.getUri().stringValue();
+		return uriString;
 	}
 
 	public Calendar getCreationTime() {
+		if (nanopub == null) return null;
 		if (creationTime == null) {
 			creationTime = SimpleTimestampPattern.getCreationTime(nanopub);
 		}
@@ -62,6 +66,7 @@ public class NanopubElement implements Serializable {
 	}
 
 	public boolean seemsToHaveSignature() {
+		if (nanopub == null) return false;
 		if (seemsToHaveSignature == null) {
 			seemsToHaveSignature = SignatureUtils.seemsToHaveSignature(nanopub);
 		}
@@ -74,6 +79,7 @@ public class NanopubElement implements Serializable {
 	}
 
 	public boolean hasValidSignature() throws GeneralSecurityException, MalformedCryptoElementException {
+		if (nanopub == null) return false;
 		if (hasValidSignature == null) {
 			NanopubSignatureElement se = SignatureUtils.getSignatureElement(nanopub);
 			if (se != null) {
@@ -89,6 +95,7 @@ public class NanopubElement implements Serializable {
 		isRetraction = false;
 		if (types == null) {
 			types = new ArrayList<>();
+			if (nanopub == null) return types;
 			for (Statement st : nanopub.getPubinfo()) {
 				if (st.getSubject().equals(nanopub.getUri()) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {
 					types.add((IRI) st.getObject());
@@ -107,6 +114,7 @@ public class NanopubElement implements Serializable {
 		}
 		if (hasRetractionTarget == null) {
 			hasRetractionTarget = false;
+			if (nanopub == null) return null;
 			if (isRetraction && nanopub.getAssertion().size() == 1) {
 				Statement aSt = nanopub.getAssertion().iterator().next();
 				String p = aSt.getPredicate().stringValue();

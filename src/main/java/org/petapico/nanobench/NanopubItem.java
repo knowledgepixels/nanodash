@@ -52,7 +52,7 @@ public class NanopubItem extends Panel {
 			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
 			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
 			Nanopub np = n.getNanopub();
-			if (!action.isApplicableTo(np)) continue;
+			if (np == null || !action.isApplicableTo(np)) continue;
 			String linkUrl = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(np)) + "&" + action.getParamString(np);
 			actionLinks.add(
 				new ExternalLink("action-link", linkUrl).add(new Label("action-link-label", action.getLinkLabel(np) + "..."))
@@ -100,7 +100,10 @@ public class NanopubItem extends Panel {
 //		l.setEscapeModelStrings(false);
 //		add(l);
 
-		List<Statement> assertionStatements = new ArrayList<>(n.getNanopub().getAssertion());
+		List<Statement> assertionStatements = new ArrayList<>();
+		if (n.getNanopub() != null) {
+			assertionStatements = new ArrayList<>(n.getNanopub().getAssertion());
+		}
 		add(new DataView<Statement>("assertion-statements", new ListDataProvider<Statement>(assertionStatements)) {
 
 			private static final long serialVersionUID = 1L;
@@ -112,7 +115,10 @@ public class NanopubItem extends Panel {
 			}
 
 		});
-		List<Statement> provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+		List<Statement> provenanceStatements = new ArrayList<>();
+		if (n.getNanopub() != null) {
+			provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+		}
 		add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
 
 			private static final long serialVersionUID = 1L;
@@ -124,7 +130,10 @@ public class NanopubItem extends Panel {
 			}
 
 		});
-		List<Statement> pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+		List<Statement> pubinfoStatements = new ArrayList<>();
+		if (n.getNanopub() != null) {
+			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+		}
 		add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
 
 			private static final long serialVersionUID = 1L;
