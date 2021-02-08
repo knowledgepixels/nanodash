@@ -77,7 +77,7 @@ public class SearchPage extends WebPage {
 					return new NanopubResults(markupId, nanopubs);
 				}
 			});
-			
+
 	
 			Thread loadContent = new Thread() {
 				@Override
