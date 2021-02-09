@@ -33,6 +33,9 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	private String prefix;
 
+	// TODO: This map being static could mix up labels if the same URI is described at different places:
+	private static Map<String,String> labelMap = new HashMap<>();
+
 	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
@@ -77,8 +80,6 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
-
-			private Map<String,String> labelMap = new HashMap<>();
 
 			@Override
 			public String getDisplayValue(String id) {
@@ -192,11 +193,13 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
 		if (prefix != null && vs.startsWith(prefix)) {
-			textfield.setModelObject(vs.substring(prefix.length()));
+			vs = vs.substring(prefix.length());
 		} else if (vs.startsWith("local:")) {
-			textfield.setModelObject(vs.replaceFirst("^local:", ""));
-		} else {
-			textfield.setModelObject(vs);
+			vs = vs.replaceFirst("^local:", "");
+		}
+		textfield.setModelObject(vs);
+		if (!labelMap.containsKey(vs)) {
+			context.getTemplate().getPossibleValuesFromApi(iri, vs, labelMap);
 		}
 	}
 
