@@ -219,9 +219,13 @@ public class PublishForm extends Panel {
 					PageParameters params = new PageParameters();
 					params.add("id", ProfilePage.getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
+				} catch (RestartResponseException ex) {
+					throw ex;
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					feedbackPanel.error(ex.getMessage());
+					String message = ex.getClass().getName();
+					if (ex.getMessage() != null) message = ex.getMessage();
+					feedbackPanel.error(message);
 				}
 			}
 
