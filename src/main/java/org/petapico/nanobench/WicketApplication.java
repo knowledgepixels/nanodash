@@ -39,8 +39,9 @@ public class WicketApplication extends WebApplication {
 					BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 					while(reader.ready()) {
 						String line = reader.readLine();
-						if (line.matches(".*/download/nanobench-[0-9]+.[0-9+]/nanobench-[0-9]+.[0-9+].zip.*")) {
-							String version = line.replaceFirst(".*/download/nanobench-[0-9]+.[0-9+]/nanobench-([0-9]+.[0-9+]).zip.*", "$1");
+						if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
+							System.err.println(line);
+							String version = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
 							System.err.println("Found latest version: nanobench-" + version);
 							String url = "https://github.com/peta-pico/nanobench/releases/download/nanobench-" + version + "/nanobench-" + version + ".zip";
 							System.err.println("Downloading " + url);

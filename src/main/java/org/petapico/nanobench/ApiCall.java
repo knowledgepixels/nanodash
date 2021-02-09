@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -34,7 +35,8 @@ public class ApiCall {
 
 	static {
 		requestConfig = RequestConfig.custom().setConnectTimeout(10000)
-				.setConnectionRequestTimeout(100).setSocketTimeout(10000).build();
+				.setConnectionRequestTimeout(100).setSocketTimeout(10000)
+				.setCookieSpec(CookieSpecs.STANDARD).build();
 	}
 
 	public static String[] apiInstances = new String[] {
