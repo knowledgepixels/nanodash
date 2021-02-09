@@ -80,7 +80,11 @@ public class User implements Serializable, Comparable<User> {
 						User u = userPubkeyMap.get(pubkey);
 						if (u.getId().stringValue().equals(subj)) {
 							Nanopub np = Utils.getNanopub(obj);
-							User.createUser(np, true);
+							if (np != null) {
+								User.createUser(np, true);
+							} else {
+								System.err.println("Failed to load user: " + obj);
+							}
 						}
 						results.remove(entry);
 						keepLooping = true;
