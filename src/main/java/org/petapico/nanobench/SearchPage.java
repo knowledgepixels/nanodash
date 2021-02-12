@@ -21,8 +21,6 @@ public class SearchPage extends WebPage {
 
 	private TextField<String> searchField;
 	private Model<String> progress;
-	private boolean nanopubsReady = false;
-	private transient Thread loadContent;
 
 	public SearchPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
@@ -51,8 +49,6 @@ public class SearchPage extends WebPage {
 		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
-		final List<String> nanopubIds = new ArrayList<>();
-
 		if (searchText == null || searchText.isEmpty()) {
 			add(new Label("nanopubs", "Enter a search term above."));
 		} else {
@@ -62,50 +58,39 @@ public class SearchPage extends WebPage {
 	
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
-					loadContent = new Thread() {
-						@Override
-						public void run() {
-							Map<String,String> nanopubParams = new HashMap<>();
-							List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-							String s = searchText;
-							if (s != null) {
-								s = s.trim();
-								if (s.matches("https?://[^\\s]+")) {
-									System.err.println("URI QUERY: " + s);
-									nanopubParams.put("ref", s);
-									try {
-										nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
-									} catch (Exception ex) {
-										ex.printStackTrace();
-									}
+					Map<String,String> nanopubParams = new HashMap<>();
+					List<ApiResponseEntry> nanopubResults = new ArrayList<>();
+					String s = searchText;
+					if (s != null) {
+						s = s.trim();
+						if (s.matches("https?://[^\\s]+")) {
+							System.err.println("URI QUERY: " + s);
+							nanopubParams.put("ref", s);
+							try {
+								nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
 //									nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
-								} else {
-									String freeTextQuery = getFreeTextQuery(s);
-									if (!freeTextQuery.isEmpty()) {
-										System.err.println("FREE TEXT QUERY: " + freeTextQuery);
-										nanopubParams.put("text", freeTextQuery);
-										try {
-											nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-										} catch (Exception ex) {
-											ex.printStackTrace();
-										}
-//										nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
-									}
+						} else {
+							String freeTextQuery = getFreeTextQuery(s);
+							if (!freeTextQuery.isEmpty()) {
+								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
+								nanopubParams.put("text", freeTextQuery);
+								try {
+									nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
+								} catch (Exception ex) {
+									ex.printStackTrace();
 								}
+//										nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
 							}
-							nanopubResults.sort(new ApiResponseEntry.DataComparator());
-							while (!nanopubResults.isEmpty() && nanopubIds.size() < 10) {
-								String npUri = nanopubResults.remove(0).get("np");
-								if (!nanopubIds.contains(npUri)) nanopubIds.add(npUri);
-							}
-							nanopubsReady = true;
 						}
-					};
-					loadContent.start();
-					while (!nanopubsReady) {
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException ex) {}
+					}
+					nanopubResults.sort(new ApiResponseEntry.DataComparator());
+					List<String> nanopubIds = new ArrayList<>();
+					while (!nanopubResults.isEmpty() && nanopubIds.size() < 10) {
+						String npUri = nanopubResults.remove(0).get("np");
+						if (!nanopubIds.contains(npUri)) nanopubIds.add(npUri);
 					}
 					progress.setObject("");
 					if (nanopubIds.isEmpty()) progress.setObject("nothing found");
@@ -147,16 +132,6 @@ public class SearchPage extends WebPage {
 		}
 		freeTextQuery = freeTextQuery.replaceAll("@", " ").trim();
 		return freeTextQuery;
-	}
-
-	@Override
-	protected void onAfterRender() {
-		super.onAfterRender();
-		while (loadContent != null && loadContent.isAlive()) {
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException ex) {}
-		}
 	}
 
 }
