@@ -28,6 +28,7 @@ public class UserPage extends WebPage {
 		if (user == null) throw new RedirectToUrlException("./profile");
 		add(new Label("username", user.getDisplayName()));
 
+		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
 		final Label progressLabel = new Label("progress", progress);
 		progressLabel.setOutputMarkupId(true);
@@ -41,43 +42,36 @@ public class UserPage extends WebPage {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected boolean isContentReady() {
-				return nanopubsReady;
-			};
-
-			@Override
-			protected Duration getUpdateInterval() {
-				return Duration.milliseconds(1000);
-			};
-
-			@Override
 			public NanopubResults getLazyLoadComponent(String markupId) {
-				progress.setObject("");
+				Thread loadContent = new Thread() {
+					@Override
+					public void run() {
+						Map<String,String> nanopubParams = new HashMap<>();
+						List<ApiResponseEntry> nanopubResults = new ArrayList<>();
+						nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
+						nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
+						while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
+							ApiResponseEntry resultEntry = nanopubResults.remove(0);
+							String npUri = resultEntry.get("np");
+							// Hide retracted nanopublications:
+							if (resultEntry.get("retracted").equals("1") || resultEntry.get("retracted").equals("true")) continue;
+							// Hide superseded nanopublications:
+							if (resultEntry.get("superseded").equals("1") || resultEntry.get("superseded").equals("true")) continue;
+							nanopubs.add(new NanopubElement(npUri, false));
+						}
+						nanopubsReady = true;
+					}
+				};
+				loadContent.start();
+				while (!nanopubsReady) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ex) {}
+				}
 				return new NanopubResults(markupId, nanopubs);
 			}
 		});
-		
 
-		Thread loadContent = new Thread() {
-			@Override
-			public void run() {
-				Map<String,String> nanopubParams = new HashMap<>();
-				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
-				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
-				while (!nanopubResults.isEmpty() && nanopubs.size() < 10) {
-					ApiResponseEntry resultEntry = nanopubResults.remove(0);
-					String npUri = resultEntry.get("np");
-					// Hide retracted nanopublications:
-					if (resultEntry.get("retracted").equals("1") || resultEntry.get("retracted").equals("true")) continue;
-					// Hide superseded nanopublications:
-					if (resultEntry.get("superseded").equals("1") || resultEntry.get("superseded").equals("true")) continue;
-					nanopubs.add(new NanopubElement(npUri, false));
-				}
-				nanopubsReady = true;
-			}
-		};
-		loadContent.start();
 	}
 
 	@Override
