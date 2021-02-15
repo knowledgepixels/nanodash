@@ -71,7 +71,7 @@ public class SearchPage extends WebPage {
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}
-//									nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
+//							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
 						} else {
 							String freeTextQuery = getFreeTextQuery(s);
 							if (!freeTextQuery.isEmpty()) {
@@ -82,7 +82,7 @@ public class SearchPage extends WebPage {
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}
-//										nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
+//								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
 							}
 						}
 					}

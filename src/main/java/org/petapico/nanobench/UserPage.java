@@ -54,7 +54,9 @@ public class UserPage extends WebPage {
 					if (resultEntry.get("superseded").equals("1") || resultEntry.get("superseded").equals("true")) continue;
 					nanopubs.add(new NanopubElement(npUri, false));
 				}
-				return new NanopubResults(markupId, nanopubs);
+				NanopubResults r = new NanopubResults(markupId, nanopubs);
+				progress.setObject("");
+				return r;
 			}
 		});
 
