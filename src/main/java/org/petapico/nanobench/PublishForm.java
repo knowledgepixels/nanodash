@@ -169,6 +169,11 @@ public class PublishForm extends Panel {
 //				}
 //				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
 //			}
+		} else if (!pageParams.get("improve").isNull()) {
+			Nanopub improveNp = Utils.getNanopub(pageParams.get("improve").toString());
+			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION);
+			filler.fill(assertionContext);
+			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
 		}
 		if (!warningMessage.isEmpty()) {
 			add(new Label("warnings", warningMessage));
