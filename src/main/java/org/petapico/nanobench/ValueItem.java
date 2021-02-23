@@ -5,6 +5,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.petapico.nanobench.StatementItem.RepetitionGroup;
 
@@ -14,19 +15,24 @@ public class ValueItem extends Panel implements ContextComponent {
 
 	private ContextComponent component;
 
-	public ValueItem(String id, IRI iri, RepetitionGroup rg) {
+	public ValueItem(String id, Value value, RepetitionGroup rg) {
 		super(id);
 		final Template template = rg.getContext().getTemplate();
-		if (template.isRestrictedChoicePlaceholder(iri)) {
-			component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
-		} else if (template.isGuidedChoicePlaceholder(iri)) {
-			component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
-		} else if (template.isUriPlaceholder(iri)) {
-			component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
-		} else if (template.isLiteralPlaceholder(iri)) {
-			component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
+		if (value instanceof IRI) {
+			IRI iri = (IRI) value;
+			if (template.isRestrictedChoicePlaceholder(iri)) {
+				component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
+			} else if (template.isGuidedChoicePlaceholder(iri)) {
+				component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
+			} else if (template.isUriPlaceholder(iri)) {
+				component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
+			} else if (template.isLiteralPlaceholder(iri)) {
+				component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
+			} else {
+				component = new IriItem("value", id, iri, id.equals("obj"), rg);
+			}
 		} else {
-			component = new IriItem("value", id, iri, id.equals("obj"), rg);
+			component = new LiteralItem("value", id, (Literal) value, rg);
 		}
 		add((Component) component);
 	}

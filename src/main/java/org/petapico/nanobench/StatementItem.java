@@ -164,7 +164,7 @@ public class StatementItem extends Panel {
 				StatementPartItem statement = new StatementPartItem("statement",
 						makeValueItem("subj", getTemplate().getSubject(s)),
 						makeValueItem("pred", getTemplate().getPredicate(s)),
-						makeValueItem("obj", (IRI) getTemplate().getObject(s))
+						makeValueItem("obj", getTemplate().getObject(s))
 					);
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
@@ -203,11 +203,11 @@ public class StatementItem extends Panel {
 			}
 		}
 
-		private ValueItem makeValueItem(String id, IRI iri) {
-			if (isFirst()) {
-				iriSet.add(iri);
+		private ValueItem makeValueItem(String id, Value value) {
+			if (isFirst() && value instanceof IRI) {
+				iriSet.add((IRI) value);
 			}
-			ValueItem vi = new ValueItem(id, transform(iri), this);
+			ValueItem vi = new ValueItem(id, transform(value), this);
 			items.add(vi);
 			return vi;
 		}
@@ -237,7 +237,11 @@ public class StatementItem extends Panel {
 			return StatementItem.this.isOptional();
 		}
 
-		private IRI transform(IRI iri) {
+		private Value transform(Value value) {
+			if (!(value instanceof IRI)) {
+				return value;
+			}
+			IRI iri = (IRI) value;
 			// Only add "__N" to URI from second repetition group on; for the first group, information about
 			// narrow scopes is not yet complete.
 			if (getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
@@ -251,9 +255,9 @@ public class StatementItem extends Panel {
 
 		public void addTriplesTo(NanopubCreator npCreator) {
 			for (IRI s : statementPartIds) {
-				IRI pSubj = context.processIri(transform(getTemplate().getSubject(s)));
-				IRI pPred = context.processIri(transform(getTemplate().getPredicate(s)));
-				Value pObj = context.processValue(transform((IRI) getTemplate().getObject(s)));
+				IRI pSubj = context.processIri((IRI) transform(getTemplate().getSubject(s)));
+				IRI pPred = context.processIri((IRI) transform(getTemplate().getPredicate(s)));
+				Value pObj = context.processValue(transform(getTemplate().getObject(s)));
 				if (context.getType() == ContextType.ASSERTION) {
 					npCreator.addAssertionStatement(pSubj, pPred, pObj);
 				} else if (context.getType() == ContextType.PROVENANCE) {
@@ -266,9 +270,9 @@ public class StatementItem extends Panel {
 
 		private boolean hasEmptyElements() {
 			for (IRI s : statementPartIds) {
-				if (context.processIri(transform(getTemplate().getSubject(s))) == null) return true;
-				if (context.processIri(transform(getTemplate().getPredicate(s))) == null) return true;
-				if (context.processValue(transform((IRI) getTemplate().getObject(s))) == null) return true;
+				if (context.processIri((IRI) transform(getTemplate().getSubject(s))) == null) return true;
+				if (context.processIri((IRI) transform(getTemplate().getPredicate(s))) == null) return true;
+				if (context.processValue(transform(getTemplate().getObject(s))) == null) return true;
 			}
 			return false;
 		}
