@@ -143,6 +143,7 @@ public class StatementItem extends Panel {
 				repetitionGroups.add(newGroup);
 				refreshStatements();
 			} else {
+				newGroup.disconnect();
 				return;
 			}
 		}
@@ -154,6 +155,7 @@ public class StatementItem extends Panel {
 		private static final long serialVersionUID = 1L;
 
 		private List<StatementPartItem> statements;
+		private List<ValueItem> localItems = new ArrayList<>();
 
 		public RepetitionGroup() {
 		}
@@ -208,8 +210,18 @@ public class StatementItem extends Panel {
 				iriSet.add((IRI) value);
 			}
 			ValueItem vi = new ValueItem(id, transform(value), this);
+			localItems.add(vi);
 			items.add(vi);
 			return vi;
+		}
+
+		private void disconnect() {
+			for (ValueItem vi : new ArrayList<>(localItems)) {
+				// TODO These remove operations on list are slow. Improve:
+				localItems.remove(vi);
+				items.remove(vi);
+				vi.removeFromContext();
+			}
 		}
 
 		public List<StatementPartItem> getStatements() {
