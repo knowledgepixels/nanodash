@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Properties;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -18,7 +19,7 @@ import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
 
-	private static final String LATEST_RELEASE_URL = "https://github.com/peta-pico/nanobench/releases/latest";
+	protected static final String LATEST_RELEASE_URL = "https://github.com/peta-pico/nanobench/releases/latest";
 
 	public WicketApplication() {
 		String runParam = System.getProperty("nanobench.run");
@@ -33,42 +34,29 @@ public class WicketApplication extends WebApplication {
 				System.err.println("----------------------------------------");
 				System.err.println("");
 				try {
-					HttpResponse resp = HttpClientBuilder.create().build().execute(new HttpGet(LATEST_RELEASE_URL));
-					int c = resp.getStatusLine().getStatusCode();
-					if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-					while(reader.ready()) {
-						String line = reader.readLine();
-						if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
-							System.err.println(line);
-							String version = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
-							System.err.println("Found latest version: nanobench-" + version);
-							String url = "https://github.com/peta-pico/nanobench/releases/download/nanobench-" + version + "/nanobench-" + version + ".zip";
-							System.err.println("Downloading " + url);
-							HttpResponse resp2 = HttpClientBuilder.create().build().execute(new HttpGet(url));
-							int c2 = resp2.getStatusLine().getStatusCode();
-							if (c2 < 200 || c2 >= 300) throw new RuntimeException("HTTP error: " + c2);
-							File zipFile = new File(System.getProperty("user.dir") + "/nanobench.zip");
-							FileOutputStream fileOut = new FileOutputStream(zipFile);
-							resp2.getEntity().writeTo(fileOut);
-							fileOut.close();
-							System.err.println("Unzipping " + zipFile);
-							ZipUtil.extract(zipFile, new File(System.getProperty("user.dir")));
-							zipFile.delete();
-							reader.close();
-							System.err.println("");
-							System.err.println("----------------------------------------");
-							System.err.println(" Nanobench updated successfully");
-							System.err.println("----------------------------------------");
-							System.err.println("");
-							System.exit(0);
-						}
-					}
-					reader.close();
-					System.err.println("Failed to update Nanobench");
-					System.exit(1);
+					String version = getLatestVersion();
+					System.err.println("Found latest version: nanobench-" + version);
+					String url = "https://github.com/peta-pico/nanobench/releases/download/nanobench-" + version + "/nanobench-" + version + ".zip";
+					System.err.println("Downloading " + url);
+					HttpResponse resp2 = HttpClientBuilder.create().build().execute(new HttpGet(url));
+					int c2 = resp2.getStatusLine().getStatusCode();
+					if (c2 < 200 || c2 >= 300) throw new RuntimeException("HTTP error: " + c2);
+					File zipFile = new File(System.getProperty("user.dir") + "/nanobench.zip");
+					FileOutputStream fileOut = new FileOutputStream(zipFile);
+					resp2.getEntity().writeTo(fileOut);
+					fileOut.close();
+					System.err.println("Unzipping " + zipFile);
+					ZipUtil.extract(zipFile, new File(System.getProperty("user.dir")));
+					zipFile.delete();
+					System.err.println("");
+					System.err.println("----------------------------------------");
+					System.err.println(" Nanobench updated successfully");
+					System.err.println("----------------------------------------");
+					System.err.println("");
+					System.exit(0);
 				} catch (Exception ex) {
 					ex.printStackTrace();
+					System.err.println("Failed to update Nanobench");
 					System.exit(1);
 				}
 			}
@@ -83,9 +71,14 @@ public class WicketApplication extends WebApplication {
 				ex.printStackTrace();
 			}
 		}
+		String v = getThisVersion();
+		String lv = getLatestVersion();
 		System.err.println("");
 		System.err.println("----------------------------------------");
 		System.err.println("               Nanobench");
+		System.err.println("----------------------------------------");
+		System.err.println(" You are using version: " + v);
+		System.err.println(" Latest public version: " + lv);
 		System.err.println("----------------------------------------");
 		System.err.println(" Your browser should show the Nanobench");
 		System.err.println(" interface in a few seconds.");
@@ -121,6 +114,46 @@ public class WicketApplication extends WebApplication {
 	@Override
 	public RuntimeConfigurationType getConfigurationType() {
 		return RuntimeConfigurationType.DEPLOYMENT;
+	}
+
+
+	private static String latestVersion = null;
+
+	protected static String getLatestVersion() {
+		if (latestVersion != null) return latestVersion;
+		BufferedReader reader = null;
+		try {
+			HttpResponse resp = HttpClientBuilder.create().build().execute(new HttpGet(LATEST_RELEASE_URL));
+			int c = resp.getStatusLine().getStatusCode();
+			if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
+			reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+			while(reader.ready()) {
+				String line = reader.readLine();
+				if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
+					System.err.println(line);
+					latestVersion = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
+					break;
+				}
+			}
+			reader.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return latestVersion;
+	}
+
+	protected final static Properties properties = new Properties();
+
+	static {
+		try {
+			properties.load(WicketApplication.class.getClassLoader().getResourceAsStream("nanobench.properties"));
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected static String getThisVersion() {
+		return properties.getProperty("nanobench.version");
 	}
 
 }
