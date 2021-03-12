@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -142,6 +143,17 @@ public class PublishForm extends Panel {
 		provenanceContext.initStatements();
 		for (PublishFormContext c : pubInfoContexts) {
 			c.initStatements();
+		}
+
+		String latestAssertionId = Template.getLatestVersionId(assertionContext.getTemplateId());
+		if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
+			add(new Label("newversion", "There is a new version of this assertion template:"));
+			PageParameters params = new PageParameters(pageParams);
+			params.set("template", latestAssertionId);
+			add(new BookmarkablePageLink<PublishPage>("newversionlink", PublishPage.class, params));
+		} else {
+			add(new Label("newversion", "").setVisible(false));
+			add(new Label("newversionlink", "").setVisible(false));
 		}
 
 		String warningMessage = "";
