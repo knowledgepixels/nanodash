@@ -2,7 +2,9 @@ package org.petapico.nanobench.action;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.nanopub.Nanopub;
 import org.petapico.nanobench.NanobenchPreferences;
@@ -12,11 +14,17 @@ public abstract class NanopubAction {
 
 	private static List<NanopubAction> defaultActions = new ArrayList<>();
 
+	private static Map<String,NanopubAction> defaultClassNameMap = new HashMap<>();
+
 	static {
 		defaultActions.add(new CommentAction());
 		defaultActions.add(new RetractionAction());
 		defaultActions.add(new ApprovalAction());
+		defaultActions.add(new UpdateAction());
 		defaultActions = Collections.unmodifiableList(defaultActions);
+		for (NanopubAction na : defaultActions) {
+			defaultClassNameMap.put(na.getClass().getCanonicalName(), na);
+		}
 	}
 
 	public static List<NanopubAction> getDefaultActions() {
@@ -27,8 +35,10 @@ public abstract class NanopubAction {
 		List<NanopubAction> actions = new ArrayList<>();
 		if (pref == null) return actions;
 		for (String s : pref.getNanopubActions()) {
+			if (defaultClassNameMap.containsKey(s)) continue;
 			try {
-				actions.add((NanopubAction) Class.forName(s).getDeclaredConstructor().newInstance());
+				NanopubAction na = (NanopubAction) Class.forName(s).getDeclaredConstructor().newInstance();
+				actions.add(na);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
