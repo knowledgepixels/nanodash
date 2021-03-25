@@ -264,7 +264,6 @@ a:active.nanopub-pubinfo { color: #666; }
 
 .nanopub-statement input {
   margin: 2px;
-  padding: 0px;
   font-size: 10pt;
   font-family: monaco,monospace;
 }
