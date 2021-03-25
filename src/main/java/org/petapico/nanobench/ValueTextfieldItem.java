@@ -98,8 +98,10 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		String vs = v.stringValue();
 		if (vs.startsWith("local:")) {
 			textfield.setModelObject(vs.replaceFirst("^local:", ""));
-		} else {
+		} else if (v instanceof IRI) {
 			textfield.setModelObject(vs);
+		} else {
+			textfield.setModelObject("\"" + vs.replaceAll("\"", "\\\"") + "\"");
 		}
 	}
 
@@ -124,12 +126,14 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 				}
 				return;
 			}
+			String p = "";
+			if (s.getValue().matches("[^/# ]+")) p = "local:";
 			try {
-				ParsedIRI piri = new ParsedIRI(s.getValue());
+				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				if (!(s.getValue()).matches("(https?|file)://.+")) {
+				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("(https?|file)://.+")) {
 					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
 				}
 			} catch (URISyntaxException ex) {

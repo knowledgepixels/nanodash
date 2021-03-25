@@ -114,7 +114,7 @@ public class PublishFormContext implements Serializable {
 		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			// TODO: deprecate this (use LocalResource instead)
-			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
+			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", NP_TEMP_IRI.stringValue()));
 		}
 		// TODO: Move this code below to the respective placeholder classes:
 		IModel<String> tf = formComponentModels.get(iri);
@@ -130,15 +130,17 @@ public class PublishFormContext implements Serializable {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			String prefix = template.getPrefix(iri);
 			if (prefix == null) prefix = "";
-			if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
+			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-			IRI processedIri = vf.createIRI(prefix + tf.getObject());
+			String v = prefix + tf.getObject();
+			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			IRI processedIri = vf.createIRI(v);
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}
 			return processedIri;
 		} else if (template.isLocalResource(iri)) {
-			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
+			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", NP_TEMP_IRI.stringValue()));
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}
@@ -151,7 +153,9 @@ public class PublishFormContext implements Serializable {
 			if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
 				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-2).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
-				return vf.createIRI(tf.getObject());
+				String v = tf.getObject();
+				if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+				return vf.createIRI(v);
 			}
 		}
 		return iri;

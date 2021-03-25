@@ -133,7 +133,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
-		if (prefix != null && vs.startsWith(prefix)) {
+		if (!prefix.isEmpty() && vs.startsWith(prefix)) {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
 			textfield.setModelObject(vs.replaceFirst("^local:", ""));
@@ -161,14 +161,13 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		public void validate(IValidatable<String> s) {
 			String p = prefix;
 			if (s.getValue().matches("(https?|file)://.+")) p = "";
-			// TODO: Make IRI placeholders to also include local IRIs:
-			//if ((p + s.getValue()).matches("[^/# ]+")) p = "local:";
+			if ((p + s.getValue()).matches("[^/# ]+")) p = "local:";
 			try {
 				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				if (p.isEmpty() && !(s.getValue()).matches("(https?|file)://.+")) {
+				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("(https?|file)://.+")) {
 					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
 				}
 			} catch (URISyntaxException ex) {
