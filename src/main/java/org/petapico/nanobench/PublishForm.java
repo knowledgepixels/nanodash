@@ -77,6 +77,8 @@ public class PublishForm extends Panel {
 		if (prTemplateId == null) {
 			if (fillNp != null && Template.getProvenanceTemplateId(fillNp) != null) {
 				prTemplateId = Template.getProvenanceTemplateId(fillNp).stringValue();
+			} else if (fillNp != null) {
+				prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
 			} else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
 				prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
 			} else {
@@ -107,14 +109,7 @@ public class PublishForm extends Panel {
 		for (String k : pageParams.getNamedKeys()) {
 			if (!k.matches("pitemplate[1-9][0-9]*")) continue;
 			Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
-			String piTemplateId = pageParams.get(k).toString();
-			PublishFormContext c;
-			if (pubInfoContextMap.containsKey(piTemplateId)) {
-				c = pubInfoContextMap.get(piTemplateId);
-			} else {
-				c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement");
-				pubInfoContextMap.put(piTemplateId, c);
-			}
+			PublishFormContext c = getPubinfoContext(pageParams.get(k).toString());
 			if (piParamIdMap.containsKey(i)) {
 				// TODO: handle this error better
 				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
@@ -161,14 +156,22 @@ public class PublishForm extends Panel {
 			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION);
 			filler.fill(assertionContext);
 			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
-			if (Template.getProvenanceTemplateId(fillNp) != null) {
-				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
-				prFiller.fill(provenanceContext);
-				warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
-			}
+
+			ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
+			prFiller.fill(provenanceContext);
+			warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
+
 			ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
 			for (PublishFormContext c : pubInfoContexts) {
 				piFiller.fill(c);
+			}
+			if (piFiller.hasUnusedStatements()) {
+				PublishFormContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
+				if (!pubInfoContexts.contains(c)) {
+					pubInfoContexts.add(c);
+					c.initStatements();
+					piFiller.fill(c);
+				}
 			}
 			warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
 			// TODO: Also use pubinfo templates stated in nanopub to be filled in?
@@ -502,6 +505,17 @@ public class PublishForm extends Panel {
 			form.add(list);
 			target.add(form);
 		}
+	}
+
+	private PublishFormContext getPubinfoContext(String piTemplateId) {
+		PublishFormContext c;
+		if (pubInfoContextMap.containsKey(piTemplateId)) {
+			c = pubInfoContextMap.get(piTemplateId);
+		} else {
+			c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement");
+			pubInfoContextMap.put(piTemplateId, c);
+		}
+		return c;
 	}
 
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
