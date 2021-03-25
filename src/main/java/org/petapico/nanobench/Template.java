@@ -106,6 +106,7 @@ public class Template implements Serializable {
 			params.put("np", id);
 			try {
 				ApiResponse r = ApiAccess.getAll("get_latest_version", params);
+				if (r.getData().size() == 0) return id;
 				String l = r.getData().get(0).get("latest");
 				latestVersionMap.put(id, l);
 			} catch (Exception ex) {
@@ -125,6 +126,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
+	public static final IRI VALUE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ValuePlaceholder");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
@@ -255,6 +257,11 @@ public class Template implements Serializable {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS);
 	}
 
+	public boolean isValuePlaceholder(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(VALUE_PLACEHOLDER_CLASS);
+	}
+
 	public boolean isUriPlaceholder(IRI iri) {
 		iri = transform(iri);
 		if (!typeMap.containsKey(iri)) return false;
@@ -291,6 +298,7 @@ public class Template implements Serializable {
 		iri = transform(iri);
 		if (!typeMap.containsKey(iri)) return false;
 		for (IRI t : typeMap.get(iri)) {
+			if (t.equals(VALUE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(URI_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(TRUSTY_URI_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;

@@ -117,33 +117,26 @@ public class PublishFormContext implements Serializable {
 			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 		}
 		// TODO: Move this code below to the respective placeholder classes:
+		IModel<String> tf = formComponentModels.get(iri);
 		if (template.isRestrictedChoicePlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				String prefix = template.getPrefix(iri);
-				if (prefix == null) prefix = "";
-				if (tf.getObject().matches("https?://.*") || prefix.matches("https?://.*")) {
-					return vf.createIRI(prefix + tf.getObject());
-				}
-				return vf.createLiteral(tf.getObject());
-			} else {
-				return null;
+			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
+			String prefix = template.getPrefix(iri);
+			if (prefix == null) prefix = "";
+			if (tf.getObject().matches("https?://.*") || prefix.matches("https?://.*")) {
+				return vf.createIRI(prefix + tf.getObject());
 			}
+			return vf.createLiteral(tf.getObject());
 		} else if (template.isUriPlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				String prefix = template.getPrefix(iri);
-				if (prefix == null) prefix = "";
-				if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
-				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-				IRI processedIri = vf.createIRI(prefix + tf.getObject());
-				if (template.isIntroducedResource(iri)) {
-					introducedIris.add(processedIri);
-				}
-				return processedIri;
-			} else {
-				return null;
+			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
+			String prefix = template.getPrefix(iri);
+			if (prefix == null) prefix = "";
+			if (template.isLocalResource(iri)) prefix = "http://purl.org/nanopub/temp/nanobench-new-nanopub/";
+			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+			IRI processedIri = vf.createIRI(prefix + tf.getObject());
+			if (template.isIntroducedResource(iri)) {
+				introducedIris.add(processedIri);
 			}
+			return processedIri;
 		} else if (template.isLocalResource(iri)) {
 			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", "http://purl.org/nanopub/temp/nanobench-new-nanopub/"));
 			if (template.isIntroducedResource(iri)) {
@@ -151,11 +144,14 @@ public class PublishFormContext implements Serializable {
 			}
 			return processedIri;
 		} else if (template.isLiteralPlaceholder(iri)) {
-			IModel<String> tf = formComponentModels.get(iri);
-			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-				return vf.createLiteral(tf.getObject());
+			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
+			return vf.createLiteral(tf.getObject());
+		} else if (template.isValuePlaceholder(iri)) {
+			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
+			if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
+				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-2).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
-				return null;
+				return vf.createIRI(tf.getObject());
 			}
 		}
 		return iri;

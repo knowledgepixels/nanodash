@@ -28,6 +28,8 @@ public class ValueItem extends Panel implements ContextComponent {
 				component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isLiteralPlaceholder(iri)) {
 				component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
+			} else if (template.isPlaceholder(iri)) {
+				component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else {
 				component = new IriItem("value", id, iri, id.equals("obj"), rg);
 			}
