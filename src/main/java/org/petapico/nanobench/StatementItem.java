@@ -73,9 +73,14 @@ public class StatementItem extends Panel {
 			vi.removeFromContext();
 		}
 		items.clear();
+		boolean first = true;
 		for (RepetitionGroup r : repetitionGroups) {
+			if (isGrouped() && !first) {
+				allStatements.add(new HorizontalLine("statement"));
+			}
 			r.refresh();
 			allStatements.addAll(r.getStatements());
+			first = false;
 		}
 		String htmlClassString = "";
 		if (isOptional()) {
