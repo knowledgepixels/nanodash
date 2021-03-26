@@ -139,7 +139,7 @@ public class StatementItem extends Panel {
 				rg.fill(statements);
 			}
 		}
-		if (!hasMatch) return;
+		if (!hasMatch || !isRepeatable()) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
 			newGroup.refresh();
