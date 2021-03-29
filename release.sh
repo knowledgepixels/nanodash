@@ -40,9 +40,11 @@ git commit -m "Version $NEW_VERSION"
 echo "Pushing new release..."
 git tag nanobench-$NEW_VERSION
 git push
-git push tags
+git push --tags
 
 echo "Make snapshot version: $NEXT_VERSION"
 mvn versions:set versions:commit -DnewVersion="$NEXT_VERSION"
 git add pom.xml
 git commit -m "Snapshot version $NEXT_VERSION"
+
+git push
