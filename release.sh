@@ -2,6 +2,8 @@
 
 set -e
 
+git pull
+
 THIS_VERSION=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)
 echo "Current version: $THIS_VERSION"
 
