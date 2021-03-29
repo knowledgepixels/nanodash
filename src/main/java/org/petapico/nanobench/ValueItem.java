@@ -14,9 +14,11 @@ public class ValueItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 
 	private ContextComponent component;
+	private Value value;
 
 	public ValueItem(String id, Value value, RepetitionGroup rg) {
 		super(id);
+		this.value = value;
 		final Template template = rg.getContext().getTemplate();
 		if (value instanceof IRI) {
 			IRI iri = (IRI) value;
@@ -63,6 +65,10 @@ public class ValueItem extends Panel implements ContextComponent {
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
 		component.unifyWith(v);
+	}
+
+	public Value getValue() {
+		return value;
 	}
 
 	public String toString() {

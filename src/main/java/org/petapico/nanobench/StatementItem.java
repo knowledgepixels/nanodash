@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -182,7 +183,7 @@ public class StatementItem extends Panel {
 				} else {
 					statement.add(new Label("label", "").setVisible(false));
 				}
-				if (isRepeatable() && statements.size() == 1 && isFirst()) {
+				if (isRepeatable() && statements.size() == 1 && isLast()) {
 					statement.add(new Link<Object>("add-repetition") {
 						private static final long serialVersionUID = 1L;
 						public void onClick() {
@@ -194,11 +195,11 @@ public class StatementItem extends Panel {
 					l.setVisible(false);
 					statement.add(l);
 				}
-				if (isRepeatable() && statements.size() == 1 && isLast() && !isFirst()) {
+				if (isRepeatable() && statements.size() == 1) {
 					statement.add(new Link<Object>("remove-repetition") {
 						private static final long serialVersionUID = 1L;
 						public void onClick() {
-							repetitionGroups.remove(RepetitionGroup.this);
+							RepetitionGroup.this.remove();
 							refreshStatements();
 						};
 					});
@@ -246,6 +247,41 @@ public class StatementItem extends Panel {
 			return getRepeatIndex() == repetitionGroups.size() - 1;
 		}
 
+		private void remove() {
+			String thisSuffix = getRepeatSuffix();
+			for (IRI iriBase : iriSet) {
+				IRI thisIri = vf.createIRI(iriBase + thisSuffix);
+				if (context.getFormComponentModels().containsKey(thisIri)) {
+					IRI swapIri1 = thisIri;
+					IModel<String> swapModel1 = context.getFormComponentModels().get(swapIri1);
+					IModel<String> swapModel2 = null;
+					for (int i = getRepeatIndex() + 1 ; i < repetitionGroups.size(); i++) {
+						String swapSuffix2 = getRepeatSuffix(i);
+						IRI swapIri2 = vf.createIRI(iriBase + swapSuffix2);
+						swapModel2 = context.getFormComponentModels().get(swapIri2);
+						if (swapModel1 != null && swapModel2 != null) {
+							swapModel1.setObject(swapModel2.getObject());
+						}
+						swapIri1 = swapIri2;
+						swapModel1 = swapModel2;
+					}
+					// Clear last object:
+					if (swapModel2 != null) swapModel2.setObject("");
+				}
+			}
+			repetitionGroups.remove(this);
+		}
+
+		private String getRepeatSuffix() {
+			return getRepeatSuffix(getRepeatIndex());
+		}
+
+		private String getRepeatSuffix(int i) {
+			if (i == 0) return "";
+			// TODO: Check that this double-underscore pattern isn't used otherwise:
+			return "__" + i;
+		}
+
 		public PublishFormContext getContext() {
 			return context;
 		}
@@ -263,8 +299,7 @@ public class StatementItem extends Panel {
 			// narrow scopes is not yet complete.
 			if (getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
 				if (context.getTemplate().isPlaceholder(iri) || context.getTemplate().isLocalResource(iri)) {
-					// TODO: Check that this double-underscore pattern isn't used otherwise:
-					return vf.createIRI(iri.stringValue() + "__" + getRepeatIndex());
+					return vf.createIRI(iri.stringValue() + getRepeatSuffix());
 				}
 			}
 			return iri;
