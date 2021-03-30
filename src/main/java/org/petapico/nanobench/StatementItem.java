@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -39,6 +40,7 @@ public class StatementItem extends Panel {
 		super(id);
 		this.statementId = statementId;
 		this.context = context;
+		setOutputMarkupId(true);
 
 		if (isGrouped()) {
 			statementPartIds.addAll(getTemplate().getStatementIris(statementId));
@@ -183,25 +185,33 @@ public class StatementItem extends Panel {
 				} else {
 					statement.add(new Label("label", "").setVisible(false));
 				}
-				if (isRepeatable() && statements.size() == 1 && isLast()) {
-					statement.add(new Link<Object>("add-repetition") {
+				if (isRepeatable() && statements.size() == statementPartIds.size() && isLast()) {
+					Label b = new Label("add-repetition", "+");
+					statement.add(b);
+					b.add(new AjaxEventBehavior("click") {
 						private static final long serialVersionUID = 1L;
-						public void onClick() {
+						@Override
+						protected void onEvent(AjaxRequestTarget target) {
 							repeat();
-						};
+							target.add(StatementItem.this);
+						}
 					});
 				} else {
 					Label l = new Label("add-repetition", "");
 					l.setVisible(false);
 					statement.add(l);
 				}
-				if (isRepeatable() && statements.size() == 1) {
-					statement.add(new Link<Object>("remove-repetition") {
+				if (isRepeatable() && statements.size() == 1 && !isOnly()) {
+					Label b = new Label("remove-repetition", "-");
+					statement.add(b);
+					b.add(new AjaxEventBehavior("click") {
 						private static final long serialVersionUID = 1L;
-						public void onClick() {
+						@Override
+						protected void onEvent(AjaxRequestTarget target) {
 							RepetitionGroup.this.remove();
 							refreshStatements();
-						};
+							target.add(StatementItem.this);
+						}
 					});
 				} else {
 					Label l = new Label("remove-repetition", "");
@@ -245,6 +255,10 @@ public class StatementItem extends Panel {
 
 		public boolean isLast() {
 			return getRepeatIndex() == repetitionGroups.size() - 1;
+		}
+
+		public boolean isOnly() {
+			return repetitionGroups.size() == 1;
 		}
 
 		private void remove() {

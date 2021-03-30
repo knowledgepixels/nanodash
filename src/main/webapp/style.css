@@ -111,7 +111,7 @@ a.button, input.button {
 	cursor: pointer;
 }
 
-a.smallbutton {
+.smallbutton {
 	font-size: 10pt;
 	padding: 0px 5px;
 	margin: 0;
