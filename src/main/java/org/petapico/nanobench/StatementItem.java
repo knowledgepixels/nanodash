@@ -266,21 +266,16 @@ public class StatementItem extends Panel {
 			for (IRI iriBase : iriSet) {
 				IRI thisIri = vf.createIRI(iriBase + thisSuffix);
 				if (context.getFormComponentModels().containsKey(thisIri)) {
-					IRI swapIri1 = thisIri;
-					IModel<String> swapModel1 = context.getFormComponentModels().get(swapIri1);
-					IModel<String> swapModel2 = null;
+					IModel<String> swapModel1 = context.getFormComponentModels().get(thisIri);
 					for (int i = getRepeatIndex() + 1 ; i < repetitionGroups.size(); i++) {
-						String swapSuffix2 = getRepeatSuffix(i);
-						IRI swapIri2 = vf.createIRI(iriBase + swapSuffix2);
-						swapModel2 = context.getFormComponentModels().get(swapIri2);
+						IModel<String> swapModel2 = context.getFormComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
 						if (swapModel1 != null && swapModel2 != null) {
 							swapModel1.setObject(swapModel2.getObject());
 						}
-						swapIri1 = swapIri2;
 						swapModel1 = swapModel2;
 					}
 					// Clear last object:
-					if (swapModel2 != null) swapModel2.setObject("");
+					if (swapModel1 != null) swapModel1.setObject("");
 				}
 			}
 			repetitionGroups.remove(this);
