@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -65,6 +66,7 @@ public class PublishForm extends Panel {
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
+		setOutputMarkupId(true);
 
 		Nanopub fillNp = null;
 		if (!pageParams.get("fill").isNull()) {
@@ -473,18 +475,17 @@ public class PublishForm extends Panel {
 				final PublishFormContext pic = item.getModelObject();
 				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
 				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
-				Link<String> removeLink = new Link<String>("piremovelink") {
-
+				Label remove = new Label("piremove", "×");
+				item.add(remove);
+				remove.add(new AjaxEventBehavior("click") {
 					private static final long serialVersionUID = 1L;
-
 					@Override
-					public void onClick() {
+					protected void onEvent(AjaxRequestTarget target) {
 						pubInfoContexts.remove(pic);
+						target.add(PublishForm.this);
 					}
-
-				};
-				item.add(removeLink);
-				if (requiredPubInfoContexts.contains(pic)) removeLink.setVisible(false);
+				});
+				if (requiredPubInfoContexts.contains(pic)) remove.setVisible(false);
 				item.add(new ListView<StatementItem>("pi-statements", pic.getStatementItems()) {
 
 					private static final long serialVersionUID = 1L;
