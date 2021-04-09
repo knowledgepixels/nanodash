@@ -16,19 +16,19 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-public class RestrictedChoiceItem extends Panel implements ContextComponent {
+public class LocalReferenceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
 	private IRI iri;
 	private Select2Choice<String> choice;
-	private final List<String> dropdownValues;
+	private Template template;
 
-	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
+	public LocalReferenceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iri;
-		final Template template = context.getTemplate();
+		template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
@@ -38,10 +38,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			}
 			model = Model.of(value);
 			context.getFormComponentModels().put(iri, model);
-		}
-		dropdownValues = new ArrayList<>();
-		for (Value v : template.getPossibleValues(iri)) {
-			dropdownValues.add(v.toString());
 		}
 
 		String prefixLabel = template.getPrefixLabel(iri);
@@ -65,6 +61,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			@Override
 			public String getDisplayValue(String object) {
 				if (object == null || object.isEmpty()) return "";
+				if (!object.matches("(https?|file)://.+")) return object;
 				IRI valueIri = vf.createIRI(object);
 				if (template.getLabel(valueIri) != null) {
 					return template.getLabel(valueIri);
@@ -85,12 +82,14 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			public void query(String term, int page, Response<String> response) {
+				List<String> possibleValues = getPossibleValues();
+				
 				if (term == null) {
-					response.addAll(dropdownValues);
+					response.addAll(possibleValues);
 					return;
 				}
 				term = term.toLowerCase();
-				for (String s : dropdownValues) {
+				for (String s : possibleValues) {
 					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
 				}
 			}
@@ -123,7 +122,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			if (!dropdownValues.contains(v.stringValue())) {
+			if (!getPossibleValues().contains(v.stringValue())) {
 				return false;
 			}
 			if (choice.getModelObject().isEmpty()) {
@@ -141,7 +140,21 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	}
 
 	public String toString() {
-		return "[Restricted choice item: " + iri + "]";
+		return "[Local reference item: " + iri + "]";
+	}
+
+	public List<String> getPossibleValues() {
+		List<String> dropdownValues = new ArrayList<>();
+		for (IRI r : template.getLocalReferenceTargets(iri)) {
+			for (int i = 0 ; true ; i++) {
+				String suffix = "__" + i;
+				if (i == 0) suffix = "";
+				IRI refIri = vf.createIRI(r.stringValue() + suffix);
+				if (!context.getFormComponentModels().containsKey(refIri)) break;
+				dropdownValues.add(context.getFormComponentModels().get(refIri).getObject());
+			}
+		}
+		return dropdownValues;
 	}
 
 }

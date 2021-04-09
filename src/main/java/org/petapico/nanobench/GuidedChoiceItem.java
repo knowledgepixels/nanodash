@@ -132,16 +132,15 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		textfield.getSettings().getAjax(true).setDelay(500);
 		textfield.getSettings().setCloseOnSelect(true);
 		textfield.getSettings().setTags(true);
-		textfield.getSettings().setPlaceholder("");
+		String placeholder = template.getLabel(iri);
+		if (placeholder == null) placeholder = "";
+		textfield.getSettings().setPlaceholder(placeholder);
 		textfield.getSettings().setAllowClear(true);
 
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new AttributeAppender("style", "width:750px;"));
 		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);
-		if (template.getLabel(iri) != null) {
-			textfield.getSettings().setPlaceholder(template.getLabel(iri));
-		}
 		textfield.add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;

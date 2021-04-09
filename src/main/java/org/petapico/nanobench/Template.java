@@ -132,6 +132,7 @@ public class Template implements Serializable {
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
 	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
 	public static final IRI GUIDED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GuidedChoicePlaceholder");
+	public static final IRI LOCAL_REFERENCE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalReferencePlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
 	public static final IRI ASSERTION_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/ASSERTION");
 	public static final IRI NANOPUB_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NANOPUB");
@@ -150,6 +151,7 @@ public class Template implements Serializable {
 	public static final IRI REPEATABLE_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RepeatableStatement");
 	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
+	public static final IRI HAS_LOCAL_REFERENCE_TARGET_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLocalReferenceTarget");
 
 
 	private Nanopub nanopub;
@@ -172,6 +174,7 @@ public class Template implements Serializable {
 	private Map<IRI,Integer> statementOrder = new HashMap<>();
 	private IRI defaultProvenance;
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
+	private Map<IRI,List<IRI>> localReferenceTarget = new HashMap<>();
 
 	private Template(String templateId) {
 		if (templateId.startsWith("file://")) {
@@ -294,6 +297,11 @@ public class Template implements Serializable {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
 	}
 
+	public boolean isLocalReferencePlaceholder(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_REFERENCE_PLACEHOLDER_CLASS);
+	}
+
 	public boolean isPlaceholder(IRI iri) {
 		iri = transform(iri);
 		if (!typeMap.containsKey(iri)) return false;
@@ -344,6 +352,13 @@ public class Template implements Serializable {
 				}
 			}
 		}
+		return l;
+	}
+
+	public List<IRI> getLocalReferenceTargets(IRI iri) {
+		iri = transform(iri);
+		List<IRI> l = localReferenceTarget.get(iri);
+		if (l == null) return new ArrayList<>();
 		return l;
 	}
 
@@ -575,6 +590,15 @@ public class Template implements Serializable {
 				}
 				if (st.getObject() instanceof Literal) {
 					l.add(st.getObject().stringValue());
+				}
+			} else if (st.getPredicate().equals(HAS_LOCAL_REFERENCE_TARGET_PREDICATE)) {
+				List<IRI> l = localReferenceTarget.get(st.getSubject());
+				if (l == null) {
+					l = new ArrayList<>();
+					localReferenceTarget.put((IRI) st.getSubject(), l);
+				}
+				if (st.getObject() instanceof IRI) {
+					l.add((IRI) st.getObject());
 				}
 			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
 				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
