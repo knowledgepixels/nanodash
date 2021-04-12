@@ -150,7 +150,19 @@ code {
 
 input, select {
   font-size: 12pt;
-  padding: 3px;
+  padding: 3px 5px;
+  border-color: #ccc;
+  background-color: #fff;
+  margin: 3px;
+  color: #000;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+}
+
+.invalid {
+  border-color: #f00;
+  border-width: 3px;
 }
 
 select {

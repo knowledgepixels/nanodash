@@ -3,9 +3,12 @@ package org.petapico.nanobench;
 import java.net.URISyntaxException;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -143,7 +146,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	}
 
 
-	protected static class Validator implements IValidator<String> {
+	protected static class Validator extends Behavior implements IValidator<String> {
 
 		private static final long serialVersionUID = 1L;
 
@@ -184,6 +187,15 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 					s.error(new ValidationError("Not a trusty URI"));
 				}
 			}
+		}
+
+		@Override
+		public void onComponentTag(Component c, ComponentTag tag) {
+			// TODO Fully implement this: mark invalid components in red on submit
+//			FormComponent<?> fc = (FormComponent<?>) c;
+//			if (!fc.isValid()) {
+//				tag.append("class", "invalid", " ");
+//			}
 		}
 
 	}
