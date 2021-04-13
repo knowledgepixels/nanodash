@@ -200,6 +200,7 @@ public class PublishForm extends Panel {
 
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
+		consentCheck.add(new InvalidityHighlighting());
 		consentCheck.add(new IValidator<Boolean>() {
 
 			private static final long serialVersionUID = 1L;

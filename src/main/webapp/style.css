@@ -160,9 +160,13 @@ input, select {
   border-radius: 5px;
 }
 
-.invalid {
-  border-color: #f00;
-  border-width: 3px;
+.invalid, select.invalid + span > span > span, input.invalid + label {
+  border-color: #f00 !important;
+  border-width: 3px !important;
+}
+
+input.invalid + label {
+  color: #f00 !important;
 }
 
 select {
@@ -244,7 +248,7 @@ a.meta:hover, a.meta:active {
 }
 
 .negative {
-	color: #800;
+	color: #f00;
 }
 
 .valueitem {

@@ -43,6 +43,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 			context.getFormComponentModels().put(iri, model);
 		}
 		textfield = new TextField<>("textfield", model);
+		if (!optional) textfield.setRequired(true);
 		textfield.add(new Validator(iri, template));
 		context.getFormComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
@@ -106,7 +107,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 	}
 
 
-	protected static class Validator implements IValidator<String> {
+	protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
 
 		private static final long serialVersionUID = 1L;
 

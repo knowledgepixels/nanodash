@@ -56,6 +56,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		context.getFormComponentModels().put(iri, textfield.getModel());
 		context.getFormComponents().add(textfield);
 		textfield.add(new ValueItem.KeepValueAfterRefreshBehavior());
+		textfield.add(new InvalidityHighlighting());
 		add(textfield);
 	}
 

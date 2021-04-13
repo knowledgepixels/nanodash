@@ -109,6 +109,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.getSettings().setPlaceholder(placeholder);
 		choice.getSettings().setAllowClear(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
+		choice.add(new InvalidityHighlighting());
 		context.getFormComponents().add(choice);
 		add(choice);
 	}
