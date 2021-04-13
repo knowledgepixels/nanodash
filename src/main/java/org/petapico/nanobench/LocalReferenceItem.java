@@ -8,6 +8,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -108,6 +111,7 @@ public class LocalReferenceItem extends Panel implements ContextComponent {
 		choice.getSettings().setPlaceholder(placeholder);
 		choice.getSettings().setAllowClear(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
+		choice.add(new Validator());
 		context.getFormComponents().add(choice);
 		add(choice);
 	}
@@ -155,6 +159,23 @@ public class LocalReferenceItem extends Panel implements ContextComponent {
 			}
 		}
 		return dropdownValues;
+	}
+
+
+	protected class Validator extends InvalidityHighlighting implements IValidator<String> {
+
+		private static final long serialVersionUID = 1L;
+
+		public Validator() {
+		}
+
+		@Override
+		public void validate(IValidatable<String> s) {
+			if (!getPossibleValues().contains(s.getValue())) {
+				s.error(new ValidationError("Invalid choice"));
+			}
+		}
+
 	}
 
 }
