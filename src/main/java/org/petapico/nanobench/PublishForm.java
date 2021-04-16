@@ -16,7 +16,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -278,7 +277,7 @@ public class PublishForm extends Panel {
 		};
 		form.setOutputMarkupId(true);
 
-		form.add(new ExternalLink("templatelink", assertionContext.getTemplate().getId()));
+		form.add(new BookmarkablePageLink<UserPage>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 
 		form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
@@ -444,7 +443,12 @@ public class PublishForm extends Panel {
 	}
 
 	private void refreshProvenance(AjaxRequestTarget target) {
-		ExternalLink link = new ExternalLink("prtemplatelink", provenanceContext.getTemplate().getId());
+		if (target != null) {
+			form.remove("prtemplatelink");
+			form.remove("pr-statements");
+			target.add(form);
+		}
+		form.add(new BookmarkablePageLink<UserPage>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
 		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
 			private static final long serialVersionUID = 1L;
@@ -455,16 +459,7 @@ public class PublishForm extends Panel {
 
 		};
 		list.setOutputMarkupId(true);
-		if (target == null) {
-			form.add(link);
-			form.add(list);
-		} else {
-			form.remove("prtemplatelink");
-			form.add(link);
-			form.remove("pr-statements");
-			form.add(list);
-			target.add(form);
-		}
+		form.add(list);
 	}
 
 	private void refreshPubInfo(AjaxRequestTarget target) {
@@ -475,7 +470,7 @@ public class PublishForm extends Panel {
 			protected void populateItem(ListItem<PublishFormContext> item) {
 				final PublishFormContext pic = item.getModelObject();
 				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
-				item.add(new ExternalLink("pitemplatelink", pic.getTemplate().getId()));
+				item.add(new BookmarkablePageLink<UserPage>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
 				Label remove = new Label("piremove", "×");
 				item.add(remove);
 				remove.add(new AjaxEventBehavior("click") {
