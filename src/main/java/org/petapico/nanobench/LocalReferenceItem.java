@@ -126,21 +126,24 @@ public class LocalReferenceItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			if (!getPossibleValues().contains(v.stringValue())) {
-				return false;
-			}
+			String vs = v.stringValue();
+			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+			// We don't check this here, as possible values might become available later in the template filling process:
+//			if (!getPossibleValues().contains(vs)) return false;
 			if (choice.getModelObject().isEmpty()) {
 				return true;
 			}
-			return v.stringValue().equals(choice.getModelObject());
+			return vs.equals(choice.getModelObject());
 		}
 		return false;
 	}
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		choice.setModelObject(v.stringValue());
+		String vs = v.stringValue();
+		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+		if (!isUnifiableWith(v)) throw new UnificationException(vs);
+		choice.setModelObject(vs);
 	}
 
 	public String toString() {
