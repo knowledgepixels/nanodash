@@ -8,10 +8,17 @@ Make Docker container:
     $ package/package.sh
     $ docker build -t nanopub/nanobench .
 
-Get current version:
+Publish Docker container:
 
-    $ grep -oPm1 "(?<=<version>)[^<]+" pom.xml
+    $ docker push nanopub/nanobench
 
-Set new version:
 
-    $ mvn versions:set versions:commit -DnewVersion="1.22-SNAPSHOT"
+## Release
+
+Prepare release:
+
+    $ ./release.sh
+
+Perform release
+
+    $ ./release.sh -
