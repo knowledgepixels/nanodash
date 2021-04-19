@@ -22,13 +22,14 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private PublishFormContext context;
 	private IRI iri;
 	private Select2Choice<String> choice;
+	private Template template;
 	private final List<String> dropdownValues;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iri;
-		final Template template = context.getTemplate();
+		template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			String value = "";
@@ -65,6 +66,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			@Override
 			public String getDisplayValue(String object) {
 				if (object == null || object.isEmpty()) return "";
+				if (!object.matches("(https?|file)://.+")) return object;
 				IRI valueIri = vf.createIRI(object);
 				if (template.getLabel(valueIri) != null) {
 					return template.getLabel(valueIri);
@@ -124,21 +126,25 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (v instanceof IRI) {
-			if (!dropdownValues.contains(v.stringValue())) {
+			String vs = v.stringValue();
+			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+			if (!dropdownValues.contains(vs)) {
 				return false;
 			}
 			if (choice.getModelObject().isEmpty()) {
 				return true;
 			}
-			return v.stringValue().equals(choice.getModelObject());
+			return vs.equals(choice.getModelObject());
 		}
 		return false;
 	}
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		choice.setModelObject(v.stringValue());
+		String vs = v.stringValue();
+		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+		if (!isUnifiableWith(v)) throw new UnificationException(vs);
+		choice.setModelObject(vs);
 	}
 
 	public String toString() {
