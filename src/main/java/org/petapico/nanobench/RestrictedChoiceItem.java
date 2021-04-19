@@ -8,6 +8,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -23,7 +26,8 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private IRI iri;
 	private Select2Choice<String> choice;
 	private Template template;
-	private final List<String> dropdownValues;
+	private final List<String> fixedPossibleValues = new ArrayList<>();
+	private final List<IRI> possibleRefValues = new ArrayList<>();
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
 		super(id);
@@ -40,9 +44,12 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			model = Model.of(value);
 			context.getFormComponentModels().put(iri, model);
 		}
-		dropdownValues = new ArrayList<>();
 		for (Value v : template.getPossibleValues(iri)) {
-			dropdownValues.add(v.toString());
+			if (v instanceof IRI && template.isPlaceholder((IRI) v)) {
+				possibleRefValues.add((IRI) v);
+			} else {
+				fixedPossibleValues.add(v.toString());
+			}
 		}
 
 		String prefixLabel = template.getPrefixLabel(iri);
@@ -87,12 +94,14 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			public void query(String term, int page, Response<String> response) {
+				List<String> possibleValues = getPossibleValues();
+				
 				if (term == null) {
-					response.addAll(dropdownValues);
+					response.addAll(possibleValues);
 					return;
 				}
 				term = term.toLowerCase();
-				for (String s : dropdownValues) {
+				for (String s : possibleValues) {
 					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
 				}
 			}
@@ -111,7 +120,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.getSettings().setPlaceholder(placeholder);
 		choice.getSettings().setAllowClear(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
-		choice.add(new InvalidityHighlighting());
+		choice.add(new Validator());
 		context.getFormComponents().add(choice);
 		add(choice);
 	}
@@ -128,7 +137,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-			if (!dropdownValues.contains(vs)) {
+			if (possibleRefValues.size() == 0 && !fixedPossibleValues.contains(vs)) {
 				return false;
 			}
 			if (choice.getModelObject().isEmpty()) {
@@ -149,6 +158,38 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	public String toString() {
 		return "[Restricted choice item: " + iri + "]";
+	}
+
+	public List<String> getPossibleValues() {
+		List<String> possibleValues = new ArrayList<>();
+		possibleValues.addAll(fixedPossibleValues);
+		for (IRI r : possibleRefValues) {
+			for (int i = 0 ; true ; i++) {
+				String suffix = "__" + i;
+				if (i == 0) suffix = "";
+				IRI refIri = vf.createIRI(r.stringValue() + suffix);
+				if (!context.getFormComponentModels().containsKey(refIri)) break;
+				possibleValues.add(context.getFormComponentModels().get(refIri).getObject());
+			}
+		}
+		return possibleValues;
+	}
+
+
+	protected class Validator extends InvalidityHighlighting implements IValidator<String> {
+
+		private static final long serialVersionUID = 1L;
+
+		public Validator() {
+		}
+
+		@Override
+		public void validate(IValidatable<String> s) {
+			if (!getPossibleValues().contains(s.getValue())) {
+				s.error(new ValidationError("Invalid choice"));
+			}
+		}
+
 	}
 
 }

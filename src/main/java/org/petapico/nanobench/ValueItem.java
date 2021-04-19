@@ -22,9 +22,7 @@ public class ValueItem extends Panel implements ContextComponent {
 		final Template template = rg.getContext().getTemplate();
 		if (value instanceof IRI) {
 			IRI iri = (IRI) value;
-			if (template.isLocalReferencePlaceholder(iri)) {
-				component = new LocalReferenceItem("value", id, iri, rg.isOptional(), rg.getContext());
-			} else if (template.isRestrictedChoicePlaceholder(iri)) {
+			if (template.isRestrictedChoicePlaceholder(iri)) {
 				component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isGuidedChoicePlaceholder(iri)) {
 				component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
