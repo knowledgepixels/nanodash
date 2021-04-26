@@ -97,6 +97,7 @@ public class PublishFormContext implements Serializable {
 
 	public IRI processIri(IRI iri) {
 		Value v = processValue(iri);
+		if (v == null) return null;
 		if (v instanceof IRI) return (IRI) v;
 		return iri;
 	}
@@ -122,8 +123,12 @@ public class PublishFormContext implements Serializable {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			String prefix = template.getPrefix(iri);
 			if (prefix == null) prefix = "";
-			if (tf.getObject().matches("https?://.*") || prefix.matches("https?://.*")) {
-				return vf.createIRI(prefix + tf.getObject());
+			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
+			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+			String v = prefix + tf.getObject();
+			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("https?://.*")) {
+				return vf.createIRI(v);
 			}
 			return vf.createLiteral(tf.getObject());
 		} else if (template.isUriPlaceholder(iri)) {
