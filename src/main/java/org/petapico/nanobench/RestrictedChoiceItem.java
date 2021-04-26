@@ -2,7 +2,10 @@ package org.petapico.nanobench;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -161,7 +164,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	}
 
 	public List<String> getPossibleValues() {
-		List<String> possibleValues = new ArrayList<>();
+		Set<String> possibleValues = new HashSet<>();
 		possibleValues.addAll(fixedPossibleValues);
 		for (IRI r : possibleRefValues) {
 			for (int i = 0 ; true ; i++) {
@@ -172,7 +175,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				possibleValues.add(context.getFormComponentModels().get(refIri).getObject());
 			}
 		}
-		return possibleValues;
+		List<String> possibleValuesList = new ArrayList<>(possibleValues);
+		Collections.sort(possibleValuesList);
+		return possibleValuesList;
 	}
 
 
