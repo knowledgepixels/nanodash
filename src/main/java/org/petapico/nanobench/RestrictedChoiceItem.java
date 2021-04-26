@@ -9,8 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -131,6 +134,22 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		choice.add(new Validator());
 		context.getFormComponents().add(choice);
+		choice.add(new OnChangeAjaxBehavior() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				for (FormComponent<String> fc : context.getFormComponents()) {
+					if (fc == choice) continue;
+					if (fc.getModel() == choice.getModel()) {
+						fc.modelChanged();
+						target.add(fc);
+					}
+				}
+			}
+
+		});
 		add(choice);
 	}
 
