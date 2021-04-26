@@ -3,10 +3,13 @@ package org.petapico.nanobench;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -29,7 +32,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private IRI iri;
 	private Select2Choice<String> choice;
 	private Template template;
-	private final List<String> fixedPossibleValues = new ArrayList<>();
+	private final Map<String,Boolean> fixedPossibleValues = new HashMap<>();
 	private final List<IRI> possibleRefValues = new ArrayList<>();
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
@@ -51,7 +54,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			if (v instanceof IRI && template.isPlaceholder((IRI) v)) {
 				possibleRefValues.add((IRI) v);
 			} else {
-				fixedPossibleValues.add(v.toString());
+				fixedPossibleValues.put(v.toString(), true);
 			}
 		}
 
@@ -78,11 +81,11 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				if (object == null || object.isEmpty()) return "";
 				if (!object.matches("(https?|file)://.+")) return object;
 				IRI valueIri = vf.createIRI(object);
-				if (template.getLabel(valueIri) != null) {
+				if (fixedPossibleValues.containsKey(object) && template.getLabel(valueIri) != null) {
 					return template.getLabel(valueIri);
-				} else {
-					return IriItem.getShortNameFromURI(object);
 				}
+				if (object.startsWith(template.getId())) return object.substring(0, template.getId().length());
+				return object;
 			}
 
 			@Override
@@ -117,6 +120,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		};
 		choice = new Select2Choice<String>("choice", model, choiceProvider);
 		if (!optional) choice.setRequired(true);
+		if (template.isLocalResource(iri)) {
+			choice.add(new AttributeAppender("style", "width:250px;"));
+		}
 		choice.getSettings().setCloseOnSelect(true);
 		String placeholder = template.getLabel(iri);
 		if (placeholder == null) placeholder = "";
@@ -140,7 +146,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-			if (possibleRefValues.size() == 0 && !fixedPossibleValues.contains(vs)) {
+			if (possibleRefValues.size() == 0 && !fixedPossibleValues.containsKey(vs)) {
 				return false;
 			}
 			if (choice.getModelObject().isEmpty()) {
@@ -165,17 +171,24 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	public List<String> getPossibleValues() {
 		Set<String> possibleValues = new HashSet<>();
-		possibleValues.addAll(fixedPossibleValues);
+		possibleValues.addAll(fixedPossibleValues.keySet());
 		for (IRI r : possibleRefValues) {
 			for (int i = 0 ; true ; i++) {
 				String suffix = "__" + i;
 				if (i == 0) suffix = "";
 				IRI refIri = vf.createIRI(r.stringValue() + suffix);
-				if (!context.getFormComponentModels().containsKey(refIri)) break;
-				possibleValues.add(context.getFormComponentModels().get(refIri).getObject());
+				IModel<String> m = context.getFormComponentModels().get(refIri);
+				if (m == null) break;
+				if (m.getObject() != null) possibleValues.add(m.getObject());
 			}
 		}
-		List<String> possibleValuesList = new ArrayList<>(possibleValues);
+		List<String> possibleValuesList = new ArrayList<>();
+		for (String s : possibleValues) {
+			if (template.isLocalResource(iri)) {
+				if (s.matches("(https?|file)://.+")) continue;
+			}
+			possibleValuesList.add(s);
+		}
 		Collections.sort(possibleValuesList);
 		return possibleValuesList;
 	}
