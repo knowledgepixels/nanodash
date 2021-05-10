@@ -45,7 +45,6 @@ public class Template implements Serializable {
 
 	private static List<Template> assertionTemplates, provenanceTemplates, pubInfoTemplates;
 	private static Map<String,Template> templateMap;
-	private static Map<String,String> latestVersionMap = new HashMap<>();
 
 	static void refreshTemplates() {
 		assertionTemplates = new ArrayList<>();
@@ -98,23 +97,6 @@ public class Template implements Serializable {
 		if (template != null) return template;
 		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) return new Template(id);
 		return null;
-	}
-
-	public static String getLatestVersionId(String id) {
-		if (!latestVersionMap.containsKey(id)) {
-			Map<String,String> params = new HashMap<>();
-			params.put("np", id);
-			try {
-				ApiResponse r = ApiAccess.getAll("get_latest_version", params);
-				if (r.getData().size() == 0) return id;
-				String l = r.getData().get(0).get("latest");
-				latestVersionMap.put(id, l);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return id;
-			}
-		}
-		return latestVersionMap.get(id);
 	}
 
 

@@ -33,7 +33,7 @@ public class User implements Serializable, Comparable<User> {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	// TODO: Make this configurable:
+	// TODO Make this configurable:
 	private static String authorityIndex = "http://purl.org/np/RAZ4KCC6EceKwJP602FI4WG0UgsjS0OaGDuKvadd6z-jI";
 
 	private static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
@@ -51,9 +51,12 @@ public class User implements Serializable, Comparable<User> {
 		userIdMap = new HashMap<String,User>();
 		userPubkeyMap = new HashMap<String,User>();
 
-		// TODO: use piped out-in stream here:
+		// TODO Make update strategy configurable:
+		String latestAuthorityIndex = ApiAccess.getLatestVersionId(authorityIndex);
+		System.err.println("Using authority index: " + latestAuthorityIndex);
+		// TODO use piped out-in stream here:
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new FetchIndex(authorityIndex, out, RDFFormat.TRIG, false, true, null).run();
+		new FetchIndex(latestAuthorityIndex, out, RDFFormat.TRIG, false, true, null).run();
 		InputStream in = new ByteArrayInputStream(out.toByteArray());
 		try {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
@@ -176,11 +179,13 @@ public class User implements Serializable, Comparable<User> {
 			if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
 		}
 		String publicKey = user.getPubkeyString();
-		if (userIdMap.containsKey(userId)) {
+		if (userIdMap.containsKey(userId) && !userIdMap.get(userId).getPubkeyString().equals(publicKey)) {
+			//System.err.println("User ID already registered with different public key: " + userId + " | " + publicKey);
+			return;
+		} else if (userIdMap.containsKey(userId)) {
 			//System.err.println("User ID already registered: " + userId);
 			return;
-		}
-		if (userPubkeyMap.containsKey(publicKey)) {
+		} else if (userPubkeyMap.containsKey(publicKey)) {
 			//System.err.println("User public key already registered: " + publicKey);
 			return;
 		}

@@ -146,6 +146,25 @@ public abstract class ApiAccess {
 		return response;
 	}
 
+	private static Map<String,String> latestVersionMap = new HashMap<>();
+
+	public static String getLatestVersionId(String nanopubId) {
+		if (!latestVersionMap.containsKey(nanopubId)) {
+			Map<String,String> params = new HashMap<>();
+			params.put("np", nanopubId);
+			try {
+				ApiResponse r = ApiAccess.getAll("get_latest_version", params);
+				if (r.getData().size() != 1) return nanopubId;
+				String l = r.getData().get(0).get("latest");
+				latestVersionMap.put(nanopubId, l);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return nanopubId;
+			}
+		}
+		return latestVersionMap.get(nanopubId);
+	}
+
 	private static TimeZone timeZone = TimeZone.getTimeZone("UTC");
 
 	private static String getDayString(Calendar c) {

@@ -141,7 +141,7 @@ public class PublishForm extends Panel {
 			c.initStatements();
 		}
 
-		String latestAssertionId = Template.getLatestVersionId(assertionContext.getTemplateId());
+		String latestAssertionId = ApiAccess.getLatestVersionId(assertionContext.getTemplateId());
 		if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
 			add(new Label("newversion", "There is a new version of this assertion template:"));
 			PageParameters params = new PageParameters(pageParams);
