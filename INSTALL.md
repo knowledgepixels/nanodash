@@ -17,7 +17,7 @@ If you are unsure whether you have Java installed already, you can continue with
 
 Download the ZIP file with a name like `nanobench-1.2.zip` for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
 Unpack it at a convenient location in your file system.
-This should create three files: `nanobench.jar`, `run`, and `run-under-windows.bat`.
+This should create the files `nanobench.jar`, `run`, and `run-under-windows.bat` (and also `update` and `update-under-windows.bat`).
 
 
 ## Step 3: Run Nanobench and Follow Instructions
