@@ -32,7 +32,7 @@ Now you are ready to publish your own nanopublications via the "publish" menu it
 
 ## Update
 
-To update to the latest version of Nanobench, delete all the files you downloaded and then redo Step 2.
+To update to the latest version, shut down Nanobench and then run `update` or `update-under-windows.bat`, depending on your operating system.
 
 ## Install from source
 
@@ -63,7 +63,7 @@ Build the `.jar` using maven at the root of the repository:
 mvn clean install tomcat7:exec-war-only
 ```
 
-> It will generate a `.jar` and a `.war` file in the `target` folder
+It will generate a `.jar` and a `.war` file in the `target` folder
 
 Rename the jar:
 
