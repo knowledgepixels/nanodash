@@ -148,8 +148,7 @@ code {
   padding: 2px 5px;
 }
 
-input, select {
-  font-size: 12pt;
+input, select, textarea {
   padding: 3px 5px;
   border-color: #ccc;
   background-color: #fff;
@@ -278,7 +277,7 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }
 
-.nanopub-statement input, select, .select2 {
+.nanopub-statement input, select, .select2, textarea {
   margin: 2px;
   font-size: 10pt;
   font-family: monaco,monospace;
@@ -373,6 +372,7 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-span {
+.nanopub-statement span {
+  line-height: 25px;
   vertical-align: top;
 }
