@@ -123,6 +123,7 @@ a.button, input.button {
 	border-color: black;
 	display:inline-block;
 	cursor: pointer;
+    line-height: 20px !important;
 }
 
 a.button:hover, a.smallbutton:hover, input.button:hover {
@@ -277,6 +278,11 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
 .nanopub-context-switch { display: none; }
 
+.nanopub-statement span {
+  line-height: 25px;
+  vertical-align: top;
+}
+
 .nanopub-statement input, select, .select2, textarea {
   margin: 2px;
   font-size: 10pt;
@@ -370,9 +376,4 @@ a:active.nanopub-pubinfo { color: #666; }
 hr {
   margin: 8px 0 8px 0;
   background-color: rgba(0, 0, 0, 0.1);
-}
-
-.nanopub-statement span {
-  line-height: 25px;
-  vertical-align: top;
 }
