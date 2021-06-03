@@ -1,6 +1,7 @@
 package org.petapico.nanobench;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -16,7 +17,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
-	private TextField<String> textfield;
+	private AbstractTextComponent<String> textfield;
 	private final String regex;
 
 	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
@@ -34,12 +35,12 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 			model = Model.of(value);
 			context.getFormComponentModels().put(iri, model);
 		}
-		textfield = new TextField<>("textfield", model);
-		if (!optional) textfield.setRequired(true);
+		AbstractTextComponent<String> tc = initTextComponent(model);
+		if (!optional) tc.setRequired(true);
 		if (context.getTemplate().getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
+			tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
 		}
-		textfield.add(new IValidator<String>() {
+		tc.add(new IValidator<String>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -53,16 +54,25 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 			}
 
 		});
-		context.getFormComponentModels().put(iri, textfield.getModel());
-		context.getFormComponents().add(textfield);
-		textfield.add(new ValueItem.KeepValueAfterRefreshBehavior());
-		textfield.add(new InvalidityHighlighting());
-		add(textfield);
+		context.getFormComponentModels().put(iri, tc.getModel());
+		context.getFormComponents().add(tc);
+		tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
+		tc.add(new InvalidityHighlighting());
+		add(tc);
+	}
+
+	protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
+		textfield = new TextField<>("textfield", model);
+		return textfield;
+	}
+
+	protected AbstractTextComponent<String> getTextComponent() {
+		return textfield;
 	}
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(textfield);
+		context.getFormComponents().remove(getTextComponent());
 	}
 
 	@Override
@@ -71,10 +81,10 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 			if (regex != null && !v.stringValue().matches(regex)) {
 				return false;
 			}
-			if (textfield.getModelObject().isEmpty()) {
+			if (getTextComponent().getModelObject().isEmpty()) {
 				return true;
 			}
-			return v.stringValue().equals(textfield.getModelObject());
+			return v.stringValue().equals(getTextComponent().getModelObject());
 		}
 		return false;
 	}
@@ -82,7 +92,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		textfield.setModelObject(v.stringValue());
+		getTextComponent().setModelObject(v.stringValue());
 	}
 
 	public String toString() {

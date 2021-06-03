@@ -112,6 +112,7 @@ public class Template implements Serializable {
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
 	public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
+	public static final IRI LONG_LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LongLiteralPlaceholder");
 	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
 	public static final IRI GUIDED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GuidedChoicePlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
@@ -263,7 +264,12 @@ public class Template implements Serializable {
 
 	public boolean isLiteralPlaceholder(IRI iri) {
 		iri = transform(iri);
-		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS);
+		return typeMap.containsKey(iri) && (typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS) || typeMap.get(iri).contains(LONG_LITERAL_PLACEHOLDER_CLASS));
+	}
+
+	public boolean isLongLiteralPlaceholder(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LONG_LITERAL_PLACEHOLDER_CLASS);
 	}
 
 	public boolean isRestrictedChoicePlaceholder(IRI iri) {
@@ -286,6 +292,7 @@ public class Template implements Serializable {
 			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(LITERAL_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(LONG_LITERAL_PLACEHOLDER_CLASS)) return true;
 		}
 		return false;
 	}
