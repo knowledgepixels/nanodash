@@ -16,7 +16,7 @@ public class ValueItem extends Panel implements ContextComponent {
 	private ContextComponent component;
 	private Value value;
 
-	public ValueItem(String id, Value value, RepetitionGroup rg) {
+	public ValueItem(String id, Value value, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
 		this.value = value;
 		final Template template = rg.getContext().getTemplate();
@@ -35,7 +35,7 @@ public class ValueItem extends Panel implements ContextComponent {
 			} else if (template.isPlaceholder(iri)) {
 				component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else {
-				component = new IriItem("value", id, iri, id.equals("obj"), rg);
+				component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
 			}
 		} else {
 			component = new LiteralItem("value", id, (Literal) value, rg);

@@ -15,7 +15,7 @@ public class IriItem extends Panel implements ContextComponent {
 	private IRI iri;
 	private PublishFormContext context;
 
-	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, RepetitionGroup rg) {
+	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
 		this.iri = iriP;
 		this.context = rg.getContext();
@@ -46,7 +46,10 @@ public class IriItem extends Panel implements ContextComponent {
 		} else if (labelString == null) {
 			labelString = getShortNameFromURI(iri.stringValue());
 		}
-		if (labelString != null && labelString.length() > 0 && parentId.equals("subj")) {
+		if (!statementPartId.equals(template.getFirstOccurence(iri))) {
+			labelString = labelString.replaceFirst("^[aA]n? ", "the ");
+		}
+		if (labelString.length() > 0 && parentId.equals("subj")) {
 			// Capitalize first letter of label if at subject position:
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}

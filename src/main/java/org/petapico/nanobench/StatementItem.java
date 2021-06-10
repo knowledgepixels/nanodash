@@ -172,9 +172,9 @@ public class StatementItem extends Panel {
 			statements = new ArrayList<>();
 			for (IRI s : statementPartIds) {
 				StatementPartItem statement = new StatementPartItem("statement",
-						makeValueItem("subj", getTemplate().getSubject(s)),
-						makeValueItem("pred", getTemplate().getPredicate(s)),
-						makeValueItem("obj", getTemplate().getObject(s))
+						makeValueItem("subj", getTemplate().getSubject(s), s),
+						makeValueItem("pred", getTemplate().getPredicate(s), s),
+						makeValueItem("obj", getTemplate().getObject(s), s)
 					);
 				statements.add(statement);
 				if (statements.size() == 1 && !isFirst()) {
@@ -221,11 +221,11 @@ public class StatementItem extends Panel {
 			}
 		}
 
-		private ValueItem makeValueItem(String id, Value value) {
+		private ValueItem makeValueItem(String id, Value value, IRI statementPartId) {
 			if (isFirst() && value instanceof IRI) {
 				iriSet.add((IRI) value);
 			}
-			ValueItem vi = new ValueItem(id, transform(value), this);
+			ValueItem vi = new ValueItem(id, transform(value), statementPartId, this);
 			localItems.add(vi);
 			items.add(vi);
 			return vi;

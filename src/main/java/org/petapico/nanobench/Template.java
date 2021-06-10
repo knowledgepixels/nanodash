@@ -67,9 +67,13 @@ public class Template implements Serializable {
 			for (ApiResponseEntry entry : templateEntries.getData()) {
 				if (entry.get("superseded").equals("1") || entry.get("superseded").equals("true")) continue;
 				if (entry.get("retracted").equals("1") || entry.get("retracted").equals("true")) continue;
-				Template t = new Template(entry.get("np"));
-				if (!t.isUnlisted()) templates.add(t);
-				templateMap.put(t.getId(), t);
+				try {
+					Template t = new Template(entry.get("np"));
+					if (!t.isUnlisted()) templates.add(t);
+					templateMap.put(t.getId(), t);
+				} catch (Exception ex) {
+					System.err.println("Exception: " + ex.getMessage());
+				}
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -95,7 +99,14 @@ public class Template implements Serializable {
 		if (assertionTemplates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
-		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) return new Template(id);
+		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) {
+			try {
+				return new Template(id);
+			} catch (Exception ex) {
+				System.err.println("Exception: " + ex.getMessage());
+				return null;
+			}
+		}
 		return null;
 	}
 
@@ -188,6 +199,25 @@ public class Template implements Serializable {
 	public String getLabel(IRI iri) {
 		iri = transform(iri);
 		return labelMap.get(iri);
+	}
+
+	public IRI getFirstOccurence(IRI iri) {
+		for (IRI i : getStatementIris()) {
+			if (statementMap.containsKey(i)) {
+				// grouped statement
+				for (IRI g : getStatementIris(i)) {
+					if (iri.equals(statementSubjects.get(g))) return g;
+					if (iri.equals(statementPredicates.get(g))) return g;
+					if (iri.equals(statementObjects.get(g))) return g;
+				}
+			} else {
+				// non-grouped statement
+				if (iri.equals(statementSubjects.get(i))) return i;
+				if (iri.equals(statementPredicates.get(i))) return i;
+				if (iri.equals(statementObjects.get(i))) return i;
+			}
+		}
+		return null;
 	}
 
 	public String getPrefix(IRI iri) {
