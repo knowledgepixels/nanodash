@@ -179,6 +179,11 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 					s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
 				}
 			}
+			if (template.isExternalUriPlaceholder(iri)) {
+				if (!(p + s.getValue()).matches("(https?|file)://.+")) {
+					s.error(new ValidationError("Not an external IRI"));
+				}
+			}
 			if (template.isTrustyUriPlaceholder(iri)) {
 				if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
 					s.error(new ValidationError("Not a trusty URI"));
