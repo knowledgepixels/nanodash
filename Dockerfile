@@ -1,5 +1,5 @@
 FROM openjdk
 
-ADD package/nanobench.jar /
-ADD package/run /
-CMD "./run"
+ADD package/nanobench.jar /package/
+ADD package/run /package/
+CMD "package/run"
