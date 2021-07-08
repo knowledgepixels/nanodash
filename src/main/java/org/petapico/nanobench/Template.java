@@ -23,6 +23,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.util.file.File;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -31,6 +32,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
 
@@ -168,13 +170,9 @@ public class Template implements Serializable {
 	private IRI defaultProvenance;
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
 
-	private Template(String templateId) {
+	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
-			try {
-				nanopub = new NanopubImpl(new File(templateId.substring(7)));
-			} catch (Exception ex) {
-				throw new RuntimeException(ex);
-			}
+			nanopub = new NanopubImpl(new File(templateId.substring(7)));
 		} else {
 			nanopub = Utils.getNanopub(templateId);
 		}
@@ -554,7 +552,7 @@ public class Template implements Serializable {
 		}
 	}
 
-	private void processTemplate(Nanopub templateNp) {
+	private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
 		assertionIri = templateNp.getAssertionUri();
 		for (Statement st : templateNp.getAssertion()) {
 			if (st.getSubject().equals(assertionIri)) {
@@ -630,7 +628,7 @@ public class Template implements Serializable {
 		List<IRI> assertionTypes = typeMap.get(assertionIri);
 		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) &&
 				!assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS) && !assertionTypes.contains(PUBINFO_TEMPLATE_CLASS))) {
-			throw new RuntimeException("Unknown template type");
+			throw new MalformedTemplateException("Unknown template type");
 		}
 		for (List<IRI> l : statementMap.values()) {
 			l.sort(statementComparator);
