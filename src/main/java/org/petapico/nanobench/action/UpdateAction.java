@@ -21,7 +21,7 @@ public class UpdateAction extends NanopubAction {
 
 	@Override
 	public String getParamString(Nanopub np) {
-		return "fill=" + getEncodedUri(np);
+		return "supersede=" + getEncodedUri(np);
 	}
 
 	@Override

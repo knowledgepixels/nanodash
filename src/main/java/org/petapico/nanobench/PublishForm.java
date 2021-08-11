@@ -68,8 +68,17 @@ public class PublishForm extends Panel {
 		setOutputMarkupId(true);
 
 		Nanopub fillNp = null;
-		if (!pageParams.get("fill").isNull()) {
+		String fillMode = null;
+		if (!pageParams.get("supersede").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("supersede").toString());
+			fillMode = "supersede";
+		} else if (!pageParams.get("fill-all").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("fill-all").toString());
+			fillMode = "fill-all";
+		} else if (!pageParams.get("fill").isNull()) {
+			// TODO: This is deprecated and should be removed at some point
 			fillNp = Utils.getNanopub(pageParams.get("fill").toString());
+			fillMode = "supersede";
 		}
 		PublishFormContext supersedesPubinfoContext = null;
 
@@ -92,7 +101,7 @@ public class PublishForm extends Panel {
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
-		if (fillNp != null) {
+		if ("supersede".equals(fillMode)) {
 			supersedesPubinfoContext = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement");
 			pubInfoContexts.add(supersedesPubinfoContext);
 			pubInfoContextMap.put(supersedesPubinfoTemplateId, supersedesPubinfoContext);
