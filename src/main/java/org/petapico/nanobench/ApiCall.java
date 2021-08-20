@@ -48,6 +48,33 @@ public class ApiCall {
 		"http://grlc.np.dumontierlab.com/api/local/local/"
 	};
 
+	private static List<String> checkedApiInstances;
+
+	public static List<String> getApiInstances() {
+		if (checkedApiInstances != null) return checkedApiInstances;
+		checkedApiInstances = new ArrayList<String>();
+		for (String a : apiInstances) {
+			try {
+				System.err.println("Checking API instance: " + a);
+				HttpResponse resp = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build().execute(new HttpGet(a));
+				if (wasSuccessful(resp)) {
+					System.err.println("SUCCESS: API instance is accessible: " + a);
+					checkedApiInstances.add(a);
+				} else {
+					System.err.println("FAILURE: API instance isn't accessible: " + a);
+				}
+			} catch (IOException ex) {
+				System.err.println("FAILURE: API instance isn't accessible: " + a);
+			}
+		}
+		System.err.println(checkedApiInstances.size() + " accessible API instances");
+		if (checkedApiInstances.size() < 2) {
+			checkedApiInstances = null;
+			throw new RuntimeException("Not enough healthy API instances available");
+		}
+		return checkedApiInstances;
+	}
+
 	private static String experimentalApi1 = "http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/";
 	private static String experimentalApi2 = "http://130.60.24.146:7881/api/local/local/";
 
@@ -81,7 +108,7 @@ public class ApiCall {
 	}
 
 	private void run() {
-		List<String> apiInstancesToTry = new LinkedList<>(Arrays.asList(apiInstances));
+		List<String> apiInstancesToTry = new LinkedList<>(getApiInstances());
 		if (!isExperimentalOperation(operation)) {
 			while (!apiInstancesToTry.isEmpty() && apisToCall.size() < parallelCallCount) {
 				int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
