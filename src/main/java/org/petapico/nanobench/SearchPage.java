@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
@@ -20,12 +21,16 @@ public class SearchPage extends WebPage {
 	private static final long serialVersionUID = 1L;
 
 	private TextField<String> searchField;
+	private CheckBox filterUser;
 	private Model<String> progress;
 
 	public SearchPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
 		final String searchText = parameters.get("query").toString();
+		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
+		
+		final User currentUser = User.getUser(ProfilePage.getUserIri().toString());
 		
 		Form<?> form = new Form<Void>("form") {
 
@@ -33,14 +38,17 @@ public class SearchPage extends WebPage {
 
 			protected void onSubmit() {
 				String searchText = searchField.getModelObject().trim();
+				Boolean filterCheck = filterUser.getModelObject();
 				PageParameters params = new PageParameters();
 				params.add("query", searchText);
+				params.add("filter", filterCheck);
 				setResponsePage(SearchPage.class, params);
 			}
 		};
 		add(form);
 
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
+		form.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
 
 		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
@@ -66,8 +74,13 @@ public class SearchPage extends WebPage {
 						if (s.matches("https?://[^\\s]+")) {
 							System.err.println("URI QUERY: " + s);
 							nanopubParams.put("ref", s);
+							if (Boolean.TRUE.equals(filterCheck)) {
+								System.err.println("Filter for PUBKEY: " + currentUser.getPubkeyString());
+								nanopubParams.put("pubkey", currentUser.getPubkeyString());
+							}
 							try {
-								nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
+								// nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
+								nanopubResults = ApiAccess.getAll("find_signed_nanopubs_with_uri", nanopubParams).getData();
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}
@@ -77,8 +90,13 @@ public class SearchPage extends WebPage {
 							if (!freeTextQuery.isEmpty()) {
 								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 								nanopubParams.put("text", freeTextQuery);
+								if (filterCheck != null && Boolean.TRUE.equals(filterCheck)) {
+									System.err.println("Filter for PUBKEY: " + currentUser.getPubkeyString());
+									nanopubParams.put("pubkey", currentUser.getPubkeyString());
+								}
 								try {
-									nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
+									// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
+									nanopubResults = ApiAccess.getAll("find_signed_nanopubs_with_text", nanopubParams).getData();
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}
