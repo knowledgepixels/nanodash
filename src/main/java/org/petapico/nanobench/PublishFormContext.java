@@ -156,7 +156,7 @@ public class PublishFormContext implements Serializable {
 		} else if (template.isValuePlaceholder(iri)) {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
-				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-2).replaceAll("\\\\(\\\\|\\\")", "$1"));
+				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
 				String v = tf.getObject();
 				if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
