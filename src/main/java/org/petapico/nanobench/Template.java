@@ -78,6 +78,7 @@ public class Template implements Serializable {
 				}
 			}
 		} catch (IOException ex) {
+			// TODO Better handle this (re-try to get templates)
 			ex.printStackTrace();
 		}
 	}
