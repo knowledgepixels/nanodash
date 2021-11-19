@@ -1,3 +1,5 @@
 if not defined in_subprocess (cmd /k set in_subprocess=y ^& %0 %*) & exit )
 
-java -jar nanobench.jar -httpPort 37373 -resetExtract
+if exists .extract rmdir /S /Q .extract
+
+java -jar nanobench.jar -httpPort 37373
