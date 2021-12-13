@@ -35,9 +35,9 @@
 
     <!-- LOGGING DEPENDENCIES - LOG4J -->
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.25</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.15.0</version>
     </dependency>
 
     <!--  JUNIT DEPENDENCY FOR TESTING -->
