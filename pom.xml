@@ -4,7 +4,7 @@
   <groupId>org.petapico</groupId>
   <artifactId>nanobench</artifactId>
   <packaging>war</packaging>
-  <version>1.40</version>
+  <version>1.41-SNAPSHOT</version>
   <name>nanobench</name>
   <url>https://github.com/peta-pico/nanobench</url>
   <licenses>
