@@ -638,9 +638,9 @@ public class Template implements Serializable {
 
 
 	private IRI transform(IRI iri) {
-		if (iri.stringValue().contains("__")) {
+		if (iri.stringValue().matches(".*__[0-9]+")) {
 			// TODO: Check that this double-underscore pattern isn't used otherwise:
-			return vf.createIRI(iri.stringValue().replaceFirst("__.*$", ""));
+			return vf.createIRI(iri.stringValue().replaceFirst("__[0-9]+$", ""));
 		}
 		return iri;
 	}
