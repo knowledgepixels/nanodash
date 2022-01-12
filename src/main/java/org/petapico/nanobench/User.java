@@ -23,9 +23,9 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.MultiNanopubRdfHandler;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.security.IntroNanopub;
-import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 import org.nanopub.extra.server.FetchIndex;
+
+import com.opencsv.exceptions.CsvValidationException;
 
 public class User implements Serializable, Comparable<User> {
 
@@ -95,7 +95,7 @@ public class User implements Serializable, Comparable<User> {
 				}
 				if (!keepLooping) break;
 			}
-		} catch (IOException ex) {
+		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
 
@@ -103,7 +103,7 @@ public class User implements Serializable, Comparable<User> {
 			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
 				createUser(entry, false);
 			}
-		} catch (IOException ex) {
+		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
 

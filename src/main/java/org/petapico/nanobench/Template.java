@@ -38,6 +38,7 @@ import org.nanopub.NanopubImpl;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import com.opencsv.exceptions.CsvValidationException;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -77,7 +78,7 @@ public class Template implements Serializable {
 					System.err.println("Exception: " + ex.getMessage());
 				}
 			}
-		} catch (IOException ex) {
+		} catch (IOException|CsvValidationException ex) {
 			// TODO Better handle this (re-try to get templates)
 			ex.printStackTrace();
 		}

@@ -15,6 +15,7 @@ import org.apache.http.HttpResponse;
 import org.apache.wicket.model.Model;
 
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class ApiAccess {
 
@@ -22,7 +23,7 @@ public abstract class ApiAccess {
 
 	protected abstract void processLine(String[] line);
 
-	public void call(String operation, Map<String,String> params) throws IOException {
+	public void call(String operation, Map<String,String> params) throws IOException, CsvValidationException {
 		CSVReader csvReader = null;
 		try {
 			HttpResponse resp = ApiCall.run(operation, params);
@@ -42,7 +43,7 @@ public abstract class ApiAccess {
 		}
 	}
 
-	public static ApiResponse getAll(String operation, Map<String,String> params) throws IOException {
+	public static ApiResponse getAll(String operation, Map<String,String> params) throws IOException, CsvValidationException {
 		final ApiResponse response = new ApiResponse();
 		ApiAccess a = new ApiAccess() {
 

@@ -28,6 +28,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.Nanopub;
 
+import com.opencsv.exceptions.CsvValidationException;
+
 public class ExploreDataTable extends Panel {
 	
 	private static final long serialVersionUID = 1L;
@@ -42,7 +44,7 @@ public class ExploreDataTable extends Panel {
 		ApiResponse dataResponse = null;
 		try {
 			dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
-		} catch (IOException ex) {
+		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
 		columns.add(new Column("Nanopublication", "np", ref));
