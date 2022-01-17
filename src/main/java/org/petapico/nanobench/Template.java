@@ -258,12 +258,7 @@ public class Template implements Serializable {
 
 	public boolean isLocalResource(IRI iri) {
 		iri = transform(iri);
-		if (!typeMap.containsKey(iri)) return false;
-		for (IRI t : typeMap.get(iri)) {
-			if (t.equals(LOCAL_RESOURCE_CLASS)) return true;
-			if (t.equals(INTRODUCED_RESOURCE_CLASS)) return true;
-		}
-		return false;
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS);
 	}
 
 	public boolean isIntroducedResource(IRI iri) {

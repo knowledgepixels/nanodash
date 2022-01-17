@@ -150,6 +150,9 @@ public class PublishFormContext implements Serializable {
 				introducedIris.add(processedIri);
 			}
 			return processedIri;
+		} else if (template.isIntroducedResource(iri)) {
+			introducedIris.add(iri);
+			return iri;
 		} else if (template.isLiteralPlaceholder(iri)) {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			return vf.createLiteral(tf.getObject());
