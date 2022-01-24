@@ -106,7 +106,7 @@ public class SearchPage extends WebPage {
 					}
 					nanopubResults.sort(new ApiResponseEntry.DataComparator());
 					List<String> nanopubIds = new ArrayList<>();
-					while (!nanopubResults.isEmpty() && nanopubIds.size() < 10) {
+					while (!nanopubResults.isEmpty() && nanopubIds.size() < 100) {
 						String npUri = nanopubResults.remove(0).get("np");
 						if (!nanopubIds.contains(npUri)) nanopubIds.add(npUri);
 					}

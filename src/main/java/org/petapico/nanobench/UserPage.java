@@ -62,12 +62,12 @@ public class UserPage extends WebPage {
 
 	}
 
-	@Override
-	public void onBeforeRender() {
-		super.onBeforeRender();
-		if (hasBeenRendered()) {
-			setResponsePage(getPageClass(), getPageParameters());
-		}
-	}
+//	@Override
+//	public void onBeforeRender() {
+//		super.onBeforeRender();
+//		if (hasBeenRendered()) {
+//			setResponsePage(getPageClass(), getPageParameters());
+//		}
+//	}
 
 }
