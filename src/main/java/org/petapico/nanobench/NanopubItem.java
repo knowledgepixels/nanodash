@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -18,7 +19,7 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubItem(String id, final NanopubElement n, boolean hidePubinfo) {
+	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
 		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
@@ -91,15 +92,6 @@ public class NanopubItem extends Panel {
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
 
-//		String html = Nanopub2Html.createHtmlString(n.getNanopub(), false, false);
-//		if (hidePubinfo) {
-//			// Hide pubinfo graph:
-//			html = html.replaceFirst("<div class=\"nanopub-pubinfo\"", "<div class=\"nanopub-pubinfo\" style=\"display: none;\"");
-//		}
-//		Label l = new Label("nanopub", html);
-//		l.setEscapeModelStrings(false);
-//		add(l);
-
 		List<Statement> assertionStatements = new ArrayList<>();
 		if (n.getNanopub() != null) {
 			assertionStatements = new ArrayList<>(n.getNanopub().getAssertion());
@@ -115,11 +107,17 @@ public class NanopubItem extends Panel {
 			}
 
 		});
+
 		List<Statement> provenanceStatements = new ArrayList<>();
-		if (n.getNanopub() != null) {
-			provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
+		if (hideProvenance) {
+			provenance.setVisible(false);
+		} else {
+			if (n.getNanopub() != null) {
+				provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+			}
 		}
-		add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
+		provenance.add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -130,12 +128,19 @@ public class NanopubItem extends Panel {
 			}
 
 		});
-		List<Statement> pubinfoStatements = new ArrayList<>();
-		if (n.getNanopub() != null) {
-			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-		}
-		add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
+		add(provenance);
 
+		List<Statement> pubinfoStatements = new ArrayList<>();
+		WebMarkupContainer pubInfo = new WebMarkupContainer("pubinfo");
+		if (hidePubinfo) {
+			pubInfo.setVisible(false);
+		} else {
+			if (n.getNanopub() != null) {
+				pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+			}
+		}
+		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
+			
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -145,6 +150,7 @@ public class NanopubItem extends Panel {
 			}
 
 		});
+		add(pubInfo);
 	}
 
 }

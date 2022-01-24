@@ -2,24 +2,52 @@ package org.petapico.nanobench;
 
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public class NanopubResults extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
+	private static IModel<Boolean> showiModel = new Model<>(false);
+	private static IModel<Boolean> showpModel = new Model<>(true);
 
 	public NanopubResults(String id, List<NanopubElement> nanopubs) {
 		super(id);
+
+		add(new AjaxCheckBox("showi", showiModel) {
+
+			private static final long serialVersionUID = 5451216630648827493L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				setResponsePage(target.getPage());
+			}
+
+		});
+		add(new AjaxCheckBox("showp", showpModel) {
+
+			private static final long serialVersionUID = -6951066705477126322L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				setResponsePage(target.getPage());
+			}
+
+		});
+
 		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				item.add(new NanopubItem("nanopub", item.getModelObject(), true));
+				item.add(new NanopubItem("nanopub", item.getModelObject(), !showpModel.getObject(), !showiModel.getObject()));
 			}
 
 		});

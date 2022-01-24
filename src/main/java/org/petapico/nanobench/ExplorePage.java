@@ -43,7 +43,7 @@ public class ExplorePage extends WebPage {
 						"<strong>" + relCount + "</strong> times as relation.").setEscapeModelStrings(false));
 			} else {
 				add(new Label("name", "Nanopublication"));
-				add(new NanopubItem("nanopub", new NanopubElement(np), true));
+				add(new NanopubItem("nanopub", new NanopubElement(np), false, false));
 				add(new Label("counts", ""));
 			}
 
