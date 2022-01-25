@@ -130,6 +130,13 @@ a.button:hover, a.smallbutton:hover, input.button:hover {
 	background-color: #f8f8f8;
 }
 
+a.actionlink {
+  font-family: Verdana, Helvetica, sans-serif !important;
+  font-style: italic !important;
+  font-size: 10pt !important;
+  opacity: 0.5;
+}
+
 strong {
 	color: black;
 	font-weight: bold;

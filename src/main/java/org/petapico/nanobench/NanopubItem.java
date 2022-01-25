@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -92,24 +94,87 @@ public class NanopubItem extends Panel {
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
 
-		List<Statement> assertionStatements = new ArrayList<>();
-		if (n.getNanopub() != null) {
-			assertionStatements = new ArrayList<>(n.getNanopub().getAssertion());
-		}
-		add(new DataView<Statement>("assertion-statements", new ListDataProvider<Statement>(assertionStatements)) {
+		WebMarkupContainer assertionPart1 = new WebMarkupContainer("assertion-part1");
+		WebMarkupContainer assertionPart2 = new WebMarkupContainer("assertion-part2");
+		assertionPart2.setOutputMarkupPlaceholderTag(true);
+		assertionPart2.setVisible(false);
+		List<Statement> assertionStatements1 = new ArrayList<>();
+		List<Statement> assertionStatements2 = new ArrayList<>();
+		AjaxLink<Void> showMoreLink = new AjaxLink<Void>("showmore"){
 
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 7877892803130782900L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				assertionPart2.setVisible(true);
+				target.add(assertionPart2);
+				setVisible(false);
+				target.add(this);
+			}
+
+		};
+		showMoreLink.setOutputMarkupPlaceholderTag(true);
+		showMoreLink.setVisible(false);
+		AjaxLink<Void> showLessLink = new AjaxLink<Void>("showless"){
+
+			private static final long serialVersionUID = 7877892803130782900L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				assertionPart2.setVisible(false);
+				target.add(assertionPart2);
+				showMoreLink.setVisible(true);
+				target.add(showMoreLink);
+			}
+
+		};
+		assertionPart1.add(showMoreLink);
+		assertionPart2.add(showLessLink);
+
+		if (n.getNanopub() != null) {
+			ArrayList<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
+			if (a.size() > 10) {
+				for (int i = 0 ; i < a.size() ; i++) {
+					if (i < 5) {
+						assertionStatements1.add(a.get(i));
+					} else {
+						assertionStatements2.add(a.get(i));
+					}
+				}
+				showMoreLink.setVisible(true);
+			} else {
+				assertionStatements1 = a;
+			}
+		}
+
+		assertionPart1.add(new DataView<Statement>("assertion-statements1", new ListDataProvider<Statement>(assertionStatements1)) {
+
+			private static final long serialVersionUID = -4523773471034490379L;
 
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement", st, n.getNanopub()));
+				item.add(new TripleItem("assertion-statement1", st, n.getNanopub()));
 			}
 
 		});
+		add(assertionPart1);
 
-		List<Statement> provenanceStatements = new ArrayList<>();
+		assertionPart2.add(new DataView<Statement>("assertion-statements2", new ListDataProvider<Statement>(assertionStatements2)) {
+
+			private static final long serialVersionUID = -6119278916371285402L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				Statement st = item.getModelObject();
+				item.add(new TripleItem("assertion-statement2", st, n.getNanopub()));
+			}
+
+		});
+		add(assertionPart2);
+
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
+		List<Statement> provenanceStatements = new ArrayList<>();
 		if (hideProvenance) {
 			provenance.setVisible(false);
 		} else {
@@ -130,8 +195,8 @@ public class NanopubItem extends Panel {
 		});
 		add(provenance);
 
-		List<Statement> pubinfoStatements = new ArrayList<>();
 		WebMarkupContainer pubInfo = new WebMarkupContainer("pubinfo");
+		List<Statement> pubinfoStatements = new ArrayList<>();
 		if (hidePubinfo) {
 			pubInfo.setVisible(false);
 		} else {
