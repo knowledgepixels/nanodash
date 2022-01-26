@@ -77,7 +77,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		String vs = v.stringValue();
-		if (v instanceof Literal) vs = "\"" + vs.replaceAll("\"", "\\\"") + "\"";
+		if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
 		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 		Validatable<String> validatable = new Validatable<>(vs);
 		if (v instanceof IRI && context.getTemplate().isLocalResource(iri)) {
@@ -102,7 +102,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		} else if (v instanceof IRI) {
 			textfield.setModelObject(vs);
 		} else {
-			textfield.setModelObject("\"" + vs.replaceAll("\"", "\\\"") + "\"");
+			textfield.setModelObject("\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"");
 		}
 	}
 
