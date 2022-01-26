@@ -149,6 +149,7 @@ public class Template implements Serializable {
 	public static final IRI REPEATABLE_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RepeatableStatement");
 	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
+	public static final IRI HAS_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTag");
 
 
 	private Nanopub nanopub;
@@ -171,6 +172,7 @@ public class Template implements Serializable {
 	private Map<IRI,Integer> statementOrder = new HashMap<>();
 	private IRI defaultProvenance;
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
+	private String tag = null;
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
@@ -398,6 +400,10 @@ public class Template implements Serializable {
 		return values;
 	}
 
+	public String getTag() {
+		return tag;
+	}
+
 	private void getPossibleValuesFromNanopubApi(List<NameValuePair> urlParams, String searchterm, Map<String,String> labelMap, List<String> values) {
 		try {
 			Map<String,String> params = new HashMap<>();
@@ -561,6 +567,10 @@ public class Template implements Serializable {
 					} else if (st.getPredicate().equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
 						requiredPubinfoElements.add((IRI) st.getObject());
 					}
+				} else if (st.getPredicate().equals(HAS_TAG) && st.getObject() instanceof Literal) {
+					// TODO This should be replaced at some point with a more sophisticated mechanism based on classes.
+					// We are assuming that there is at most one tag.
+					this.tag = st.getObject().stringValue();
 				}
 			}
 			if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {
