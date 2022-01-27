@@ -43,10 +43,10 @@ public class ApiCall {
 		"http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/",
 		"http://grlc.np.dumontierlab.com/api/local/local/",
 //		"https://openphacts.cs.man.ac.uk/nanopub/grlc/api/local/local/",
-		"https://grlc.nanopubs.knows.idlab.ugent.be/api/local/local/",
+		"https://grlc.nanopubs.knows.idlab.ugent.be/api/local/local/"
 //		"http://grlc.np.scify.org/api/local/local/",
 		// Two are Signed Nanopub Services (because we're only using the 'signed_...' operations here, the difference doesn't matter):
-		"http://130.60.24.146:7881/api/local/local/"
+//		"http://130.60.24.146:7881/api/local/local/",
 //		"https://grlc.nps.petapico.org/api/local/local/"
 	};
 
