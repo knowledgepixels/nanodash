@@ -11,6 +11,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class NanobenchPreferences {
 
 	private List<String> nanopubActions = new ArrayList<>();
+	private boolean readOnlyMode = false;
 
 	public List<String> getNanopubActions() {
 		return nanopubActions;
@@ -18,6 +19,14 @@ public class NanobenchPreferences {
 
 	public void setNanopubActions(List<String> nanopubActions) {
 		this.nanopubActions = nanopubActions;
+	}
+
+	public boolean isReadOnlyMode() {
+		return readOnlyMode;
+	}
+
+	public void setReadOnlyMode(boolean readOnlyMode) {
+		this.readOnlyMode = readOnlyMode;
 	}
 
 	private static NanobenchPreferences obj;

@@ -12,18 +12,24 @@ public class ProfileItem extends Panel {
 	public ProfileItem(String id) {
 		super(id);
 		IRI userIri = ProfilePage.getUserIri();
-		BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
-		if (userIri != null) {
-			User user = User.getUser(userIri.stringValue());
-			if (user != null) {
-				l.add(new Label("profiletext", user.getDisplayName()));
-			} else {
-				l.add(new Label("profiletext", userIri));
-			}
+		if (NanobenchPreferences.get().isReadOnlyMode()) {
+			BookmarkablePageLink<HomePage> l = new BookmarkablePageLink<>("profilelink", HomePage.class);
+			l.add(new Label("profiletext", ""));
+			add(l);
 		} else {
-			l.add(new Label("profiletext", "incomplete profile"));
+			BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
+			if (userIri != null) {
+				User user = User.getUser(userIri.stringValue());
+				if (user != null) {
+					l.add(new Label("profiletext", user.getDisplayName()));
+				} else {
+					l.add(new Label("profiletext", userIri));
+				}
+			} else {
+				l.add(new Label("profiletext", "incomplete profile"));
+			}
+			add(l);
 		}
-		add(l);
 	}
 
 }

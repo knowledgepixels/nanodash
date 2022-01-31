@@ -22,7 +22,9 @@ public class HomePage extends WebPage {
 		} else {
 			add(new Label("warning", ""));
 		}
-		if (ProfilePage.isComplete()) {
+		if (NanobenchPreferences.get().isReadOnlyMode()) {
+			add(new Label("text", "Click on the menu items above to explore nanopublications. This is a read-only instance, so you cannot publish new nanopublications here."));
+		} else if (ProfilePage.isComplete()) {
 			add(new Label("text", "Click on the menu items above to explore or publish nanopublications."));
 		} else {
 			add(new Label("text", "Before you can start, you first need to <a href=\"./profile\">complete your profile</a>.").setEscapeModelStrings(false));

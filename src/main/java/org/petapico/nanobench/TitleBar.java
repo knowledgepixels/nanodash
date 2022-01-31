@@ -1,5 +1,6 @@
 package org.petapico.nanobench;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -11,13 +12,21 @@ public class TitleBar extends Panel {
 	public TitleBar(String id) {
 		super(id);
 		add(new ProfileItem("profile"));
+
+		WebMarkupContainer mychannel = new WebMarkupContainer("mychannel");
 		if (ProfilePage.getUserIri() != null) {
 			PageParameters params = new PageParameters();
 			params.add("id", ProfilePage.getUserIri());
-			add(new BookmarkablePageLink<UserPage>("mychannellink", UserPage.class, params));
+			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", UserPage.class, params));
 		} else {
-			add(new BookmarkablePageLink<UserPage>("mychannellink", ProfilePage.class));
+			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", ProfilePage.class));
 		}
+		mychannel.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		add(mychannel);
+
+		WebMarkupContainer publish = new WebMarkupContainer("publish");
+		publish.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		add(publish);
 	}
 
 }

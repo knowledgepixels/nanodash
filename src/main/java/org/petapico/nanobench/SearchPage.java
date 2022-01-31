@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -30,7 +31,7 @@ public class SearchPage extends WebPage {
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
 		
-		final User currentUser = User.getUser(ProfilePage.getUserIri().toString());
+		final User currentUser = User.getUser(ProfilePage.getUserIri());
 		
 		Form<?> form = new Form<Void>("form") {
 
@@ -48,7 +49,10 @@ public class SearchPage extends WebPage {
 		add(form);
 
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
-		form.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
+		WebMarkupContainer ownFilter = new WebMarkupContainer("own-filter");
+		ownFilter.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
+		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		form.add(ownFilter);
 
 		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
