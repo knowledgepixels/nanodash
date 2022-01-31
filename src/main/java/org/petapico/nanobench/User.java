@@ -43,7 +43,7 @@ public class User implements Serializable, Comparable<User> {
 	private static List<User> unapprovedUsers;
 	private static Map<String,User> userIdMap;
 	private static Map<String,User> userPubkeyMap;
-	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
+//	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
 
 	public static synchronized void refreshUsers() {
 		approvedUsers = new ArrayList<>();
