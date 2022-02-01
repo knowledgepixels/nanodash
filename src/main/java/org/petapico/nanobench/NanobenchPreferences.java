@@ -11,8 +11,29 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class NanobenchPreferences {
 
+	private static NanobenchPreferences obj;
+
+	public static NanobenchPreferences get() {
+		if (obj == null) {
+			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanobench-preferences.yml");
+			if (!prefFile.exists()) return null;
+			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+			try {
+				obj = mapper.readValue(prefFile, NanobenchPreferences.class);
+			} catch (IOException ex) {
+				obj = new NanobenchPreferences();
+				ex.printStackTrace();
+			}
+		}
+		return obj;
+	}
+
 	private List<String> nanopubActions = new ArrayList<>();
 	private boolean readOnlyMode = false;
+	private String websiteUrl;
+	private boolean orcidLoginMode = false;
+	private String orcidClientId;
+	private String orcidClientSecret;
 
 	public List<String> getNanopubActions() {
 		String s = System.getenv("NANOBENCH_NANOPUB_ACTIONS");
@@ -33,21 +54,43 @@ public class NanobenchPreferences {
 		this.readOnlyMode = readOnlyMode;
 	}
 
-	private static NanobenchPreferences obj;
+	public String getWebsiteUrl() {
+		String s = System.getenv("NANOPUB_WEBSITE_URL");
+		if (!(s == null) && !s.isEmpty()) return s;
+		return websiteUrl;
+	}
 
-	public static NanobenchPreferences get() {
-		if (obj == null) {
-			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanobench-preferences.yml");
-			if (!prefFile.exists()) return null;
-			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-			try {
-				obj = mapper.readValue(prefFile, NanobenchPreferences.class);
-			} catch (IOException ex) {
-				obj = new NanobenchPreferences();
-				ex.printStackTrace();
-			}
-		}
-		return obj;
+	public void setWebsiteUrl(String websiteUrl) {
+		this.websiteUrl = websiteUrl;
+	}
+
+	public boolean isOrcidLoginMode() {
+		if ("true".equals(System.getenv("NANOBENCH_ORCID_LOGIN_MODE"))) return true;
+		return orcidLoginMode;
+	}
+
+	public void setOrcidLoginMode(boolean orcidLoginMode) {
+		this.orcidLoginMode = orcidLoginMode;
+	}
+
+	public String getOrcidClientId() {
+		String s = System.getenv("NANOPUB_ORCID_CLIENT_ID");
+		if (!(s == null) && !s.isEmpty()) return s;
+		return orcidClientId;
+	}
+
+	public void setOrcidClientId(String orcidClientId) {
+		this.orcidClientId = orcidClientId;
+	}
+
+	public String getOrcidClientSecret() {
+		String s = System.getenv("NANOPUB_ORCID_CLIENT_SECRET");
+		if (!(s == null) && !s.isEmpty()) return s;
+		return orcidClientSecret;
+	}
+
+	public void setOrcidClientSecret(String orcidClientSecret) {
+		this.orcidClientSecret = orcidClientSecret;
 	}
 
 }

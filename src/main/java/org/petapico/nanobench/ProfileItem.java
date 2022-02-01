@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 
@@ -11,8 +12,13 @@ public class ProfileItem extends Panel {
 
 	public ProfileItem(String id) {
 		super(id);
+		NanobenchPreferences prefs = NanobenchPreferences.get();
 		IRI userIri = ProfilePage.getUserIri();
-		if (NanobenchPreferences.get().isReadOnlyMode()) {
+		if (prefs.isOrcidLoginMode()) {
+			ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl());
+			l.add(new Label("profiletext", "Login with ORCID"));
+			add(l);
+		} else if (prefs.isReadOnlyMode()) {
 			BookmarkablePageLink<HomePage> l = new BookmarkablePageLink<>("profilelink", HomePage.class);
 			l.add(new Label("profiletext", ""));
 			add(l);

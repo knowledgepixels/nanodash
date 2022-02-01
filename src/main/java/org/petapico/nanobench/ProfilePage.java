@@ -123,7 +123,8 @@ public class ProfilePage extends WebPage {
 	private static String orcidLinkError;
 
 	static void loadProfileInfo() {
-		if (userIri == null && !NanobenchPreferences.get().isReadOnlyMode()) {
+		NanobenchPreferences prefs = NanobenchPreferences.get();
+		if (userIri == null && !prefs.isReadOnlyMode() && !prefs.isOrcidLoginMode()) {
 			if (orcidFile.exists()) {
 				try {
 					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8).trim();
