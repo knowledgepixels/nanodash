@@ -3,6 +3,7 @@ package org.petapico.nanobench;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,8 @@ public class NanobenchPreferences {
 	private boolean readOnlyMode = false;
 
 	public List<String> getNanopubActions() {
+		String s = System.getenv("NANOBENCH_NANOPUB_ACTIONS");
+		if (!(s == null) && !s.isEmpty()) return Arrays.asList(s.split(" "));
 		return nanopubActions;
 	}
 
@@ -22,6 +25,7 @@ public class NanobenchPreferences {
 	}
 
 	public boolean isReadOnlyMode() {
+		if ("true".equals(System.getenv("NANOBENCH_READ_ONLY_MODE"))) return true;
 		return readOnlyMode;
 	}
 
