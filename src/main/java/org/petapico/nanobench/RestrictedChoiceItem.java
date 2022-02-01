@@ -198,7 +198,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				IRI refIri = vf.createIRI(r.stringValue() + suffix);
 				IModel<String> m = context.getFormComponentModels().get(refIri);
 				if (m == null) break;
-				if (m.getObject() != null) possibleValues.add(m.getObject());
+				if (m.getObject() != null && !m.getObject().startsWith("\"")) {
+					possibleValues.add(m.getObject());
+				}
 			}
 		}
 		List<String> possibleValuesList = new ArrayList<>();
