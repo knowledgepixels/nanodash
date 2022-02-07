@@ -11,7 +11,7 @@ public class PublishPage extends WebPage {
 	public PublishPage(final PageParameters parameters) {
 		super();
 		add(new TitleBar("titlebar"));
-		if (!ProfilePage.isComplete()) {
+		if (!NanobenchSession.get().isProfileComplete()) {
 			throw new RedirectToUrlException("./profile");
 		}
 		if (parameters.get("template").toString() != null) {

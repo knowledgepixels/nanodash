@@ -23,6 +23,7 @@ import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
 
 import net.trustyuri.TrustyUriException;
@@ -34,6 +35,7 @@ public class ProfileIntroItem extends Panel {
 	public ProfileIntroItem(String id) {
 		super(id);
 
+		final NanobenchSession session = NanobenchSession.get();
 		ExternalLink introlink = null;
 		Label intromessage = null;
 		Link<String> createIntroLink = new Link<String>("createintro") {
@@ -47,12 +49,13 @@ public class ProfileIntroItem extends Panel {
 
 			@Override
 			public void onClick() {
-				if (ProfilePage.getUserIri() == null || ProfilePage.getKeyPair() == null) return;
+				if (session.getUserIri() == null || session.getKeyPair() == null) return;
 				try {
 					Nanopub np = createIntroNanopub();
-					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
+					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, session.getKeyPair(), null, false, false);
+					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
 					PublishNanopub.publish(signedNp);
-					ProfilePage.setIntroNanopub(signedNp);
+					session.setIntroNanopub(signedNp);
 //					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 					throw new RestartResponseException(ProfilePage.class);
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
@@ -62,12 +65,12 @@ public class ProfileIntroItem extends Panel {
 			}
 
 		};
-		if (ProfilePage.getUserIri() != null && ProfilePage.getKeyPair() != null) {
-			if (ProfilePage.getIntroNanopub() != null) {
-				String introUri = ProfilePage.getIntroNanopub().getNanopub().getUri().stringValue();
+		if (session.getUserIri() != null && session.getKeyPair() != null) {
+			if (session.getIntroNanopub() != null) {
+				String introUri = session.getIntroNanopub().getNanopub().getUri().stringValue();
 				introlink = new ExternalLink("introlink", introUri);
 				introlink.add(new Label("introlinktext", introUri));
-				if (ProfilePage.doPubkeysMatch()) {
+				if (session.doPubkeysMatch()) {
 					intromessage = new Label("intromessage", "");
 					intromessage.setVisible(false);
 				} else {
@@ -82,7 +85,7 @@ public class ProfileIntroItem extends Panel {
 			introlink.setVisible(false);
 			intromessage = new Label("intromessage", "Lastly, you need to publish an introduction nanopublication to publicly link your ORCID to the public key above:");
 		}
-		if (ProfilePage.getUserIri() == null || ProfilePage.getKeyPair() == null) {
+		if (session.getUserIri() == null || session.getKeyPair() == null) {
 			intromessage.setVisible(false);
 			createIntroLink.setVisible(false);
 		}
@@ -92,7 +95,8 @@ public class ProfileIntroItem extends Panel {
 	}
 
 	private Nanopub createIntroNanopub() throws MalformedNanopubException {
-		if (ProfilePage.getUserIri() == null || ProfilePage.getKeyPair() == null) return null;
+		NanobenchSession session = NanobenchSession.get();
+		if (session.getUserIri() == null || session.getKeyPair() == null) return null;
 		String tns = "http://purl.org/nanopub/temp/";
 		NanopubCreator npCreator = new NanopubCreator(vf.createIRI(tns));
 		npCreator.addNamespace("", tns);
@@ -106,15 +110,15 @@ public class ProfileIntroItem extends Panel {
 		npCreator.addNamespace("npx", "http://purl.org/nanopub/x/");
 		IRI keyDecl = vf.createIRI(tns + "keyDeclaration");
 		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_ALGORITHM, vf.createLiteral("RSA"));
-		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(ProfilePage.getPubkeyString()));
-		npCreator.addAssertionStatement(keyDecl, KeyDeclaration.DECLARED_BY, ProfilePage.getUserIri());
-		String orcidName = ProfilePage.getOrcidName();
+		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(session.getPubkeyString()));
+		npCreator.addAssertionStatement(keyDecl, KeyDeclaration.DECLARED_BY, session.getUserIri());
+		String orcidName = session.getOrcidName();
 		if (orcidName != null) {
-			npCreator.addAssertionStatement(ProfilePage.getUserIri(), FOAF.NAME, vf.createLiteral(orcidName));
+			npCreator.addAssertionStatement(session.getUserIri(), FOAF.NAME, vf.createLiteral(orcidName));
 		}
-		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, ProfilePage.getUserIri());
+		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, session.getUserIri());
 		npCreator.addTimestampNow();
-		npCreator.addPubinfoStatement(DCTERMS.CREATOR, ProfilePage.getUserIri());
+		npCreator.addPubinfoStatement(DCTERMS.CREATOR, session.getUserIri());
 		return npCreator.finalizeNanopub();
 	}
 

@@ -13,10 +13,10 @@ public class OrcidLinkingPage extends WebPage {
 	public OrcidLinkingPage(final PageParameters parameters) {
 		super();
 		add(new TitleBar("titlebar"));
-		if (!ProfilePage.isComplete()) {
+		if (!NanobenchSession.get().isProfileComplete()) {
 			throw new RedirectToUrlException("./profile");
 		}
-		add(new Label("introuri", ProfilePage.getIntroNanopub().getNanopub().getUri().stringValue()));
+		add(new Label("introuri", NanobenchSession.get().getIntroNanopub().getNanopub().getUri().stringValue()));
 	}
 
 }

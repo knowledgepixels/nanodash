@@ -14,7 +14,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Response;
 import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
@@ -87,8 +90,6 @@ public class WicketApplication extends WebApplication {
 		System.err.println(" http://localhost:37373");
 		System.err.println("----------------------------------------");
 		System.err.println("");
-
-		ProfilePage.loadProfileInfo();
 	}
 
 	public Class<HomePage> getHomePage() {
@@ -157,6 +158,11 @@ public class WicketApplication extends WebApplication {
 
 	protected static String getThisVersion() {
 		return properties.getProperty("nanobench.version");
+	}
+
+	@Override
+	public Session newSession(Request request, Response response) {
+		return new NanobenchSession(request);
 	}
 
 }

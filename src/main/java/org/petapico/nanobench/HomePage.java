@@ -24,7 +24,7 @@ public class HomePage extends WebPage {
 		}
 		if (NanobenchPreferences.get().isReadOnlyMode()) {
 			add(new Label("text", "Click on the menu items above to explore nanopublications. This is a read-only instance, so you cannot publish new nanopublications here."));
-		} else if (ProfilePage.isComplete()) {
+		} else if (NanobenchSession.get().isProfileComplete()) {
 			add(new Label("text", "Click on the menu items above to explore or publish nanopublications."));
 		} else if (NanobenchPreferences.get().isOrcidLoginMode()) {
 			add(new Label("text", "In order to see your own nanopublications and publish new ones, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() + "\">login to ORCID</a> first.").setEscapeModelStrings(false));

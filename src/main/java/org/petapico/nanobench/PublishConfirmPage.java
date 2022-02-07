@@ -13,7 +13,7 @@ public class PublishConfirmPage extends WebPage {
 		super();
 		add(new TitleBar("titlebar"));
 		PageParameters params = new PageParameters();
-		params.add("id", ProfilePage.getUserIri());
+		params.add("id", NanobenchSession.get().getUserIri());
 		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params));
 		add(new NanopubItem("nanopub", new NanopubElement(np), false, false));
 	}

@@ -35,6 +35,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
@@ -236,7 +237,8 @@ public class PublishForm extends Panel {
 			protected void onSubmit() {
 				try {
 					Nanopub np = createNanopub();
-					Nanopub signedNp = SignNanopub.signAndTransform(np, SignatureAlgorithm.RSA, ProfilePage.getKeyPair());
+					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanobenchSession.get().getKeyPair(), null, false, false);
+					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
 					if (isLocal()) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
@@ -248,7 +250,7 @@ public class PublishForm extends Panel {
 						System.err.println("Published " + signedNp.getUri());
 					}
 					PageParameters params = new PageParameters();
-					params.add("id", ProfilePage.getUserIri().stringValue());
+					params.add("id", NanobenchSession.get().getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
 				} catch (RestartResponseException ex) {
 					throw ex;

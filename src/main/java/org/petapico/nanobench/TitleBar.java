@@ -14,9 +14,9 @@ public class TitleBar extends Panel {
 		add(new ProfileItem("profile"));
 
 		WebMarkupContainer mychannel = new WebMarkupContainer("mychannel");
-		if (ProfilePage.getUserIri() != null) {
+		if (NanobenchSession.get().getUserIri() != null) {
 			PageParameters params = new PageParameters();
-			params.add("id", ProfilePage.getUserIri());
+			params.add("id", NanobenchSession.get().getUserIri());
 			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", UserPage.class, params));
 		} else {
 			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", ProfilePage.class));

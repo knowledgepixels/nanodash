@@ -13,6 +13,7 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 
 
 public class UserListPage extends WebPage {
@@ -51,7 +52,8 @@ public class UserListPage extends WebPage {
 				item.add(l);
 				WebMarkupContainer actionLinks = new WebMarkupContainer("actions");
 				item.add(actionLinks);
-				if (ProfilePage.getUserIri() != null && !ProfilePage.getUserIri().equals(u.getId())) {
+				IRI userIri = NanobenchSession.get().getUserIri();
+				if (userIri != null && !userIri.equals(u.getId())) {
 					actionLinks.add(new ExternalLink("approve-link", "./publish?" +
 								"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
 								"&param_nanopub=" + Utils.urlEncode(u.getIntropubIri().stringValue()))

@@ -14,6 +14,8 @@ public class ProfileOrcidLinkItem extends Panel {
 	public ProfileOrcidLinkItem(String id) {
 		super(id);
 
+		final NanobenchSession session = NanobenchSession.get();
+
 		Link<String> retryLink = new Link<String>("retry") {
 
 			private static final long serialVersionUID = 1L;
@@ -26,20 +28,20 @@ public class ProfileOrcidLinkItem extends Panel {
 			@Override
 			public void onClick() {
 				getSession().invalidateNow();
-				ProfilePage.resetOrcidLinked();
+				session.resetOrcidLinked();
 				throw new RestartResponseException(ProfilePage.class);
 			}
 
 		};
-		if (ProfilePage.isOrcidLinked() == null) {
+		if (session.isOrcidLinked() == null) {
 			add(new Label("orcidlinkmessage", ""));
-		} else if (!ProfilePage.isOrcidLinked()) {
+		} else if (!session.isOrcidLinked()) {
 			add(new Label("orcidlinkmessage", "Follow <a href=\"./orcidlinking\">these instructions</a> to link it, and then press 'retry'.").setEscapeModelStrings(false));
-		} else if (ProfilePage.isOrcidLinked()) {
+		} else if (session.isOrcidLinked()) {
 			add(new Label("orcidlinkmessage", "ORCID is correctly linked."));
 			retryLink.setVisible(false);
 		}
-		add(new Label("orcidlinkerror", ProfilePage.getOrcidLinkError()));
+		add(new Label("orcidlinkerror", session.getOrcidLinkError()));
 		add(retryLink);
 	}
 

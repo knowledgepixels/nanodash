@@ -22,7 +22,7 @@ public class IriItem extends Panel implements ContextComponent {
 		final Template template = context.getTemplate();
 		String labelString = null;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = ProfilePage.getUserIri();
+			iri = NanobenchSession.get().getUserIri();
 			if (objectPosition) {
 				labelString = "me";
 			} else {

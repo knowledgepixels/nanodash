@@ -16,6 +16,8 @@ public class ProfileSigItem extends Panel {
 	public ProfileSigItem(String id) {
 		super(id);
 
+		final NanobenchSession session = NanobenchSession.get();
+
 		Label keymessage = new Label("keymessage", "Next, you need to create the key files necessary for digital signatures:");
 		Link<String> createKeyLink = new Link<String>("createkey") {
 
@@ -28,17 +30,17 @@ public class ProfileSigItem extends Panel {
 
 			@Override
 			public void onClick() {
-				ProfilePage.makeKeys();
+				session.makeKeys();
 				throw new RestartResponseException(ProfilePage.class);
 			}
 
 		};
-		add(new Label("keyfile", ProfilePage.getKeyfile().getPath()));
-		if (ProfilePage.getKeyfile().exists()) {
-			if (ProfilePage.getKeyPair() == null) {
+		add(new Label("keyfile", session.getKeyfile().getPath()));
+		if (session.getKeyfile().exists()) {
+			if (session.getKeyPair() == null) {
 				add(new Label("pubkey", "Error loading key file"));
 			} else {
-				String pubkeyString = DatatypeConverter.printBase64Binary(ProfilePage.getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
+				String pubkeyString = DatatypeConverter.printBase64Binary(session.getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
 				add(new Label("pubkey", pubkeyString));
 			}
 			keymessage.setVisible(false);

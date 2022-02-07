@@ -10,9 +10,9 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
@@ -31,7 +31,7 @@ public class SearchPage extends WebPage {
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
 		
-		final User currentUser = User.getUser(ProfilePage.getUserIri());
+		final User currentUser = User.getUser(NanobenchSession.get().getUserIri());
 		
 		Form<?> form = new Form<Void>("form") {
 

@@ -13,6 +13,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.petapico.nanobench.action.NanopubAction;
@@ -47,7 +48,8 @@ public class NanopubItem extends Panel {
 		add(new Label("user", userString));
 
 		List<MarkupContainer> actionLinks = new ArrayList<>();
-		boolean isOwnNanopub = ProfilePage.getUserIri() != null && user != null && ProfilePage.getUserIri().equals(user.getId());
+		IRI userIri = NanobenchSession.get().getUserIri();
+		boolean isOwnNanopub = userIri != null && user != null && userIri.equals(user.getId());
 		List<NanopubAction> actions = new ArrayList<>();
 		actions.addAll(NanopubAction.getDefaultActions());
 		actions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
