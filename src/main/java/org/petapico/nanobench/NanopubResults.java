@@ -8,34 +8,34 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 public class NanopubResults extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
-	private static IModel<Boolean> showiModel = new Model<>(false);
-	private static IModel<Boolean> showpModel = new Model<>(true);
 
 	public NanopubResults(String id, List<NanopubElement> nanopubs) {
 		super(id);
 
-		add(new AjaxCheckBox("showi", showiModel) {
+
+		add(new AjaxCheckBox("showi", Model.of(NanobenchSession.get().isShowPubinfoEnabled())) {
 
 			private static final long serialVersionUID = 5451216630648827493L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+				NanobenchSession.get().setShowPubinfooEnabled(getModelObject());
 				setResponsePage(target.getPage());
 			}
 
 		});
-		add(new AjaxCheckBox("showp", showpModel) {
+		add(new AjaxCheckBox("showp", Model.of(NanobenchSession.get().isShowProvenanceEnabled())) {
 
 			private static final long serialVersionUID = -6951066705477126322L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+				NanobenchSession.get().setShowProvenanceEnabled(getModelObject());
 				setResponsePage(target.getPage());
 			}
 
@@ -47,7 +47,8 @@ public class NanopubResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				item.add(new NanopubItem("nanopub", item.getModelObject(), !showpModel.getObject(), !showiModel.getObject()));
+				NanobenchSession session = NanobenchSession.get();
+				item.add(new NanopubItem("nanopub", item.getModelObject(), !session.isShowProvenanceEnabled(), !session.isShowPubinfoEnabled()));
 			}
 
 		});

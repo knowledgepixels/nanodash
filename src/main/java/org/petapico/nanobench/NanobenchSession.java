@@ -41,9 +41,12 @@ public class NanobenchSession extends WebSession {
 
 	private KeyPair keyPair;
 	private IRI userIri;
-	private transient IntroNanopub introNp;
+	private IntroNanopub introNp;
 	private Boolean isOrcidLinked;
 	private String orcidLinkError;
+
+	private boolean showProvenance = true;
+	private boolean showPubinfo = false;
 
 	public void loadProfileInfo() {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
@@ -179,6 +182,22 @@ public class NanobenchSession extends WebSession {
 
 	public File getKeyfile() {
 		return keyFile;
+	}
+
+	public boolean isShowProvenanceEnabled() {
+		return showProvenance;
+	}
+
+	public void setShowProvenanceEnabled(boolean showProvenance) {
+		this.showProvenance = showProvenance;
+	}
+
+	public boolean isShowPubinfoEnabled() {
+		return showPubinfo;
+	}
+
+	public void setShowPubinfooEnabled(boolean showPubinfo) {
+		this.showPubinfo = showPubinfo;
 	}
 
 }
