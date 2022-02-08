@@ -134,7 +134,6 @@ public class WicketApplication extends WebApplication {
 			while(reader.ready()) {
 				String line = reader.readLine();
 				if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
-					System.err.println(line);
 					latestVersion = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
 					break;
 				}
