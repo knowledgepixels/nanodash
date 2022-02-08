@@ -12,11 +12,12 @@ public class ProfileItem extends Panel {
 
 	public ProfileItem(String id) {
 		super(id);
-		NanobenchSession.get().loadProfileInfo();
+		NanobenchSession session = NanobenchSession.get();
+		session.loadProfileInfo();
 
 		NanobenchPreferences prefs = NanobenchPreferences.get();
-		IRI userIri = NanobenchSession.get().getUserIri();
-		if (prefs.isOrcidLoginMode()) {
+		IRI userIri = session.getUserIri();
+		if (prefs.isOrcidLoginMode() && userIri == null) {
 			ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl());
 			l.add(new Label("profiletext", "Login with ORCID"));
 			add(l);

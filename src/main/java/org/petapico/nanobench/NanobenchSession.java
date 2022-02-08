@@ -31,13 +31,13 @@ public class NanobenchSession extends WebSession {
 
 	public NanobenchSession(Request request) {
 		super(request);
+		bind();
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 	private static IntroExtractor introExtractor;
 
-	private File orcidFile = new File(System.getProperty("user.home") + "/.nanopub/orcid");
-	private File keyFile = new File(System.getProperty("user.home") + "/.nanopub/id_rsa");
+	private String userDir = System.getProperty("user.home") + "/.nanopub/";
 
 	private KeyPair keyPair;
 	private IRI userIri;
@@ -50,10 +50,14 @@ public class NanobenchSession extends WebSession {
 
 	public void loadProfileInfo() {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
+		if (prefs.isOrcidLoginMode()) {
+			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanobench-users/");
+			if (!usersDir.exists()) usersDir.mkdir();
+		}
 		if (userIri == null && !prefs.isReadOnlyMode() && !prefs.isOrcidLoginMode()) {
-			if (orcidFile.exists()) {
+			if (getOrcidFile().exists()) {
 				try {
-					String orcid = FileUtils.readFileToString(orcidFile, StandardCharsets.UTF_8).trim();
+					String orcid = FileUtils.readFileToString(getOrcidFile(), StandardCharsets.UTF_8).trim();
 	//				String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ProfilePage.ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
@@ -63,11 +67,17 @@ public class NanobenchSession extends WebSession {
 				}
 			}
 		}
-		if (keyPair == null) {
-			try {
-				keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
-			} catch (Exception ex) {
-				System.err.println("Key pair not found");
+		if (userIri != null && keyPair == null) {
+			File keyFile = getKeyFile();
+			if (keyFile.exists()) {
+				try {
+					keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
+				} catch (Exception ex) {
+					System.err.println("Couldn't load key pair");
+				}
+			} else if (prefs.isOrcidLoginMode()) {
+				// Automatically generate new keys in ORCID login mode:
+				makeKeys();
 			}
 		}
 		if (userIri != null && introNp == null) {
@@ -102,8 +112,8 @@ public class NanobenchSession extends WebSession {
 
 	public void makeKeys() {
 		try {
-			MakeKeys.make(keyFile.getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
-			keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
+			MakeKeys.make(getKeyFile().getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
+			keyPair = SignNanopub.loadKey(getKeyFile().getPath(), SignatureAlgorithm.RSA);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -114,15 +124,23 @@ public class NanobenchSession extends WebSession {
 	}
 
 	public void setOrcid(String orcid) {
-		if (orcid.matches(ProfilePage.ORCID_PATTERN)) {
+		if (!orcid.matches(ProfilePage.ORCID_PATTERN)) {
+			throw new RuntimeException("Illegal ORCID identifier: " + orcid);
+		}
+		if (NanobenchPreferences.get().isOrcidLoginMode()) {
+			userDir = System.getProperty("user.home") + "/.nanopub/nanobench-users/" + orcid + "/";
+			File f = new File(userDir);
+			if (!f.exists()) f.mkdir();
+		} else {
 			try {
-				FileUtils.writeStringToFile(orcidFile, orcid + "\n", StandardCharsets.UTF_8);
-//				Files.writeString(orcidFile.toPath(), orcid + "\n");
-				userIri = vf.createIRI("https://orcid.org/" + orcid);
+				FileUtils.writeStringToFile(getOrcidFile(), orcid + "\n", StandardCharsets.UTF_8);
+	//			Files.writeString(orcidFile.toPath(), orcid + "\n");
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
+		System.err.println(this + " | Set ORCID to " + orcid);
+		userIri = vf.createIRI("https://orcid.org/" + orcid);
 	}
 
 	public IntroNanopub getIntroNanopub() {
@@ -180,10 +198,6 @@ public class NanobenchSession extends WebSession {
 		return introExtractor.getName();
 	}
 
-	public File getKeyfile() {
-		return keyFile;
-	}
-
 	public boolean isShowProvenanceEnabled() {
 		return showProvenance;
 	}
@@ -198,6 +212,14 @@ public class NanobenchSession extends WebSession {
 
 	public void setShowPubinfooEnabled(boolean showPubinfo) {
 		this.showPubinfo = showPubinfo;
+	}
+
+	private File getOrcidFile() {
+		return new File(userDir + "orcid");
+	}
+
+	public File getKeyFile() {
+		return new File(userDir + "id_rsa");
 	}
 
 }

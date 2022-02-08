@@ -156,6 +156,12 @@ code {
   padding: 2px 5px;
 }
 
+code.chars {
+  width: 100%;
+  word-wrap: break-word;
+  display: inline-block;
+}
+
 input, select, textarea {
   padding: 3px 5px;
   border-color: #ccc;

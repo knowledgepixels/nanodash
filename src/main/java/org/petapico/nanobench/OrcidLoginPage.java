@@ -52,7 +52,8 @@ public class OrcidLoginPage extends WebPage {
 					OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
 //					rs.cookie("orcid", r.getOrcid());
 //					rs.cookie("orcid-access-token", r.getAccessToken());
-					System.err.println("USER LOGGED IN: " + r.getOrcid());
+					System.err.println("User logged in: " + r.getOrcid());
+					NanobenchSession.get().setOrcid(r.getOrcid());
 			} else {
 				// Something went wrong
 				System.err.println(statusCode + " " + response.getStatusLine().getReasonPhrase());

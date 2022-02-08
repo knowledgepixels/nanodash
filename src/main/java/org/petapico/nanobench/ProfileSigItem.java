@@ -35,8 +35,8 @@ public class ProfileSigItem extends Panel {
 			}
 
 		};
-		add(new Label("keyfile", session.getKeyfile().getPath()));
-		if (session.getKeyfile().exists()) {
+		add(new Label("keyfile", session.getKeyFile().getPath()));
+		if (session.getKeyFile().exists()) {
 			if (session.getKeyPair() == null) {
 				add(new Label("pubkey", "Error loading key file"));
 			} else {
