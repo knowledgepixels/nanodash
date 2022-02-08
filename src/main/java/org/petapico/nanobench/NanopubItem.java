@@ -1,5 +1,6 @@
 package org.petapico.nanobench;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
+	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
@@ -29,7 +32,7 @@ public class NanopubItem extends Panel {
 		link.add(new Label("nanopub-id-text", n.getUri()));
 		add(link);
 		if (n.getCreationTime() != null) {
-			add(new Label("datetime", n.getCreationTime().getTime().toString()));
+			add(new Label("datetime", simpleDateFormat.format(n.getCreationTime().getTime())));
 		} else {
 			add(new Label("datetime", "(undated)"));
 		}
@@ -79,19 +82,17 @@ public class NanopubItem extends Panel {
 		String negativeNotes = "";
 		if (n.seemsToHaveSignature()) {
 			try {
-				if (n.hasValidSignature()) {
-					positiveNotes = "valid signature";
-				} else {
-					negativeNotes = "invalid signature";
+				if (!n.hasValidSignature()) {
+					negativeNotes = "- invalid signature";
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				negativeNotes = "malformed or legacy signature";
+				negativeNotes = "- malformed or legacy signature";
 			}
 		}
 		if (n.isRetracted()) {
 			positiveNotes = "";
-			negativeNotes = "retracted";
+			negativeNotes = "- retracted";
 		}
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
