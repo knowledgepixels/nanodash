@@ -1,23 +1,29 @@
 package org.petapico.nanobench;
 
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.petapico.nanobench.action.NanopubAction;
+
+import net.trustyuri.TrustyUriUtils;
 
 public class NanopubItem extends Panel {
 	
@@ -28,8 +34,8 @@ public class NanopubItem extends Panel {
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
-		ExternalLink link = new ExternalLink("nanopub-id-link", n.getUri());
-		link.add(new Label("nanopub-id-text", n.getUri()));
+		ExternalLink link = new ExternalLink("nanopub-id-link", "./explore?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
+		link.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)));
 		add(link);
 		if (n.getCreationTime() != null) {
 			add(new Label("datetime", simpleDateFormat.format(n.getCreationTime().getTime())));
@@ -42,13 +48,19 @@ public class NanopubItem extends Panel {
 			if (n.hasValidSignature()) {
 				user = User.getUserForPubkey(n.getPubkey());
 				if (user != null) {
-					userString = user.getDisplayName();
+					userString = user.getShortDisplayName();
 				}
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		add(new Label("user", userString));
+		PageParameters params = new PageParameters();
+		if (user != null) {
+			params.add("id", user.getId());
+		}
+		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
+		userLink.add(new Label("user-text", userString));
+		add(userLink);
 
 		List<MarkupContainer> actionLinks = new ArrayList<>();
 		IRI userIri = NanobenchSession.get().getUserIri();
