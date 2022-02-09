@@ -139,7 +139,6 @@ public class NanobenchSession extends WebSession {
 				ex.printStackTrace();
 			}
 		}
-		System.err.println(this + " | Set ORCID to " + orcid);
 		userIri = vf.createIRI("https://orcid.org/" + orcid);
 	}
 
