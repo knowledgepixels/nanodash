@@ -122,14 +122,6 @@ public class User implements Serializable, Comparable<User> {
 		}
 	}
 
-	public static User getUser(IRI iri) {
-		if (iri == null) return null;
-		if (userIdMap == null) {
-			refreshUsers();
-		}
-		return userIdMap.get(iri.toString());
-	}
-
 	public static User getUser(String id) {
 		if (userIdMap == null) {
 			refreshUsers();

@@ -31,7 +31,7 @@ public class SearchPage extends WebPage {
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
 		
-		final User currentUser = User.getUser(NanobenchSession.get().getUserIri());
+		final User currentUser = NanobenchSession.get().getUser();
 		
 		Form<?> form = new Form<Void>("form") {
 
@@ -51,7 +51,7 @@ public class SearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 		WebMarkupContainer ownFilter = new WebMarkupContainer("own-filter");
 		ownFilter.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
-		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode() && currentUser != null);
 		form.add(ownFilter);
 
 		// TODO: Progress bar doesn't update at the moment:
