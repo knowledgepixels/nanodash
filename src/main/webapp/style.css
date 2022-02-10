@@ -173,6 +173,38 @@ input, select, textarea {
   border-radius: 5px;
 }
 
+.actionmenuspan {
+  height: 20px;
+}
+.actionmenuspan .select2-container {
+  margin: 0;
+}
+.actionmenuspan .select2-container .select2-selection--single {
+  height: 18px !important;
+  font-size: 10pt !important;
+}
+.actionmenuspan .select2-selection__arrow {
+  height: 17px !important;
+}
+.actionmenuspan .select2-selection__rendered {
+  line-height: 14px !important;
+  color: rgba(0, 0, 0, 0) !important;
+}
+.actionmenuresults {
+  border-color: #ccc !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-radius: 2px !important;
+  font-size: 10pt;
+}
+.actionmenuresults span ul li {
+  padding: 4px 10px 4px 4px !important;
+}
+
+select.actionmenu {
+  width: 20px;
+}
+
 .invalid, select.invalid + span > span > span, input.invalid + label {
   border-color: #f00 !important;
   border-width: 3px !important;

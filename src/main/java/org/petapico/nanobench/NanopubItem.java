@@ -3,11 +3,14 @@ package org.petapico.nanobench;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -17,11 +20,16 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.petapico.nanobench.action.NanopubAction;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -37,11 +45,7 @@ public class NanopubItem extends Panel {
 		ExternalLink link = new ExternalLink("nanopub-id-link", "./explore?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
 		link.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)));
 		add(link);
-		if (n.getCreationTime() != null) {
-			add(new Label("datetime", simpleDateFormat.format(n.getCreationTime().getTime())));
-		} else {
-			add(new Label("datetime", "(undated)"));
-		}
+
 		String userString = "";
 		User user = null;
 		try {
@@ -54,6 +58,86 @@ public class NanopubItem extends Panel {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		IRI userIri = NanobenchSession.get().getUserIri();
+		boolean isOwnNanopub = userIri != null && user != null && userIri.equals(user.getId());
+		final List<NanopubAction> actionList = new ArrayList<>();
+		final Map<String,NanopubAction> actionMap = new HashMap<>();
+		List<NanopubAction> allActions = new ArrayList<>();
+		allActions.addAll(NanopubAction.getDefaultActions());
+		allActions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
+		for (NanopubAction action : allActions) {
+			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
+			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
+			Nanopub np = n.getNanopub();
+			if (np == null || !action.isApplicableTo(np)) continue;
+			actionList.add(action);
+			actionMap.put(action.getLinkLabel(n.getNanopub()), action);
+		}
+
+		ChoiceProvider<NanopubAction> choiceProvider = new ChoiceProvider<NanopubAction>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getDisplayValue(NanopubAction action) {
+				return action.getLinkLabel(n.getNanopub()) + "...";
+			}
+
+			@Override
+			public String getIdValue(NanopubAction object) {
+				return object.getLinkLabel(n.getNanopub());
+			}
+
+			// Getting strange errors with Tomcat if this method is not overridden:
+			@Override
+			public void detach() {
+			}
+
+			@Override
+			public void query(String term, int page, Response<NanopubAction> response) {
+				for (NanopubAction action : actionList) {
+					response.add(action);
+				}
+			}
+
+			@Override
+			public Collection<NanopubAction> toChoices(Collection<String> ids) {
+				List<NanopubAction> list = new ArrayList<>();
+				for (String s : ids) {
+					list.add(actionMap.get(s));
+				}
+				return list;
+			}
+
+		};
+		Model<NanopubAction> menuModel = new Model<>();
+		Select2Choice<NanopubAction> menu = new Select2Choice<NanopubAction>("action-menu", menuModel, choiceProvider);
+		menu.getSettings().setPlaceholder("");
+		menu.getSettings().setWidth("20px");
+		menu.getSettings().setDropdownCssClass("actionmenuresults");
+		menu.getSettings().setCloseOnSelect(true);
+		menu.getSettings().setMinimumResultsForSearch(-1);
+		menu.getSettings().setDropdownAutoWidth(true);
+		menu.add(new OnChangeAjaxBehavior() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				NanopubAction action = menu.getModel().getObject();
+				String url = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) + "&" + action.getParamString(n.getNanopub());
+				throw new RedirectToUrlException(url);
+			}
+
+		});
+		add(menu);
+
+		if (n.getCreationTime() != null) {
+			add(new Label("datetime", simpleDateFormat.format(n.getCreationTime().getTime())));
+		} else {
+			add(new Label("datetime", "(undated)"));
+		}
 		PageParameters params = new PageParameters();
 		if (user != null) {
 			params.add("id", user.getId());
@@ -61,34 +145,6 @@ public class NanopubItem extends Panel {
 		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
 		userLink.add(new Label("user-text", userString));
 		add(userLink);
-
-		List<MarkupContainer> actionLinks = new ArrayList<>();
-		IRI userIri = NanobenchSession.get().getUserIri();
-		boolean isOwnNanopub = userIri != null && user != null && userIri.equals(user.getId());
-		List<NanopubAction> actions = new ArrayList<>();
-		actions.addAll(NanopubAction.getDefaultActions());
-		actions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
-		for (NanopubAction action : actions) {
-			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
-			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
-			Nanopub np = n.getNanopub();
-			if (np == null || !action.isApplicableTo(np)) continue;
-			String linkUrl = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(np)) + "&" + action.getParamString(np);
-			actionLinks.add(
-				new ExternalLink("action-link", linkUrl).add(new Label("action-link-label", action.getLinkLabel(np) + "..."))
-			);
-		}
-
-		add(new DataView<MarkupContainer>("action-links", new ListDataProvider<MarkupContainer>(actionLinks)) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<MarkupContainer> item) {
-				item.add(item.getModelObject());
-			}
-
-		});
 
 		String positiveNotes = "";
 		String negativeNotes = "";

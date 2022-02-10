@@ -1,5 +1,6 @@
 package org.petapico.nanobench.action;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,7 +11,9 @@ import org.nanopub.Nanopub;
 import org.petapico.nanobench.NanobenchPreferences;
 import org.petapico.nanobench.Utils;
 
-public abstract class NanopubAction {
+public abstract class NanopubAction implements Serializable {
+
+	private static final long serialVersionUID = 4086842804225420496L;
 
 	private static List<NanopubAction> defaultActions = new ArrayList<>();
 
