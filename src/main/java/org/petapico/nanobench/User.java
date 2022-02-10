@@ -84,7 +84,7 @@ public class User implements Serializable, Comparable<User> {
 						if (u.getId().stringValue().equals(subj)) {
 							Nanopub np = Utils.getNanopub(obj);
 							if (np != null) {
-								User.createUser(np, true);
+								createUser(np, true);
 							} else {
 								System.err.println("Failed to load user: " + obj);
 							}
@@ -187,6 +187,9 @@ public class User implements Serializable, Comparable<User> {
 			if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
 		}
 		String publicKey = user.getPubkeyString();
+		if (user.equals(userIdMap.get(userId))) {
+			return;
+		}
 		if (userIdMap.containsKey(userId) && !userIdMap.get(userId).getPubkeyString().equals(publicKey)) {
 			//System.err.println("User ID already registered with different public key: " + userId + " | " + publicKey);
 			return;
@@ -194,7 +197,7 @@ public class User implements Serializable, Comparable<User> {
 			//System.err.println("User ID already registered: " + userId);
 			return;
 		} else if (userPubkeyMap.containsKey(publicKey)) {
-			//System.err.println("User public key already registered: " + publicKey);
+			//System.err.println("User public key already registered (by user " + userPubkeyMap.get(publicKey).getId() + "): " + userId + " | " + publicKey);
 			return;
 		}
 		userIdMap.put(userId, user);
@@ -251,6 +254,15 @@ public class User implements Serializable, Comparable<User> {
 	@Override
 	public int compareTo(User other) {
 		return getDisplayName().compareTo(other.getDisplayName());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof User)) return false;
+		User other = (User) obj;
+		if (!id.equals(other.id)) return false;
+		if (!introNpIri.equals(other.introNpIri)) return false;
+		return true;
 	}
 
 //	public String getNameFromOrcid(String userId) {

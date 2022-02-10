@@ -32,6 +32,7 @@ public class NanobenchSession extends WebSession {
 	public NanobenchSession(Request request) {
 		super(request);
 		bind();
+		loadProfileInfo();
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
@@ -58,7 +59,7 @@ public class NanobenchSession extends WebSession {
 			if (getOrcidFile().exists()) {
 				try {
 					String orcid = FileUtils.readFileToString(getOrcidFile(), StandardCharsets.UTF_8).trim();
-	//				String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
+					//String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ProfilePage.ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
 					}
@@ -209,7 +210,7 @@ public class NanobenchSession extends WebSession {
 		return showPubinfo;
 	}
 
-	public void setShowPubinfooEnabled(boolean showPubinfo) {
+	public void setShowPubinfoEnabled(boolean showPubinfo) {
 		this.showPubinfo = showPubinfo;
 	}
 

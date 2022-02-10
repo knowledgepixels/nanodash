@@ -13,8 +13,6 @@ public class ProfileItem extends Panel {
 	public ProfileItem(String id) {
 		super(id);
 		NanobenchSession session = NanobenchSession.get();
-		session.loadProfileInfo();
-
 		NanobenchPreferences prefs = NanobenchPreferences.get();
 		IRI userIri = session.getUserIri();
 		if (prefs.isOrcidLoginMode() && userIri == null) {

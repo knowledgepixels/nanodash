@@ -24,7 +24,7 @@ public class NanopubResults extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				NanobenchSession.get().setShowPubinfooEnabled(getModelObject());
+				NanobenchSession.get().setShowPubinfoEnabled(getModelObject());
 				setResponsePage(target.getPage());
 			}
 
