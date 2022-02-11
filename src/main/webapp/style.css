@@ -173,6 +173,11 @@ input, select, textarea {
   border-radius: 5px;
 }
 
+select.actionmenu {
+  height: 20px;
+  margin: 0;
+  padding: 0;
+}
 .actionmenuspan {
   height: 20px;
 }
@@ -425,6 +430,15 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-form {
+.filter {
   margin-bottom: 25px;
+}
+
+.filter > span {
+  background-color: #eee;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ccc;
+  border-radius: 3px;
+  padding: 5px 10px;
 }
