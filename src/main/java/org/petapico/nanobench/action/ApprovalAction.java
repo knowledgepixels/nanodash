@@ -4,6 +4,8 @@ import org.nanopub.Nanopub;
 
 public class ApprovalAction extends NanopubAction {
 
+	private static final long serialVersionUID = 1789820405326599889L;
+
 	public static final String TEMPLATE_URI = "http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg";
 
 	@Override

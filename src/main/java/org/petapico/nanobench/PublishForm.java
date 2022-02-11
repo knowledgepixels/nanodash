@@ -157,6 +157,9 @@ public class PublishForm extends Panel {
 			PageParameters params = new PageParameters(pageParams);
 			params.set("template", latestAssertionId);
 			add(new BookmarkablePageLink<PublishPage>("newversionlink", PublishPage.class, params));
+			if ("latest".equals(pageParams.get("template-version").toString())) {
+				throw new RestartResponseException(PublishPage.class, params);
+			}
 		} else {
 			add(new Label("newversion", "").setVisible(false));
 			add(new Label("newversionlink", "").setVisible(false));

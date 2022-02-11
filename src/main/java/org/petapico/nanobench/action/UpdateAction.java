@@ -5,6 +5,8 @@ import org.petapico.nanobench.Template;
 
 public class UpdateAction extends NanopubAction {
 
+	private static final long serialVersionUID = -7703679333911796987L;
+
 	@Override
 	public String getLinkLabel(Nanopub np) {
 		return "update";

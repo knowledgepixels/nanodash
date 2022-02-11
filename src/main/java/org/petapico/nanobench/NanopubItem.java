@@ -126,7 +126,9 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanopubAction action = menu.getModel().getObject();
-				String url = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) + "&" + action.getParamString(n.getNanopub());
+				String url = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
+						"&" + action.getParamString(n.getNanopub()) +
+						"&template-version=latest";
 				throw new RedirectToUrlException(url);
 			}
 

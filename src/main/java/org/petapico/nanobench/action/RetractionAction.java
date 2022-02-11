@@ -4,6 +4,8 @@ import org.nanopub.Nanopub;
 
 public class RetractionAction extends NanopubAction {
 
+	private static final long serialVersionUID = 7802391790148929067L;
+
 	public static final String TEMPLATE_URI = "http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE";
 
 	@Override
