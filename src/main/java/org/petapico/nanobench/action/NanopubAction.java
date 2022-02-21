@@ -24,6 +24,7 @@ public abstract class NanopubAction implements Serializable {
 		defaultActions.add(new RetractionAction());
 		defaultActions.add(new ApprovalAction());
 		defaultActions.add(new UpdateAction());
+		defaultActions.add(new DeriveAction());
 		defaultActions = Collections.unmodifiableList(defaultActions);
 		for (NanopubAction na : defaultActions) {
 			defaultClassNameMap.put(na.getClass().getCanonicalName(), na);
