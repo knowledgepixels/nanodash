@@ -1,0 +1,44 @@
+package org.petapico.nanobench.action;
+
+import org.nanopub.Nanopub;
+import org.petapico.nanobench.Template;
+
+public class DeriveAction extends NanopubAction {
+
+	private static final long serialVersionUID = 4348436856820074305L;
+
+	@Override
+	public String getLinkLabel(Nanopub np) {
+		return "edit as derived nanopublication";
+	}
+
+	@Override
+	public String getTemplateUri(Nanopub np) {
+		if (Template.getTemplateId(np) != null) {
+			return Template.getTemplateId(np).stringValue();
+		} else {
+			return "http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA";
+		}
+	}
+
+	@Override
+	public String getParamString(Nanopub np) {
+		return "derive=" + getEncodedUri(np);
+	}
+
+	@Override
+	public boolean isApplicableToOwnNanopubs() {
+		return true;
+	}
+
+	@Override
+	public boolean isApplicableToOthersNanopubs() {
+		return true;
+	}
+
+	@Override
+	public boolean isApplicableTo(Nanopub np) {
+		return true;
+	}
+
+}
