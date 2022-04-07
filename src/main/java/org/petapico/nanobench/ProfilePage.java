@@ -1,6 +1,7 @@
 package org.petapico.nanobench;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -21,6 +22,7 @@ public class ProfilePage extends WebPage {
 		final NanobenchSession session = NanobenchSession.get();
 		session.loadProfileInfo();
 		User.refreshUsers();
+		final boolean loginMode = NanobenchPreferences.get().isOrcidLoginMode();
 
 		add(new TitleBar("titlebar"));
 
@@ -34,14 +36,18 @@ public class ProfilePage extends WebPage {
 						"but consider also linking your ORCID account as explained below."));
 			}
 		} else {
-			add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
-					"introduction before you can publish nanopublications."));
+			if (loginMode) {
+				add(new Label("message", "You need to complete your introduction record before you can publish nanopublications."));
+			} else {
+				add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
+						"introduction before you can publish nanopublications."));
+			}
 		}
 
 		if (session.getUserIri() == null) {
 			add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'update'. " +
-					"If you don't yet have an ORCID account, you can make one via the " +
-					"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
+						"If you don't yet have an ORCID account, you can make one via the " +
+						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
 		} else {
 			add(new Label("orcidmessage", ""));
 		}
@@ -58,6 +64,7 @@ public class ProfilePage extends WebPage {
 
 			@Override
 			protected void onSubmit() {
+				if (loginMode) return;
 				session.setOrcid(orcidField.getModelObject());
 				session.setIntroNanopub(null);
 				session.resetOrcidLinked();
@@ -66,7 +73,13 @@ public class ProfilePage extends WebPage {
 			}
 
 		};
+		WebMarkupContainer submitButton = new WebMarkupContainer("submit");
+		if (loginMode) {
+			orcidField.setEnabled(false);
+			submitButton.setVisible(false);
+		}
 		form.add(orcidField);
+		form.add(submitButton);
 		String orcidName = session.getOrcidName();
 		if (orcidName == null) {
 			form.add(new Label("orcidname", ""));
@@ -88,7 +101,7 @@ public class ProfilePage extends WebPage {
 			add(new Label("intropart"));
 		}
 
-		if (session.getUserIri() != null && session.getKeyPair() != null && session.getIntroNanopub() != null) {
+		if (session.isProfileComplete()) {
 			add(new ProfileOrcidLinkItem("orcidlinkpart"));
 		} else {
 			add(new Label("orcidlinkpart"));

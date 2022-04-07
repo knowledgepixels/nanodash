@@ -162,6 +162,10 @@ code.chars {
   display: inline-block;
 }
 
+code.bold {
+  font-weight: bold;
+}
+
 input, select, textarea {
   padding: 3px 5px;
   border-color: #ccc;

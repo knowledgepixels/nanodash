@@ -59,7 +59,7 @@ public class UserPage extends WebPage {
 
 		});
 		add(pubkeySelection);
-		add(new Label("pubkey", user.getPubkeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..")));
+		add(new Label("pubkey", Utils.getShortPubkeyLabel(user.getPubkeyString())));
 
 		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 

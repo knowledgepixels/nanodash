@@ -4,6 +4,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -15,6 +16,7 @@ public class ProfileSigItem extends Panel {
 
 	public ProfileSigItem(String id) {
 		super(id);
+		boolean loginMode = NanobenchPreferences.get().isOrcidLoginMode();
 
 		final NanobenchSession session = NanobenchSession.get();
 
@@ -35,13 +37,20 @@ public class ProfileSigItem extends Panel {
 			}
 
 		};
-		add(new Label("keyfile", session.getKeyFile().getPath()));
+		WebMarkupContainer localFilePanel = new WebMarkupContainer("localfile");
+		if (loginMode) {
+			localFilePanel.add(new Label("keyfile", ""));
+			localFilePanel.setVisible(false);
+		} else {
+			localFilePanel.add(new Label("keyfile", session.getKeyFile().getPath()));
+		}
+		add(localFilePanel);
 		if (session.getKeyFile().exists()) {
 			if (session.getKeyPair() == null) {
 				add(new Label("pubkey", "Error loading key file"));
 			} else {
 				String pubkeyString = DatatypeConverter.printBase64Binary(session.getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
-				add(new Label("pubkey", pubkeyString));
+				add(new PubkeyItem("pubkey", pubkeyString));
 			}
 			keymessage.setVisible(false);
 			createKeyLink.setVisible(false);
