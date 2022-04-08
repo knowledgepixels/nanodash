@@ -45,9 +45,14 @@ public class ProfilePage extends WebPage {
 		}
 
 		if (session.getUserIri() == null) {
-			add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'update'. " +
+			if (loginMode) {
+				add(new Label("orcidmessage", "First, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() +
+						"\">login via ORCID</a>.").setEscapeModelStrings(false));
+			} else {
+				add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'update'. " +
 						"If you don't yet have an ORCID account, you can make one via the " +
 						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
+			}
 		} else {
 			add(new Label("orcidmessage", ""));
 		}
