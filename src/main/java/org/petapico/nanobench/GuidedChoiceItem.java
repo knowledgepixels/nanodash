@@ -43,13 +43,12 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
-			String value = "";
-			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (context.hasParam(postfix)) {
-				value = context.getParam(postfix);
-			}
-			model = Model.of(value);
+			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
+		}
+		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		if (context.hasParam(postfix)) {
+			model.setObject(context.getParam(postfix));
 		}
 		final List<String> possibleValues = new ArrayList<>();
 		for (Value v : template.getPossibleValues(iri)) {

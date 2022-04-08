@@ -219,6 +219,13 @@ public class PublishForm extends Panel {
 			add(new Label("warnings", "").setVisible(false));
 		}
 
+		// Finalize statements, which picks up parameter values in repetitions:
+		assertionContext.finalizeStatements();
+		provenanceContext.finalizeStatements();
+		for (PublishFormContext c : pubInfoContexts) {
+			c.finalizeStatements();
+		}
+
 		final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
 		consentCheck.setRequired(true);
 		consentCheck.add(new InvalidityHighlighting());

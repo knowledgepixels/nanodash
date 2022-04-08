@@ -45,13 +45,12 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
-			String value = "";
-			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (context.hasParam(postfix)) {
-				value = context.getParam(postfix);
-			}
-			model = Model.of(value);
+			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
+		}
+		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		if (context.hasParam(postfix)) {
+			model.setObject(context.getParam(postfix));
 		}
 		for (Value v : template.getPossibleValues(iri)) {
 			if (v instanceof IRI && template.isPlaceholder((IRI) v)) {

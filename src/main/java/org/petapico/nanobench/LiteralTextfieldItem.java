@@ -27,13 +27,12 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		regex = template.getRegex(iri);
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
-			String value = "";
-			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (context.hasParam(postfix)) {
-				value = context.getParam(postfix);
-			}
-			model = Model.of(value);
+			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
+		}
+		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		if (context.hasParam(postfix)) {
+			model.setObject(context.getParam(postfix));
 		}
 		AbstractTextComponent<String> tc = initTextComponent(model);
 		if (!optional) tc.setRequired(true);

@@ -23,7 +23,9 @@ import org.eclipse.rdf4j.model.Value;
 import net.trustyuri.TrustyUriUtils;
 
 public class IriTextfieldItem extends Panel implements ContextComponent {
-	
+
+	// TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
+
 	private static final long serialVersionUID = 1L;
 
 	private String prefix;
@@ -38,13 +40,12 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		final Template template = context.getTemplate();
 		IModel<String> model = context.getFormComponentModels().get(iri);
 		if (model == null) {
-			String value = "";
-			String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
-			if (context.hasParam(postfix)) {
-				value = context.getParam(postfix);
-			}
-			model = Model.of(value);
+			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
+		}
+		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		if (context.hasParam(postfix)) {
+			model.setObject(context.getParam(postfix));
 		}
 		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";

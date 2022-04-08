@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections4.Bag;
-import org.apache.commons.collections4.bag.HashBag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
@@ -39,7 +37,8 @@ public class PublishFormContext implements Serializable {
 	private Set<IRI> introducedIris = new HashSet<>();
 	private boolean isLocal;
 	private List<StatementItem> statementItems;
-	private Bag<IRI> iriBag = new HashBag<>();
+	private Set<IRI> iriSet = new HashSet<>();
+	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
 
 	public PublishFormContext(ContextType contextType, String templateId, String componentId) {
 		this.contextType = contextType;
@@ -55,7 +54,50 @@ public class PublishFormContext implements Serializable {
 		for (IRI st : template.getStatementIris()) {
 			StatementItem si = new StatementItem(componentId, st, this);
 			statementItems.add(si);
-			iriBag.addAll(si.getIriSet());
+			for (IRI i : si.getIriSet()) {
+				if (iriSet.contains(i)) {
+					narrowScopeMap.remove(i);
+				} else {
+					iriSet.add(i);
+					narrowScopeMap.put(i, si);
+				}
+			}
+		}
+	}
+
+	public void finalizeStatements() {
+		Map<StatementItem,Integer> finalRepetitionCount = new HashMap<>();
+		for (IRI ni : narrowScopeMap.keySet()) {
+			// TODO: Move all occurrences of this to utility function:
+			String postfix = ni.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+			StatementItem si = narrowScopeMap.get(ni);
+			int i = si.getRepetitionCount();
+			while (true) {
+				String p = postfix + "__" + i;
+				if (hasParam(p)) {
+					si.repeat();
+				} else {
+					break;
+				}
+				i++;
+			}
+			i = 1;
+			while (true) {
+				String p = postfix + "__." + i;
+				if (hasParam(p)) {
+					int absPos = si.getRepetitionCount() - 1 + i;
+					setParam(postfix + "__" + absPos, getParam(p));
+					finalRepetitionCount.put(si, i);
+				} else {
+					break;
+				}
+				i++;
+			}
+		}
+		for (StatementItem si : finalRepetitionCount.keySet()) {
+			for (int i = 0 ; i < finalRepetitionCount.get(si) ; i++) {
+				si.repeat();
+			}
 		}
 	}
 
@@ -190,7 +232,7 @@ public class PublishFormContext implements Serializable {
 	}
 
 	public boolean hasNarrowScope(IRI iri) {
-		return iriBag.getCount(iri) == 1;
+		return narrowScopeMap.containsKey(iri);
 	}
 
 	public void fill(List<Statement> statements) throws UnificationException {

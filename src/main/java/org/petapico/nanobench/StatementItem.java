@@ -64,7 +64,7 @@ public class StatementItem extends Panel {
 		add(v);
 	}
 
-	private void repeat() {
+	public void repeat() {
 		RepetitionGroup rg = new RepetitionGroup();
 		repetitionGroups.add(rg);
 		refreshStatements();
@@ -112,6 +112,10 @@ public class StatementItem extends Panel {
 
 	private Template getTemplate() {
 		return context.getTemplate();
+	}
+
+	public int getRepetitionCount() {
+		return repetitionGroups.size();
 	}
 
 	private boolean isOptional() {
