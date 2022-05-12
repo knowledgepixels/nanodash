@@ -9,9 +9,10 @@ Follow the three simple steps below to install and run Nanobench.
 
 ## Step 1: Install Java
 
-You need to have Java installed (version 1.7 or higher), which you can [download here](https://www.java.com/download/).
+You need to have Java installed (version 11 or higher), which you can [download here](https://www.oracle.com/java/technologies/downloads/).
 If you are unsure whether you have Java installed already, you can continue with the steps below and you will see an error message if Java is not found.
 
+To find out what Java version you have, you can type `java -version` in a terminal window. If your version number is lower than 11, you need to install a newer version with the link above.
 
 ## Step 2: Download and Unpack Nanobench ZIP File
 
@@ -29,6 +30,10 @@ If not, open [http://localhost:37373](http://localhost:37373) manually.
 Follow the instructions to complete your profile as shown on your [profile page](http://localhost:37373/profile).
 
 Now you are ready to publish your own nanopublications via the "publish" menu item at the top.
+
+If Nanobench doesn't start up and you are seeing an error message like the one below, then your installed Java is too old and you need to follow Step 1 above to install Java 11 or above:
+
+> java.lang.UnsupportedClassVersionError: ... has been compiled by a more recent version of the Java Runtime (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
 
 ## Update
 
