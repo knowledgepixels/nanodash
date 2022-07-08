@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -17,6 +19,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
+import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
@@ -149,6 +152,7 @@ public class NanobenchSession extends WebSession {
 			}
 		}
 		userIri = vf.createIRI("https://orcid.org/" + orcid);
+		loadProfileInfo();
 	}
 
 	public IntroNanopub getIntroNanopub() {
@@ -230,4 +234,15 @@ public class NanobenchSession extends WebSession {
 		return new File(userDir + "id_rsa");
 	}
 
+	public String getLocalPublicKeyString() {
+		return DatatypeConverter.printBase64Binary(getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
+	}
+
+	public List<KeyDeclaration> getOrcidKeyDeclarations() {
+		List<KeyDeclaration> orcidPubkeys = new ArrayList<>();
+		for (KeyDeclaration kd : getIntroNanopub().getKeyDeclarations()) {
+			if (!kd.getPublicKeyString().equals(getLocalPublicKeyString())) orcidPubkeys.add(kd);
+		}
+		return orcidPubkeys;
+	}
 }

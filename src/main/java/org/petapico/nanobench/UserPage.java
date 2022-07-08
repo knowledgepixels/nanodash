@@ -7,19 +7,14 @@ import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioChoice;
-import org.apache.wicket.markup.html.form.RadioGroup;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.security.KeyDeclaration;
 
 public class UserPage extends WebPage {
 
@@ -43,7 +38,11 @@ public class UserPage extends WebPage {
 		add(progressLabel);
 
 		ArrayList<String> pubKeyList = new ArrayList<>();
-		pubKeyList.add(user.getPubkeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
+		NanobenchSession session = NanobenchSession.get();
+		pubKeyList.add(session.getLocalPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
+		for (KeyDeclaration kd : session.getOrcidKeyDeclarations()) {
+			pubKeyList.add(kd.getPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
+		}
 
 		RadioChoice<String> pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
 		pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
