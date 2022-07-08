@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.wicket.MarkupContainer;
@@ -8,7 +11,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
+import org.nanopub.extra.security.KeyDeclaration;
 
 public class ProfileSigItem extends Panel {
 	
@@ -45,18 +52,33 @@ public class ProfileSigItem extends Panel {
 			localFilePanel.add(new Label("keyfile", session.getKeyFile().getPath()));
 		}
 		add(localFilePanel);
+		String localPubkeyString = null;
 		if (session.getKeyFile().exists()) {
 			if (session.getKeyPair() == null) {
 				add(new Label("pubkey", "Error loading key file"));
 			} else {
-				String pubkeyString = DatatypeConverter.printBase64Binary(session.getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
-				add(new PubkeyItem("pubkey", pubkeyString));
+				localPubkeyString = DatatypeConverter.printBase64Binary(session.getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
+				add(new PubkeyItem("pubkey", localPubkeyString));
 			}
 			keymessage.setVisible(false);
 			createKeyLink.setVisible(false);
 		} else {
 			add(new Label("pubkey", ""));
 		}
+		List<KeyDeclaration> orcidPubkeys = new ArrayList<>();
+		for (KeyDeclaration kd : session.getIntroNanopub().getKeyDeclarations()) {
+			if (!kd.getPublicKeyString().equals(localPubkeyString)) orcidPubkeys.add(kd);
+		}
+		add(new DataView<KeyDeclaration>("orcid-pubkeys", new ListDataProvider<KeyDeclaration>(orcidPubkeys)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<KeyDeclaration> item) {
+				item.add(new PubkeyItem("orcid-pubkey", item.getModelObject().getPublicKeyString()));
+			}
+			
+		});
 		add(keymessage);
 		add(createKeyLink);
 	}

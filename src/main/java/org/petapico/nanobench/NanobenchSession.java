@@ -92,7 +92,7 @@ public class NanobenchSession extends WebSession {
 	}
 
 	public boolean isProfileComplete() {
-		return userIri != null && keyPair != null && introNp != null && doPubkeysMatch();
+		return userIri != null && keyPair != null && introNp != null; // && doPubkeysMatch();
 	}
 
 	public User getUser() {
