@@ -22,11 +22,15 @@ public class UserPage extends WebPage {
 
 	private Model<String> progress;
 	private Model<String> selected = new Model<>();
-
+	private User user;
+	private boolean added = false;
+	private Map<String,String> pubKeyMap;
+	private RadioChoice<String> pubkeySelection;
+	
 	public UserPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		final User user = User.getUser(parameters.get("id").toString());
+		user = User.getUser(parameters.get("id").toString());
 		if (user == null) throw new RedirectToUrlException("./profile");
 		add(new Label("username", user.getDisplayName()));
 
@@ -37,14 +41,21 @@ public class UserPage extends WebPage {
 //		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
-		ArrayList<String> pubKeyList = new ArrayList<>();
 		NanobenchSession session = NanobenchSession.get();
-		pubKeyList.add(session.getLocalPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
-		for (KeyDeclaration kd : session.getOrcidKeyDeclarations()) {
-			pubKeyList.add(kd.getPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
+		ArrayList<String> pubKeyList = new ArrayList<>();
+		pubKeyMap = new HashMap<>();
+		if (session.getUserIri().equals(user.getId())) {
+			String lKeyShort = session.getLocalPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+			pubKeyList.add(lKeyShort);
+			pubKeyMap.put(lKeyShort, session.getLocalPublicKeyString());
+		}
+		String keyShort = user.getPubkeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+		if (!pubKeyMap.containsKey(keyShort)) {
+			pubKeyList.add(keyShort);
+			pubKeyMap.put(keyShort, user.getPubkeyString());
 		}
 
-		RadioChoice<String> pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
+		pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
 		pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
 		pubkeySelection.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
@@ -54,12 +65,22 @@ public class UserPage extends WebPage {
 			protected void onUpdate(AjaxRequestTarget target) {
 				// TODO: implement this
 				System.err.println("PUBKEY SELECTED: " + selected.getObject());
+				refresh();
+				setResponsePage(target.getPage());
 			}
 
 		});
 		add(pubkeySelection);
-		add(new Label("pubkey", Utils.getShortPubkeyLabel(user.getPubkeyString())));
+		add(new Label("pubkey", Utils.getShortPubkeyLabel(pubKeyMap.get(pubkeySelection.getModelObject()))));
 
+		refresh();
+	}
+
+	private void refresh() {
+		if (added) {
+			remove("nanopubs");
+		}
+		added = true; 
 		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
 			private static final long serialVersionUID = 1L;
@@ -68,7 +89,7 @@ public class UserPage extends WebPage {
 			public NanopubResults getLazyLoadComponent(String markupId) {
 				Map<String,String> nanopubParams = new HashMap<>();
 				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
+				nanopubParams.put("pubkey", pubKeyMap.get(pubkeySelection.getModelObject()));  // TODO: only using first public key here
 				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
 				List<NanopubElement> nanopubs = new ArrayList<>();
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 100) {
@@ -85,7 +106,6 @@ public class UserPage extends WebPage {
 				return r;
 			}
 		});
-
 	}
 
 //	@Override
