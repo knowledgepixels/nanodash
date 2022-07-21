@@ -30,7 +30,7 @@ public class UserListPage extends WebPage {
 			@Override
 			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
-				params.add("id", item);
+				params.add("id", item.getModelObject());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
 				l.add(new Label("linktext", UserNew.getDisplayName(item.getModelObject())));
 				item.add(l);

@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 
 public class UserPage extends WebPage {
 
@@ -21,7 +22,7 @@ public class UserPage extends WebPage {
 
 	private Model<String> progress;
 	private Model<String> selected = new Model<>();
-	private User user;
+	private IRI userIri;
 	private boolean added = false;
 	private Map<String,String> pubKeyMap;
 	private RadioChoice<String> pubkeySelection;
@@ -29,9 +30,9 @@ public class UserPage extends WebPage {
 	public UserPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		user = User.getUser(parameters.get("id").toString());
-		if (user == null) throw new RedirectToUrlException("./profile");
-		add(new Label("username", user.getDisplayName()));
+		if (parameters.get("id") == null) throw new RedirectToUrlException("./profile");
+		userIri = Utils.vf.createIRI(parameters.get("id").toString());
+		add(new Label("username", UserNew.getDisplayName(userIri)));
 
 		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
@@ -43,15 +44,17 @@ public class UserPage extends WebPage {
 		NanobenchSession session = NanobenchSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
-		if (user.getId().equals(session.getUserIri())) {
+		if (userIri.equals(session.getUserIri())) {
 			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 		}
-		String keyShort = Utils.getShortPubkeyLabel(user.getPubkeyString());
-		if (!pubKeyMap.containsKey(keyShort)) {
-			pubKeyList.add(keyShort);
-			pubKeyMap.put(keyShort, user.getPubkeyString());
+		for (String pk : UserNew.getPubkeys(userIri, null)) {
+			String keyShort = Utils.getShortPubkeyLabel(pk);
+			if (!pubKeyMap.containsKey(keyShort)) {
+				pubKeyList.add(keyShort);
+				pubKeyMap.put(keyShort, pk);
+			}
 		}
 
 		pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
