@@ -53,8 +53,9 @@ public class User implements Serializable, Comparable<User> {
 		// TODO Make update strategy configurable:
 		String latestAuthorityIndex = ApiAccess.getLatestVersionId(authorityIndex);
 		System.err.println("Using authority index: " + latestAuthorityIndex);
-		// TODO use piped out-in stream here:
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		// Get users that are listed directly in the authority index, and consider them approved:
+		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
 		new FetchIndex(latestAuthorityIndex, out, RDFFormat.TRIG, false, true, null).run();
 		InputStream in = new ByteArrayInputStream(out.toByteArray());
 		try {
@@ -67,6 +68,8 @@ public class User implements Serializable, Comparable<User> {
 		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
 			ex.printStackTrace();
 		}
+
+		// Get users that are approved by somebody who is already approved, and consider them approved too:
 		try {
 			Map<String,String> params = new HashMap<>();
 			params.put("pred", "http://purl.org/nanopub/x/approves-of");
@@ -98,6 +101,7 @@ public class User implements Serializable, Comparable<User> {
 			ex.printStackTrace();
 		}
 
+		// Get other users, considered unapproved:
 		try {
 			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
 				createUser(entry, false);
