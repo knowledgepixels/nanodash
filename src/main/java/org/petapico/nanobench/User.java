@@ -43,7 +43,6 @@ public class User implements Serializable, Comparable<User> {
 	private static List<User> unapprovedUsers;
 	private static Map<String,User> userIdMap;
 	private static Map<String,User> userPubkeyMap;
-//	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
 
 	public static synchronized void refreshUsers() {
 		approvedUsers = new ArrayList<>();
@@ -217,10 +216,6 @@ public class User implements Serializable, Comparable<User> {
 		if (name != null && !name.isEmpty()) {
 			return name + " (" + getShortId() + ")";
 		}
-//		String nameFromOrcid = getNameFromOrcid(id.stringValue());
-//		if (nameFromOrcid != null && !nameFromOrcid.isEmpty()) {
-//			return nameFromOrcid + " (" + getShortId() + ")";
-//		}
 		return getShortId();
 	}
 
@@ -228,10 +223,6 @@ public class User implements Serializable, Comparable<User> {
 		if (name != null && !name.isEmpty()) {
 			return name;
 		}
-//		String nameFromOrcid = getNameFromOrcid(id.stringValue());
-//		if (nameFromOrcid != null && !nameFromOrcid.isEmpty()) {
-//			return nameFromOrcid;
-//		}
 		return getShortId();
 	}
 
@@ -256,21 +247,5 @@ public class User implements Serializable, Comparable<User> {
 		if (!introNpIri.equals(other.introNpIri)) return false;
 		return true;
 	}
-
-//	public String getNameFromOrcid(String userId) {
-//		if (!nameFromOrcidMap.containsKey(userId)) {
-//			try {
-//				IntroExtractor ie = IntroNanopub.extract(userId, null);
-//				if (ie != null) {
-//					nameFromOrcidMap.put(userId, ie.getName());
-//				} else {
-//					nameFromOrcidMap.put(userId, null);
-//				}
-//			} catch (IOException ex) {
-//				System.err.println("Could not get name from ORCID account: " + userId);
-//			}
-//		}
-//		return nameFromOrcidMap.get(userId);
-//	}
 
 }
