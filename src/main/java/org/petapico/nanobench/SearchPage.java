@@ -5,13 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -25,13 +28,15 @@ public class SearchPage extends WebPage {
 	private CheckBox filterUser;
 	private Model<String> progress;
 
+	private Map<String,String> pubKeyMap;
+	private RadioChoice<String> pubkeySelection;
+
 	public SearchPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
-		
-		final User currentUser = NanobenchSession.get().getUser();
+		final String pubkey = parameters.get("pubkey").toString();
 		
 		Form<?> form = new Form<Void>("form") {
 
@@ -40,9 +45,11 @@ public class SearchPage extends WebPage {
 			protected void onSubmit() {
 				String searchText = searchField.getModelObject().trim();
 				Boolean filterCheck = filterUser.getModelObject();
+				String pubkey = pubkeySelection.getModelObject();
 				PageParameters params = new PageParameters();
 				params.add("query", searchText);
 				params.add("filter", filterCheck);
+				params.add("pubkey", pubkey);
 				setResponsePage(SearchPage.class, params);
 			}
 		};
@@ -51,7 +58,29 @@ public class SearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 		WebMarkupContainer ownFilter = new WebMarkupContainer("own-filter");
 		ownFilter.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
-		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode() && currentUser != null);
+		NanobenchSession session = NanobenchSession.get();
+		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode() && session.getUserIri() != null);
+		ArrayList<String> pubKeyList = new ArrayList<>();
+		if (session.getUserIri() != null) {
+			pubKeyMap = new HashMap<>();
+			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
+			pubKeyList.add(lKeyShort);
+			pubKeyMap.put(lKeyShort, session.getPubkeyString());
+			for (String pk : UserNew.getPubkeys(session.getUserIri(), null)) {
+				String keyShort = Utils.getShortPubkeyLabel(pk);
+				if (!pubKeyMap.containsKey(keyShort)) {
+					pubKeyList.add(keyShort);
+					pubKeyMap.put(keyShort, pk);
+				}
+			}
+		}
+
+		pubkeySelection = new RadioChoice<String>("pubkeygroup", Model.of(pubkey), pubKeyList);
+//		if (!pubKeyList.isEmpty()) {
+//			pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
+//		}
+		ownFilter.add(pubkeySelection);
+
 		form.add(ownFilter);
 
 		// TODO: Progress bar doesn't update at the moment:
@@ -79,8 +108,9 @@ public class SearchPage extends WebPage {
 							System.err.println("URI QUERY: " + s);
 							nanopubParams.put("ref", s);
 							if (Boolean.TRUE.equals(filterCheck)) {
-								System.err.println("Filter for PUBKEY: " + currentUser.getPubkeyString());
-								nanopubParams.put("pubkey", currentUser.getPubkeyString());
+								String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
+								System.err.println("Filter for PUBKEY: " + pubkey);
+								nanopubParams.put("pubkey", pubkey);
 							}
 							try {
 								// nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
@@ -95,8 +125,9 @@ public class SearchPage extends WebPage {
 								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
 								nanopubParams.put("text", freeTextQuery);
 								if (filterCheck != null && Boolean.TRUE.equals(filterCheck)) {
-									System.err.println("Filter for PUBKEY: " + currentUser.getPubkeyString());
-									nanopubParams.put("pubkey", currentUser.getPubkeyString());
+									String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
+									System.err.println("Filter for PUBKEY: " + pubkey);
+									nanopubParams.put("pubkey", pubkey);
 								}
 								try {
 									// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();

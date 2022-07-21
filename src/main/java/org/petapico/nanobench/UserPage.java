@@ -73,7 +73,6 @@ public class UserPage extends WebPage {
 
 		});
 		add(pubkeySelection);
-		add(new Label("pubkey", Utils.getShortPubkeyLabel(pubKeyMap.get(pubkeySelection.getModelObject()))));
 
 		refresh();
 	}
