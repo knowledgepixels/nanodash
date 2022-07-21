@@ -13,12 +13,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.server.GetNanopub;
 
 public class Utils {
 
 	private Utils() {}  // no instances allowed
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	public static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
+	public static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
 
 	public static String getMimeType(HttpServletRequest req, String supported) {
 		List<String> supportedList = Arrays.asList(StringUtils.split(supported, ','));

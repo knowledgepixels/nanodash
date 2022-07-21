@@ -44,7 +44,7 @@ public class UserPage extends WebPage {
 		NanobenchSession session = NanobenchSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
-		if (session.getUserIri().equals(user.getId())) {
+		if (user.getId().equals(session.getUserIri())) {
 			String lKeyShort = session.getLocalPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getLocalPublicKeyString());

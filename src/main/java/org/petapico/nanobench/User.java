@@ -31,13 +31,10 @@ public class User implements Serializable, Comparable<User> {
 
 	private static final long serialVersionUID = 1L;
 
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+	static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	// TODO Make this configurable:
 	private static String authorityIndex = "http://purl.org/np/RAs2tE1BHvwEM2OmUftb1T0JZ6oK2J7Nnr9tGbrE_s4KQ";
-
-	private static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
-	private static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
 
 	private static List<User> approvedUsers;
 	private static List<User> unapprovedUsers;
@@ -112,6 +109,8 @@ public class User implements Serializable, Comparable<User> {
 
 		Collections.sort(approvedUsers);
 		Collections.sort(unapprovedUsers);
+
+		UserNew.refreshUsers();
 	}
 
 	public static synchronized List<User> getUsers(boolean approved) {
@@ -162,9 +161,9 @@ public class User implements Serializable, Comparable<User> {
 		String name = null;
 		for (Statement st : np.getAssertion()) {
 			// TODO: Do a proper check of assertion content:
-			if (st.getPredicate().equals(DECLARED_BY) && st.getObject() instanceof IRI) {
+			if (st.getPredicate().equals(Utils.DECLARED_BY) && st.getObject() instanceof IRI) {
 				userId = (IRI) st.getObject();
-			} else if (st.getPredicate().equals(HAS_PUBLIC_KEY) && st.getObject() instanceof Literal) {
+			} else if (st.getPredicate().equals(Utils.HAS_PUBLIC_KEY) && st.getObject() instanceof Literal) {
 				publicKey = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(FOAF.NAME) && st.getObject() instanceof Literal) {
 				name = st.getObject().stringValue();

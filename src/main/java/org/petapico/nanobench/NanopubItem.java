@@ -47,20 +47,18 @@ public class NanopubItem extends Panel {
 		add(link);
 
 		String userString = "";
-		User user = null;
+		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
-				user = User.getUserForPubkey(n.getPubkey());
-				if (user != null) {
-					userString = user.getShortDisplayName();
-				}
+				pubkey = n.getPubkey();
+				userString = UserNew.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
-		IRI userIri = NanobenchSession.get().getUserIri();
-		boolean isOwnNanopub = userIri != null && user != null && userIri.equals(user.getId());
+		NanobenchSession session = NanobenchSession.get();
+		boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 		final List<NanopubAction> actionList = new ArrayList<>();
 		final Map<String,NanopubAction> actionMap = new HashMap<>();
 		List<NanopubAction> allActions = new ArrayList<>();
@@ -141,9 +139,8 @@ public class NanopubItem extends Panel {
 			add(new Label("datetime", "(undated)"));
 		}
 		PageParameters params = new PageParameters();
-		if (user != null) {
-			params.add("id", user.getId());
-		}
+		IRI uIri = UserNew.findSingleIdForPubkey(pubkey);
+		if (uIri != null) params.add("id", uIri);
 		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
 		userLink.add(new Label("user-text", userString));
 		add(userLink);
