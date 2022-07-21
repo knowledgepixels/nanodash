@@ -14,7 +14,6 @@ import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.security.KeyDeclaration;
 
 public class UserPage extends WebPage {
 
@@ -45,11 +44,11 @@ public class UserPage extends WebPage {
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
 		if (user.getId().equals(session.getUserIri())) {
-			String lKeyShort = session.getLocalPublicKeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
 			pubKeyList.add(lKeyShort);
-			pubKeyMap.put(lKeyShort, session.getLocalPublicKeyString());
+			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 		}
-		String keyShort = user.getPubkeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+		String keyShort = Utils.getShortPubkeyLabel(user.getPubkeyString());
 		if (!pubKeyMap.containsKey(keyShort)) {
 			pubKeyList.add(keyShort);
 			pubKeyMap.put(keyShort, user.getPubkeyString());

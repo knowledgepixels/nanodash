@@ -71,7 +71,7 @@ public class Utils {
 	}
 
 	public static String getShortPubkeyLabel(String pubkey) {
-		return pubkey.replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
 	}
 
 }

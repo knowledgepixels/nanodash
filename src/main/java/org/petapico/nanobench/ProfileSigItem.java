@@ -51,7 +51,7 @@ public class ProfileSigItem extends Panel {
 			if (session.getKeyPair() == null) {
 				add(new Label("pubkey", "Error loading key file"));
 			} else {
-				add(new PubkeyItem("pubkey", session.getLocalPublicKeyString()));
+				add(new PubkeyItem("pubkey", session.getPubkeyString()));
 			}
 			keymessage.setVisible(false);
 			createKeyLink.setVisible(false);

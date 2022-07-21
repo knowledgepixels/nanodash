@@ -234,14 +234,10 @@ public class NanobenchSession extends WebSession {
 		return new File(userDir + "id_rsa");
 	}
 
-	public String getLocalPublicKeyString() {
-		return DatatypeConverter.printBase64Binary(getKeyPair().getPublic().getEncoded()).replaceAll("\\s", "");
-	}
-
 	public List<KeyDeclaration> getOrcidKeyDeclarations() {
 		List<KeyDeclaration> orcidPubkeys = new ArrayList<>();
 		for (KeyDeclaration kd : getIntroNanopub().getKeyDeclarations()) {
-			if (!kd.getPublicKeyString().equals(getLocalPublicKeyString())) orcidPubkeys.add(kd);
+			if (!kd.getPublicKeyString().equals(getPubkeyString())) orcidPubkeys.add(kd);
 		}
 		return orcidPubkeys;
 	}
