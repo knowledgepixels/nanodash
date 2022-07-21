@@ -242,4 +242,17 @@ public class UserNew {
 		return list;
 	}
 
+	public static Set<String> getPubkeys(IRI user, boolean approved) {
+		Set<String> pubkeys = null;
+		if (user != null) {
+			if (approved) {
+				pubkeys = approvedIdPubkeyMap.get(user);
+			} else {
+				pubkeys = unapprovedIdPubkeyMap.get(user);
+			}
+		}
+		if (pubkeys == null) pubkeys = new HashSet<>();
+		return pubkeys;
+	}
+
 }

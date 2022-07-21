@@ -19,7 +19,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
-import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
@@ -234,11 +233,12 @@ public class NanobenchSession extends WebSession {
 		return new File(userDir + "id_rsa");
 	}
 
-	public List<KeyDeclaration> getOrcidKeyDeclarations() {
-		List<KeyDeclaration> orcidPubkeys = new ArrayList<>();
-		for (KeyDeclaration kd : getIntroNanopub().getKeyDeclarations()) {
-			if (!kd.getPublicKeyString().equals(getPubkeyString())) orcidPubkeys.add(kd);
+	public List<String> getOtherKeyDeclarations() {
+		List<String> otherPubkeys = new ArrayList<>();
+		for (String pk : UserNew.getPubkeys(userIri, true)) {
+			if (!pk.equals(getPubkeyString())) otherPubkeys.add(pk);
 		}
-		return orcidPubkeys;
+		return otherPubkeys;
 	}
+
 }

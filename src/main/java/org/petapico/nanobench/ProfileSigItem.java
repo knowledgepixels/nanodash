@@ -10,7 +10,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
-import org.nanopub.extra.security.KeyDeclaration;
 
 public class ProfileSigItem extends Panel {
 	
@@ -58,13 +57,13 @@ public class ProfileSigItem extends Panel {
 		} else {
 			add(new Label("pubkey", ""));
 		}
-		add(new DataView<KeyDeclaration>("orcid-pubkeys", new ListDataProvider<KeyDeclaration>(session.getOrcidKeyDeclarations())) {
+		add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(session.getOtherKeyDeclarations())) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<KeyDeclaration> item) {
-				item.add(new PubkeyItem("orcid-pubkey", item.getModelObject().getPublicKeyString()));
+			protected void populateItem(Item<String> item) {
+				item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
 			}
 			
 		});
