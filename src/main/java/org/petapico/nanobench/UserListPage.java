@@ -23,45 +23,46 @@ public class UserListPage extends WebPage {
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new DataView<User>("approved-users", new ListDataProvider<User>(User.getUsers(true))) {
+		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(UserNew.getUsers(true))) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<User> item) {
+			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
-				params.add("id", item.getModelObject().getId());
+				params.add("id", item);
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", item.getModelObject().getDisplayName()));
+				l.add(new Label("linktext", UserNew.getDisplayName(item.getModelObject())));
 				item.add(l);
 			}
 
 		});
 
-		add(new DataView<User>("other-users", new ListDataProvider<User>(User.getUsers(false))) {
+		add(new DataView<IRI>("other-users", new ListDataProvider<IRI>(UserNew.getUsers(false))) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<User> item) {
+			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
-				User u = item.getModelObject();
-				params.add("id", u.getId());
+				IRI iri = item.getModelObject();
+				params.add("id", iri);
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", u.getDisplayName()));
+				l.add(new Label("linktext", UserNew.getDisplayName(iri)));
 				item.add(l);
 				WebMarkupContainer actionLinks = new WebMarkupContainer("actions");
 				item.add(actionLinks);
-				IRI userIri = NanobenchSession.get().getUserIri();
-				if (userIri != null && !userIri.equals(u.getId())) {
-					actionLinks.add(new ExternalLink("approve-link", "./publish?" +
-								"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
-								"&param_nanopub=" + Utils.urlEncode(u.getIntropubIri().stringValue()))
-							.add(new Label("approve-label", "approve...")));
-				} else {
+				// TODO Reactivate Approve link
+//				IRI userIri = NanobenchSession.get().getUserIri();
+//				if (userIri != null && !userIri.equals(iri)) {
+//					actionLinks.add(new ExternalLink("approve-link", "./publish?" +
+//								"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
+//								"&param_nanopub=" + Utils.urlEncode(u.getIntropubIri().stringValue()))
+//							.add(new Label("approve-label", "approve...")));
+//				} else {
 					actionLinks.add(new ExternalLink("approve-link", ".").add(new Label("approve-label", "")));  // Hide approve link
 					actionLinks.setVisible(false);
-				}
+//				}
 			}
 
 		});

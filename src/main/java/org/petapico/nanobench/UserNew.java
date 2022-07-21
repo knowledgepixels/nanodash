@@ -168,6 +168,7 @@ public class UserNew {
 	}
 
 	public static String getName(IRI userIri) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
 		return idNameMap.get(userIri);
 	}
 
@@ -188,6 +189,7 @@ public class UserNew {
 	}
 
 	public static String getShortDisplayNameForPubkey(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
 		Set<IRI> ids = approvedPubkeyIdMap.get(pubkey);
 		if (ids == null || ids.isEmpty()) {
 			ids = unapprovedPubkeyIdMap.get(pubkey);
@@ -206,6 +208,7 @@ public class UserNew {
 	}
 
 	public static IRI findSingleIdForPubkey(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
 		if (approvedPubkeyIdMap.containsKey(pubkey) && !approvedPubkeyIdMap.get(pubkey).isEmpty()) {
 			if (approvedPubkeyIdMap.get(pubkey).size() == 1) {
 				return approvedPubkeyIdMap.get(pubkey).iterator().next();
@@ -226,23 +229,27 @@ public class UserNew {
 	private static Comparator<IRI> comparator = new Comparator<IRI>() {
 
 		@Override
-		public int compare(IRI arg0, IRI arg1) {
-			return arg0.toString().compareTo(arg1.toString());
+		public int compare(IRI iri1, IRI iri2) {
+			return getDisplayName(iri1).compareTo(getDisplayName(iri2));
 		}
+
 	};
 
-	public static List<IRI> getUsers(boolean approved) {
+	public static synchronized List<IRI> getUsers(boolean approved) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
 		List<IRI> list;
 		if (approved) {
 			list = new ArrayList<IRI>(approvedIdPubkeyMap.keySet());
 		} else {
 			list = new ArrayList<IRI>(unapprovedIdPubkeyMap.keySet());
 		}
+		// TODO Cache the sorted list to not sort from scratch each time:
 		list.sort(comparator);
 		return list;
 	}
 
-	public static Set<String> getPubkeys(IRI user, boolean approved) {
+	public static synchronized Set<String> getPubkeys(IRI user, boolean approved) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
 		Set<String> pubkeys = null;
 		if (user != null) {
 			if (approved) {
