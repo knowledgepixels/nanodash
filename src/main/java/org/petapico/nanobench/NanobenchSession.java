@@ -84,12 +84,10 @@ public class NanobenchSession extends WebSession {
 			}
 		}
 		if (userIri != null && introNp == null) {
-			if (getUserIri() != null) {
-				User user = User.getUser(getUserIri().toString());
-				if (user != null) {
-					Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
-					introNp = new IntroNanopub(np, user.getId());
-				}
+			User user = User.getUser(getUserIri().toString());
+			if (user != null) {
+				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
+				introNp = new IntroNanopub(np, user.getId());
 			}
 		}
 		checkOrcidLink();
