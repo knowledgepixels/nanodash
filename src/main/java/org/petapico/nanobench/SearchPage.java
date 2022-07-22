@@ -5,9 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -49,7 +47,7 @@ public class SearchPage extends WebPage {
 				PageParameters params = new PageParameters();
 				params.add("query", searchText);
 				params.add("filter", filterCheck);
-				params.add("pubkey", pubkey);
+				if (pubkey != null) params.add("pubkey", pubkey);
 				setResponsePage(SearchPage.class, params);
 			}
 		};
@@ -76,9 +74,9 @@ public class SearchPage extends WebPage {
 		}
 
 		pubkeySelection = new RadioChoice<String>("pubkeygroup", Model.of(pubkey), pubKeyList);
-//		if (!pubKeyList.isEmpty()) {
-//			pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
-//		}
+		if (!pubKeyList.isEmpty() && pubkeySelection.getModelObject() == null) {
+			pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
+		}
 		ownFilter.add(pubkeySelection);
 
 		form.add(ownFilter);
