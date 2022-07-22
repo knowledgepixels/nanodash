@@ -43,7 +43,6 @@ public class NanobenchSession extends WebSession {
 	private String userDir = System.getProperty("user.home") + "/.nanopub/";
 
 	private KeyPair keyPair;
-	private User user;
 	private IRI userIri;
 	private IntroNanopub introNp;
 	private Boolean isOrcidLinked;
@@ -85,9 +84,12 @@ public class NanobenchSession extends WebSession {
 			}
 		}
 		if (userIri != null && introNp == null) {
-			if (getUser() != null) {
-				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
-				introNp = new IntroNanopub(np, user.getId());
+			if (getUserIri() != null) {
+				User user = User.getUser(getUserIri().toString());
+				if (user != null) {
+					Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
+					introNp = new IntroNanopub(np, user.getId());
+				}
 			}
 		}
 		checkOrcidLink();
@@ -95,14 +97,6 @@ public class NanobenchSession extends WebSession {
 
 	public boolean isProfileComplete() {
 		return userIri != null && keyPair != null && introNp != null; // && doPubkeysMatch();
-	}
-
-	public User getUser() {
-		if (user == null) {
-			if (getUserIri() == null) return null;
-			user = User.getUser(getUserIri().toString());
-		}
-		return user;
 	}
 
 	public boolean doPubkeysMatch() {
