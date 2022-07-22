@@ -69,7 +69,7 @@ public class ProfileIntroItem extends Panel {
 		if (session.getUserIri() != null && session.getKeyPair() != null) {
 			if (session.getIntroNanopubs() != null && !session.getIntroNanopubs().isEmpty()) {
 				// TODO Consider all intro nanopubs:
-				String introUri = session.getIntroNanopubs().get(0).getNanopub().getUri().stringValue();
+				String introUri = session.getIntroNanopubs().values().iterator().next().getNanopub().getUri().stringValue();
 				introlink = new ExternalLink("introlink", introUri);
 				introlink.add(new Label("introlinktext", introUri));
 				if (session.doPubkeysMatch()) {

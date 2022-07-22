@@ -1,5 +1,7 @@
 package org.petapico.nanobench;
 
+import java.util.List;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -57,16 +59,21 @@ public class ProfileSigItem extends Panel {
 		} else {
 			add(new Label("pubkey", ""));
 		}
-		add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(session.getOtherKeyDeclarations())) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<String> item) {
-				item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
-			}
-			
-		});
+		List<String> otherKeys = session.getOtherKeyDeclarations();
+		if (otherKeys.isEmpty()) {
+			add(new WebMarkupContainer("other-pubkeys").add(new Label("other-pubkey", "(no other keys)")));
+		} else {
+			add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(otherKeys)) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<String> item) {
+					item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
+				}
+				
+			});
+		}
 		add(keymessage);
 		add(createKeyLink);
 	}
