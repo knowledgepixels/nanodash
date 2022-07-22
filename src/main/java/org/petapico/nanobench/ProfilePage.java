@@ -71,7 +71,6 @@ public class ProfilePage extends WebPage {
 			protected void onSubmit() {
 				if (loginMode) return;
 				session.setOrcid(orcidField.getModelObject());
-				session.setIntroNanopub(null);
 				session.resetOrcidLinked();
 				session.invalidateNow();
 				throw new RestartResponseException(ProfilePage.class);

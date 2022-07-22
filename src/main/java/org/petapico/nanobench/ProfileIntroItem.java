@@ -55,7 +55,8 @@ public class ProfileIntroItem extends Panel {
 					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, session.getKeyPair(), null, false, false);
 					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
 					PublishNanopub.publish(signedNp);
-					session.setIntroNanopub(signedNp);
+					// TODO This needs testing:
+					User.register(User.toIntroNanopub(signedNp), false);
 //					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
 					throw new RestartResponseException(ProfilePage.class);
 				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
@@ -66,8 +67,9 @@ public class ProfileIntroItem extends Panel {
 
 		};
 		if (session.getUserIri() != null && session.getKeyPair() != null) {
-			if (session.getIntroNanopub() != null) {
-				String introUri = session.getIntroNanopub().getNanopub().getUri().stringValue();
+			if (session.getIntroNanopubs() != null && !session.getIntroNanopubs().isEmpty()) {
+				// TODO Consider all intro nanopubs:
+				String introUri = session.getIntroNanopubs().get(0).getNanopub().getUri().stringValue();
 				introlink = new ExternalLink("introlink", introUri);
 				introlink.add(new Label("introlinktext", introUri));
 				if (session.doPubkeysMatch()) {

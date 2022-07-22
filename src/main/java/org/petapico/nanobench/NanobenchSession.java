@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -16,7 +17,6 @@ import org.apache.wicket.request.Request;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 import org.nanopub.extra.security.MakeKeys;
@@ -44,7 +44,7 @@ public class NanobenchSession extends WebSession {
 
 	private KeyPair keyPair;
 	private IRI userIri;
-	private IntroNanopub introNp;
+	private Map<IRI,IntroNanopub> introNps;
 	private Boolean isOrcidLinked;
 	private String orcidLinkError;
 
@@ -83,25 +83,23 @@ public class NanobenchSession extends WebSession {
 				makeKeys();
 			}
 		}
-		if (userIri != null && introNp == null) {
-			User user = User.getUser(getUserIri().toString());
-			if (user != null) {
-				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
-				introNp = new IntroNanopub(np, user.getId());
-			}
+		if (userIri != null && keyPair != null && introNps == null) {
+			introNps = User.getIntroNanopubs(getPubkeyString());
 		}
 		checkOrcidLink();
 	}
 
 	public boolean isProfileComplete() {
-		return userIri != null && keyPair != null && introNp != null; // && doPubkeysMatch();
+		return userIri != null && keyPair != null && introNps != null;  // && !introNp.isEmpty();  // && doPubkeysMatch();
 	}
 
 	public boolean doPubkeysMatch() {
 		if (keyPair == null) return false;
-		if (introNp == null) return false;
-		// TODO: Handle case of multiple key declarations
-		return getPubkeyString().equals(introNp.getKeyDeclarations().get(0).getPublicKeyString());
+		if (introNps == null) return false;
+		for (IRI introIri : User.getIntroNanopubs(getPubkeyString()).keySet()) {
+			if (introNps.containsKey(introIri)) return true;
+		}
+		return false;
 	}
 
 	public String getPubkeyString() {
@@ -146,16 +144,8 @@ public class NanobenchSession extends WebSession {
 		loadProfileInfo();
 	}
 
-	public IntroNanopub getIntroNanopub() {
-		return introNp;
-	}
-
-	public void setIntroNanopub(Nanopub np) {
-		if (np == null) {
-			introNp = null;
-		} else {
-			introNp = new IntroNanopub(np, userIri);
-		}
+	public Map<IRI,IntroNanopub> getIntroNanopubs() {
+		return introNps;
 	}
 
 	public void checkOrcidLink() {
@@ -169,7 +159,7 @@ public class NanobenchSession extends WebSession {
 					isOrcidLinked = false;
 				} else {
 					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
-					if (introNp != null && inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
+					if (introNps != null && introNps.containsKey(inp.getNanopub().getUri())) {
 						isOrcidLinked = true;
 					} else {
 						isOrcidLinked = false;
@@ -227,7 +217,7 @@ public class NanobenchSession extends WebSession {
 
 	public List<String> getOtherKeyDeclarations() {
 		List<String> otherPubkeys = new ArrayList<>();
-		for (String pk : UserNew.getPubkeys(userIri, true)) {
+		for (String pk : User.getPubkeys(userIri, true)) {
 			if (!pk.equals(getPubkeyString())) otherPubkeys.add(pk);
 		}
 		return otherPubkeys;

@@ -16,7 +16,13 @@ public class OrcidLinkingPage extends WebPage {
 		if (!NanobenchSession.get().isProfileComplete()) {
 			throw new RedirectToUrlException("./profile");
 		}
-		add(new Label("introuri", NanobenchSession.get().getIntroNanopub().getNanopub().getUri().stringValue()));
+		final NanobenchSession session = NanobenchSession.get();
+		String introLink = "";
+		if (session.getIntroNanopubs() != null && !session.getIntroNanopubs().isEmpty()) {
+			// TODO Consider all intro nanopubs:
+			introLink = session.getIntroNanopubs().get(0).getNanopub().getUri().stringValue();
+		}
+		add(new Label("introuri", introLink));
 	}
 
 }

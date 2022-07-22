@@ -26,7 +26,7 @@ public class ProfileItem extends Panel {
 		} else {
 			BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
 			if (userId != null) {
-				l.add(new Label("profiletext", UserNew.getDisplayName(userId)));
+				l.add(new Label("profiletext", User.getDisplayName(userId)));
 			} else {
 				l.add(new Label("profiletext", "incomplete profile"));
 			}

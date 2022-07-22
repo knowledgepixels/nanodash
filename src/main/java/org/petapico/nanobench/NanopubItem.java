@@ -51,7 +51,7 @@ public class NanopubItem extends Panel {
 		try {
 			if (n.hasValidSignature()) {
 				pubkey = n.getPubkey();
-				userString = UserNew.getShortDisplayNameForPubkey(pubkey);
+				userString = User.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -139,7 +139,7 @@ public class NanopubItem extends Panel {
 			add(new Label("datetime", "(undated)"));
 		}
 		PageParameters params = new PageParameters();
-		IRI uIri = UserNew.findSingleIdForPubkey(pubkey);
+		IRI uIri = User.findSingleIdForPubkey(pubkey);
 		if (uIri != null) params.add("id", uIri);
 		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
 		userLink.add(new Label("user-text", userString));

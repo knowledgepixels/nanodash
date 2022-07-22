@@ -32,7 +32,7 @@ public class UserPage extends WebPage {
 
 		if (parameters.get("id") == null) throw new RedirectToUrlException("./profile");
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
-		add(new Label("username", UserNew.getDisplayName(userIri)));
+		add(new Label("username", User.getDisplayName(userIri)));
 
 		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
@@ -49,7 +49,7 @@ public class UserPage extends WebPage {
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 		}
-		for (String pk : UserNew.getPubkeys(userIri, null)) {
+		for (String pk : User.getPubkeys(userIri, null)) {
 			String keyShort = Utils.getShortPubkeyLabel(pk);
 			if (!pubKeyMap.containsKey(keyShort)) {
 				pubKeyList.add(keyShort);

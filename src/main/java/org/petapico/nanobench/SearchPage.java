@@ -64,7 +64,7 @@ public class SearchPage extends WebPage {
 			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
-			for (String pk : UserNew.getPubkeys(session.getUserIri(), null)) {
+			for (String pk : User.getPubkeys(session.getUserIri(), null)) {
 				String keyShort = Utils.getShortPubkeyLabel(pk);
 				if (!pubKeyMap.containsKey(keyShort)) {
 					pubKeyList.add(keyShort);

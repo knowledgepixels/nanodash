@@ -23,7 +23,7 @@ public class UserListPage extends WebPage {
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(UserNew.getUsers(true))) {
+		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(User.getUsers(true))) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -32,13 +32,13 @@ public class UserListPage extends WebPage {
 				PageParameters params = new PageParameters();
 				params.add("id", item.getModelObject());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", UserNew.getDisplayName(item.getModelObject())));
+				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
 				item.add(l);
 			}
 
 		});
 
-		add(new DataView<IRI>("other-users", new ListDataProvider<IRI>(UserNew.getUsers(false))) {
+		add(new DataView<IRI>("other-users", new ListDataProvider<IRI>(User.getUsers(false))) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -48,7 +48,7 @@ public class UserListPage extends WebPage {
 				IRI iri = item.getModelObject();
 				params.add("id", iri);
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", UserNew.getDisplayName(iri)));
+				l.add(new Label("linktext", User.getDisplayName(iri)));
 				item.add(l);
 				WebMarkupContainer actionLinks = new WebMarkupContainer("actions");
 				item.add(actionLinks);

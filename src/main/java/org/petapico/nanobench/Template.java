@@ -420,7 +420,7 @@ public class Template implements Serializable {
 				String desc = r.get("description");
 				if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 				if (!desc.isEmpty()) desc = " - " + desc;
-				labelMap.put(uri, r.get("label") + " - by " + UserNew.getShortDisplayNameForPubkey(r.get("pubkey")));
+				labelMap.put(uri, r.get("label") + " - by " + User.getShortDisplayNameForPubkey(r.get("pubkey")));
 				count++;
 				if (count > 9) return;
 			}
