@@ -36,6 +36,8 @@ public class UserNew {
 	private static Map<String,Set<IRI>> approvedPubkeyIdMap;
 	private static Map<IRI,Set<String>> unapprovedIdPubkeyMap;
 	private static Map<String,Set<IRI>> unapprovedPubkeyIdMap;
+	private static Map<String,Set<IRI>> pubkeyIntroMap;
+	private static Map<IRI,IntroNanopub> introMap;
 	private static Map<IRI,String> idNameMap;
 
 	public static synchronized void refreshUsers() {
@@ -43,6 +45,8 @@ public class UserNew {
 		approvedPubkeyIdMap = new HashMap<>();
 		unapprovedIdPubkeyMap = new HashMap<>();
 		unapprovedPubkeyIdMap = new HashMap<>();
+		pubkeyIntroMap = new HashMap<>();
+		introMap = new HashMap<>();
 		idNameMap = new HashMap<>();
 
 		// TODO Make update strategy configurable:
@@ -57,7 +61,7 @@ public class UserNew {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
 				@Override
 				public void handleNanopub(Nanopub np) {
-					registerUser(np, true);
+					registerUser(toIntroNanopub(np), true);
 				}
 			});
 		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
@@ -74,7 +78,7 @@ public class UserNew {
 				for (ApiResponseEntry entry : new ArrayList<>(results)) {
 					if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
 					if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
-						registerUser(Utils.getNanopub(entry.get("obj")), true);
+						registerUser(toIntroNanopub(entry.get("obj")), true);
 						results.remove(entry);
 						keepLooping = true;
 					}
@@ -85,22 +89,34 @@ public class UserNew {
 			ex.printStackTrace();
 		}
 
-		// Get other users, considered unapproved:
+		// Get latest introductions for all users, including unapproved ones:
 		try {
 			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
-				registerUser(Utils.getNanopub(entry.get("intronp")), false);
+				IntroNanopub introNp = toIntroNanopub(entry.get("intronp"));
+				registerUser(introNp, false);
 			}
 		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
 	}
 
-	private static void registerUser(Nanopub np, boolean approved) {
-		if (np == null) {
-			//System.err.println("Nanopublication not received");
-			return;
-		}
+	private static IntroNanopub toIntroNanopub(String i) {
+		if (i == null) return null;
+		IRI iri = Utils.vf.createIRI(i);
+		if (introMap.containsKey(iri)) return introMap.get(iri);
+		Nanopub np = Utils.getNanopub(i);
+		return toIntroNanopub(np);
+	}
+
+	private static IntroNanopub toIntroNanopub(Nanopub np) {
+		if (np == null) return null;
+		if (introMap.containsKey(np.getUri())) return introMap.get(np.getUri());
 		IntroNanopub introNp = new IntroNanopub(np);
+		introMap.put(np.getUri(), introNp);
+		return introNp;
+	}
+
+	private static void registerUser(IntroNanopub introNp, boolean approved) {
 		if (introNp.getUser() == null) {
 			//System.err.println("No identifier found in introduction");
 			return;
@@ -119,9 +135,12 @@ public class UserNew {
 			if (approved) {
 				addValue(approvedIdPubkeyMap, userIri, pubkey);
 				addValue(approvedPubkeyIdMap, pubkey, userIri);
-			} else if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
-				addValue(unapprovedIdPubkeyMap, userIri, pubkey);
-				addValue(unapprovedPubkeyIdMap, pubkey, userIri);
+			} else {
+				if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
+					addValue(unapprovedIdPubkeyMap, userIri, pubkey);
+					addValue(unapprovedPubkeyIdMap, pubkey, userIri);
+				}
+				addValue(pubkeyIntroMap, pubkey, introNp.getNanopub().getUri());
 			}
 		}
 		if (!idNameMap.containsKey(userIri)) {
@@ -256,6 +275,14 @@ public class UserNew {
 			}
 		}
 		return pubkeys;
+	}
+
+	public static Set<IntroNanopub> getIntroNanopubs(String pubkey) {
+		Set<IntroNanopub> introNps = new HashSet<>();
+		for (IRI iri : pubkeyIntroMap.get(pubkey)) {
+			introNps.add(introMap.get(iri));
+		}
+		return introNps;
 	}
 
 }
