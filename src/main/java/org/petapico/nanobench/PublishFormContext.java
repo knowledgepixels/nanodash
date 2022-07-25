@@ -82,12 +82,16 @@ public class PublishFormContext implements Serializable {
 				i++;
 			}
 			i = 1;
+			int corr = 0;
+			if (si.isEmpty()) corr = 1;
 			while (true) {
 				String p = postfix + "__." + i;
 				if (hasParam(p)) {
-					int absPos = si.getRepetitionCount() - 1 + i;
-					setParam(postfix + "__" + absPos, getParam(p));
-					finalRepetitionCount.put(si, i);
+					int absPos = si.getRepetitionCount() + i - 1 - corr;
+					String param = postfix + "__" + absPos;
+					if (i - corr == 0) param = postfix;
+					setParam(param, getParam(p));
+					finalRepetitionCount.put(si, i - corr);
 				} else {
 					break;
 				}
@@ -98,6 +102,7 @@ public class PublishFormContext implements Serializable {
 			for (int i = 0 ; i < finalRepetitionCount.get(si) ; i++) {
 				si.repeat();
 			}
+			si.refreshStatements();
 		}
 	}
 
