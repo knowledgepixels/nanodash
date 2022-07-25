@@ -61,11 +61,11 @@ public class SearchPage extends WebPage {
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		if (session.getUserIri() != null) {
 			pubKeyMap = new HashMap<>();
-			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
+			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString(), session.getUserIri());
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 			for (String pk : User.getPubkeys(session.getUserIri(), null)) {
-				String keyShort = Utils.getShortPubkeyLabel(pk);
+				String keyShort = Utils.getShortPubkeyLabel(pk, session.getUserIri());
 				if (!pubKeyMap.containsKey(keyShort)) {
 					pubKeyList.add(keyShort);
 					pubKeyMap.put(keyShort, pk);

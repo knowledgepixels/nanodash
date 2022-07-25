@@ -45,12 +45,12 @@ public class UserPage extends WebPage {
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
 		if (userIri.equals(session.getUserIri())) {
-			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString());
+			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString(), userIri);
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 		}
 		for (String pk : User.getPubkeys(userIri, null)) {
-			String keyShort = Utils.getShortPubkeyLabel(pk);
+			String keyShort = Utils.getShortPubkeyLabel(pk, userIri);
 			if (!pubKeyMap.containsKey(keyShort)) {
 				pubKeyList.add(keyShort);
 				pubKeyMap.put(keyShort, pk);

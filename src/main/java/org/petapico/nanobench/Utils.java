@@ -75,12 +75,12 @@ public class Utils {
 		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
 	}
 
-	public static String getShortPubkeyLabel(String pubkey) {
+	public static String getShortPubkeyLabel(String pubkey, IRI user) {
 		String s = getShortPubkeyName(pubkey);
 		NanobenchSession session = NanobenchSession.get();
 		List<String> l = new ArrayList<>();
 		if (pubkey.equals(session.getPubkeyString())) l.add("local");
-		if (User.getPubkeys(session.getUserIri(), true).contains(pubkey)) l.add("approved");
+		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
 		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
 		return s;
 	}
