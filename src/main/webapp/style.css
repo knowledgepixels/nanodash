@@ -446,3 +446,15 @@ hr {
   border-radius: 3px;
   padding: 5px 10px;
 }
+
+.pubkeyselect input {
+  margin-left: 3mm;
+}
+
+.pubkeyselect input + label {
+  color: #666;
+}
+
+.pubkeyselect input:checked + label {
+  color: #000;
+}

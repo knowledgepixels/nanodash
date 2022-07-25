@@ -16,7 +16,7 @@ public class PubkeyItem extends Panel {
 			add(new Label("notes", ""));
 			add(new Label("fullkey", "(key does not exist)"));
 		} else {
-			add(new Label("label", Utils.getShortPubkeyLabel(pubkey)));
+			add(new Label("label", Utils.getShortPubkeyName(pubkey)));
 			String notes = "";
 			if (pubkey.equals(session.getPubkeyString())) {
 				notes += "<strong>Local key:</strong> This is the key that is used to sign your nanopublications on this site.<br>";

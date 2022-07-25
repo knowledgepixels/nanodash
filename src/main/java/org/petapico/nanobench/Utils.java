@@ -3,6 +3,7 @@ package org.petapico.nanobench;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -70,8 +71,18 @@ public class Utils {
 		return "";
 	}
 
-	public static String getShortPubkeyLabel(String pubkey) {
+	public static String getShortPubkeyName(String pubkey) {
 		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+	}
+
+	public static String getShortPubkeyLabel(String pubkey) {
+		String s = getShortPubkeyName(pubkey);
+		NanobenchSession session = NanobenchSession.get();
+		List<String> l = new ArrayList<>();
+		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		if (User.getPubkeys(session.getUserIri(), true).contains(pubkey)) l.add("approved");
+		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
+		return s;
 	}
 
 }
