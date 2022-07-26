@@ -448,6 +448,14 @@ hr {
   padding: 5px 10px;
 }
 
+.filter > input + label + span {
+  display:none;
+}
+
+.filter > input:checked + label + span {
+  display:inline;
+}
+
 .pubkeyselect input {
   margin-left: 3mm;
 }
