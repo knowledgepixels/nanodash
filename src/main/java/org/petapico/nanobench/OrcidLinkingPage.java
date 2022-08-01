@@ -20,7 +20,7 @@ public class OrcidLinkingPage extends WebPage {
 		String introLink = "";
 		if (session.getIntroNanopubs() != null && !session.getIntroNanopubs().isEmpty()) {
 			// TODO Consider all intro nanopubs:
-			introLink = session.getIntroNanopubs().get(0).getNanopub().getUri().stringValue();
+			introLink = session.getIntroNanopubs().values().iterator().next().getNanopub().getUri().stringValue();
 		}
 		add(new Label("introuri", introLink));
 	}

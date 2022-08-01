@@ -105,11 +105,11 @@ public class ProfilePage extends WebPage {
 			add(new Label("intropart"));
 		}
 
-		if (session.isProfileComplete()) {
-			add(new ProfileOrcidLinkItem("orcidlinkpart"));
-		} else {
-			add(new Label("orcidlinkpart"));
-		}
+//		if (session.isProfileComplete()) {
+//			add(new ProfileOrcidLinkItem("orcidlinkpart"));
+//		} else {
+		add(new Label("orcidlinkpart"));
+//		}
 	}
 
 }

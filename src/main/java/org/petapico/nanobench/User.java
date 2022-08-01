@@ -277,15 +277,35 @@ public class User {
 		return pubkeys;
 	}
 
+	public static Map<IRI,IntroNanopub> getIntroNanopubs(IRI user) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		Map<IRI,IntroNanopub> introNps = new HashMap<>();
+		if (approvedIdPubkeyMap.containsKey(user)) {
+			for (String pk : approvedIdPubkeyMap.get(user)) {
+				getIntroNanopubs(pk, introNps);
+			}
+		}
+		if (unapprovedIdPubkeyMap.containsKey(user)) {
+			for (String pk : approvedIdPubkeyMap.get(user)) {
+				getIntroNanopubs(pk, introNps);
+			}
+		}
+		return introNps;
+	}
+
 	public static Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
 		Map<IRI,IntroNanopub> introNps = new HashMap<>();
+		getIntroNanopubs(pubkey, introNps);
+		return introNps;
+	}
+
+	private static void getIntroNanopubs(String pubkey, Map<IRI,IntroNanopub> introNps) {
 		if (pubkeyIntroMap.containsKey(pubkey)) {
 			for (IRI iri : pubkeyIntroMap.get(pubkey)) {
 				introNps.put(iri, introMap.get(iri));
 			}
 		}
-		return introNps;
 	}
 
 }
