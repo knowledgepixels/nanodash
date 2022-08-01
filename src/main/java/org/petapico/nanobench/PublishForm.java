@@ -57,6 +57,8 @@ public class PublishForm extends Panel {
 		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement"));
 	}
 
+	private enum FillMode { USE, SUPERSEDE, DERIVE }
+
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
 	private final PublishFormContext assertionContext;
@@ -70,29 +72,48 @@ public class PublishForm extends Panel {
 		setOutputMarkupId(true);
 
 		Nanopub fillNp = null;
-		String fillMode = null;
-		if (!pageParams.get("supersede").isNull()) {
+		FillMode fillMode = null;
+		boolean fillOnlyAssertion = false;
+		if (!pageParams.get("use").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("use").toString());
+			fillMode = FillMode.USE;
+		} else if (!pageParams.get("use-a").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("use-a").toString());
+			fillMode = FillMode.USE;
+			fillOnlyAssertion = true;
+		} else if (!pageParams.get("supersede").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("supersede").toString());
-			fillMode = "supersede";
+			fillMode = FillMode.SUPERSEDE;
+		} else if (!pageParams.get("supersede-a").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("supersede-a").toString());
+			fillMode = FillMode.SUPERSEDE;
+			fillOnlyAssertion = true;
 		} else if (!pageParams.get("derive").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("derive").toString());
-			fillMode = "derive";
+			fillMode = FillMode.DERIVE;
+		} else if (!pageParams.get("derive-a").isNull()) {
+			fillNp = Utils.getNanopub(pageParams.get("derive-a").toString());
+			fillMode = FillMode.DERIVE;
+			fillOnlyAssertion = true;
 		} else if (!pageParams.get("fill-all").isNull()) {
+			// TODO: This is deprecated and should be removed at some point
 			fillNp = Utils.getNanopub(pageParams.get("fill-all").toString());
-			fillMode = "fill-all";
+			fillMode = FillMode.USE;
 		} else if (!pageParams.get("fill").isNull()) {
 			// TODO: This is deprecated and should be removed at some point
 			fillNp = Utils.getNanopub(pageParams.get("fill").toString());
-			fillMode = "supersede";
+			fillMode = FillMode.SUPERSEDE;
 		}
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
-			if (fillNp != null && Template.getProvenanceTemplateId(fillNp) != null) {
-				prTemplateId = Template.getProvenanceTemplateId(fillNp).stringValue();
-			} else if (fillNp != null) {
-				prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
+			if (fillNp != null && !fillOnlyAssertion) {
+				if (Template.getProvenanceTemplateId(fillNp) != null) {
+					prTemplateId = Template.getProvenanceTemplateId(fillNp).stringValue();
+				} else {
+					prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
+				}
 			} else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
 				prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
 			} else {
@@ -105,14 +126,13 @@ public class PublishForm extends Panel {
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
-		if ("supersede".equals(fillMode)) {
+		if (fillMode == FillMode.SUPERSEDE) {
 			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement");
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
 			//requiredPubInfoContexts.add(c);
 			c.setParam("np", fillNp.getUri().stringValue());
-		}
-		if ("derive".equals(fillMode)) {
+		} else if (fillMode == FillMode.DERIVE) {
 			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement");
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
@@ -180,33 +200,35 @@ public class PublishForm extends Panel {
 			filler.fill(assertionContext);
 			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
 
-			ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
-			prFiller.fill(provenanceContext);
-			warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
-
-			ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
-			for (PublishFormContext c : pubInfoContexts) {
-				piFiller.fill(c);
-			}
-			if (piFiller.hasUnusedStatements()) {
-				PublishFormContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
-				if (!pubInfoContexts.contains(c)) {
-					pubInfoContexts.add(c);
-					c.initStatements();
+			if (!fillOnlyAssertion) {
+				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
+				prFiller.fill(provenanceContext);
+				warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
+	
+				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+				for (PublishFormContext c : pubInfoContexts) {
 					piFiller.fill(c);
 				}
-			}
-			warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
-			// TODO: Also use pubinfo templates stated in nanopub to be filled in?
-//			Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
-//			if (!pubinfoTemplateIds.isEmpty()) {
-//				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
-//				for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
-//					// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
-//					piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
+				if (piFiller.hasUnusedStatements()) {
+					PublishFormContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
+					if (!pubInfoContexts.contains(c)) {
+						pubInfoContexts.add(c);
+						c.initStatements();
+						piFiller.fill(c);
+					}
+				}
+				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
+				// TODO: Also use pubinfo templates stated in nanopub to be filled in?
+//				Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
+//				if (!pubinfoTemplateIds.isEmpty()) {
+//					ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+//					for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
+//						// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
+//						piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
+//					}
+//					warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
 //				}
-//				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
-//			}
+			}
 		} else if (!pageParams.get("improve").isNull()) {
 			Nanopub improveNp = Utils.getNanopub(pageParams.get("improve").toString());
 			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION);
