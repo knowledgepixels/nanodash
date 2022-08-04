@@ -4,21 +4,15 @@
 
 <wicket:panel>
 
-<h3>Local Keys for Signatures</h3>
+<h3>Keys for Signatures</h3>
 
 <p wicket:id="localfile">Local key file: <code wicket:id="keyfile"></code></p>
 
-<p>Local public key:</p>
+<p><span wicket:id="keymessage" class="negative"></span> <a wicket:id="createkey" class="button">create local keys</a></p>
 
 <ul>
 <li><span wicket:id="pubkey"></span></li>
 </ul>
-
-<p><span wicket:id="keymessage" class="negative"></span> <a wicket:id="createkey" class="button">create keys</a></p>
-
-<h3>Other Keys</h3>
-
-<p>Other keys linked to your ORCID identifier:</p>
 
 <ul wicket:id="other-pubkeys">
 <li><span wicket:id="other-pubkey"></span></li>
