@@ -60,20 +60,16 @@ public class ProfileSigItem extends Panel {
 			add(new Label("pubkey", ""));
 		}
 		List<String> otherKeys = session.getOtherKeyDeclarations();
-		if (otherKeys.isEmpty()) {
-			add(new WebMarkupContainer("other-pubkeys").add(new Label("other-pubkey", "(no other keys)")));
-		} else {
-			add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(otherKeys)) {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				protected void populateItem(Item<String> item) {
-					item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
-				}
-				
-			});
-		}
+		add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(otherKeys)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<String> item) {
+				item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
+			}
+			
+		});
 		add(keymessage);
 		add(createKeyLink);
 	}

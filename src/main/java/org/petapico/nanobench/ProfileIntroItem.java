@@ -1,8 +1,10 @@
 package org.petapico.nanobench;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -11,6 +13,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
+
+import net.trustyuri.TrustyUriUtils;
 
 public class ProfileIntroItem extends Panel {
 	
@@ -30,7 +34,9 @@ public class ProfileIntroItem extends Panel {
 			protected void populateItem(Item<IntroNanopub> item) {
 				final IntroNanopub inp = item.getModelObject();
 				String uri = inp.getNanopub().getUri().stringValue();
-				item.add(new ExternalLink("intro-uri", uri, uri));
+				ExternalLink link = new ExternalLink("intro-uri", "./explore?id=" + URLEncoder.encode(uri, Charsets.UTF_8));
+				link.add(new Label("intro-uri-label", TrustyUriUtils.getArtifactCode(uri).substring(0, 10)));
+				item.add(link);
 				item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
 	
 					private static final long serialVersionUID = 1L;
