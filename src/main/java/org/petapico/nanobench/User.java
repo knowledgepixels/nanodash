@@ -38,6 +38,7 @@ public class User {
 	private static Map<String,Set<IRI>> unapprovedPubkeyIdMap;
 	private static Map<String,Set<IRI>> pubkeyIntroMap;
 	private static Map<IRI,IntroNanopub> introMap;
+	private static Map<IRI,IntroNanopub> approvedIntroMap;
 	private static Map<IRI,String> idNameMap;
 
 	public static synchronized void refreshUsers() {
@@ -47,6 +48,7 @@ public class User {
 		unapprovedPubkeyIdMap = new HashMap<>();
 		pubkeyIntroMap = new HashMap<>();
 		introMap = new HashMap<>();
+		approvedIntroMap = new HashMap<>();
 		idNameMap = new HashMap<>();
 
 		// TODO Make update strategy configurable:
@@ -61,6 +63,7 @@ public class User {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
 				@Override
 				public void handleNanopub(Nanopub np) {
+					// TODO: Check that latest version talks about same user
 					register(ApiAccess.getLatestVersionId(np.getUri().stringValue()), true);
 				}
 			});
@@ -124,6 +127,9 @@ public class User {
 		if (introNp.getKeyDeclarations().isEmpty()) {
 			//System.err.println("No key declarations found in introduction");
 			return;
+		}
+		if (approved) {
+			approvedIntroMap.put(introNp.getNanopub().getUri(), introNp);
 		}
 		String userId = introNp.getUser().stringValue();
 		IRI userIri = Utils.vf.createIRI(userId);
@@ -307,6 +313,10 @@ public class User {
 				introNps.put(iri, introMap.get(iri));
 			}
 		}
+	}
+
+	public static boolean isApproved(IntroNanopub in) {
+		return approvedIntroMap.containsKey(in.getNanopub().getUri());
 	}
 
 }

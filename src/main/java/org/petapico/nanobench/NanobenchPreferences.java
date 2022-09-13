@@ -57,7 +57,7 @@ public class NanobenchPreferences {
 	}
 
 	public String getWebsiteUrl() {
-		String s = System.getenv("NANOPUB_WEBSITE_URL");
+		String s = System.getenv("NANOBENCH_WEBSITE_URL");
 		if (!(s == null) && !s.isEmpty()) return s;
 		return websiteUrl;
 	}

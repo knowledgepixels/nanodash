@@ -7,11 +7,17 @@
 <h3>Introduction Nanopublications</h3>
 
 <ul wicket:id="intro-nps">
-<li><a wicket:id="intro-uri"><span wicket:id="intro-uri-label"></span></a> declares keys: <span wicket:id="intro-keys"><span wicket:id="intro-key"></span></span></li>
+<li>
+<a wicket:id="intro-uri"><span wicket:id="intro-uri-label"></span></a> <span wicket:id="intro-note"></span>
+at <a wicket:id="location"></a>
+declares keys: <span wicket:id="intro-keys"><strong><code wicket:id="intro-key"></code></strong></span>
+&nbsp;
+<a wicket:id="add-local-key" class="button"></a> (opens link at <span wicket:id="location2"></span>)
+</li>
 </ul>
 
 <!--
-<p><a wicket:id="introlink"><span wicket:id="introlinktext"></span></a></p>
+<p><a wicket:id="introlink" class="button"><span wicket:id="introlinktext"></span></a></p>
 
 <p><span wicket:id="intromessage" class="negative"></span> <a wicket:id="createintro" class="button">publish introduction</a></p>
 -->
