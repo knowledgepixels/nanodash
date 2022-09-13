@@ -61,7 +61,7 @@ public class User {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
 				@Override
 				public void handleNanopub(Nanopub np) {
-					register(toIntroNanopub(np), true);
+					register(ApiAccess.getLatestVersionId(np.getUri().stringValue()), true);
 				}
 			});
 		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
@@ -78,7 +78,7 @@ public class User {
 				for (ApiResponseEntry entry : new ArrayList<>(results)) {
 					if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
 					if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
-						register(toIntroNanopub(entry.get("obj")), true);
+						register(entry.get("obj"), true);
 						results.remove(entry);
 						keepLooping = true;
 					}
@@ -92,23 +92,18 @@ public class User {
 		// Get latest introductions for all users, including unapproved ones:
 		try {
 			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
-				IntroNanopub introNp = toIntroNanopub(entry.get("intronp"));
-				register(introNp, false);
+				register(entry.get("intronp"), false);
 			}
 		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
 	}
 
-	public static IntroNanopub toIntroNanopub(String i) {
+	private static IntroNanopub toIntroNanopub(String i) {
 		if (i == null) return null;
 		IRI iri = Utils.vf.createIRI(i);
 		if (introMap.containsKey(iri)) return introMap.get(iri);
 		Nanopub np = Utils.getNanopub(i);
-		return toIntroNanopub(np);
-	}
-
-	public static IntroNanopub toIntroNanopub(Nanopub np) {
 		if (np == null) return null;
 		if (introMap.containsKey(np.getUri())) return introMap.get(np.getUri());
 		IntroNanopub introNp = new IntroNanopub(np);
@@ -116,11 +111,17 @@ public class User {
 		return introNp;
 	}
 
-	public static void register(IntroNanopub introNp, boolean approved) {
+	private static void register(String npId, boolean approved) {
+		IntroNanopub introNp = toIntroNanopub(npId);
+		if (introNp == null) {
+			//System.err.println("No latest version of introduction found");
+			return;
+		}
 		if (introNp.getUser() == null) {
 			//System.err.println("No identifier found in introduction");
 			return;
-		} else if (introNp.getKeyDeclarations().isEmpty()) {
+		}
+		if (introNp.getKeyDeclarations().isEmpty()) {
 			//System.err.println("No key declarations found in introduction");
 			return;
 		}
