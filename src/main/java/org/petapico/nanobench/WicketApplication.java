@@ -22,7 +22,7 @@ import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
 
-	protected static final String LATEST_RELEASE_URL = "https://github.com/peta-pico/nanobench/releases/latest";
+	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/peta-pico/nanobench/releases";
 
 	public WicketApplication() {
 		String runParam = System.getProperty("nanobench.run");
@@ -133,8 +133,9 @@ public class WicketApplication extends WebApplication {
 			reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			while(reader.ready()) {
 				String line = reader.readLine();
-				if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
-					latestVersion = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
+				// TODO: Do proper JSON parsing
+				if (line.matches(".*\"tag_name\":\\s*\"nanobench-[0-9]+\\.[0-9]+\".*")) {
+					latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanobench-([0-9]+\\.[0-9]+)\".*", "$1");
 					break;
 				}
 			}
