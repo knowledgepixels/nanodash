@@ -27,14 +27,7 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (session.isProfileComplete()) {
-			if (session.isOrcidLinked() == null) {
-				add(new Label("message", "Congratulations, your profile is complete, but we couldn't verify whether your ORCID account is linked (see below)."));
-			} else if (session.isOrcidLinked()) {
-				add(new Label("message", "Congratulations, your profile complete. Use the menu items above to browse and publish nanopublications."));
-			} else {
-				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications, " +
-						"but consider also linking your ORCID account as explained below."));
-			}
+			add(new Label("message", "Congratulations, your profile is complete and ready."));
 		} else {
 			if (loginMode) {
 				add(new Label("message", "You need to complete your introduction record before you can publish nanopublications."));
@@ -108,7 +101,7 @@ public class ProfilePage extends WebPage {
 //		if (session.isProfileComplete()) {
 //			add(new ProfileOrcidLinkItem("orcidlinkpart"));
 //		} else {
-		add(new Label("orcidlinkpart"));
+//			add(new Label("orcidlinkpart"));
 //		}
 	}
 
