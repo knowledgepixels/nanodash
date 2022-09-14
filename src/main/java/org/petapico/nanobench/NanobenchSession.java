@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
