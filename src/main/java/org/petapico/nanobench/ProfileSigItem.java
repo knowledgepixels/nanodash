@@ -59,17 +59,6 @@ public class ProfileSigItem extends Panel {
 		} else {
 			add(new Label("pubkey", ""));
 		}
-		List<String> otherKeys = session.getOtherKeyDeclarations();
-		add(new DataView<String>("other-pubkeys", new ListDataProvider<String>(otherKeys)) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<String> item) {
-				item.add(new PubkeyItem("other-pubkey", item.getModelObject()));
-			}
-			
-		});
 		add(keymessage);
 		add(createKeyLink);
 	}

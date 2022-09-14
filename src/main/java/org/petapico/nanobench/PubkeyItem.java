@@ -18,11 +18,6 @@ public class PubkeyItem extends Panel {
 		} else {
 			add(new Label("label", Utils.getShortPubkeyName(pubkey)));
 			String notes = "";
-			if (pubkey.equals(session.getPubkeyString())) {
-				notes += "This is the <strong>local key</strong> that is used to sign your nanopublications on this site. ";
-			} else {
-				notes += "This key is used on another site. ";
-			}
 			if (User.getPubkeys(session.getUserIri(), true).contains(pubkey)) {
 				notes += "It is <strong class=\"positive\">approved</strong> by the community.";
 			} else {

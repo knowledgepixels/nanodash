@@ -90,16 +90,7 @@ public class NanobenchSession extends WebSession {
 	}
 
 	public boolean isProfileComplete() {
-		return userIri != null && keyPair != null && introNps != null;  // && !introNp.isEmpty();  // && doPubkeysMatch();
-	}
-
-	public boolean doPubkeysMatch() {
-		if (keyPair == null) return false;
-		if (introNps == null) return false;
-		for (IRI introIri : User.getIntroNanopubs(getPubkeyString()).keySet()) {
-			if (introNps.containsKey(introIri)) return true;
-		}
-		return false;
+		return userIri != null && keyPair != null && introNps != null;
 	}
 
 	public String getPubkeyString() {
@@ -213,14 +204,6 @@ public class NanobenchSession extends WebSession {
 
 	public File getKeyFile() {
 		return new File(userDir + "id_rsa");
-	}
-
-	public List<String> getOtherKeyDeclarations() {
-		List<String> otherPubkeys = new ArrayList<>();
-		for (String pk : User.getPubkeys(userIri, true)) {
-			if (!pk.equals(getPubkeyString())) otherPubkeys.add(pk);
-		}
-		return otherPubkeys;
 	}
 
 }
