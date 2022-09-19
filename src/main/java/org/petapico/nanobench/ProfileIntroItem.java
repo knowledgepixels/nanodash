@@ -52,6 +52,7 @@ public class ProfileIntroItem extends Panel {
 					item.add(new ExternalLink("location", location, location));
 					item.add(new Label("location2", location));
 					String supersedeNp = URLEncoder.encode(inp.getNanopub().getUri().stringValue(), Charsets.UTF_8);
+					String introSigKey = URLEncoder.encode(SignatureUtils.getSignatureElement(inp.getNanopub()).getPublicKeyString(), Charsets.UTF_8);
 					String pubkey = URLEncoder.encode(session.getPubkeyString(), Charsets.UTF_8);
 					String pubkeyLabel = URLEncoder.encode(Utils.getShortPubkeyName(session.getPubkeyString()), Charsets.UTF_8);
 					String pubkeyLocation = "";
@@ -63,7 +64,8 @@ public class ProfileIntroItem extends Panel {
 							"param_public-key__.1=" + pubkey + "&" +
 							"param_key-declaration__.1=" + pubkeyLabel + "&" +
 							"param_key-declaration-ref__.1=" + pubkeyLabel + "&" +
-							"param_key-location__.1=" + pubkeyLocation;
+							"param_key-location__.1=" + pubkeyLocation + "&" +
+							"sigkey=" + introSigKey;
 					item.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
 				} catch (MalformedCryptoElementException ex) {
 					throw new RuntimeException(ex);
