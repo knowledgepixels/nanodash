@@ -76,8 +76,8 @@ public class NanobenchSession extends WebSession {
 				} catch (Exception ex) {
 					System.err.println("Couldn't load key pair");
 				}
-			} else if (prefs.isOrcidLoginMode()) {
-				// Automatically generate new keys in ORCID login mode:
+			} else {
+				// Automatically generate new keys
 				makeKeys();
 			}
 		}
