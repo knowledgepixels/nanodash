@@ -293,7 +293,7 @@ public class User {
 			}
 		}
 		if (unapprovedIdPubkeyMap.containsKey(user)) {
-			for (String pk : approvedIdPubkeyMap.get(user)) {
+			for (String pk : unapprovedIdPubkeyMap.get(user)) {
 				getIntroNanopubs(pk, introNps);
 			}
 		}
