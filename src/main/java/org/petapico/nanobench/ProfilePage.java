@@ -42,7 +42,7 @@ public class ProfilePage extends WebPage {
 				add(new Label("orcidmessage", "First, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() +
 						"\">login via ORCID</a>.").setEscapeModelStrings(false));
 			} else {
-				add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'update'. " +
+				add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'set'. " +
 						"If you don't yet have an ORCID account, you can make one via the " +
 						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
 			}
@@ -71,7 +71,7 @@ public class ProfilePage extends WebPage {
 
 		};
 		WebMarkupContainer submitButton = new WebMarkupContainer("submit");
-		if (loginMode) {
+		if (loginMode || session.getUserIri() != null) {
 			orcidField.setEnabled(false);
 			submitButton.setVisible(false);
 		}
