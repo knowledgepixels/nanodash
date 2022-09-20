@@ -6,13 +6,13 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.codec.Charsets;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -55,9 +55,11 @@ public class ProfileIntroItem extends Panel {
 					item.add(new ExternalLink("location", location, location));
 					Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 					item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
-					item.add(new Label("location2", location));
+
+					String introSigKey = SignatureUtils.getSignatureElement(inp.getNanopub()).getPublicKeyString();
+					WebMarkupContainer addLocalKeyPart = new WebMarkupContainer("add-local-key-part");
 					String supersedeNp = URLEncoder.encode(inp.getNanopub().getUri().stringValue(), Charsets.UTF_8);
-					String introSigKey = URLEncoder.encode(SignatureUtils.getSignatureElement(inp.getNanopub()).getPublicKeyString(), Charsets.UTF_8);
+					String introSigKeyX = URLEncoder.encode(introSigKey, Charsets.UTF_8);
 					String pubkey = URLEncoder.encode(session.getPubkeyString(), Charsets.UTF_8);
 					String pubkeyLabel = URLEncoder.encode(Utils.getShortPubkeyName(session.getPubkeyString()), Charsets.UTF_8);
 					String pubkeyLocation = "";
@@ -70,8 +72,11 @@ public class ProfileIntroItem extends Panel {
 							"param_key-declaration__.1=" + pubkeyLabel + "&" +
 							"param_key-declaration-ref__.1=" + pubkeyLabel + "&" +
 							"param_key-location__.1=" + pubkeyLocation + "&" +
-							"sigkey=" + introSigKey;
-					item.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
+							"sigkey=" + introSigKeyX;
+					addLocalKeyPart.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
+					addLocalKeyPart.add(new Label("location2", location));
+					item.add(addLocalKeyPart);
+					if (session.getPubkeyString().equals(introSigKey)) addLocalKeyPart.setVisible(false);
 				} catch (MalformedCryptoElementException ex) {
 					throw new RuntimeException(ex);
 				}
