@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.codec.Charsets;
@@ -11,6 +12,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.NanopubUtils;
+import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MalformedCryptoElementException;
@@ -50,6 +53,8 @@ public class ProfileIntroItem extends Panel {
 					// TODO: Get actual location!
 					String location = "http://localhost:37373/";
 					item.add(new ExternalLink("location", location, location));
+					Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
+					item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 					item.add(new Label("location2", location));
 					String supersedeNp = URLEncoder.encode(inp.getNanopub().getUri().stringValue(), Charsets.UTF_8);
 					String introSigKey = URLEncoder.encode(SignatureUtils.getSignatureElement(inp.getNanopub()).getPublicKeyString(), Charsets.UTF_8);
