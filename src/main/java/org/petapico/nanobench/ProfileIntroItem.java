@@ -13,6 +13,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -50,9 +51,20 @@ public class ProfileIntroItem extends Panel {
 				}
 				try {
 					NanopubSignatureElement el = SignatureUtils.getSignatureElement(inp.getNanopub());
-					// TODO: Get actual location!
-					String location = "http://localhost:37373/";
-					item.add(new ExternalLink("location", location, location));
+					IRI location = null;
+					for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+						if (kd.getPublicKeyString().equals(el.getPublicKeyString())) {
+							location = kd.getKeyLocation();
+							break;
+						}
+					}
+					String locationString = "";
+					if (location == null) {
+						item.add(new Label("location", "unknown site"));
+					} else {
+						locationString = location.stringValue();
+						item.add(new ExternalLink("location", locationString, locationString));
+					}
 					Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 					item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 
@@ -66,7 +78,7 @@ public class ProfileIntroItem extends Panel {
 					if (NanobenchPreferences.get().getWebsiteUrl() != null) {
 						pubkeyLocation = URLEncoder.encode(NanobenchPreferences.get().getWebsiteUrl(), Charsets.UTF_8);
 					}
-					String addLocalKeyLink = location + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+					String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
 							"supersede-a=" + supersedeNp + "&" +
 							"param_public-key__.1=" + pubkey + "&" +
 							"param_key-declaration__.1=" + pubkeyLabel + "&" +
@@ -74,9 +86,11 @@ public class ProfileIntroItem extends Panel {
 							"param_key-location__.1=" + pubkeyLocation + "&" +
 							"sigkey=" + introSigKeyX;
 					addLocalKeyPart.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
-					addLocalKeyPart.add(new Label("location2", location));
+					addLocalKeyPart.add(new Label("location2", locationString));
 					item.add(addLocalKeyPart);
-					if (session.getPubkeyString().equals(introSigKey)) addLocalKeyPart.setVisible(false);
+					if (session.getPubkeyString().equals(introSigKey) || location == null) {
+						addLocalKeyPart.setVisible(false);
+					}
 				} catch (MalformedCryptoElementException ex) {
 					throw new RuntimeException(ex);
 				}
