@@ -59,7 +59,11 @@ public class ProfileIntroItem extends Panel {
 						}
 					}
 					String locationString = "";
-					if (location == null) {
+					String siteUrl = NanobenchPreferences.get().getWebsiteUrl();
+					boolean sameLocation = location == null || siteUrl == null || location.stringValue().equals(siteUrl);
+					if (session.getPubkeyString().equals(el.getPublicKeyString()) && sameLocation) {
+						item.add(new Label("location", "this site you are currently using"));
+					} else if (location == null) {
 						item.add(new Label("location", "unknown site"));
 					} else {
 						locationString = location.stringValue();
@@ -68,27 +72,23 @@ public class ProfileIntroItem extends Panel {
 					Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 					item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 
-					String introSigKey = SignatureUtils.getSignatureElement(inp.getNanopub()).getPublicKeyString();
 					WebMarkupContainer addLocalKeyPart = new WebMarkupContainer("add-local-key-part");
-					String supersedeNp = URLEncoder.encode(inp.getNanopub().getUri().stringValue(), Charsets.UTF_8);
-					String introSigKeyX = URLEncoder.encode(introSigKey, Charsets.UTF_8);
-					String pubkey = URLEncoder.encode(session.getPubkeyString(), Charsets.UTF_8);
-					String pubkeyLabel = URLEncoder.encode(Utils.getShortPubkeyName(session.getPubkeyString()), Charsets.UTF_8);
+					String pubkeyLabel = encode(Utils.getShortPubkeyName(session.getPubkeyString()));
 					String pubkeyLocation = "";
 					if (NanobenchPreferences.get().getWebsiteUrl() != null) {
-						pubkeyLocation = URLEncoder.encode(NanobenchPreferences.get().getWebsiteUrl(), Charsets.UTF_8);
+						pubkeyLocation = encode(NanobenchPreferences.get().getWebsiteUrl());
 					}
 					String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-							"supersede-a=" + supersedeNp + "&" +
-							"param_public-key__.1=" + pubkey + "&" +
+							"supersede-a=" + encode(inp.getNanopub().getUri()) + "&" +
+							"param_public-key__.1=" + encode(session.getPubkeyString()) + "&" +
 							"param_key-declaration__.1=" + pubkeyLabel + "&" +
 							"param_key-declaration-ref__.1=" + pubkeyLabel + "&" +
 							"param_key-location__.1=" + pubkeyLocation + "&" +
-							"sigkey=" + introSigKeyX;
+							"sigkey=" + encode(el.getPublicKeyString());
 					addLocalKeyPart.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
 					addLocalKeyPart.add(new Label("location2", locationString));
 					item.add(addLocalKeyPart);
-					if (session.getPubkeyString().equals(introSigKey) || location == null) {
+					if (session.getPubkeyString().equals(el.getPublicKeyString()) || location == null) {
 						addLocalKeyPart.setVisible(false);
 					}
 				} catch (MalformedCryptoElementException ex) {
@@ -167,6 +167,10 @@ public class ProfileIntroItem extends Panel {
 //		add(introlink);
 //		add(intromessage);
 //		add(createIntroLink);
+	}
+
+	private static String encode(Object o) {
+		return URLEncoder.encode(o.toString(), Charsets.UTF_8);
 	}
 
 //	private Nanopub createIntroNanopub() throws MalformedNanopubException {
