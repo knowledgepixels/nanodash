@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +21,7 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.MultiNanopubRdfHandler;
 import org.nanopub.Nanopub;
+import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.server.FetchIndex;
@@ -284,7 +287,7 @@ public class User {
 		return pubkeys;
 	}
 
-	public static Map<IRI,IntroNanopub> getIntroNanopubs(IRI user) {
+	public static List<IntroNanopub> getIntroNanopubs(IRI user) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
 		Map<IRI,IntroNanopub> introNps = new HashMap<>();
 		if (approvedIdPubkeyMap.containsKey(user)) {
@@ -297,7 +300,19 @@ public class User {
 				getIntroNanopubs(pk, introNps);
 			}
 		}
-		return introNps;
+		List<IntroNanopub> list = new ArrayList<>(introNps.values());
+		Collections.sort(list, new Comparator<IntroNanopub>() {
+			@Override
+			public int compare(IntroNanopub i0, IntroNanopub i1) {
+				Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
+				Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
+				if (c0 == null && c1 == null) return 0;
+				if (c0 == null) return -1;
+				if (c1 == null) return 1;
+				return c0.compareTo(c1);
+			}
+		});
+		return list;
 	}
 
 	public static Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {

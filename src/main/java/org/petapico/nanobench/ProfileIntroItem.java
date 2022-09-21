@@ -3,7 +3,6 @@ package org.petapico.nanobench;
 import static org.petapico.nanobench.Utils.urlEncode;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class ProfileIntroItem extends Panel {
 
 	private NanobenchSession session = NanobenchSession.get();
 	private NanobenchPreferences prefs = NanobenchPreferences.get();
-	private List<IntroNanopub> introList = new ArrayList<>(User.getIntroNanopubs(session.getUserIri()).values());
+	private List<IntroNanopub> introList = User.getIntroNanopubs(session.getUserIri());
 
 	public ProfileIntroItem(String id) {
 		super(id);
