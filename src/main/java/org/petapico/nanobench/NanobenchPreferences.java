@@ -34,7 +34,7 @@ public class NanobenchPreferences implements Serializable {
 
 	private List<String> nanopubActions = new ArrayList<>();
 	private boolean readOnlyMode = false;
-	private String websiteUrl;
+	private String websiteUrl = "http://localhost:37373/";
 	private boolean orcidLoginMode = false;
 	private String orcidClientId;
 	private String orcidClientSecret;

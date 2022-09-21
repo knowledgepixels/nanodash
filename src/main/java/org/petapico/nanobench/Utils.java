@@ -62,7 +62,7 @@ public class Utils {
 	}
 
 	public static String urlEncode(Object o) {
-		return URLEncoder.encode(o.toString(), Charsets.UTF_8);
+		return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
 	}
 
 	public static String getShortPubkeyName(String pubkey) {

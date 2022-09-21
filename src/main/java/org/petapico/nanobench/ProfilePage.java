@@ -30,19 +30,17 @@ public class ProfilePage extends WebPage {
 			add(new Label("message", "Congratulations, your profile is complete and ready."));
 		} else {
 			if (loginMode) {
-				add(new Label("message", "You need to complete your introduction record before you can publish nanopublications."));
+				add(new Label("message", "Complete your introduction record, so you can publish your own nanopublications."));
 			} else {
-				add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
-						"introduction before you can publish nanopublications."));
+				add(new Label("message", "Set your ORCID identifier."));
 			}
 		}
 
 		if (session.getUserIri() == null) {
 			if (loginMode) {
-				add(new Label("orcidmessage", "First, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() +
-						"\">login via ORCID</a>.").setEscapeModelStrings(false));
+				add(new Label("orcidmessage", "<a href=\"" + OrcidLoginPage.getOrcidLoginUrl() + "\">Login via ORCID.</a>").setEscapeModelStrings(false));
 			} else {
-				add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'set'. " +
+				add(new Label("orcidmessage", "Set your ORCID identifier below. " +
 						"If you don't yet have an ORCID account, you can make one via the " +
 						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
 			}

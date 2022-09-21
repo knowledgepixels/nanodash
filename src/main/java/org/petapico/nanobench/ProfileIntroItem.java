@@ -31,6 +31,7 @@ public class ProfileIntroItem extends Panel {
 	private NanobenchSession session = NanobenchSession.get();
 	private NanobenchPreferences prefs = NanobenchPreferences.get();
 	private List<IntroNanopub> introList = User.getIntroNanopubs(session.getUserIri());
+	private Integer introWithLocalKeyCount = null;
 
 	public ProfileIntroItem(String id) {
 		super(id);
@@ -45,17 +46,22 @@ public class ProfileIntroItem extends Panel {
 		WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
 		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "publish introduction"));
 		add(publishIntroItem);
-		Label introNote = new Label("intro-note", "There are no introductions yet.");
-		add(introNote);
-		Label actionNote = new Label("action-note", "There are no recommended actions.");
-		add(actionNote);
-		if (!introList.isEmpty()) {
-			introNote.setVisible(false);
-		}
-		if (hasIntroWithLocalKey()) {
-			publishIntroItem.setVisible(false);
+		publishIntroItem.setVisible(false);
+		if (introList.isEmpty()) {
+			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
+		} else if (getIntroWithLocalKeyCount() == 0) {
+			// TODO: Check whether it's part of an introduction for a different ORCID, and show a warning if so
+			add(new Label("intro-note", "The local key from this site is <strong class=\"negative\">not part of an introduction</strong> yet.").setEscapeModelStrings(false));
+		} else if (getIntroWithLocalKeyCount() == 1) {
+			add(new Label("intro-note", ""));
 		} else {
-			actionNote.setVisible(false);
+			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introduction records from this site</strong>.").setEscapeModelStrings(false));
+		}
+		if (getIntroWithLocalKeyCount() == 0) {
+			publishIntroItem.setVisible(true);
+			add(new Label("action-note"));
+		} else {
+			add(new Label("action-note", "<em>There are no recommended actions.</em>").setEscapeModelStrings(false));
 		}
 
 		add(new DataView<IntroNanopub>("intro-nps", new ListDataProvider<IntroNanopub>(introList)) {
@@ -123,11 +129,14 @@ public class ProfileIntroItem extends Panel {
 
 	}
 
-	private boolean hasIntroWithLocalKey() {
-		for (IntroNanopub inp : introList) {
-			if (isIntroWithLocalKey(inp)) return true;
+	private int getIntroWithLocalKeyCount() {
+		if (introWithLocalKeyCount == null) {
+			introWithLocalKeyCount = 0;
+			for (IntroNanopub inp : introList) {
+				if (isIntroWithLocalKey(inp)) introWithLocalKeyCount++;
+			}
 		}
-		return false;
+		return introWithLocalKeyCount;
 	}
 
 	private boolean isIntroWithLocalKey(IntroNanopub inp) {
