@@ -23,6 +23,8 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import net.trustyuri.TrustyUriUtils;
 
+import static org.petapico.nanobench.Utils.urlEncode;
+
 public class ProfileIntroItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
@@ -34,12 +36,12 @@ public class ProfileIntroItem extends Panel {
 		final NanobenchPreferences prefs = NanobenchPreferences.get();
 
 		String publishIntroLinkString = "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-				"param_user=" + encode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
-				"param_name=" + encode(session.getOrcidName()) + "&" +
-				"param_public-key=" + encode(session.getPubkeyString()) + "&" +
-				"param_key-declaration=" + encode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-				"param_key-declaration-ref=" + encode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-				"param_key-location=" + encode(prefs.getWebsiteUrl());
+				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
+				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
+				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
+				"param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+				"param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+				"param_key-location=" + urlEncode(prefs.getWebsiteUrl());
 		final ExternalLink publishIntroLink = new ExternalLink("publish-intro-link", publishIntroLinkString, "publish new introduction");
 		add(publishIntroLink);
 
@@ -88,15 +90,15 @@ public class ProfileIntroItem extends Panel {
 					WebMarkupContainer addLocalKeyPart = new WebMarkupContainer("add-local-key-part");
 					String pubkeyLocation = "";
 					if (NanobenchPreferences.get().getWebsiteUrl() != null) {
-						pubkeyLocation = encode(NanobenchPreferences.get().getWebsiteUrl());
+						pubkeyLocation = urlEncode(NanobenchPreferences.get().getWebsiteUrl());
 					}
 					String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-							"supersede-a=" + encode(inp.getNanopub().getUri()) + "&" +
-							"param_public-key__.1=" + encode(session.getPubkeyString()) + "&" +
-							"param_key-declaration__.1=" + encode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-							"param_key-declaration-ref__.1=" + encode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+							"supersede-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
+							"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
+							"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+							"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 							"param_key-location__.1=" + pubkeyLocation + "&" +
-							"sigkey=" + encode(el.getPublicKeyString());
+							"sigkey=" + urlEncode(el.getPublicKeyString());
 					addLocalKeyPart.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
 					addLocalKeyPart.add(new Label("location2", locationString));
 					item.add(addLocalKeyPart);
@@ -121,10 +123,6 @@ public class ProfileIntroItem extends Panel {
 
 		});
 
-	}
-
-	private static String encode(Object o) {
-		return URLEncoder.encode(o.toString(), Charsets.UTF_8);
 	}
 
 }

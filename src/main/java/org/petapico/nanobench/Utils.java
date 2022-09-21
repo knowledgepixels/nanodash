@@ -1,8 +1,6 @@
 package org.petapico.nanobench;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +9,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
@@ -62,13 +61,8 @@ public class Utils {
 		return nanopubs.get(uri);
 	}
 
-	public static String urlEncode(String s) {
-		try {
-			return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
-		} catch (UnsupportedEncodingException ex) {
-			ex.printStackTrace();
-		}
-		return "";
+	public static String urlEncode(Object o) {
+		return URLEncoder.encode(o.toString(), Charsets.UTF_8);
 	}
 
 	public static String getShortPubkeyName(String pubkey) {
