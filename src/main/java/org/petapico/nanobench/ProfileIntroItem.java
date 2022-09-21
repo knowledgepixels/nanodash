@@ -32,6 +32,7 @@ public class ProfileIntroItem extends Panel {
 	private NanobenchPreferences prefs = NanobenchPreferences.get();
 	private List<IntroNanopub> introList = User.getIntroNanopubs(session.getUserIri());
 	private Integer introWithLocalKeyCount = null;
+	private int recommendedActionsCount = 0;
 
 	public ProfileIntroItem(String id) {
 		super(id);
@@ -43,10 +44,18 @@ public class ProfileIntroItem extends Panel {
 				"param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 				"param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 				"param_key-location=" + urlEncode(prefs.getWebsiteUrl());
+
 		WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
-		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "publish introduction"));
+		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "publish introduction..."));
 		add(publishIntroItem);
-		publishIntroItem.setVisible(false);
+		publishIntroItem.setVisible(getIntroWithLocalKeyCount() == 0);
+		if (publishIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer retractIntroItem = new WebMarkupContainer("retract-intro-item");
+		add(retractIntroItem);
+		retractIntroItem.setVisible(getIntroWithLocalKeyCount() > 1);
+		if (retractIntroItem.isVisible()) recommendedActionsCount++;
+
 		if (introList.isEmpty()) {
 			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
 		} else if (getIntroWithLocalKeyCount() == 0) {
@@ -55,10 +64,9 @@ public class ProfileIntroItem extends Panel {
 		} else if (getIntroWithLocalKeyCount() == 1) {
 			add(new Label("intro-note", ""));
 		} else {
-			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introduction from this site</strong>.").setEscapeModelStrings(false));
+			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introductions from this site</strong>.").setEscapeModelStrings(false));
 		}
-		if (getIntroWithLocalKeyCount() == 0) {
-			publishIntroItem.setVisible(true);
+		if (recommendedActionsCount > 0) {
 			add(new Label("action-note"));
 		} else {
 			add(new Label("action-note", "<em>There are no recommended actions.</em>").setEscapeModelStrings(false));
@@ -93,24 +101,18 @@ public class ProfileIntroItem extends Panel {
 				Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 				item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 
-				WebMarkupContainer addLocalKeyPart = new WebMarkupContainer("add-local-key-part");
-				String pubkeyLocation = "";
-				if (NanobenchPreferences.get().getWebsiteUrl() != null) {
-					pubkeyLocation = urlEncode(NanobenchPreferences.get().getWebsiteUrl());
-				}
-				String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-						"supersede-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
-						"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
-						"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-						"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-						"param_key-location__.1=" + pubkeyLocation + "&" +
-						"sigkey=" + urlEncode(el.getPublicKeyString());
-				addLocalKeyPart.add(new ExternalLink("add-local-key", addLocalKeyLink, "add local key"));
-				addLocalKeyPart.add(new Label("location2", locationString));
-				item.add(addLocalKeyPart);
-				if (session.getPubkeyString().equals(el.getPublicKeyString()) || location == null) {
-					addLocalKeyPart.setVisible(false);
-				}
+				ExternalLink retractLink = new ExternalLink("retract-link", "./publish?template=http://purl.org/np/RAWHrBJRZgzpNQo0_vW9yXyw_k5vkS6YHOSjx-b52ATiU&" +
+						"param_nanopubToBeRetracted=" + urlEncode(inp.getNanopub().getUri()), "retract...");
+				item.add(retractLink);
+				retractLink.setVisible(getIntroWithLocalKeyCount() > 1 && isIntroWithLocalKey(inp));
+
+//				String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+//						"supersede-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
+//						"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
+//						"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+//						"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+//						"param_key-location__.1=" + pubkeyLocation + "&" +
+//						"sigkey=" + urlEncode(el.getPublicKeyString());
 				
 				item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
 	

@@ -6,27 +6,33 @@
 
 <h3>Introduction Nanopublications</h3>
 
-<p wicket:id="intro-note"></p>
+<p><em>After changes, you may have to wait a few minutes and <a href="./profile">refresh this page</a> for this list to update:</em></p>
 
 <ul wicket:id="intro-nps">
 <li>
 <a wicket:id="intro-uri"><span wicket:id="intro-uri-label"></span></a> <span wicket:id="intro-note"></span>
 created on <span wicket:id="date"></span>
 at <span wicket:id="location"></span>
-declares keys: <span wicket:id="intro-keys"><strong><code wicket:id="intro-key"></code></strong></span>
+declares keys: <span wicket:id="intro-keys"><code wicket:id="intro-key"></code></span>
 &nbsp;
+<a wicket:id="retract-link" class="smallbutton" value="retract..."></a>
+
+<!--
 <span wicket:id="add-local-key-part"><a wicket:id="add-local-key" class="button"></a> (opens link at <span wicket:id="location2"></span>)</span>
+-->
+
 </li>
 </ul>
 
-<p><em>If you just published an introduction, you may have to wait for a few minutes and <a href="./profile">refresh this page</a> before it shows up here.</em></p>
+<p wicket:id="intro-note"></p>
 
 <h3>Recommended Actions</h3>
 
 <p><em wicket:id="action-note"></em></p>
 
 <ul>
-<li wicket:id="publish-intro-item">Publish an introduction nanopublication that contains your local key via this link: <a wicket:id="publish-intro-link"></a></li>
+<li wicket:id="publish-intro-item">Publish an introduction nanopublication that contains your local key: <a wicket:id="publish-intro-link" class="smallbutton"></a></li>
+<li wicket:id="retract-intro-item">Retract redundant introduction nanopublications created on this site, using one of the 'retract...' buttons above</li>
 </ul>
 
 </wicket:panel>
