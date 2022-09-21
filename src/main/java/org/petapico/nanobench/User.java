@@ -307,9 +307,9 @@ public class User {
 				Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
 				Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
 				if (c0 == null && c1 == null) return 0;
-				if (c0 == null) return -1;
-				if (c1 == null) return 1;
-				return c0.compareTo(c1);
+				if (c0 == null) return 1;
+				if (c1 == null) return -1;
+				return -c0.compareTo(c1);
 			}
 		});
 		return list;

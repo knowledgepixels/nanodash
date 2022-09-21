@@ -55,7 +55,7 @@ public class ProfileIntroItem extends Panel {
 		} else if (getIntroWithLocalKeyCount() == 1) {
 			add(new Label("intro-note", ""));
 		} else {
-			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introduction records from this site</strong>.").setEscapeModelStrings(false));
+			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introduction from this site</strong>.").setEscapeModelStrings(false));
 		}
 		if (getIntroWithLocalKeyCount() == 0) {
 			publishIntroItem.setVisible(true);
@@ -84,12 +84,11 @@ public class ProfileIntroItem extends Panel {
 				}
 				String locationString = "";
 				if (isIntroWithLocalKey(inp)) {
-					item.add(new Label("location", "this site you are currently using"));
+					item.add(new Label("location", "<strong>this site</strong>").setEscapeModelStrings(false));
 				} else if (location == null) {
 					item.add(new Label("location", "unknown site"));
 				} else {
-					locationString = location.stringValue();
-					item.add(new ExternalLink("location", locationString, locationString));
+					item.add(new Label("location", "<a href=\"" + location + "\">" + location + "</a>").setEscapeModelStrings(false));
 				}
 				Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 				item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
