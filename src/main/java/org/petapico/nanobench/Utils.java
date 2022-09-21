@@ -85,4 +85,8 @@ public class Utils {
 		return s;
 	}
 
+	public static String getShortOrcidId(IRI orcidIri) {
+		return orcidIri.stringValue().replaceFirst("^https://orcid.org/", "");
+	}
+
 }
