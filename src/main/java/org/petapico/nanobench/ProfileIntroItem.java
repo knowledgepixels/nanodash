@@ -46,7 +46,7 @@ public class ProfileIntroItem extends Panel {
 				"param_key-location=" + urlEncode(prefs.getWebsiteUrl());
 
 		WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
-		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "publish introduction..."));
+		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "new introduction..."));
 		add(publishIntroItem);
 		publishIntroItem.setVisible(getIntroWithLocalKeyCount() == 0);
 		if (publishIntroItem.isVisible()) recommendedActionsCount++;
