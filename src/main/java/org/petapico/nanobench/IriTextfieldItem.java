@@ -43,14 +43,14 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
 		}
-		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
 		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
 		if (template.isLocalResource(iri)) {
-			prefix = iri.stringValue().replaceFirst("^(.*[/#]).*$", "$1");
+			prefix = Utils.getUriPrefix(iri);
 		}
 		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
@@ -116,7 +116,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
 			if (context.getTemplate().isLocalResource(iri)) {
-				vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
+				vs = Utils.getUriPostfix(vs);
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
 			if (!validatable.isValid()) {

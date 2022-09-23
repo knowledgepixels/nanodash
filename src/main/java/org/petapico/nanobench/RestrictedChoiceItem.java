@@ -48,7 +48,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
 		}
-		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}

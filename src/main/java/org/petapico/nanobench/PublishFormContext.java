@@ -69,7 +69,7 @@ public class PublishFormContext implements Serializable {
 		Map<StatementItem,Integer> finalRepetitionCount = new HashMap<>();
 		for (IRI ni : narrowScopeMap.keySet()) {
 			// TODO: Move all occurrences of this to utility function:
-			String postfix = ni.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+			String postfix = Utils.getUriPostfix(ni);
 			StatementItem si = narrowScopeMap.get(ni);
 			int i = si.getRepetitionCount();
 			while (true) {
@@ -192,7 +192,8 @@ public class PublishFormContext implements Serializable {
 			}
 			return processedIri;
 		} else if (template.isLocalResource(iri)) {
-			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", NP_TEMP_IRI.stringValue()));
+			String prefix = Utils.getUriPrefix(iri);
+			IRI processedIri = vf.createIRI(iri.stringValue().replace(prefix, NP_TEMP_IRI.stringValue()));
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}

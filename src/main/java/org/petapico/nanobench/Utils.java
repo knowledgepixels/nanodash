@@ -83,4 +83,16 @@ public class Utils {
 		return orcidIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}
 
+	public static String getUriPostfix(Object uri) {
+		String s = uri.toString();
+		if (s.contains("#")) return s.replaceFirst("^.*#(.*)$", "$1");
+		return s.replaceFirst("^.*/(.*)$", "$1");
+	}
+
+	public static String getUriPrefix(Object uri) {
+		String s = uri.toString();
+		if (s.contains("#")) return s.replaceFirst("^(.*#).*$", "$1");
+		return s.replaceFirst("^(.*/).*$", "$1");
+	}
+
 }
