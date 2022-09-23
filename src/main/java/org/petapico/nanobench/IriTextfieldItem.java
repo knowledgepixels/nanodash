@@ -115,7 +115,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (context.getTemplate().isLocalResource(iri)) {
+			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
@@ -132,8 +132,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
+		if (!isUnifiableWith(v)) throw new UnificationException(vs);
 		if (!prefix.isEmpty() && vs.startsWith(prefix)) {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
@@ -161,8 +161,12 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		@Override
 		public void validate(IValidatable<String> s) {
 			String p = prefix;
-			if (s.getValue().matches("(https?|file)://.+")) p = "";
-			if ((p + s.getValue()).matches("[^/# ]+")) p = "local:";
+			if (s.getValue().matches("(https?|file)://.+")) {
+				p = "";
+			} else if (s.getValue().contains(":")) {
+				s.error(new ValidationError("Colon character is not allowed in postfix"));
+			}
+			if ((p + s.getValue()).matches("[^:# ]+")) p = "local:";
 			try {
 				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {

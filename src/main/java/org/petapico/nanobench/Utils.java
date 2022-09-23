@@ -95,4 +95,8 @@ public class Utils {
 		return s.replaceFirst("^(.*/).*$", "$1");
 	}
 
+	public static boolean isUriPostfix(String s) {
+		return !s.contains(":");
+	}
+
 }

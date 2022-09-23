@@ -173,7 +173,7 @@ public class PublishFormContext implements Serializable {
 			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 			String v = prefix + tf.getObject();
-			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 			if (v.matches("https?://.*")) {
 				return vf.createIRI(v);
 			}
@@ -185,7 +185,7 @@ public class PublishFormContext implements Serializable {
 			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 			String v = prefix + tf.getObject();
-			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 			IRI processedIri = vf.createIRI(v);
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
@@ -210,7 +210,7 @@ public class PublishFormContext implements Serializable {
 				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
 				String v = tf.getObject();
-				if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+				if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 				return vf.createIRI(v);
 			}
 		}

@@ -68,7 +68,7 @@ public class IriItem extends Panel implements ContextComponent {
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
 			iriString = "local:nanopub";
 		} else if (template.isLocalResource(iri)) {
-			iriString = iriString.replaceFirst("^.*[/#]", "local:");
+			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
 		}
 		add(new Label("iri", iriString));
 	}
@@ -94,6 +94,7 @@ public class IriItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (!(v instanceof IRI)) return false;
+		// TODO: Check that template URI doesn't have regex characters:
 		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", "local:");
 		return iriS.equals(v.stringValue());
 	}

@@ -171,7 +171,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (context.getTemplate().isLocalResource(iri)) {
+			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
