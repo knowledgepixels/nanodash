@@ -41,6 +41,10 @@ p.graphsubheader {
 	margin-bottom: 0;
 }
 
+li {
+	margin-top: 2mm;
+}
+
 table {
 	width: 100%;
 	font-size: inherit;

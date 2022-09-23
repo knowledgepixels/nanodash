@@ -56,6 +56,11 @@ public class ProfileIntroItem extends Panel {
 		retractIntroItem.setVisible(getIntroWithLocalKeyCount() > 1);
 		if (retractIntroItem.isVisible()) recommendedActionsCount++;
 
+		WebMarkupContainer deriveIntroItem = new WebMarkupContainer("derive-intro-item");
+		add(deriveIntroItem);
+		deriveIntroItem.setVisible(getIntroWithLocalKeyCount() == 0 && !introList.isEmpty());
+		if (deriveIntroItem.isVisible()) recommendedActionsCount++;
+
 		if (introList.isEmpty()) {
 			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
 		} else if (getIntroWithLocalKeyCount() == 0) {
@@ -66,10 +71,12 @@ public class ProfileIntroItem extends Panel {
 		} else {
 			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introductions from this site</strong>.").setEscapeModelStrings(false));
 		}
-		if (recommendedActionsCount > 0) {
-			add(new Label("action-note"));
-		} else {
+		if (recommendedActionsCount == 0) {
 			add(new Label("action-note", "<em>There are no recommended actions.</em>").setEscapeModelStrings(false));
+		} else if (recommendedActionsCount == 1) {
+			add(new Label("action-note", "It is recommended that you <strong>execute this action</strong>:").setEscapeModelStrings(false));
+		} else {
+			add(new Label("action-note", "It is recommended that you <strong>execute one of these actions</strong>:").setEscapeModelStrings(false));
 		}
 
 		add(new DataView<IntroNanopub>("intro-nps", new ListDataProvider<IntroNanopub>(introList)) {
@@ -79,7 +86,6 @@ public class ProfileIntroItem extends Panel {
 			@Override
 			protected void populateItem(Item<IntroNanopub> item) {
 				final IntroNanopub inp = item.getModelObject();
-				NanopubSignatureElement el = getNanopubSignatureElement(inp);
 				IRI location = getLocation(inp);
 				String uri = inp.getNanopub().getUri().stringValue();
 				ExternalLink link = new ExternalLink("intro-uri", "./explore?id=" + URLEncoder.encode(uri, Charsets.UTF_8));
@@ -106,14 +112,16 @@ public class ProfileIntroItem extends Panel {
 				item.add(retractLink);
 				retractLink.setVisible(getIntroWithLocalKeyCount() > 1 && isIntroWithLocalKey(inp));
 
-//				String addLocalKeyLink = locationString + "publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-//						"supersede-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
-//						"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
-//						"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-//						"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
-//						"param_key-location__.1=" + pubkeyLocation + "&" +
-//						"sigkey=" + urlEncode(el.getPublicKeyString());
-				
+				ExternalLink deriveLink = new ExternalLink("derive-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+						"derive-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
+						"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
+						"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+						"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+						"param_key-location__.1=" + urlEncode(prefs.getWebsiteUrl()),
+						"derive new introduction...");
+				item.add(deriveLink);
+				deriveLink.setVisible(!isIntroWithLocalKey(inp) && getIntroWithLocalKeyCount() == 0);
+
 				item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
 	
 					private static final long serialVersionUID = 1L;
@@ -155,7 +163,7 @@ public class ProfileIntroItem extends Panel {
 	private IRI getLocation(IntroNanopub inp) {
 		NanopubSignatureElement el = getNanopubSignatureElement(inp);
 		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
-			if (kd.getPublicKeyString().equals(el.getPublicKeyString())) {
+			if (el.getPublicKeyString().equals(kd.getPublicKeyString())) {
 				return kd.getKeyLocation();
 			}
 		}

@@ -16,6 +16,7 @@ at <span wicket:id="location"></span>
 declares keys: <span wicket:id="intro-keys"><code wicket:id="intro-key"></code></span>
 &nbsp;
 <a wicket:id="retract-link" class="smallbutton" value="retract..."></a>
+<a wicket:id="derive-link" class="smallbutton" value="derive new introduction..."></a>
 
 <!--
 <span wicket:id="add-local-key-part"><a wicket:id="add-local-key" class="button"></a> (opens link at <span wicket:id="location2"></span>)</span>
@@ -28,11 +29,13 @@ declares keys: <span wicket:id="intro-keys"><code wicket:id="intro-key"></code><
 
 <h3>Recommended Actions</h3>
 
-<p><em wicket:id="action-note"></em></p>
+<p wicket:id="action-note"></p>
 
 <ul>
-<li wicket:id="publish-intro-item">Publish an introduction nanopublication that contains your local key: <a wicket:id="publish-intro-link" class="smallbutton"></a></li>
-<li wicket:id="retract-intro-item">Retract redundant introduction nanopublications created on this site, using one of the 'retract...' buttons above</li>
+<li wicket:id="derive-intro-item">If you recognize an introduction above as your own, use 'derive new introduction...' to declare the given keys
+   alongside the local key from this side.</li>
+<li wicket:id="publish-intro-item">Publish an introduction from scratch declaring your local key: <a wicket:id="publish-intro-link" class="smallbutton"></a></li>
+<li wicket:id="retract-intro-item">Retract redundant introductions created on this site, using 'retract...' above</li>
 </ul>
 
 </wicket:panel>
