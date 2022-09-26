@@ -2,7 +2,6 @@ package org.petapico.nanobench;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -50,19 +49,6 @@ public class UserListPage extends WebPage {
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
 				l.add(new Label("linktext", User.getDisplayName(iri)));
 				item.add(l);
-				WebMarkupContainer actionLinks = new WebMarkupContainer("actions");
-				item.add(actionLinks);
-				// TODO Reactivate Approve link
-//				IRI userIri = NanobenchSession.get().getUserIri();
-//				if (userIri != null && !userIri.equals(iri)) {
-//					actionLinks.add(new ExternalLink("approve-link", "./publish?" +
-//								"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
-//								"&param_nanopub=" + Utils.urlEncode(u.getIntropubIri().stringValue()))
-//							.add(new Label("approve-label", "approve...")));
-//				} else {
-					actionLinks.add(new ExternalLink("approve-link", ".").add(new Label("approve-label", "")));  // Hide approve link
-					actionLinks.setVisible(false);
-//				}
 			}
 
 		});
@@ -83,6 +69,7 @@ public class UserListPage extends WebPage {
 			}
 
 		});
+		add(new ExternalLink("approve", "./publish?template=http://purl.org/np/RA0VjIGD9fm6C8RPEGmbtWdAJn8DHC7XiGWtXM-vw47uc", "approve somebody else's introduction"));
 	}
 
 }
