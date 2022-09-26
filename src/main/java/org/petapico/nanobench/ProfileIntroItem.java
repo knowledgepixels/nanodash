@@ -4,7 +4,9 @@ import static org.petapico.nanobench.Utils.urlEncode;
 
 import java.net.URLEncoder;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,6 +36,7 @@ public class ProfileIntroItem extends Panel {
 	private Integer introWithLocalKeyCount = null;
 	private IntroNanopub introWithLocalKey = null;
 	private int recommendedActionsCount = 0;
+	private Map<IntroNanopub,String> includeKeysParamMap = new HashMap<>();
 
 	public ProfileIntroItem(String id) {
 		super(id);
@@ -46,11 +49,37 @@ public class ProfileIntroItem extends Panel {
 				"param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 				"param_key-location=" + urlEncode(prefs.getWebsiteUrl());
 
+		// Do this here, so we know whether to show the recommended action before rendering stage:
+		if (getIntroWithLocalKey() != null) {
+			for (IntroNanopub inp : introList) {
+				String params = "";
+				int paramIndex = 0;
+				for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+					if (!hasKey(getIntroWithLocalKey(), kd)) {
+						paramIndex++;
+						params += "&" +
+								"param_public-key__." + paramIndex + "=" + urlEncode(kd.getPublicKeyString()) + "&" +
+								"param_key-declaration__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+								"param_key-declaration-ref__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+								"param_key-location__." + paramIndex + "=" + urlEncode(kd.getKeyLocation() == null ? "" : kd.getKeyLocation());
+					}
+				}
+				if (paramIndex > 0) {
+					includeKeysParamMap.put(inp, params);
+				}
+			}
+		}
+
 		WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
 		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "new introduction..."));
 		add(publishIntroItem);
 		publishIntroItem.setVisible(getIntroWithLocalKeyCount() == 0);
 		if (publishIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer includeKeysItem = new WebMarkupContainer("include-keys-item");
+		add(includeKeysItem);
+		includeKeysItem.setVisible(!includeKeysParamMap.isEmpty());
+		if (includeKeysItem.isVisible()) recommendedActionsCount++;
 
 		WebMarkupContainer retractIntroItem = new WebMarkupContainer("retract-intro-item");
 		add(retractIntroItem);
@@ -122,24 +151,11 @@ public class ProfileIntroItem extends Panel {
 				item.add(deriveLink);
 				deriveLink.setVisible(!isIntroWithLocalKey(inp) && getIntroWithLocalKeyCount() == 0);
 
-				if (getIntroWithLocalKey() != null) {
-					String params = "";
-					int paramIndex = 0;
-					for (KeyDeclaration kd : inp.getKeyDeclarations()) {
-						if (!hasKey(getIntroWithLocalKey(), kd)) {
-							paramIndex++;
-							params += "&" +
-									"param_public-key__." + paramIndex + "=" + urlEncode(kd.getPublicKeyString()) + "&" +
-									"param_key-declaration__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
-									"param_key-declaration-ref__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
-									"param_key-location__." + paramIndex + "=" + urlEncode(kd.getKeyLocation() == null ? "" : kd.getKeyLocation());
-						}
-					}
-					ExternalLink includeKeysLink = new ExternalLink("include-keys-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
-							"supersede=" + urlEncode(getIntroWithLocalKey().getNanopub().getUri()) + params,
-							"include keys...");
-					item.add(includeKeysLink);
-					includeKeysLink.setVisible(paramIndex > 0);
+				if (includeKeysParamMap.containsKey(inp)) {
+					item.add(new ExternalLink("include-keys-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+							"supersede=" + urlEncode(getIntroWithLocalKey().getNanopub().getUri()) +
+							includeKeysParamMap.get(inp),
+							"include keys..."));
 				} else {
 					item.add(new ExternalLink("include-keys-link", ".", "").setVisible(false));
 				}
