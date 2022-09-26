@@ -32,6 +32,7 @@ public class ProfileIntroItem extends Panel {
 	private NanobenchPreferences prefs = NanobenchPreferences.get();
 	private List<IntroNanopub> introList = User.getIntroNanopubs(session.getUserIri());
 	private Integer introWithLocalKeyCount = null;
+	private IntroNanopub introWithLocalKey = null;
 	private int recommendedActionsCount = 0;
 
 	public ProfileIntroItem(String id) {
@@ -96,7 +97,6 @@ public class ProfileIntroItem extends Panel {
 				} else {
 					item.add(new Label("intro-note", ""));
 				}
-				String locationString = "";
 				if (isIntroWithLocalKey(inp)) {
 					item.add(new Label("location", "<strong>this site</strong>").setEscapeModelStrings(false));
 				} else if (location == null) {
@@ -122,6 +122,28 @@ public class ProfileIntroItem extends Panel {
 				item.add(deriveLink);
 				deriveLink.setVisible(!isIntroWithLocalKey(inp) && getIntroWithLocalKeyCount() == 0);
 
+				if (getIntroWithLocalKey() != null) {
+					String params = "";
+					int paramIndex = 0;
+					for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+						if (!hasKey(getIntroWithLocalKey(), kd)) {
+							paramIndex++;
+							params += "&" +
+									"param_public-key__." + paramIndex + "=" + urlEncode(kd.getPublicKeyString()) + "&" +
+									"param_key-declaration__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+									"param_key-declaration-ref__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+									"param_key-location__." + paramIndex + "=" + urlEncode(kd.getKeyLocation() == null ? "" : kd.getKeyLocation());
+						}
+					}
+					ExternalLink includeKeysLink = new ExternalLink("include-keys-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+							"supersede=" + urlEncode(getIntroWithLocalKey().getNanopub().getUri()) + params,
+							"include keys...");
+					item.add(includeKeysLink);
+					includeKeysLink.setVisible(paramIndex > 0);
+				} else {
+					item.add(new ExternalLink("include-keys-link", ".", "").setVisible(false));
+				}
+
 				item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
 	
 					private static final long serialVersionUID = 1L;
@@ -138,14 +160,31 @@ public class ProfileIntroItem extends Panel {
 
 	}
 
+	private boolean hasKey(IntroNanopub inp, KeyDeclaration kd) {
+		// TODO: Do this more efficiently:
+		for (KeyDeclaration k : inp.getKeyDeclarations()) {
+			if (k.getPublicKeyString().equals(kd.getPublicKeyString())) return true;
+		}
+		return false;
+	}
+
 	private int getIntroWithLocalKeyCount() {
 		if (introWithLocalKeyCount == null) {
 			introWithLocalKeyCount = 0;
 			for (IntroNanopub inp : introList) {
-				if (isIntroWithLocalKey(inp)) introWithLocalKeyCount++;
+				if (isIntroWithLocalKey(inp)) {
+					introWithLocalKeyCount++;
+					introWithLocalKey = inp;
+				}
 			}
+			if (introWithLocalKeyCount > 1) introWithLocalKey = null;
 		}
 		return introWithLocalKeyCount;
+	}
+
+	private IntroNanopub getIntroWithLocalKey() {
+		getIntroWithLocalKeyCount();
+		return introWithLocalKey;
 	}
 
 	private boolean isIntroWithLocalKey(IntroNanopub inp) {
