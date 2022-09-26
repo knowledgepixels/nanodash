@@ -30,6 +30,7 @@ public class ProfileIntroItem extends Panel {
 	private NanobenchPreferences prefs = NanobenchPreferences.get();
 	private int recommendedActionsCount = 0;
 	private Map<IntroNanopub,String> includeKeysParamMap = new HashMap<>();
+	private int approvedIntrosCount = 0;
 
 	public ProfileIntroItem(String id) {
 		super(id);
@@ -45,6 +46,7 @@ public class ProfileIntroItem extends Panel {
 		// Do this here, so we know whether to show the recommended action before rendering stage:
 		if (session.getLocalIntro() != null) {
 			for (IntroNanopub inp : session.getUserIntroNanopubs()) {
+				if (User.isApproved(inp)) approvedIntrosCount++;
 				String params = "";
 				int paramIndex = 0;
 				for (KeyDeclaration kd : inp.getKeyDeclarations()) {
@@ -83,6 +85,11 @@ public class ProfileIntroItem extends Panel {
 		add(deriveIntroItem);
 		deriveIntroItem.setVisible(session.getLocalIntroCount() == 0 && !session.getUserIntroNanopubs().isEmpty());
 		if (deriveIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer updateApprovedItem = new WebMarkupContainer("update-approved-item");
+		add(updateApprovedItem);
+		updateApprovedItem.setVisible(!session.isPubkeyApproved() && approvedIntrosCount > 0 && session.getLocalIntroCount() > 0);
+		if (updateApprovedItem.isVisible()) recommendedActionsCount++;
 
 		if (session.getUserIntroNanopubs().isEmpty()) {
 			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
