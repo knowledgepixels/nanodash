@@ -16,6 +16,11 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 
 public class Utils {
@@ -97,6 +102,24 @@ public class Utils {
 
 	public static boolean isUriPostfix(String s) {
 		return !s.contains(":");
+	}
+
+	public static IRI getLocation(IntroNanopub inp) {
+		NanopubSignatureElement el = getNanopubSignatureElement(inp);
+		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+			if (el.getPublicKeyString().equals(kd.getPublicKeyString())) {
+				return kd.getKeyLocation();
+			}
+		}
+		return null;
+	}
+
+	public static NanopubSignatureElement getNanopubSignatureElement(IntroNanopub inp) {
+		try {
+			return SignatureUtils.getSignatureElement(inp.getNanopub());
+		} catch (MalformedCryptoElementException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 }

@@ -43,6 +43,7 @@ public class User {
 	private static Map<IRI,IntroNanopub> introMap;
 	private static Map<IRI,IntroNanopub> approvedIntroMap;
 	private static Map<IRI,String> idNameMap;
+	private static Map<IRI,List<IntroNanopub>> introNanopubLists;
 
 	public static synchronized void refreshUsers() {
 		approvedIdPubkeyMap = new HashMap<>();
@@ -53,6 +54,7 @@ public class User {
 		introMap = new HashMap<>();
 		approvedIntroMap = new HashMap<>();
 		idNameMap = new HashMap<>();
+		introNanopubLists = new HashMap<>();
 
 		// TODO Make update strategy configurable:
 		String latestAuthorityIndex = ApiAccess.getLatestVersionId(authorityIndex);
@@ -292,6 +294,8 @@ public class User {
 
 	public static List<IntroNanopub> getIntroNanopubs(IRI user) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
+		if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
+
 		Map<IRI,IntroNanopub> introNps = new HashMap<>();
 		if (approvedIdPubkeyMap.containsKey(user)) {
 			for (String pk : approvedIdPubkeyMap.get(user)) {
@@ -315,6 +319,7 @@ public class User {
 				return -c0.compareTo(c1);
 			}
 		});
+		introNanopubLists.put(user, list);
 		return list;
 	}
 

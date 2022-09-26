@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
@@ -17,7 +18,9 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
+import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
+import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 
@@ -49,7 +52,12 @@ public class NanobenchSession extends WebSession {
 	private boolean showProvenance = true;
 	private boolean showPubinfo = false;
 
+	private Integer localIntroCount = null;
+	private IntroNanopub localIntro = null;
+
 	public void loadProfileInfo() {
+		localIntroCount = null;
+		localIntro = null;
 		NanobenchPreferences prefs = NanobenchPreferences.get();
 		if (prefs.isOrcidLoginMode()) {
 			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanobench-users/");
@@ -111,6 +119,41 @@ public class NanobenchSession extends WebSession {
 
 	public IRI getUserIri() {
 		return userIri;
+	}
+
+	public List<IntroNanopub> getUserIntroNanopubs() {
+		return User.getIntroNanopubs(userIri);
+	}
+
+	public int getLocalIntroCount() {
+		if (localIntroCount == null) {
+			localIntroCount = 0;
+			for (IntroNanopub inp : getUserIntroNanopubs()) {
+				if (isIntroWithLocalKey(inp)) {
+					localIntroCount++;
+					localIntro = inp;
+				}
+			}
+			if (localIntroCount > 1) localIntro = null;
+		}
+		return localIntroCount;
+	}
+
+	public IntroNanopub getLocalIntro() {
+		getLocalIntroCount();
+		return localIntro;
+	}
+
+	public boolean isIntroWithLocalKey(IntroNanopub inp) {
+		IRI location = Utils.getLocation(inp);
+		NanopubSignatureElement el = Utils.getNanopubSignatureElement(inp);
+		String siteUrl = NanobenchPreferences.get().getWebsiteUrl();
+		if (location != null && siteUrl != null && !location.stringValue().equals(siteUrl)) return false;
+		if (!getPubkeyString().equals(el.getPublicKeyString())) return false;
+		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+			if (getPubkeyString().equals(kd.getPublicKeyString())) return true;
+		}
+		return false;
 	}
 
 	public void setOrcid(String orcid) {
