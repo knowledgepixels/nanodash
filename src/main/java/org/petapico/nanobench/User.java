@@ -266,7 +266,10 @@ public class User {
 		if (approved) {
 			list = new ArrayList<IRI>(approvedIdPubkeyMap.keySet());
 		} else {
-			list = new ArrayList<IRI>(unapprovedIdPubkeyMap.keySet());
+			list = new ArrayList<IRI>();
+			for (IRI u : unapprovedIdPubkeyMap.keySet()) {
+				if (!approvedIdPubkeyMap.containsKey(u)) list.add(u);
+			}
 		}
 		// TODO Cache the sorted list to not sort from scratch each time:
 		list.sort(comparator);
