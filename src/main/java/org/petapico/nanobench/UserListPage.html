@@ -16,7 +16,6 @@
 
 <p>
 <a wicket:id="refresh" class="smallbutton">refresh</a>
-<a wicket:id="approve" class="smallbutton">approve somebody else's introduction</a>
 </p>
 
 <h2>Approved Users</h2>
@@ -24,6 +23,11 @@
 <ul wicket:id="approved-users">
 <li><a wicket:id="userlink"><span wicket:id="linktext"></span></a></li>
 </ul>
+
+<p>
+If you are yourself approved, approving of somebody else's introduction, will make them approved too:
+<a wicket:id="approve" class="smallbutton">approve somebody else</a>
+</p>
 
 <h2>Other Users</h2>
 
