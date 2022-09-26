@@ -190,6 +190,10 @@ public class User {
 		return values.contains(value);
 	}
 
+	public static boolean isApprovedKeyForUser(String key, IRI user) {
+		return hasValue(approvedIdPubkeyMap, user, key);
+	}
+
 	private static String getShortId(IRI userIri) {
 		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}

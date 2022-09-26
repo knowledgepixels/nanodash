@@ -104,6 +104,11 @@ public class NanobenchSession extends WebSession {
 		return DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
 	}
 
+	public boolean isPubkeyApproved() {
+		if (keyPair == null || userIri == null) return false;
+		return User.isApprovedKeyForUser(getPubkeyString(), userIri);
+	}
+
 	public KeyPair getKeyPair() {
 		return keyPair;
 	}

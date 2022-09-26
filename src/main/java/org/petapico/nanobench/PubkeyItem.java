@@ -18,7 +18,7 @@ public class PubkeyItem extends Panel {
 		} else {
 			add(new Label("label", Utils.getShortPubkeyName(pubkey)));
 			String notes = "";
-			if (User.getPubkeys(session.getUserIri(), true).contains(pubkey)) {
+			if (session.isPubkeyApproved()) {
 				notes += "It is <strong class=\"positive\">approved</strong> by the community.";
 			} else {
 				notes += "It is so far <strong class=\"negative\">not approved</strong> by the community.";
