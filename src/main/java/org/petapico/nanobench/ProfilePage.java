@@ -27,7 +27,8 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (session.isProfileComplete()) {
-			add(new Label("message", "Congratulations, your profile is complete and ready."));
+			add(new Label("message", "Congratulations, your profile is sufficiently complete to publish your own nanopublications. " +
+					"You might see additional recommended actions below."));
 		} else {
 			if (loginMode) {
 				add(new Label("message", "Complete your introduction record, so you can publish your own nanopublications."));

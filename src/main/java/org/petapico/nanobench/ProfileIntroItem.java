@@ -91,6 +91,13 @@ public class ProfileIntroItem extends Panel {
 		updateApprovedItem.setVisible(!session.isPubkeyApproved() && approvedIntrosCount > 0 && session.getLocalIntroCount() > 0);
 		if (updateApprovedItem.isVisible()) recommendedActionsCount++;
 
+		WebMarkupContainer getApprovalItem = new WebMarkupContainer("get-approval-item");
+		String introUrl = (session.getLocalIntro() == null ? "" : session.getLocalIntro().getNanopub().getUri().stringValue());
+		getApprovalItem.add(new ExternalLink("introduction-to-be-approved", introUrl, introUrl));
+		add(getApprovalItem);
+		getApprovalItem.setVisible(!session.isPubkeyApproved() && session.getLocalIntroCount() == 1);
+		if (getApprovalItem.isVisible()) recommendedActionsCount++;
+
 		if (session.getUserIntroNanopubs().isEmpty()) {
 			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
 		} else if (session.getLocalIntroCount() == 0) {

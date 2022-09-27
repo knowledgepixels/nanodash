@@ -4,7 +4,9 @@
 
 <wicket:panel>
 
-<h3>Introduction Nanopublications</h3>
+<h3>Introductions</h3>
+
+<p>Introductions link your ORCID identifier to the keys you use to sign nanopublications.</p>
 
 <p><em>After changes, you may have to wait a few minutes and <a href="./profile">refresh this page</a> for this list to update:</em></p>
 
@@ -34,12 +36,16 @@ declares keys: <span wicket:id="intro-keys"><code wicket:id="intro-key"></code><
 
 <ul>
 <li wicket:id="derive-intro-item">If you recognize an introduction above as your own, use <em>'derive new introduction'</em> to declare the given keys
-   alongside the local key from this side.</li>
+   alongside the local key from this site.</li>
 <li wicket:id="include-keys-item">If you recognize an introduction from another site as your own, use <em>'include keys'</em> above to declare the missing
    keys also in the introduction from this site.</li>
 <li wicket:id="publish-intro-item">Publish an introduction from scratch declaring your local key: <a wicket:id="publish-intro-link" class="smallbutton"></a></li>
 <li wicket:id="retract-intro-item">Retract redundant introductions created on this site, using <em>'retract'</em> above</li>
-<li wicket:id="update-approved-item">Go to the site where you created your approved introduction (see above) and include the local key from this site there.</li>
+<li wicket:id="update-approved-item">Go to the site where you created your approved introduction (see above) and include the local key from this site there
+   (it should show up there in a list similar to the above).</li>
+<li wicket:id="get-approval-item">Contact <a href="./userlist">somebody you know who is approved</a> and ask them to approve of your introduction
+   (via <em>'approve somebody else'</em> on their user list page). Give them this URL of your introduction nanopublication:
+   <code><a wicket:id="introduction-to-be-approved"></a></code></li>
 </ul>
 
 </wicket:panel>
