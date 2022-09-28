@@ -22,3 +22,11 @@ Prepare release:
 Perform release
 
     $ ./release.sh -
+
+
+## Maven
+
+If Maven has problems with recent Java:
+
+    $ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/
+
