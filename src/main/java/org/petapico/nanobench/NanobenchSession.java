@@ -39,7 +39,8 @@ public class NanobenchSession extends WebSession {
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
-	private static IntroExtractor introExtractor;
+
+	private IntroExtractor introExtractor;
 
 	private String userDir = System.getProperty("user.home") + "/.nanopub/";
 
