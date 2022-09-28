@@ -48,12 +48,12 @@ public class OrcidLoginPage extends WebPage {
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode >= 200 && statusCode < 300) {
 				// Success
-					String respString = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-					OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
-//					rs.cookie("orcid", r.getOrcid());
-//					rs.cookie("orcid-access-token", r.getAccessToken());
-					System.err.println("User logged in: " + r.getOrcid());
-					NanobenchSession.get().setOrcid(r.getOrcid());
+				String respString = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+				OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
+//				rs.cookie("orcid", r.getOrcid());
+//				rs.cookie("orcid-access-token", r.getAccessToken());
+				System.err.println("User logged in: " + r.getOrcid());
+				NanobenchSession.get().setOrcid(r.getOrcid());
 			} else {
 				// Something went wrong
 				System.err.println(statusCode + " " + response.getStatusLine().getReasonPhrase());
