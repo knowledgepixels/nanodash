@@ -16,7 +16,7 @@ To find out what Java version you have, you can type `java -version` in a termin
 
 ## Step 2: Download and Unpack Nanobench ZIP File
 
-Download the ZIP file with a name like `nanobench-1.2.zip` for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
+Download the ZIP file with a name like `nanobench-1.52.zip` for the latest release [here](https://github.com/peta-pico/nanobench/releases/latest).
 Unpack it at a convenient location in your file system.
 This should create the files `nanobench.jar`, `run`, and `run-under-windows.bat` (and also `update` and `update-under-windows.bat`).
 
