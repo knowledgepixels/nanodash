@@ -79,6 +79,7 @@ public class Utils {
 		NanobenchSession session = NanobenchSession.get();
 		List<String> l = new ArrayList<>();
 		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		// TODO: Make this more efficient:
 		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
 		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
 		return s;

@@ -282,9 +282,9 @@ public class User {
 		return list;
 	}
 
-	public static synchronized Set<String> getPubkeys(IRI user, Boolean approved) {
+	public static synchronized List<String> getPubkeys(IRI user, Boolean approved) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
-		Set<String> pubkeys = new HashSet<>();
+		List<String> pubkeys = new ArrayList<>();
 		if (user != null) {
 			if (approved == null || approved) {
 				if (approvedIdPubkeyMap.containsKey(user)) pubkeys.addAll(approvedIdPubkeyMap.get(user));
