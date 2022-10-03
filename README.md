@@ -26,6 +26,3 @@ To use Nanobench locally, see the [installation instructions](INSTALL.md) (or th
 
 ![screenshot 2](screenshot2.png)
 
-#### Search
-
-![screenshot 3](screenshot3.png)
