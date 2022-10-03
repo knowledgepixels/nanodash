@@ -1,7 +1,7 @@
 Nanobench
 =========
 
-A client to browse and publish nanopublications.
+Nanobench is a client to browse and publish nanopublications.
 
 
 ## Online Instances
