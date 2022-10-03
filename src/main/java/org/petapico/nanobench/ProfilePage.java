@@ -31,9 +31,9 @@ public class ProfilePage extends WebPage {
 					"You might see additional recommended actions below."));
 		} else {
 			if (loginMode) {
-				add(new Label("message", "Complete your introduction record, so you can publish your own nanopublications."));
+				add(new Label("message", "Before you can publish your own nanopublications, you need to login via ORCID."));
 			} else {
-				add(new Label("message", "Set your ORCID identifier."));
+				add(new Label("message", "Before you can publish your own nanopublications, you need to set your ORCID identifier."));
 			}
 		}
 

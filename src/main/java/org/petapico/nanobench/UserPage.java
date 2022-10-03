@@ -93,7 +93,7 @@ public class UserPage extends WebPage {
 				nanopubParams.put("pubkey", pubKeyMap.get(pubkeySelection.getModelObject()));  // TODO: only using first public key here
 				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
 				List<NanopubElement> nanopubs = new ArrayList<>();
-				while (!nanopubResults.isEmpty() && nanopubs.size() < 100) {
+				while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 					ApiResponseEntry resultEntry = nanopubResults.remove(0);
 					String npUri = resultEntry.get("np");
 					// Hide retracted nanopublications:
