@@ -79,7 +79,7 @@ public class User {
 		// Get users that are approved by somebody who is already approved, and consider them approved too:
 		try {
 			Map<String,String> params = new HashMap<>();
-			params.put("pred", "http://purl.org/nanopub/x/approves-of");
+			params.put("pred", "http://purl.org/nanopub/x/approvesOf");
 			List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
 			while (true) {
 				boolean keepLooping = false;

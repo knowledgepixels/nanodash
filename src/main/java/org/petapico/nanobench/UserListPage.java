@@ -69,7 +69,7 @@ public class UserListPage extends WebPage {
 			}
 
 		});
-		add(new ExternalLink("approve", "./publish?template=http://purl.org/np/RA0VjIGD9fm6C8RPEGmbtWdAJn8DHC7XiGWtXM-vw47uc", "approve somebody else"));
+		add(new ExternalLink("approve", "./publish?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw", "approve somebody else"));
 	}
 
 }
