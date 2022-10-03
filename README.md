@@ -1,12 +1,19 @@
 Nanobench
 =========
 
-A local client to browse and publish nanopublications.
+A client to browse and publish nanopublications.
 
 
-## Installation
+## Online Instances
 
-To use Nanobench, see the [installation instructions](INSTALL.md) (or the [installation instructions with Docker](INSTALL-with-Docker.md) if you are familiar with Docker).
+You can use Nanobench by login in via ORCID in one of the online instances:
+
+- https://nanobench.petapico.org/
+
+
+## Local Installation
+
+To use Nanobench locally, see the [installation instructions](INSTALL.md) (or the [installation instructions with Docker](INSTALL-with-Docker.md) if you are familiar with Docker).
 
 
 ## Screenshots
