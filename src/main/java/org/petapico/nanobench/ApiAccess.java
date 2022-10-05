@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.wicket.model.Model;
 
@@ -147,23 +148,25 @@ public abstract class ApiAccess {
 		return response;
 	}
 
-	private static Map<String,String> latestVersionMap = new HashMap<>();
+	private static Map<String,Pair<Long,String>> latestVersionMap = new HashMap<>();
 
 	public static String getLatestVersionId(String nanopubId) {
-		if (!latestVersionMap.containsKey(nanopubId)) {
+		long currentTime = System.currentTimeMillis();
+		if (!latestVersionMap.containsKey(nanopubId) || currentTime - latestVersionMap.get(nanopubId).getLeft() > 1000*60*60) {
+			// Re-fetch if existing value is older than 1 hour
 			Map<String,String> params = new HashMap<>();
 			params.put("np", nanopubId);
 			try {
 				ApiResponse r = ApiAccess.getAll("get_latest_version", params);
 				if (r.getData().size() != 1) return nanopubId;
 				String l = r.getData().get(0).get("latest");
-				latestVersionMap.put(nanopubId, l);
+				latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				return nanopubId;
 			}
 		}
-		return latestVersionMap.get(nanopubId);
+		return latestVersionMap.get(nanopubId).getRight();
 	}
 
 	private static TimeZone timeZone = TimeZone.getTimeZone("UTC");
