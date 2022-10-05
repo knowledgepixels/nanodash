@@ -13,6 +13,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -98,6 +100,15 @@ public class NanobenchSession extends WebSession {
 
 	public boolean isProfileComplete() {
 		return userIri != null && keyPair != null && introNps != null;
+	}
+
+	public void redirectToLoginIfNeeded(String path, PageParameters parameters) {
+		if (isProfileComplete()) return;
+		if (NanobenchPreferences.get().isOrcidLoginMode()) {
+			throw new RedirectToUrlException(OrcidLoginPage.getOrcidLoginUrl("." + path, parameters));
+		} else {
+			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
+		}
 	}
 
 	public String getPubkeyString() {
