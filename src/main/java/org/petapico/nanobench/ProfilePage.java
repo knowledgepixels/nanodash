@@ -41,8 +41,8 @@ public class ProfilePage extends WebPage {
 
 		if (session.getUserIri() == null) {
 			if (loginMode) {
-				String loginUrl = Utils.urlEncode(OrcidLoginPage.getOrcidLoginUrl("/profile"));
-				add(new Label("orcidmessage", "<a href=\"" + loginUrl + "\">Login via ORCID.</a>").setEscapeModelStrings(false));
+				String loginUrl = OrcidLoginPage.getOrcidLoginUrl("/profile");
+				add(new Label("orcidmessage", "<a href=\"" + loginUrl + "\">Login with ORCID.</a>").setEscapeModelStrings(false));
 			} else {
 				add(new Label("orcidmessage", "Set your ORCID identifier below. " +
 						"If you don't yet have an ORCID account, you can make one via the " +

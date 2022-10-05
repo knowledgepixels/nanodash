@@ -31,12 +31,11 @@ public class OrcidLoginPage extends WebPage {
 	public static String getOrcidLoginUrl(String finalRedirectUrl) {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
 		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect=" + Utils.urlEncode(finalRedirectUrl);
-		String url = "https://orcid.org/oauth/authorize?" +
+		return "https://orcid.org/oauth/authorize?" +
 			"client_id=" + prefs.getOrcidClientId() + "&" +
 			"response_type=code&" +
 			"scope=/authenticate&" +
 			"redirect_uri=" + Utils.urlEncode(redirectUrl);
-		return url;
 	}
 
 	public OrcidLoginPage(PageParameters parameters) {
