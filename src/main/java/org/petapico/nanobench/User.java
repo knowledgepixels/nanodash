@@ -261,7 +261,7 @@ public class User {
 
 		@Override
 		public int compare(IRI iri1, IRI iri2) {
-			return getDisplayName(iri1).compareTo(getDisplayName(iri2));
+			return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
 		}
 
 	};

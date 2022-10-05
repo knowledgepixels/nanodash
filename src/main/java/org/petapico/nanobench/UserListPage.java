@@ -1,5 +1,7 @@
 package org.petapico.nanobench;
 
+import java.util.List;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
@@ -23,8 +25,11 @@ public class UserListPage extends WebPage {
 
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
+		final List<IRI> userList = User.getUsers(true);
 
-		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(User.getUsers(true))) {
+		add(new Label("usercount", userList.size()));
+
+		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(userList)) {
 
 			private static final long serialVersionUID = 1L;
 
