@@ -9,6 +9,8 @@ public class PublishConfirmPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/publishconfirm";
+
 	public PublishConfirmPage(Nanopub np) {
 		super();
 		add(new TitleBar("titlebar"));

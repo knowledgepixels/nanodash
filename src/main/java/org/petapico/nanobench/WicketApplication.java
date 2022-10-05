@@ -102,15 +102,15 @@ public class WicketApplication extends WebApplication {
 
 		getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
-		mountPage("/user", UserPage.class);
-		mountPage("/search", SearchPage.class);
-		mountPage("/explore", ExplorePage.class);
-		mountPage("/publish", PublishPage.class);
-		mountPage("/publishconfirm", PublishConfirmPage.class);
-		mountPage("/profile", ProfilePage.class);
-		mountPage("/userlist", UserListPage.class);
-		mountPage("/orcidlinking", OrcidLinkingPage.class);
-		mountPage("/orcidlogin", OrcidLoginPage.class);
+		mountPage(UserPage.MOUNT_PATH, UserPage.class);
+		mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
+		mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
+		mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
+		mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
+		mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
+		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
+		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
+		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 
 		getCspSettings().blocking().disabled();
 	}

@@ -38,7 +38,7 @@ public class ProfileOrcidLinkItem extends Panel {
 		if (session.isOrcidLinked() == null) {
 			add(new Label("orcidlinkmessage", ""));
 		} else if (!session.isOrcidLinked()) {
-			add(new Label("orcidlinkmessage", "Follow <a href=\"./orcidlinking\">these instructions</a> to link it, and then press 'retry'.").setEscapeModelStrings(false));
+			add(new Label("orcidlinkmessage", "Follow <a href=\"." + OrcidLinkingPage.MOUNT_PATH + "\">these instructions</a> to link it, and then press 'retry'.").setEscapeModelStrings(false));
 		} else if (session.isOrcidLinked()) {
 			add(new Label("orcidlinkmessage", "ORCID is linked."));
 			retryLink.setVisible(false);

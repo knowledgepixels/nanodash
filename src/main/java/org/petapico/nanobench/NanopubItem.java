@@ -42,7 +42,7 @@ public class NanopubItem extends Panel {
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
-		ExternalLink link = new ExternalLink("nanopub-id-link", "./explore?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
+		ExternalLink link = new ExternalLink("nanopub-id-link", "." + ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
 		link.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)));
 		add(link);
 
@@ -124,7 +124,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanopubAction action = menu.getModel().getObject();
-				String url = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
+				String url = "." + PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
 						"&" + action.getParamString(n.getNanopub()) +
 						"&template-version=latest";
 				throw new RedirectToUrlException(url);

@@ -35,7 +35,8 @@ public class ProfileIntroItem extends Panel {
 	public ProfileIntroItem(String id) {
 		super(id);
 
-		String publishIntroLinkString = "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+		String publishIntroLinkString = "." + PublishPage.MOUNT_PATH +
+				"?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
 				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
 				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
 				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
@@ -125,7 +126,7 @@ public class ProfileIntroItem extends Panel {
 				final IntroNanopub inp = item.getModelObject();
 				IRI location = Utils.getLocation(inp);
 				String uri = inp.getNanopub().getUri().stringValue();
-				ExternalLink link = new ExternalLink("intro-uri", "./explore?id=" + URLEncoder.encode(uri, Charsets.UTF_8));
+				ExternalLink link = new ExternalLink("intro-uri", "." + ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8));
 				link.add(new Label("intro-uri-label", TrustyUriUtils.getArtifactCode(uri).substring(0, 10)));
 				item.add(link);
 				if (User.isApproved(inp)) {
@@ -143,12 +144,12 @@ public class ProfileIntroItem extends Panel {
 				Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
 				item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 
-				ExternalLink retractLink = new ExternalLink("retract-link", "./publish?template=http://purl.org/np/RAWHrBJRZgzpNQo0_vW9yXyw_k5vkS6YHOSjx-b52ATiU&" +
+				ExternalLink retractLink = new ExternalLink("retract-link", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAWHrBJRZgzpNQo0_vW9yXyw_k5vkS6YHOSjx-b52ATiU&" +
 						"param_nanopubToBeRetracted=" + urlEncode(inp.getNanopub().getUri()), "retract...");
 				item.add(retractLink);
 				retractLink.setVisible(session.getLocalIntroCount() > 1 && session.isIntroWithLocalKey(inp));
 
-				ExternalLink deriveLink = new ExternalLink("derive-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+				ExternalLink deriveLink = new ExternalLink("derive-link", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
 						"derive-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
 						"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
 						"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
@@ -159,7 +160,7 @@ public class ProfileIntroItem extends Panel {
 				deriveLink.setVisible(!session.isIntroWithLocalKey(inp) && session.getLocalIntroCount() == 0);
 
 				if (includeKeysParamMap.containsKey(inp)) {
-					item.add(new ExternalLink("include-keys-link", "./publish?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+					item.add(new ExternalLink("include-keys-link", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
 							"supersede=" + urlEncode(session.getLocalIntro().getNanopub().getUri()) +
 							includeKeysParamMap.get(inp),
 							"include keys..."));

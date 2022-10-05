@@ -22,6 +22,8 @@ public class SearchPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/search";
+
 	private TextField<String> searchField;
 	private CheckBox filterUser;
 	private Model<String> progress;

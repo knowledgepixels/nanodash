@@ -1,5 +1,6 @@
 package org.petapico.nanobench;
 
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -68,6 +72,21 @@ public class Utils {
 
 	public static String urlEncode(Object o) {
 		return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
+	}
+
+	public static String getUrlWithParameters(String base, PageParameters parameters) {
+		try {
+			URIBuilder u = new URIBuilder(base);
+			for (String key : parameters.getNamedKeys()) {
+				for (StringValue value : parameters.getValues(key)) {
+					if (!value.isNull()) u.addParameter(key, value.toString());
+				}
+			}
+			return u.build().toString();
+		} catch (URISyntaxException ex) {
+			ex.printStackTrace();
+			return ".";
+		}
 	}
 
 	public static String getShortPubkeyName(String pubkey) {

@@ -10,11 +10,13 @@ public class OrcidLinkingPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/orcidlinking";
+
 	public OrcidLinkingPage(final PageParameters parameters) {
 		super();
 		add(new TitleBar("titlebar"));
 		if (!NanobenchSession.get().isProfileComplete()) {
-			throw new RedirectToUrlException("./profile");
+			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
 		}
 		final NanobenchSession session = NanobenchSession.get();
 		String introLink = "";

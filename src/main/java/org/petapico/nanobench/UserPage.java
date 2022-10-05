@@ -20,6 +20,8 @@ public class UserPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/user";
+
 	private Model<String> progress;
 	private Model<String> selected = new Model<>();
 	private IRI userIri;
@@ -30,7 +32,7 @@ public class UserPage extends WebPage {
 	public UserPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		if (parameters.get("id") == null) throw new RedirectToUrlException("./profile");
+		if (parameters.get("id") == null) throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
 		add(new Label("username", User.getDisplayName(userIri)));
 

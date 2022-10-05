@@ -19,6 +19,8 @@ public class UserListPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/userlist";
+
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
@@ -69,7 +71,7 @@ public class UserListPage extends WebPage {
 			}
 
 		});
-		add(new ExternalLink("approve", "./publish?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw", "approve somebody else"));
+		add(new ExternalLink("approve", "." + PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw", "approve somebody else"));
 	}
 
 }
