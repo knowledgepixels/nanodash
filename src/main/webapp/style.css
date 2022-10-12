@@ -471,3 +471,13 @@ hr {
 .pubkeyselect input:checked + label {
   color: #000;
 }
+
+p.message {
+  background: #eee;
+  padding: 10px;
+  margin-bottom: 25px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ccc;
+  border-radius: 10px;
+}

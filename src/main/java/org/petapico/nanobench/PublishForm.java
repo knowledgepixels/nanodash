@@ -11,6 +11,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -70,6 +71,15 @@ public class PublishForm extends Panel {
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
 		setOutputMarkupId(true);
+
+		WebMarkupContainer linkMessageItem = new WebMarkupContainer("link-message-item");
+		if (pageParams.get("link-message").isNull()) {
+			linkMessageItem.add(new Label("link-message", ""));
+			linkMessageItem.setVisible(false);
+		} else {
+			linkMessageItem.add(new Label("link-message", pageParams.get("link-message")));
+		}
+		add(linkMessageItem);
 
 		Nanopub fillNp = null;
 		FillMode fillMode = null;
