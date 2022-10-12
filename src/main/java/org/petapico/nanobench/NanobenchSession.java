@@ -209,6 +209,7 @@ public class NanobenchSession extends WebSession {
 				} else {
 					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
 					if (introNps != null && introNps.containsKey(inp.getNanopub().getUri())) {
+						// TODO: also check whether introduction contains local key
 						isOrcidLinked = true;
 					} else {
 						isOrcidLinked = false;

@@ -99,6 +99,11 @@ public class ProfileIntroItem extends Panel {
 		getApprovalItem.setVisible(!session.isPubkeyApproved() && session.getLocalIntroCount() == 1);
 		if (getApprovalItem.isVisible()) recommendedActionsCount++;
 
+		WebMarkupContainer orcidLinkingItem = new WebMarkupContainer("orcid-linking-item");
+		add(orcidLinkingItem);
+		orcidLinkingItem.setVisible(!session.isOrcidLinked() && session.getLocalIntroCount() == 1);
+		if (orcidLinkingItem.isVisible()) recommendedActionsCount++;
+
 		if (session.getUserIntroNanopubs().isEmpty()) {
 			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
 		} else if (session.getLocalIntroCount() == 0) {

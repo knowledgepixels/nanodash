@@ -19,12 +19,15 @@ public class OrcidLinkingPage extends WebPage {
 			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
 		}
 		final NanobenchSession session = NanobenchSession.get();
-		String introLink = "";
-		if (session.getIntroNanopubs() != null && !session.getIntroNanopubs().isEmpty()) {
-			// TODO Consider all intro nanopubs:
-			introLink = session.getIntroNanopubs().values().iterator().next().getNanopub().getUri().stringValue();
+		String introUri;
+		if (session.getLocalIntroCount() == 0) {
+			introUri = "(no introduction with local key found; first resolve this on <a href=\"." + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
+		} else if (session.getLocalIntroCount() > 1) {
+			introUri = "(several introductions with local key found; first resolve this on <a href=\"." + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
+		} else {
+			introUri = "<code>" + session.getLocalIntro().getNanopub().getUri() + "</code>";
 		}
-		add(new Label("introuri", introLink));
+		add(new Label("introuri", introUri).setEscapeModelStrings(false));
 	}
 
 }

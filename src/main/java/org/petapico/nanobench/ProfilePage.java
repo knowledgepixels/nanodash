@@ -99,12 +99,6 @@ public class ProfilePage extends WebPage {
 		} else {
 			add(new Label("intropart"));
 		}
-
-//		if (session.isProfileComplete()) {
-//			add(new ProfileOrcidLinkItem("orcidlinkpart"));
-//		} else {
-//			add(new Label("orcidlinkpart"));
-//		}
 	}
 
 }
