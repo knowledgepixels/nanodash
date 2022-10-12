@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -21,13 +22,20 @@ public class OrcidLoginPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static String getOrcidLoginUrl() {
+	public static final String MOUNT_PATH = "/orcidlogin";
+
+	public static String getOrcidLoginUrl(String base, PageParameters params) {
+		return getOrcidLoginUrl(Utils.getUrlWithParameters(base, params));		
+	}
+
+	public static String getOrcidLoginUrl(String finalRedirectUrl) {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
+		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect=" + Utils.urlEncode(finalRedirectUrl);
 		return "https://orcid.org/oauth/authorize?" +
 			"client_id=" + prefs.getOrcidClientId() + "&" +
 			"response_type=code&" +
 			"scope=/authenticate&" +
-			"redirect_uri=" + prefs.getWebsiteUrl() + "/orcidlogin";
+			"redirect_uri=" + Utils.urlEncode(redirectUrl);
 	}
 
 	public OrcidLoginPage(PageParameters parameters) {
@@ -40,7 +48,8 @@ public class OrcidLoginPage extends WebPage {
 			urlParams.add(new BasicNameValuePair("client_id", prefs.getOrcidClientId()));
 			urlParams.add(new BasicNameValuePair("client_secret", prefs.getOrcidClientSecret()));
 			urlParams.add(new BasicNameValuePair("grant_type", "authorization_code"));
-			urlParams.add(new BasicNameValuePair("redirect_uri", prefs.getWebsiteUrl() + "/orcidlogin"));
+			// We need to report here the exact same redirect URI:
+			urlParams.add(new BasicNameValuePair("redirect_uri", prefs.getWebsiteUrl() + "/orcidlogin?redirect=" + Utils.urlEncode(parameters.get("redirect").toString(""))));
 			urlParams.add(new BasicNameValuePair("code", authCode));
 			post.setEntity(new UrlEncodedFormEntity(urlParams));
 			HttpClient client = HttpClientBuilder.create().build();
@@ -48,20 +57,21 @@ public class OrcidLoginPage extends WebPage {
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode >= 200 && statusCode < 300) {
 				// Success
-					String respString = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-					OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
-//					rs.cookie("orcid", r.getOrcid());
-//					rs.cookie("orcid-access-token", r.getAccessToken());
-					System.err.println("User logged in: " + r.getOrcid());
-					NanobenchSession.get().setOrcid(r.getOrcid());
+				String respString = IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8);
+				OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
+//				rs.cookie("orcid", r.getOrcid());
+//				rs.cookie("orcid-access-token", r.getAccessToken());
+				System.err.println("User logged in: " + r.getOrcid());
+				NanobenchSession.get().setOrcid(r.getOrcid());
 			} else {
 				// Something went wrong
 				System.err.println(statusCode + " " + response.getStatusLine().getReasonPhrase());
+				System.err.println(IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8));
 			}
 		} catch (UnsupportedOperationException | IOException ex) {
 			ex.printStackTrace();
 		}
-		throw new RedirectToUrlException(".");
+		throw new RedirectToUrlException(parameters.get("redirect").toString("."));
 	}
 
 }

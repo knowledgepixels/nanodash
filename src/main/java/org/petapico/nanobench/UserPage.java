@@ -7,33 +7,34 @@ import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioChoice;
-import org.apache.wicket.markup.html.form.RadioGroup;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 
 public class UserPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/user";
+
 	private Model<String> progress;
 	private Model<String> selected = new Model<>();
-
+	private IRI userIri;
+	private boolean added = false;
+	private Map<String,String> pubKeyMap;
+	private RadioChoice<String> pubkeySelection;
+	
 	public UserPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		final User user = User.getUser(parameters.get("id").toString());
-		if (user == null) throw new RedirectToUrlException("./profile");
-		add(new Label("username", user.getDisplayName()));
+		if (parameters.get("id") == null) throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
+		userIri = Utils.vf.createIRI(parameters.get("id").toString());
+		add(new Label("username", User.getDisplayName(userIri)));
 
 		// TODO: Progress bar doesn't update at the moment:
 		progress = new Model<>();
@@ -42,10 +43,23 @@ public class UserPage extends WebPage {
 //		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
+		NanobenchSession session = NanobenchSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
-		pubKeyList.add(user.getPubkeyString().replaceFirst("^(.).{39}(.{10}).*$", "$1..$2.."));
+		pubKeyMap = new HashMap<>();
+		if (userIri.equals(session.getUserIri())) {
+			String lKeyShort = Utils.getShortPubkeyLabel(session.getPubkeyString(), userIri);
+			pubKeyList.add(lKeyShort);
+			pubKeyMap.put(lKeyShort, session.getPubkeyString());
+		}
+		for (String pk : User.getPubkeys(userIri, null)) {
+			String keyShort = Utils.getShortPubkeyLabel(pk, userIri);
+			if (!pubKeyMap.containsKey(keyShort)) {
+				pubKeyList.add(keyShort);
+				pubKeyMap.put(keyShort, pk);
+			}
+		}
 
-		RadioChoice<String> pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
+		pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
 		pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
 		pubkeySelection.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
@@ -55,12 +69,21 @@ public class UserPage extends WebPage {
 			protected void onUpdate(AjaxRequestTarget target) {
 				// TODO: implement this
 				System.err.println("PUBKEY SELECTED: " + selected.getObject());
+				refresh();
+				setResponsePage(target.getPage());
 			}
 
 		});
 		add(pubkeySelection);
-		add(new Label("pubkey", Utils.getShortPubkeyLabel(user.getPubkeyString())));
 
+		refresh();
+	}
+
+	private void refresh() {
+		if (added) {
+			remove("nanopubs");
+		}
+		added = true; 
 		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
 			private static final long serialVersionUID = 1L;
@@ -69,10 +92,10 @@ public class UserPage extends WebPage {
 			public NanopubResults getLazyLoadComponent(String markupId) {
 				Map<String,String> nanopubParams = new HashMap<>();
 				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-				nanopubParams.put("pubkey", user.getPubkeyString());  // TODO: only using first public key here
+				nanopubParams.put("pubkey", pubKeyMap.get(pubkeySelection.getModelObject()));  // TODO: only using first public key here
 				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
 				List<NanopubElement> nanopubs = new ArrayList<>();
-				while (!nanopubResults.isEmpty() && nanopubs.size() < 100) {
+				while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 					ApiResponseEntry resultEntry = nanopubResults.remove(0);
 					String npUri = resultEntry.get("np");
 					// Hide retracted nanopublications:
@@ -86,7 +109,6 @@ public class UserPage extends WebPage {
 				return r;
 			}
 		});
-
 	}
 
 //	@Override

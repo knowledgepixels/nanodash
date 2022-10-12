@@ -1,8 +1,8 @@
 package org.petapico.nanobench;
 
-import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -10,15 +10,31 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 
 public class Utils {
 
 	private Utils() {}  // no instances allowed
+
+	static ValueFactory vf = SimpleValueFactory.getInstance();
+
+	public static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
+	public static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
 
 	public static String getMimeType(HttpServletRequest req, String supported) {
 		List<String> supportedList = Arrays.asList(StringUtils.split(supported, ','));
@@ -54,17 +70,76 @@ public class Utils {
 		return nanopubs.get(uri);
 	}
 
-	public static String urlEncode(String s) {
-		try {
-			return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
-		} catch (UnsupportedEncodingException ex) {
-			ex.printStackTrace();
-		}
-		return "";
+	public static String urlEncode(Object o) {
+		return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
 	}
 
-	public static String getShortPubkeyLabel(String pubkey) {
-		return pubkey.replaceFirst("^(.).{39}(.{10}).*$", "$1..$2..");
+	public static String getUrlWithParameters(String base, PageParameters parameters) {
+		try {
+			URIBuilder u = new URIBuilder(base);
+			for (String key : parameters.getNamedKeys()) {
+				for (StringValue value : parameters.getValues(key)) {
+					if (!value.isNull()) u.addParameter(key, value.toString());
+				}
+			}
+			return u.build().toString();
+		} catch (URISyntaxException ex) {
+			ex.printStackTrace();
+			return ".";
+		}
+	}
+
+	public static String getShortPubkeyName(String pubkey) {
+		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+	}
+
+	public static String getShortPubkeyLabel(String pubkey, IRI user) {
+		String s = getShortPubkeyName(pubkey);
+		NanobenchSession session = NanobenchSession.get();
+		List<String> l = new ArrayList<>();
+		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		// TODO: Make this more efficient:
+		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
+		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
+		return s;
+	}
+
+	public static String getShortOrcidId(IRI orcidIri) {
+		return orcidIri.stringValue().replaceFirst("^https://orcid.org/", "");
+	}
+
+	public static String getUriPostfix(Object uri) {
+		String s = uri.toString();
+		if (s.contains("#")) return s.replaceFirst("^.*#(.*)$", "$1");
+		return s.replaceFirst("^.*/(.*)$", "$1");
+	}
+
+	public static String getUriPrefix(Object uri) {
+		String s = uri.toString();
+		if (s.contains("#")) return s.replaceFirst("^(.*#).*$", "$1");
+		return s.replaceFirst("^(.*/).*$", "$1");
+	}
+
+	public static boolean isUriPostfix(String s) {
+		return !s.contains(":");
+	}
+
+	public static IRI getLocation(IntroNanopub inp) {
+		NanopubSignatureElement el = getNanopubSignatureElement(inp);
+		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+			if (el.getPublicKeyString().equals(kd.getPublicKeyString())) {
+				return kd.getKeyLocation();
+			}
+		}
+		return null;
+	}
+
+	public static NanopubSignatureElement getNanopubSignatureElement(IntroNanopub inp) {
+		try {
+			return SignatureUtils.getSignatureElement(inp.getNanopub());
+		} catch (MalformedCryptoElementException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 }

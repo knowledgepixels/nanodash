@@ -22,7 +22,7 @@ import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
 
-	protected static final String LATEST_RELEASE_URL = "https://github.com/peta-pico/nanobench/releases/latest";
+	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/peta-pico/nanobench/releases";
 
 	public WicketApplication() {
 		String runParam = System.getProperty("nanobench.run");
@@ -102,15 +102,15 @@ public class WicketApplication extends WebApplication {
 
 		getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
-		mountPage("/user", UserPage.class);
-		mountPage("/search", SearchPage.class);
-		mountPage("/explore", ExplorePage.class);
-		mountPage("/publish", PublishPage.class);
-		mountPage("/publishconfirm", PublishConfirmPage.class);
-		mountPage("/profile", ProfilePage.class);
-		mountPage("/userlist", UserListPage.class);
-		mountPage("/orcidlinking", OrcidLinkingPage.class);
-		mountPage("/orcidlogin", OrcidLoginPage.class);
+		mountPage(UserPage.MOUNT_PATH, UserPage.class);
+		mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
+		mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
+		mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
+		mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
+		mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
+		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
+		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
+		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 
 		getCspSettings().blocking().disabled();
 	}
@@ -133,8 +133,9 @@ public class WicketApplication extends WebApplication {
 			reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			while(reader.ready()) {
 				String line = reader.readLine();
-				if (line.matches(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-[0-9]+\\.[0-9]+\\.zip.*")) {
-					latestVersion = line.replaceFirst(".*/download/nanobench-[0-9]+\\.[0-9]+/nanobench-([0-9]+\\.[0-9]+)\\.zip.*", "$1");
+				// TODO: Do proper JSON parsing
+				if (line.matches(".*\"tag_name\":\\s*\"nanobench-[0-9]+\\.[0-9]+\".*")) {
+					latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanobench-([0-9]+\\.[0-9]+)\".*", "$1");
 					break;
 				}
 			}

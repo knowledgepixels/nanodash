@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -11,13 +13,16 @@ import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
+import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
+import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 
@@ -36,21 +41,26 @@ public class NanobenchSession extends WebSession {
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
-	private static IntroExtractor introExtractor;
+
+	private IntroExtractor introExtractor;
 
 	private String userDir = System.getProperty("user.home") + "/.nanopub/";
 
 	private KeyPair keyPair;
-	private User user;
 	private IRI userIri;
-	private IntroNanopub introNp;
+	private Map<IRI,IntroNanopub> introNps;
 	private Boolean isOrcidLinked;
 	private String orcidLinkError;
 
 	private boolean showProvenance = true;
 	private boolean showPubinfo = false;
 
+	private Integer localIntroCount = null;
+	private IntroNanopub localIntro = null;
+
 	public void loadProfileInfo() {
+		localIntroCount = null;
+		localIntro = null;
 		NanobenchPreferences prefs = NanobenchPreferences.get();
 		if (prefs.isOrcidLoginMode()) {
 			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanobench-users/");
@@ -77,42 +87,38 @@ public class NanobenchSession extends WebSession {
 				} catch (Exception ex) {
 					System.err.println("Couldn't load key pair");
 				}
-			} else if (prefs.isOrcidLoginMode()) {
-				// Automatically generate new keys in ORCID login mode:
+			} else {
+				// Automatically generate new keys
 				makeKeys();
 			}
 		}
-		if (userIri != null && introNp == null) {
-			if (getUser() != null) {
-				Nanopub np = Utils.getNanopub(user.getIntropubIri().stringValue());
-				introNp = new IntroNanopub(np, user.getId());
-			}
+		if (userIri != null && keyPair != null && introNps == null) {
+			introNps = User.getIntroNanopubs(getPubkeyString());
 		}
 		checkOrcidLink();
 	}
 
 	public boolean isProfileComplete() {
-		return userIri != null && keyPair != null && introNp != null && doPubkeysMatch();
+		return userIri != null && keyPair != null && introNps != null;
 	}
 
-	public User getUser() {
-		if (user == null) {
-			if (getUserIri() == null) return null;
-			user = User.getUser(getUserIri().toString());
+	public void redirectToLoginIfNeeded(String path, PageParameters parameters) {
+		if (isProfileComplete()) return;
+		if (NanobenchPreferences.get().isOrcidLoginMode()) {
+			throw new RedirectToUrlException(OrcidLoginPage.getOrcidLoginUrl("." + path, parameters));
+		} else {
+			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
 		}
-		return user;
-	}
-
-	public boolean doPubkeysMatch() {
-		if (keyPair == null) return false;
-		if (introNp == null) return false;
-		// TODO: Handle case of multiple key declarations
-		return getPubkeyString().equals(introNp.getKeyDeclarations().get(0).getPublicKeyString());
 	}
 
 	public String getPubkeyString() {
 		if (keyPair == null) return null;
 		return DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
+	}
+
+	public boolean isPubkeyApproved() {
+		if (keyPair == null || userIri == null) return false;
+		return User.isApprovedKeyForUser(getPubkeyString(), userIri);
 	}
 
 	public KeyPair getKeyPair() {
@@ -132,6 +138,41 @@ public class NanobenchSession extends WebSession {
 		return userIri;
 	}
 
+	public List<IntroNanopub> getUserIntroNanopubs() {
+		return User.getIntroNanopubs(userIri);
+	}
+
+	public int getLocalIntroCount() {
+		if (localIntroCount == null) {
+			localIntroCount = 0;
+			for (IntroNanopub inp : getUserIntroNanopubs()) {
+				if (isIntroWithLocalKey(inp)) {
+					localIntroCount++;
+					localIntro = inp;
+				}
+			}
+			if (localIntroCount > 1) localIntro = null;
+		}
+		return localIntroCount;
+	}
+
+	public IntroNanopub getLocalIntro() {
+		getLocalIntroCount();
+		return localIntro;
+	}
+
+	public boolean isIntroWithLocalKey(IntroNanopub inp) {
+		IRI location = Utils.getLocation(inp);
+		NanopubSignatureElement el = Utils.getNanopubSignatureElement(inp);
+		String siteUrl = NanobenchPreferences.get().getWebsiteUrl();
+		if (location != null && siteUrl != null && !location.stringValue().equals(siteUrl)) return false;
+		if (!getPubkeyString().equals(el.getPublicKeyString())) return false;
+		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+			if (getPubkeyString().equals(kd.getPublicKeyString())) return true;
+		}
+		return false;
+	}
+
 	public void setOrcid(String orcid) {
 		if (!orcid.matches(ProfilePage.ORCID_PATTERN)) {
 			throw new RuntimeException("Illegal ORCID identifier: " + orcid);
@@ -149,18 +190,11 @@ public class NanobenchSession extends WebSession {
 			}
 		}
 		userIri = vf.createIRI("https://orcid.org/" + orcid);
+		loadProfileInfo();
 	}
 
-	public IntroNanopub getIntroNanopub() {
-		return introNp;
-	}
-
-	public void setIntroNanopub(Nanopub np) {
-		if (np == null) {
-			introNp = null;
-		} else {
-			introNp = new IntroNanopub(np, userIri);
-		}
+	public Map<IRI,IntroNanopub> getIntroNanopubs() {
+		return introNps;
 	}
 
 	public void checkOrcidLink() {
@@ -174,7 +208,8 @@ public class NanobenchSession extends WebSession {
 					isOrcidLinked = false;
 				} else {
 					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
-					if (introNp != null && inp.getNanopub().getUri().equals(introNp.getNanopub().getUri())) {
+					if (introNps != null && introNps.containsKey(inp.getNanopub().getUri())) {
+						// TODO: also check whether introduction contains local key
 						isOrcidLinked = true;
 					} else {
 						isOrcidLinked = false;

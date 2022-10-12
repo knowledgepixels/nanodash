@@ -92,10 +92,7 @@ public class ExploreDataTable extends Panel {
 			if (value.equals(current)) {
 				cellItem.add(new Label(componentId, "<strong>" + IriItem.getShortNameFromURI(value) + "</strong>").setEscapeModelStrings(false));
 			} else if (key.equals("pubkey")) {
-				String s = "(unknown)";
-				User user = User.getUserForPubkey(value);
-				if (user != null) s = user.getShortDisplayName();
-				cellItem.add(new Label(componentId, s));
+				cellItem.add(new Label(componentId, User.getShortDisplayNameForPubkey(value)));
 			} else if (value.matches("(https?|file)://.+")) {
 				cellItem.add(new NanobenchLink(componentId, value));
 			} else {

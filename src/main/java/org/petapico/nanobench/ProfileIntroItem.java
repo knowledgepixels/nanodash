@@ -1,127 +1,212 @@
 package org.petapico.nanobench;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import static org.petapico.nanobench.Utils.urlEncode;
 
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.RestartResponseException;
+import java.net.URLEncoder;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.codec.Charsets;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
-import org.eclipse.rdf4j.model.vocabulary.FOAF;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubCreator;
-import org.nanopub.SimpleCreatorPattern;
-import org.nanopub.extra.security.CryptoElement;
+import org.nanopub.SimpleTimestampPattern;
+import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
-import org.nanopub.extra.security.SignNanopub;
-import org.nanopub.extra.security.SignatureAlgorithm;
-import org.nanopub.extra.security.TransformContext;
-import org.nanopub.extra.server.PublishNanopub;
 
-import net.trustyuri.TrustyUriException;
+import net.trustyuri.TrustyUriUtils;
 
 public class ProfileIntroItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
+	private NanobenchSession session = NanobenchSession.get();
+	private NanobenchPreferences prefs = NanobenchPreferences.get();
+	private int recommendedActionsCount = 0;
+	private Map<IntroNanopub,String> includeKeysParamMap = new HashMap<>();
+	private int approvedIntrosCount = 0;
+
 	public ProfileIntroItem(String id) {
 		super(id);
 
-		final NanobenchSession session = NanobenchSession.get();
-		ExternalLink introlink = null;
-		Label intromessage = null;
-		Link<String> createIntroLink = new Link<String>("createintro") {
+		String publishIntroLinkString = "." + PublishPage.MOUNT_PATH +
+				"?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
+				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
+				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
+				"param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+				"param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+				"param_key-location=" + urlEncode(prefs.getWebsiteUrl()) + "&" +
+				"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
+						"introduction linking your ORCID identifier to the local key used on this site.");
+
+		// Do this here, so we know whether to show the recommended action before rendering stage:
+		if (session.getLocalIntro() != null) {
+			for (IntroNanopub inp : session.getUserIntroNanopubs()) {
+				if (User.isApproved(inp)) approvedIntrosCount++;
+				String params = "";
+				int paramIndex = 0;
+				for (KeyDeclaration kd : inp.getKeyDeclarations()) {
+					if (!hasKey(session.getLocalIntro(), kd)) {
+						paramIndex++;
+						params += "&" +
+								"param_public-key__." + paramIndex + "=" + urlEncode(kd.getPublicKeyString()) + "&" +
+								"param_key-declaration__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+								"param_key-declaration-ref__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
+								"param_key-location__." + paramIndex + "=" + urlEncode(kd.getKeyLocation() == null ? "" : kd.getKeyLocation());
+					}
+				}
+				if (paramIndex > 0) {
+					includeKeysParamMap.put(inp, params);
+				}
+			}
+		}
+
+		WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
+		publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "new introduction..."));
+		add(publishIntroItem);
+		publishIntroItem.setVisible(session.getLocalIntroCount() == 0);
+		if (publishIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer includeKeysItem = new WebMarkupContainer("include-keys-item");
+		add(includeKeysItem);
+		includeKeysItem.setVisible(!includeKeysParamMap.isEmpty());
+		if (includeKeysItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer retractIntroItem = new WebMarkupContainer("retract-intro-item");
+		add(retractIntroItem);
+		retractIntroItem.setVisible(session.getLocalIntroCount() > 1);
+		if (retractIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer deriveIntroItem = new WebMarkupContainer("derive-intro-item");
+		add(deriveIntroItem);
+		deriveIntroItem.setVisible(session.getLocalIntroCount() == 0 && !session.getUserIntroNanopubs().isEmpty());
+		if (deriveIntroItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer updateApprovedItem = new WebMarkupContainer("update-approved-item");
+		add(updateApprovedItem);
+		updateApprovedItem.setVisible(!session.isPubkeyApproved() && approvedIntrosCount > 0 && session.getLocalIntroCount() > 0);
+		if (updateApprovedItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer getApprovalItem = new WebMarkupContainer("get-approval-item");
+		String introUrl = (session.getLocalIntro() == null ? "" : session.getLocalIntro().getNanopub().getUri().stringValue());
+		getApprovalItem.add(new ExternalLink("introduction-to-be-approved", introUrl, introUrl));
+		add(getApprovalItem);
+		getApprovalItem.setVisible(!session.isPubkeyApproved() && session.getLocalIntroCount() == 1);
+		if (getApprovalItem.isVisible()) recommendedActionsCount++;
+
+		WebMarkupContainer orcidLinkingItem = new WebMarkupContainer("orcid-linking-item");
+		add(orcidLinkingItem);
+		orcidLinkingItem.setVisible(!session.isOrcidLinked() && session.getLocalIntroCount() == 1);
+		if (orcidLinkingItem.isVisible()) recommendedActionsCount++;
+
+		if (session.getUserIntroNanopubs().isEmpty()) {
+			add(new Label("intro-note", "<em>There are no introductions yet.</em>").setEscapeModelStrings(false));
+		} else if (session.getLocalIntroCount() == 0) {
+			// TODO: Check whether it's part of an introduction for a different ORCID, and show a warning if so
+			add(new Label("intro-note", "The local key from this site is <strong class=\"negative\">not part of an introduction</strong> yet.").setEscapeModelStrings(false));
+		} else if (session.getLocalIntroCount() == 1) {
+			add(new Label("intro-note", ""));
+		} else {
+			add(new Label("intro-note", "You have <strong class=\"negative\">multiple introductions from this site</strong>.").setEscapeModelStrings(false));
+		}
+		if (recommendedActionsCount == 0) {
+			add(new Label("action-note", "<em>There are no recommended actions.</em>").setEscapeModelStrings(false));
+		} else if (recommendedActionsCount == 1) {
+			add(new Label("action-note", "It is recommended that you <strong>execute this action</strong>:").setEscapeModelStrings(false));
+		} else {
+			add(new Label("action-note", "It is recommended that you <strong>execute one of these actions</strong>:").setEscapeModelStrings(false));
+		}
+
+		add(new DataView<IntroNanopub>("intro-nps", new ListDataProvider<IntroNanopub>(session.getUserIntroNanopubs())) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public MarkupContainer setDefaultModel(IModel<?> arg0) {
-				return null;
-			}
-
-			@Override
-			public void onClick() {
-				if (session.getUserIri() == null || session.getKeyPair() == null) return;
-				try {
-					Nanopub np = createIntroNanopub();
-					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, session.getKeyPair(), null, false, false);
-					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
-					PublishNanopub.publish(signedNp);
-					session.setIntroNanopub(signedNp);
-//					System.err.println(NanopubUtils.writeToString(signedNp, RDFFormat.TRIG));
-					throw new RestartResponseException(ProfilePage.class);
-				} catch (IOException | MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
-//				} catch (MalformedNanopubException | GeneralSecurityException | TrustyUriException ex) {
-					ex.printStackTrace();
-				}
-			}
-
-		};
-		if (session.getUserIri() != null && session.getKeyPair() != null) {
-			if (session.getIntroNanopub() != null) {
-				String introUri = session.getIntroNanopub().getNanopub().getUri().stringValue();
-				introlink = new ExternalLink("introlink", introUri);
-				introlink.add(new Label("introlinktext", introUri));
-				if (session.doPubkeysMatch()) {
-					intromessage = new Label("intromessage", "");
-					intromessage.setVisible(false);
+			protected void populateItem(Item<IntroNanopub> item) {
+				final IntroNanopub inp = item.getModelObject();
+				IRI location = Utils.getLocation(inp);
+				String uri = inp.getNanopub().getUri().stringValue();
+				ExternalLink link = new ExternalLink("intro-uri", "." + ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8));
+				link.add(new Label("intro-uri-label", TrustyUriUtils.getArtifactCode(uri).substring(0, 10)));
+				item.add(link);
+				if (User.isApproved(inp)) {
+					item.add(new Label("intro-note", " <strong class=\"positive\">(approved)</strong>").setEscapeModelStrings(false));
 				} else {
-					intromessage = new Label("intromessage", "Public key of the introduction nanopublication doesn't match.");
+					item.add(new Label("intro-note", ""));
 				}
-				createIntroLink.setVisible(false);
+				if (session.isIntroWithLocalKey(inp)) {
+					item.add(new Label("location", "<strong>this site</strong>").setEscapeModelStrings(false));
+				} else if (location == null) {
+					item.add(new Label("location", "unknown site"));
+				} else {
+					item.add(new Label("location", "<a href=\"" + location + "\">" + location + "</a>").setEscapeModelStrings(false));
+				}
+				Calendar creationDate = SimpleTimestampPattern.getCreationTime(inp.getNanopub());
+				item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
+
+				ExternalLink retractLink = new ExternalLink("retract-link", PublishPage.MOUNT_PATH + "?" +
+							"template=http://purl.org/np/RAWHrBJRZgzpNQo0_vW9yXyw_k5vkS6YHOSjx-b52ATiU&" +
+							"param_nanopubToBeRetracted=" + urlEncode(inp.getNanopub().getUri()) + "&" +
+							"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to retract the " +
+									"given introduction."),
+						"retract...");
+				item.add(retractLink);
+				retractLink.setVisible(session.getLocalIntroCount() > 1 && session.isIntroWithLocalKey(inp));
+
+				ExternalLink deriveLink = new ExternalLink("derive-link", PublishPage.MOUNT_PATH + "?" +
+							"template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+							"derive-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
+							"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
+							"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+							"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
+							"param_key-location__.1=" + urlEncode(prefs.getWebsiteUrl()) + "&" +
+							"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
+									"introduction linking your ORCID identifier to the given keys."),
+						"derive new introduction...");
+				item.add(deriveLink);
+				deriveLink.setVisible(!session.isIntroWithLocalKey(inp) && session.getLocalIntroCount() == 0);
+
+				if (includeKeysParamMap.containsKey(inp)) {
+					item.add(new ExternalLink("include-keys-link", PublishPage.MOUNT_PATH + "?" +
+								"template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+								"supersede=" + urlEncode(session.getLocalIntro().getNanopub().getUri()) +
+								includeKeysParamMap.get(inp) + "&" +
+								"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
+										"introduction that includes the additional keys."),
+							"include keys..."));
+				} else {
+					item.add(new ExternalLink("include-keys-link", ".", "").setVisible(false));
+				}
+
+				item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
+	
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected void populateItem(Item<KeyDeclaration> kdi) {
+						kdi.add(new Label("intro-key", Utils.getShortPubkeyName(kdi.getModelObject().getPublicKeyString())));
+					}
+					
+				});
 			}
-		}
-		if (introlink == null) {
-			introlink = new ExternalLink("introlink", "#");
-			introlink.add(new Label("introlinktext", ""));
-			introlink.setVisible(false);
-			intromessage = new Label("intromessage", "Lastly, you need to publish an introduction nanopublication to publicly link your ORCID to the public key above:");
-		}
-		if (session.getUserIri() == null || session.getKeyPair() == null) {
-			intromessage.setVisible(false);
-			createIntroLink.setVisible(false);
-		}
-		add(introlink);
-		add(intromessage);
-		add(createIntroLink);
+
+		});
+
 	}
 
-	private Nanopub createIntroNanopub() throws MalformedNanopubException {
-		NanobenchSession session = NanobenchSession.get();
-		if (session.getUserIri() == null || session.getKeyPair() == null) return null;
-		String tns = "http://purl.org/nanopub/temp/";
-		NanopubCreator npCreator = new NanopubCreator(vf.createIRI(tns));
-		npCreator.addNamespace("", tns);
-		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/#");
-		npCreator.addNamespace("xsd", "http://www.w3.org/2001/XMLSchema#");
-		npCreator.addNamespace("dct", "http://purl.org/dc/terms/");
-		npCreator.addNamespace("prov", "http://www.w3.org/ns/prov#");
-		npCreator.addNamespace("orcid", "https://orcid.org/");
-		npCreator.addNamespace("foaf", "http://xmlns.com/foaf/0.1/");
-		npCreator.addNamespace("np", "http://www.nanopub.org/nschema#");
-		npCreator.addNamespace("npx", "http://purl.org/nanopub/x/");
-		IRI keyDecl = vf.createIRI(tns + "keyDeclaration");
-		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_ALGORITHM, vf.createLiteral("RSA"));
-		npCreator.addAssertionStatement(keyDecl, CryptoElement.HAS_PUBLIC_KEY, vf.createLiteral(session.getPubkeyString()));
-		npCreator.addAssertionStatement(keyDecl, KeyDeclaration.DECLARED_BY, session.getUserIri());
-		String orcidName = session.getOrcidName();
-		if (orcidName != null) {
-			npCreator.addAssertionStatement(session.getUserIri(), FOAF.NAME, vf.createLiteral(orcidName));
+	private boolean hasKey(IntroNanopub inp, KeyDeclaration kd) {
+		// TODO: Do this more efficiently:
+		for (KeyDeclaration k : inp.getKeyDeclarations()) {
+			if (k.getPublicKeyString().equals(kd.getPublicKeyString())) return true;
 		}
-		npCreator.addProvenanceStatement(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO, session.getUserIri());
-		npCreator.addTimestampNow();
-		npCreator.addPubinfoStatement(DCTERMS.CREATOR, session.getUserIri());
-		return npCreator.finalizeNanopub();
+		return false;
 	}
-
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 }

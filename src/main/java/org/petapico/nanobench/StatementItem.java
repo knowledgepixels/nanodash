@@ -70,7 +70,7 @@ public class StatementItem extends Panel {
 		refreshStatements();
 	}
 
-	private void refreshStatements() {
+	public void refreshStatements() {
 		allStatements.clear();
 		for (ValueItem vi : items) {
 			vi.removeFromContext();
@@ -159,6 +159,10 @@ public class StatementItem extends Panel {
 				return;
 			}
 		}
+	}
+
+	public boolean isEmpty() {
+		return repetitionGroups.size() == 1 && repetitionGroups.get(0).isEmpty();
 	}
 
 
@@ -340,6 +344,19 @@ public class StatementItem extends Panel {
 				if (context.processValue(transform(getTemplate().getObject(s))) == null) return true;
 			}
 			return false;
+		}
+
+		public boolean isEmpty() {
+			for (IRI s : statementPartIds) {
+				Template t = getTemplate();
+				IRI subj = t.getSubject(s);
+				if (t.isPlaceholder(subj) && context.hasNarrowScope(subj) && context.processIri((IRI) transform(subj)) != null) return false;
+				IRI pred = t.getPredicate(s);
+				if (t.isPlaceholder(pred) && context.hasNarrowScope(pred) && context.processIri((IRI) transform(pred)) != null) return false;
+				Value obj = t.getObject(s);
+				if (obj instanceof IRI && t.isPlaceholder((IRI) obj) && context.hasNarrowScope((IRI) obj) && context.processValue(transform(obj)) != null) return false;
+			}
+			return true;
 		}
 
 		public boolean canMatch(List<Statement> st) {

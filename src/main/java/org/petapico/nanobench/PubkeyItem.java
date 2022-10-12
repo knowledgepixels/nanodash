@@ -10,12 +10,21 @@ public class PubkeyItem extends Panel {
 	public PubkeyItem(String id, String pubkey) {
 		super(id);
 
+		NanobenchSession session = NanobenchSession.get();
 		if (pubkey == null || pubkey.isEmpty()) {
 			add(new Label("label", ".."));
-			add(new Label("fullkey", "(key does not exist)"));
+			add(new Label("notes", ""));
+			//add(new Label("fullkey", "(key does not exist)"));
 		} else {
-			add(new Label("label", Utils.getShortPubkeyLabel(pubkey)));
-			add(new Label("fullkey", pubkey));
+			add(new Label("label", Utils.getShortPubkeyName(pubkey)));
+			String notes = "";
+			if (session.isPubkeyApproved()) {
+				notes += "It is <strong class=\"positive\">approved</strong> by the community.";
+			} else {
+				notes += "It is so far <strong class=\"negative\">not approved</strong> by the community.";
+			}
+			add(new Label("notes", notes).setEscapeModelStrings(false));
+			//add(new Label("fullkey", pubkey));
 		}
 	}
 

@@ -105,8 +105,7 @@ public class TemplateList extends Panel {
 						try {
 							NanopubSignatureElement se = SignatureUtils.getSignatureElement(item.getModelObject().getNanopub());
 							if (se != null) {
-								User user = User.getUserForPubkey(se.getPublicKeyString());
-								if (user != null) userString = user.getShortDisplayName();
+								userString = User.getShortDisplayNameForPubkey(se.getPublicKeyString());
 							}
 						} catch (Exception ex) {
 							ex.printStackTrace();

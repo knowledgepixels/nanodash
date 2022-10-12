@@ -4,91 +4,89 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.MultiNanopubRdfHandler;
 import org.nanopub.Nanopub;
+import org.nanopub.SimpleTimestampPattern;
+import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.server.FetchIndex;
 
 import com.opencsv.exceptions.CsvValidationException;
 
-public class User implements Serializable, Comparable<User> {
+public class User {
 
-	private static final long serialVersionUID = 1L;
-
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+	private User() {}  // no instances allowed
 
 	// TODO Make this configurable:
 	private static String authorityIndex = "http://purl.org/np/RAs2tE1BHvwEM2OmUftb1T0JZ6oK2J7Nnr9tGbrE_s4KQ";
 
-	private static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
-	private static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
-
-	private static List<User> approvedUsers;
-	private static List<User> unapprovedUsers;
-	private static Map<String,User> userIdMap;
-	private static Map<String,User> userPubkeyMap;
-//	private static Map<String,String> nameFromOrcidMap = new HashMap<>();
+	private static Map<IRI,Set<String>> approvedIdPubkeyMap;
+	private static Map<String,Set<IRI>> approvedPubkeyIdMap;
+	private static Map<IRI,Set<String>> unapprovedIdPubkeyMap;
+	private static Map<String,Set<IRI>> unapprovedPubkeyIdMap;
+	private static Map<String,Set<IRI>> pubkeyIntroMap;
+	private static Map<IRI,IntroNanopub> introMap;
+	private static Map<IRI,IntroNanopub> approvedIntroMap;
+	private static Map<IRI,String> idNameMap;
+	private static Map<IRI,List<IntroNanopub>> introNanopubLists;
 
 	public static synchronized void refreshUsers() {
-		approvedUsers = new ArrayList<>();
-		unapprovedUsers = new ArrayList<>();
-		userIdMap = new HashMap<String,User>();
-		userPubkeyMap = new HashMap<String,User>();
+		approvedIdPubkeyMap = new HashMap<>();
+		approvedPubkeyIdMap = new HashMap<>();
+		unapprovedIdPubkeyMap = new HashMap<>();
+		unapprovedPubkeyIdMap = new HashMap<>();
+		pubkeyIntroMap = new HashMap<>();
+		introMap = new HashMap<>();
+		approvedIntroMap = new HashMap<>();
+		idNameMap = new HashMap<>();
+		introNanopubLists = new HashMap<>();
 
 		// TODO Make update strategy configurable:
 		String latestAuthorityIndex = ApiAccess.getLatestVersionId(authorityIndex);
 		System.err.println("Using authority index: " + latestAuthorityIndex);
-		// TODO use piped out-in stream here:
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		// Get users that are listed directly in the authority index, and consider them approved:
+		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
 		new FetchIndex(latestAuthorityIndex, out, RDFFormat.TRIG, false, true, null).run();
 		InputStream in = new ByteArrayInputStream(out.toByteArray());
 		try {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
 				@Override
 				public void handleNanopub(Nanopub np) {
-					createUser(np, true);
+					// TODO: Check that latest version talks about same user
+					register(ApiAccess.getLatestVersionId(np.getUri().stringValue()), true);
 				}
 			});
 		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
 			ex.printStackTrace();
 		}
+
+		// Get users that are approved by somebody who is already approved, and consider them approved too:
 		try {
 			Map<String,String> params = new HashMap<>();
-			params.put("pred", "http://purl.org/nanopub/x/approves-of");
+			params.put("pred", "http://purl.org/nanopub/x/approvesOf");
 			List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
 			while (true) {
 				boolean keepLooping = false;
 				for (ApiResponseEntry entry : new ArrayList<>(results)) {
 					if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
-					String subj = entry.get("subj");
-					String pubkey = entry.get("pubkey");
-					String obj = entry.get("obj");
-					if (userPubkeyMap.containsKey(pubkey)) {
-						User u = userPubkeyMap.get(pubkey);
-						if (u.getId().stringValue().equals(subj)) {
-							Nanopub np = Utils.getNanopub(obj);
-							if (np != null) {
-								createUser(np, true);
-							} else {
-								System.err.println("Failed to load user: " + obj);
-							}
-						}
+					if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
+						register(entry.get("obj"), true);
 						results.remove(entry);
 						keepLooping = true;
 					}
@@ -99,178 +97,253 @@ public class User implements Serializable, Comparable<User> {
 			ex.printStackTrace();
 		}
 
+		// Get latest introductions for all users, including unapproved ones:
 		try {
 			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
-				createUser(entry, false);
+				register(entry.get("intronp"), false);
 			}
 		} catch (IOException|CsvValidationException ex) {
 			ex.printStackTrace();
 		}
-
-		Collections.sort(approvedUsers);
-		Collections.sort(unapprovedUsers);
 	}
 
-	public static synchronized List<User> getUsers(boolean approved) {
-		if (unapprovedUsers == null) {
-			refreshUsers();
+	private static IntroNanopub toIntroNanopub(String i) {
+		if (i == null) return null;
+		IRI iri = Utils.vf.createIRI(i);
+		if (introMap.containsKey(iri)) return introMap.get(iri);
+		Nanopub np = Utils.getNanopub(i);
+		if (np == null) return null;
+		if (introMap.containsKey(np.getUri())) return introMap.get(np.getUri());
+		IntroNanopub introNp = new IntroNanopub(np);
+		introMap.put(np.getUri(), introNp);
+		return introNp;
+	}
+
+	private static void register(String npId, boolean approved) {
+		IntroNanopub introNp = toIntroNanopub(npId);
+		if (introNp == null) {
+			//System.err.println("No latest version of introduction found");
+			return;
+		}
+		if (introNp.getUser() == null) {
+			//System.err.println("No identifier found in introduction");
+			return;
+		}
+		if (introNp.getKeyDeclarations().isEmpty()) {
+			//System.err.println("No key declarations found in introduction");
+			return;
 		}
 		if (approved) {
-			return approvedUsers;
-		} else {
-			return unapprovedUsers;
+			approvedIntroMap.put(introNp.getNanopub().getUri(), introNp);
 		}
-	}
-
-	public static User getUser(String id) {
-		if (userIdMap == null) {
-			refreshUsers();
-		}
-		return userIdMap.get(id);
-	}
-
-	public static User getUserForPubkey(String pubkey) {
-		if (userPubkeyMap == null) {
-			refreshUsers();
-		}
-		return userPubkeyMap.get(pubkey);
-	}
-
-	private IRI id;
-	private String name;
-	private IRI introNpIri;
-	private String pubkeyString;
-
-	private User(IRI id, String name, IRI introNpIri, String pubkeyString) {
-		this.id = id;
-		this.name = name;
-		this.introNpIri = introNpIri;
-		this.pubkeyString = pubkeyString;
-	}
-
-	private static void createUser(ApiResponseEntry entry, boolean approved) {
-		User user = new User(vf.createIRI(entry.get("user")), entry.get("name"), vf.createIRI(entry.get("intronp")), entry.get("pubkey"));
-		registerUser(user, approved);
-	}
-
-	private static void createUser(Nanopub np, boolean approved) {
-		IRI userId = null;
-		String publicKey = null;
-		String name = null;
-		for (Statement st : np.getAssertion()) {
-			// TODO: Do a proper check of assertion content:
-			if (st.getPredicate().equals(DECLARED_BY) && st.getObject() instanceof IRI) {
-				userId = (IRI) st.getObject();
-			} else if (st.getPredicate().equals(HAS_PUBLIC_KEY) && st.getObject() instanceof Literal) {
-				publicKey = st.getObject().stringValue();
-			} else if (st.getPredicate().equals(FOAF.NAME) && st.getObject() instanceof Literal) {
-				name = st.getObject().stringValue();
-			}
-		}
-		if (userId == null || publicKey == null) return;
-		User user = new User(userId, name, np.getUri(), publicKey);
-		registerUser(user, approved);
-	}
-
-	private static void registerUser(User user, boolean approved) {
-		String userId = user.getId().stringValue();
+		String userId = introNp.getUser().stringValue();
+		IRI userIri = Utils.vf.createIRI(userId);
 		if (userId.startsWith("https://orcid.org/")) {
 			// Some simple ORCID ID wellformedness check:
 			if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
 		}
-		String publicKey = user.getPubkeyString();
-		if (user.equals(userIdMap.get(userId))) {
-			return;
+		for (KeyDeclaration kd : introNp.getKeyDeclarations()) {
+			String pubkey = kd.getPublicKeyString();
+			if (approved) {
+				addValue(approvedIdPubkeyMap, userIri, pubkey);
+				addValue(approvedPubkeyIdMap, pubkey, userIri);
+			} else {
+				if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
+					addValue(unapprovedIdPubkeyMap, userIri, pubkey);
+					addValue(unapprovedPubkeyIdMap, pubkey, userIri);
+				}
+				addValue(pubkeyIntroMap, pubkey, introNp.getNanopub().getUri());
+			}
 		}
-		if (userIdMap.containsKey(userId) && !userIdMap.get(userId).getPubkeyString().equals(publicKey)) {
-			//System.err.println("User ID already registered with different public key: " + userId + " | " + publicKey);
-			return;
-		} else if (userIdMap.containsKey(userId)) {
-			//System.err.println("User ID already registered: " + userId);
-			return;
-		} else if (userPubkeyMap.containsKey(publicKey)) {
-			//System.err.println("User public key already registered (by user " + userPubkeyMap.get(publicKey).getId() + "): " + userId + " | " + publicKey);
-			return;
-		}
-		userIdMap.put(userId, user);
-		userPubkeyMap.put(publicKey, user);
-		if (approved) {
-			approvedUsers.add(user);
-		} else {
-			unapprovedUsers.add(user);
+		if (!idNameMap.containsKey(userIri)) {
+			idNameMap.put(userIri, introNp.getName());
 		}
 	}
 
-	public IRI getId() {
-		return id;
+	private static void addValue(Map<IRI,Set<String>> map, IRI key, String value) {
+		Set<String> values = map.get(key);
+		if (values == null) {
+			values = new HashSet<>();
+			map.put(key, values);
+		}
+		values.add(value);
 	}
 
-	public String getShortId() {
-		return id.stringValue().replaceFirst("^https://orcid.org/", "");
+	private static void addValue(Map<String,Set<IRI>> map, String key, IRI value) {
+		Set<IRI> values = map.get(key);
+		if (values == null) {
+			values = new HashSet<>();
+			map.put(key, values);
+		}
+		values.add(value);
 	}
 
-	public String getName() {
-		return name;
+	private static boolean hasValue(Map<IRI,Set<String>> map, IRI key, String value) {
+		Set<String> values = map.get(key);
+		if (values == null) return false;
+		return values.contains(value);
 	}
 
-	public String getDisplayName() {
+	private static boolean hasValue(Map<String,Set<IRI>> map, String key, IRI value) {
+		Set<IRI> values = map.get(key);
+		if (values == null) return false;
+		return values.contains(value);
+	}
+
+	public static boolean isApprovedKeyForUser(String key, IRI user) {
+		return hasValue(approvedIdPubkeyMap, user, key);
+	}
+
+	private static String getShortId(IRI userIri) {
+		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
+	}
+
+	public static String getName(IRI userIri) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		return idNameMap.get(userIri);
+	}
+
+	public static String getDisplayName(IRI userIri) {
+		String name = getName(userIri);
 		if (name != null && !name.isEmpty()) {
-			return name + " (" + getShortId() + ")";
+			return name + " (" + getShortId(userIri) + ")";
 		}
-//		String nameFromOrcid = getNameFromOrcid(id.stringValue());
-//		if (nameFromOrcid != null && !nameFromOrcid.isEmpty()) {
-//			return nameFromOrcid + " (" + getShortId() + ")";
-//		}
-		return getShortId();
+		return getShortId(userIri);
 	}
 
-	public String getShortDisplayName() {
+	public static String getShortDisplayName(IRI userIri) {
+		String name = getName(userIri);
 		if (name != null && !name.isEmpty()) {
 			return name;
 		}
-//		String nameFromOrcid = getNameFromOrcid(id.stringValue());
-//		if (nameFromOrcid != null && !nameFromOrcid.isEmpty()) {
-//			return nameFromOrcid;
-//		}
-		return getShortId();
+		return getShortId(userIri);
 	}
 
-	public IRI getIntropubIri() {
-		return introNpIri;
+	public static String getShortDisplayNameForPubkey(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		Set<IRI> ids = approvedPubkeyIdMap.get(pubkey);
+		if (ids == null || ids.isEmpty()) {
+			ids = unapprovedPubkeyIdMap.get(pubkey);
+			if (ids == null || ids.isEmpty()) {
+				return "(unknown)";
+			} else if (ids.size() == 1) {
+				return getShortDisplayName(ids.iterator().next());
+			} else {
+				return "(contested identity)";
+			}
+		} else if (ids.size() == 1) {
+			return getShortDisplayName(ids.iterator().next());
+		} else {
+			return "(contested identity)";
+		}
 	}
 
-	public String getPubkeyString() {
-		return pubkeyString;
+	public static IRI findSingleIdForPubkey(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		if (approvedPubkeyIdMap.containsKey(pubkey) && !approvedPubkeyIdMap.get(pubkey).isEmpty()) {
+			if (approvedPubkeyIdMap.get(pubkey).size() == 1) {
+				return approvedPubkeyIdMap.get(pubkey).iterator().next();
+			} else {
+				return null;
+			}
+		}
+		if (unapprovedPubkeyIdMap.containsKey(pubkey) && !unapprovedPubkeyIdMap.get(pubkey).isEmpty()) {
+			if (unapprovedPubkeyIdMap.get(pubkey).size() == 1) {
+				return unapprovedPubkeyIdMap.get(pubkey).iterator().next();
+			} else {
+				return null;
+			}
+		}
+		return null;
 	}
 
-	@Override
-	public int compareTo(User other) {
-		return getDisplayName().compareTo(other.getDisplayName());
+	private static Comparator<IRI> comparator = new Comparator<IRI>() {
+
+		@Override
+		public int compare(IRI iri1, IRI iri2) {
+			return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
+		}
+
+	};
+
+	public static synchronized List<IRI> getUsers(boolean approved) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		List<IRI> list;
+		if (approved) {
+			list = new ArrayList<IRI>(approvedIdPubkeyMap.keySet());
+		} else {
+			list = new ArrayList<IRI>();
+			for (IRI u : unapprovedIdPubkeyMap.keySet()) {
+				if (!approvedIdPubkeyMap.containsKey(u)) list.add(u);
+			}
+		}
+		// TODO Cache the sorted list to not sort from scratch each time:
+		list.sort(comparator);
+		return list;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof User)) return false;
-		User other = (User) obj;
-		if (!id.equals(other.id)) return false;
-		if (!introNpIri.equals(other.introNpIri)) return false;
-		return true;
+	public static synchronized List<String> getPubkeys(IRI user, Boolean approved) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		List<String> pubkeys = new ArrayList<>();
+		if (user != null) {
+			if (approved == null || approved) {
+				if (approvedIdPubkeyMap.containsKey(user)) pubkeys.addAll(approvedIdPubkeyMap.get(user));
+			}
+			if (approved == null || !approved) {
+				if (unapprovedIdPubkeyMap.containsKey(user)) pubkeys.addAll(unapprovedIdPubkeyMap.get(user));
+			}
+		}
+		return pubkeys;
 	}
 
-//	public String getNameFromOrcid(String userId) {
-//		if (!nameFromOrcidMap.containsKey(userId)) {
-//			try {
-//				IntroExtractor ie = IntroNanopub.extract(userId, null);
-//				if (ie != null) {
-//					nameFromOrcidMap.put(userId, ie.getName());
-//				} else {
-//					nameFromOrcidMap.put(userId, null);
-//				}
-//			} catch (IOException ex) {
-//				System.err.println("Could not get name from ORCID account: " + userId);
-//			}
-//		}
-//		return nameFromOrcidMap.get(userId);
-//	}
+	public static List<IntroNanopub> getIntroNanopubs(IRI user) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
+
+		Map<IRI,IntroNanopub> introNps = new HashMap<>();
+		if (approvedIdPubkeyMap.containsKey(user)) {
+			for (String pk : approvedIdPubkeyMap.get(user)) {
+				getIntroNanopubs(pk, introNps);
+			}
+		}
+		if (unapprovedIdPubkeyMap.containsKey(user)) {
+			for (String pk : unapprovedIdPubkeyMap.get(user)) {
+				getIntroNanopubs(pk, introNps);
+			}
+		}
+		List<IntroNanopub> list = new ArrayList<>(introNps.values());
+		Collections.sort(list, new Comparator<IntroNanopub>() {
+			@Override
+			public int compare(IntroNanopub i0, IntroNanopub i1) {
+				Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
+				Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
+				if (c0 == null && c1 == null) return 0;
+				if (c0 == null) return 1;
+				if (c1 == null) return -1;
+				return -c0.compareTo(c1);
+			}
+		});
+		introNanopubLists.put(user, list);
+		return list;
+	}
+
+	public static Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		Map<IRI,IntroNanopub> introNps = new HashMap<>();
+		getIntroNanopubs(pubkey, introNps);
+		return introNps;
+	}
+
+	private static void getIntroNanopubs(String pubkey, Map<IRI,IntroNanopub> introNps) {
+		if (pubkeyIntroMap.containsKey(pubkey)) {
+			for (IRI iri : pubkeyIntroMap.get(pubkey)) {
+				introNps.put(iri, introMap.get(iri));
+			}
+		}
+	}
+
+	public static boolean isApproved(IntroNanopub in) {
+		return approvedIntroMap.containsKey(in.getNanopub().getUri());
+	}
 
 }

@@ -27,10 +27,11 @@ public class HomePage extends WebPage {
 			add(new Label("text", "Click on the menu items above to explore nanopublications. This is a read-only instance, so you cannot publish new nanopublications here."));
 		} else if (NanobenchSession.get().isProfileComplete()) {
 			add(new Label("text", "Click on the menu items above to explore or publish nanopublications."));
-		} else if (NanobenchPreferences.get().isOrcidLoginMode() && session.getUser() == null) {
-			add(new Label("text", "In order to see your own nanopublications and publish new ones, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
+		} else if (NanobenchPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
+			String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
+			add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
 		} else {
-			add(new Label("text", "Before you can start, you first need to <a href=\"./profile\">complete your profile</a>.").setEscapeModelStrings(false));
+			add(new Label("text", "Before you can start, you first need to <a href=\"." + ProfilePage.MOUNT_PATH + "\">complete your profile</a>.").setEscapeModelStrings(false));
 		}
 	}
 

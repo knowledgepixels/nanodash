@@ -37,30 +37,28 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
-		ExternalLink link = new ExternalLink("nanopub-id-link", "./explore?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
+		ExternalLink link = new ExternalLink("nanopub-id-link", "." + ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
 		link.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)));
 		add(link);
 
 		String userString = "";
-		User user = null;
+		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
-				user = User.getUserForPubkey(n.getPubkey());
-				if (user != null) {
-					userString = user.getShortDisplayName();
-				}
+				pubkey = n.getPubkey();
+				userString = User.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
-		IRI userIri = NanobenchSession.get().getUserIri();
-		boolean isOwnNanopub = userIri != null && user != null && userIri.equals(user.getId());
+		NanobenchSession session = NanobenchSession.get();
+		boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 		final List<NanopubAction> actionList = new ArrayList<>();
 		final Map<String,NanopubAction> actionMap = new HashMap<>();
 		List<NanopubAction> allActions = new ArrayList<>();
@@ -126,7 +124,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanopubAction action = menu.getModel().getObject();
-				String url = "./publish?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
+				String url = "." + PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
 						"&" + action.getParamString(n.getNanopub()) +
 						"&template-version=latest";
 				throw new RedirectToUrlException(url);
@@ -141,9 +139,8 @@ public class NanopubItem extends Panel {
 			add(new Label("datetime", "(undated)"));
 		}
 		PageParameters params = new PageParameters();
-		if (user != null) {
-			params.add("id", user.getId());
-		}
+		IRI uIri = User.findSingleIdForPubkey(pubkey);
+		if (uIri != null) params.add("id", uIri);
 		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
 		userLink.add(new Label("user-text", userString));
 		add(userLink);

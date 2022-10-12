@@ -43,14 +43,14 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
 		}
-		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
 		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
 		if (template.isLocalResource(iri)) {
-			prefix = iri.stringValue().replaceFirst("^(.*[/#]).*$", "$1");
+			prefix = Utils.getUriPrefix(iri);
 		}
 		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
@@ -115,8 +115,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (context.getTemplate().isLocalResource(iri)) {
-				vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
+			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+				vs = Utils.getUriPostfix(vs);
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
 			if (!validatable.isValid()) {
@@ -132,8 +132,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
+		if (!isUnifiableWith(v)) throw new UnificationException(vs);
 		if (!prefix.isEmpty() && vs.startsWith(prefix)) {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
@@ -161,8 +161,12 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		@Override
 		public void validate(IValidatable<String> s) {
 			String p = prefix;
-			if (s.getValue().matches("(https?|file)://.+")) p = "";
-			if ((p + s.getValue()).matches("[^/# ]+")) p = "local:";
+			if (s.getValue().matches("(https?|file)://.+")) {
+				p = "";
+			} else if (s.getValue().contains(":")) {
+				s.error(new ValidationError("Colon character is not allowed in postfix"));
+			}
+			if ((p + s.getValue()).matches("[^:# ]+")) p = "local:";
 			try {
 				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {

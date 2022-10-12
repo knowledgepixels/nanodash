@@ -37,7 +37,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
 		}
-		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
@@ -79,8 +79,8 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
 		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 		Validatable<String> validatable = new Validatable<>(vs);
-		if (v instanceof IRI && context.getTemplate().isLocalResource(iri)) {
-			vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
+		if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+			vs = Utils.getUriPostfix(vs);
 		}
 		new Validator(iri, context.getTemplate()).validate(validatable);
 		if (!validatable.isValid()) {
@@ -127,7 +127,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 				return;
 			}
 			String p = "";
-			if (s.getValue().matches("[^/# ]+")) p = "local:";
+			if (s.getValue().matches("[^:# ]+")) p = "local:";
 			try {
 				ParsedIRI piri = new ParsedIRI(p + s.getValue());
 				if (!piri.isAbsolute()) {

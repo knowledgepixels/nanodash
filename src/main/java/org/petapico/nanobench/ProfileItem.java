@@ -4,6 +4,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.eclipse.rdf4j.model.IRI;
 
 public class ProfileItem extends Panel {
 	
@@ -13,9 +14,9 @@ public class ProfileItem extends Panel {
 		super(id);
 		NanobenchSession session = NanobenchSession.get();
 		NanobenchPreferences prefs = NanobenchPreferences.get();
-		User user = session.getUser();
-		if (prefs.isOrcidLoginMode() && user == null) {
-			ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl());
+		IRI userId = session.getUserIri();
+		if (prefs.isOrcidLoginMode() && userId == null) {
+			ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl("." + ProfilePage.MOUNT_PATH));
 			l.add(new Label("profiletext", "Login with ORCID"));
 			add(l);
 		} else if (prefs.isReadOnlyMode()) {
@@ -24,8 +25,8 @@ public class ProfileItem extends Panel {
 			add(l);
 		} else {
 			BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
-			if (user != null) {
-				l.add(new Label("profiletext", user.getDisplayName()));
+			if (userId != null) {
+				l.add(new Label("profiletext", User.getDisplayName(userId)));
 			} else {
 				l.add(new Label("profiletext", "incomplete profile"));
 			}

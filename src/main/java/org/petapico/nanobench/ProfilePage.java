@@ -15,6 +15,8 @@ public class ProfilePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/profile";
+
 	public static final String ORCID_PATTERN = "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]";
 
 	public ProfilePage(final PageParameters parameters) {
@@ -27,29 +29,22 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (session.isProfileComplete()) {
-			if (session.isOrcidLinked() == null) {
-				add(new Label("message", "Congratulations, your profile is complete, but we couldn't verify whether your ORCID account is linked (see below)."));
-			} else if (session.isOrcidLinked()) {
-				add(new Label("message", "Congratulations, your profile complete. Use the menu items above to browse and publish nanopublications."));
-			} else {
-				add(new Label("message", "Congratulations, your profile is sufficiently completed to publish your own nanopublications, " +
-						"but consider also linking your ORCID account as explained below."));
-			}
+			add(new Label("message", "Congratulations, your profile is sufficiently complete to publish your own nanopublications. " +
+					"You might see additional recommended actions below."));
 		} else {
 			if (loginMode) {
-				add(new Label("message", "You need to complete your introduction record before you can publish nanopublications."));
+				add(new Label("message", "Before you can publish your own nanopublications, you need to login via ORCID."));
 			} else {
-				add(new Label("message", "You need to set an ORCID identifier, load the signature keys, and publish an " +
-						"introduction before you can publish nanopublications."));
+				add(new Label("message", "Before you can publish your own nanopublications, you need to set your ORCID identifier."));
 			}
 		}
 
 		if (session.getUserIri() == null) {
 			if (loginMode) {
-				add(new Label("orcidmessage", "First, you need to <a href=\"" + OrcidLoginPage.getOrcidLoginUrl() +
-						"\">login via ORCID</a>.").setEscapeModelStrings(false));
+				String loginUrl = OrcidLoginPage.getOrcidLoginUrl("/profile");
+				add(new Label("orcidmessage", "<a href=\"" + loginUrl + "\">Login with ORCID.</a>").setEscapeModelStrings(false));
 			} else {
-				add(new Label("orcidmessage", "First, you need to enter your ORCID identifier below and press 'update'. " +
+				add(new Label("orcidmessage", "Set your ORCID identifier below. " +
 						"If you don't yet have an ORCID account, you can make one via the " +
 						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
 			}
@@ -71,7 +66,6 @@ public class ProfilePage extends WebPage {
 			protected void onSubmit() {
 				if (loginMode) return;
 				session.setOrcid(orcidField.getModelObject());
-				session.setIntroNanopub(null);
 				session.resetOrcidLinked();
 				session.invalidateNow();
 				throw new RestartResponseException(ProfilePage.class);
@@ -79,7 +73,7 @@ public class ProfilePage extends WebPage {
 
 		};
 		WebMarkupContainer submitButton = new WebMarkupContainer("submit");
-		if (loginMode) {
+		if (loginMode || session.getUserIri() != null) {
 			orcidField.setEnabled(false);
 			submitButton.setVisible(false);
 		}
@@ -104,12 +98,6 @@ public class ProfilePage extends WebPage {
 			add(new ProfileIntroItem("intropart"));
 		} else {
 			add(new Label("intropart"));
-		}
-
-		if (session.isProfileComplete()) {
-			add(new ProfileOrcidLinkItem("orcidlinkpart"));
-		} else {
-			add(new Label("orcidlinkpart"));
 		}
 	}
 

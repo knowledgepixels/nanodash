@@ -4,11 +4,50 @@
 
 <wicket:panel>
 
-<h3>Introduction Nanopublication</h3>
+<h3>Introductions</h3>
 
-<p><a wicket:id="introlink"><span wicket:id="introlinktext"></span></a></p>
+<p>Introductions link your ORCID identifier to the keys you use to sign nanopublications.</p>
 
-<p><span wicket:id="intromessage" class="negative"></span> <a wicket:id="createintro" class="button">publish introduction</a></p>
+<p><em>After changes, you may have to wait a few minutes and <a href="./profile">refresh this page</a> for this list to update:</em></p>
+
+<ul wicket:id="intro-nps">
+<li>
+<a wicket:id="intro-uri"><span wicket:id="intro-uri-label"></span></a> <span wicket:id="intro-note"></span>
+created on <span wicket:id="date"></span>
+at <span wicket:id="location"></span>
+declares keys: <span wicket:id="intro-keys"><code wicket:id="intro-key"></code></span>
+&nbsp;
+<a wicket:id="retract-link" class="smallbutton"></a>
+<a wicket:id="derive-link" class="smallbutton"></a>
+<a wicket:id="include-keys-link" class="smallbutton"></a>
+
+<!--
+<span wicket:id="add-local-key-part"><a wicket:id="add-local-key" class="button"></a> (opens link at <span wicket:id="location2"></span>)</span>
+-->
+
+</li>
+</ul>
+
+<p wicket:id="intro-note"></p>
+
+<h3>Recommended Actions</h3>
+
+<p wicket:id="action-note"></p>
+
+<ul>
+<li wicket:id="derive-intro-item">If you recognize an introduction above as your own, use <em>'derive new introduction'</em> to declare the given keys
+   alongside the local key from this site.</li>
+<li wicket:id="include-keys-item">If you recognize an introduction from another site as your own, use <em>'include keys'</em> above to declare the missing
+   keys also in the introduction from this site.</li>
+<li wicket:id="publish-intro-item">Publish an introduction from scratch declaring your local key: <a wicket:id="publish-intro-link" class="smallbutton"></a></li>
+<li wicket:id="retract-intro-item">Retract redundant introductions created on this site, using <em>'retract'</em> above</li>
+<li wicket:id="update-approved-item">Go to the site where you created your approved introduction (see above) and include the local key from this site there
+   (it should show up there in a list similar to the above).</li>
+<li wicket:id="get-approval-item">Contact <a href="./userlist">somebody you know who is approved</a> and ask them to approve of your introduction
+   (via <em>'approve somebody else'</em> on their user list page). Give them this URL of your introduction nanopublication:
+   <code><a wicket:id="introduction-to-be-approved"></a></code></li>
+<li wicket:id="orcid-linking-item">Follow <a href="./orcidlinking">these guidelines</a> to link your introduction from your ORCID account.</li>
+</ul>
 
 </wicket:panel>
 

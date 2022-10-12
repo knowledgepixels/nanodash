@@ -46,7 +46,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
 		}
-		String postfix = iri.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
@@ -171,8 +171,8 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (context.getTemplate().isLocalResource(iri)) {
-				vs = vs.replaceFirst("^.*[/#](.*)$", "$1");
+			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+				vs = Utils.getUriPostfix(vs);
 			}
 			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
 			if (!validatable.isValid()) {

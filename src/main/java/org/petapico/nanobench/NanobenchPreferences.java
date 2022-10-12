@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-public class NanobenchPreferences {
+public class NanobenchPreferences implements Serializable {
 
+	private static final long serialVersionUID = 1L;
 	private static NanobenchPreferences obj;
 
 	public static NanobenchPreferences get() {
@@ -32,7 +34,7 @@ public class NanobenchPreferences {
 
 	private List<String> nanopubActions = new ArrayList<>();
 	private boolean readOnlyMode = false;
-	private String websiteUrl;
+	private String websiteUrl = "http://localhost:37373/";
 	private boolean orcidLoginMode = false;
 	private String orcidClientId;
 	private String orcidClientSecret;
@@ -57,7 +59,7 @@ public class NanobenchPreferences {
 	}
 
 	public String getWebsiteUrl() {
-		String s = System.getenv("NANOPUB_WEBSITE_URL");
+		String s = System.getenv("NANOBENCH_WEBSITE_URL");
 		if (!(s == null) && !s.isEmpty()) return s;
 		return websiteUrl;
 	}

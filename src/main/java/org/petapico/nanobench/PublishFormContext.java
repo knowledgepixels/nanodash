@@ -69,7 +69,7 @@ public class PublishFormContext implements Serializable {
 		Map<StatementItem,Integer> finalRepetitionCount = new HashMap<>();
 		for (IRI ni : narrowScopeMap.keySet()) {
 			// TODO: Move all occurrences of this to utility function:
-			String postfix = ni.stringValue().replaceFirst("^.*[/#](.*)$", "$1");
+			String postfix = Utils.getUriPostfix(ni);
 			StatementItem si = narrowScopeMap.get(ni);
 			int i = si.getRepetitionCount();
 			while (true) {
@@ -82,12 +82,16 @@ public class PublishFormContext implements Serializable {
 				i++;
 			}
 			i = 1;
+			int corr = 0;
+			if (si.isEmpty()) corr = 1;
 			while (true) {
 				String p = postfix + "__." + i;
 				if (hasParam(p)) {
-					int absPos = si.getRepetitionCount() - 1 + i;
-					setParam(postfix + "__" + absPos, getParam(p));
-					finalRepetitionCount.put(si, i);
+					int absPos = si.getRepetitionCount() + i - 1 - corr;
+					String param = postfix + "__" + absPos;
+					if (i - corr == 0) param = postfix;
+					setParam(param, getParam(p));
+					finalRepetitionCount.put(si, i - corr);
 				} else {
 					break;
 				}
@@ -98,6 +102,7 @@ public class PublishFormContext implements Serializable {
 			for (int i = 0 ; i < finalRepetitionCount.get(si) ; i++) {
 				si.repeat();
 			}
+			si.refreshStatements();
 		}
 	}
 
@@ -168,7 +173,7 @@ public class PublishFormContext implements Serializable {
 			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 			String v = prefix + tf.getObject();
-			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 			if (v.matches("https?://.*")) {
 				return vf.createIRI(v);
 			}
@@ -180,14 +185,15 @@ public class PublishFormContext implements Serializable {
 			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 			String v = prefix + tf.getObject();
-			if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 			IRI processedIri = vf.createIRI(v);
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}
 			return processedIri;
 		} else if (template.isLocalResource(iri)) {
-			IRI processedIri = vf.createIRI(iri.stringValue().replaceFirst("^.*[/#]", NP_TEMP_IRI.stringValue()));
+			String prefix = Utils.getUriPrefix(iri);
+			IRI processedIri = vf.createIRI(iri.stringValue().replace(prefix, NP_TEMP_IRI.stringValue()));
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}
@@ -204,7 +210,7 @@ public class PublishFormContext implements Serializable {
 				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
 				String v = tf.getObject();
-				if (v.matches("[^/# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+				if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 				return vf.createIRI(v);
 			}
 		}

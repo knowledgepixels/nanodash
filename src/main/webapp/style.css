@@ -41,6 +41,10 @@ p.graphsubheader {
 	margin-bottom: 0;
 }
 
+li {
+	margin-top: 2mm;
+}
+
 table {
 	width: 100%;
 	font-size: inherit;
@@ -149,11 +153,11 @@ strong {
 
 code {
   border-width: 1px;
-  border-radius: 3px;
+  border-radius: 2px;
   border-style: solid;
-  border-color: #ccc;
-  background: #f8f8f8;
-  padding: 2px 5px;
+  border-color: #ddd;
+  background: #f4f4f4;
+  padding: 0px 3px;
 }
 
 code.chars {
@@ -435,6 +439,7 @@ hr {
 }
 
 .filter {
+  margin-top: 10px;
   margin-bottom: 25px;
 }
 
@@ -445,4 +450,34 @@ hr {
   border-color: #ccc;
   border-radius: 3px;
   padding: 5px 10px;
+}
+
+.filter > input + label + span {
+  display:none;
+}
+
+.filter > input:checked + label + span {
+  display:inline;
+}
+
+.pubkeyselect input {
+  margin-left: 3mm;
+}
+
+.pubkeyselect input + label {
+  color: #666;
+}
+
+.pubkeyselect input:checked + label {
+  color: #000;
+}
+
+p.message {
+  background: #eee;
+  padding: 10px;
+  margin-bottom: 25px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ccc;
+  border-radius: 10px;
 }

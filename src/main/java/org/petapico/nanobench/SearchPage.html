@@ -20,7 +20,16 @@
 
 <form wicket:id="form">
 <input wicket:id="search" type="text" class="textfield" size="100" required />
-<span wicket:id="own-filter"><label><input type="checkbox" wicket:id="filter" />Only show my nanopubs</label></span>
+<input type="submit" class="button" value="Search">
+<br>
+<div class="filter" wicket:id="own-filter">
+<input id="owncb" type="checkbox" wicket:id="filter" />
+<label for="owncb">Only show my nanopubs</label>
+<span>
+keys:
+<span class="pubkeyselect" wicket:id="pubkeygroup"></span>
+</span>
+</div>
 </form>
 
 <h2>Results</h2>

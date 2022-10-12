@@ -1,8 +1,9 @@
 package org.petapico.nanobench;
 
+import java.util.List;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -20,48 +21,41 @@ public class UserListPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/userlist";
+
 	public UserListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
+		final List<IRI> userList = User.getUsers(true);
 
-		add(new DataView<User>("approved-users", new ListDataProvider<User>(User.getUsers(true))) {
+		add(new Label("usercount", userList.size()));
+
+		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(userList)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<User> item) {
+			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
-				params.add("id", item.getModelObject().getId());
+				params.add("id", item.getModelObject());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", item.getModelObject().getDisplayName()));
+				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
 				item.add(l);
 			}
 
 		});
 
-		add(new DataView<User>("other-users", new ListDataProvider<User>(User.getUsers(false))) {
+		add(new DataView<IRI>("other-users", new ListDataProvider<IRI>(User.getUsers(false))) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<User> item) {
+			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
-				User u = item.getModelObject();
-				params.add("id", u.getId());
+				IRI iri = item.getModelObject();
+				params.add("id", iri);
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
-				l.add(new Label("linktext", u.getDisplayName()));
+				l.add(new Label("linktext", User.getDisplayName(iri)));
 				item.add(l);
-				WebMarkupContainer actionLinks = new WebMarkupContainer("actions");
-				item.add(actionLinks);
-				IRI userIri = NanobenchSession.get().getUserIri();
-				if (userIri != null && !userIri.equals(u.getId())) {
-					actionLinks.add(new ExternalLink("approve-link", "./publish?" +
-								"template=http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg" +
-								"&param_nanopub=" + Utils.urlEncode(u.getIntropubIri().stringValue()))
-							.add(new Label("approve-label", "approve...")));
-				} else {
-					actionLinks.add(new ExternalLink("approve-link", ".").add(new Label("approve-label", "")));  // Hide approve link
-					actionLinks.setVisible(false);
-				}
 			}
 
 		});
@@ -82,6 +76,7 @@ public class UserListPage extends WebPage {
 			}
 
 		});
+		add(new ExternalLink("approve", "." + PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw", "approve somebody else"));
 	}
 
 }
