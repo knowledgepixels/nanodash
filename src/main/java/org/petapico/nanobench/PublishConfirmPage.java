@@ -1,5 +1,6 @@
 package org.petapico.nanobench;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -18,6 +19,9 @@ public class PublishConfirmPage extends WebPage {
 		params.add("id", NanobenchSession.get().getUserIri());
 		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params));
 		add(new NanopubItem("nanopub", new NanopubElement(np), false, false));
+		WebMarkupContainer missingIntroWarningItem = new WebMarkupContainer("missing-intro-warning");
+		missingIntroWarningItem.setVisible(NanobenchSession.get().getLocalIntroCount() == 0);
+		add(missingIntroWarningItem);
 	}
 
 }
