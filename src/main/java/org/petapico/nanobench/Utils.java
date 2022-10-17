@@ -2,6 +2,9 @@ package org.petapico.nanobench;
 
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -138,6 +141,18 @@ public class Utils {
 		try {
 			return SignatureUtils.getSignatureElement(inp.getNanopub());
 		} catch (MalformedCryptoElementException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static String hashString(String s) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(s.getBytes(StandardCharsets.UTF_8));
+			StringBuilder sb = new StringBuilder();
+			for (byte b : hash) sb.append(String.format("%02x", b));
+			return sb.toString();
+		} catch (NoSuchAlgorithmException ex) {
 			throw new RuntimeException(ex);
 		}
 	}

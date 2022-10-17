@@ -2,7 +2,9 @@ package org.petapico.nanobench;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
@@ -28,9 +30,16 @@ public class OrcidLoginPage extends WebPage {
 		return getOrcidLoginUrl(Utils.getUrlWithParameters(base, params));		
 	}
 
+	// TODO Make sure the entries of this map get removed again at some point:
+	public static Map<String,String> redirectHashMap = new HashMap<>();
+
 	public static String getOrcidLoginUrl(String finalRedirectUrl) {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
-		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect=" + Utils.urlEncode(finalRedirectUrl);
+		String finalRedirectUrlHash = Utils.hashString(finalRedirectUrl);
+		redirectHashMap.put(finalRedirectUrlHash, finalRedirectUrl);
+		System.err.println(finalRedirectUrlHash);
+		// orcid.org gives errors if redirect URL is too long, so we need to store 
+		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + finalRedirectUrlHash;
 		return "https://orcid.org/oauth/authorize?" +
 			"client_id=" + prefs.getOrcidClientId() + "&" +
 			"response_type=code&" +
@@ -49,7 +58,7 @@ public class OrcidLoginPage extends WebPage {
 			urlParams.add(new BasicNameValuePair("client_secret", prefs.getOrcidClientSecret()));
 			urlParams.add(new BasicNameValuePair("grant_type", "authorization_code"));
 			// We need to report here the exact same redirect URI:
-			urlParams.add(new BasicNameValuePair("redirect_uri", prefs.getWebsiteUrl() + "/orcidlogin?redirect=" + Utils.urlEncode(parameters.get("redirect").toString(""))));
+			urlParams.add(new BasicNameValuePair("redirect_uri", prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + Utils.urlEncode(parameters.get("redirect-hash").toString(""))));
 			urlParams.add(new BasicNameValuePair("code", authCode));
 			post.setEntity(new UrlEncodedFormEntity(urlParams));
 			HttpClient client = HttpClientBuilder.create().build();
@@ -71,7 +80,7 @@ public class OrcidLoginPage extends WebPage {
 		} catch (UnsupportedOperationException | IOException ex) {
 			ex.printStackTrace();
 		}
-		throw new RedirectToUrlException(parameters.get("redirect").toString("."));
+		throw new RedirectToUrlException(redirectHashMap.get(parameters.get("redirect-hash").toString()));
 	}
 
 }
