@@ -37,7 +37,6 @@ public class OrcidLoginPage extends WebPage {
 		NanobenchPreferences prefs = NanobenchPreferences.get();
 		String finalRedirectUrlHash = Utils.hashString(finalRedirectUrl);
 		redirectHashMap.put(finalRedirectUrlHash, finalRedirectUrl);
-		System.err.println(finalRedirectUrlHash);
 		// orcid.org gives errors if redirect URL is too long, so we need to store 
 		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + finalRedirectUrlHash;
 		return "https://orcid.org/oauth/authorize?" +
