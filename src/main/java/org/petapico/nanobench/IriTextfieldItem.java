@@ -138,6 +138,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			textfield.setModelObject(vs.substring(prefix.length()));
 		} else if (vs.startsWith("local:")) {
 			textfield.setModelObject(vs.replaceFirst("^local:", ""));
+		} else if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+			textfield.setModelObject(Utils.getUriPostfix(vs));
 		} else {
 			textfield.setModelObject(vs);
 		}
