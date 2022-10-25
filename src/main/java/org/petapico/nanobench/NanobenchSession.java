@@ -227,8 +227,9 @@ public class NanobenchSession extends WebSession {
 		isOrcidLinked = null;
 	}
 
-	public Boolean isOrcidLinked() {
-		return isOrcidLinked;
+	public boolean isOrcidLinked() {
+		checkOrcidLink();
+		return isOrcidLinked != null && isOrcidLinked == true;
 	}
 
 	public String getOrcidLinkError() {
