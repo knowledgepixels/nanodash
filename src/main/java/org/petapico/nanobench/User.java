@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
@@ -24,16 +25,15 @@ import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.security.NanopubSetting;
 import org.nanopub.extra.server.FetchIndex;
+import org.nanopub.extra.server.GetNanopub;
 
 import com.opencsv.exceptions.CsvValidationException;
 
 public class User {
 
 	private User() {}  // no instances allowed
-
-	// TODO Make this configurable:
-	private static String authorityIndex = "http://purl.org/np/RAs2tE1BHvwEM2OmUftb1T0JZ6oK2J7Nnr9tGbrE_s4KQ";
 
 	private static Map<IRI,Set<String>> approvedIdPubkeyMap;
 	private static Map<String,Set<IRI>> approvedPubkeyIdMap;
@@ -56,13 +56,23 @@ public class User {
 		idNameMap = new HashMap<>();
 		introNanopubLists = new HashMap<>();
 
-		// TODO Make update strategy configurable:
-		String latestAuthorityIndex = ApiAccess.getLatestVersionId(authorityIndex);
-		System.err.println("Using authority index: " + latestAuthorityIndex);
+		// TODO Make nanopublication setting configurable:
+		NanopubSetting setting;
+		try {
+			setting = NanopubSetting.getLocalSetting();
+		} catch (RDF4JException | MalformedNanopubException | IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		String settingId = setting.getNanopub().getUri().stringValue();
+		if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
+			settingId = ApiAccess.getLatestVersionId(settingId);
+			setting = new NanopubSetting(GetNanopub.get(settingId));
+		}
+		System.err.println("Using nanopublication setting: " + settingId);
 
 		// Get users that are listed directly in the authority index, and consider them approved:
 		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
-		new FetchIndex(latestAuthorityIndex, out, RDFFormat.TRIG, false, true, null).run();
+		new FetchIndex(setting.getAgentIntroCollection().stringValue(), out, RDFFormat.TRIG, false, true, null).run();
 		InputStream in = new ByteArrayInputStream(out.toByteArray());
 		try {
 			MultiNanopubRdfHandler.process(RDFFormat.TRIG, in, new MultiNanopubRdfHandler.NanopubHandler() {
