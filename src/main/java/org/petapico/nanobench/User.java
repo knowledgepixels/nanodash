@@ -56,12 +56,18 @@ public class User {
 		idNameMap = new HashMap<>();
 		introNanopubLists = new HashMap<>();
 
+		final NanobenchPreferences pref = NanobenchPreferences.get();
+
 		// TODO Make nanopublication setting configurable:
 		NanopubSetting setting;
-		try {
-			setting = NanopubSetting.getLocalSetting();
-		} catch (RDF4JException | MalformedNanopubException | IOException ex) {
-			throw new RuntimeException(ex);
+		if (pref.getSettingUri() != null) {
+			setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri()));
+		} else {
+			try {
+				setting = NanopubSetting.getLocalSetting();
+			} catch (RDF4JException | MalformedNanopubException | IOException ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 		String settingId = setting.getNanopub().getUri().stringValue();
 		if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
@@ -86,25 +92,27 @@ public class User {
 			ex.printStackTrace();
 		}
 
-		// Get users that are approved by somebody who is already approved, and consider them approved too:
-		try {
-			Map<String,String> params = new HashMap<>();
-			params.put("pred", "http://purl.org/nanopub/x/approvesOf");
-			List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
-			while (true) {
-				boolean keepLooping = false;
-				for (ApiResponseEntry entry : new ArrayList<>(results)) {
-					if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
-					if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
-						register(entry.get("obj"), true);
-						results.remove(entry);
-						keepLooping = true;
+		if (setting.getTrustRangeAlgorithm().stringValue().equals("http://purl.org/nanopub/x/TransitiveTrust")) {
+			// Get users that are approved by somebody who is already approved, and consider them approved too:
+			try {
+				Map<String,String> params = new HashMap<>();
+				params.put("pred", "http://purl.org/nanopub/x/approvesOf");
+				List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
+				while (true) {
+					boolean keepLooping = false;
+					for (ApiResponseEntry entry : new ArrayList<>(results)) {
+						if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
+						if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
+							register(entry.get("obj"), true);
+							results.remove(entry);
+							keepLooping = true;
+						}
 					}
+					if (!keepLooping) break;
 				}
-				if (!keepLooping) break;
+			} catch (IOException|CsvValidationException ex) {
+				ex.printStackTrace();
 			}
-		} catch (IOException|CsvValidationException ex) {
-			ex.printStackTrace();
 		}
 
 		// Get latest introductions for all users, including unapproved ones:

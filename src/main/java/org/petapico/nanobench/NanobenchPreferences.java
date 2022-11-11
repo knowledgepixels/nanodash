@@ -38,6 +38,7 @@ public class NanobenchPreferences implements Serializable {
 	private boolean orcidLoginMode = false;
 	private String orcidClientId;
 	private String orcidClientSecret;
+	private String settingUri;
 
 	public List<String> getNanopubActions() {
 		String s = System.getenv("NANOBENCH_NANOPUB_ACTIONS");
@@ -97,4 +98,11 @@ public class NanobenchPreferences implements Serializable {
 		this.orcidClientSecret = orcidClientSecret;
 	}
 
+	public String getSettingUri() {
+		return settingUri;
+	}
+
+	public void setSettingUri(String settingUri) {
+		this.settingUri = settingUri;
+	}
 }
