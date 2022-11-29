@@ -483,6 +483,17 @@ public class Template implements Serializable {
 						labelMap.put(uri, label);
 					}
 				}
+			} else if (apiString.startsWith("https://vodex.petapico.org/")) {
+				// TODO This is just a test and needs to be improved
+				JSONArray responseArray = json.getJSONObject("response").getJSONArray("docs");
+				for (int i = 0; i < responseArray.length(); i++) {
+					String uri = responseArray.getJSONObject(i).getString("id");
+					String label = responseArray.getJSONObject(i).getJSONArray("label").get(0).toString();
+					if (!values.contains(uri)) {
+						values.add(uri);
+						labelMap.put(uri, label);
+					}
+				}
 			} else {
 				// TODO: create parseJsonApi() ?
 				boolean foundId = false;
