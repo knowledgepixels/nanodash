@@ -9,6 +9,7 @@ Nanobench is a client to browse and publish nanopublications.
 You can use Nanobench by login in via ORCID in one of the online instances:
 
 - https://nanobench.petapico.org/
+- https://nanobench.np.trustyuri.net/
 
 
 ## Local Installation
