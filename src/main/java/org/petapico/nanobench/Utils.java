@@ -6,19 +6,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.codec.Charsets;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-import org.commonjava.mimeparse.MIMEParse;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -38,15 +33,6 @@ public class Utils {
 
 	public static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
 	public static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
-
-	public static String getMimeType(HttpServletRequest req, String supported) {
-		List<String> supportedList = Arrays.asList(StringUtils.split(supported, ','));
-		String mimeType = supportedList.get(0);
-		try {
-			mimeType = MIMEParse.bestMatch(supportedList, req.getHeader("Accept"));
-		} catch (Exception ex) {}
-		return mimeType;
-	}
 
 	public static String getShortNameFromURI(IRI uri) {
 		String u = uri.stringValue();

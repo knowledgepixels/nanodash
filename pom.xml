@@ -77,10 +77,10 @@
       <version>2.13.1</version>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>4.0.1</version>
-      <scope>provided</scope>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-project-info-reports-plugin</artifactId>
+      <version>3.4.1</version>
+      <type>maven-plugin</type>
     </dependency>
 
     <!--  NANOPUB DEPENDENCIES  -->
@@ -146,6 +146,11 @@
           <path>/</path>
           <finalName>nanobench-${project.version}-executable.jar</finalName>
         </configuration>
+      </plugin>
+      <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-project-info-reports-plugin</artifactId>
+         <version>3.3.0</version>
       </plugin>
     </plugins>
   </build>
