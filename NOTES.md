@@ -35,6 +35,12 @@ If Maven has problems with recent Java:
 
 Run:
 
-$ mvn project-info-reports:dependencies
+    $ mvn project-info-reports:dependencies
 
 Report is then generated here: target/site/dependencies.html
+
+
+## Update Dependencies
+
+    $ mvn versions:use-latest-versions
+    $ mvn versions:update-properties
