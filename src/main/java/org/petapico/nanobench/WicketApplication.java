@@ -111,6 +111,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
+		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
 
 		getCspSettings().blocking().disabled();
 	}
