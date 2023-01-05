@@ -17,8 +17,8 @@ import org.apache.http.util.EntityUtils;
 
 public class ApiCall {
 
-	public static HttpResponse run(String operation, Map<String,String> params) {
-		ApiCall apiCall = new ApiCall(operation, params);
+	public static HttpResponse run(String apiUrl, String operation, Map<String,String> params) {
+		ApiCall apiCall = new ApiCall(apiUrl, operation, params);
 		apiCall.run();
 		while (!apiCall.calls.isEmpty() && apiCall.resp == null) {
 			try {
@@ -77,6 +77,7 @@ public class ApiCall {
 		return checkedApiInstances;
 	}
 
+	private String apiUrl;
 	private String operation;
 	private String paramString;
 	private int parallelCallCount = 2;
@@ -85,7 +86,8 @@ public class ApiCall {
 
 	private HttpResponse resp;
 
-	private ApiCall(String operation, Map<String,String> params) {
+	private ApiCall(String apiUrl, String operation, Map<String,String> params) {
+		this.apiUrl = apiUrl;
 		this.operation = operation;
 		paramString = "";
 		if (params != null) {
@@ -103,13 +105,18 @@ public class ApiCall {
 	}
 
 	private void run() {
-		List<String> apiInstancesToTry = new LinkedList<>(getApiInstances());
-		while (!apiInstancesToTry.isEmpty() && apisToCall.size() < parallelCallCount) {
-			int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
-			String apiUrl = apiInstancesToTry.get(randomIndex);
+		// TODO Make this more general when loading services from setting:
+		if (apiUrl == null || apiUrl.equals(ApiAccess.MAIN_GRLC_API_GENERIC_URL)) {
+			List<String> apiInstancesToTry = new LinkedList<>(getApiInstances());
+			while (!apiInstancesToTry.isEmpty() && apisToCall.size() < parallelCallCount) {
+				int randomIndex = (int) ((Math.random() * apiInstancesToTry.size()));
+				String apiUrl = apiInstancesToTry.get(randomIndex);
+				apisToCall.add(apiUrl);
+				System.err.println("Trying API (" + apisToCall.size() + ") " + apiUrl);
+				apiInstancesToTry.remove(randomIndex);
+			}
+		} else {
 			apisToCall.add(apiUrl);
-			System.err.println("Trying API (" + apisToCall.size() + ") " + apiUrl);
-			apiInstancesToTry.remove(randomIndex);
 		}
 		for (String api : apisToCall) {
 			Call call = new Call(api);

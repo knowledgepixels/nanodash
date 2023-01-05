@@ -20,14 +20,16 @@ import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class ApiAccess {
 
+	public static final String MAIN_GRLC_API_GENERIC_URL = "http://purl.org/nanopub/api/";
+
 	protected abstract void processHeader(String[] line);
 
 	protected abstract void processLine(String[] line);
 
-	public void call(String operation, Map<String,String> params) throws IOException, CsvValidationException {
+	public void call(String apiUrl, String operation, Map<String,String> params) throws IOException, CsvValidationException {
 		CSVReader csvReader = null;
 		try {
-			HttpResponse resp = ApiCall.run(operation, params);
+			HttpResponse resp = ApiCall.run(apiUrl, operation, params);
 			csvReader = new CSVReader(new BufferedReader(new InputStreamReader(resp.getEntity().getContent())));
 			String[] line = null;
 			int n = 0;
@@ -45,6 +47,10 @@ public abstract class ApiAccess {
 	}
 
 	public static ApiResponse getAll(String operation, Map<String,String> params) throws IOException, CsvValidationException {
+		return getAll(MAIN_GRLC_API_GENERIC_URL, operation, params);
+	}
+
+	public static ApiResponse getAll(String apiUrl, String operation, Map<String,String> params) throws IOException, CsvValidationException {
 		final ApiResponse response = new ApiResponse();
 		ApiAccess a = new ApiAccess() {
 
@@ -59,11 +65,15 @@ public abstract class ApiAccess {
 			}
 
 		};
-		a.call(operation, params);
+		a.call(apiUrl, operation, params);
 		return response;
 	}
 
 	public static ApiResponse getRecent(String operation, Map<String,String> params, Model<String> progress) {
+		return getRecent(MAIN_GRLC_API_GENERIC_URL, operation, params, progress);
+	}
+
+	public static ApiResponse getRecent(String apiUrl, String operation, Map<String,String> params, Model<String> progress) {
 		Map<String,ApiResponseEntry> resultEntries = new HashMap<>();
 		Map<String,ApiResponseEntry> overflowEntries = new HashMap<>();
 		int moveLeftCount = 0;
@@ -86,7 +96,7 @@ public abstract class ApiAccess {
 			}
 			ApiResponse tempResult;
 			try {
-				tempResult = getAll(operation, paramsx);
+				tempResult = getAll(apiUrl, operation, paramsx);
 			} catch (Exception ex) {
 				// TODO distinguish between different types of exceptions
 				//ex.printStackTrace();
@@ -157,7 +167,7 @@ public abstract class ApiAccess {
 			Map<String,String> params = new HashMap<>();
 			params.put("np", nanopubId);
 			try {
-				ApiResponse r = ApiAccess.getAll("get_latest_version", params);
+				ApiResponse r = ApiAccess.getAll(MAIN_GRLC_API_GENERIC_URL, "get_latest_version", params);
 				if (r.getData().size() != 1) return nanopubId;
 				String l = r.getData().get(0).get("latest");
 				latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
