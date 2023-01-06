@@ -1,6 +1,5 @@
 package org.petapico.nanobench;
 
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,14 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -42,9 +39,10 @@ public class NanopubItem extends Panel {
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
-		ExternalLink link = new ExternalLink("nanopub-id-link", "." + ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(n.getUri(), Charsets.UTF_8));
-		link.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)));
-		add(link);
+		add(
+			new BookmarkablePageLink<>("nanopub-id-link", ExplorePage.class, new PageParameters().add("id", n.getUri()))
+				.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)))
+		);
 
 		String userString = "";
 		String pubkey = null;
