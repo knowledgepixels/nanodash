@@ -25,6 +25,8 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class Utils {
 
 	private Utils() {}  // no instances allowed
@@ -141,6 +143,17 @@ public class Utils {
 		} catch (NoSuchAlgorithmException ex) {
 			throw new RuntimeException(ex);
 		}
+	}
+
+	public static Nanopub getAsNanopub(String uri) {
+		if (TrustyUriUtils.isPotentialTrustyUri(uri)) {
+			try {
+				return Utils.getNanopub(uri);
+			} catch (Exception ex) {
+				// wasn't a known nanopublication
+			}	
+		}
+		return null;
 	}
 
 }

@@ -64,7 +64,7 @@ public class ExploreDataTable extends Panel {
 
 	
 	private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, String nanopubUri) {
-		Nanopub np = ExplorePage.getAsNanopub(nanopubUri);
+		Nanopub np = Utils.getAsNanopub(nanopubUri);
 		if (np == null) return data;
 		List<ApiResponseEntry> filteredList = new ArrayList<>(data);
 		for (ApiResponseEntry e : data) {

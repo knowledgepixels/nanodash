@@ -1,4 +1,4 @@
-package org.petapico.nanobench;
+package org.petapico.nanobench.connector.test;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,6 +11,11 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.petapico.nanobench.ApiAccess;
+import org.petapico.nanobench.ApiResponse;
+import org.petapico.nanobench.ApiResponseEntry;
+import org.petapico.nanobench.NanobenchSession;
+import org.petapico.nanobench.TitleBar;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -18,7 +23,7 @@ public class ConnectorTestPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector";
+	public static final String MOUNT_PATH = "/connector/test";
 
 	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
 
@@ -43,7 +48,7 @@ public class ConnectorTestPage extends WebPage {
 					ApiResponseEntry e = item.getModelObject();
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", ExplorePage.class, params);
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", ConnectorNanopubTestPage.class, params);
 					l.add(new Label("nplinktext", "\"" + e.get("label") + "\""));
 					item.add(l);
 				}

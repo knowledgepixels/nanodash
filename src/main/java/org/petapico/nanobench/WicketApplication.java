@@ -19,6 +19,8 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.eclipse.rdf4j.common.io.ZipUtil;
+import org.petapico.nanobench.connector.test.ConnectorNanopubTestPage;
+import org.petapico.nanobench.connector.test.ConnectorTestPage;
 
 public class WicketApplication extends WebApplication {
 
@@ -112,6 +114,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
+		mountPage(ConnectorNanopubTestPage.MOUNT_PATH, ConnectorNanopubTestPage.class);
 
 		getCspSettings().blocking().disabled();
 	}

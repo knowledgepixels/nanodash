@@ -11,8 +11,6 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 
-import net.trustyuri.TrustyUriUtils;
-
 public class ExplorePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
@@ -30,7 +28,7 @@ public class ExplorePage extends WebPage {
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", ref);
 		try {
-			Nanopub np = getAsNanopub(ref);
+			Nanopub np = Utils.getAsNanopub(ref);
 			List<ApiResponseEntry> usageResponse = ApiAccess.getAll("get_uri_usage", nanopubParams).getData();
 			int subjCount = Integer.valueOf(usageResponse.get(0).get("subj"));
 			int relCount = Integer.valueOf(usageResponse.get(0).get("pred"));
@@ -70,14 +68,4 @@ public class ExplorePage extends WebPage {
 		}
 	}
 
-	protected static Nanopub getAsNanopub(String uri) {
-		if (TrustyUriUtils.isPotentialTrustyUri(uri)) {
-			try {
-				return Utils.getNanopub(uri);
-			} catch (Exception ex) {
-				// wasn't a known nanopublication
-			}	
-		}
-		return null;
-	}
 }
