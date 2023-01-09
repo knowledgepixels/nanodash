@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
@@ -115,8 +116,29 @@ public class WicketApplication extends WebApplication {
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
 		mountPage(ConnectorNanopubTestPage.MOUNT_PATH, ConnectorNanopubTestPage.class);
+		tryToMountPage("org.petapico.nanobench.connector.ios.DsConnectorPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.DsConnectorNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.FcConnectorPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.FcConnectorNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioConnectorPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioConnectorNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjConnectorPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjConnectorNanopubPage");
 
 		getCspSettings().blocking().disabled();
+	}
+
+	private void tryToMountPage(String pageClassName) {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<WebPage> pageClass = (Class<WebPage>) Class.forName(pageClassName);
+			String mountPath = pageClass.getField("MOUNT_PATH").get(null).toString();
+			mountPage(mountPath, pageClass);
+		} catch (ClassNotFoundException ex) {
+			// ignore
+		} catch (ClassCastException | NoSuchFieldException | IllegalAccessException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
