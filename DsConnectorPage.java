@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -11,6 +12,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.petapico.nanobench.ApiAccess;
 import org.petapico.nanobench.ApiResponse;
 import org.petapico.nanobench.ApiResponseEntry;
@@ -33,6 +35,8 @@ public class DsConnectorPage extends WebPage {
 
 		final NanobenchSession session = NanobenchSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
+
+		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsConnectorLogo.png")));
 
 		Map<String,String> params = new HashMap<>();
 		params.put("creator", session.getUserIri().stringValue());
