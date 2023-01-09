@@ -133,6 +133,7 @@ public class WicketApplication extends WebApplication {
 			@SuppressWarnings("unchecked")
 			Class<WebPage> pageClass = (Class<WebPage>) Class.forName(pageClassName);
 			String mountPath = pageClass.getField("MOUNT_PATH").get(null).toString();
+			System.err.println("Mounting extra page: " + mountPath);
 			mountPage(mountPath, pageClass);
 		} catch (ClassNotFoundException ex) {
 			// ignore

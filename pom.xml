@@ -102,6 +102,7 @@
         <directory>src/main/java</directory>
         <includes>
           <include>**</include>
+          <include>**/*.png</include>
         </includes>
         <excludes>
           <exclude>**/*.java</exclude>
@@ -114,6 +115,7 @@
         <directory>src/test/java</directory>
         <includes>
           <include>**</include>
+          <include>**/*.png</include>
         </includes>
         <excludes>
           <exclude>**/*.java</exclude>
