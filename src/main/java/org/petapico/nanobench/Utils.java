@@ -46,6 +46,10 @@ public class Utils {
 		return u;
 	}
 
+	public static String getShortNanopubId(Object npId) {
+		return TrustyUriUtils.getArtifactCode(npId.toString()).substring(0, 10);
+	}
+
 	private static Map<String,Nanopub> nanopubs = new HashMap<>();
 
 	public static Nanopub getNanopub(String uri) {

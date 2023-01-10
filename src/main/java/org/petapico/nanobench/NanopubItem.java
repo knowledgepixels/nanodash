@@ -28,8 +28,6 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import net.trustyuri.TrustyUriUtils;
-
 public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
@@ -41,7 +39,7 @@ public class NanopubItem extends Panel {
 
 		add(
 			new BookmarkablePageLink<>("nanopub-id-link", ExplorePage.class, new PageParameters().add("id", n.getUri()))
-				.add(new Label("nanopub-id-text", TrustyUriUtils.getArtifactCode(n.getUri()).substring(0, 10)))
+				.add(new Label("nanopub-id-text", Utils.getShortNanopubId(n.getUri())))
 		);
 
 		String userString = "";

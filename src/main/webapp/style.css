@@ -481,3 +481,12 @@ p.message {
   border-color: #ccc;
   border-radius: 10px;
 }
+
+blockquote {
+  background: #eee;
+  padding: 10px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ccc;
+  border-radius: 2px;
+}
