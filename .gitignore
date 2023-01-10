@@ -4,5 +4,5 @@
 /target
 /package/.extract
 /scratch
-/src/main/java/org/petapico/nanobench/connector/ios/
-/src/main/java/org/petapico/nanobench/connector/pensoft/
+/src/main/java/org/petapico/nanobench/connector/ios
+/src/main/java/org/petapico/nanobench/connector/pensoft

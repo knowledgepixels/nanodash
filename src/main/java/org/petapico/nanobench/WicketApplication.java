@@ -116,14 +116,14 @@ public class WicketApplication extends WebApplication {
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
 		mountPage(ConnectorNanopubTestPage.MOUNT_PATH, ConnectorNanopubTestPage.class);
-		tryToMountPage("org.petapico.nanobench.connector.ios.DsConnectorPage");
-		tryToMountPage("org.petapico.nanobench.connector.ios.DsConnectorNanopubPage");
-		tryToMountPage("org.petapico.nanobench.connector.ios.FcConnectorPage");
-		tryToMountPage("org.petapico.nanobench.connector.ios.FcConnectorNanopubPage");
-		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioConnectorPage");
-		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioConnectorNanopubPage");
-		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjConnectorPage");
-		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjConnectorNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.DsOverviewPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.DsNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.FcOverviewPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.FcNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioOverviewPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.RioNanopubPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjOverviewPage");
+		tryToMountPage("org.petapico.nanobench.connector.pensoft.BdjNanopubPage");
 
 		getCspSettings().blocking().disabled();
 	}
