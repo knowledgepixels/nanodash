@@ -36,7 +36,7 @@ public class FcOverviewPage extends WebPage {
 		final NanobenchSession session = NanobenchSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), "FcConnectorLogo.png")));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), "FcLogo.png")));
 
 		Map<String,String> params = new HashMap<>();
 		params.put("creator", session.getUserIri().stringValue());
