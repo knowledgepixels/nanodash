@@ -14,33 +14,35 @@
 
 <div id="content">
 
-<h2>Submitting Nanopublication to FAIR Connect</h2>
+<h2>Nanopublication for FAIR Connect</h2>
 
 <p><em>[Under construction... This nanopublication will be shown in a nicer way:]</em></p>
 
 <span wicket:id="nanopub"></span>
 
-<h3>Include in Submission Form</h3>
+<h3>Include in Submission</h3>
 
-<p>To include this nanopublication in your submission, paste this link under <em>"Nanopublication:"</em> in the submission form:
+<p>To include this nanopublication in your submission metadata, paste this link under <em>"Nanopublication:"</em> in the submission form:
 
 <ul>
 <li><a href="." wicket:id="np-link"></a></li>
 </ul>
 
-<h3>Include in Article Text</h3>
-
-<p>To include this nanopublication in the manuscript in Word, copy-paste the following snippet:</p>
+<p>To include this nanopublication in the manuscript in MS Word or similar, copy-paste the following snippet:</p>
 
 <blockquote>
-[...]
+These findings are formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
 </blockquote>
 
-<p>To include this nanopublication in the manuscript in LaTeX, copy-paste the following lines of LaTeX code:</p>
+<p>To include this nanopublication in the manuscript in LaTeX, copy-paste the following line of LaTeX code (make sure you have <code>\usepackage{hyperref}</code> somewhere in the beginning of your LaTeX document):</p>
 
 <blockquote>
-[...]
+These findings are formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
 </blockquote>
+
+<h3>Reactions and Reviews</h3>
+
+<p><em>[...]</em></p>
 
 </div>
 

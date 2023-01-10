@@ -53,7 +53,7 @@ public class FcOverviewPage extends WebPage {
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
 					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", FcNanopubPage.class, params);
-					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", published on " + e.get("date")));
+					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date")));
 					item.add(l);
 				}
 	
