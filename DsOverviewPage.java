@@ -21,7 +21,7 @@ import org.petapico.nanobench.TitleBar;
 
 import com.opencsv.exceptions.CsvValidationException;
 
-public class DsConnectorPage extends WebPage {
+public class DsOverviewPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -29,14 +29,14 @@ public class DsConnectorPage extends WebPage {
 
 	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
 
-	public DsConnectorPage(final PageParameters parameters) {
+	public DsOverviewPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
 		final NanobenchSession session = NanobenchSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsConnectorLogo.png")));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
 
 		Map<String,String> params = new HashMap<>();
 		params.put("creator", session.getUserIri().stringValue());
@@ -52,7 +52,7 @@ public class DsConnectorPage extends WebPage {
 					ApiResponseEntry e = item.getModelObject();
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsConnectorNanopubPage.class, params);
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
 					l.add(new Label("nplinktext", "\"" + e.get("label") + "\""));
 					item.add(l);
 				}

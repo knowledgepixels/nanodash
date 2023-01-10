@@ -21,7 +21,7 @@ import org.petapico.nanobench.TitleBar;
 
 import com.opencsv.exceptions.CsvValidationException;
 
-public class FcConnectorPage extends WebPage {
+public class FcOverviewPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -29,7 +29,7 @@ public class FcConnectorPage extends WebPage {
 
 	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
 
-	public FcConnectorPage(final PageParameters parameters) {
+	public FcOverviewPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
@@ -52,7 +52,7 @@ public class FcConnectorPage extends WebPage {
 					ApiResponseEntry e = item.getModelObject();
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", FcConnectorNanopubPage.class, params);
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", FcNanopubPage.class, params);
 					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", published on " + e.get("date")));
 					item.add(l);
 				}

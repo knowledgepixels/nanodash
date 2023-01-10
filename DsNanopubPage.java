@@ -9,13 +9,13 @@ import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.Utils;
 
-public class DsConnectorNanopubPage extends WebPage {
+public class DsNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector-ios-ds-np";
 
-	public DsConnectorNanopubPage(final PageParameters parameters) {
+	public DsNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 

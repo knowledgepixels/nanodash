@@ -10,13 +10,13 @@ import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.Utils;
 
-public class FcConnectorNanopubPage extends WebPage {
+public class FcNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector-ios-fc-np";
 
-	public FcConnectorNanopubPage(final PageParameters parameters) {
+	public FcNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
