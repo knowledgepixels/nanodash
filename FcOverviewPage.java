@@ -27,7 +27,7 @@ public class FcOverviewPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connector-ios-fc";
 
-	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
+	protected static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
 
 	public FcOverviewPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
