@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>nanobench</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content">
+
+<h2>Nanopublications for RIO</h2>
+
+<p><a href="./connector-pensoft-rio">&lt; Back to Overview</a></p>
+
+<p><em>[Under construction... This nanopublication will be shown in a nicer way:]</em></p>
+
+<span wicket:id="nanopub"></span>
+
+<h3>Reactions and Reviews</h3>
+
+This nanopublication has received the following reactions and reviews:
+
+<ul wicket:id="reactions">
+<li><a wicket:id="reaction"><span wicket:id="reactiontext"></span></a></li>
+</ul>
+
+<h3>Decisions</h3>
+
+The following decisions have been taken by the journal with respect to this nanopublication:
+
+<ul>
+<li><em>(none)</em></li>
+</ul>
+
+<h3>Include in Submission</h3>
+
+<p>To include this nanopublication in your <strong>submission metadata</strong>, you should use this link:
+
+<ul>
+<li><a href="." wicket:id="np-link"></a></li>
+</ul>
+
+<p>Paste this link in the textfield labeled "Nanopublication Link" as shown here:</p>
+
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 500px; border: 1px solid #000;">
+
+<p>To include this nanopublication in the manuscript in <strong>MS Word or similar</strong>, copy-paste the following snippet:</p>
+
+<blockquote>
+These findings are formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
+</blockquote>
+
+<p>To include this nanopublication in the manuscript in <strong>LaTeX</strong>, copy-paste the following line of LaTeX code (make sure you have <code>\usepackage{hyperref}</code> somewhere in the beginning of your LaTeX document):</p>
+
+<blockquote>
+These findings are formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
+</blockquote>
+
+</div>
+
+</body>
+
+</html>
