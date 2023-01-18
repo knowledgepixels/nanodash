@@ -22,6 +22,7 @@ import org.petapico.nanobench.NanobenchSession;
 import org.petapico.nanobench.NanopubElement;
 import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.TitleBar;
+import org.petapico.nanobench.User;
 import org.petapico.nanobench.Utils;
 
 public class FcNanopubPage extends WebPage {
@@ -66,7 +67,8 @@ public class FcNanopubPage extends WebPage {
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
 					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reaction", ExplorePage.class, params);
-					l.add(new Label("reactiontext", "\"" + e.get("text") + "\", " + e.get("person") + " " + e.get("date")));
+					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
+					l.add(new Label("reactiontext", "\"" + e.get("text") + "\" by " + username + " on " + e.get("date").substring(0, 10)));
 					item.add(l);
 				}
 	
