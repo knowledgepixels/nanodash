@@ -5,12 +5,14 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 import org.petapico.nanobench.ApiAccess;
 import org.petapico.nanobench.ApiResponse;
@@ -42,6 +44,9 @@ public class FcNanopubPage extends WebPage {
 			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
 			String uri = np.getUri().stringValue();
 			String shortId = "np:" + Utils.getShortNanopubId(uri);
+
+			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "FcFormSubmit.png")));
+
 			add(new ExternalLink("np-link", uri, uri));
 			add(new ExternalLink("word-np-link", uri, shortId));
 			add(new Label("latex-np-uri", uri));
