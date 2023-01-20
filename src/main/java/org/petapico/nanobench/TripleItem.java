@@ -11,14 +11,14 @@ public class TripleItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public TripleItem(String id, Statement st, Nanopub np) {
+	public TripleItem(String id, Statement st, Nanopub np, IRI templateClass) {
 		super(id);
 
 		WebMarkupContainer statement = new WebMarkupContainer("triple");
-		statement.add(new NanobenchLink("subj", st.getSubject().stringValue(), np));
-		statement.add(new NanobenchLink("pred", st.getPredicate().stringValue(), np));
+		statement.add(new NanobenchLink("subj", st.getSubject().stringValue(), np, templateClass, false));
+		statement.add(new NanobenchLink("pred", st.getPredicate().stringValue(), np, templateClass, false));
 		if (st.getObject() instanceof IRI) {
-			statement.add(new NanobenchLink("obj", st.getObject().stringValue(), np));
+			statement.add(new NanobenchLink("obj", st.getObject().stringValue(), np, templateClass, true));
 		} else {
 			statement.add(new Label("obj", "\"" + st.getObject().stringValue() + "\""));
 		}

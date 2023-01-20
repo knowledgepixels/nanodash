@@ -220,7 +220,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement1", st, n.getNanopub()));
+				item.add(new TripleItem("assertion-statement1", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
 			}
 
 		});
@@ -233,7 +233,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement2", st, n.getNanopub()));
+				item.add(new TripleItem("assertion-statement2", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
 			}
 
 		});
@@ -255,7 +255,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new TripleItem("provenance-statement", st, n.getNanopub()));
+				item.add(new TripleItem("provenance-statement", st, n.getNanopub(), Template.PROVENANCE_TEMPLATE_CLASS));
 			}
 
 		});
@@ -277,7 +277,7 @@ public class NanopubItem extends Panel {
 			@Override
 			protected void populateItem(Item<Statement> item) {
 				Statement st = item.getModelObject();
-				item.add(new TripleItem("pubinfo-statement", st, n.getNanopub()));
+				item.add(new TripleItem("pubinfo-statement", st, n.getNanopub(), Template.PUBINFO_TEMPLATE_CLASS));
 			}
 
 		});
