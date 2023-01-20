@@ -1,8 +1,10 @@
 package org.petapico.nanobench;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,9 @@ public class NanopubItem extends Panel {
 	private static final long serialVersionUID = -5109507637942030910L;
 
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+
+	private final Map<IRI,Integer> predicateOrder = new HashMap<>();
+	private Template template;
 
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
@@ -197,8 +202,29 @@ public class NanopubItem extends Panel {
 		assertionPart1.add(showMoreLink);
 		assertionPart2.add(showLessLink);
 
+		// Getting predicate order in assertion template in order to sort statements:
+		// TODO This is just a quick-and-dirty solution. Properly trying to fill the template should be done at some point.
+		// TODO We should also do this for the provenance and pubinfo graphs too.
+		IRI templateId = Template.getTemplateId(n.getNanopub());
+		if (templateId != null) {
+			template = Template.getTemplate(templateId.stringValue());
+			if (template != null) {
+				for (IRI statementId : template.getStatementIris()) {
+					if (template.isGroupedStatement(statementId)) {
+						for (IRI subStatementId : template.getStatementIris(statementId)) {
+							processStatementForPredicateOrder(subStatementId);
+						}
+					} else {
+						processStatementForPredicateOrder(statementId);
+					}
+				}
+			}
+		}
+		
+
 		if (n.getNanopub() != null) {
 			ArrayList<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
+			a.sort(statementComparator);
 			if (a.size() > 10) {
 				for (int i = 0 ; i < a.size() ; i++) {
 					if (i < 5) {
@@ -282,6 +308,48 @@ public class NanopubItem extends Panel {
 
 		});
 		add(pubInfo);
+	}
+
+	private void processStatementForPredicateOrder(IRI statementId) {
+		IRI pred = template.getPredicate(statementId);
+		if (template.isRestrictedChoicePlaceholder(pred)) {
+			
+		} else if (!template.isPlaceholder(pred)) {
+			if (!predicateOrder.containsKey(pred)) predicateOrder.put(pred, predicateOrder.size());
+		}
+	}
+
+
+	private StatementComparator statementComparator = new StatementComparator();
+
+	private class StatementComparator implements Comparator<Statement>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public int compare(Statement arg0, Statement arg1) {
+			if (!arg0.getSubject().stringValue().equals(arg1.getSubject().stringValue())) {
+				return arg0.getSubject().toString().compareTo(arg1.getSubject().toString());
+			}
+			IRI pred0 = arg0.getPredicate();
+			IRI pred1 = arg1.getPredicate();
+			if (predicateOrder.containsKey(pred0) && predicateOrder.containsKey(pred1)) {
+				int order0 = predicateOrder.get(pred0);
+				int order1 = predicateOrder.get(pred1);
+				if (order0 == order1) {
+					return pred0.toString().compareTo(pred1.toString());
+				} else {
+					return order0 - order1;
+				}
+			} else if (predicateOrder.containsKey(pred0)) {
+				return -1;
+			} else if (predicateOrder.containsKey(pred1)) {
+				return 1;
+			} else {
+				return pred0.toString().compareTo(pred1.toString());
+			}
+		}
+
 	}
 
 }
