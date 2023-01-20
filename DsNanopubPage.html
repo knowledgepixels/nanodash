@@ -14,9 +14,63 @@
 
 <div id="content">
 
-<h2>Submitting Nanopublication to Data Science</h2>
+<h2>Nanopublication for Data Science: Author View</h2>
+
+<p><a href="./connector-ios-ds">&lt; Back to Overview</a></p>
+
+<p class="negative">[under construction...]</p>
 
 <span wicket:id="nanopub"></span>
+
+<p class="negative">[show explanation of nanopublication here (based on used template)...]</p>
+
+<h3>Reactions</h3>
+
+This nanopublication has received the following reactions:
+
+<ul wicket:id="reactions">
+<li><a wicket:id="reaction"><span wicket:id="reactiontext"></span></a></li>
+</ul>
+
+<h3>Decisions</h3>
+
+The following decisions have been taken by the journal with respect to this nanopublication:
+
+<ul>
+<li><em>(none)</em></li>
+</ul>
+
+<h3>Include in Submission</h3>
+
+<p>To include this nanopublication in your <strong>submission metadata</strong>, you should use this link:
+
+<ul>
+<li><a href="." wicket:id="np-link"></a></li>
+</ul>
+
+<p>Paste this link in the textfield labeled "Nanopublication Link" as shown here:</p>
+
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 500px; border: 1px solid #000;">
+
+<p>To include this nanopublication in the manuscript in <strong>MS Word or similar</strong>, copy-paste the following snippet:</p>
+
+<blockquote>
+These findings are formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
+</blockquote>
+
+<p>To include this nanopublication in the manuscript in <strong>LaTeX</strong>, copy-paste the following line of LaTeX code (make sure you have <code>\usepackage{hyperref}</code> somewhere in the beginning of your LaTeX document):</p>
+
+<blockquote>
+These findings are formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
+</blockquote>
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems. No matter how trivial or how complex, we are here to help you!
+</p>
 
 </div>
 

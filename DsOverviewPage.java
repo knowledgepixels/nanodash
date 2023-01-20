@@ -53,7 +53,7 @@ public class DsOverviewPage extends WebPage {
 					PageParameters params = new PageParameters();
 					params.add("id", e.get("np"));
 					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-					l.add(new Label("nplinktext", "\"" + e.get("label") + "\""));
+					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
 					item.add(l);
 				}
 	
