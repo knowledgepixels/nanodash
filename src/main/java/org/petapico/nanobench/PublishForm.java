@@ -341,6 +341,9 @@ public class PublishForm extends Panel {
 
 		form.add(new BookmarkablePageLink<UserPage>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
+		String description = assertionContext.getTemplate().getLabel();
+		if (description == null) description = "";
+		form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()));
 
 		form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
 

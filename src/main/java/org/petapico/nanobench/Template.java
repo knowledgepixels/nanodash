@@ -30,6 +30,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
@@ -154,6 +155,7 @@ public class Template implements Serializable {
 
 	private Nanopub nanopub;
 	private String label;
+	private String description;
 
 	// TODO: Make all these maps more generic and the code simpler:
 	private IRI assertionIri;
@@ -197,6 +199,10 @@ public class Template implements Serializable {
 
 	public String getLabel() {
 		return label;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	public String getLabel(IRI iri) {
@@ -569,6 +575,8 @@ public class Template implements Serializable {
 			if (st.getSubject().equals(assertionIri)) {
 				if (st.getPredicate().equals(RDFS.LABEL)) {
 					label = st.getObject().stringValue();
+				} else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+					description = st.getObject().stringValue();
 				} else if (st.getObject() instanceof IRI) {
 					if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
 						defaultProvenance = (IRI) st.getObject();
