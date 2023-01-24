@@ -44,7 +44,6 @@ public class RioNanopubPage extends WebPage {
 			Nanopub np = Utils.getAsNanopub(ref);
 			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
 			String uri = np.getUri().stringValue();
-			String shortId = "np:" + Utils.getShortNanopubId(uri);
 
 			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "RioFormSubmit.png")));
 
