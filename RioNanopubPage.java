@@ -49,9 +49,6 @@ public class RioNanopubPage extends WebPage {
 			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "RioFormSubmit.png")));
 
 			add(new ExternalLink("np-link", uri, uri));
-			add(new ExternalLink("word-np-link", uri, shortId));
-			add(new Label("latex-np-uri", uri));
-			add(new Label("latex-np-label", shortId.replace("_", "\\_")));
 
 			Map<String,String> params = new HashMap<>();
 			params.put("obj", uri);
