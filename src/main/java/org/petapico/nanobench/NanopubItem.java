@@ -223,7 +223,7 @@ public class NanopubItem extends Panel {
 		
 
 		if (n.getNanopub() != null) {
-			ArrayList<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
+			List<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
 			a.sort(statementComparator);
 			if (a.size() > 10) {
 				for (int i = 0 ; i < a.size() ; i++) {
@@ -272,6 +272,7 @@ public class NanopubItem extends Panel {
 		} else {
 			if (n.getNanopub() != null) {
 				provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
+				provenanceStatements.sort(statementComparator);
 			}
 		}
 		provenance.add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
@@ -294,6 +295,7 @@ public class NanopubItem extends Panel {
 		} else {
 			if (n.getNanopub() != null) {
 				pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+				pubinfoStatements.sort(statementComparator);
 			}
 		}
 		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {

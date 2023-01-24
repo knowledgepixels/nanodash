@@ -323,16 +323,33 @@ public class StatementItem extends Panel {
 		}
 
 		public void addTriplesTo(NanopubCreator npCreator) {
+			Template t = getTemplate();
 			for (IRI s : statementPartIds) {
-				IRI pSubj = context.processIri((IRI) transform(getTemplate().getSubject(s)));
-				IRI pPred = context.processIri((IRI) transform(getTemplate().getPredicate(s)));
-				Value pObj = context.processValue(transform(getTemplate().getObject(s)));
+				IRI subj = context.processIri((IRI) transform(t.getSubject(s)));
+				IRI pred = context.processIri((IRI) transform(t.getPredicate(s)));
+				Value obj = context.processValue(transform(t.getObject(s)));
 				if (context.getType() == ContextType.ASSERTION) {
-					npCreator.addAssertionStatement(pSubj, pPred, pObj);
+					npCreator.addAssertionStatement(subj, pred, obj);
 				} else if (context.getType() == ContextType.PROVENANCE) {
-					npCreator.addProvenanceStatement(pSubj, pPred, pObj);
+					npCreator.addProvenanceStatement(subj, pred, obj);
 				} else if (context.getType() == ContextType.PUBINFO) {
-					npCreator.addPubinfoStatement(pSubj, pPred, pObj);
+					npCreator.addPubinfoStatement(subj, pred, obj);
+				}
+			}
+			for (ValueItem vi : items) {
+				if (vi.getComponent() instanceof GuidedChoiceItem) {
+					GuidedChoiceItem gci = (GuidedChoiceItem) vi.getComponent();
+					String value = gci.getModel().getObject();
+					if (value != null && gci.getLabel(value) != null) {
+						String label = gci.getLabel(value);
+						// TODO Do this properly: (removes additional info after the pure label that is added earlier when creating the label)
+						label = label.replaceFirst(" - .*$", "");
+						try {
+							npCreator.addPubinfoStatement(vf.createIRI(value), Template.HAS_LABEL_FROM_API, vf.createLiteral(label));
+						} catch (IllegalArgumentException ex) {
+							ex.printStackTrace();
+						}
+					}
 				}
 			}
 		}

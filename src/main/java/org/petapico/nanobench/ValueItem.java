@@ -73,6 +73,10 @@ public class ValueItem extends Panel implements ContextComponent {
 		return value;
 	}
 
+	public ContextComponent getComponent() {
+		return component;
+	}
+
 	public String toString() {
 		return component.toString();
 	}

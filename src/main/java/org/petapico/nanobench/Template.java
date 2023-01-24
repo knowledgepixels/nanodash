@@ -151,6 +151,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
 	public static final IRI HAS_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTag");
+	public static final IRI HAS_LABEL_FROM_API = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLabelFromApi");
 
 
 	private Nanopub nanopub;

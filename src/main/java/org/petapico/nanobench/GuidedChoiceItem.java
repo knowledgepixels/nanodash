@@ -30,6 +30,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	private PublishFormContext context;
 	private Select2Choice<String> textfield;
 	private IRI iri;
+	private IModel<String> model;
 
 	private String prefix;
 
@@ -41,7 +42,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		this.context = context;
 		this.iri = iriP;
 		final Template template = context.getTemplate();
-		IModel<String> model = context.getFormComponentModels().get(iri);
+		model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
@@ -81,18 +82,18 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getDisplayValue(String id) {
-				if (id == null || id.isEmpty()) return "";
+			public String getDisplayValue(String choiceId) {
+				if (choiceId == null || choiceId.isEmpty()) return "";
 				String label = null;
-				if (id.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(id)) != null) {
-					label = template.getLabel(vf.createIRI(id));
-				} else if (labelMap.containsKey(id)) {
-					label = labelMap.get(id);
+				if (choiceId.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
+					label = template.getLabel(vf.createIRI(choiceId));
+				} else if (labelMap.containsKey(choiceId)) {
+					label = labelMap.get(choiceId);
 				}
 				if (label != null) {
-					return label + " (" + id + ")";
+					return label + " (" + choiceId + ")";
 				} else {
-					return id;
+					return choiceId;
 				}
 			}
 
@@ -159,6 +160,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		add(textfield);
 	}
 
+	public IModel<String> getModel() {
+		return model;
+	}
+
 	@Override
 	public void removeFromContext() {
 		context.getFormComponents().remove(textfield);
@@ -199,6 +204,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		if (!labelMap.containsKey(vs)) {
 			context.getTemplate().getPossibleValuesFromApi(iri, vs, labelMap);
 		}
+	}
+
+	public String getLabel(String value) {
+		return labelMap.get(value);
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();

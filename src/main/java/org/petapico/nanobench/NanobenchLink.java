@@ -2,7 +2,9 @@ package org.petapico.nanobench;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.Charsets;
@@ -11,6 +13,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
@@ -24,6 +27,12 @@ public class NanobenchLink extends Panel {
 		super(id);
 
 		List<Template> templates = new ArrayList<>();
+		Map<IRI,String> labels = new HashMap<>();
+		if (np != null) {
+			for (Statement st : np.getPubinfo()) {
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) labels.put((IRI) st.getSubject(), st.getObject().stringValue());
+			}
+		}
 		if (Template.ASSERTION_TEMPLATE_CLASS.equals(templateClass)) {
 			IRI templateId = Template.getTemplateId(np);
 			if (templateId != null) {
@@ -88,7 +97,13 @@ public class NanobenchLink extends Panel {
 					}
 					break;
 				} else {
-					String l = template.getLabel(vf.createIRI(uri));
+					IRI i = vf.createIRI(uri);
+					String l = template.getLabel(i);
+					if (l != null) {
+						label = l;
+						break;
+					}
+					l = labels.get(i);
 					if (l != null) {
 						label = l;
 						break;
