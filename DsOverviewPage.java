@@ -27,7 +27,7 @@ public class DsOverviewPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connector-ios-ds";
 
-	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
+	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 
 	public DsOverviewPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
@@ -40,10 +40,11 @@ public class DsOverviewPage extends WebPage {
 
 		Map<String,String> params = new HashMap<>();
 		params.put("creator", session.getUserIri().stringValue());
+
 		try {
-			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-formalization-nanopubs", params);
+			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-superpattern-nanopubs", params);
 	
-			add(new DataView<ApiResponseEntry>("formalization-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
+			add(new DataView<ApiResponseEntry>("superpattern-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 	
 				private static final long serialVersionUID = 1L;
 	
@@ -61,6 +62,52 @@ public class DsOverviewPage extends WebPage {
 		} catch (IOException|CsvValidationException ex) {
 			// TODO Report error somehow...
 			add(new Label("formalization-nps"));
+		}
+
+		try {
+			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-classdef-nanopubs", params);
+	
+			add(new DataView<ApiResponseEntry>("classdef-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<ApiResponseEntry> item) {
+					ApiResponseEntry e = item.getModelObject();
+					PageParameters params = new PageParameters();
+					params.add("id", e.get("np"));
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
+					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
+					item.add(l);
+				}
+	
+			});
+		} catch (IOException|CsvValidationException ex) {
+			// TODO Report error somehow...
+			add(new Label("classdef-nps"));
+		}
+
+		try {
+			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-inddef-nanopubs", params);
+	
+			add(new DataView<ApiResponseEntry>("inddef-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<ApiResponseEntry> item) {
+					ApiResponseEntry e = item.getModelObject();
+					PageParameters params = new PageParameters();
+					params.add("id", e.get("np"));
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
+					l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
+					item.add(l);
+				}
+	
+			});
+		} catch (IOException|CsvValidationException ex) {
+			// TODO Report error somehow...
+			add(new Label("inddef-nps"));
 		}
 	}
 
