@@ -103,11 +103,17 @@ public class NanobenchSession extends WebSession {
 	}
 
 	public void redirectToLoginIfNeeded(String path, PageParameters parameters) {
-		if (isProfileComplete()) return;
+		String loginUrl = getLoginUrl(path, parameters);
+		if (loginUrl == null) return;
+		throw new RedirectToUrlException(loginUrl);
+	}
+
+	public String getLoginUrl(String path, PageParameters parameters) {
+		if (isProfileComplete()) return null;
 		if (NanobenchPreferences.get().isOrcidLoginMode()) {
-			throw new RedirectToUrlException(OrcidLoginPage.getOrcidLoginUrl("." + path, parameters));
+			return OrcidLoginPage.getOrcidLoginUrl("." + path, parameters);
 		} else {
-			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
+			return "." + ProfilePage.MOUNT_PATH;
 		}
 	}
 
