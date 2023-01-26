@@ -33,10 +33,7 @@ public class DsNanopubPage extends WebPage {
 
 	public DsNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
-		//add(new Label("titlebar"));  // hide title bar
-
-		final NanobenchSession session = NanobenchSession.get();
-		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
+		//add(new Label("titlebar"));  // hide title barO
 
 		final String ref = parameters.get("id").toString();
 
