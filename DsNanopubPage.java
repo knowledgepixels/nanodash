@@ -18,7 +18,6 @@ import org.petapico.nanobench.ApiAccess;
 import org.petapico.nanobench.ApiResponse;
 import org.petapico.nanobench.ApiResponseEntry;
 import org.petapico.nanobench.ExplorePage;
-import org.petapico.nanobench.NanobenchSession;
 import org.petapico.nanobench.NanopubElement;
 import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.TitleBar;
@@ -51,7 +50,7 @@ public class DsNanopubPage extends WebPage {
 			add(new Label("latex-np-label", shortId.replace("_", "\\_")));
 
 			Map<String,String> params = new HashMap<>();
-			params.put("obj", uri);
+			params.put("paper", uri);
 			ApiResponse resp = ApiAccess.getAll(FcOverviewPage.apiUrl, "get-reactions", params);
 	
 			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
