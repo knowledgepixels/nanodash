@@ -18,7 +18,6 @@ import org.petapico.nanobench.ApiAccess;
 import org.petapico.nanobench.ApiResponse;
 import org.petapico.nanobench.ApiResponseEntry;
 import org.petapico.nanobench.ExplorePage;
-import org.petapico.nanobench.NanobenchSession;
 import org.petapico.nanobench.NanopubElement;
 import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.TitleBar;
@@ -35,9 +34,6 @@ public class RioNanopubPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
-		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
-
 		final String ref = parameters.get("id").toString();
 
 		try {
@@ -50,7 +46,7 @@ public class RioNanopubPage extends WebPage {
 			add(new ExternalLink("np-link", uri, uri));
 
 			Map<String,String> params = new HashMap<>();
-			params.put("obj", uri);
+			params.put("paper", uri);
 			ApiResponse resp = ApiAccess.getAll(RioOverviewPage.apiUrl, "get-reactions", params);
 	
 			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
