@@ -20,6 +20,7 @@ import org.petapico.nanobench.ApiResponseEntry;
 import org.petapico.nanobench.ExplorePage;
 import org.petapico.nanobench.NanopubElement;
 import org.petapico.nanobench.NanopubItem;
+import org.petapico.nanobench.Template;
 import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.User;
 import org.petapico.nanobench.Utils;
@@ -40,6 +41,15 @@ public class RioNanopubPage extends WebPage {
 			Nanopub np = Utils.getAsNanopub(ref);
 			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
 			String uri = np.getUri().stringValue();
+
+			Template template = Template.getTemplate(np);
+			if (template == null) {
+				add(new Label("template-name", "(none)"));
+				add(new Label("template-description", ""));
+			} else {
+				add(new Label("template-name", template.getLabel()));
+				add(new Label("template-description", (template.getDescription() == null ? "" : template.getDescription())));
+			}
 
 			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "RioFormSubmit.png")));
 
