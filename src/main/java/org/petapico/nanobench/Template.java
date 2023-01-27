@@ -115,6 +115,12 @@ public class Template implements Serializable {
 		return null;
 	}
 
+	public static Template getTemplate(Nanopub np) {
+		IRI templateId = getTemplateId(np);
+		if (templateId == null) return null;
+		return getTemplate(templateId.stringValue());
+	}
+
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 	public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");

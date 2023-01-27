@@ -205,21 +205,18 @@ public class NanopubItem extends Panel {
 		// Getting predicate order in assertion template in order to sort statements:
 		// TODO This is just a quick-and-dirty solution. Properly trying to fill the template should be done at some point.
 		// TODO We should also do this for the provenance and pubinfo graphs too.
-		IRI templateId = Template.getTemplateId(n.getNanopub());
-		if (templateId != null) {
-			template = Template.getTemplate(templateId.stringValue());
-			if (template != null) {
-				for (IRI statementId : template.getStatementIris()) {
-					if (template.isGroupedStatement(statementId)) {
-						for (IRI subStatementId : template.getStatementIris(statementId)) {
-							processStatementForPredicateOrder(subStatementId);
-						}
-					} else {
-						processStatementForPredicateOrder(statementId);
+		template = Template.getTemplate(n.getNanopub());
+		if (template != null) {
+			for (IRI statementId : template.getStatementIris()) {
+				if (template.isGroupedStatement(statementId)) {
+					for (IRI subStatementId : template.getStatementIris(statementId)) {
+						processStatementForPredicateOrder(subStatementId);
 					}
+				} else {
+					processStatementForPredicateOrder(statementId);
 				}
 			}
-		}
+	}
 		
 
 		if (n.getNanopub() != null) {
