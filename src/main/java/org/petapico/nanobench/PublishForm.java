@@ -77,7 +77,7 @@ public class PublishForm extends Panel {
 			linkMessageItem.add(new Label("link-message", ""));
 			linkMessageItem.setVisible(false);
 		} else {
-			linkMessageItem.add(new Label("link-message", pageParams.get("link-message")));
+			linkMessageItem.add(new Label("link-message", Utils.sanitizeHtml(pageParams.get("link-message").toString())).setEscapeModelStrings(false));
 		}
 		add(linkMessageItem);
 
@@ -343,7 +343,7 @@ public class PublishForm extends Panel {
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 		String description = assertionContext.getTemplate().getLabel();
 		if (description == null) description = "";
-		form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()));
+		form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()).setEscapeModelStrings(false));
 
 		form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
 

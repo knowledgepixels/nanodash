@@ -472,7 +472,7 @@ hr {
   color: #000;
 }
 
-p.message {
+.message {
   background: #eee;
   padding: 10px;
   margin-bottom: 25px;

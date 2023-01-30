@@ -583,7 +583,7 @@ public class Template implements Serializable {
 				if (st.getPredicate().equals(RDFS.LABEL)) {
 					label = st.getObject().stringValue();
 				} else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-					description = st.getObject().stringValue();
+					description = Utils.sanitizeHtml(st.getObject().stringValue());
 				} else if (st.getObject() instanceof IRI) {
 					if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
 						defaultProvenance = (IRI) st.getObject();

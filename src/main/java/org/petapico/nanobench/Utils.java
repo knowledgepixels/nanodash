@@ -24,6 +24,8 @@ import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -158,6 +160,19 @@ public class Utils {
 			}	
 		}
 		return null;
+	}
+
+	private static PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
+			.allowCommonBlockElements()
+			.allowCommonInlineFormattingElements()
+		    .allowElements("a")
+		    .allowUrlProtocols("https", "http")
+		    .allowAttributes("href").onElements("a")
+		    .requireRelNofollowOnLinks()
+		    .toFactory();
+
+	public static String sanitizeHtml(String rawHtml) {
+		return htmlSanitizePolicy.sanitize(rawHtml);
 	}
 
 }
