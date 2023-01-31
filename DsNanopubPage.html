@@ -22,17 +22,21 @@
 
 <span wicket:id="nanopub"></span>
 
-<p class="negative">[show explanation of nanopublication here (based on used template)...]</p>
+
+<h3>Used Template: <em wicket:id="template-name"></em></h3>
+
+<p wicket:id="template-description">(template description)</p>
+
 
 <h3>Reactions</h3>
 
 This nanopublication has received the following reactions:
 
 <ul wicket:id="reactions">
-<li><a wicket:id="reaction"><span wicket:id="reactiontext"></span></a></li>
+<li><em wicket:id="reactionnote"></em> <a wicket:id="reaction"><span wicket:id="reactiontext"></span></a></li>
 </ul>
 
-<a class="smallbutton" href="./publish?template=http://purl.org/np/RA4qeqqwcQGKQX9AgSd_3nNzECBYsohceseJ5FdFU_kjQ&template-version=latest" target="_blank">create new...</a>
+<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">create new...</a>
 
 <h3>Include in Submission</h3>
 
