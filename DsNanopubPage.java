@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
@@ -26,6 +27,8 @@ import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.User;
 import org.petapico.nanobench.Utils;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class DsNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
@@ -34,15 +37,23 @@ public class DsNanopubPage extends WebPage {
 
 	public DsNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
-		//add(new Label("titlebar"));  // hide title barO
+		//add(new Label("titlebar"));  // hide title bar
 
-		final String ref = parameters.get("id").toString();
+		String ref = null;
+		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
+		if (requestUrl.matches(MOUNT_PATH.substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
+			ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
+		}
+		if (ref == null) {
+			ref = parameters.get("id").toString();
+		}
 
 		try {
 			Nanopub np = Utils.getAsNanopub(ref);
 			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
 			String uri = np.getUri().stringValue();
 			String shortId = "np:" + Utils.getShortNanopubId(uri);
+			String reviewUri = "http://ds.kpxl.org/" + TrustyUriUtils.getArtifactCode(uri);
 
 			Template template = Template.getTemplate(np);
 			if (template == null) {
@@ -55,9 +66,9 @@ public class DsNanopubPage extends WebPage {
 
 			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "DsFormSubmit.png")));
 
-			add(new ExternalLink("np-link", uri, uri));
-			add(new ExternalLink("word-np-link", uri, shortId));
-			add(new Label("latex-np-uri", uri));
+			add(new ExternalLink("np-link", reviewUri, reviewUri));
+			add(new ExternalLink("word-np-link", reviewUri, shortId));
+			add(new Label("latex-np-uri", reviewUri));
 			add(new Label("latex-np-label", shortId.replace("_", "\\_")));
 
 			Map<String,String> params = new HashMap<>();
