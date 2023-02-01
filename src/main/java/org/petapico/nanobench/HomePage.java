@@ -31,7 +31,7 @@ public class HomePage extends WebPage {
 			String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
 			add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
 		} else {
-			add(new Label("text", "Before you can start, you first need to <a href=\"." + ProfilePage.MOUNT_PATH + "\">complete your profile</a>.").setEscapeModelStrings(false));
+			add(new Label("text", "Before you can start, you first need to <a href=\"" + ProfilePage.MOUNT_PATH + "\">complete your profile</a>.").setEscapeModelStrings(false));
 		}
 	}
 

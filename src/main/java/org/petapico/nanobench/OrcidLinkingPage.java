@@ -16,14 +16,14 @@ public class OrcidLinkingPage extends WebPage {
 		super();
 		add(new TitleBar("titlebar"));
 		if (!NanobenchSession.get().isProfileComplete()) {
-			throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
+			throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		}
 		final NanobenchSession session = NanobenchSession.get();
 		String introUri;
 		if (session.getLocalIntroCount() == 0) {
-			introUri = "(no introduction with local key found; first resolve this on <a href=\"." + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
+			introUri = "(no introduction with local key found; first resolve this on <a href=\"" + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
 		} else if (session.getLocalIntroCount() > 1) {
-			introUri = "(several introductions with local key found; first resolve this on <a href=\"." + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
+			introUri = "(several introductions with local key found; first resolve this on <a href=\"" + ProfilePage.MOUNT_PATH + "\">your profile page</a>)";
 		} else {
 			introUri = "<code>" + session.getLocalIntro().getNanopub().getUri() + "</code>";
 		}

@@ -111,9 +111,9 @@ public class NanobenchSession extends WebSession {
 	public String getLoginUrl(String path, PageParameters parameters) {
 		if (isProfileComplete()) return null;
 		if (NanobenchPreferences.get().isOrcidLoginMode()) {
-			return OrcidLoginPage.getOrcidLoginUrl("." + path, parameters);
+			return OrcidLoginPage.getOrcidLoginUrl(path, parameters);
 		} else {
-			return "." + ProfilePage.MOUNT_PATH;
+			return ProfilePage.MOUNT_PATH;
 		}
 	}
 

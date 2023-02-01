@@ -82,7 +82,7 @@ public class Utils {
 			return u.build().toString();
 		} catch (URISyntaxException ex) {
 			ex.printStackTrace();
-			return ".";
+			return "/";
 		}
 	}
 

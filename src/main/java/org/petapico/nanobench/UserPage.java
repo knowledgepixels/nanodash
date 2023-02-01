@@ -32,7 +32,7 @@ public class UserPage extends WebPage {
 	public UserPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		if (parameters.get("id") == null) throw new RedirectToUrlException("." + ProfilePage.MOUNT_PATH);
+		if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
 		add(new Label("username", User.getDisplayName(userIri)));
 
