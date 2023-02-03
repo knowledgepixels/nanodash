@@ -12,20 +12,44 @@
 
 <div wicket:id="titlebar"></div>
 
-<div id="content">
+<div id="content" class="widthmax">
 
 <h2>Nanopublication for Data Science</h2>
 
-<p><a href="./connector-ios-ds">&lt; Back to Overview</a></p>
+<div wicket:id="navigation"></div>
 
-<p class="negative">[under construction...]</p>
+<div class="instruction" wicket:id="author-instruction">
+<h4><em>Author Instruction</em></h4>
+<p>
+Here you can check your nanopublication, and follow the instructions below to include it in your Data Science submission.
+</p>
+</div>
+
+<div class="instruction" wicket:id="reviewer-instruction">
+<h4><em>Reviewer Instruction</em></h4>
+<p>To assess this nanopublication, check its content below, <strong>most importantly the blue assertion part</strong>, and also consider the description of the used template and any reactions it has received.</p>
+<p>
+<strong>This is experimental and optional.</strong>
+We hope you can help us assess this nanopublication and we can assist you with that (see at the bottom of this page), but it is also perfectly fine to skip this step if you do not feel up to it.
+</p>
+</div>
+
+<h3>Nanopublication</h3>
+
+<p>
+A nanopublication contains as main content a statement in the <strong>assertion part (shown in blue)</strong> encoded in a way that computers can understand.
+It is expressed as one or more <strong>subject-relation-object structures</strong>, each shown on a separate line,
+where the identifier of the subject (left) is connected to the identifier of the object (right) via the identifier of the relation type (middle).
+</p>
 
 <span wicket:id="nanopub"></span>
 
+<h3>Description of Used Template</h3>
 
-<h3>Used Template: <em wicket:id="template-name"></em></h3>
-
+<div class="message">
+<p><strong wicket:id="template-name"></strong></p>
 <p wicket:id="template-description">(template description)</p>
+</div>
 
 
 <h3>Reactions</h3>
@@ -38,7 +62,10 @@ This nanopublication has received the following reactions:
 
 <a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">create new...</a>
 
-<h3>Include in Submission</h3>
+
+<div class="instruction" wicket:id="submissionpart">
+
+<h4><em>Author Instruction:</em> Include in Submission</h4>
 
 <p>To include this nanopublication in your submission metadata, you should use this link:</p>
 
@@ -50,7 +77,11 @@ This nanopublication has received the following reactions:
 
 <img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 500px; border: 1px solid #000;">
 
-<h3>Mention in Manuscript (optional)</h3>
+</div>
+
+<div class="instruction" wicket:id="mentionpart">
+
+<h4><em>Author Instruction:</em> Mention in Manuscript (optional)</h4>
 
 <p>Additionally, you may want to mention this nanopublication in the manuscript in <strong>MS Word or similar</strong>. For that, you can copy-paste the following snippet:</p>
 
@@ -63,6 +94,9 @@ These findings are formalized in a machine-interpretable manner in our nanopubli
 <blockquote>
 These findings are formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
 </blockquote>
+
+</div>
+
 
 <h3>Help</h3>
 

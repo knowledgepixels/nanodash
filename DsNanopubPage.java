@@ -3,6 +3,7 @@ package org.petapico.nanobench.connector.ios;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -39,21 +40,41 @@ public class DsNanopubPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
+		String mode = "author";
+		if (!parameters.get("mode").isEmpty()) {
+			mode = parameters.get("mode").toString();
+		}
+
 		String ref = null;
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (requestUrl.matches(MOUNT_PATH.substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
+			// TODO: Don't assume purl.org namespace here:
 			ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
 		}
 		if (ref == null) {
 			ref = parameters.get("id").toString();
 		}
 
+		Nanopub np = Utils.getAsNanopub(ref);
+		add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
+		String uri = np.getUri().stringValue();
+		String shortId = "np:" + Utils.getShortNanopubId(uri);
+		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
+		String reviewUri = "http://ds.kpxl.org/" + artifactCode;
+
+		String navigationLinks = "|";
+		if (mode.equals("author")) {
+			navigationLinks += " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=reviewer\">Switch to Reviewer View</a> |";
+		} else if (mode.equals("reviewer")) {
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=author\">Switch to Author View</a> |";
+		}
+		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
+
+		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
+		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
+
 		try {
-			Nanopub np = Utils.getAsNanopub(ref);
-			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
-			String uri = np.getUri().stringValue();
-			String shortId = "np:" + Utils.getShortNanopubId(uri);
-			String reviewUri = "http://ds.kpxl.org/" + TrustyUriUtils.getArtifactCode(uri);
 
 			Template template = Template.getTemplate(np);
 			if (template == null) {
@@ -61,15 +82,10 @@ public class DsNanopubPage extends WebPage {
 				add(new Label("template-description", ""));
 			} else {
 				add(new Label("template-name", template.getLabel()));
-				add(new Label("template-description", (template.getDescription() == null ? "" : template.getDescription())).setEscapeModelStrings(false));
+				String description = "<p><em>(This template doesn't have a description)</em></p>";
+				if (template.getDescription() != null) description = template.getDescription();
+				add(new Label("template-description", description).setEscapeModelStrings(false));
 			}
-
-			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "DsFormSubmit.png")));
-
-			add(new ExternalLink("np-link", reviewUri, reviewUri));
-			add(new ExternalLink("word-np-link", reviewUri, shortId));
-			add(new Label("latex-np-uri", reviewUri));
-			add(new Label("latex-np-label", shortId.replace("_", "\\_")));
 
 			Map<String,String> params = new HashMap<>();
 			params.put("pub", uri);
@@ -102,6 +118,17 @@ public class DsNanopubPage extends WebPage {
 						.add("template", "http://purl.org/np/RA4qeqqwcQGKQX9AgSd_3nNzECBYsohceseJ5FdFU_kjQ")
 						.add("param_paper", np.getUri().stringValue())
 						.add("template-version", "latest")));
+
+			WebMarkupContainer submissionPart = new WebMarkupContainer("submissionpart");
+			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), "DsFormSubmit.png")));
+			submissionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
+			add(submissionPart.setVisible(mode.equals("author")));
+
+			WebMarkupContainer mentionPart = new WebMarkupContainer("mentionpart");
+			mentionPart.add(new ExternalLink("word-np-link", reviewUri, shortId));
+			mentionPart.add(new Label("latex-np-uri", reviewUri));
+			mentionPart.add(new Label("latex-np-label", shortId.replace("_", "\\_")));
+			add(mentionPart.setVisible(mode.equals("author")));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
