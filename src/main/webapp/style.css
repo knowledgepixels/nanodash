@@ -22,6 +22,10 @@ h4, h5, h6 {
 	font-size: 12pt;
 }
 
+h5, h6 {
+	font-style: italic;
+}
+
 .title {
 	font-size: 22pt;
 	font-weight: bold;
@@ -375,9 +379,6 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   white-space: nowrap;
   position: absolute;
   z-index: 1;
-}
-
-.tooltip .tooltiptext {
   top: -5px;
   left: 105%;
 }
@@ -387,6 +388,45 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 }
 
 .tooltip .tooltiptext::after {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent black transparent transparent;
+}
+
+.expltooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.expltooltip .expltooltiptext {
+  visibility: hidden;
+  background-color: white;
+  border-style: solid;
+  border-color: black;
+  border-width: 1px;
+  border-radius: 5px;
+  text-align: left;
+  padding: 5px 10px;
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+  width: 1000px;
+  font-size: 12pt;
+  font-weight: normal;
+  clear: none;
+}
+
+.expltooltip:hover .expltooltiptext {
+  visibility: visible;
+}
+
+.expltooltip .tooltiptext::after {
   content: " ";
   position: absolute;
   top: 50%;
@@ -512,4 +552,5 @@ blockquote {
 
 div.widthmax {
   max-width: 1600px;
+  margin-bottom: 50px;
 }
