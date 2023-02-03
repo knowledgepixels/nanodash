@@ -68,11 +68,14 @@ public class DsNanopubPage extends WebPage {
 			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=reviewer\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
 			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=author\">Switch to Author View</a> |";
+		} else if (mode.equals("example")) {
+			navigationLinks += " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
 		}
 		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
 
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
+		add(new WebMarkupContainer("example-message").setVisible(mode.equals("example")));
 
 		try {
 

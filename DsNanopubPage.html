@@ -34,17 +34,28 @@ We hope you can help us assess this nanopublication and we can assist you with t
 </p>
 </div>
 
-<h3>Nanopublication</h3>
+<div class="message" wicket:id="example-message">
+<h4><em>Example</em></h4>
+<p>This is an example of a nanopublication that could be included in a Data Science submission.</p>
+</div>
 
-<p>
+
+<h3>Nanopublication
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 A nanopublication contains as main content a statement in the <strong>assertion part (shown in blue)</strong> encoded in a way that computers can understand.
 It is expressed as one or more <strong>subject-relation-object structures</strong>, each shown on a separate line,
 where the identifier of the subject (left) is connected to the identifier of the object (right) via the identifier of the relation type (middle).
-</p>
+</span></span>
+</h3>
 
 <span wicket:id="nanopub"></span>
 
-<h3>Description of Used Template</h3>
+
+<h3>Template Description
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+This is the description of the template that was used to create this nanopublication.
+</span></span>
+</h3>
 
 <div class="message">
 <p><strong wicket:id="template-name"></strong></p>
@@ -52,28 +63,30 @@ where the identifier of the subject (left) is connected to the identifier of the
 </div>
 
 
-<h3>Reactions</h3>
-
-This nanopublication has received the following reactions:
+<h3>Reactions
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+Anyone can write reactions to this nanopublication, including the Data Science reviewers and editors.
+</span></span>
+</h3>
 
 <ul wicket:id="reactions">
 <li><em wicket:id="reactionnote"></em> <a wicket:id="reaction"><span wicket:id="reactiontext"></span></a></li>
 </ul>
 
-<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">create new...</a>
+<p><a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">create new...</a></p>
 
 
 <div class="instruction" wicket:id="submissionpart">
 
 <h4><em>Author Instruction:</em> Include in Submission</h4>
 
-<p>To include this nanopublication in your submission metadata, you should use this link:</p>
+<p>To include this nanopublication in your submission metadata, use this link:</p>
 
 <ul>
 <li><a href="." wicket:id="np-link"></a></li>
 </ul>
 
-<p>Paste this link in the textfield labeled "Nanopublication Link" as shown here:</p>
+<p>Paste it in the textfield labeled "Nanopublication Link":</p>
 
 <img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 500px; border: 1px solid #000;">
 
@@ -81,18 +94,18 @@ This nanopublication has received the following reactions:
 
 <div class="instruction" wicket:id="mentionpart">
 
-<h4><em>Author Instruction:</em> Mention in Manuscript (optional)</h4>
+<h4><em>Author Instruction:</em> Mention in Manuscript</h4>
 
-<p>Additionally, you may want to mention this nanopublication in the manuscript in <strong>MS Word or similar</strong>. For that, you can copy-paste the following snippet:</p>
+<p>To mention this nanopublication in the manuscript in <strong>MS Word or similar</strong>, copy-paste this snippet:</p>
 
 <blockquote>
-These findings are formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
+This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
 </blockquote>
 
-<p>If you are using <strong>LaTeX</strong>, you can copy-paste the following line of LaTeX code (make sure you have <code>\usepackage{hyperref}</code> somewhere in the beginning of your LaTeX document):</p>
+<p>For <strong>LaTeX</strong>, use this line (and make sure you have <code>\usepackage{hyperref}</code> in the beginning of your LaTeX document):</p>
 
 <blockquote>
-These findings are formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
+This statement is formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
 </blockquote>
 
 </div>

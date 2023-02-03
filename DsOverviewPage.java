@@ -50,7 +50,7 @@ public class DsOverviewPage extends WebPage {
 		if (userIri == null) {
 			add(new WebMarkupContainer("superpattern-nps")
 				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-					.add(new Label("nplinktext", "(login here to see your nanopublications)"))));
+					.add(new Label("nplinktext", "(login to see)"))));
 		} else {
 			try {
 				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-superpattern-nanopubs", params);
