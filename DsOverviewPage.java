@@ -48,9 +48,38 @@ public class DsOverviewPage extends WebPage {
 		}
 
 		if (userIri == null) {
+			add(new WebMarkupContainer("linkflowsrel-nps")
+				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
+						.add(new Label("nplinktext", "(login to see them)"))));
+		} else {
+			try {
+				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-linkflowsrel-nanopubs", params);
+		
+				add(new DataView<ApiResponseEntry>("linkflowsrel-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
+		
+					private static final long serialVersionUID = 1L;
+		
+					@Override
+					protected void populateItem(Item<ApiResponseEntry> item) {
+						ApiResponseEntry e = item.getModelObject();
+						PageParameters params = new PageParameters();
+						params.add("id", e.get("np"));
+						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
+						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
+						item.add(l);
+					}
+		
+				});
+			} catch (IOException|CsvValidationException ex) {
+				// TODO Report error somehow...
+				add(new Label("superpattern-nps"));
+			}
+		}
+
+		if (userIri == null) {
 			add(new WebMarkupContainer("superpattern-nps")
 				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-					.add(new Label("nplinktext", "(login to see)"))));
+					.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
 				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-superpattern-nanopubs", params);
@@ -79,7 +108,7 @@ public class DsOverviewPage extends WebPage {
 		if (userIri == null) {
 			add(new WebMarkupContainer("classdef-nps")
 				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-					.add(new Label("nplinktext", "(login here to see your nanopublications)"))));
+						.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
 				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-classdef-nanopubs", params);
@@ -108,7 +137,7 @@ public class DsOverviewPage extends WebPage {
 		if (userIri == null) {
 			add(new WebMarkupContainer("inddef-nps")
 				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-					.add(new Label("nplinktext", "(login here to see your nanopublications)"))));
+						.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
 				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-inddef-nanopubs", params);
