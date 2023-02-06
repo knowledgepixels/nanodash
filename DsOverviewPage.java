@@ -30,7 +30,7 @@ public class DsOverviewPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connector-ios-ds";
 
-	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
+	public static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 
 	public DsOverviewPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
