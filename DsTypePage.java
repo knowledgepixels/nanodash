@@ -123,6 +123,12 @@ public class DsTypePage extends WebPage {
 
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
+					.add("prtemplate", "http://purl.org/np/RAcCMOxJ6N0vfLAeHO81Ly-KEx0QZVWBFESibY9Sz6TI0")
+					.add("link-message", "<p>Fill in the assertion (blue) part below, and then tick the checkbox and click on \"Publish\" at the bottom " +
+							"to publish a nanopublication can you can later link to your Data Science submission.</p>" +
+							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link, in which case you can choose " +
+							"the provenance template \"From research described in an article (published/preprint)\".</p>" +
+							"<p>The publication info (yellow) part can also be left untouched, but you are also free to add further elements there.</p>")
 			));
 	}
 
