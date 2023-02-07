@@ -522,7 +522,7 @@ hr {
   border-radius: 10px;
 }
 
-.message p {
+.message p, .message h1, .message h2, .message h3, .message h4, .message h5, .message h6 {
   margin: 8px 0;
 }
 
