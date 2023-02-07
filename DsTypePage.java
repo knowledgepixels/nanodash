@@ -122,6 +122,11 @@ public class DsTypePage extends WebPage {
 			}
 		}
 
+		String createNewParagraph = "";
+		if (type.equals("superpattern") || type.equals("crel") || type.equals("inddef")) {
+			createNewParagraph += "<p>If you don't find the class you need, <a href=\"/connector-ios-ds-type?type=classdef\">create a new class</a> first.</p>";
+		}
+
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", "http://purl.org/np/RAcCMOxJ6N0vfLAeHO81Ly-KEx0QZVWBFESibY9Sz6TI0")
@@ -130,7 +135,7 @@ public class DsTypePage extends WebPage {
 							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link, in which case you can choose " +
 							"the provenance template \"From research described in an article (published/preprint)\".</p>" +
 							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
-							"<p>If you don't find the class you need, <a href=\"/connector-ios-ds-type?type=classdef\">create a new class</a> first.</p>" +
+							createNewParagraph +
 							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
 							"<p>Close this tab to <strong>abort</strong> the nanopublication creation.</p>")
 			));
