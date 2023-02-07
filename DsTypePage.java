@@ -20,9 +20,12 @@ import org.petapico.nanobench.ApiAccess;
 import org.petapico.nanobench.ApiResponse;
 import org.petapico.nanobench.ApiResponseEntry;
 import org.petapico.nanobench.NanobenchSession;
+import org.petapico.nanobench.NanopubElement;
+import org.petapico.nanobench.NanopubItem;
 import org.petapico.nanobench.PublishPage;
 import org.petapico.nanobench.Template;
 import org.petapico.nanobench.TitleBar;
+import org.petapico.nanobench.Utils;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -47,33 +50,33 @@ public class DsTypePage extends WebPage {
 		String title = null;
 		Template template = null;
 		String exampleId = null;
-		String exampleLabel = null;
+//		String exampleLabel = null;
 
 		if (type.equals("superpattern")) {
 			title = "General Super-Pattern Statements";
 			template = Template.getTemplate("http://purl.org/np/RAklcTNzzyZpQV3fsPVMOYqaEcYdG3T7Db5dgMyYgVxNU");
 			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
-			exampleLabel = "in humans, headache is mostly caused by dehydration";
+//			exampleLabel = "in humans, headache is mostly caused by dehydration";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Instances";
 			template = Template.getTemplate("http://purl.org/np/RA2bh5P8WyBw5AStfI022BhXuJc7t8Sy1jJmycRTY9Xu4");
 			exampleId = "http://purl.org/np/RA4jQEcgnlnyZuVcSDg7n4oXL9l0Ifkpq34gvWaDPEuac";
-			exampleLabel = "invention of telephone was necessary for Internet";
+//			exampleLabel = "invention of telephone was necessary for Internet";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
 			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
 			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
-			exampleLabel = "instances of smoking tend to cause instances of cancer";
+//			exampleLabel = "instances of smoking tend to cause instances of cancer";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
 			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
 			exampleId = "http://purl.org/np/RA_is9jmGdOi9hhZhX7nuZum8YAl76jrsqVhOR5KvYvyw";
-			exampleLabel = "operant research";
+//			exampleLabel = "operant research";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAZR0ieT8ynmPI28fdQheCRDbL8znCeN_udhiSbQHXBS8");
 			exampleId = "http://purl.org/np/RAPs7VnjMiXNTtRJplChj1OxOFd0fJqdQwt3eX-cKWqKg";
-			exampleLabel = "Leiden Declaration on FAIR Digital Objects";
+//			exampleLabel = "Leiden Declaration on FAIR Digital Objects";
 		}
 
 		add(new Label("title", title));
@@ -90,9 +93,7 @@ public class DsTypePage extends WebPage {
 			params.put("creator", userIri.stringValue());
 		}
 
-		add(new BookmarkablePageLink<WebPage>("example-link", DsNanopubPage.class,
-				new PageParameters().add("id", exampleId).add("mode", "example").add("type", type)
-			).add(new Label("example-label", exampleLabel)));
+		add(new NanopubItem("example-nanopub", new NanopubElement(Utils.getAsNanopub(exampleId)), false, true));
 
 		if (userIri == null) {
 			add(new WebMarkupContainer("candidate-nps")
