@@ -40,6 +40,8 @@ public class DsNanopubPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
+		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
+
 		String mode = "author";
 		if (!parameters.get("mode").isEmpty()) {
 			mode = parameters.get("mode").toString();

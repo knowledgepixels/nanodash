@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>nanobench</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content" class="widthmax">
+
+<h2><span wicket:id="title">Type Page Title</span></h2>
+
+<a href="https://datasciencehub.net/"><img alt="Data Science logo" wicket:id="logo" style="width: 300px"></a>
+
+<h3>Template Description
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+This is the description of the template that can be used to create such kinds of nanopublications.
+</span></span>
+</h3>
+
+<div class="message">
+<p><strong wicket:id="template-name"></strong></p>
+<p wicket:id="template-description">(template description)</p>
+</div>
+
+
+<h3>Example</h3>
+
+<ul>
+<li><a wicket:id="example-link" href="/">"<span wicket:id="example-label"></span>"</a></li>
+</ul>
+
+
+<h3>Your Candidates</h3>
+
+<ul wicket:id="candidate-nps">
+<li><a wicket:id="nplink"><span wicket:id="nplinktext"></span></a></li>
+</ul>
+
+<p>
+<a wicket:id="create-new-link" class="smallbutton" href="/publish" target="_blank">create new...</a>
+</p>
+
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems. No matter how trivial or how complex, we are here to help you!
+</p>
+
+</div>
+
+</body>
+
+</html>

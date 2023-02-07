@@ -1,28 +1,10 @@
 package org.petapico.nanobench.connector.ios;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.eclipse.rdf4j.model.IRI;
-import org.petapico.nanobench.ApiAccess;
-import org.petapico.nanobench.ApiResponse;
-import org.petapico.nanobench.ApiResponseEntry;
-import org.petapico.nanobench.NanobenchSession;
 import org.petapico.nanobench.TitleBar;
-
-import com.opencsv.exceptions.CsvValidationException;
 
 public class DsOverviewPage extends WebPage {
 
@@ -36,132 +18,8 @@ public class DsOverviewPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
-
 		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
 
-		IRI userIri = session.getUserIri();
-		Map<String,String> params = null;
-		if (userIri != null) {
-			params = new HashMap<>();
-			params.put("creator", userIri.stringValue());
-		}
-
-		if (userIri == null) {
-			add(new WebMarkupContainer("linkflowsrel-nps")
-				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-						.add(new Label("nplinktext", "(login to see them)"))));
-		} else {
-			try {
-				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-linkflowsrel-nanopubs", params);
-		
-				add(new DataView<ApiResponseEntry>("linkflowsrel-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-		
-					private static final long serialVersionUID = 1L;
-		
-					@Override
-					protected void populateItem(Item<ApiResponseEntry> item) {
-						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters();
-						params.add("id", e.get("np"));
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
-						item.add(l);
-					}
-		
-				});
-			} catch (IOException|CsvValidationException ex) {
-				// TODO Report error somehow...
-				add(new Label("superpattern-nps"));
-			}
-		}
-
-		if (userIri == null) {
-			add(new WebMarkupContainer("superpattern-nps")
-				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-					.add(new Label("nplinktext", "(login to see them)"))));
-		} else {
-			try {
-				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-superpattern-nanopubs", params);
-		
-				add(new DataView<ApiResponseEntry>("superpattern-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-		
-					private static final long serialVersionUID = 1L;
-		
-					@Override
-					protected void populateItem(Item<ApiResponseEntry> item) {
-						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters();
-						params.add("id", e.get("np"));
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
-						item.add(l);
-					}
-		
-				});
-			} catch (IOException|CsvValidationException ex) {
-				// TODO Report error somehow...
-				add(new Label("superpattern-nps"));
-			}
-		}
-
-		if (userIri == null) {
-			add(new WebMarkupContainer("classdef-nps")
-				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-						.add(new Label("nplinktext", "(login to see them)"))));
-		} else {
-			try {
-				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-classdef-nanopubs", params);
-		
-				add(new DataView<ApiResponseEntry>("classdef-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-		
-					private static final long serialVersionUID = 1L;
-		
-					@Override
-					protected void populateItem(Item<ApiResponseEntry> item) {
-						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters();
-						params.add("id", e.get("np"));
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
-						item.add(l);
-					}
-		
-				});
-			} catch (IOException|CsvValidationException ex) {
-				// TODO Report error somehow...
-				add(new Label("classdef-nps"));
-			}
-		}
-
-		if (userIri == null) {
-			add(new WebMarkupContainer("inddef-nps")
-				.add(new ExternalLink("nplink", session.getLoginUrl(MOUNT_PATH, parameters))
-						.add(new Label("nplinktext", "(login to see them)"))));
-		} else {
-			try {
-				ApiResponse resp = ApiAccess.getAll(apiUrl, "get-inddef-nanopubs", params);
-		
-				add(new DataView<ApiResponseEntry>("inddef-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-		
-					private static final long serialVersionUID = 1L;
-		
-					@Override
-					protected void populateItem(Item<ApiResponseEntry> item) {
-						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters();
-						params.add("id", e.get("np"));
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
-						item.add(l);
-					}
-		
-				});
-			} catch (IOException|CsvValidationException ex) {
-				// TODO Report error somehow...
-				add(new Label("inddef-nps"));
-			}
-		}
 	}
 
 }
