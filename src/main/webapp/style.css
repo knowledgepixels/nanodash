@@ -537,7 +537,7 @@ hr {
   border-radius: 10px;
 }
 
-.instruction p , h1, h2, h3, h4, h5, h6 {
+.instruction p, .instruction h1, .instruction h2, .instruction h3, .instruction h4, .instruction h5, .instruction h6 {
   margin: 8px 0;
 }
 
