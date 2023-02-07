@@ -55,10 +55,15 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
 			exampleLabel = "in humans, headache is mostly caused by dehydration";
 		} else if (type.equals("linkflowsrel")) {
-			title = "Simple Causal/Spatio-Temporal/Comparative Relations for Data Science";
+			title = "Simple Scientific Relations between Instances for Data Science";
 			template = Template.getTemplate("http://purl.org/np/RA2bh5P8WyBw5AStfI022BhXuJc7t8Sy1jJmycRTY9Xu4");
 			exampleId = "http://purl.org/np/RA4jQEcgnlnyZuVcSDg7n4oXL9l0Ifkpq34gvWaDPEuac";
 			exampleLabel = "invention of telephone was necessary for Internet";
+		} else if (type.equals("crel")) {
+			title = "Simple Scientific Relations based on Classes for Data Science";
+			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
+			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
+			exampleLabel = "instances of smoking tend to cause instances of cancer";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions for Data Science";
 			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
