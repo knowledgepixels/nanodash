@@ -117,6 +117,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
 		mountPage(ConnectorNanopubTestPage.MOUNT_PATH, ConnectorNanopubTestPage.class);
 		tryToMountPage("org.petapico.nanobench.connector.ios.DsOverviewPage");
+		tryToMountPage("org.petapico.nanobench.connector.ios.DsTypePage");
 		tryToMountPage("org.petapico.nanobench.connector.ios.DsNanopubPage");
 		tryToMountPage("org.petapico.nanobench.connector.ios.FcOverviewPage");
 		tryToMountPage("org.petapico.nanobench.connector.ios.FcNanopubPage");
