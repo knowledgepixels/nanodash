@@ -64,14 +64,22 @@ public class DsNanopubPage extends WebPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = "http://ds.kpxl.org/" + artifactCode;
 
+		String backLink = " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
+		String typeParam = "";
+		if (!parameters.get("type").isEmpty()) {
+			String type = parameters.get("type").toString();
+			backLink = " <a href=\"/connector-ios-ds-type?type=" + type + "\">&lt; Back to Type Overview</a> |";
+			typeParam = "&type=" + type;
+		}
+
 		String navigationLinks = "|";
 		if (mode.equals("author")) {
-			navigationLinks += " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=reviewer\">Switch to Reviewer View</a> |";
+			navigationLinks += backLink;
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=reviewer" + typeParam + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=author\">Switch to Author View</a> |";
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=author" + typeParam + "\">Switch to Author View</a> |";
 		} else if (mode.equals("example")) {
-			navigationLinks += " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
+			navigationLinks += backLink;
 		}
 		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
 

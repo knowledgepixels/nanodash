@@ -32,6 +32,8 @@ public class DsTypePage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connector-ios-ds-type";
 
+	private String type;
+
 	public DsTypePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
@@ -40,7 +42,7 @@ public class DsTypePage extends WebPage {
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
 
-		String type = parameters.get("type").toString();
+		type = parameters.get("type").toString();
 
 		String title = null;
 		Template template = null;
@@ -84,7 +86,7 @@ public class DsTypePage extends WebPage {
 		}
 
 		add(new BookmarkablePageLink<WebPage>("example-link", DsNanopubPage.class,
-				new PageParameters().add("id", exampleId).add("mode", "example")
+				new PageParameters().add("id", exampleId).add("mode", "example").add("type", type)
 			).add(new Label("example-label", exampleLabel)));
 
 		if (userIri == null) {
@@ -102,11 +104,9 @@ public class DsTypePage extends WebPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters();
-						params.add("id", e.get("np"));
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class, params);
-						l.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10)));
-						item.add(l);
+						item.add(new BookmarkablePageLink<WebPage>("nplink", DsNanopubPage.class,
+								new PageParameters().add("id", e.get("np")).add("type", type))
+							.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10))));
 					}
 		
 				});
