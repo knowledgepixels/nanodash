@@ -166,7 +166,7 @@ public class Utils {
 			.allowCommonBlockElements()
 			.allowCommonInlineFormattingElements()
 		    .allowElements("a")
-		    .allowUrlProtocols("https", "http")
+		    .allowUrlProtocols("https", "http", "mailto")
 		    .allowAttributes("href").onElements("a")
 		    .requireRelNofollowOnLinks()
 		    .toFactory();
