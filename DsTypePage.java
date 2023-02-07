@@ -50,27 +50,27 @@ public class DsTypePage extends WebPage {
 		String exampleLabel = null;
 
 		if (type.equals("superpattern")) {
-			title = "General Super-Pattern Statements for Data Science";
+			title = "General Super-Pattern Statements";
 			template = Template.getTemplate("http://purl.org/np/RAklcTNzzyZpQV3fsPVMOYqaEcYdG3T7Db5dgMyYgVxNU");
 			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
 			exampleLabel = "in humans, headache is mostly caused by dehydration";
 		} else if (type.equals("linkflowsrel")) {
-			title = "Simple Scientific Relations between Instances for Data Science";
+			title = "Simple Scientific Relations between Instances";
 			template = Template.getTemplate("http://purl.org/np/RA2bh5P8WyBw5AStfI022BhXuJc7t8Sy1jJmycRTY9Xu4");
 			exampleId = "http://purl.org/np/RA4jQEcgnlnyZuVcSDg7n4oXL9l0Ifkpq34gvWaDPEuac";
 			exampleLabel = "invention of telephone was necessary for Internet";
 		} else if (type.equals("crel")) {
-			title = "Simple Scientific Relations based on Classes for Data Science";
+			title = "Simple Scientific Relations based on Classes";
 			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
 			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
 			exampleLabel = "instances of smoking tend to cause instances of cancer";
 		} else if (type.equals("classdef")) {
-			title = "Class Definitions for Data Science";
+			title = "Class Definitions";
 			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
 			exampleId = "http://purl.org/np/RA_is9jmGdOi9hhZhX7nuZum8YAl76jrsqVhOR5KvYvyw";
 			exampleLabel = "operant research";
 		} else if (type.equals("inddef")) {
-			title = "Definition of Individual for Data Science";
+			title = "Definitions of Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAZR0ieT8ynmPI28fdQheCRDbL8znCeN_udhiSbQHXBS8");
 			exampleId = "http://purl.org/np/RAPs7VnjMiXNTtRJplChj1OxOFd0fJqdQwt3eX-cKWqKg";
 			exampleLabel = "Leiden Declaration on FAIR Digital Objects";
@@ -125,10 +125,11 @@ public class DsTypePage extends WebPage {
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", "http://purl.org/np/RAcCMOxJ6N0vfLAeHO81Ly-KEx0QZVWBFESibY9Sz6TI0")
 					.add("link-message", "<p>Fill in the assertion (blue) part below, and then tick the checkbox and click on \"Publish\" at the bottom " +
-							"to publish a nanopublication can you can later link to your Data Science submission.</p>" +
+							"to publish a nanopublication that you can later link to your Data Science submission.</p>" +
 							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link, in which case you can choose " +
 							"the provenance template \"From research described in an article (published/preprint)\".</p>" +
-							"<p>The publication info (yellow) part can also be left untouched, but you are also free to add further elements there.</p>")
+							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
+							"<p>Closing this tab aborts the nanopublication creation.</p>")
 			));
 	}
 
