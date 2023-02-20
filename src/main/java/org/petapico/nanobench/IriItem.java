@@ -2,6 +2,7 @@ package org.petapico.nanobench;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -54,7 +55,7 @@ public class IriItem extends Panel implements ContextComponent {
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
 		labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
-		Label labelComp = new Label("label", labelString);
+		Label labelComp = new Label("label", labelString.replaceFirst(" - .*$", ""));
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
 			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
@@ -70,7 +71,14 @@ public class IriItem extends Panel implements ContextComponent {
 		} else if (template.isLocalResource(iri)) {
 			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
 		}
-		add(new Label("iri", iriString));
+		String description = "(no description available)";
+		if (iri.stringValue().startsWith("local:")) {
+			description = "This is a local identifier that will be minted when the nanopublication is created.";
+		}
+		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
+		add(new Label("title", labelString.replaceFirst(" - .*$", "")));
+		add(new Label("description", description));
+		add(new ExternalLink("uri", iri.stringValue(), iri.stringValue()));
 	}
 
 	public static String getShortNameFromURI(String uri) {
