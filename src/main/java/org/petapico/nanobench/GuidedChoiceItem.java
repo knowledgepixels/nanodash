@@ -89,6 +89,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 					label = template.getLabel(vf.createIRI(choiceId));
 				} else if (labelMap.containsKey(choiceId)) {
 					label = labelMap.get(choiceId);
+					if (label.length() > 160) label = label.substring(0, 157) + "...";
 				}
 				if (label != null) {
 					return label + " (" + choiceId + ")";

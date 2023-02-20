@@ -342,8 +342,7 @@ public class StatementItem extends Panel {
 					String value = gci.getModel().getObject();
 					if (value != null && gci.getLabel(value) != null) {
 						String label = gci.getLabel(value);
-						// TODO Do this properly: (removes additional info after the pure label that is added earlier when creating the label)
-						label = label.replaceFirst(" - .*$", "");
+						if (label.length() > 1000) label = label.substring(0, 997) + "...";
 						try {
 							npCreator.addPubinfoStatement(vf.createIRI(value), Template.HAS_LABEL_FROM_API, vf.createLiteral(label));
 						} catch (IllegalArgumentException ex) {

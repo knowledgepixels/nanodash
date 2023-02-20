@@ -531,7 +531,7 @@ public class Template implements Serializable {
 							String label = "";
 							for (String s : new String[] { "prefLabel", "label" }) {
 								if (o.has(s)) {
-									label = o.get(s).toString();
+									label = o.get(s).toString().replaceAll(" - ", " -- ");
 									break;
 								}
 							}
@@ -542,7 +542,6 @@ public class Template implements Serializable {
 									break;
 								}
 							}
-							if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 							if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
 							labelMap.put(uri, label + desc);
 						}

@@ -26,11 +26,14 @@ public class NanobenchLink extends Panel {
 	public NanobenchLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
 		super(id);
 
-		List<Template> templates = new ArrayList<>();
-		Map<IRI,String> labels = new HashMap<>();
+		final List<Template> templates = new ArrayList<>();
+		final Map<IRI,String> labels = new HashMap<>();
 		if (np != null) {
 			for (Statement st : np.getPubinfo()) {
-				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) labels.put((IRI) st.getSubject(), st.getObject().stringValue());
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {
+					String label = st.getObject().stringValue();
+					labels.put((IRI) st.getSubject(), label);
+				}
 			}
 		}
 		if (Template.ASSERTION_TEMPLATE_CLASS.equals(templateClass)) {
@@ -55,31 +58,41 @@ public class NanobenchLink extends Panel {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this");
 			link.add(new AttributeAppender("style", "background: #666; color: #fff; padding: 0 5px; border-radius: 7px;"));
 			add(link);
-			add(new Label("iri", uri));
+			add(new Label("title", "this"));
+			add(new Label("description", "this specific nanopublication"));
+			add(new ExternalLink("uri", uri, uri));
 		} else if (np != null && uri.equals(np.getAssertionUri().stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
 			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
-			add(new Label("iri", uri));
+			add(new Label("title", "this assertion"));
+			add(new Label("description", "the assertion of this specific nanopublication"));
+			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_ASSERTION_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
 			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
-			add(new Label("iri", uri));
+			add(new Label("title", "has assertion"));
+			add(new Label("description", "links a nanopublication to its assertion"));
+			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PROVENANCE_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "provenance");
 			link.add(new AttributeAppender("class", " nanopub-provenance "));
 			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
-			add(new Label("iri", uri));
+			add(new Label("title", "has provenance"));
+			add(new Label("description", "links a nanopublication to its provenance"));
+			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PUBINFO_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "pubinfo");
 			link.add(new AttributeAppender("class", " nanopub-pubinfo "));
 			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
-			add(new Label("iri", uri));
+			add(new Label("title", "has pubinfo"));
+			add(new Label("description", "links a nanopublication to its pubinfo"));
+			add(new ExternalLink("uri", uri, uri));
 		} else {
 			String label = IriItem.getShortNameFromURI(uri);
 			Set<IRI> creators = null;
@@ -97,21 +110,24 @@ public class NanobenchLink extends Panel {
 					}
 					break;
 				} else {
-					IRI i = vf.createIRI(uri);
-					String l = template.getLabel(i);
+					String l = template.getLabel(iriObj);
 					if (l != null) {
 						label = l;
 						break;
 					}
-					l = labels.get(i);
+					l = labels.get(iriObj);
 					if (l != null) {
 						label = l;
 						break;
 					}
 				}
 			}
-			add(new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), label));
-			add(new Label("iri", uri));
+			add(new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), label.replaceFirst(" - .*$", "")));
+			String description = "(no description available)";
+			if (label.contains(" - ")) description = label.replaceFirst("^.* - ", "");
+			add(new Label("title", label.replaceFirst(" - .*$", "")));
+			add(new Label("description", description));
+			add(new ExternalLink("uri", uri, uri));
 		}
 	}
 
