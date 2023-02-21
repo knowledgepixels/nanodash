@@ -317,7 +317,7 @@ a.meta:hover, a.meta:active {
 	overflow-wrap: anywhere;
 }
 
-.nanopub a { color: #000; }
+.nanopub a { color: #000; margin: 3px; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
 a.nanopub-assertion { color: #000; }
@@ -374,15 +374,23 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   background-color: black;
   color: #fff;
   text-align: left;
-  padding: 5px 10px;
-  width: 800px;
-  border-radius: 5px;
+  padding: 5px;
+  min-width: 500px;
+  max-width: 800px;
+  border-radius: 0px 5px 5px 5px;
   position: absolute;
   z-index: 1;
-  top: -5px;
-  left: 100%;
-  right: 100%;
+  top: 100%;
 }
+
+#.tooltip:hover a {
+#  color: #fff;
+#  font-weight: bold;
+#}
+#
+#.tooltip:hover {
+#  background-color: black;
+#}
 
 .tooltiptext a {
   color: #fff; 
@@ -396,10 +404,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   content: " ";
   position: absolute;
   top: 50%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent black transparent transparent;
+  margin: 5px;
 }
 
 .uri {
@@ -435,15 +440,11 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   visibility: visible;
 }
 
-.expltooltip .tooltiptext::after {
+.expltooltip .expltooltiptext::after {
   content: " ";
   position: absolute;
   top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent black transparent transparent;
+  margin: 5px;
 }
 
 .alignleft {

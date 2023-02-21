@@ -76,7 +76,6 @@ public class IriItem extends Panel implements ContextComponent {
 			description = "This is a local identifier that will be minted when the nanopublication is created.";
 		}
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
-		add(new Label("title", labelString.replaceFirst(" - .*$", "")));
 		add(new Label("description", description));
 		add(new ExternalLink("uri", iri.stringValue(), iri.stringValue()));
 	}
