@@ -370,11 +370,13 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 
 .tooltip .tooltiptext {
   font-family: Verdana, Helvetica, sans-serif;
+  font-size: 11pt;
   visibility: hidden;
   background-color: black;
   color: #fff;
   text-align: left;
   padding: 5px;
+  line-height: normal;
   min-width: 500px;
   max-width: 800px;
   border-radius: 0px 5px 5px 5px;
@@ -410,6 +412,8 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 .uri {
   font-family: monaco,monospace;
   white-space: nowrap;
+  display: block;
+  margin: 0 !important;
 }
 
 .expltooltip {

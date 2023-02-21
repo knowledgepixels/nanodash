@@ -1,7 +1,6 @@
 package org.petapico.nanobench;
 
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -76,7 +75,7 @@ public class IriItem extends Panel implements ContextComponent {
 		} else if (template.isLocalResource(iri)) {
 			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
 		}
-		String description = "(no description available)";
+		String description = "";
 		if (iri.stringValue().startsWith("local:")) {
 			description = "This is a local identifier that will be minted when the nanopublication is created.";
 		}
