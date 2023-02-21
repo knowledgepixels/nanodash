@@ -183,8 +183,13 @@ public class PublishFormContext implements Serializable {
 			String prefix = template.getPrefix(iri);
 			if (prefix == null) prefix = "";
 			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
-			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-			String v = prefix + tf.getObject();
+			String v;
+			if (template.isAutoEscapePlaceholder(iri)) {
+				v = prefix + Utils.urlEncode(tf.getObject());
+			} else {
+				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+				v = prefix + tf.getObject();
+			}
 			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
 			IRI processedIri = vf.createIRI(v);
 			if (template.isIntroducedResource(iri)) {

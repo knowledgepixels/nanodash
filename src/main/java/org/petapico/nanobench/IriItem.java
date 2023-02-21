@@ -1,5 +1,8 @@
 package org.petapico.nanobench;
 
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -8,6 +11,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
 import org.petapico.nanobench.StatementItem.RepetitionGroup;
+
+import com.google.common.base.Charsets;
 
 public class IriItem extends Panel implements ContextComponent {
 	
@@ -90,6 +95,7 @@ public class IriItem extends Panel implements ContextComponent {
 		}
 		uri = uri.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
 		uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
+		uri = URLDecoder.decode(uri, Charsets.UTF_8);
 		return uri;
 	}
 

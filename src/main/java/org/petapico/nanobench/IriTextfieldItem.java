@@ -114,6 +114,9 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+			if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
+				vs = Utils.urlDecode(vs);
+			}
 			Validatable<String> validatable = new Validatable<>(vs);
 			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
@@ -135,14 +138,16 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		String vs = v.stringValue();
 		if (!isUnifiableWith(v)) throw new UnificationException(vs);
 		if (!prefix.isEmpty() && vs.startsWith(prefix)) {
-			textfield.setModelObject(vs.substring(prefix.length()));
+			vs = vs.substring(prefix.length());
 		} else if (vs.startsWith("local:")) {
-			textfield.setModelObject(vs.replaceFirst("^local:", ""));
+			vs = vs.replaceFirst("^local:", "");
 		} else if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-			textfield.setModelObject(Utils.getUriPostfix(vs));
-		} else {
-			textfield.setModelObject(vs);
+			vs = Utils.getUriPostfix(vs);
 		}
+		if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
+			vs = Utils.urlDecode(vs);
+		}
+		textfield.setModelObject(vs);
 	}
 
 
@@ -162,19 +167,27 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 		@Override
 		public void validate(IValidatable<String> s) {
+			String sv = s.getValue();
 			String p = prefix;
-			if (s.getValue().matches("(https?|file)://.+")) {
+			if (template.isAutoEscapePlaceholder(iri)) {
+				sv = Utils.urlEncode(sv);
+			}
+			if (sv.matches("(https?|file)://.+")) {
 				p = "";
-			} else if (s.getValue().contains(":")) {
+			} else if (sv.contains(":")) {
 				s.error(new ValidationError("Colon character is not allowed in postfix"));
 			}
-			if ((p + s.getValue()).matches("[^:# ]+")) p = "local:";
+			String iriString = p + sv;
+			if (iriString.matches("[^:# ]+")) {
+				p = "local:";
+				iriString = p + sv;
+			}
 			try {
-				ParsedIRI piri = new ParsedIRI(p + s.getValue());
+				ParsedIRI piri = new ParsedIRI(iriString);
 				if (!piri.isAbsolute()) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("(https?|file)://.+")) {
+				if (p.isEmpty() && !sv.startsWith("local:") && !sv.matches("(https?|file)://.+")) {
 					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
 				}
 			} catch (URISyntaxException ex) {
@@ -182,17 +195,17 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			}
 			String regex = template.getRegex(iri);
 			if (regex != null) {
-				if (!s.getValue().matches(regex)) {
-					s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+				if (!sv.matches(regex)) {
+					s.error(new ValidationError("Value '" + sv + "' doesn't match the pattern '" + regex + "'"));
 				}
 			}
 			if (template.isExternalUriPlaceholder(iri)) {
-				if (!(p + s.getValue()).matches("(https?|file)://.+")) {
+				if (!iriString.matches("(https?|file)://.+")) {
 					s.error(new ValidationError("Not an external IRI"));
 				}
 			}
 			if (template.isTrustyUriPlaceholder(iri)) {
-				if (!TrustyUriUtils.isPotentialTrustyUri(p + s.getValue())) {
+				if (!TrustyUriUtils.isPotentialTrustyUri(iriString)) {
 					s.error(new ValidationError("Not a trusty URI"));
 				}
 			}

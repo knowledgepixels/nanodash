@@ -1,6 +1,7 @@
 package org.petapico.nanobench;
 
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -69,6 +70,10 @@ public class Utils {
 
 	public static String urlEncode(Object o) {
 		return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
+	}
+
+	public static String urlDecode(Object o) {
+		return URLDecoder.decode((o == null ? "" : o.toString()), Charsets.UTF_8);
 	}
 
 	public static String getUrlWithParameters(String base, PageParameters parameters) {

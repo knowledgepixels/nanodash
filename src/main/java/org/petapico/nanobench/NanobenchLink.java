@@ -119,7 +119,7 @@ public class NanobenchLink extends Panel {
 			}
 			add(new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), label.replaceFirst(" - .*$", "")));
 			String description = "(no description available)";
-			if (uri.startsWith(np.getUri().stringValue())) {
+			if (np != null && uri.startsWith(np.getUri().stringValue())) {
 				description = "This is a local identifier that was minted when the nanopublication was created.";
 			}
 			if (label.contains(" - ")) description = label.replaceFirst("^.* - ", "");
