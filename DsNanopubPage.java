@@ -27,6 +27,7 @@ import org.petapico.nanobench.Template;
 import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.User;
 import org.petapico.nanobench.Utils;
+import org.petapico.nanobench.action.NanopubAction;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -58,7 +59,7 @@ public class DsNanopubPage extends WebPage {
 		}
 
 		Nanopub np = Utils.getAsNanopub(ref);
-		add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
+		add(new NanopubItem("nanopub", new NanopubElement(np), false, true, NanopubAction.ownActions));
 		String uri = np.getUri().stringValue();
 		String shortId = "np:" + Utils.getShortNanopubId(uri);
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);

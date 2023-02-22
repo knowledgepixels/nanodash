@@ -26,6 +26,7 @@ import org.petapico.nanobench.PublishPage;
 import org.petapico.nanobench.Template;
 import org.petapico.nanobench.TitleBar;
 import org.petapico.nanobench.Utils;
+import org.petapico.nanobench.action.NanopubAction;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -93,7 +94,7 @@ public class DsTypePage extends WebPage {
 			params.put("creator", userIri.stringValue());
 		}
 
-		add(new NanopubItem("example-nanopub", new NanopubElement(Utils.getAsNanopub(exampleId)), false, true));
+		add(new NanopubItem("example-nanopub", new NanopubElement(Utils.getAsNanopub(exampleId)), false, true, NanopubAction.noActions));
 
 		if (userIri == null) {
 			add(new WebMarkupContainer("candidate-nps")
