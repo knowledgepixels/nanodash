@@ -40,9 +40,13 @@ public class NanopubItem extends Panel {
 	private Template template;
 
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
+		this(id, n, hideProvenance, hidePubinfo, null);
+	}
+
+	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
 		super(id);
 
-		add(new NanobenchLink("nanopub-id-link", n.getUri(), n.getNanopub()));
+		add(new NanobenchLink("nanopub-id-link", n.getUri()));
 
 		String userString = "";
 		String pubkey = null;
@@ -60,8 +64,12 @@ public class NanopubItem extends Panel {
 		final List<NanopubAction> actionList = new ArrayList<>();
 		final Map<String,NanopubAction> actionMap = new HashMap<>();
 		List<NanopubAction> allActions = new ArrayList<>();
-		allActions.addAll(NanopubAction.getDefaultActions());
-		allActions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
+		if (actions == null) {
+			allActions.addAll(NanopubAction.defaultActions);
+			allActions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
+		} else {
+			allActions.addAll(actions);
+		}
 		for (NanopubAction action : allActions) {
 			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
 			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
@@ -109,6 +117,7 @@ public class NanopubItem extends Panel {
 		};
 		Model<NanopubAction> menuModel = new Model<>();
 		Select2Choice<NanopubAction> menu = new Select2Choice<NanopubAction>("action-menu", menuModel, choiceProvider);
+		menu.setVisible(!allActions.isEmpty());
 		menu.getSettings().setPlaceholder("");
 		menu.getSettings().setWidth("20px");
 		menu.getSettings().setDropdownCssClass("actionmenuresults");

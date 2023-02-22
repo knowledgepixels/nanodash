@@ -15,24 +15,31 @@ public abstract class NanopubAction implements Serializable {
 
 	private static final long serialVersionUID = 4086842804225420496L;
 
-	private static List<NanopubAction> defaultActions = new ArrayList<>();
+	public static final List<NanopubAction> noActions = Collections.emptyList();
+
+	public static final List<NanopubAction> defaultActions;
+
+	public static final List<NanopubAction> ownActions;
 
 	private static Map<String,NanopubAction> defaultClassNameMap = new HashMap<>();
 
 	static {
-		defaultActions.add(new CommentAction());
-		defaultActions.add(new RetractionAction());
-		defaultActions.add(new ApprovalAction());
-		defaultActions.add(new UpdateAction());
-		defaultActions.add(new DeriveAction());
-		defaultActions = Collections.unmodifiableList(defaultActions);
+		List<NanopubAction> da = new ArrayList<>();
+		da.add(new CommentAction());
+		da.add(new RetractionAction());
+		da.add(new ApprovalAction());
+		da.add(new UpdateAction());
+		da.add(new DeriveAction());
+		defaultActions = Collections.unmodifiableList(da);
+
+		List<NanopubAction> oa = new ArrayList<>();
+		oa.add(new RetractionAction());
+		oa.add(new UpdateAction());
+		ownActions = Collections.unmodifiableList(oa);
+
 		for (NanopubAction na : defaultActions) {
 			defaultClassNameMap.put(na.getClass().getCanonicalName(), na);
 		}
-	}
-
-	public static List<NanopubAction> getDefaultActions() {
-		return defaultActions;
 	}
 
 	public static List<NanopubAction> getActionsFromPreferences(NanobenchPreferences pref) {
