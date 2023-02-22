@@ -42,10 +42,7 @@ public class NanopubItem extends Panel {
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		super(id);
 
-		add(
-			new BookmarkablePageLink<>("nanopub-id-link", ExplorePage.class, new PageParameters().add("id", n.getUri()))
-				.add(new Label("nanopub-id-text", Utils.getShortNanopubId(n.getUri())))
-		);
+		add(new NanobenchLink("nanopub-id-link", n.getUri(), n.getNanopub()));
 
 		String userString = "";
 		String pubkey = null;
