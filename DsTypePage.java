@@ -1,4 +1,4 @@
-package org.petapico.nanobench.connector.ios;
+package com.knowledgepixels.nanodash.connector.ios;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,17 +16,17 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.eclipse.rdf4j.model.IRI;
-import org.petapico.nanobench.ApiAccess;
-import org.petapico.nanobench.ApiResponse;
-import org.petapico.nanobench.ApiResponseEntry;
-import org.petapico.nanobench.NanobenchSession;
-import org.petapico.nanobench.NanopubElement;
-import org.petapico.nanobench.NanopubItem;
-import org.petapico.nanobench.PublishPage;
-import org.petapico.nanobench.Template;
-import org.petapico.nanobench.TitleBar;
-import org.petapico.nanobench.Utils;
-import org.petapico.nanobench.action.NanopubAction;
+import com.knowledgepixels.nanodash.ApiAccess;
+import com.knowledgepixels.nanodash.ApiResponse;
+import com.knowledgepixels.nanodash.ApiResponseEntry;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NanopubItem;
+import com.knowledgepixels.nanodash.PublishPage;
+import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TitleBar;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.action.NanopubAction;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -42,7 +42,7 @@ public class DsTypePage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
 

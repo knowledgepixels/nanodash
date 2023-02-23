@@ -1,10 +1,10 @@
-package org.petapico.nanobench.connector.ios;
+package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.petapico.nanobench.TitleBar;
+import com.knowledgepixels.nanodash.TitleBar;
 
 public class DsOverviewPage extends WebPage {
 
