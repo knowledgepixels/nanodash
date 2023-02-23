@@ -38,7 +38,7 @@ git add pom.xml
 git commit -m "Version $NEW_VERSION"
 
 echo "Pushing new release..."
-git tag nanobench-$NEW_VERSION
+git tag nanodash-$NEW_VERSION
 git push
 git push --tags
 

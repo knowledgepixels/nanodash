@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.petapico</groupId>
-  <artifactId>nanobench</artifactId>
+  <groupId>org.nanodash</groupId>
+  <artifactId>nanodash</artifactId>
   <packaging>war</packaging>
   <version>1.61-SNAPSHOT</version>
-  <name>nanobench</name>
-  <url>https://github.com/peta-pico/nanobench</url>
+  <name>nanodash</name>
+  <url>https://github.com/knowledgepixels/nanodash</url>
   <licenses>
     <license>
       <name>MIT license</name>
@@ -156,7 +156,7 @@
         <configuration>
           <port>37373</port>
           <path>/</path>
-          <finalName>nanobench-${project.version}-executable.jar</finalName>
+          <finalName>nanodash-${project.version}-executable.jar</finalName>
         </configuration>
       </plugin>
       <plugin>

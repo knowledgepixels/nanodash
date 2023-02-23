@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cd -- "$(dirname "$0")"
-java -jar nanobench.jar -resetExtract -Dnanobench.run=update
+java -jar nanodash.jar -resetExtract -Dnanodash.run=update

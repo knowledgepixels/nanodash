@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cd -- "$(dirname "$0")"
-java -jar nanobench.jar -httpPort 37373 -resetExtract
+java -jar nanodash.jar -httpPort 37373 -resetExtract

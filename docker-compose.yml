@@ -1,7 +1,7 @@
 version: '2'
 services:
   nanobench:
-    image: nanopub/nanobench
+    image: nanopub/nanodash
     ports:
       - 37373:37373
     volumes:
