@@ -11,7 +11,7 @@
   font-style: normal;
 }
 @font-face {
-  font-family: "Martian KP";
+  font-family: "Martian";
   src: url("/fonts/MartianMono-StdLt.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
@@ -115,17 +115,17 @@ hr {
 }
 
 a {
-	color: #0066cc;
+	color: #0b73da;
 	text-decoration: none;
 	background-color: transparent;
 }
 
 a:hover {
-	color: #3399ff;
+	color: #6eb2f7;
 }
 
 a:active {
-	color: #3399ff;
+	color: #6eb2f7;
 }
 
 a.button, input.button {
@@ -168,6 +168,19 @@ a.actionlink {
   opacity: 0.5;
 }
 
+::placeholder {
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+}
+::-webkit-input-placeholder { /* Edge */
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+}
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+}
+.select2-selection__placeholder {
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+}
+
 strong {
 	font-weight: bold;
 }
@@ -178,12 +191,15 @@ strong {
 }
 
 code {
+  font-family: Martian,monaco,monospace;
+  font-size: 80%;
   border-width: 1px;
   border-radius: 2px;
   border-style: solid;
   border-color: #ddd;
   background: #f4f4f4;
-  padding: 0px 3px;
+  padding: 1px 3px;
+  margin: 1px 3px;
 }
 
 code.chars {
@@ -353,7 +369,7 @@ a.nanopub-pubinfo { color: #000; }
 a:hover.nanopub-pubinfo { color: #666; }
 a:active.nanopub-pubinfo { color: #666; }
 
-.nanopub { background-color: #666; font-family: Martian KP,monaco,monospace; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+.nanopub { background-color: #666; font-family: Martian,monaco,monospace; font-size: 10pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 #.nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 .nanopub-prefixes { display: none; margin-top: 3px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
@@ -369,10 +385,9 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   vertical-align: top;
 }
 
-.nanopub-statement input, select, .select2, textarea {
+.nanopub-statement input, .nanopub-statement select, .nanopub-statement .select2, .nanopub-statement textarea {
   margin: 2px;
-  font-size: 10pt;
-  font-family: Martian KP,monaco,monospace;
+  font-family: Martian,monaco,monospace;
 }
 .nanopub-statement:after { 
    content: ".";
@@ -433,7 +448,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 }
 
 .uri {
-  font-family: Martian KP,monaco,monospace;
+  font-family: Martian,monaco,monospace;
   white-space: nowrap;
   display: block;
   margin: 0 !important;
