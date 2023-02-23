@@ -2,6 +2,7 @@ version: '2'
 services:
   nanodash:
     image: nanopub/nanodash
+    restart: unless-stopped
     ports:
       - 37373:37373
     volumes:
