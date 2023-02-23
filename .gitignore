@@ -1,6 +1,7 @@
 *~
 /.*
 /docker-compose.override.yml
+/local-data
 /target
 /package/.extract
 /scratch

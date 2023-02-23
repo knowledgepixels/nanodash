@@ -1,8 +1,10 @@
 version: '2'
 services:
   nanodash:
+#   volumes:
+#     - ./local-data:/root/.nanopub
     environment:
-     - NANODASH_WEBSITE_URL=https://your.domain.org/
-     - NANODASH_ORCID_LOGIN_MODE=true
-     - NANOPUB_ORCID_CLIENT_ID=your-orcid-client-id
-     - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
+      - NANODASH_WEBSITE_URL=https://your.domain.org/
+      - NANODASH_ORCID_LOGIN_MODE=true
+      - NANOPUB_ORCID_CLIENT_ID=your-orcid-client-id
+      - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
