@@ -31,6 +31,10 @@ h5, h6 {
 	font-weight: bold;
 }
 
+.title img.logo {
+  height: 12mm;
+}
+
 .menu {
 	font-size: 16pt;
 	margin-left: 1em;
