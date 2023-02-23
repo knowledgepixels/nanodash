@@ -4,7 +4,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.NanobenchSession;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
 import com.knowledgepixels.nanodash.TitleBar;
@@ -20,7 +20,7 @@ public class ConnectorNanopubTestPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 
 		final String ref = parameters.get("id").toString();

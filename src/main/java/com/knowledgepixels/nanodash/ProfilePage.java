@@ -21,10 +21,10 @@ public class ProfilePage extends WebPage {
 
 	public ProfilePage(final PageParameters parameters) {
 		super();
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		session.loadProfileInfo();
 		User.refreshUsers();
-		final boolean loginMode = NanobenchPreferences.get().isOrcidLoginMode();
+		final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
 		add(new TitleBar("titlebar"));
 

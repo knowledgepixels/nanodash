@@ -153,7 +153,7 @@ public class PublishFormContext implements Serializable {
 		if (!(value instanceof IRI)) return value;
 		IRI iri = (IRI) value;
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = NanobenchSession.get().getUserIri();
+			iri = NanodashSession.get().getUserIri();
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			iri = ASSERTION_TEMP_IRI;

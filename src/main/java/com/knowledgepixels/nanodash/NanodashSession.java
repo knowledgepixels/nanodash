@@ -26,15 +26,15 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 
-public class NanobenchSession extends WebSession {
+public class NanodashSession extends WebSession {
 
 	private static final long serialVersionUID = -7920814788717089213L;
 
-	public static NanobenchSession get() {
-		return (NanobenchSession) Session.get();
+	public static NanodashSession get() {
+		return (NanodashSession) Session.get();
 	}
 
-	public NanobenchSession(Request request) {
+	public NanodashSession(Request request) {
 		super(request);
 		bind();
 		loadProfileInfo();
@@ -61,7 +61,7 @@ public class NanobenchSession extends WebSession {
 	public void loadProfileInfo() {
 		localIntroCount = null;
 		localIntro = null;
-		NanobenchPreferences prefs = NanobenchPreferences.get();
+		NanodashPreferences prefs = NanodashPreferences.get();
 		if (prefs.isOrcidLoginMode()) {
 			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanobench-users/");
 			if (!usersDir.exists()) usersDir.mkdir();
@@ -110,7 +110,7 @@ public class NanobenchSession extends WebSession {
 
 	public String getLoginUrl(String path, PageParameters parameters) {
 		if (isProfileComplete()) return null;
-		if (NanobenchPreferences.get().isOrcidLoginMode()) {
+		if (NanodashPreferences.get().isOrcidLoginMode()) {
 			return OrcidLoginPage.getOrcidLoginUrl(path, parameters);
 		} else {
 			return ProfilePage.MOUNT_PATH;
@@ -170,7 +170,7 @@ public class NanobenchSession extends WebSession {
 	public boolean isIntroWithLocalKey(IntroNanopub inp) {
 		IRI location = Utils.getLocation(inp);
 		NanopubSignatureElement el = Utils.getNanopubSignatureElement(inp);
-		String siteUrl = NanobenchPreferences.get().getWebsiteUrl();
+		String siteUrl = NanodashPreferences.get().getWebsiteUrl();
 		if (location != null && siteUrl != null && !location.stringValue().equals(siteUrl)) return false;
 		if (!getPubkeyString().equals(el.getPublicKeyString())) return false;
 		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
@@ -183,7 +183,7 @@ public class NanobenchSession extends WebSession {
 		if (!orcid.matches(ProfilePage.ORCID_PATTERN)) {
 			throw new RuntimeException("Illegal ORCID identifier: " + orcid);
 		}
-		if (NanobenchPreferences.get().isOrcidLoginMode()) {
+		if (NanodashPreferences.get().isOrcidLoginMode()) {
 			userDir = System.getProperty("user.home") + "/.nanopub/nanobench-users/" + orcid + "/";
 			File f = new File(userDir);
 			if (!f.exists()) f.mkdir();

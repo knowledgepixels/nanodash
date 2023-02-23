@@ -14,18 +14,18 @@ public class TitleBar extends Panel {
 		add(new ProfileItem("profile"));
 
 		WebMarkupContainer mychannel = new WebMarkupContainer("mychannel");
-		if (NanobenchSession.get().getUserIri() != null) {
+		if (NanodashSession.get().getUserIri() != null) {
 			PageParameters params = new PageParameters();
-			params.add("id", NanobenchSession.get().getUserIri());
+			params.add("id", NanodashSession.get().getUserIri());
 			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", UserPage.class, params));
 		} else {
 			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", ProfilePage.class));
 		}
-		mychannel.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		mychannel.setVisible(!NanodashPreferences.get().isReadOnlyMode());
 		add(mychannel);
 
 		WebMarkupContainer publish = new WebMarkupContainer("publish");
-		publish.setVisible(!NanobenchPreferences.get().isReadOnlyMode());
+		publish.setVisible(!NanodashPreferences.get().isReadOnlyMode());
 		add(publish);
 	}
 

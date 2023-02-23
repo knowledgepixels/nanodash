@@ -288,7 +288,7 @@ public class PublishForm extends Panel {
 			protected void onSubmit() {
 				try {
 					Nanopub np = createNanopub();
-					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanobenchSession.get().getKeyPair(), null, false, false);
+					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), null, false, false);
 					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
 					if (isLocal()) {
 						// Testing mode
@@ -301,7 +301,7 @@ public class PublishForm extends Panel {
 						System.err.println("Published " + signedNp.getUri());
 					}
 					PageParameters params = new PageParameters();
-					params.add("id", NanobenchSession.get().getUserIri().stringValue());
+					params.add("id", NanodashSession.get().getUserIri().stringValue());
 					throw new RestartResponseException(new PublishConfirmPage(signedNp));
 				} catch (RestartResponseException ex) {
 					throw ex;

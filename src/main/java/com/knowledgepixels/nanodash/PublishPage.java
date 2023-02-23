@@ -11,7 +11,7 @@ public class PublishPage extends WebPage {
 
 	public PublishPage(final PageParameters parameters) {
 		super();
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 		add(new TitleBar("titlebar"));
 		if (parameters.get("template").toString() != null) {

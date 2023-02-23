@@ -10,22 +10,22 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-public class NanobenchPreferences implements Serializable {
+public class NanodashPreferences implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private static NanobenchPreferences obj;
+	private static NanodashPreferences obj;
 
-	public static NanobenchPreferences get() {
+	public static NanodashPreferences get() {
 		if (obj == null) {
 			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanodash-preferences.yml");
 			if (!prefFile.exists()) {
-				return new NanobenchPreferences();
+				return new NanodashPreferences();
 			}
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 			try {
-				obj = mapper.readValue(prefFile, NanobenchPreferences.class);
+				obj = mapper.readValue(prefFile, NanodashPreferences.class);
 			} catch (IOException ex) {
-				obj = new NanobenchPreferences();
+				obj = new NanodashPreferences();
 				ex.printStackTrace();
 			}
 		}

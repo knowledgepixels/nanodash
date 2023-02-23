@@ -15,7 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.knowledgepixels.nanodash.ApiAccess;
 import com.knowledgepixels.nanodash.ApiResponse;
 import com.knowledgepixels.nanodash.ApiResponseEntry;
-import com.knowledgepixels.nanodash.NanobenchSession;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -31,7 +31,7 @@ public class ConnectorTestPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 
 		Map<String,String> params = new HashMap<>();

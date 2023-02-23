@@ -43,7 +43,7 @@ public class UserPage extends WebPage {
 //		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
 		add(progressLabel);
 
-		NanobenchSession session = NanobenchSession.get();
+		NanodashSession session = NanodashSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
 		if (userIri.equals(session.getUserIri())) {

@@ -47,7 +47,7 @@ public class NanopubItem extends Panel {
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
 		super(id);
 
-		add(new NanobenchLink("nanopub-id-link", n.getUri()));
+		add(new NanodashLink("nanopub-id-link", n.getUri()));
 
 		String userString = "";
 		String pubkey = null;
@@ -60,14 +60,14 @@ public class NanopubItem extends Panel {
 			ex.printStackTrace();
 		}
 
-		NanobenchSession session = NanobenchSession.get();
+		NanodashSession session = NanodashSession.get();
 		boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 		final List<NanopubAction> actionList = new ArrayList<>();
 		final Map<String,NanopubAction> actionMap = new HashMap<>();
 		List<NanopubAction> allActions = new ArrayList<>();
 		if (actions == null) {
 			allActions.addAll(NanopubAction.defaultActions);
-			allActions.addAll(NanopubAction.getActionsFromPreferences(NanobenchPreferences.get()));
+			allActions.addAll(NanopubAction.getActionsFromPreferences(NanodashPreferences.get()));
 		} else {
 			allActions.addAll(actions);
 		}

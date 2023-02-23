@@ -11,7 +11,7 @@ public class HomePage extends WebPage {
 
 	public HomePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		String v = WicketApplication.getThisVersion();
 		String lv = WicketApplication.getLatestVersion();
 		if (v.endsWith("-SNAPSHOT")) {
@@ -23,11 +23,11 @@ public class HomePage extends WebPage {
 		} else {
 			add(new Label("warning", ""));
 		}
-		if (NanobenchPreferences.get().isReadOnlyMode()) {
+		if (NanodashPreferences.get().isReadOnlyMode()) {
 			add(new Label("text", "Click on the menu items above to explore nanopublications. This is a read-only instance, so you cannot publish new nanopublications here."));
-		} else if (NanobenchSession.get().isProfileComplete()) {
+		} else if (NanodashSession.get().isProfileComplete()) {
 			add(new Label("text", "Click on the menu items above to explore or publish nanopublications."));
-		} else if (NanobenchPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
+		} else if (NanodashPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
 			String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
 			add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
 		} else {

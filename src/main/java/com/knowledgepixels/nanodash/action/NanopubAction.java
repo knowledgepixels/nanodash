@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.NanobenchPreferences;
+import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.Utils;
 
 public abstract class NanopubAction implements Serializable {
@@ -43,7 +43,7 @@ public abstract class NanopubAction implements Serializable {
 		}
 	}
 
-	public static List<NanopubAction> getActionsFromPreferences(NanobenchPreferences pref) {
+	public static List<NanopubAction> getActionsFromPreferences(NanodashPreferences pref) {
 		List<NanopubAction> actions = new ArrayList<>();
 		if (pref == null) return actions;
 		for (String s : pref.getNanopubActions()) {

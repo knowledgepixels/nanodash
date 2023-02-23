@@ -34,7 +34,7 @@ public class OrcidLoginPage extends WebPage {
 	public static Map<String,String> redirectHashMap = new HashMap<>();
 
 	public static String getOrcidLoginUrl(String finalRedirectUrl) {
-		NanobenchPreferences prefs = NanobenchPreferences.get();
+		NanodashPreferences prefs = NanodashPreferences.get();
 		String finalRedirectUrlHash = Utils.hashString(finalRedirectUrl);
 		redirectHashMap.put(finalRedirectUrlHash, finalRedirectUrl);
 		// orcid.org gives errors if redirect URL is too long, so we need to store 
@@ -48,7 +48,7 @@ public class OrcidLoginPage extends WebPage {
 
 	public OrcidLoginPage(PageParameters parameters) {
 		try {
-			NanobenchPreferences prefs = NanobenchPreferences.get();
+			NanodashPreferences prefs = NanodashPreferences.get();
 			String authCode = parameters.get("code").toString();
 			HttpPost post = new HttpPost("https://orcid.org/oauth/token");
 			post.setHeader("Accept", "application/json");
@@ -70,7 +70,7 @@ public class OrcidLoginPage extends WebPage {
 //				rs.cookie("orcid", r.getOrcid());
 //				rs.cookie("orcid-access-token", r.getAccessToken());
 				System.err.println("User logged in: " + r.getOrcid());
-				NanobenchSession.get().setOrcid(r.getOrcid());
+				NanodashSession.get().setOrcid(r.getOrcid());
 			} else {
 				// Something went wrong
 				System.err.println(statusCode + " " + response.getStatusLine().getReasonPhrase());

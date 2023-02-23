@@ -26,8 +26,8 @@ public class ProfileIntroItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	private NanobenchSession session = NanobenchSession.get();
-	private NanobenchPreferences prefs = NanobenchPreferences.get();
+	private NanodashSession session = NanodashSession.get();
+	private NanodashPreferences prefs = NanodashPreferences.get();
 	private int recommendedActionsCount = 0;
 	private Map<IntroNanopub,String> includeKeysParamMap = new HashMap<>();
 	private int approvedIntrosCount = 0;

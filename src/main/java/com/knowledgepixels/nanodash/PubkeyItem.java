@@ -10,7 +10,7 @@ public class PubkeyItem extends Panel {
 	public PubkeyItem(String id, String pubkey) {
 		super(id);
 
-		NanobenchSession session = NanobenchSession.get();
+		NanodashSession session = NanodashSession.get();
 		if (pubkey == null || pubkey.isEmpty()) {
 			add(new Label("label", ".."));
 			add(new Label("notes", ""));

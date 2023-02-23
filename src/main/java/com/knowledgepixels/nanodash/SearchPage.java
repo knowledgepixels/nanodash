@@ -58,8 +58,8 @@ public class SearchPage extends WebPage {
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 		WebMarkupContainer ownFilter = new WebMarkupContainer("own-filter");
 		ownFilter.add(filterUser = new CheckBox("filter", Model.of(filterCheck)));
-		NanobenchSession session = NanobenchSession.get();
-		ownFilter.setVisible(!NanobenchPreferences.get().isReadOnlyMode() && session.getUserIri() != null);
+		NanodashSession session = NanodashSession.get();
+		ownFilter.setVisible(!NanodashPreferences.get().isReadOnlyMode() && session.getUserIri() != null);
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		if (session.getUserIri() != null) {
 			pubKeyMap = new HashMap<>();

@@ -18,24 +18,24 @@ public class NanopubResults extends Panel {
 		super(id);
 
 
-		add(new AjaxCheckBox("showp", Model.of(NanobenchSession.get().isShowProvenanceEnabled())) {
+		add(new AjaxCheckBox("showp", Model.of(NanodashSession.get().isShowProvenanceEnabled())) {
 
 			private static final long serialVersionUID = -6951066705477126322L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				NanobenchSession.get().setShowProvenanceEnabled(getModelObject());
+				NanodashSession.get().setShowProvenanceEnabled(getModelObject());
 				setResponsePage(target.getPage());
 			}
 
 		});
-		add(new AjaxCheckBox("showi", Model.of(NanobenchSession.get().isShowPubinfoEnabled())) {
+		add(new AjaxCheckBox("showi", Model.of(NanodashSession.get().isShowPubinfoEnabled())) {
 
 			private static final long serialVersionUID = 5451216630648827493L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				NanobenchSession.get().setShowPubinfoEnabled(getModelObject());
+				NanodashSession.get().setShowPubinfoEnabled(getModelObject());
 				setResponsePage(target.getPage());
 			}
 
@@ -47,7 +47,7 @@ public class NanopubResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				NanobenchSession session = NanobenchSession.get();
+				NanodashSession session = NanodashSession.get();
 				item.add(new NanopubItem("nanopub", item.getModelObject(), !session.isShowProvenanceEnabled(), !session.isShowPubinfoEnabled()));
 			}
 

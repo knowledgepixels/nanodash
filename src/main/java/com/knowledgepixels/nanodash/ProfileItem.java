@@ -12,8 +12,8 @@ public class ProfileItem extends Panel {
 
 	public ProfileItem(String id) {
 		super(id);
-		NanobenchSession session = NanobenchSession.get();
-		NanobenchPreferences prefs = NanobenchPreferences.get();
+		NanodashSession session = NanodashSession.get();
+		NanodashPreferences prefs = NanodashPreferences.get();
 		IRI userId = session.getUserIri();
 		if (prefs.isOrcidLoginMode() && userId == null) {
 			ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl(ProfilePage.MOUNT_PATH));

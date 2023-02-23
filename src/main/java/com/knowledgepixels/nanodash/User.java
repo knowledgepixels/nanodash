@@ -56,7 +56,7 @@ public class User {
 		idNameMap = new HashMap<>();
 		introNanopubLists = new HashMap<>();
 
-		final NanobenchPreferences pref = NanobenchPreferences.get();
+		final NanodashPreferences pref = NanodashPreferences.get();
 
 		// TODO Make nanopublication setting configurable:
 		NanopubSetting setting;

@@ -10,7 +10,7 @@ public class DifferentKeyErrorItem extends Panel {
 
 	public DifferentKeyErrorItem(String id, final PageParameters parameters) {
 		super(id);
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 		add(new Label("linkkey", Utils.getShortPubkeyName(parameters.get("sigkey").toString())));
 		add(new Label("localkey", Utils.getShortPubkeyName(session.getPubkeyString())));
 	}

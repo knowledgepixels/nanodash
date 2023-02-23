@@ -191,7 +191,7 @@ public class WicketApplication extends WebApplication {
 
 	@Override
 	public Session newSession(Request request, Response response) {
-		return new NanobenchSession(request);
+		return new NanodashSession(request);
 	}
 
 }

@@ -97,7 +97,7 @@ public class Utils {
 
 	public static String getShortPubkeyLabel(String pubkey, IRI user) {
 		String s = getShortPubkeyName(pubkey);
-		NanobenchSession session = NanobenchSession.get();
+		NanodashSession session = NanodashSession.get();
 		List<String> l = new ArrayList<>();
 		if (pubkey.equals(session.getPubkeyString())) l.add("local");
 		// TODO: Make this more efficient:

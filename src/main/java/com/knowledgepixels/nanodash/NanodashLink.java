@@ -19,11 +19,11 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
-public class NanobenchLink extends Panel {
+public class NanodashLink extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public NanobenchLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
+	public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
 		super(id);
 
 		final List<Template> templates = new ArrayList<>();
@@ -128,11 +128,11 @@ public class NanobenchLink extends Panel {
 		}
 	}
 
-	public NanobenchLink(String id, String uri, Nanopub np) {
+	public NanodashLink(String id, String uri, Nanopub np) {
 		this(id, uri, np, null, false);
 	}
 
-	public NanobenchLink(String id, String uri) {
+	public NanodashLink(String id, String uri) {
 		this(id, uri, null, null, false);
 	}
 

@@ -10,9 +10,9 @@ public class ProfileSigItem extends Panel {
 
 	public ProfileSigItem(String id) {
 		super(id);
-		boolean loginMode = NanobenchPreferences.get().isOrcidLoginMode();
+		boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 
 		WebMarkupContainer localFilePanel = new WebMarkupContainer("localfile");
 		if (loginMode) {
