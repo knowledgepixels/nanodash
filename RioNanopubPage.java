@@ -1,4 +1,4 @@
-package org.petapico.nanobench.connector.pensoft;
+package com.knowledgepixels.nanodash.connector.pensoft;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,17 +15,17 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
-import org.petapico.nanobench.ApiAccess;
-import org.petapico.nanobench.ApiResponse;
-import org.petapico.nanobench.ApiResponseEntry;
-import org.petapico.nanobench.ExplorePage;
-import org.petapico.nanobench.NanopubElement;
-import org.petapico.nanobench.NanopubItem;
-import org.petapico.nanobench.PublishPage;
-import org.petapico.nanobench.Template;
-import org.petapico.nanobench.TitleBar;
-import org.petapico.nanobench.User;
-import org.petapico.nanobench.Utils;
+import com.knowledgepixels.nanodash.ApiAccess;
+import com.knowledgepixels.nanodash.ApiResponse;
+import com.knowledgepixels.nanodash.ApiResponseEntry;
+import com.knowledgepixels.nanodash.ExplorePage;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NanopubItem;
+import com.knowledgepixels.nanodash.PublishPage;
+import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TitleBar;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 
 import net.trustyuri.TrustyUriUtils;
 

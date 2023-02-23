@@ -1,4 +1,4 @@
-package org.petapico.nanobench.connector.pensoft;
+package com.knowledgepixels.nanodash.connector.pensoft;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,11 +16,11 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.eclipse.rdf4j.model.IRI;
-import org.petapico.nanobench.ApiAccess;
-import org.petapico.nanobench.ApiResponse;
-import org.petapico.nanobench.ApiResponseEntry;
-import org.petapico.nanobench.NanobenchSession;
-import org.petapico.nanobench.TitleBar;
+import com.knowledgepixels.nanodash.ApiAccess;
+import com.knowledgepixels.nanodash.ApiResponse;
+import com.knowledgepixels.nanodash.ApiResponseEntry;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.TitleBar;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -36,7 +36,7 @@ public class RioOverviewPage extends WebPage {
 		add(new TitleBar("titlebar"));
 		//add(new Label("titlebar"));  // hide title bar
 
-		final NanobenchSession session = NanobenchSession.get();
+		final NanodashSession session = NanodashSession.get();
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), "RioLogo.svg")));
 		IRI userIri = session.getUserIri();
