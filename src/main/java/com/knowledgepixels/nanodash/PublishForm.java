@@ -594,8 +594,8 @@ public class PublishForm extends Panel {
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
-		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanobench-new-nanopub/");
-		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanobench-new-nanopub/#");
+		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanodash-new-nanopub/");
+		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanodash-new-nanopub/#");
 		npCreator.addTimestampNow();
 //		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();

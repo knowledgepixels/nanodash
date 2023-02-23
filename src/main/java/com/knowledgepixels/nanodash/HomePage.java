@@ -15,7 +15,7 @@ public class HomePage extends WebPage {
 		String v = WicketApplication.getThisVersion();
 		String lv = WicketApplication.getLatestVersion();
 		if (v.endsWith("-SNAPSHOT")) {
-			add(new Label("warning", "You are running a temporary snapshot version of Nanobench (" + v + "). The latest public version is " + lv + "."));
+			add(new Label("warning", "You are running a temporary snapshot version of Nanodash (" + v + "). The latest public version is " + lv + "."));
 		} else if (lv != null && !v.equals(lv)) {
 			add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
 					"Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +

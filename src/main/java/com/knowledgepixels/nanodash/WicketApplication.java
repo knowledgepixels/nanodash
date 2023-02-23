@@ -26,29 +26,29 @@ import com.knowledgepixels.nanodash.connector.test.ConnectorTestPage;
 
 public class WicketApplication extends WebApplication {
 
-	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/peta-pico/nanobench/releases";
+	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
 
 	public WicketApplication() {
-		String runParam = System.getProperty("nanobench.run");
+		String runParam = System.getProperty("nanodash.run");
 		if (runParam != null) {
 			if (runParam.equals("update")) {
 				System.err.println("");
 				System.err.println("----------------------------------------");
-				System.err.println("         Updating Nanobench...");
+				System.err.println("         Updating Nanodash...");
 				System.err.println("----------------------------------------");
-				System.err.println(" Nanobench is being updated. This might");
+				System.err.println(" Nanodash is being updated. This might");
 				System.err.println(" take a minute.");
 				System.err.println("----------------------------------------");
 				System.err.println("");
 				try {
 					String version = getLatestVersion();
-					System.err.println("Found latest version: nanobench-" + version);
-					String url = "https://github.com/peta-pico/nanobench/releases/download/nanobench-" + version + "/nanobench-" + version + ".zip";
+					System.err.println("Found latest version: nanodash-" + version);
+					String url = "https://github.com/knowledgepixels/nanodash/releases/download/nanodash-" + version + "/nanodash-" + version + ".zip";
 					System.err.println("Downloading " + url);
 					HttpResponse resp2 = HttpClientBuilder.create().build().execute(new HttpGet(url));
 					int c2 = resp2.getStatusLine().getStatusCode();
 					if (c2 < 200 || c2 >= 300) throw new RuntimeException("HTTP error: " + c2);
-					File zipFile = new File(System.getProperty("user.dir") + "/nanobench.zip");
+					File zipFile = new File(System.getProperty("user.dir") + "/nanodash.zip");
 					FileOutputStream fileOut = new FileOutputStream(zipFile);
 					resp2.getEntity().writeTo(fileOut);
 					fileOut.close();
@@ -57,13 +57,13 @@ public class WicketApplication extends WebApplication {
 					zipFile.delete();
 					System.err.println("");
 					System.err.println("----------------------------------------");
-					System.err.println(" Nanobench updated successfully");
+					System.err.println(" Nanodash updated successfully");
 					System.err.println("----------------------------------------");
 					System.err.println("");
 					System.exit(0);
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					System.err.println("Failed to update Nanobench");
+					System.err.println("Failed to update Nanodash");
 					System.exit(1);
 				}
 			}
@@ -82,12 +82,12 @@ public class WicketApplication extends WebApplication {
 		String lv = getLatestVersion();
 		System.err.println("");
 		System.err.println("----------------------------------------");
-		System.err.println("               Nanobench");
+		System.err.println("               Nanodash");
 		System.err.println("----------------------------------------");
 		System.err.println(" You are using version: " + v);
 		System.err.println(" Latest public version: " + lv);
 		System.err.println("----------------------------------------");
-		System.err.println(" Your browser should show the Nanobench");
+		System.err.println(" Your browser should show the Nanodash");
 		System.err.println(" interface in a few seconds.");
 		System.err.println("");
 		System.err.println(" If not, point your browser to:");
@@ -163,8 +163,8 @@ public class WicketApplication extends WebApplication {
 			while(reader.ready()) {
 				String line = reader.readLine();
 				// TODO: Do proper JSON parsing
-				if (line.matches(".*\"tag_name\":\\s*\"nanobench-[0-9]+\\.[0-9]+\".*")) {
-					latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanobench-([0-9]+\\.[0-9]+)\".*", "$1");
+				if (line.matches(".*\"tag_name\":\\s*\"nanodash-[0-9]+\\.[0-9]+\".*")) {
+					latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanodash-([0-9]+\\.[0-9]+)\".*", "$1");
 					break;
 				}
 			}
@@ -179,14 +179,14 @@ public class WicketApplication extends WebApplication {
 
 	static {
 		try {
-			properties.load(WicketApplication.class.getClassLoader().getResourceAsStream("nanobench.properties"));
+			properties.load(WicketApplication.class.getClassLoader().getResourceAsStream("nanodash.properties"));
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
 
 	protected static String getThisVersion() {
-		return properties.getProperty("nanobench.version");
+		return properties.getProperty("nanodash.version");
 	}
 
 	@Override

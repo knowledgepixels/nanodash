@@ -471,7 +471,7 @@ public class Template implements Serializable {
 			
 			// Quick fix to resolve Nanopubs grlc API as JSON
 			// Otherwise call fails if no ACCEPT header provided
-			// TODO: can also be done using the Nanobench ApiAccess class:
+			// TODO: can also be done using the Nanodash ApiAccess class:
 			// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
 			if (apiString.startsWith("http://purl.org/nanopub/api/"))
 				get.setHeader(HttpHeaders.ACCEPT, "application/json");
@@ -570,7 +570,7 @@ public class Template implements Serializable {
 						if (labelArray.length() > 1) desc = labelArray.getString(1);
 						if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 						if (!label.isEmpty() && !desc.isEmpty()) desc = " - " + desc;
-						// Quick fix to convert CURIE to URI, as Nanobench only accept URI here
+						// Quick fix to convert CURIE to URI, as Nanodash only accepts URIs here
 						if (!(uri.startsWith("http://") || uri.startsWith("https://"))) {
 							uri = "https://identifiers.org/" + uri;
 						}

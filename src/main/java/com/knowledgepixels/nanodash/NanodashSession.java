@@ -63,7 +63,7 @@ public class NanodashSession extends WebSession {
 		localIntro = null;
 		NanodashPreferences prefs = NanodashPreferences.get();
 		if (prefs.isOrcidLoginMode()) {
-			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanobench-users/");
+			File usersDir = new File(System.getProperty("user.home") + "/.nanopub/nanodash-users/");
 			if (!usersDir.exists()) usersDir.mkdir();
 		}
 		if (userIri == null && !prefs.isReadOnlyMode() && !prefs.isOrcidLoginMode()) {
@@ -184,7 +184,7 @@ public class NanodashSession extends WebSession {
 			throw new RuntimeException("Illegal ORCID identifier: " + orcid);
 		}
 		if (NanodashPreferences.get().isOrcidLoginMode()) {
-			userDir = System.getProperty("user.home") + "/.nanopub/nanobench-users/" + orcid + "/";
+			userDir = System.getProperty("user.home") + "/.nanopub/nanodash-users/" + orcid + "/";
 			File f = new File(userDir);
 			if (!f.exists()) f.mkdir();
 		} else {
