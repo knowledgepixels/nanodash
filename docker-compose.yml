@@ -1,6 +1,6 @@
 version: '2'
 services:
-  nanobench:
+  nanodash:
     image: nanopub/nanodash
     ports:
       - 37373:37373

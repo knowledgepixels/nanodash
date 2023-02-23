@@ -1,6 +1,6 @@
 version: '2'
 services:
-  nanobench:
+  nanodash:
     environment:
      - NANOBENCH_WEBSITE_URL=https://your.domain.org/
      - NANOBENCH_ORCID_LOGIN_MODE=true
