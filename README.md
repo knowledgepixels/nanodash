@@ -1,8 +1,11 @@
-Nanobench
-=========
+Nanodash
+========
 
-Nanobench is a client to browse and publish nanopublications.
+Nanobench is now called Nanodash!
 
+Nanodash is a client to browse and publish nanopublications.
+
+_(to be updated...)_
 
 ## Online Instances
 
