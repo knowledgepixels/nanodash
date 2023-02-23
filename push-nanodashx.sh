@@ -7,7 +7,7 @@ git checkout $LATESTVERSION
 
 package/package.sh
 
-docker build -t nanopub/nanobenchx .
-docker push nanopub/nanobenchx
+docker build -t nanopub/nanodashx .
+docker push nanopub/nanodashx
 
 git switch -
