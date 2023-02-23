@@ -1,16 +1,16 @@
-Nanobench: Notes
-================
+Nanodash: Notes
+===============
 
 ## Docker
 
 Make Docker container:
 
     $ package/package.sh
-    $ docker build -t nanopub/nanobench .
+    $ docker build -t nanopub/nanodash .
 
 Publish Docker container:
 
-    $ docker push nanopub/nanobench
+    $ docker push nanopub/nanodash
 
 
 ## Release

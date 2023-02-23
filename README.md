@@ -9,7 +9,7 @@ _(to be updated...)_
 
 ## Online Instances
 
-You can use Nanobench by login in via ORCID in one of the online instances:
+You can use Nanodash by login in via ORCID in one of the online instances:
 
 - https://nanodash.petapico.org/
 - https://nanodash.np.trustyuri.net/
