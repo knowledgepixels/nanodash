@@ -22,7 +22,7 @@
  		<filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
 		<init-param>
 			<param-name>applicationClassName</param-name>
-			<param-value>org.petapico.nanobench.WicketApplication</param-value>
+			<param-value>com.knowledgepixels.nanodash.WicketApplication</param-value>
  		</init-param>
  	</filter>
 
