@@ -17,7 +17,7 @@ public class NanobenchPreferences implements Serializable {
 
 	public static NanobenchPreferences get() {
 		if (obj == null) {
-			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanobench-preferences.yml");
+			File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanodash-preferences.yml");
 			if (!prefFile.exists()) {
 				return new NanobenchPreferences();
 			}
@@ -41,7 +41,7 @@ public class NanobenchPreferences implements Serializable {
 	private String settingUri;
 
 	public List<String> getNanopubActions() {
-		String s = System.getenv("NANOBENCH_NANOPUB_ACTIONS");
+		String s = System.getenv("NANODASH_NANOPUB_ACTIONS");
 		if (!(s == null) && !s.isEmpty()) return Arrays.asList(s.split(" "));
 		return nanopubActions;
 	}
@@ -51,7 +51,7 @@ public class NanobenchPreferences implements Serializable {
 	}
 
 	public boolean isReadOnlyMode() {
-		if ("true".equals(System.getenv("NANOBENCH_READ_ONLY_MODE"))) return true;
+		if ("true".equals(System.getenv("NANODASH_READ_ONLY_MODE"))) return true;
 		return readOnlyMode;
 	}
 
@@ -60,7 +60,7 @@ public class NanobenchPreferences implements Serializable {
 	}
 
 	public String getWebsiteUrl() {
-		String s = System.getenv("NANOBENCH_WEBSITE_URL");
+		String s = System.getenv("NANODASH_WEBSITE_URL");
 		if (!(s == null) && !s.isEmpty()) return s;
 		return websiteUrl;
 	}
@@ -70,7 +70,7 @@ public class NanobenchPreferences implements Serializable {
 	}
 
 	public boolean isOrcidLoginMode() {
-		if ("true".equals(System.getenv("NANOBENCH_ORCID_LOGIN_MODE"))) return true;
+		if ("true".equals(System.getenv("NANODASH_ORCID_LOGIN_MODE"))) return true;
 		return orcidLoginMode;
 	}
 
