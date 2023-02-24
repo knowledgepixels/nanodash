@@ -180,4 +180,13 @@ public class Utils {
 		return htmlSanitizePolicy.sanitize(rawHtml);
 	}
 
+	public static String getPageParametersAsString(PageParameters params) {
+		String s = "";
+		for (String n : params.getNamedKeys()) {
+			if (!s.isEmpty()) s += "&";
+			s += n + "=" + URLEncoder.encode(params.get(n).toString(), Charsets.UTF_8);
+		}
+		return s;
+	}
+
 }
