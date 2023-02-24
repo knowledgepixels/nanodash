@@ -27,6 +27,7 @@ public class FcOverviewPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connector/ios/fc";
 
+	// TODO: Make specific API for FAIR Connect:
 	protected static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 
 	public FcOverviewPage(final PageParameters parameters) {
@@ -41,7 +42,7 @@ public class FcOverviewPage extends WebPage {
 		Map<String,String> params = new HashMap<>();
 		params.put("creator", session.getUserIri().stringValue());
 		try {
-			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-formalization-nanopubs", params);
+			ApiResponse resp = ApiAccess.getAll(apiUrl, "get-superpattern-nanopubs", params);
 	
 			add(new DataView<ApiResponseEntry>("formalization-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 	
