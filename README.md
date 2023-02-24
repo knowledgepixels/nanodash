@@ -5,7 +5,6 @@ Nanodash was previously called Nanobench.
 
 Nanodash is a client to browse and publish nanopublications.
 
-_(to be updated...)_
 
 ## Online Instances
 
@@ -30,19 +29,6 @@ You can check out these video tutorials to learn more about Nanodash and how it 
 - [Nanobench Tutorial 3: Browsing and Publishing Nanopublications](https://youtu.be/-UB28HVEO38)
 - [Nanobench Tutorial 4: Creating Templates](https://youtu.be/gQk8ItHr38U)
 - [Nanobench Tutorial 5: Using the Query Services](https://youtu.be/U200GuqOBso)
-
-
-## Screenshots
-
-Somewhat outdated screenshots from when Nanodash was still called Nanobench:
-
-#### Feed
-
-![screenshot 1](screenshot1.png)
-
-#### Publishing
-
-![screenshot 2](screenshot2.png)
 
 
 ## License
