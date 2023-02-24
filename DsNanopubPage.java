@@ -13,9 +13,11 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
+
 import com.knowledgepixels.nanodash.ApiAccess;
 import com.knowledgepixels.nanodash.ApiResponse;
 import com.knowledgepixels.nanodash.ApiResponseEntry;
@@ -48,16 +50,14 @@ public class DsNanopubPage extends WebPage {
 			mode = parameters.get("mode").toString();
 		}
 
-		String ref = null;
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (requestUrl.matches(MOUNT_PATH.substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
 			// TODO: Don't assume purl.org namespace here:
-			ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
-		}
-		if (ref == null) {
-			ref = parameters.get("id").toString();
+			String ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
+			throw new RedirectToUrlException(MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("id", ref)));
 		}
 
+		String ref = parameters.get("id").toString();
 		Nanopub np = Utils.getAsNanopub(ref);
 		add(new NanopubItem("nanopub", new NanopubElement(np), false, true, NanopubAction.ownActions));
 		String uri = np.getUri().stringValue();
@@ -66,19 +66,17 @@ public class DsNanopubPage extends WebPage {
 		String reviewUri = "http://ds.kpxl.org/" + artifactCode;
 
 		String backLink = " <a href=\"" + DsOverviewPage.MOUNT_PATH + "\">&lt; Back to Overview</a> |";
-		String typeParam = "";
 		if (!parameters.get("type").isEmpty()) {
 			String type = parameters.get("type").toString();
 			backLink = " <a href=\"" + DsTypePage.MOUNT_PATH + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
-			typeParam = "&type=" + type;
 		}
 
 		String navigationLinks = "|";
 		if (mode.equals("author")) {
 			navigationLinks += backLink;
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=reviewer" + typeParam + "\">Switch to Reviewer View</a> |";
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "/" + artifactCode + "?mode=author" + typeParam + "\">Switch to Author View</a> |";
+			navigationLinks += " <a href=\"" + MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "author")) + "\">Switch to Author View</a> |";
 //		} else if (mode.equals("example")) {
 //			navigationLinks += backLink;
 		}
@@ -87,6 +85,24 @@ public class DsNanopubPage extends WebPage {
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
 //		add(new WebMarkupContainer("example-message").setVisible(mode.equals("example")));
+
+		HashMap<String,String> newerVersionParams = new HashMap<>();
+		newerVersionParams.put("np", np.getUri().stringValue());
+		String latest = null;
+		try {
+			ApiResponse newerVersionResponse = ApiAccess.getAll(ApiAccess.MAIN_GRLC_API_GENERIC_URL, "get_latest_version", newerVersionParams);
+			if (newerVersionResponse.getData().size() == 1) latest = newerVersionResponse.getData().get(0).get("latest");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		WebMarkupContainer newerVersionText = new WebMarkupContainer("newer-version");
+		if (latest == null || latest.equals(np.getUri().stringValue())) {
+			newerVersionText.add(new Label("newer-version-link"));
+			newerVersionText.setVisible(false);
+		} else {
+			newerVersionText.add(new BookmarkablePageLink<WebPage>("newer-version-link", DsNanopubPage.class, new PageParameters(parameters).set("id", latest)));
+		}
+		add(newerVersionText);
 
 		try {
 
