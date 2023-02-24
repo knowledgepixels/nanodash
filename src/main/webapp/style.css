@@ -329,12 +329,12 @@ select {
 	margin: 10px 3px 0 3px;
 }
 
-.meta {
+.meta , .meta a {
 	color: #666;
 	margin: 10px 10px 0 5px;
 }
 
-a.meta:hover, a.meta:active {
+a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	color: #aaa;
 }
 

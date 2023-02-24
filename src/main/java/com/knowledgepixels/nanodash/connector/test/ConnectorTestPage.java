@@ -23,7 +23,7 @@ public class ConnectorTestPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-test";
+	public static final String MOUNT_PATH = "/connector/test";
 
 	private static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/connectortest-nanopub-api/";
 

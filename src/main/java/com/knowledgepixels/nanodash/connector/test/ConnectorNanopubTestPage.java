@@ -14,7 +14,7 @@ public class ConnectorNanopubTestPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-test-np";
+	public static final String MOUNT_PATH = "/connector/test/np";
 
 	public ConnectorNanopubTestPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
