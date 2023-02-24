@@ -6,4 +6,5 @@ services:
     ports:
       - 37373:37373
     volumes:
+      - ~/.nanopub:/root/.nanopub
       - .:/local
