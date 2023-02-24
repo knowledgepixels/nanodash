@@ -1,6 +1,8 @@
 Nanodash
 ========
 
+![logo](src/main/webapp/images/logo.svg)
+
 Nanodash was previously called Nanobench.
 
 Nanodash is a client to browse and publish nanopublications.
