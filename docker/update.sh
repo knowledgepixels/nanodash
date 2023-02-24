@@ -6,4 +6,4 @@ cd ..
 set -e
 
 docker-compose down
-./docker-launch.sh
+docker/launch.sh
