@@ -1,6 +1,0 @@
-[submodule "src/main/java/com/knowledgepixels/nanodash/connector/ios"]
-	path = src/main/java/com/knowledgepixels/nanodash/connector/ios
-	url = git@github.com:knowledgepixels/ios-nanodash-connector.git
-[submodule "src/main/java/com/knowledgepixels/nanodash/connector/pensoft"]
-	path = src/main/java/com/knowledgepixels/nanodash/connector/pensoft
-	url = git@github.com:knowledgepixels/pensoft-nanodash-connector.git
