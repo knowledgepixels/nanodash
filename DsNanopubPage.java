@@ -35,7 +35,7 @@ public class DsNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-ios-ds-np";
+	public static final String MOUNT_PATH = "/connector/ios/ds/np";
 
 	public DsNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
@@ -65,11 +65,11 @@ public class DsNanopubPage extends WebPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = "http://ds.kpxl.org/" + artifactCode;
 
-		String backLink = " <a href=\"/connector-ios-ds\">&lt; Back to Overview</a> |";
+		String backLink = " <a href=\"" + DsOverviewPage.MOUNT_PATH + "\">&lt; Back to Overview</a> |";
 		String typeParam = "";
 		if (!parameters.get("type").isEmpty()) {
 			String type = parameters.get("type").toString();
-			backLink = " <a href=\"/connector-ios-ds-type?type=" + type + "\">&lt; Back to Type Overview</a> |";
+			backLink = " <a href=\"" + DsTypePage.MOUNT_PATH + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
 			typeParam = "&type=" + type;
 		}
 

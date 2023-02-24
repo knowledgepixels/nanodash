@@ -10,7 +10,7 @@ public class DsOverviewPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-ios-ds";
+	public static final String MOUNT_PATH = "/connector/ios/ds";
 
 	public static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 

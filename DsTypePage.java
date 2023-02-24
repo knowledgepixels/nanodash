@@ -34,7 +34,7 @@ public class DsTypePage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-ios-ds-type";
+	public static final String MOUNT_PATH = "/connector/ios/ds/type";
 
 	private String type;
 
@@ -125,7 +125,7 @@ public class DsTypePage extends WebPage {
 
 		String createNewParagraph = "";
 		if (type.equals("superpattern") || type.equals("crel") || type.equals("inddef")) {
-			createNewParagraph += "<p>If you don't find the class you need, <a href=\"/connector-ios-ds-type?type=classdef\">create a new class</a> first.</p>";
+			createNewParagraph += "<p>If you don't find the class you need, <a href=\"/" + DsTypePage.MOUNT_PATH + "?type=classdef\">create a new class</a> first.</p>";
 		}
 
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,

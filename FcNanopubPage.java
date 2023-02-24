@@ -29,7 +29,7 @@ public class FcNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-ios-fc-np";
+	public static final String MOUNT_PATH = "/connector/ios/fc/np";
 
 	public FcNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
