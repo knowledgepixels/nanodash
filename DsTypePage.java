@@ -128,6 +128,8 @@ public class DsTypePage extends WebPage {
 			createNewParagraph += "<p>If you don't find the class you need, <a href=\"/" + DsTypePage.MOUNT_PATH + "?type=classdef\">create a new class</a> first.</p>";
 		}
 
+		add(new BookmarkablePageLink<WebPage>("refresh-link", DsTypePage.class, parameters));
+
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", "http://purl.org/np/RAcCMOxJ6N0vfLAeHO81Ly-KEx0QZVWBFESibY9Sz6TI0")

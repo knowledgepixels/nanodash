@@ -127,6 +127,8 @@ public class DsNanopubPage extends WebPage {
 	
 			});
 
+			add(new BookmarkablePageLink<WebPage>("refresh-link", DsNanopubPage.class, parameters));
+
 			add(new BookmarkablePageLink<WebPage>("create-new-reaction", PublishPage.class,
 					new PageParameters()
 						.add("template", "http://purl.org/np/RA4qeqqwcQGKQX9AgSd_3nNzECBYsohceseJ5FdFU_kjQ")
