@@ -2,7 +2,8 @@ version: '2'
 services:
   nanodash:
 #   volumes:
-#     - ./local-data:/root/.nanopub
+#     - ~/.nanopub:/root/.nanopub  # for local use
+#     - ./local-data:/root/.nanopub  # for server use
     environment:
       - NANODASH_WEBSITE_URL=https://your.domain.org/
       - NANODASH_ORCID_LOGIN_MODE=true
