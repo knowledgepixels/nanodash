@@ -28,7 +28,7 @@ public class RioOverviewPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-pensoft-rio";
+	public static final String MOUNT_PATH = "/connector/pensoft/rio";
 
 	protected static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/rio-nanopub-api/";
 

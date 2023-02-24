@@ -33,7 +33,7 @@ public class RioNanopubPage extends WebPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector-pensoft-rio-np";
+	public static final String MOUNT_PATH = "/connector/pensoft/rio/np";
 
 	public RioNanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
