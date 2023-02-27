@@ -93,14 +93,9 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 					if (label.length() > 160) label = label.substring(0, 157) + "...";
 				}
 				if (label == null) {
-					return "<code>" + choiceId + "</code>";
+					return choiceId;
 				}
-				if (label.contains(" - ")) {
-					label = "<strong>" + label.replace(" - ", "</strong> - ");
-				} else {
-					label = "<strong>" + label + "</strong>";
-				}
-				return label + " (<code>" + choiceId + "</code>)";
+				return label + " (" + choiceId + ")";
 			}
 
 			@Override

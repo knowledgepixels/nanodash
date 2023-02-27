@@ -193,13 +193,9 @@ public class Utils {
 	public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
 		selectItem.getSettings().setEscapeMarkup("function(markup) {" +
 			"return markup" +
-			 	".replaceAll('<strong>','[[[strong]]]').replaceAll('</strong>','[[[/strong]]]')" +
-			 	".replaceAll('<em>','[[[em]]]').replaceAll('</em>','[[[/em]]]')" +
-			 	".replaceAll('<code>','[[[code]]]').replaceAll('</code>','[[[/code]]]')" +
 				".replaceAll('<','&lt;').replaceAll('>','&gt;')" + 
-				".replaceAll('[[[strong]]]','<strong>').replaceAll('[[[/strong]]]', '</strong>')" +
-				".replaceAll('[[[em]]]','<em>').replaceAll('[[[/em]]]', '</em>')" +
-				".replaceAll('[[[code]]]','<code>').replaceAll('[[[/code]]]', '</code>')" +
+				".replaceAll(/^(.*?) - /g, \"<strong>$1</strong> - \")" +
+				".replaceAll(/\\((https?:[\\S]+)\\)$/g, \"(<code>$1</code>)\")" +
 			";}"
 		);
 	}

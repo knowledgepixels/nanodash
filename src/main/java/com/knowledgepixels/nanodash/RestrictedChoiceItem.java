@@ -82,21 +82,16 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			public String getDisplayValue(String choiceId) {
 				if (choiceId == null || choiceId.isEmpty()) return "";
 				if (!choiceId.matches("(https?|file)://.+")) {
-					return "<code>" + choiceId + "</code>";
+					return choiceId;
 				}
 				IRI valueIri = vf.createIRI(choiceId);
 				if (fixedPossibleValues.containsKey(choiceId) && template.getLabel(valueIri) != null) {
-					String label = template.getLabel(valueIri);
-					if (label.contains(" - ")) {
-						return "<strong>" + label.replace(" - ", "</strong> - ");
-					} else {
-						return "<strong>" + label + "</strong>";
-					}
+					return template.getLabel(valueIri);
 				}
 				if (choiceId.startsWith(template.getId())) {
 					choiceId = choiceId.substring(0, template.getId().length());
 				}
-				return "<code>" + choiceId + "</code>";
+				return choiceId;
 			}
 
 			@Override
