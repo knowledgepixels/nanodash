@@ -92,11 +92,15 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 					label = labelMap.get(choiceId);
 					if (label.length() > 160) label = label.substring(0, 157) + "...";
 				}
-				if (label != null) {
-					return label + " (" + choiceId + ")";
-				} else {
-					return choiceId;
+				if (label == null) {
+					return "<code>" + choiceId + "</code>";
 				}
+				if (label.contains(" - ")) {
+					label = "<strong>" + label.replace(" - ", "</strong> - ");
+				} else {
+					label = "<strong>" + label + "</strong>";
+				}
+				return label + " (<code>" + choiceId + "</code>)";
 			}
 
 			@Override
@@ -137,6 +141,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		String placeholder = template.getLabel(iri);
 		if (placeholder == null) placeholder = "";
 		textfield.getSettings().setPlaceholder(placeholder);
+		Utils.setSelect2ChoiceMinimalEscapeMarkup(textfield);
 		textfield.getSettings().setAllowClear(true);
 
 		if (!optional) textfield.setRequired(true);

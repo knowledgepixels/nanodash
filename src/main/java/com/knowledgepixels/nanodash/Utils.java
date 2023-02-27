@@ -27,6 +27,7 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
+import org.wicketstuff.select2.Select2Choice;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -187,6 +188,20 @@ public class Utils {
 			s += n + "=" + URLEncoder.encode(params.get(n).toString(), Charsets.UTF_8);
 		}
 		return s;
+	}
+
+	public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
+		selectItem.getSettings().setEscapeMarkup("function(markup) {" +
+			"return markup" +
+			 	".replaceAll('<strong>','[[[strong]]]').replaceAll('</strong>','[[[/strong]]]')" +
+			 	".replaceAll('<em>','[[[em]]]').replaceAll('</em>','[[[/em]]]')" +
+			 	".replaceAll('<code>','[[[code]]]').replaceAll('</code>','[[[/code]]]')" +
+				".replaceAll('<','&lt;').replaceAll('>','&gt;')" + 
+				".replaceAll('[[[strong]]]','<strong>').replaceAll('[[[/strong]]]', '</strong>')" +
+				".replaceAll('[[[em]]]','<em>').replaceAll('[[[/em]]]', '</em>')" +
+				".replaceAll('[[[code]]]','<code>').replaceAll('[[[/code]]]', '</code>')" +
+			";}"
+		);
 	}
 
 }

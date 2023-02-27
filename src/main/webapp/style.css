@@ -196,8 +196,8 @@ code {
   border-width: 1px;
   border-radius: 2px;
   border-style: solid;
-  border-color: #ddd;
-  background: #f4f4f4;
+  border-color: #0002;
+  background: #00000008;
   padding: 1px 3px;
   margin: 1px 3px;
 }
@@ -221,6 +221,11 @@ input, select, textarea {
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
+}
+
+.select2 {
+	font-family: Inter, Verdana, Helvetica, sans-serif;
+	font-size: 11pt;
 }
 
 select.actionmenu {
@@ -385,7 +390,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   vertical-align: top;
 }
 
-.nanopub-statement input, .nanopub-statement select, .nanopub-statement .select2, .nanopub-statement textarea {
+.nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
   margin: 2px;
   font-family: Martian,monaco,monospace;
 }

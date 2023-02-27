@@ -79,15 +79,24 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getDisplayValue(String object) {
-				if (object == null || object.isEmpty()) return "";
-				if (!object.matches("(https?|file)://.+")) return object;
-				IRI valueIri = vf.createIRI(object);
-				if (fixedPossibleValues.containsKey(object) && template.getLabel(valueIri) != null) {
-					return template.getLabel(valueIri);
+			public String getDisplayValue(String choiceId) {
+				if (choiceId == null || choiceId.isEmpty()) return "";
+				if (!choiceId.matches("(https?|file)://.+")) {
+					return "<code>" + choiceId + "</code>";
 				}
-				if (object.startsWith(template.getId())) return object.substring(0, template.getId().length());
-				return object;
+				IRI valueIri = vf.createIRI(choiceId);
+				if (fixedPossibleValues.containsKey(choiceId) && template.getLabel(valueIri) != null) {
+					String label = template.getLabel(valueIri);
+					if (label.contains(" - ")) {
+						return "<strong>" + label.replace(" - ", "</strong> - ");
+					} else {
+						return "<strong>" + label + "</strong>";
+					}
+				}
+				if (choiceId.startsWith(template.getId())) {
+					choiceId = choiceId.substring(0, template.getId().length());
+				}
+				return "<code>" + choiceId + "</code>";
 			}
 
 			@Override
@@ -129,6 +138,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		String placeholder = template.getLabel(iri);
 		if (placeholder == null) placeholder = "";
 		choice.getSettings().setPlaceholder(placeholder);
+		Utils.setSelect2ChoiceMinimalEscapeMarkup(choice);
 		choice.getSettings().setAllowClear(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		choice.add(new Validator());
