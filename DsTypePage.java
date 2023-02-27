@@ -74,8 +74,8 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RA_is9jmGdOi9hhZhX7nuZum8YAl76jrsqVhOR5KvYvyw";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
-			template = Template.getTemplate("http://purl.org/np/RAZR0ieT8ynmPI28fdQheCRDbL8znCeN_udhiSbQHXBS8");
-			exampleId = "http://purl.org/np/RAPs7VnjMiXNTtRJplChj1OxOFd0fJqdQwt3eX-cKWqKg";
+			template = Template.getTemplate("http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c");
+			exampleId = "http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0";
 		}
 
 		add(new Label("title", title));
