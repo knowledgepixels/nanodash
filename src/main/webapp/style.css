@@ -45,11 +45,6 @@ h5, h6 {
 	font-style: italic;
 }
 
-.title {
-	font-size: 22pt;
-	font-weight: bold;
-}
-
 .title img.logo {
   height: 12mm;
 }
@@ -59,8 +54,9 @@ h5, h6 {
 }
 
 .menu {
-	font-size: 16pt;
+	font-size: 14pt;
 	margin-left: 1em;
+	vertical-align: middle;
 }
 
 p.graphheader {
@@ -287,7 +283,7 @@ select {
 
 #titlebar {
 	clear: both;
-	padding: 3px 20px;
+	padding: 0px 10px;
 	background-color: #f8f8f8;
 	border-color: #888;
 	border-style: solid;
