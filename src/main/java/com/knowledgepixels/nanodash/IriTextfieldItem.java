@@ -81,7 +81,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
+			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
 			textfield.setLabel(Model.of(template.getLabel(iri)));
 		}
 		textfield.add(new OnChangeAjaxBehavior() {
