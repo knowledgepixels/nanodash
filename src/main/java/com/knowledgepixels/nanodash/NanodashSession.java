@@ -171,7 +171,11 @@ public class NanodashSession extends WebSession {
 		IRI location = Utils.getLocation(inp);
 		NanopubSignatureElement el = Utils.getNanopubSignatureElement(inp);
 		String siteUrl = NanodashPreferences.get().getWebsiteUrl();
-		if (location != null && siteUrl != null && !location.stringValue().equals(siteUrl)) return false;
+		if (location != null && siteUrl != null) {
+			String l = location.stringValue();
+			// TODO: Solve the name change recognition in a better way:
+			if (!l.equals(siteUrl) && !l.replace("nanobench", "nanodash").equals(siteUrl)) return false;
+		}
 		if (!getPubkeyString().equals(el.getPublicKeyString())) return false;
 		for (KeyDeclaration kd : inp.getKeyDeclarations()) {
 			if (getPubkeyString().equals(kd.getPublicKeyString())) return true;
