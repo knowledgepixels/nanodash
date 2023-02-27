@@ -40,7 +40,6 @@ public class DsTypePage extends WebPage {
 
 	public DsTypePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
-		//add(new Label("titlebar"));  // hide title bar
 
 		final NanodashSession session = NanodashSession.get();
 
@@ -57,27 +56,26 @@ public class DsTypePage extends WebPage {
 			title = "General Super-Pattern Statements";
 			template = Template.getTemplate("http://purl.org/np/RAklcTNzzyZpQV3fsPVMOYqaEcYdG3T7Db5dgMyYgVxNU");
 			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
-//			exampleLabel = "in humans, headache is mostly caused by dehydration";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Instances";
 			template = Template.getTemplate("http://purl.org/np/RA2bh5P8WyBw5AStfI022BhXuJc7t8Sy1jJmycRTY9Xu4");
 			exampleId = "http://purl.org/np/RA4jQEcgnlnyZuVcSDg7n4oXL9l0Ifkpq34gvWaDPEuac";
-//			exampleLabel = "invention of telephone was necessary for Internet";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
 			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
 			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
-//			exampleLabel = "instances of smoking tend to cause instances of cancer";
+		} else if (type.equals("aida")) {
+			title = "AIDA Statements";
+			template = Template.getTemplate("http://purl.org/np/RAK8Xbu3t63p6wMU2WGz8t4BX63cL0Tu2HBRvlxIDNCX8");
+			exampleId = "http://purl.org/np/RA4lYxH4ISq9pMZEO_CQXvpmvlx_qtNK6-y_SLkvKH2z0";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
 			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
 			exampleId = "http://purl.org/np/RA_is9jmGdOi9hhZhX7nuZum8YAl76jrsqVhOR5KvYvyw";
-//			exampleLabel = "operant research";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAZR0ieT8ynmPI28fdQheCRDbL8znCeN_udhiSbQHXBS8");
 			exampleId = "http://purl.org/np/RAPs7VnjMiXNTtRJplChj1OxOFd0fJqdQwt3eX-cKWqKg";
-//			exampleLabel = "Leiden Declaration on FAIR Digital Objects";
 		}
 
 		add(new Label("title", title));
@@ -132,7 +130,7 @@ public class DsTypePage extends WebPage {
 
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
-					.add("prtemplate", "http://purl.org/np/RAcCMOxJ6N0vfLAeHO81Ly-KEx0QZVWBFESibY9Sz6TI0")
+					.add("prtemplate", "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ")
 					.add("link-message", "<p>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
 							"to <strong>publish a nanopublication that you can later link to your Data Science submission</strong>.</p>" +
 							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link, in which case you can choose " +
