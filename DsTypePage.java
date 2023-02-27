@@ -53,8 +53,8 @@ public class DsTypePage extends WebPage {
 
 		if (type.equals("superpattern")) {
 			title = "General Super-Pattern Statements";
-			template = Template.getTemplate("http://purl.org/np/RAklcTNzzyZpQV3fsPVMOYqaEcYdG3T7Db5dgMyYgVxNU");
-			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
+			template = Template.getTemplate("http://purl.org/np/RA1-ZSpmVB-KaxzlapMMJisnXo-7jlFTxhSFWIckg5T88");
+			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Instances";
 			template = Template.getTemplate("http://purl.org/np/RAiiJzByX8P2RrumnJii04htCcwe0CKcq4skFo49c1P7s");
@@ -62,7 +62,7 @@ public class DsTypePage extends WebPage {
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
 			template = Template.getTemplate("http://purl.org/np/RAGPUlHIdEpKsoL6Gi6Q2ZXxa6hGyScnmdPhPLbYNslJg");
-			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
+			exampleId = "http://purl.org/np/RAzw-5B7jP0Qj5UVkljfM89mkj1jDQRSzT-DIKtoMtUAQ";
 		} else if (type.equals("aida")) {
 			title = "AIDA Sentence";
 			template = Template.getTemplate("http://purl.org/np/RAK8Xbu3t63p6wMU2WGz8t4BX63cL0Tu2HBRvlxIDNCX8");
