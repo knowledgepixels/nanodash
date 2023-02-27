@@ -58,8 +58,8 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAtMrAMB4f5wA3RVzIHk83eVroBbCTFZyYYNTZgwhdE6o";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Instances";
-			template = Template.getTemplate("http://purl.org/np/RA2bh5P8WyBw5AStfI022BhXuJc7t8Sy1jJmycRTY9Xu4");
-			exampleId = "http://purl.org/np/RA4jQEcgnlnyZuVcSDg7n4oXL9l0Ifkpq34gvWaDPEuac";
+			template = Template.getTemplate("http://purl.org/np/RAiiJzByX8P2RrumnJii04htCcwe0CKcq4skFo49c1P7s");
+			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
 			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
@@ -133,8 +133,8 @@ public class DsTypePage extends WebPage {
 					.add("prtemplate", "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ")
 					.add("link-message", "<p>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
 							"to <strong>publish a nanopublication that you can later link to your Data Science submission</strong>.</p>" +
-							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link, in which case you can choose " +
-							"the provenance template \"From research described in an article (published/preprint)\".</p>" +
+							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link by choosing " +
+							"\"From research described in an article (published/preprint)\".</p>" +
 							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
 							createNewParagraph +
 							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
