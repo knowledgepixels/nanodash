@@ -50,7 +50,6 @@ public class DsTypePage extends WebPage {
 		String title = null;
 		Template template = null;
 		String exampleId = null;
-//		String exampleLabel = null;
 
 		if (type.equals("superpattern")) {
 			title = "General Super-Pattern Statements";
@@ -62,7 +61,7 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
-			template = Template.getTemplate("http://purl.org/np/RA1noABWhcUzmQEGZjhyBzdwBsQUtH4aDKCnrUrI9Qi8c");
+			template = Template.getTemplate("http://purl.org/np/RAGPUlHIdEpKsoL6Gi6Q2ZXxa6hGyScnmdPhPLbYNslJg");
 			exampleId = "http://purl.org/np/RAmyMRLYe8Z6BVftdhURMvufmCCjPljNmNInypeuW-Ic8";
 		} else if (type.equals("aida")) {
 			title = "AIDA Sentence";
