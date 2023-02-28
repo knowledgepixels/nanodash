@@ -180,6 +180,9 @@ a.actionlink {
 .select2-selection__placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
 }
+.select2-selection__placeholder strong {
+  font-weight: normal;  # ignore <strong> in Select2 placeholders
+}
 
 strong {
 	font-weight: bold;

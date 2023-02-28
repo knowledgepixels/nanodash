@@ -194,8 +194,9 @@ public class Utils {
 		selectItem.getSettings().setEscapeMarkup("function(markup) {" +
 			"return markup" +
 				".replaceAll('<','&lt;').replaceAll('>','&gt;')" + 
-				".replaceAll(/^(.*?) - /g, \"<strong>$1</strong> - \")" +
-				".replaceAll(/\\((https?:[\\S]+)\\)$/g, \"(<code>$1</code>)\")" +
+				".replace(/^(.*?) - /, \"<strong>$1</strong> - \")" +
+				".replace(/\\((https?:[\\S]+)\\)$/, \"(<code>$1</code>)\")" +
+				".replace(/^([^<].*)$/, \"<strong>$1</strong>\")" +
 			";}"
 		);
 	}

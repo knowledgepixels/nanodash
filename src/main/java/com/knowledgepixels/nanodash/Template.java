@@ -560,8 +560,12 @@ public class Template implements Serializable {
 					// ID key not found, try to get results for following format
 					// {result1: ["label 1", "label 2"], result2: ["label 3", "label 4"]}
 					// Aims to resolve https://name-resolution-sri.renci.org/docs#
+
+					// TODO: It seems this is triggered too often and adds 'https://identifiers.org/search' when it
+					//       shouldn't. Manually filtering these out for now...
 					for (String key : json.keySet()) {
 						if (!(json.get(key) instanceof JSONArray)) continue;
+						if ("search".equals(key)) continue;
 						JSONArray labelArray = json.getJSONArray(key);
 						String uri = key;
 						String label = "";
