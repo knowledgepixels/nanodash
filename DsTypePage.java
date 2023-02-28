@@ -122,7 +122,9 @@ public class DsTypePage extends WebPage {
 
 		String createNewParagraph = "";
 		if (type.equals("superpattern") || type.equals("crel") || type.equals("inddef")) {
-			createNewParagraph += "<p>If you don't find the class you need, <a href=\"/" + DsTypePage.MOUNT_PATH + "?type=classdef\">create a new class</a> first.</p>";
+			createNewParagraph += "<p>If you don't find the class you need, <a href=\"" + DsTypePage.MOUNT_PATH + "?type=classdef\">create a new class</a> first.</p>";
+		} else if (type.equals("linkflowsrel")) {
+			createNewParagraph += "<p>If you don't find the individual you need, <a href=\"" + DsTypePage.MOUNT_PATH + "?type=inddef\">create a new individual</a> first.</p>";
 		}
 
 		add(new BookmarkablePageLink<WebPage>("refresh-link", DsTypePage.class, parameters));
