@@ -134,10 +134,11 @@ public class DsNanopubPage extends WebPage {
 					} else {
 						item.add(new Label("reactionnote", "On earlier version:"));
 					}
+					item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
 					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reaction", ExplorePage.class, params);
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", ExplorePage.class, params);
 					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
-					l.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + ") by " + username + " on " + e.get("date").substring(0, 10)));
+					l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
 					item.add(l);
 				}
 	
