@@ -61,7 +61,7 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
-			template = Template.getTemplate("http://purl.org/np/RAGPUlHIdEpKsoL6Gi6Q2ZXxa6hGyScnmdPhPLbYNslJg");
+			template = Template.getTemplate("http://purl.org/np/RAIyDPSsy66IAXzHu75HyLjv8m3mK18rDqnHYntcfJNto");
 			exampleId = "http://purl.org/np/RAzw-5B7jP0Qj5UVkljfM89mkj1jDQRSzT-DIKtoMtUAQ";
 		} else if (type.equals("aida")) {
 			title = "AIDA Sentence";
