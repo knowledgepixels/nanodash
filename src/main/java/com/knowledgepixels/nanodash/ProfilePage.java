@@ -29,8 +29,13 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (session.isProfileComplete()) {
-			add(new Label("message", "Your profile is sufficiently complete to publish your own nanopublications. " +
-					"You might see additional recommended actions below."));
+			if ("publish-intro".equals(parameters.get("message").toString())) {
+				add(new Label("message", "<span class=\"negative\">Follow the Recommended Actions below to publish an introduction with your local key.</span>")
+						.setEscapeModelStrings(false));
+			} else {
+				add(new Label("message", "Your profile is sufficiently complete to publish your own nanopublications. " +
+						"You might see additional recommended actions below."));
+			}
 		} else {
 			if (loginMode) {
 				add(new Label("message", "Before you can publish your own nanopublications, you need to login via ORCID."));
