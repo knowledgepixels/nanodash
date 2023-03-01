@@ -29,7 +29,7 @@ public class ProfilePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		if (session.isProfileComplete()) {
-			add(new Label("message", "Congratulations, your profile is sufficiently complete to publish your own nanopublications. " +
+			add(new Label("message", "Your profile is sufficiently complete to publish your own nanopublications. " +
 					"You might see additional recommended actions below."));
 		} else {
 			if (loginMode) {
