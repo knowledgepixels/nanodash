@@ -16,8 +16,10 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -199,6 +201,24 @@ public class Utils {
 				".replace(/^([^<].*)$/, \"<strong>$1</strong>\")" +
 			";}"
 		);
+	}
+
+	public static boolean isNanopubOfClass(Nanopub np, IRI classIri) {
+		for (Statement st : np.getAssertion()) {
+			if (np.getAssertionUri().equals(st.getSubject()) && RDF.TYPE.equals(st.getPredicate()) && classIri.equals(st.getObject())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean usesPredicateInAssertion(Nanopub np, IRI predicateIri) {
+		for (Statement st : np.getAssertion()) {
+			if (predicateIri.equals(st.getPredicate())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

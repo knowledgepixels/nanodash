@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,8 @@ public class NanodashSession extends WebSession {
 
 	private Integer localIntroCount = null;
 	private IntroNanopub localIntro = null;
+
+	private Date lastTimeIntroPublished = null;
 
 	public void loadProfileInfo() {
 		localIntroCount = null;
@@ -274,6 +277,19 @@ public class NanodashSession extends WebSession {
 
 	public File getKeyFile() {
 		return new File(userDir + "id_rsa");
+	}
+
+	public void setIntroPublishedNow() {
+		lastTimeIntroPublished = new Date();
+	}
+
+	public boolean hasIntroPublished() {
+		return lastTimeIntroPublished != null;
+	}
+
+	public long getTimeSinceLastIntroPublished() {
+		if (lastTimeIntroPublished == null) return Long.MAX_VALUE;
+		return new Date().getTime() - lastTimeIntroPublished.getTime();
 	}
 
 }
