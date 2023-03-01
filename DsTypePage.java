@@ -69,8 +69,8 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
-			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
-			exampleId = "http://purl.org/np/RA_is9jmGdOi9hhZhX7nuZum8YAl76jrsqVhOR5KvYvyw";
+			template = Template.getTemplate("http://purl.org/np/RACNUK4bBfhOsQRFvIReWPO7dFaT6QlvMy59ZPXOWTWJs");
+			exampleId = "http://purl.org/np/RAj26TjulpgBHXJGe0OwZZZ-cZCJ9WE7ICug5EW2tGH7s";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c");
