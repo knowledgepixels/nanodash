@@ -65,8 +65,8 @@ public class DsTypePage extends WebPage {
 			exampleId = "http://purl.org/np/RAzw-5B7jP0Qj5UVkljfM89mkj1jDQRSzT-DIKtoMtUAQ";
 		} else if (type.equals("aida")) {
 			title = "AIDA Sentence";
-			template = Template.getTemplate("http://purl.org/np/RAK8Xbu3t63p6wMU2WGz8t4BX63cL0Tu2HBRvlxIDNCX8");
-			exampleId = "http://purl.org/np/RA4lYxH4ISq9pMZEO_CQXvpmvlx_qtNK6-y_SLkvKH2z0";
+			template = Template.getTemplate("http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY");
+			exampleId = "http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
 			template = Template.getTemplate("http://purl.org/np/RA2FrMIx0lsjlUje7iLpQb8kB0KuouQz5EpOaO5gdqwWI");
