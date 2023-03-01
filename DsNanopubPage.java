@@ -147,9 +147,13 @@ public class DsNanopubPage extends WebPage {
 
 			add(new BookmarkablePageLink<WebPage>("create-new-reaction", PublishPage.class,
 					new PageParameters()
-						.add("template", "http://purl.org/np/RA4qeqqwcQGKQX9AgSd_3nNzECBYsohceseJ5FdFU_kjQ")
+						.add("template", "http://purl.org/np/RAaRGtbno5qhDnHdw0Pae1CEyVmeqE5tuwAJ9bZTc4jaU")
 						.add("param_paper", np.getUri().stringValue())
-						.add("template-version", "latest")));
+						.add("template-version", "latest")
+						.add("link-message","Here you can publish a reaction to the given nanopublication by typing your text into the text field below and " +
+								"choosing the relation that fits best (if unsure, you can choose 'cites as related').")
+					)
+				);
 
 			WebMarkupContainer submissionPart = new WebMarkupContainer("submissionpart");
 			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), "DsFormSubmit.png")));

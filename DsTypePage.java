@@ -53,7 +53,7 @@ public class DsTypePage extends WebPage {
 
 		if (type.equals("superpattern")) {
 			title = "General Super-Pattern Statements";
-			template = Template.getTemplate("http://purl.org/np/RA1-ZSpmVB-KaxzlapMMJisnXo-7jlFTxhSFWIckg5T88");
+			template = Template.getTemplate("http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI");
 			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Instances";
