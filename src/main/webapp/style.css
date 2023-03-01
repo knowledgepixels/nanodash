@@ -100,6 +100,10 @@ ul {
 	margin-bottom: 0.5em;
 }
 
+ul:not(:empty) + .emptynotice {
+   display: none;
+}
+
 img {
 	vertical-align: middle;
 }
