@@ -488,15 +488,14 @@ public class Template implements Serializable {
 			InputStream in = resp.getEntity().getContent();
 			String respString = IOUtils.toString(in, StandardCharsets.UTF_8);
 			// System.out.println(respString);
-			JSONObject json = new JSONObject(respString);
 
 			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
-				parseNanopubGrlcApi(json, labelMap, values);
+				parseNanopubGrlcApi(new JSONObject(respString), labelMap, values);
 			} else if (apiString.startsWith("https://www.ebi.ac.uk/ols/api/select")) {
 				// Resolve EBI Ontology Lookup Service
 				// e.g. https://www.ebi.ac.uk/ols/api/select?q=interacts%20with 
 				// response.docs.[].iri/label
-				JSONArray responseArray = json.getJSONObject("response").getJSONArray("docs");
+				JSONArray responseArray = new JSONObject(respString).getJSONObject("response").getJSONArray("docs");
 				for (int i = 0; i < responseArray.length(); i++) {
 					String uri = responseArray.getJSONObject(i).getString("iri");
 					String label = responseArray.getJSONObject(i).getString("label");
@@ -508,9 +507,19 @@ public class Template implements Serializable {
 						labelMap.put(uri, label);
 					}
 				}
+			} else if (apiString.startsWith("https://api.gbif.org/v1/species/suggest")) {
+				JSONArray responseArray = new JSONArray(respString);
+				for (int i = 0; i < responseArray.length(); i++) {
+					String uri = "https://www.gbif.org/species/" + responseArray.getJSONObject(i).getString("key");
+					String label = responseArray.getJSONObject(i).getString("scientificName");
+					if (!values.contains(uri)) {
+						values.add(uri);
+						labelMap.put(uri, label);
+					}
+				}
 			} else if (apiString.startsWith("https://vodex.petapico.org/")) {
 				// TODO This is just a test and needs to be improved
-				JSONArray responseArray = json.getJSONObject("response").getJSONArray("docs");
+				JSONArray responseArray = new JSONObject(respString).getJSONObject("response").getJSONArray("docs");
 				for (int i = 0; i < responseArray.length(); i++) {
 					String uri = responseArray.getJSONObject(i).getString("id");
 					String label = responseArray.getJSONObject(i).getJSONArray("label").get(0).toString();
@@ -522,6 +531,7 @@ public class Template implements Serializable {
 			} else {
 				// TODO: create parseJsonApi() ?
 				boolean foundId = false;
+				JSONObject json = new JSONObject(respString);
 				for (String key : json.keySet()) {
 					if (values.size() > 9) break;
 					if (!(json.get(key) instanceof JSONArray)) continue;
