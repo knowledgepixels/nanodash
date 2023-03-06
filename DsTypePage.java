@@ -1,8 +1,8 @@
 package com.knowledgepixels.nanodash.connector.ios;
 
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsTypePage extends TypePage {
@@ -17,7 +17,7 @@ public class DsTypePage extends TypePage {
 
 	@Override
 	protected String getLogoFileName() {
-		return "DsLogo.png";
+		return DsOverviewPage.logofileName;
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class DsTypePage extends TypePage {
 	}
 
 	@Override
-	protected Class<? extends WebPage> getNanopubPageClass() {
+	protected Class<? extends NanopubPage> getNanopubPageClass() {
 		return DsNanopubPage.class;
 	}
 
