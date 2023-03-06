@@ -40,6 +40,16 @@ public class DsNanopubPage extends NanopubPage {
 		return DsOverviewPage.apiUrl;
 	}
 
+	@Override
+	protected String getSubmitImageFileName() {
+		return "DsFormSubmit.png";
+	}
+
+	@Override
+	protected String getReviewUrlPrefix() {
+		return "http://ds.kpxl.org/";
+	}
+
 	
 
 }

@@ -35,4 +35,9 @@ public class DsTypePage extends TypePage {
 		return DsNanopubPage.class;
 	}
 
+	@Override
+	protected String getJournalAbbrev() {
+		return "DS";
+	}
+
 }
