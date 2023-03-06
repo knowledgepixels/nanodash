@@ -30,7 +30,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.opencsv.exceptions.CsvValidationException;
 
-public abstract class TypePage extends WebPage {
+public abstract class TypePage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -142,12 +142,6 @@ public abstract class TypePage extends WebPage {
 			));
 	}
 
-	protected abstract String getLogoFileName();
-
-	protected abstract String getMountPath();
-
-	protected abstract String getApiUrl();
-
-	protected abstract Class<? extends WebPage> getNanopubPageClass();
+	protected abstract Class<? extends NanopubPage> getNanopubPageClass();
 
 }
