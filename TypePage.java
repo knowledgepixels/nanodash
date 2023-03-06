@@ -137,11 +137,13 @@ public abstract class TypePage extends ConnectorPage {
 							"\"From research described in an article (published/preprint)\".</p>" +
 							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
 							createNewParagraph +
-							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
+							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
 							"<p>Close this tab to <strong>abort</strong> the nanopublication creation.</p>")
 			));
 	}
 
 	protected abstract Class<? extends NanopubPage> getNanopubPageClass();
+
+	protected abstract String getJournalAbbrev();
 
 }

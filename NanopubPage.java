@@ -37,12 +37,10 @@ public abstract class NanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/ios/ds/np";
-
 	public NanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), "DsLogo.png")));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), getLogoFileName())));
 
 		String mode = "author";
 		if (!parameters.get("mode").isEmpty()) {
@@ -50,10 +48,10 @@ public abstract class NanopubPage extends ConnectorPage {
 		}
 
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
-		if (requestUrl.matches(MOUNT_PATH.substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
+		if (requestUrl.matches(getMountPath().substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
 			// TODO: Don't assume purl.org namespace here:
-			String ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
-			throw new RedirectToUrlException(MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("id", ref)));
+			String ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + getMountPath().substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
+			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("id", ref)));
 		}
 
 		String ref = parameters.get("id").toString();
@@ -62,7 +60,7 @@ public abstract class NanopubPage extends ConnectorPage {
 		String uri = np.getUri().stringValue();
 		String shortId = "np:" + Utils.getShortNanopubId(uri);
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
-		String reviewUri = "http://ds.kpxl.org/" + artifactCode;
+		String reviewUri = getReviewUrlPrefix() + artifactCode;
 
 		String backLink = " <a href=\"" + getMountPath() + "\">&lt; Back to Overview</a> |";
 		if (!parameters.get("type").isEmpty()) {
@@ -73,9 +71,9 @@ public abstract class NanopubPage extends ConnectorPage {
 		String navigationLinks = "|";
 		if (mode.equals("author")) {
 			navigationLinks += backLink;
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
+			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a href=\"" + MOUNT_PATH + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "author")) + "\">Switch to Author View</a> |";
+			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "author")) + "\">Switch to Author View</a> |";
 //		} else if (mode.equals("example")) {
 //			navigationLinks += backLink;
 		}
@@ -156,7 +154,7 @@ public abstract class NanopubPage extends ConnectorPage {
 				);
 
 			WebMarkupContainer submissionPart = new WebMarkupContainer("submissionpart");
-			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), "DsFormSubmit.png")));
+			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getSubmitImageFileName())));
 			submissionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
 			add(submissionPart.setVisible(mode.equals("author")));
 
@@ -173,5 +171,9 @@ public abstract class NanopubPage extends ConnectorPage {
 	protected abstract Class<? extends TypePage> getTypePageClass();
 
 	protected abstract String getTypePageMountPath();
+
+	protected abstract String getSubmitImageFileName();
+
+	protected abstract String getReviewUrlPrefix();
 
 }
