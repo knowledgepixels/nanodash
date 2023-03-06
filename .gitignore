@@ -5,5 +5,4 @@
 /target
 /package/.extract
 /scratch
-/src/main/java/com/knowledgepixels/nanodash/connector/ios
-/src/main/java/com/knowledgepixels/nanodash/connector/pensoft
+/src/main/java/com/knowledgepixels/nanodash/connector
