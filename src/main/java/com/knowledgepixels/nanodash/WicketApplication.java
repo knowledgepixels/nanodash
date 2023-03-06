@@ -21,9 +21,6 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.eclipse.rdf4j.common.io.ZipUtil;
 
-import com.knowledgepixels.nanodash.connector.test.ConnectorNanopubTestPage;
-import com.knowledgepixels.nanodash.connector.test.ConnectorTestPage;
-
 public class WicketApplication extends WebApplication {
 
 	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
@@ -115,8 +112,6 @@ public class WicketApplication extends WebApplication {
 		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
-		mountPage(ConnectorTestPage.MOUNT_PATH, ConnectorTestPage.class);
-		mountPage(ConnectorNanopubTestPage.MOUNT_PATH, ConnectorNanopubTestPage.class);
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsNanopubPage");
