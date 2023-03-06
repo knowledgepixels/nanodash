@@ -56,7 +56,7 @@ public class DsTypePage extends WebPage {
 			template = Template.getTemplate("http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI");
 			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
-			title = "Simple Scientific Relations between Instances";
+			title = "Simple Scientific Relations between Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAiiJzByX8P2RrumnJii04htCcwe0CKcq4skFo49c1P7s");
 			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
