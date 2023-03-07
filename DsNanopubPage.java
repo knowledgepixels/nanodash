@@ -11,9 +11,6 @@ public class DsNanopubPage extends NanopubPage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds/np";
 
-	public DsNanopubPage() {
-	}
-
 	public DsNanopubPage(final PageParameters parameters) {
 		super(parameters);
 	}

@@ -3,18 +3,15 @@ package com.knowledgepixels.nanodash.connector.ios;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
+import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 
-public class DsOverviewPage extends ConnectorPage {
+public class DsOverviewPage extends OverviewPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/ios/ds";
 
-	public DsOverviewPage() {
-	}
-
-	public DsOverviewPage(final PageParameters params) {
+	public DsOverviewPage(PageParameters params) {
 		super(params);
 	}
 

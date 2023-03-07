@@ -11,9 +11,6 @@ public class DsTypePage extends TypePage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds/type";
 
-	public DsTypePage() {
-	}
-
 	public DsTypePage(PageParameters parameters) {
 		super(parameters);
 	}

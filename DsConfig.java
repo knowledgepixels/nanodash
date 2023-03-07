@@ -1,24 +1,25 @@
 package com.knowledgepixels.nanodash.connector.ios;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsConfig extends ConnectorConfig {
 
-	private static final DsConfig instance = new DsConfig();
+	private static DsConfig instance;
 
 	public static DsConfig get() {
+		if (instance == null) instance = new DsConfig();
 		return instance;
 	}
 
-	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage();
-	private static final DsTypePage typePageInstance = new DsTypePage();
-	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage();
+	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
+	private static final DsTypePage typePageInstance = new DsTypePage(null);
+	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage(null);
 
 	@Override
-	public ConnectorPage getOverviewPage() {
+	public OverviewPage getOverviewPage() {
 		return overviewPageInstance;
 	}
 
