@@ -119,7 +119,7 @@ public abstract class NanopubPage extends ConnectorPage {
 
 			Map<String,String> params = new HashMap<>();
 			params.put("pub", uri);
-			ApiResponse resp = ApiAccess.getAll(getConfig().getApiUrl(), "get-reactions", params);
+			ApiResponse resp = callApi("get-reactions", params);
 	
 			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 	

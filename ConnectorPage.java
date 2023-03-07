@@ -1,7 +1,14 @@
 package com.knowledgepixels.nanodash.connector.base;
 
+import java.io.IOException;
+import java.util.Map;
+
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.knowledgepixels.nanodash.ApiAccess;
+import com.knowledgepixels.nanodash.ApiResponse;
+import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class ConnectorPage extends WebPage {
 
@@ -23,6 +30,10 @@ public abstract class ConnectorPage extends WebPage {
 
 	public PageParameters getParams() {
 		return parameters;
+	}
+
+	public ApiResponse callApi(String operation, Map<String,String> params) throws CsvValidationException, IOException {
+		return ApiAccess.getAll(getConfig().getApiUrl(operation), operation, params);
 	}
 
 }

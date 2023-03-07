@@ -17,7 +17,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 
-import com.knowledgepixels.nanodash.ApiAccess;
 import com.knowledgepixels.nanodash.ApiResponse;
 import com.knowledgepixels.nanodash.ApiResponseEntry;
 import com.knowledgepixels.nanodash.NanodashSession;
@@ -101,7 +100,7 @@ public abstract class TypePage extends ConnectorPage {
 					.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
-				ApiResponse resp = ApiAccess.getAll(getConfig().getApiUrl(), "get-" + type + "-nanopubs", params);
+				ApiResponse resp = callApi("get-" + type + "-nanopubs", params);
 		
 				add(new DataView<ApiResponseEntry>("candidate-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 		

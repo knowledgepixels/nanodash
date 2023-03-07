@@ -12,7 +12,7 @@ public abstract class ConnectorConfig {
 
 	public abstract String getSubmitImageFileName();
 
-	public abstract String getApiUrl();
+	public abstract String getApiUrl(String operation);
 
 	public abstract String getJournalAbbrev();
 
