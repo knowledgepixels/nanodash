@@ -37,27 +37,27 @@ public abstract class NanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public NanopubPage() {	
-	}
-
 	public NanopubPage(final PageParameters parameters) {
+		super(parameters);
+		if (parameters == null) return;
+
 		add(new TitleBar("titlebar"));
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		String mode = "author";
-		if (!parameters.get("mode").isEmpty()) {
-			mode = parameters.get("mode").toString();
+		if (!getParams().get("mode").isEmpty()) {
+			mode = getParams().get("mode").toString();
 		}
 
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (requestUrl.matches(getMountPath().substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
 			// TODO: Don't assume purl.org namespace here:
 			String ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + getMountPath().substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
-			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("id", ref)));
+			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getParams()).set("id", ref)));
 		}
 
-		String ref = parameters.get("id").toString();
+		String ref = getParams().get("id").toString();
 		Nanopub np = Utils.getAsNanopub(ref);
 		add(new NanopubItem("nanopub", new NanopubElement(np), false, true, NanopubAction.ownActions));
 		String uri = np.getUri().stringValue();
@@ -66,17 +66,17 @@ public abstract class NanopubPage extends ConnectorPage {
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
 		String backLink = " <a href=\"" + getMountPath() + "\">&lt; Back to Overview</a> |";
-		if (!parameters.get("type").isEmpty()) {
-			String type = parameters.get("type").toString();
+		if (!getParams().get("type").isEmpty()) {
+			String type = getParams().get("type").toString();
 			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
 		}
 
 		String navigationLinks = "|";
 		if (mode.equals("author")) {
 			navigationLinks += backLink;
-			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
+			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getParams()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(parameters).set("mode", "author")) + "\">Switch to Author View</a> |";
+			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getParams()).set("mode", "author")) + "\">Switch to Author View</a> |";
 //		} else if (mode.equals("example")) {
 //			navigationLinks += backLink;
 		}
@@ -100,7 +100,7 @@ public abstract class NanopubPage extends ConnectorPage {
 			newerVersionText.add(new Label("newer-version-link"));
 			newerVersionText.setVisible(false);
 		} else {
-			newerVersionText.add(new BookmarkablePageLink<WebPage>("newer-version-link", this.getClass(), new PageParameters(parameters).set("id", latest)));
+			newerVersionText.add(new BookmarkablePageLink<WebPage>("newer-version-link", this.getClass(), new PageParameters(getParams()).set("id", latest)));
 		}
 		add(newerVersionText);
 
@@ -144,7 +144,7 @@ public abstract class NanopubPage extends ConnectorPage {
 	
 			});
 
-			add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), parameters));
+			add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getParams()));
 
 			add(new BookmarkablePageLink<WebPage>("create-new-reaction", PublishPage.class,
 					new PageParameters()

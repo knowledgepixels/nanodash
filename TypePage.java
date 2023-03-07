@@ -34,22 +34,20 @@ public abstract class TypePage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	protected final String type;
-	protected final NanodashSession session;
-
-	public TypePage() {
-		type = null;
-		session = null;
-	}
+	protected String type;
+	protected NanodashSession session;
 
 	public TypePage(final PageParameters parameters) {
+		super(parameters);
+		if (parameters == null) return;
+
 		add(new TitleBar("titlebar"));
 
 		session = NanodashSession.get();
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
-		type = parameters.get("type").toString();
+		type = getParams().get("type").toString();
 
 		String title = null;
 		Template template = null;
@@ -99,7 +97,7 @@ public abstract class TypePage extends ConnectorPage {
 
 		if (userIri == null) {
 			add(new WebMarkupContainer("candidate-nps")
-				.add(new ExternalLink("nplink", session.getLoginUrl(getMountPath(), parameters))
+				.add(new ExternalLink("nplink", session.getLoginUrl(getMountPath(), getParams()))
 					.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
@@ -131,7 +129,7 @@ public abstract class TypePage extends ConnectorPage {
 			createNewParagraph += "<p>If you don't find the individual you need, <a href=\"" + getMountPath() + "?type=inddef\">create a new individual</a> first.</p>";
 		}
 
-		add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), parameters));
+		add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getParams()));
 
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")

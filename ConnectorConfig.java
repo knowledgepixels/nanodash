@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.connector.base;
 
 public abstract class ConnectorConfig {
 
-	public abstract ConnectorPage getOverviewPage();
+	public abstract OverviewPage getOverviewPage();
 
 	public abstract TypePage getTypePage();
 
