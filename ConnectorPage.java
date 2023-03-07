@@ -17,13 +17,10 @@ public abstract class ConnectorPage extends WebPage {
 	public ConnectorPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), getLogoFileName())));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 	}
-
-	protected abstract String getLogoFileName();
-
 	protected abstract String getMountPath();
 
-	protected abstract String getApiUrl();
+	protected abstract ConnectorConfig getConfig();
 
 }

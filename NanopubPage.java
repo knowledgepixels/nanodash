@@ -37,10 +37,13 @@ public abstract class NanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public NanopubPage() {	
+	}
+
 	public NanopubPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), getLogoFileName())));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		String mode = "author";
 		if (!parameters.get("mode").isEmpty()) {
@@ -60,12 +63,12 @@ public abstract class NanopubPage extends ConnectorPage {
 		String uri = np.getUri().stringValue();
 		String shortId = "np:" + Utils.getShortNanopubId(uri);
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
-		String reviewUri = getReviewUrlPrefix() + artifactCode;
+		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
 		String backLink = " <a href=\"" + getMountPath() + "\">&lt; Back to Overview</a> |";
 		if (!parameters.get("type").isEmpty()) {
 			String type = parameters.get("type").toString();
-			backLink = " <a href=\"" + getTypePageMountPath() + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
+			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
 		}
 
 		String navigationLinks = "|";
@@ -116,7 +119,7 @@ public abstract class NanopubPage extends ConnectorPage {
 
 			Map<String,String> params = new HashMap<>();
 			params.put("pub", uri);
-			ApiResponse resp = ApiAccess.getAll(getApiUrl(), "get-reactions", params);
+			ApiResponse resp = ApiAccess.getAll(getConfig().getApiUrl(), "get-reactions", params);
 	
 			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 	
@@ -154,7 +157,7 @@ public abstract class NanopubPage extends ConnectorPage {
 				);
 
 			WebMarkupContainer submissionPart = new WebMarkupContainer("submissionpart");
-			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getSubmitImageFileName())));
+			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getConfig().getSubmitImageFileName())));
 			submissionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
 			add(submissionPart.setVisible(mode.equals("author")));
 
@@ -167,13 +170,5 @@ public abstract class NanopubPage extends ConnectorPage {
 			ex.printStackTrace();
 		}
 	}
-
-	protected abstract Class<? extends TypePage> getTypePageClass();
-
-	protected abstract String getTypePageMountPath();
-
-	protected abstract String getSubmitImageFileName();
-
-	protected abstract String getReviewUrlPrefix();
 
 }

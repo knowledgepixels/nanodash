@@ -37,12 +37,17 @@ public abstract class TypePage extends ConnectorPage {
 	protected final String type;
 	protected final NanodashSession session;
 
+	public TypePage() {
+		type = null;
+		session = null;
+	}
+
 	public TypePage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
 		session = NanodashSession.get();
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), getLogoFileName())));
+		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		type = parameters.get("type").toString();
 
@@ -98,7 +103,7 @@ public abstract class TypePage extends ConnectorPage {
 					.add(new Label("nplinktext", "(login to see them)"))));
 		} else {
 			try {
-				ApiResponse resp = ApiAccess.getAll(getApiUrl(), "get-" + type + "-nanopubs", params);
+				ApiResponse resp = ApiAccess.getAll(getConfig().getApiUrl(), "get-" + type + "-nanopubs", params);
 		
 				add(new DataView<ApiResponseEntry>("candidate-nps", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
 		
@@ -107,7 +112,7 @@ public abstract class TypePage extends ConnectorPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						item.add(new BookmarkablePageLink<WebPage>("nplink", getNanopubPageClass(),
+						item.add(new BookmarkablePageLink<WebPage>("nplink", getConfig().getNanopubPage().getClass(),
 								new PageParameters().add("id", e.get("np")).add("type", type))
 							.add(new Label("nplinktext", "\"" + e.get("label") + "\", " + e.get("date").substring(0, 10))));
 					}
@@ -137,13 +142,9 @@ public abstract class TypePage extends ConnectorPage {
 							"\"From research described in an article (published/preprint)\".</p>" +
 							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
 							createNewParagraph +
-							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
+							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
 							"<p>Close this tab to <strong>abort</strong> the nanopublication creation.</p>")
 			));
 	}
-
-	protected abstract Class<? extends NanopubPage> getNanopubPageClass();
-
-	protected abstract String getJournalAbbrev();
 
 }
