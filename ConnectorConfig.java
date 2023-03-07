@@ -14,6 +14,8 @@ public abstract class ConnectorConfig {
 
 	public abstract String getApiUrl(String operation);
 
+	public abstract String getJournalName();
+
 	public abstract String getJournalAbbrev();
 
 	public abstract String getReviewUrlPrefix();

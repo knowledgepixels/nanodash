@@ -134,7 +134,7 @@ public abstract class TypePage extends ConnectorPage {
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ")
 					.add("link-message", "<p>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
-							"to <strong>publish a nanopublication that you can later link to your Data Science submission</strong>.</p>" +
+							"to <strong>publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
 							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link by choosing " +
 							"\"From research described in an article (published/preprint)\".</p>" +
 							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
