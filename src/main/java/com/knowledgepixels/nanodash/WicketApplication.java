@@ -118,6 +118,7 @@ public class WicketApplication extends WebApplication {
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcNanopubPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage");
