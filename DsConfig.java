@@ -49,6 +49,11 @@ public class DsConfig extends ConnectorConfig {
 	}
 
 	@Override
+	public String getJournalName() {
+		return "Data Science";
+	}
+
+	@Override
 	public String getJournalAbbrev() {
 		return "DS";
 	}
