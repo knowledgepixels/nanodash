@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
 public class DsOverviewPage extends ConnectorPage {
@@ -10,17 +11,11 @@ public class DsOverviewPage extends ConnectorPage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds";
 
-	public static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
-
-	public static final String logofileName = "DsLogo.png";
+	public DsOverviewPage() {
+	}
 
 	public DsOverviewPage(final PageParameters params) {
 		super(params);
-	}
-
-	@Override
-	protected String getLogoFileName() {
-		return logofileName;
 	}
 
 	@Override
@@ -29,8 +24,8 @@ public class DsOverviewPage extends ConnectorPage {
 	}
 
 	@Override
-	protected String getApiUrl() {
-		return apiUrl;
+	protected ConnectorConfig getConfig() {
+		return DsConfig.get();
 	}
 
 }

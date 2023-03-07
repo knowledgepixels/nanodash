@@ -2,8 +2,8 @@ package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
-import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsNanopubPage extends NanopubPage {
 
@@ -11,23 +11,11 @@ public class DsNanopubPage extends NanopubPage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds/np";
 
+	public DsNanopubPage() {
+	}
+
 	public DsNanopubPage(final PageParameters parameters) {
 		super(parameters);
-	}
-
-	@Override
-	protected Class<? extends TypePage> getTypePageClass() {
-		return DsTypePage.class;
-	}
-
-	@Override
-	protected String getTypePageMountPath() {
-		return DsTypePage.MOUNT_PATH;
-	}
-
-	@Override
-	protected String getLogoFileName() {
-		return DsOverviewPage.logofileName;
 	}
 
 	@Override
@@ -36,20 +24,8 @@ public class DsNanopubPage extends NanopubPage {
 	}
 
 	@Override
-	protected String getApiUrl() {
-		return DsOverviewPage.apiUrl;
+	protected ConnectorConfig getConfig() {
+		return DsConfig.get();
 	}
-
-	@Override
-	protected String getSubmitImageFileName() {
-		return "DsFormSubmit.png";
-	}
-
-	@Override
-	protected String getReviewUrlPrefix() {
-		return "http://ds.kpxl.org/";
-	}
-
-	
 
 }

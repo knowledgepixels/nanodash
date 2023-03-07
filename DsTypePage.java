@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsTypePage extends TypePage {
@@ -11,13 +11,11 @@ public class DsTypePage extends TypePage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds/type";
 
-	public DsTypePage(final PageParameters parameters) {
-		super(parameters);
+	public DsTypePage() {
 	}
 
-	@Override
-	protected String getLogoFileName() {
-		return DsOverviewPage.logofileName;
+	public DsTypePage(PageParameters parameters) {
+		super(parameters);
 	}
 
 	@Override
@@ -26,18 +24,8 @@ public class DsTypePage extends TypePage {
 	}
 
 	@Override
-	protected String getApiUrl() {
-		return DsOverviewPage.apiUrl;
-	}
-
-	@Override
-	protected Class<? extends NanopubPage> getNanopubPageClass() {
-		return DsNanopubPage.class;
-	}
-
-	@Override
-	protected String getJournalAbbrev() {
-		return "DS";
+	protected ConnectorConfig getConfig() {
+		return DsConfig.get();
 	}
 
 }
