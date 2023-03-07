@@ -44,8 +44,8 @@ public class RioConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getApiUrl() {
-		return "https://grlc.petapico.org/api-git/knowledgepixels/pensoft-nanopub-api/";
+	public String getApiUrl(String operation) {
+		return "https://grlc.petapico.org/api-git/knowledgepixels/connector-nanopub-api/";
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getReviewUrlPrefix() {
-		return "http://ds.kpxl.org/";
+		return "http://rio.kpxl.org/";
 	}
 
 }
