@@ -1,106 +1,28 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.nanopub.Nanopub;
-import com.knowledgepixels.nanodash.ApiAccess;
-import com.knowledgepixels.nanodash.ApiResponse;
-import com.knowledgepixels.nanodash.ApiResponseEntry;
-import com.knowledgepixels.nanodash.ExplorePage;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.NanopubItem;
-import com.knowledgepixels.nanodash.PublishPage;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TitleBar;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
 
-import net.trustyuri.TrustyUriUtils;
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 
-public class RioNanopubPage extends WebPage {
+public class RioNanopubPage extends NanopubPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/pensoft/rio/np";
 
 	public RioNanopubPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
-		//add(new Label("titlebar"));  // hide title bar
+		super(parameters);
+	}
 
-		String ref = null;
-		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
-		if (requestUrl.matches(MOUNT_PATH.substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
-			ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + MOUNT_PATH.substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
-		}
-		if (ref == null) {
-			ref = parameters.get("id").toString();
-		}
+	@Override
+	protected String getMountPath() {
+		return MOUNT_PATH;
+	}
 
-		try {
-			Nanopub np = Utils.getAsNanopub(ref);
-			add(new NanopubItem("nanopub", new NanopubElement(np), false, true));
-			String uri = np.getUri().stringValue();
-			String reviewUri = "http://ds.kpxl.org/" + TrustyUriUtils.getArtifactCode(uri);
-
-			Template template = Template.getTemplate(np);
-			if (template == null) {
-				add(new Label("template-name", "(none)"));
-				add(new Label("template-description", ""));
-			} else {
-				add(new Label("template-name", template.getLabel()));
-				add(new Label("template-description", (template.getDescription() == null ? "" : template.getDescription())).setEscapeModelStrings(false));
-			}
-
-			add(new Image("form-submit", new PackageResourceReference(this.getClass(), "RioFormSubmit.png")));
-
-			add(new ExternalLink("np-link", reviewUri, reviewUri));
-
-			Map<String,String> params = new HashMap<>();
-			params.put("pub", uri);
-			ApiResponse resp = ApiAccess.getAll(RioOverviewPage.apiUrl, "get-reactions", params);
-	
-			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				protected void populateItem(Item<ApiResponseEntry> item) {
-					ApiResponseEntry e = item.getModelObject();
-					PageParameters params = new PageParameters();
-					if (e.get("pub").equals(np.getUri().stringValue())) {
-						item.add(new Label("reactionnote"));
-					} else {
-						item.add(new Label("reactionnote", "On earlier version:"));
-					}
-					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reaction", ExplorePage.class, params);
-					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
-					l.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + ") by " + username + " on " + e.get("date").substring(0, 10)));
-					item.add(l);
-				}
-	
-			});
-
-			add(new BookmarkablePageLink<WebPage>("create-new-reaction", PublishPage.class,
-					new PageParameters()
-						.add("template", "http://purl.org/np/RA4qeqqwcQGKQX9AgSd_3nNzECBYsohceseJ5FdFU_kjQ")
-						.add("param_paper", np.getUri().stringValue())
-						.add("template-version", "latest")));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+	@Override
+	protected ConnectorConfig getConfig() {
+		return RioConfig.get();
 	}
 
 }
