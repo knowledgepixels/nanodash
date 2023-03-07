@@ -44,7 +44,7 @@ public class DsConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getApiUrl() {
+	public String getApiUrl(String operation) {
 		return "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 	}
 
