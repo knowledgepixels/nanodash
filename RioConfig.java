@@ -49,6 +49,11 @@ public class RioConfig extends ConnectorConfig {
 	}
 
 	@Override
+	public String getJournalName() {
+		return "RIO Journal";
+	}
+
+	@Override
 	public String getJournalAbbrev() {
 		return "RIO";
 	}
