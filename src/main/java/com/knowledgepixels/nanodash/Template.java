@@ -517,6 +517,16 @@ public class Template implements Serializable {
 						labelMap.put(uri, label);
 					}
 				}
+			} else if (apiString.startsWith("https://api.catalogueoflife.org/dataset/3LR/nameusage/search")) {
+				JSONArray responseArray = new JSONObject(respString).getJSONArray("result");
+				for (int i = 0; i < responseArray.length(); i++) {
+					String uri = "https://www.catalogueoflife.org/data/taxon/" + responseArray.getJSONObject(i).getString("id");
+					String label = responseArray.getJSONObject(i).getJSONObject("usage").getString("label");
+					if (!values.contains(uri)) {
+						values.add(uri);
+						labelMap.put(uri, label);
+					}
+				}
 			} else if (apiString.startsWith("https://vodex.petapico.org/")) {
 				// TODO This is just a test and needs to be improved
 				JSONArray responseArray = new JSONObject(respString).getJSONObject("response").getJSONArray("docs");
