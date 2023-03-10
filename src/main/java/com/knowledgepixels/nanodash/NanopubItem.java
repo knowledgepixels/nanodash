@@ -319,7 +319,7 @@ public class NanopubItem extends Panel {
 	private void processStatementForPredicateOrder(IRI statementId) {
 		IRI pred = template.getPredicate(statementId);
 		if (template.isRestrictedChoicePlaceholder(pred)) {
-			
+			// TODO
 		} else if (!template.isPlaceholder(pred)) {
 			if (!predicateOrder.containsKey(pred)) predicateOrder.put(pred, predicateOrder.size());
 		}
