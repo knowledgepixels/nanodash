@@ -73,14 +73,13 @@ This nanopublication has a <a wicket:id="newer-version-link" href=".">newer vers
 </p>
 
 
-<h3>Template Description
+<h3>Type Description
 <span class="expltooltip">&#9432;<span class="expltooltiptext">
-This is the description of the template that was used to create this nanopublication.
+This is the description of the type this nanopublication belongs to.
 </span></span>
 </h3>
 
 <div class="message">
-<p><strong wicket:id="template-name"></strong></p>
 <p wicket:id="template-description">(template description)</p>
 </div>
 
@@ -88,8 +87,9 @@ This is the description of the template that was used to create this nanopublica
 <h3>Reactions
 <span class="expltooltip">&#9432;<span class="expltooltiptext">
 Anyone can write reactions to this nanopublication, including the RIO Journal reviewers and editors.
-When a new reaction is published, it can take a minute or two before it shows up here (after clicking on 'refresh').
+When a new reaction is published, it can take a minute or two before it shows up here (after refreshing &#128472;).
 </span></span>
+<a wicket:id="refresh-link" class="actionbutton" href=".">&#128472;</a>
 </h3>
 
 <ul wicket:id="reactions">
@@ -99,14 +99,13 @@ When a new reaction is published, it can take a minute or two before it shows up
 <p class="emptynotice"><em>(no reactions yet)</em></p>
 
 <p>
-<a wicket:id="refresh-link" class="smallbutton" href=".">refresh</a>
-<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">create new...</a>
+<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">new reaction...</a>
 </p>
 
 
-<div class="instruction" wicket:id="submissionpart">
+<div class="instruction" wicket:id="includeinstruction">
 
-<h4><em>Author Instruction:</em> Include in Submission</h4>
+<h4><em>Author Instruction:</em></h4>
 
 <p>To include this nanopublication in your submission, use this link:</p>
 
@@ -116,15 +115,9 @@ When a new reaction is published, it can take a minute or two before it shows up
 
 <p>Paste it in the ARPHA Writing Tool as a "Nanopublication" element:</p>
 
-<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 700px; border: 1px solid #000;">
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 700px; border: 1px solid #000; margin: 10px 10px 10px 40px;">
 
-</div>
-
-<div class="instruction" wicket:id="mentionpart">
-
-<h4><em>Author Instruction:</em> Mention in Manuscript</h4>
-
-<p>If you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, copy-paste this snippet:</p>
+<p>Additionally, if you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
 
 <blockquote>
 This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
@@ -144,7 +137,7 @@ This statement is formalized in a machine-interpretable manner in our nanopublic
 <p>
 Don't hesitate to
 <a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[RIO%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
-if you have any questions or problems. No matter how trivial or how complex, we are here to help you!
+if you have any questions or problems, no matter how trivial or how complex.
 </p>
 
 </div>
