@@ -99,9 +99,9 @@ public class NanodashLink extends Panel {
 				// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):
 				if (creators.contains(iriObj)) {
 					if (objectPosition) {
-						label = "me";
+						label = "me (" + User.getShortDisplayName(iriObj) + ")";
 					} else {
-						label = "I";
+						label = "I (" + User.getShortDisplayName(iriObj) + ")";
 					}
 					break;
 				} else {
