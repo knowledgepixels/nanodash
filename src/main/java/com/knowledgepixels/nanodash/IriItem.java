@@ -75,13 +75,15 @@ public class IriItem extends Panel implements ContextComponent {
 		} else if (template.isLocalResource(iri)) {
 			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
 		}
+		String uri = iri.stringValue();
 		String description = "";
-		if (iri.stringValue().startsWith("local:")) {
+		if (uri.startsWith(context.getTemplateId())) {
+			uri = uri.replace(context.getTemplateId(), "");
 			description = "This is a local identifier that will be minted when the nanopublication is created.";
 		}
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 		add(new Label("description", description));
-		add(new ExternalLink("uri", iri.stringValue(), iri.stringValue()));
+		add(new ExternalLink("uri", iri.stringValue(), uri));
 	}
 
 	public static String getShortNameFromURI(String uri) {
