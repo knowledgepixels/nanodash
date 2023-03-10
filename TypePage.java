@@ -53,7 +53,7 @@ public abstract class TypePage extends ConnectorPage {
 		String exampleId = null;
 
 		if (type.equals("superpattern")) {
-			title = "General Super-Pattern Statements";
+			title = "Fully-formal Advanced Statements (Super-Pattern)";
 			template = Template.getTemplate("http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI");
 			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
@@ -65,12 +65,12 @@ public abstract class TypePage extends ConnectorPage {
 			template = Template.getTemplate("http://purl.org/np/RAQ9wpGlnll9o034hWI9tGZw6oTBvcN9azFS7hzdESY0I");
 			exampleId = "http://purl.org/np/RAkX1V_9VIscbvJ6Nz4BKUdgywO0UWgBQlzJUEvdMYG-M";
 		} else if (type.equals("aida")) {
-			title = "AIDA Sentence";
+			title = "Semi-formal Statements Based on English Sentences (AIDA)";
 			template = Template.getTemplate("http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY");
 			exampleId = "http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
-			template = Template.getTemplate("http://purl.org/np/RACNUK4bBfhOsQRFvIReWPO7dFaT6QlvMy59ZPXOWTWJs");
+			template = Template.getTemplate("http://purl.org/np/RAcWWF8kSXfwZ77XdC59IyH1MJ24wFp-dDeXkPjKHAXM0");
 			exampleId = "http://purl.org/np/RAj26TjulpgBHXJGe0OwZZZ-cZCJ9WE7ICug5EW2tGH7s";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
@@ -132,11 +132,9 @@ public abstract class TypePage extends ConnectorPage {
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ")
-					.add("link-message", "<p>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
-							"to <strong>publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
-							"<p>You can leave the provenance (red) part as is, unless you have a pre-print URL that you want to link by choosing " +
-							"\"From research described in an article (published/preprint)\".</p>" +
-							"<p>The publication info (yellow) part can also be left untouched, but you are free to add further elements there.</p>" +
+					.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
+							"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
+							"<p>You can leave the provenance (red) and publication info (yellow) parts as they are.</p>" +
 							createNewParagraph +
 							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
 							"<p>Close this tab to <strong>abort</strong> the nanopublication creation.</p>")

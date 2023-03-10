@@ -68,7 +68,7 @@ public abstract class NanopubPage extends ConnectorPage {
 		String backLink = " <a href=\"" + getMountPath() + "\">&lt; Back to Overview</a> |";
 		if (!getParams().get("type").isEmpty()) {
 			String type = getParams().get("type").toString();
-			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type Overview</a> |";
+			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type</a> |";
 		}
 
 		String navigationLinks = "|";
@@ -108,10 +108,8 @@ public abstract class NanopubPage extends ConnectorPage {
 
 			Template template = Template.getTemplate(np);
 			if (template == null) {
-				add(new Label("template-name", "(none)"));
 				add(new Label("template-description", ""));
 			} else {
-				add(new Label("template-name", template.getLabel()));
 				String description = "<p><em>(This template doesn't have a description)</em></p>";
 				if (template.getDescription() != null) description = template.getDescription();
 				add(new Label("template-description", description).setEscapeModelStrings(false));
@@ -156,16 +154,13 @@ public abstract class NanopubPage extends ConnectorPage {
 					)
 				);
 
-			WebMarkupContainer submissionPart = new WebMarkupContainer("submissionpart");
-			submissionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getConfig().getSubmitImageFileName())));
-			submissionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
-			add(submissionPart.setVisible(mode.equals("author")));
-
-			WebMarkupContainer mentionPart = new WebMarkupContainer("mentionpart");
-			mentionPart.add(new ExternalLink("word-np-link", reviewUri, shortId));
-			mentionPart.add(new Label("latex-np-uri", reviewUri));
-			mentionPart.add(new Label("latex-np-label", shortId.replace("_", "\\_")));
-			add(mentionPart.setVisible(mode.equals("author")));
+			WebMarkupContainer inclusionPart = new WebMarkupContainer("includeinstruction");
+			inclusionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getConfig().getSubmitImageFileName())));
+			inclusionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
+			inclusionPart.add(new ExternalLink("word-np-link", reviewUri, shortId));
+			inclusionPart.add(new Label("latex-np-uri", reviewUri));
+			inclusionPart.add(new Label("latex-np-label", shortId.replace("_", "\\_")));
+			add(inclusionPart.setVisible(mode.equals("author")));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
