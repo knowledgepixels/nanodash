@@ -29,14 +29,13 @@ as candidates for your RIO Journal submission.
 </p>
 </div>
 
-<h3>Template Description
+<h3>Type Description
 <span class="expltooltip">&#9432;<span class="expltooltiptext">
-This is the description of the template that can be used to create such kinds of nanopublications.
+This is the description of the type of nanopublications you can create through this page.
 </span></span>
 </h3>
 
 <div class="message">
-<p><strong wicket:id="template-name"></strong></p>
 <p wicket:id="template-description">(template description)</p>
 </div>
 
@@ -54,8 +53,9 @@ where the identifier of the subject (left) is connected to the identifier of the
 
 <h3>Your Candidates
 <span class="expltooltip">&#9432;<span class="expltooltiptext">
-Here, the nanopublications of this type are shown that you have published. It might take a minute of two before new nanopublications show up here (after refreshing).
+Here, the nanopublications of this type are shown that you have already created. It might take a minute of two before new nanopublications show up here (after refreshing &#128472;).
 </span></span>
+<a wicket:id="refresh-link" class="actionbutton" href=".">&#128472;</a>
 </h3>
 
 <ul wicket:id="candidate-nps">
@@ -65,8 +65,7 @@ Here, the nanopublications of this type are shown that you have published. It mi
 <p class="emptynotice"><em>(you don't have any candidates yet)</em></p>
 
 <p>
-<a wicket:id="refresh-link" class="smallbutton" href=".">refresh</a>
-<a wicket:id="create-new-link" class="smallbutton" href="/publish" target="_blank">create new...</a>
+<a wicket:id="create-new-link" class="button" href="/publish" target="_blank">create new...</a>
 </p>
 
 
@@ -75,7 +74,7 @@ Here, the nanopublications of this type are shown that you have published. It mi
 <p>
 Don't hesitate to
 <a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
-if you have any questions or problems. No matter how trivial or how complex, we are here to help you!
+if you have any questions or problems, no matter how trivial or how complex.
 </p>
 
 </div>
