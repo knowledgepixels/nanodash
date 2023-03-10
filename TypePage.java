@@ -58,12 +58,12 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Individuals";
-			template = Template.getTemplate("http://purl.org/np/RAiiJzByX8P2RrumnJii04htCcwe0CKcq4skFo49c1P7s");
+			template = Template.getTemplate("http://purl.org/np/RAsz-9JwiOPQufQ5AGSNepkPG0hkWWYutBDWtsMRgKaaU");
 			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
-			template = Template.getTemplate("http://purl.org/np/RAIyDPSsy66IAXzHu75HyLjv8m3mK18rDqnHYntcfJNto");
-			exampleId = "http://purl.org/np/RAzw-5B7jP0Qj5UVkljfM89mkj1jDQRSzT-DIKtoMtUAQ";
+			template = Template.getTemplate("http://purl.org/np/RAQ9wpGlnll9o034hWI9tGZw6oTBvcN9azFS7hzdESY0I");
+			exampleId = "http://purl.org/np/RAkX1V_9VIscbvJ6Nz4BKUdgywO0UWgBQlzJUEvdMYG-M";
 		} else if (type.equals("aida")) {
 			title = "AIDA Sentence";
 			template = Template.getTemplate("http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY");
@@ -80,7 +80,6 @@ public abstract class TypePage extends ConnectorPage {
 
 		add(new Label("title", title));
 
-		add(new Label("template-name", template.getLabel()));
 		String description = "<p><em>(This template doesn't have a description)</em></p>";
 		if (template.getDescription() != null) description = template.getDescription();
 		add(new Label("template-description", description).setEscapeModelStrings(false));
