@@ -134,6 +134,7 @@ a:active {
 
 a.button, input.button {
 	font-size: 12pt;
+	font-weight: normal;
 	padding: 5px 10px;
 	margin: 3px;
 	background-color: #eee;
@@ -148,6 +149,7 @@ a.button, input.button {
 
 .smallbutton {
 	font-size: 10pt;
+	font-weight: normal;
 	padding: 0px 5px;
 	margin: 0;
 	background-color: #eee;
@@ -159,6 +161,11 @@ a.button, input.button {
 	display:inline-block;
 	cursor: pointer;
     line-height: 20px !important;
+}
+
+.actionbutton {
+  font-size: 12pt;
+  color: #000;
 }
 
 a.button:hover, a.smallbutton:hover, input.button:hover {
@@ -467,6 +474,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 }
 
 .expltooltip {
+  font-size: 12pt;
   position: relative;
   display: inline-block;
 }
