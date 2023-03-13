@@ -16,6 +16,12 @@
   font-weight: normal;
   font-style: normal;
 }
+@font-face {
+  font-family: "Martian";
+  src: url("/fonts/MartianMono-StdLt.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+}
 
 html {
 	height:100%;
@@ -33,6 +39,7 @@ h1, h2, h3, h4, h5, h6 {
 	color: black;
 	background-color: inherit;
 	clear: both;
+	font-family: Martian,monaco,monospace;
 	font-weight: bold;
 	margin-top: 5mm;
 }
