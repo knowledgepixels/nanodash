@@ -500,6 +500,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   top: -5px;
   left: 105%;
   width: 1000px;
+  font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: normal;
   clear: none;
