@@ -65,7 +65,7 @@ public abstract class NanopubPage extends ConnectorPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
-		String backLink = " <a href=\"" + getMountPath() + "\">&lt; Back to Overview</a> |";
+		String backLink = " <a href=\"" + getConfig().getOverviewPage().getMountPath() + "\">&lt; Back to Overview</a> |";
 		if (!getParams().get("type").isEmpty()) {
 			String type = getParams().get("type").toString();
 			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type</a> |";
