@@ -414,6 +414,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 .nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
   margin: 2px;
   font-family: Martian,monaco,monospace;
+  font-size: 10pt;
 }
 .nanopub-statement:after { 
    content: ".";
