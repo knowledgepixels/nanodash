@@ -17,7 +17,7 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
-import org.nanopub.extra.security.IntroNanopub;
+import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 
 import net.trustyuri.TrustyUriUtils;

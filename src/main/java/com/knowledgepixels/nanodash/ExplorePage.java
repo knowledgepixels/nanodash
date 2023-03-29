@@ -10,6 +10,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 public class ExplorePage extends WebPage {
 

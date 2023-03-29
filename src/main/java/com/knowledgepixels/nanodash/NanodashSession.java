@@ -19,13 +19,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.extra.security.IntroNanopub;
-import org.nanopub.extra.security.IntroNanopub.IntroExtractor;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MakeKeys;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.setting.IntroNanopub;
+import org.nanopub.extra.setting.IntroNanopub.IntroExtractor;
 
 public class NanodashSession extends WebSession {
 

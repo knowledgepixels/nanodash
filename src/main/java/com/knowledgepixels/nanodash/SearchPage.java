@@ -17,6 +17,8 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 public class SearchPage extends WebPage {
 

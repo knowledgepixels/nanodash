@@ -15,6 +15,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 public class UserPage extends WebPage {
 
@@ -22,7 +24,6 @@ public class UserPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/user";
 
-	private Model<String> progress;
 	private Model<String> selected = new Model<>();
 	private IRI userIri;
 	private boolean added = false;
@@ -35,13 +36,6 @@ public class UserPage extends WebPage {
 		if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
 		add(new Label("username", User.getDisplayName(userIri)));
-
-		// TODO: Progress bar doesn't update at the moment:
-		progress = new Model<>();
-		final Label progressLabel = new Label("progress", progress);
-//		progressLabel.setOutputMarkupId(true);
-//		progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)));
-		add(progressLabel);
 
 		NanodashSession session = NanodashSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
@@ -93,7 +87,7 @@ public class UserPage extends WebPage {
 				Map<String,String> nanopubParams = new HashMap<>();
 				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 				nanopubParams.put("pubkey", pubKeyMap.get(pubkeySelection.getModelObject()));  // TODO: only using first public key here
-				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams, progress).getData();
+				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams).getData();
 				List<NanopubElement> nanopubs = new ArrayList<>();
 				while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 					ApiResponseEntry resultEntry = nanopubResults.remove(0);
@@ -105,7 +99,6 @@ public class UserPage extends WebPage {
 					nanopubs.add(new NanopubElement(npUri, false));
 				}
 				NanopubResults r = new NanopubResults(markupId, nanopubs);
-				progress.setObject("");
 				return r;
 			}
 		});

@@ -23,11 +23,13 @@ import org.nanopub.MalformedNanopubException;
 import org.nanopub.MultiNanopubRdfHandler;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
-import org.nanopub.extra.security.IntroNanopub;
 import org.nanopub.extra.security.KeyDeclaration;
-import org.nanopub.extra.security.NanopubSetting;
 import org.nanopub.extra.server.FetchIndex;
 import org.nanopub.extra.server.GetNanopub;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.setting.IntroNanopub;
+import org.nanopub.extra.setting.NanopubSetting;
 
 import com.opencsv.exceptions.CsvValidationException;
 
