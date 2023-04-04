@@ -14,9 +14,10 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
-import com.knowledgepixels.nanodash.ApiAccess;
-import com.knowledgepixels.nanodash.ApiResponse;
-import com.knowledgepixels.nanodash.ApiResponseEntry;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
+
 import com.knowledgepixels.nanodash.ExplorePage;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;

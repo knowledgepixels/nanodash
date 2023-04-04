@@ -4,21 +4,21 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import com.knowledgepixels.nanodash.ApiAccess;
-import com.knowledgepixels.nanodash.ApiResponse;
-import com.knowledgepixels.nanodash.ApiResponseEntry;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
+
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.TitleBar;
-
 import com.opencsv.exceptions.CsvValidationException;
 
 public class FcOverviewPage extends WebPage {
