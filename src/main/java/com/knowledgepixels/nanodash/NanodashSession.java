@@ -147,6 +147,11 @@ public class NanodashSession extends WebSession {
 		return userIri;
 	}
 
+	public void logout() {
+		userIri = null;
+		invalidateNow();
+	}
+
 	public List<IntroNanopub> getUserIntroNanopubs() {
 		return User.getIntroNanopubs(userIri);
 	}

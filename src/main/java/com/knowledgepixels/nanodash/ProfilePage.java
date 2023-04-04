@@ -6,6 +6,8 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -44,17 +46,34 @@ public class ProfilePage extends WebPage {
 			}
 		}
 
-		if (session.getUserIri() == null) {
-			if (loginMode) {
+		if (loginMode) {
+			add(new Label("orcidmessage", ""));
+			if (session.getUserIri() == null) {
 				String loginUrl = OrcidLoginPage.getOrcidLoginUrl("/profile");
-				add(new Label("orcidmessage", "<a href=\"" + loginUrl + "\">Login with ORCID.</a>").setEscapeModelStrings(false));
+				add(new ExternalLink("loginout", loginUrl, "login with ORCID"));
 			} else {
+				add(new Link<String>("loginout") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick() {
+						System.err.println("LOGOUT");
+						session.logout();
+						throw new RestartResponseException(ProfilePage.class);
+					}
+
+				});
+			}
+		} else {
+			add(new Label("loginout", "").setVisible(false));
+			if (session.getUserIri() == null) {
 				add(new Label("orcidmessage", "Set your ORCID identifier below. " +
 						"If you don't yet have an ORCID account, you can make one via the " +
 						"<a href=\"https://orcid.org/\">ORCID website</a>.").setEscapeModelStrings(false));
+			} else {
+				add(new Label("orcidmessage", ""));
 			}
-		} else {
-			add(new Label("orcidmessage", ""));
 		}
 
 		Model<String> model = Model.of("");
