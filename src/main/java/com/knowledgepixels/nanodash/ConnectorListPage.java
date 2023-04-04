@@ -13,8 +13,6 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-
 
 public class ConnectorListPage extends WebPage {
 
@@ -22,9 +20,9 @@ public class ConnectorListPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/connectorlist";
 
-	private static final Map<Class<? extends OverviewPage>,String> connectors = new HashMap<>();
+	private static final Map<Class<? extends WebPage>,String> connectors = new HashMap<>();
 
-	public static void addConnector(Class<? extends OverviewPage> c, String label) {
+	public static void addConnector(Class<? extends WebPage> c, String label) {
 		connectors.put(c, label);
 	}
 
@@ -35,16 +33,16 @@ public class ConnectorListPage extends WebPage {
 	public ConnectorListPage(final PageParameters parameters) {
 		add(new TitleBar("titlebar"));
 
-		List<Class<? extends OverviewPage>> connectorList = new ArrayList<>(connectors.keySet());
+		List<Class<? extends WebPage>> connectorList = new ArrayList<>(connectors.keySet());
 		
-		add(new DataView<Class<? extends OverviewPage>>("connectors", new ListDataProvider<Class<? extends OverviewPage>>(connectorList)) {
+		add(new DataView<Class<? extends WebPage>>("connectors", new ListDataProvider<Class<? extends WebPage>>(connectorList)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<Class<? extends OverviewPage>> item) {
-				Class<? extends OverviewPage> c = item.getModelObject();
-				BookmarkablePageLink<OverviewPage> l = new BookmarkablePageLink<OverviewPage>("connectorlink", c);
+			protected void populateItem(Item<Class<? extends WebPage>> item) {
+				Class<? extends WebPage> c = item.getModelObject();
+				BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("connectorlink", c);
 				l.add(new Label("connectortext", connectors.get(c)));
 				item.add(l);
 			}
