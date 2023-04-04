@@ -58,7 +58,6 @@ public class ProfilePage extends WebPage {
 
 					@Override
 					public void onClick() {
-						System.err.println("LOGOUT");
 						session.logout();
 						throw new RestartResponseException(ProfilePage.class);
 					}
