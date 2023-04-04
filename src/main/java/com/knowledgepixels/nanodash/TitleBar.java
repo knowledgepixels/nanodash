@@ -24,6 +24,10 @@ public class TitleBar extends Panel {
 		mychannel.setVisible(!NanodashPreferences.get().isReadOnlyMode());
 		add(mychannel);
 
+		WebMarkupContainer connectors = new WebMarkupContainer("connectors");
+		connectors.setVisible(ConnectorListPage.getConnectorCount() > 0);
+		add(connectors);
+
 		WebMarkupContainer publish = new WebMarkupContainer("publish");
 		publish.setVisible(!NanodashPreferences.get().isReadOnlyMode());
 		add(publish);

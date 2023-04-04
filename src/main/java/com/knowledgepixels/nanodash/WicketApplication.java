@@ -112,6 +112,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
+		mountPage(ConnectorListPage.MOUNT_PATH, ConnectorListPage.class);
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsNanopubPage");
