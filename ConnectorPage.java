@@ -5,9 +5,9 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
 
-import com.knowledgepixels.nanodash.ApiAccess;
-import com.knowledgepixels.nanodash.ApiResponse;
 import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class ConnectorPage extends WebPage {

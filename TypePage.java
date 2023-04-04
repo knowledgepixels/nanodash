@@ -16,9 +16,9 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.ApiResponse;
-import com.knowledgepixels.nanodash.ApiResponseEntry;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;

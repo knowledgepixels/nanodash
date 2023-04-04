@@ -17,10 +17,10 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.ApiAccess;
-import com.knowledgepixels.nanodash.ApiResponse;
-import com.knowledgepixels.nanodash.ApiResponseEntry;
 import com.knowledgepixels.nanodash.ExplorePage;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
