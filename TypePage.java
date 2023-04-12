@@ -76,6 +76,10 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Definitions of Individuals";
 			template = Template.getTemplate("http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c");
 			exampleId = "http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0";
+		} else if (type.equals("ml")) {
+			title = "Evaluation results of a Machine Learning experiment";
+			template = Template.getTemplate("http://purl.org/np/RAugctYPo5-APG8ms-On0Ug71bAsf5ww6mnnNOZaFc41o");
+			exampleId = "http://purl.org/np/RAG7t5lymY86DLqimv_gYnOOc9BALsugnrdgfoW3w01o4";
 		}
 
 		add(new Label("title", title));
@@ -123,7 +127,7 @@ public abstract class TypePage extends ConnectorPage {
 		String createNewParagraph = "";
 		if (type.equals("superpattern") || type.equals("crel") || type.equals("inddef")) {
 			createNewParagraph += "<p>If you don't find the class you need, <a href=\"" + getMountPath() + "?type=classdef\">create a new class</a> first.</p>";
-		} else if (type.equals("linkflowsrel")) {
+		} else if (type.equals("linkflowsrel") || type.equals("ml")) {
 			createNewParagraph += "<p>If you don't find the individual you need, <a href=\"" + getMountPath() + "?type=inddef\">create a new individual</a> first.</p>";
 		}
 
