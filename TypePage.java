@@ -78,8 +78,8 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0";
 		} else if (type.equals("ml")) {
 			title = "Evaluation results of a Machine Learning experiment";
-			template = Template.getTemplate("http://purl.org/np/RAugctYPo5-APG8ms-On0Ug71bAsf5ww6mnnNOZaFc41o");
-			exampleId = "http://purl.org/np/RAG7t5lymY86DLqimv_gYnOOc9BALsugnrdgfoW3w01o4";
+			template = Template.getTemplate("http://purl.org/np/RAGEv4a9uT48mgnIlWqAvL-XnupfNYojIUmszJDa50xoc");
+			exampleId = "http://purl.org/np/RATTU9_L7ZEsNCSKdhSQ7fJ9ludLnxkWu2fUUbumKHjIE";
 		}
 
 		add(new Label("title", title));
