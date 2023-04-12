@@ -201,6 +201,10 @@ a.actionlink {
 .select2-selection__placeholder strong {
   font-weight: normal;  # ignore <strong> in Select2 placeholders
 }
+.select2-search--dropdown::before {
+  content: "search/filter:";
+  font-size: 60%
+}
 
 strong {
 	font-weight: bold;
