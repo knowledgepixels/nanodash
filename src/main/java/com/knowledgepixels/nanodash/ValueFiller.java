@@ -105,7 +105,10 @@ public class ValueFiller {
 			if (pred.equals(CryptoElement.HAS_PUBLIC_KEY)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
-			if (pred.equals(Template.HAS_LABEL_FROM_API)) return null;
+			if (pred.equals(Template.HAS_LABEL_FROM_API)) {
+				GuidedChoiceItem.setLabel(st.getSubject().stringValue(), st.getObject().stringValue());
+				return null;
+			}
 		}
 		return vf.createStatement(
 				(Resource) transform(st.getSubject()),

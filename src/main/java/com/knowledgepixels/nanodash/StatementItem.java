@@ -338,10 +338,9 @@ public class StatementItem extends Panel {
 			}
 			for (ValueItem vi : items) {
 				if (vi.getComponent() instanceof GuidedChoiceItem) {
-					GuidedChoiceItem gci = (GuidedChoiceItem) vi.getComponent();
-					String value = gci.getModel().getObject();
-					if (value != null && gci.getLabel(value) != null) {
-						String label = gci.getLabel(value);
+					String value = ((GuidedChoiceItem) vi.getComponent()).getModel().getObject();
+					if (value != null && GuidedChoiceItem.getLabel(value) != null) {
+						String label = GuidedChoiceItem.getLabel(value);
 						if (label.length() > 1000) label = label.substring(0, 997) + "...";
 						try {
 							npCreator.addPubinfoStatement(vf.createIRI(value), Template.HAS_LABEL_FROM_API, vf.createLiteral(label));

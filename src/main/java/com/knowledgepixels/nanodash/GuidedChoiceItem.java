@@ -36,7 +36,16 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	private String prefix;
 
 	// TODO: This map being static could mix up labels if the same URI is described at different places:
+	// TODO: This should maybe go into a different class?
 	private static Map<String,String> labelMap = new HashMap<>();
+
+	public static String getLabel(String value) {
+		return labelMap.get(value);
+	}
+
+	public static String setLabel(String value, String label) {
+		return labelMap.put(value, label);
+	}
 
 	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
 		super(id);
@@ -206,10 +215,6 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		if (!labelMap.containsKey(vs)) {
 			context.getTemplate().getPossibleValuesFromApi(iri, vs, labelMap);
 		}
-	}
-
-	public String getLabel(String value) {
-		return labelMap.get(value);
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
