@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import com.beust.jcommander.Strings;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 
@@ -37,14 +38,18 @@ public class LookupApis {
 
 	public static void getPossibleValues(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
 		try {
+			if (apiString.startsWith("https://vodex.")) {
+				searchterm = "( " + Strings.join(" AND ", searchterm.split(" ")) + "* )";
+			}
 			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
 			
 			// Quick fix to resolve Nanopubs grlc API as JSON
 			// Otherwise call fails if no ACCEPT header provided
 			// TODO: can also be done using the Nanodash ApiAccess class:
 			// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-			if (apiString.startsWith("http://purl.org/nanopub/api/"))
+			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
 				get.setHeader(HttpHeaders.ACCEPT, "application/json");
+			}
 			
 			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
 	
@@ -97,7 +102,7 @@ public class LookupApis {
 						labelMap.put(uri, label);
 					}
 				}
-			} else if (apiString.startsWith("https://vodex.petapico.org/")) {
+			} else if (apiString.startsWith("https://vodex.")) {
 				// TODO This is just a test and needs to be improved
 				JSONArray responseArray = new JSONObject(respString).getJSONObject("response").getJSONArray("docs");
 				for (int i = 0; i < responseArray.length(); i++) {
