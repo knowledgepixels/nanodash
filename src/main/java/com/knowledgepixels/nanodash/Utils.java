@@ -197,7 +197,7 @@ public class Utils {
 			"return markup" +
 				".replaceAll('<','&lt;').replaceAll('>','&gt;')" + 
 				".replace(/^(.*?) - /, \"<strong>$1</strong> - \")" +
-				".replace(/\\((https?:[\\S]+)\\)$/, \"(<code>$1</code>)\")" +
+				".replace(/\\((https?:[\\S]+)\\)$/, \"<br>(<code>$1</code>)\")" +
 				".replace(/^([^<].*)$/, \"<strong>$1</strong>\")" +
 			";}"
 		);

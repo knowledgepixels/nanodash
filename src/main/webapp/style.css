@@ -206,6 +206,10 @@ a.actionlink {
   font-size: 60%
 }
 
+.select2-selection__rendered {
+  max-height: 28px;
+}
+
 strong {
 	font-weight: bold;
 }

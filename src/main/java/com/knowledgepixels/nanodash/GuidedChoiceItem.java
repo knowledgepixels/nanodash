@@ -11,6 +11,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -30,6 +31,8 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 	private PublishFormContext context;
 	private Select2Choice<String> textfield;
+	private ExternalLink tooltipLink;
+	private Label tooltipDescription;
 	private IRI iri;
 	private IModel<String> model;
 
@@ -45,6 +48,18 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	public static String setLabel(String value, String label) {
 		return labelMap.put(value, label);
+	}
+
+	private String getChoiceLabel(String choiceId) {
+		Template template = context.getTemplate();
+		String label = null;
+		if (choiceId.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
+			label = template.getLabel(vf.createIRI(choiceId));
+		} else if (labelMap.containsKey(choiceId)) {
+			label = labelMap.get(choiceId);
+			if (label.length() > 160) label = label.substring(0, 157) + "...";
+		}
+		return label;
 	}
 
 	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
@@ -94,13 +109,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			@Override
 			public String getDisplayValue(String choiceId) {
 				if (choiceId == null || choiceId.isEmpty()) return "";
-				String label = null;
-				if (choiceId.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
-					label = template.getLabel(vf.createIRI(choiceId));
-				} else if (labelMap.containsKey(choiceId)) {
-					label = labelMap.get(choiceId);
-					if (label.length() > 160) label = label.substring(0, 157) + "...";
-				}
+				String label = getChoiceLabel(choiceId);
 				if (label == null) {
 					return choiceId;
 				}
@@ -152,6 +161,25 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		textfield.add(new AttributeAppender("style", "width:750px;"));
 		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);
+
+		tooltipDescription = new Label("description", new IModel<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				if (getModel().getObject() == null || getChoiceLabel(getModel().getObject()) == null) return "choose a value";
+				return "";
+			}
+
+		});
+		tooltipDescription.setOutputMarkupId(true);
+		add(tooltipDescription);
+
+		tooltipLink = new ExternalLink("uri", model, model);
+		tooltipLink.setOutputMarkupId(true);
+		add(tooltipLink);
+
 		textfield.add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
@@ -165,6 +193,8 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 						target.add(fc);
 					}
 				}
+				target.add(tooltipLink);
+				target.add(tooltipDescription);
 			}
 
 		});
