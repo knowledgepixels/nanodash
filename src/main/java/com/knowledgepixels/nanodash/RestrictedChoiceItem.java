@@ -14,6 +14,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -34,6 +35,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private PublishFormContext context;
 	private IRI iri;
 	private Select2Choice<String> choice;
+	private ExternalLink tooltipLink;
+	private Label tooltipDescription;
+	private IModel<String> model;
 	private Template template;
 	private final Map<String,Boolean> fixedPossibleValues = new HashMap<>();
 	private final List<IRI> possibleRefValues = new ArrayList<>();
@@ -43,7 +47,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		this.context = context;
 		this.iri = iri;
 		template = context.getTemplate();
-		IModel<String> model = context.getFormComponentModels().get(iri);
+		model = context.getFormComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
 			context.getFormComponentModels().put(iri, model);
@@ -84,14 +88,14 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				if (!choiceId.matches("(https?|file)://.+")) {
 					return choiceId;
 				}
-				IRI valueIri = vf.createIRI(choiceId);
-				if (fixedPossibleValues.containsKey(choiceId) && template.getLabel(valueIri) != null) {
-					return template.getLabel(valueIri);
+				String label = "";
+				if (fixedPossibleValues.containsKey(choiceId)) {
+					label = template.getLabel(vf.createIRI(choiceId));
 				}
-				if (choiceId.startsWith(template.getId())) {
-					choiceId = choiceId.substring(0, template.getId().length());
+				if (label == null) {
+					return choiceId;
 				}
-				return choiceId;
+				return label + " (" + choiceId + ")";
 			}
 
 			@Override
@@ -138,6 +142,31 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		choice.add(new Validator());
 		context.getFormComponents().add(choice);
+
+		tooltipDescription = new Label("description", new IModel<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String obj = RestrictedChoiceItem.this.getModel().getObject();
+				if (obj == null || obj.isEmpty()) return "choose a value";
+				String label = null;
+				if (fixedPossibleValues.containsKey(obj)) {
+					label = template.getLabel(vf.createIRI(obj));
+				}
+				if (label == null || !label.contains(" - ")) return "";
+				return label.substring(label.indexOf(" - ") + 3);
+			}
+
+		});
+		tooltipDescription.setOutputMarkupId(true);
+		add(tooltipDescription);
+
+		tooltipLink = new ExternalLink("uri", model, model);
+		tooltipLink.setOutputMarkupId(true);
+		add(tooltipLink);
+
 		choice.add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
@@ -151,10 +180,16 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 						target.add(fc);
 					}
 				}
+				target.add(tooltipLink);
+				target.add(tooltipDescription);
 			}
 
 		});
 		add(choice);
+	}
+
+	public IModel<String> getModel() {
+		return model;
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
