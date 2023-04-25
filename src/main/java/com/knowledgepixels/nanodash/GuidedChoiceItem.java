@@ -168,8 +168,11 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			public String getObject() {
-				if (getModel().getObject() == null || getChoiceLabel(getModel().getObject()) == null) return "choose a value";
-				return "";
+				String obj = GuidedChoiceItem.this.getModel().getObject();
+				if (obj == null || obj.isEmpty()) return "choose a value";
+				String label = getChoiceLabel(GuidedChoiceItem.this.getModel().getObject());
+				if (label == null || !label.contains(" - ")) return "";
+				return label.substring(label.indexOf(" - ") + 3);
 			}
 
 		});

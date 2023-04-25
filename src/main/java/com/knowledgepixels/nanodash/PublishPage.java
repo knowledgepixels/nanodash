@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -23,6 +25,15 @@ public class PublishPage extends WebPage {
 		} else {
 			add(new TemplateList("form"));
 		}
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response) {
+		super.renderHead(response);
+		// TODO: There is probably a better place to define this function:
+		response.render(JavaScriptHeaderItem.forScript(
+				"function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }",
+				"custom-functions"));
 	}
 
 }
