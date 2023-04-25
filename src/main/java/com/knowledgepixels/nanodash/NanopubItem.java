@@ -223,10 +223,13 @@ public class NanopubItem extends Panel {
 					processStatementForPredicateOrder(statementId);
 				}
 			}
-	}
-		
+		}
+
+		StatementComparator statementComparator = null;
 
 		if (n.getNanopub() != null) {
+			statementComparator = new StatementComparator(n.getNanopub());
+	
 			List<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
 			a.sort(statementComparator);
 			if (a.size() > 10) {
@@ -324,17 +327,31 @@ public class NanopubItem extends Panel {
 			if (!predicateOrder.containsKey(pred)) predicateOrder.put(pred, predicateOrder.size());
 		}
 	}
-
-
-	private StatementComparator statementComparator = new StatementComparator();
+	
 
 	private class StatementComparator implements Comparator<Statement>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 
+		private IRI introducedThing = null;
+
+		public StatementComparator(Nanopub np) {
+			for (Statement st : np.getPubinfo()) {
+				if (st.getSubject().equals(np.getUri()) && st.getPredicate().equals(PublishForm.INTRODUCES_PREDICATE) && st.getObject().isIRI()) {
+					introducedThing = (IRI) st.getObject();
+					break;
+				}
+			}
+		}
+
 		@Override
 		public int compare(Statement arg0, Statement arg1) {
 			if (!arg0.getSubject().stringValue().equals(arg1.getSubject().stringValue())) {
+				if (arg0.getSubject().equals(introducedThing)) {
+					return -1;
+				} else if (arg1.getSubject().equals(introducedThing)) {
+					return 1;
+				}
 				return arg0.getSubject().toString().compareTo(arg1.getSubject().toString());
 			}
 			IRI pred0 = arg0.getPredicate();
