@@ -80,6 +80,10 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Evaluation results of a Machine Learning experiment";
 			template = Template.getTemplate("http://purl.org/np/RAGEv4a9uT48mgnIlWqAvL-XnupfNYojIUmszJDa50xoc");
 			exampleId = "http://purl.org/np/RAQV0grGVX22NUdKxBijorX0vy06-hdDY3BpScIeQzhx0";
+		} else if (type.equals("biorel")) {
+			title = "Simple Biological Relation";
+			template = Template.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
+			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		}
 
 		add(new Label("title", title));
