@@ -210,6 +210,10 @@ a.actionlink {
   max-height: 28px;
 }
 
+.select2-dropdown span.term {
+  font-weight: bold;
+}
+
 strong {
 	font-weight: bold;
 }
