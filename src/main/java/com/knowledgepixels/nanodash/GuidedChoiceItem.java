@@ -110,7 +110,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			public String getDisplayValue(String choiceId) {
 				if (choiceId == null || choiceId.isEmpty()) return "";
 				String label = getChoiceLabel(choiceId);
-				if (label == null) {
+				if (label == null || label.isBlank()) {
 					return choiceId;
 				}
 				return label + " (" + choiceId + ")";
@@ -132,12 +132,16 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 					response.addAll(possibleValues);
 					return;
 				}
+				Map<String,Boolean> alreadyAddedMap = new HashMap<>();
 				term = term.toLowerCase();
 				for (String s : possibleValues) {
-					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
+					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+						response.add(s);
+						alreadyAddedMap.put(s, true);
+					}
 				}
 				for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
-					response.add(v);
+					if (!alreadyAddedMap.containsKey(v)) response.add(v);
 				}
 			}
 

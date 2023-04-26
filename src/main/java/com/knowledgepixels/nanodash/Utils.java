@@ -195,10 +195,10 @@ public class Utils {
 	public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
 		selectItem.getSettings().setEscapeMarkup("function(markup) {" +
 			"return markup" +
-				".replaceAll('<','&lt;').replaceAll('>','&gt;')" + 
-				".replace(/^(.*?) - /, \"<strong>$1</strong><br>\")" +
-				".replace(/\\((https?:[\\S]+)\\)$/, \"<br>(<code>$1</code>)\")" +
-				".replace(/^([^<].*)$/, \"<strong>$1</strong>\")" +
+				".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + 
+				".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" +
+				".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" +
+				".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" +
 			";}"
 		);
 	}

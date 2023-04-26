@@ -241,6 +241,11 @@ code.bold {
   font-weight: bold;
 }
 
+span.term {
+  font-family: Martian,monaco,monospace;
+  font-size: 10pt;
+}
+
 input, select, textarea {
   padding: 3px 5px;
   border-color: #ccc;

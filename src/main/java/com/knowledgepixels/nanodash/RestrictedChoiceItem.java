@@ -92,7 +92,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				if (fixedPossibleValues.containsKey(choiceId)) {
 					label = template.getLabel(vf.createIRI(choiceId));
 				}
-				if (label == null) {
+				if (label == null || label.isBlank()) {
 					return choiceId;
 				}
 				return label + " (" + choiceId + ")";
