@@ -14,7 +14,9 @@ public class HomePage extends WebPage {
 		final NanodashSession session = NanodashSession.get();
 		String v = WicketApplication.getThisVersion();
 		String lv = WicketApplication.getLatestVersion();
-		if (v.endsWith("-SNAPSHOT")) {
+		if (NanodashPreferences.get().isOrcidLoginMode()) {
+			add(new Label("warning", ""));
+		} else if (v.endsWith("-SNAPSHOT")) {
 			add(new Label("warning", "You are running a temporary snapshot version of Nanodash (" + v + "). The latest public version is " + lv + "."));
 		} else if (lv != null && !v.equals(lv)) {
 			add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
