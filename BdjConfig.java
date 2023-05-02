@@ -5,20 +5,20 @@ import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
-public class RioConfig extends ConnectorConfig {
+public class BdjConfig extends ConnectorConfig {
 
-	private static RioConfig instance;
+	private static BdjConfig instance;
 
-	public static RioConfig get() {
-		if (instance == null) instance = new RioConfig();
+	public static BdjConfig get() {
+		if (instance == null) instance = new BdjConfig();
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/rio-nanopub-api/";
+	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/bdj-nanopub-api/";
 
-	private static final RioOverviewPage overviewPageInstance = new RioOverviewPage(null);
-	private static final RioTypePage typePageInstance = new RioTypePage(null);
-	private static final RioNanopubPage nanopubPageInstance = new RioNanopubPage(null);
+	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
+	private static final BdjTypePage typePageInstance = new BdjTypePage(null);
+	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
 
 	@Override
 	public OverviewPage getOverviewPage() {
@@ -37,7 +37,7 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getLogoFileName() {
-		return "RioLogo.svg";
+		return "BdjLogo.svg";
 	}
 
 	@Override
@@ -53,17 +53,17 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getJournalName() {
-		return "RIO Journal";
+		return "Biodiversity Data Journal";
 	}
 
 	@Override
 	public String getJournalAbbrev() {
-		return "RIO";
+		return "BDJ";
 	}
 
 	@Override
 	public String getReviewUrlPrefix() {
-		return "http://rio.kpxl.org/";
+		return "http://bdj.kpxl.org/";
 	}
 
 }
