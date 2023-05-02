@@ -14,6 +14,8 @@ public class DsConfig extends ConnectorConfig {
 		return instance;
 	}
 
+	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
+
 	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
 	private static final DsTypePage typePageInstance = new DsTypePage(null);
 	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage(null);
@@ -45,7 +47,8 @@ public class DsConfig extends ConnectorConfig {
 
 	@Override
 	public String getApiUrl(String operation) {
-		return "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
+		if (isBaseApiOperation(operation)) return baseApi;
+		return specificApi;
 	}
 
 	@Override
