@@ -84,6 +84,14 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Simple Biological Relation";
 			template = Template.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
+		} else if (type.equals("taxontaxon")) {
+			title = "Association between two Organism Taxons";
+			template = Template.getTemplate("http://purl.org/np/RAfkBEHGmvTphfKcesMTreOcXTekxZmf3iO50SXoRBX48");
+			exampleId = "http://purl.org/np/RAmlZqUxZndYaflGLxhspiGCdN6UNi4G2W7JQEiSApmFc";
+		} else if (type.equals("taxonenv")) {
+			title = "Association between an Organism Taxon and an environment";
+			template = Template.getTemplate("http://purl.org/np/RARkaOvs0_ssbo7_yxtkvEcd6QvOwn0e6MUHdiNrYjFM0");
+			exampleId = "http://purl.org/np/RAZbVnR5w1ui3i_VTM7cfljCyiywneCE_B7f6uDmiLV7c";
 		}
 
 		add(new Label("title", title));
