@@ -2,6 +2,21 @@ package com.knowledgepixels.nanodash.connector.base;
 
 public abstract class ConnectorConfig {
 
+	public static final String baseApi = "https://grlc.petapico.org/api-git/knowledgepixels/connector-nanopub-api/";
+
+	public static boolean isBaseApiOperation(String operation) {
+		if ("get-aida-nanopubs".equals(operation)) return true;
+		if ("get-biorel-nanopubs".equals(operation)) return true;
+		if ("get-classdef-nanopubs".equals(operation)) return true;
+		if ("get-crel-nanopubs".equals(operation)) return true;
+		if ("get-inddef-nanopubs".equals(operation)) return true;
+		if ("get-linkflowsrel-nanopubs".equals(operation)) return true;
+		if ("get-ml-nanopubs".equals(operation)) return true;
+		if ("get-superpattern-nanopubs".equals(operation)) return true;
+		if ("get-reactions".equals(operation)) return true;
+		return false;
+	}
+
 	public abstract OverviewPage getOverviewPage();
 
 	public abstract TypePage getTypePage();
