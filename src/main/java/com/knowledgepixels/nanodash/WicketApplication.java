@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.settings.ExceptionSettings;
 import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
@@ -102,6 +103,11 @@ public class WicketApplication extends WebApplication {
 		super.init();
 
 		getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
+
+		getExceptionSettings().setUnexpectedExceptionDisplay(ExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
+
+		mountPage("/error/404", ErrorPage.class);
+		mountPage("/error/500", ErrorPage.class);
 
 		mountPage(UserPage.MOUNT_PATH, UserPage.class);
 		mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
