@@ -1,0 +1,9 @@
+on: workflow_dispatch
+
+jobs:
+  runscript:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run script
+        run:  bash ${GITHUB_WORKSPACE}/scripts/test.sh
