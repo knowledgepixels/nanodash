@@ -5,7 +5,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.knowledgepixels.nanodash.ConnectorListPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.ios.DsOverviewPage;
 
 public class RioOverviewPage extends OverviewPage {
 
