@@ -117,6 +117,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
 		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
 		mountPage(GroupListPage.MOUNT_PATH, GroupListPage.class);
+		mountPage(GroupPage.MOUNT_PATH, GroupPage.class);
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
 		mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
 		mountPage(ConnectorListPage.MOUNT_PATH, ConnectorListPage.class);

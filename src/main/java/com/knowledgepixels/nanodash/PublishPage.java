@@ -14,12 +14,12 @@ public class PublishPage extends WebPage {
 	public PublishPage(final PageParameters parameters) {
 		super();
 		final NanodashSession session = NanodashSession.get();
-		session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 		add(new TitleBar("titlebar"));
 		if (parameters.get("template").toString() != null) {
 			if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
 				add(new DifferentKeyErrorItem("form", parameters));
 			} else {
+				session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 				add(new PublishForm("form", parameters, this));
 			}
 		} else {
