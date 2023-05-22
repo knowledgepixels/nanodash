@@ -23,6 +23,20 @@
   font-style: normal;
 }
 
+:root {
+  --gap: 1.5em;
+}
+@media screen and (min-width: 576px) {
+  :root {
+    --gap: 2em;
+  }
+}
+@media screen and (min-width: 768px) {
+  :root {
+    --gap: 3em;
+  }
+}
+
 html {
 	height:100%;
 }
@@ -64,6 +78,27 @@ h5, h6 {
 	font-size: 14pt;
 	margin-left: 1em;
 	vertical-align: middle;
+}
+
+section {
+  display: block;
+  margin: 0 auto;
+}
+@media screen and (min-width: 576px) {
+  section div.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: var(--gap);
+  }
+}
+section div.container div.column {
+  display: block;
+  margin-bottom: calc(2 * var(--gap));
+}
+@media screen and (min-width: 576px) {
+  section div.container div.column {
+    margin-bottom: 0;
+  }
 }
 
 p.graphheader {
