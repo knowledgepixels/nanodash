@@ -51,6 +51,7 @@ public abstract class TypePage extends ConnectorPage {
 		String title = null;
 		Template template = null;
 		String exampleId = null;
+		String prTemplateId = "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ";
 
 		if (type.equals("superpattern")) {
 			title = "Fully-formal Advanced Statements (Super-Pattern)";
@@ -92,6 +93,11 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Association between an Organism Taxon and an environment";
 			template = Template.getTemplate("http://purl.org/np/RARkaOvs0_ssbo7_yxtkvEcd6QvOwn0e6MUHdiNrYjFM0");
 			exampleId = "http://purl.org/np/RAZbVnR5w1ui3i_VTM7cfljCyiywneCE_B7f6uDmiLV7c";
+		} else if (type.equals("reaction")) {
+			title = "A reaction or comment on a paper or nanopublication";
+			template = Template.getTemplate("http://purl.org/np/RANWGVogb5j_VQ6A4nabA34_-zkZTRYNYtItRJXGf2TVQ");
+			exampleId = "http://purl.org/np/RAxjCU5pZDoGox98Hb36mquM9Bc1xv0qz4P19p2avnNPI";
+			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
 
 		add(new Label("title", title));
@@ -147,7 +153,7 @@ public abstract class TypePage extends ConnectorPage {
 
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
-					.add("prtemplate", "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ")
+					.add("prtemplate", prTemplateId)
 					.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
 							"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
 							"<p>You can leave the provenance (red) and publication info (yellow) parts as they are.</p>" +

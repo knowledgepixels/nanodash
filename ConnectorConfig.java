@@ -13,6 +13,7 @@ public abstract class ConnectorConfig {
 		if ("get-linkflowsrel-nanopubs".equals(operation)) return true;
 		if ("get-ml-nanopubs".equals(operation)) return true;
 		if ("get-superpattern-nanopubs".equals(operation)) return true;
+		if ("get-reaction-nanopubs".equals(operation)) return true;
 		if ("get-reactions".equals(operation)) return true;
 		return false;
 	}
