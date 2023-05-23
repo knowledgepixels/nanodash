@@ -218,6 +218,13 @@ public class User {
 		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}
 
+	public static IRI getUserIri(String pubkey) {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+		Set<IRI> userIris = approvedPubkeyIdMap.get(pubkey);
+		if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
+		return null;
+	}
+
 	public static String getName(IRI userIri) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
 		return idNameMap.get(userIri);

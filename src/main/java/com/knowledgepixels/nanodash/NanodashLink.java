@@ -17,7 +17,9 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
-import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 
 public class NanodashLink extends Panel {
 	
@@ -90,21 +92,34 @@ public class NanodashLink extends Panel {
 			add(new ExternalLink("uri", uri, uri));
 		} else {
 			String label = IriItem.getShortNameFromURI(uri);
-			Set<IRI> creators = null;
-			if (!templates.isEmpty()) {
-				// TODO Calling this for every link separately is very inefficient:
-				creators = SimpleCreatorPattern.getCreators(np);
-			}
-			for (Template template : templates) {
-				// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):
-				if (creators.contains(iriObj)) {
-					if (objectPosition) {
-						label = "me (" + User.getShortDisplayName(iriObj) + ")";
-					} else {
-						label = "I (" + User.getShortDisplayName(iriObj) + ")";
+//			Set<IRI> creators = null;
+//			if (!templates.isEmpty()) {
+//				// TODO Calling this for every link separately is very inefficient:
+//				creators = SimpleCreatorPattern.getCreators(np);
+//			}
+			IRI sigUserIri = null;
+			try {
+				if (np != null) {
+					NanopubSignatureElement se = SignatureUtils.getSignatureElement(np);
+					if (se != null) {
+						sigUserIri = User.getUserIri(se.getPublicKeyString());
 					}
-					break;
+				}
+			} catch (MalformedCryptoElementException ex) {
+				ex.printStackTrace();
+			}
+//			if (creators.contains(iriObj)) {
+			if (iriObj.equals(sigUserIri)) {
+				if (objectPosition) {
+					label = "me (" + User.getShortDisplayName(iriObj) + ")";
 				} else {
+					label = "I (" + User.getShortDisplayName(iriObj) + ")";
+				}
+			} else if (User.getName(iriObj) != null) {
+				label = User.getShortDisplayName(iriObj);
+			} else {
+				for (Template template : templates) {
+					// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial): else {
 					String l = template.getLabel(iriObj);
 					if (l != null) {
 						label = l;
