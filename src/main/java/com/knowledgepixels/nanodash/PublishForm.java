@@ -22,6 +22,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -29,6 +32,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
@@ -82,8 +86,8 @@ public class PublishForm extends Panel {
 		}
 		add(linkMessageItem);
 
-		Nanopub fillNp = null;
-		FillMode fillMode = null;
+		final Nanopub fillNp;
+		final FillMode fillMode;
 		boolean fillOnlyAssertion = false;
 		if (!pageParams.get("use").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("use").toString());
@@ -114,6 +118,9 @@ public class PublishForm extends Panel {
 			// TODO: This is deprecated and should be removed at some point
 			fillNp = Utils.getNanopub(pageParams.get("fill").toString());
 			fillMode = FillMode.SUPERSEDE;
+		} else {
+			fillNp = null;
+			fillMode = null;
 		}
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
@@ -205,16 +212,25 @@ public class PublishForm extends Panel {
 			add(new Label("newversionlink", "").setVisible(false));
 		}
 
-		String warningMessage = "";
+		final Nanopub improveNp;
+		if (!pageParams.get("improve").isNull()) {
+			improveNp = Utils.getNanopub(pageParams.get("improve").toString());
+		} else {
+			improveNp = null;
+		}
+		
+		final List<Statement> unusedStatementList = new ArrayList<>();
+		final List<Statement> unusedPrStatementList = new ArrayList<>();
+		final List<Statement> unusedPiStatementList = new ArrayList<>();
 		if (fillNp != null) {
 			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION);
 			filler.fill(assertionContext);
-			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
+			unusedStatementList.addAll(filler.getUnusedStatements());
 
 			if (!fillOnlyAssertion) {
 				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
 				prFiller.fill(provenanceContext);
-				warningMessage += (prFiller.getWarningMessage() == null ? "" : "Provenance: " + prFiller.getWarningMessage() + " ");
+				unusedPrStatementList.addAll(prFiller.getUnusedStatements());
 	
 				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
 				for (PublishFormContext c : pubInfoContexts) {
@@ -228,7 +244,7 @@ public class PublishForm extends Panel {
 						piFiller.fill(c);
 					}
 				}
-				warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
+				unusedPiStatementList.addAll(piFiller.getUnusedStatements());
 				// TODO: Also use pubinfo templates stated in nanopub to be filled in?
 //				Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
 //				if (!pubinfoTemplateIds.isEmpty()) {
@@ -240,17 +256,46 @@ public class PublishForm extends Panel {
 //					warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
 //				}
 			}
-		} else if (!pageParams.get("improve").isNull()) {
-			Nanopub improveNp = Utils.getNanopub(pageParams.get("improve").toString());
+		} else if (improveNp != null) {
 			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION);
 			filler.fill(assertionContext);
-			warningMessage += (filler.getWarningMessage() == null ? "" : "Assertion: " + filler.getWarningMessage() + " ");
+			unusedStatementList.addAll(filler.getUnusedStatements());
 		}
-		if (!warningMessage.isEmpty()) {
-			add(new Label("warnings", warningMessage));
+		if (!unusedStatementList.isEmpty()) {
+			add(new Label("warnings", "Some content from the existing nanopublication could not be filled in:"));
 		} else {
 			add(new Label("warnings", "").setVisible(false));
 		}
+		add(new DataView<Statement>("unused-statements", new ListDataProvider<Statement>(unusedStatementList)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				item.add(new TripleItem("unused-statement", item.getModelObject(), (fillNp != null ? fillNp : improveNp), null));
+			}
+
+		});
+		add(new DataView<Statement>("unused-prstatements", new ListDataProvider<Statement>(unusedPrStatementList)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				item.add(new TripleItem("unused-prstatement", item.getModelObject(), (fillNp != null ? fillNp : improveNp), null));
+			}
+
+		});
+		add(new DataView<Statement>("unused-pistatements", new ListDataProvider<Statement>(unusedPiStatementList)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				item.add(new TripleItem("unused-pistatement", item.getModelObject(), (fillNp != null ? fillNp : improveNp), null));
+			}
+
+		});
 
 		// Finalize statements, which picks up parameter values in repetitions:
 		assertionContext.finalizeStatements();

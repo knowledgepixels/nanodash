@@ -75,19 +75,8 @@ public class ValueFiller {
 		return unusedStatements.size() > 0;
 	}
 
-	public String getWarningMessage() {
-		if (!hasStatements()) return null;
-//		System.err.println("UNUSED: ");
-//		for (Statement st : unusedStatements) {
-//			System.err.println(st.getSubject() + " " + st.getPredicate() + " " + st.getObject());
-//		}
-//		System.err.println("---");
-		if (!hasUsedStatements()) {
-			return "Could not fill in form with content from given existing nanopublication.";
-		} else if (hasUnusedStatements()) {
-			return "Content from given existing nanopublication could only partially be filled in.";
-		}
-		return null;
+	public List<Statement> getUnusedStatements() {
+		return unusedStatements;
 	}
 
 	private Statement transform(Statement st) {
