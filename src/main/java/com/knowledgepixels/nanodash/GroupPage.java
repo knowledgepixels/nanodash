@@ -5,6 +5,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -26,6 +27,7 @@ public class GroupPage extends WebPage {
 		final Group group = Group.get(groupId);
 
 		add(new Label("groupname", group.getName()));
+		add(new ExternalLink("groupid", groupId, groupId));
 
 		add(new DataView<IRI>("owners", new ListDataProvider<IRI>(group.getOwners())) {
 
