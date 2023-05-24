@@ -53,7 +53,7 @@ public class GroupPage extends WebPage {
 			@Override
 			public void onClick() {
 				Group.refreshGroups();
-				throw new RestartResponseException(GroupPage.class);
+				throw new RestartResponseException(GroupPage.class, new PageParameters().add("id", groupId));
 			}
 
 		});
