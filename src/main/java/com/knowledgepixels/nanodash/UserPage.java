@@ -35,7 +35,9 @@ public class UserPage extends WebPage {
 
 		if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
-		add(new Label("username", User.getDisplayName(userIri)));
+		final String displayName = User.getDisplayName(userIri);
+		add(new Label("pagetitle", displayName + " (user) | nanodash"));
+		add(new Label("username", displayName));
 
 		NanodashSession session = NanodashSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();

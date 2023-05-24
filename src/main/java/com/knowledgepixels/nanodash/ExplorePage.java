@@ -25,7 +25,9 @@ public class ExplorePage extends WebPage {
 		add(new TitleBar("titlebar"));
 
 		final String ref = parameters.get("id").toString();
-		add(new ExternalLink("urilink", ref, IriItem.getShortNameFromURI(ref)));
+		final String shortName = IriItem.getShortNameFromURI(ref);
+		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
+		add(new ExternalLink("urilink", ref, shortName));
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", ref);

@@ -26,6 +26,7 @@ public class GroupPage extends WebPage {
 		final String groupId = parameters.get("id").toString();
 		final Group group = Group.get(groupId);
 
+		add(new Label("pagetitle", group.getName() + " (group) | nanodash"));
 		add(new Label("groupname", group.getName()));
 		add(new ExternalLink("groupid", groupId, groupId));
 
