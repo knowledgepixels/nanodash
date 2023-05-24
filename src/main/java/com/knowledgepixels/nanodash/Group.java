@@ -65,12 +65,14 @@ public class Group implements Serializable {
 	private final IRI iri;
 	private final String name;
 	private final Nanopub np;
+	private final List<IRI> owners = new ArrayList<>();
 	private final List<IRI> members = new ArrayList<>();
 
 	private Group(ApiResponseEntry e) {
 		iri = vf.createIRI(e.get("thing"));
 		name = e.get("label");
 		np = GetNanopub.get(e.get("np"));
+		owners.add(User.getSignatureOwnerIri(np));
 		for (Statement st : np.getAssertion()) {
 			if (!st.getSubject().equals(iri)) continue;
 			if (!st.getPredicate().equals(FOAF.MEMBER)) continue;
@@ -97,6 +99,10 @@ public class Group implements Serializable {
 
 	public List<IRI> getMembers() {
 		return members;
+	}
+
+	public List<IRI> getOwners() {
+		return owners;
 	}
 
 	@Override

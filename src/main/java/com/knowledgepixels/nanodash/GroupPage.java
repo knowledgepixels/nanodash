@@ -20,11 +20,26 @@ public class GroupPage extends WebPage {
 	public static final String MOUNT_PATH = "/group";
 
 	public GroupPage(final PageParameters parameters) {
+		User.ensureLoaded();
 		add(new TitleBar("titlebar"));
 		final String groupId = parameters.get("id").toString();
 		final Group group = Group.get(groupId);
 
 		add(new Label("groupname", group.getName()));
+
+		add(new DataView<IRI>("owners", new ListDataProvider<IRI>(group.getOwners())) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<IRI> item) {
+				PageParameters params = new PageParameters().add("id", item.getModelObject());
+				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("ownerlink", UserPage.class, params);
+				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
+				item.add(l);
+			}
+
+		});
 
 		add(new DataView<IRI>("members", new ListDataProvider<IRI>(group.getMembers())) {
 
@@ -32,8 +47,7 @@ public class GroupPage extends WebPage {
 
 			@Override
 			protected void populateItem(Item<IRI> item) {
-				PageParameters params = new PageParameters();
-				params.add("id", item.getModelObject());
+				PageParameters params = new PageParameters().add("id", item.getModelObject());
 				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("memberlink", UserPage.class, params);
 				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
 				item.add(l);

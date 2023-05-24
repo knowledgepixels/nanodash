@@ -24,6 +24,9 @@ import org.nanopub.MultiNanopubRdfHandler;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.FetchIndex;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiAccess;
@@ -127,6 +130,10 @@ public class User {
 		}
 	}
 
+	public static void ensureLoaded() {
+		if (approvedPubkeyIdMap == null) refreshUsers();
+	}
+
 	private static IntroNanopub toIntroNanopub(String i) {
 		if (i == null) return null;
 		IRI iri = Utils.vf.createIRI(i);
@@ -225,6 +232,20 @@ public class User {
 		return null;
 	}
 
+	public static IRI getSignatureOwnerIri(Nanopub np) {
+		try {
+			if (np != null) {
+				NanopubSignatureElement se = SignatureUtils.getSignatureElement(np);
+				if (se != null) {
+					return getUserIri(se.getPublicKeyString());
+				}
+			}
+		} catch (MalformedCryptoElementException ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
 	public static String getName(IRI userIri) {
 		if (approvedPubkeyIdMap == null) refreshUsers();
 		return idNameMap.get(userIri);
@@ -247,7 +268,7 @@ public class User {
 	}
 
 	public static String getShortDisplayNameForPubkey(String pubkey) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		Set<IRI> ids = approvedPubkeyIdMap.get(pubkey);
 		if (ids == null || ids.isEmpty()) {
 			ids = unapprovedPubkeyIdMap.get(pubkey);
@@ -266,7 +287,7 @@ public class User {
 	}
 
 	public static IRI findSingleIdForPubkey(String pubkey) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		if (approvedPubkeyIdMap.containsKey(pubkey) && !approvedPubkeyIdMap.get(pubkey).isEmpty()) {
 			if (approvedPubkeyIdMap.get(pubkey).size() == 1) {
 				return approvedPubkeyIdMap.get(pubkey).iterator().next();
@@ -294,7 +315,7 @@ public class User {
 	};
 
 	public static synchronized List<IRI> getUsers(boolean approved) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		List<IRI> list;
 		if (approved) {
 			list = new ArrayList<IRI>(approvedIdPubkeyMap.keySet());
@@ -310,7 +331,7 @@ public class User {
 	}
 
 	public static synchronized List<String> getPubkeys(IRI user, Boolean approved) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		List<String> pubkeys = new ArrayList<>();
 		if (user != null) {
 			if (approved == null || approved) {
@@ -324,7 +345,7 @@ public class User {
 	}
 
 	public static List<IntroNanopub> getIntroNanopubs(IRI user) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
 
 		Map<IRI,IntroNanopub> introNps = new HashMap<>();
@@ -355,7 +376,7 @@ public class User {
 	}
 
 	public static Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {
-		if (approvedPubkeyIdMap == null) refreshUsers();
+		ensureLoaded();
 		Map<IRI,IntroNanopub> introNps = new HashMap<>();
 		getIntroNanopubs(pubkey, introNps);
 		return introNps;
