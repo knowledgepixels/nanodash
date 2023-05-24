@@ -93,7 +93,12 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Association between an Organism Taxon and an environment";
 			template = Template.getTemplate("http://purl.org/np/RARkaOvs0_ssbo7_yxtkvEcd6QvOwn0e6MUHdiNrYjFM0");
 			exampleId = "http://purl.org/np/RAZbVnR5w1ui3i_VTM7cfljCyiywneCE_B7f6uDmiLV7c";
+		} else if (type.equals("taxongene")) {
+			title = "Association between an Organism Taxon and a gene";
+			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
+			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 		} else if (type.equals("reaction")) {
+			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
 			template = Template.getTemplate("http://purl.org/np/RANWGVogb5j_VQ6A4nabA34_-zkZTRYNYtItRJXGf2TVQ");
 			exampleId = "http://purl.org/np/RAxjCU5pZDoGox98Hb36mquM9Bc1xv0qz4P19p2avnNPI";
