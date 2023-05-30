@@ -160,6 +160,7 @@ public abstract class TypePage extends ConnectorPage {
 		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
 				new PageParameters().add("template", template.getId()).add("template-version", "latest")
 					.add("prtemplate", prTemplateId)
+					.add("postpub-redirect-url", getConfig().getNanopubPage().getMountPath())
 					.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
 							"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
 							"<p>You can leave the provenance (red) and publication info (yellow) parts as they are.</p>" +
