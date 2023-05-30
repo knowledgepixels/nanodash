@@ -16,7 +16,7 @@ public class DsTypePage extends TypePage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 

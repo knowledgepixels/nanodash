@@ -19,6 +19,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ExplorePage;
+import com.knowledgepixels.nanodash.NanodashPage;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
@@ -26,14 +27,20 @@ import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 
-public class FcNanopubPage extends WebPage {
+public class FcNanopubPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/ios/fc/np";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public FcNanopubPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+		add(new TitleBar("titlebar", this));
 		//add(new Label("titlebar"));  // hide title bar
 
 		final NanodashSession session = NanodashSession.get();

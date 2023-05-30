@@ -16,7 +16,7 @@ public class DsNanopubPage extends NanopubPage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 

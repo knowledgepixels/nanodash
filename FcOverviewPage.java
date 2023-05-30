@@ -17,21 +17,28 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.NanodashPage;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.opencsv.exceptions.CsvValidationException;
 
-public class FcOverviewPage extends WebPage {
+public class FcOverviewPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/ios/fc";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	// TODO: Make specific API for FAIR Connect:
 	protected static final String apiUrl = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
 
 	public FcOverviewPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+		add(new TitleBar("titlebar", this));
 		//add(new Label("titlebar"));  // hide title bar
 
 		final NanodashSession session = NanodashSession.get();

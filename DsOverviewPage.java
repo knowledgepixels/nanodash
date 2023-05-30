@@ -21,7 +21,7 @@ public class DsOverviewPage extends OverviewPage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 
