@@ -332,10 +332,11 @@ public class PublishForm extends Panel {
 			}
 
 			protected void onSubmit() {
+				Nanopub signedNp = null;
 				try {
 					Nanopub np = createNanopub();
 					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), null, false, false);
-					Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
+					signedNp = SignNanopub.signAndTransform(np, tc);
 					if (isLocal()) {
 						// Testing mode
 						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
@@ -346,16 +347,15 @@ public class PublishForm extends Panel {
 						PublishNanopub.publish(signedNp);
 						System.err.println("Published " + signedNp.getUri());
 					}
-					PageParameters params = new PageParameters();
-					params.add("id", NanodashSession.get().getUserIri().stringValue());
-					throw new RestartResponseException(new PublishConfirmPage(signedNp));
-				} catch (RestartResponseException ex) {
-					throw ex;
 				} catch (Exception ex) {
+					signedNp = null;
 					ex.printStackTrace();
 					String message = ex.getClass().getName();
 					if (ex.getMessage() != null) message = ex.getMessage();
 					feedbackPanel.error(message);
+				}
+				if (signedNp != null) {
+					throw new RestartResponseException(new PublishConfirmPage(signedNp, pageParams));
 				}
 			}
 

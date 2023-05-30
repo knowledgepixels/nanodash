@@ -4,6 +4,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -14,12 +15,17 @@ public class PublishConfirmPage extends WebPage {
 
 	public static final String MOUNT_PATH = "/publishconfirm";
 
-	public PublishConfirmPage(Nanopub np) {
-		super();
+	public PublishConfirmPage(Nanopub np, PageParameters params) {
+		super(params);
 		add(new TitleBar("titlebar"));
-		PageParameters params = new PageParameters();
-		params.add("id", NanodashSession.get().getUserIri());
-		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params));
+
+		if (!getPageParameters().get("postpub-redirect-url").isNull()) {
+			String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();
+			String paramString = Utils.getPageParametersAsString(new PageParameters().add("id", np.getUri()));
+			throw new RedirectToUrlException(forwardUrl + "?" + paramString);
+		}
+
+		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, new PageParameters().add("id", NanodashSession.get().getUserIri())));
 		add(new NanopubItem("nanopub", new NanopubElement(np), false, false));
 
 		final NanodashSession session = NanodashSession.get();
