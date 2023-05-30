@@ -8,7 +8,6 @@ import java.util.Map;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -20,11 +19,16 @@ import org.apache.wicket.util.time.Duration;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-public class SearchPage extends WebPage {
+public class SearchPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/search";
+
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
 
 	private TextField<String> searchField;
 	private CheckBox filterUser;
@@ -34,7 +38,9 @@ public class SearchPage extends WebPage {
 	private RadioChoice<String> pubkeySelection;
 
 	public SearchPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());

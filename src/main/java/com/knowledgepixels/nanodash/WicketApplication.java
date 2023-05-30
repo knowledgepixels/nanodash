@@ -106,6 +106,7 @@ public class WicketApplication extends WebApplication {
 
 		getExceptionSettings().setUnexpectedExceptionDisplay(ExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
 
+		mountPage(ErrorPage.MOUNT_PATH, ErrorPage.class);
 		mountPage("/error/404", ErrorPage.class);
 		mountPage("/error/500", ErrorPage.class);
 

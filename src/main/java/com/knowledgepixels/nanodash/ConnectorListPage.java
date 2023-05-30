@@ -13,12 +13,16 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-
-public class ConnectorListPage extends WebPage {
+public class ConnectorListPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connectorlist";
+
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
 
 	private static final Map<Class<? extends WebPage>,String> connectors = new HashMap<>();
 
@@ -31,7 +35,9 @@ public class ConnectorListPage extends WebPage {
 	}
 
 	public ConnectorListPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 
 		List<Class<? extends WebPage>> connectorList = new ArrayList<>(connectors.keySet());
 		

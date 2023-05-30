@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -14,15 +13,22 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 
-public class GroupPage extends WebPage {
+public class GroupPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/group";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public GroupPage(final PageParameters parameters) {
+		super(parameters);
+
 		User.ensureLoaded();
-		add(new TitleBar("titlebar"));
+		add(new TitleBar("titlebar", this));
 		final String groupId = parameters.get("id").toString();
 		final Group group = Group.get(groupId);
 

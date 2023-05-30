@@ -1,16 +1,23 @@
 package com.knowledgepixels.nanodash;
 
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-
-public class HomePage extends WebPage {
+public class HomePage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String MOUNT_PATH = "/";
+
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public HomePage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 		final NanodashSession session = NanodashSession.get();
 		String v = WicketApplication.getThisVersion();
 		String lv = WicketApplication.getLatestVersion();

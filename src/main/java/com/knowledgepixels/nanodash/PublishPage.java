@@ -2,19 +2,24 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-public class PublishPage extends WebPage {
+public class PublishPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/publish";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public PublishPage(final PageParameters parameters) {
-		super();
+		super(parameters);
+
 		final NanodashSession session = NanodashSession.get();
-		add(new TitleBar("titlebar"));
+		add(new TitleBar("titlebar", this));
 		if (parameters.get("template").toString() != null) {
 			if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
 				add(new DifferentKeyErrorItem("form", parameters));

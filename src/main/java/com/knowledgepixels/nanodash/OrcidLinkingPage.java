@@ -1,20 +1,24 @@
 package com.knowledgepixels.nanodash;
 
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-
-public class OrcidLinkingPage extends WebPage {
+public class OrcidLinkingPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/orcidlinking";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public OrcidLinkingPage(final PageParameters parameters) {
-		super();
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 		if (!NanodashSession.get().isProfileComplete()) {
 			throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		}

@@ -9,15 +9,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 
-public class PublishConfirmPage extends WebPage {
+public class PublishConfirmPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/publishconfirm";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public PublishConfirmPage(Nanopub np, PageParameters params) {
 		super(params);
-		add(new TitleBar("titlebar"));
+		add(new TitleBar("titlebar", this));
 
 		if (!getPageParameters().get("postpub-redirect-url").isNull()) {
 			String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();

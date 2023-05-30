@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -13,16 +12,23 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-public class ExplorePage extends WebPage {
+public class ExplorePage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/explore";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	private static final int maxDetailTableCount = 1000000;
 
 	public ExplorePage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 
 		final String ref = parameters.get("id").toString();
 		final String shortName = IriItem.getShortNameFromURI(ref);

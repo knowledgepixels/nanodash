@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -16,15 +15,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 
-
-public class UserListPage extends WebPage {
+public class UserListPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/userlist";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public UserListPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 		final List<IRI> userList = User.getUsers(true);
 
 		add(new Label("usercount", userList.size()));

@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -13,22 +12,28 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
 
-public class ProfilePage extends WebPage {
+public class ProfilePage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/profile";
 
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
 	public static final String ORCID_PATTERN = "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]";
 
 	public ProfilePage(final PageParameters parameters) {
-		super();
+		super(parameters);
+
 		final NanodashSession session = NanodashSession.get();
 		session.loadProfileInfo();
 		User.refreshUsers();
 		final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
-		add(new TitleBar("titlebar"));
+		add(new TitleBar("titlebar", this));
 
 		if (session.isProfileComplete()) {
 			if ("publish-intro".equals(parameters.get("message").toString())) {

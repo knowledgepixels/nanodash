@@ -8,7 +8,6 @@ import java.util.Map;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.model.Model;
@@ -18,11 +17,16 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-public class UserPage extends WebPage {
+public class UserPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/user";
+
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
 
 	private Model<String> selected = new Model<>();
 	private IRI userIri;
@@ -31,7 +35,9 @@ public class UserPage extends WebPage {
 	private RadioChoice<String> pubkeySelection;
 	
 	public UserPage(final PageParameters parameters) {
-		add(new TitleBar("titlebar"));
+		super(parameters);
+
+		add(new TitleBar("titlebar", this));
 
 		if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());

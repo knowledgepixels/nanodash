@@ -9,9 +9,9 @@ public class TitleBar extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public TitleBar(String id) {
+	public TitleBar(String id, NanodashPage page) {
 		super(id);
-		add(new ProfileItem("profile"));
+		add(new ProfileItem("profile", page));
 
 		WebMarkupContainer mychannel = new WebMarkupContainer("mychannel");
 		if (NanodashSession.get().getUserIri() != null) {
