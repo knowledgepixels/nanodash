@@ -16,7 +16,7 @@ public class RioNanopubPage extends NanopubPage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 

@@ -16,7 +16,7 @@ public class RioTypePage extends TypePage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 

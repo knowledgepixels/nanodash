@@ -21,7 +21,7 @@ public class RioOverviewPage extends OverviewPage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 

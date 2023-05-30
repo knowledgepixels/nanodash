@@ -16,7 +16,7 @@ public class BdjTypePage extends TypePage {
 	}
 
 	@Override
-	protected String getMountPath() {
+	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 
