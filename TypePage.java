@@ -105,6 +105,7 @@ public abstract class TypePage extends ConnectorPage {
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
 
+		add(new Label("pagetitle", title + " | nanodash"));
 		add(new Label("title", title));
 
 		String description = "<p><em>(This template doesn't have a description)</em></p>";
