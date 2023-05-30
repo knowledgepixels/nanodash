@@ -86,11 +86,11 @@ public abstract class TypePage extends ConnectorPage {
 			template = Template.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		} else if (type.equals("taxontaxon")) {
-			title = "Association between two Organism Taxons";
+			title = "Biotic association between two biological taxa";
 			template = Template.getTemplate("http://purl.org/np/RAfkBEHGmvTphfKcesMTreOcXTekxZmf3iO50SXoRBX48");
 			exampleId = "http://purl.org/np/RAmlZqUxZndYaflGLxhspiGCdN6UNi4G2W7JQEiSApmFc";
 		} else if (type.equals("taxonenv")) {
-			title = "Association between an Organism Taxon and an environment";
+			title = "Association between biological species and environments";
 			template = Template.getTemplate("http://purl.org/np/RARkaOvs0_ssbo7_yxtkvEcd6QvOwn0e6MUHdiNrYjFM0");
 			exampleId = "http://purl.org/np/RAZbVnR5w1ui3i_VTM7cfljCyiywneCE_B7f6uDmiLV7c";
 		} else if (type.equals("taxongene")) {
