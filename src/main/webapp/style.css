@@ -223,15 +223,19 @@ a.actionlink {
 
 ::placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
+  color: #444;
 }
 ::-webkit-input-placeholder { /* Edge */
   font-family: Inter, Verdana, Helvetica, sans-serif;
+  color: #444;
 }
 :-ms-input-placeholder { /* Internet Explorer 10-11 */
   font-family: Inter, Verdana, Helvetica, sans-serif;
+  color: #444;
 }
 .select2-selection__placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
+  color: #444;
 }
 .select2-selection__placeholder strong {
   font-weight: normal;  # ignore <strong> in Select2 placeholders
@@ -282,6 +286,11 @@ code.bold {
 
 span.term {
   font-family: Martian,monaco,monospace;
+  font-size: 10pt;
+}
+
+.select2-selection__placeholder span.term {
+  font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 10pt;
 }
 

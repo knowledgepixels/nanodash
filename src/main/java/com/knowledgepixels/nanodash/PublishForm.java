@@ -54,6 +54,7 @@ public class PublishForm extends Panel {
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private static String creatorPubinfoTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
+	private static String licensePubinfoTempalteId = "http://purl.org/np/RAh1gm83JiG5M6kDxXhaYT1l49nCzyrckMvTzcPn-iv90";
 	private static String defaultProvTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 	private static String supersedesPubinfoTemplateId = "http://purl.org/np/RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI";
 	private static String derivesFromPubinfoTemplateId = "http://purl.org/np/RABngHbKpoJ3U9Nebc8mX_KUdv_vXw28EejqAyQya5zVA";
@@ -61,6 +62,7 @@ public class PublishForm extends Panel {
 	private static List<PublishFormContext> fixedPubInfoContexts = new ArrayList<>();
 	static {
 		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement"));
+		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, licensePubinfoTempalteId, "pi-statement"));
 	}
 
 	private enum FillMode { USE, SUPERSEDE, DERIVE }
@@ -157,8 +159,9 @@ public class PublishForm extends Panel {
 			c.setParam("np", fillNp.getUri().stringValue());
 		}
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
+			String latestId = ApiAccess.getLatestVersionId(r.stringValue());
+			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
 			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
-			if (pubInfoContextMap.containsKey(c.getTemplate().getId())) continue;
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
