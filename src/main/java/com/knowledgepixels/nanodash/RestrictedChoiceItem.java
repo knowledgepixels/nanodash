@@ -186,6 +186,12 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 		});
 		add(choice);
+
+		try {
+			unifyWith(template.getDefault(iri));
+		} catch (UnificationException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public IModel<String> getModel() {
@@ -201,6 +207,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
+		if (v == null) return true;
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
@@ -217,6 +224,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
+		if (v == null) return;
 		String vs = v.stringValue();
 		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 		if (!isUnifiableWith(v)) throw new UnificationException(vs);

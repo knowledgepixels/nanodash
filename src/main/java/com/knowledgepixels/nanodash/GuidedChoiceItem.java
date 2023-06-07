@@ -206,6 +206,12 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 		});
 		add(textfield);
+
+		try {
+			unifyWith(template.getDefault(iri));
+		} catch (UnificationException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public IModel<String> getModel() {
@@ -219,6 +225,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
+		if (v == null) return true;
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
@@ -241,6 +248,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
+		if (v == null) return;
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
 		if (prefix != null && vs.startsWith(prefix)) {

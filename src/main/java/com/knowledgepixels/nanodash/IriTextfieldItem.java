@@ -101,6 +101,12 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 		});
 		add(textfield);
+
+		try {
+			unifyWith(template.getDefault(iri));
+		} catch (UnificationException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
@@ -110,6 +116,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
+		if (v == null) return true;
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
@@ -135,6 +142,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
+		if (v == null) return;
 		String vs = v.stringValue();
 		if (!isUnifiableWith(v)) throw new UnificationException(vs);
 		if (!prefix.isEmpty() && vs.startsWith(prefix)) {

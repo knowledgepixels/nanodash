@@ -66,6 +66,12 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 		});
 		add(textfield);
+
+		try {
+			unifyWith(template.getDefault(iri));
+		} catch (UnificationException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
@@ -75,6 +81,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
+		if (v == null) return true;
 		String vs = v.stringValue();
 		if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
 		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
@@ -94,6 +101,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
+		if (v == null) return;
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		String vs = v.stringValue();
 		if (vs.startsWith("local:")) {

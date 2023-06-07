@@ -58,6 +58,12 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		tc.add(new InvalidityHighlighting());
 		add(tc);
+
+		try {
+			unifyWith(template.getDefault(iri));
+		} catch (UnificationException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
@@ -76,6 +82,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public boolean isUnifiableWith(Value v) {
+		if (v == null) return true;
 		if (v instanceof Literal) {
 			if (regex != null && !v.stringValue().matches(regex)) {
 				return false;
@@ -90,6 +97,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
+		if (v == null) return;
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		getTextComponent().setModelObject(v.stringValue());
 	}

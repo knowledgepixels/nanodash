@@ -152,6 +152,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
 	public static final IRI HAS_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTag");
 	public static final IRI HAS_LABEL_FROM_API = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLabelFromApi");
+	public static final IRI HAS_DEFAULT_VALUE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultValue");
 
 
 	private Nanopub nanopub;
@@ -176,6 +177,7 @@ public class Template implements Serializable {
 	private IRI defaultProvenance;
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
 	private String tag = null;
+	private Map<IRI,Value> defaultValues = new HashMap<>();
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
@@ -243,6 +245,11 @@ public class Template implements Serializable {
 	public String getRegex(IRI iri) {
 		iri = transform(iri);
 		return regexMap.get(iri);
+	}
+
+	public Value getDefault(IRI iri) {
+		iri = transform(iri);
+		return defaultValues.get(iri);
 	}
 
 	public List<IRI> getStatementIris() {
@@ -517,6 +524,8 @@ public class Template implements Serializable {
 				statementPredicates.put((IRI) st.getSubject(), (IRI) st.getObject());
 			} else if (st.getPredicate().equals(RDF.OBJECT)) {
 				statementObjects.put((IRI) st.getSubject(), st.getObject());
+			} else if (st.getPredicate().equals(HAS_DEFAULT_VALUE)) {
+				defaultValues.put((IRI) st.getSubject(), st.getObject());
 			} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
 				if (st.getObject() instanceof Literal && st.getObject().stringValue().matches("[0-9]+")) {
 					statementOrder.put((IRI) st.getSubject(), Integer.valueOf(st.getObject().stringValue()));
