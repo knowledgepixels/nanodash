@@ -76,7 +76,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		if (template.isLocalResource(iri)) {
-			textfield.add(new AttributeAppender("style", "width:250px;"));
+			textfield.add(new AttributeAppender("style", "width:400px;"));
 		}
 		textfield.add(new Validator(iri, template, prefix));
 		context.getFormComponents().add(textfield);

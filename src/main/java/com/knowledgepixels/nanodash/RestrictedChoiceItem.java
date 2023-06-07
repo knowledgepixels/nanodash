@@ -131,7 +131,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice = new Select2Choice<String>("choice", model, choiceProvider);
 		if (!optional) choice.setRequired(true);
 		if (template.isLocalResource(iri)) {
-			choice.add(new AttributeAppender("style", "width:250px;"));
+			choice.add(new AttributeAppender("style", "width:400px;"));
 		}
 		choice.getSettings().setCloseOnSelect(true);
 		String placeholder = template.getLabel(iri);
