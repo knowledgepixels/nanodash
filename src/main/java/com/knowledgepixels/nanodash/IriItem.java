@@ -29,9 +29,9 @@ public class IriItem extends Panel implements ContextComponent {
 		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 			iri = NanodashSession.get().getUserIri();
 			if (objectPosition) {
-				labelString = "me";
+				labelString = "me (" + User.getShortDisplayName(iri) + ")";
 			} else {
-				labelString = "I";
+				labelString = "I (" + User.getShortDisplayName(iri) + ")";
 			}
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
