@@ -40,8 +40,7 @@ public class ProfilePage extends NanodashPage {
 				add(new Label("message", "<span class=\"negative\">Follow the Recommended Actions below to publish an introduction with your local key.</span>")
 						.setEscapeModelStrings(false));
 			} else {
-				add(new Label("message", "Your profile is sufficiently complete to publish your own nanopublications. " +
-						"You might see additional recommended actions below."));
+				add(new Label("message", ""));
 			}
 		} else {
 			if (loginMode) {

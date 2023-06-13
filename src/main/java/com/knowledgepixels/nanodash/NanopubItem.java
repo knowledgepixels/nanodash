@@ -35,7 +35,8 @@ public class NanopubItem extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
 	private final Map<IRI,Integer> predicateOrder = new HashMap<>();
 	private Template template;
@@ -142,7 +143,7 @@ public class NanopubItem extends Panel {
 		add(menu);
 
 		if (n.getCreationTime() != null) {
-			add(new Label("datetime", simpleDateFormat.format(n.getCreationTime().getTime())));
+			add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
 		} else {
 			add(new Label("datetime", "(undated)"));
 		}
