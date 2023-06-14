@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>Successful Publication | nanodash</title>
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
@@ -18,9 +19,7 @@
 
 <h3>Successful Publication</h3>
 
-<p>Congratulations, you have just published the nanopublication below.</p>
-
-<p>It will shortly show up in <a wicket:id="userlink">your channel</a> and other places.</p>
+<p>Congratulations, you have just published the nanopublication below. It will shortly show up in <a wicket:id="userlink">your channel</a> and other places.</p>
 
 <p wicket:id="missing-intro-warning">
 It seems, however, that <strong class="negative">you haven't published an introduction yet</strong> to link the local key to your ORCID identifier.
@@ -28,7 +27,11 @@ It is recommended that you do so via <a href="./profile?message=publish-intro">y
 </p>
 
 <p wicket:id="use-template">
-You can now start using <a href="." wicket:id="template-link">this assertion template</a>.
+<a class="button" href="." wicket:id="template-link">use this assertion template</a>
+</p>
+
+<p>
+<a class="button" href="." wicket:id="create-another-link">publish another one with same template</a>
 </p>
 
 <p>It's safe to close this tab now.</p>

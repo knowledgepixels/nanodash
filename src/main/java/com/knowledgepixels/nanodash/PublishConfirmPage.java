@@ -48,6 +48,7 @@ public class PublishConfirmPage extends NanodashPage {
 		} else {
 			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 		}
+		add(new BookmarkablePageLink<WebPage>("create-another-link", PublishPage.class, getPageParameters()));
 	}
 
 }
