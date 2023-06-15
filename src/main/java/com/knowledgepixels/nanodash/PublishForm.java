@@ -59,11 +59,7 @@ public class PublishForm extends Panel {
 	private static String supersedesPubinfoTemplateId = "http://purl.org/np/RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI";
 	private static String derivesFromPubinfoTemplateId = "http://purl.org/np/RABngHbKpoJ3U9Nebc8mX_KUdv_vXw28EejqAyQya5zVA";
 
-	private static List<PublishFormContext> fixedPubInfoContexts = new ArrayList<>();
-	static {
-		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement"));
-		fixedPubInfoContexts.add(new PublishFormContext(ContextType.PUBINFO, licensePubinfoTempalteId, "pi-statement"));
-	}
+	private static String[] fixedPubInfoTemplates = new String[] {creatorPubinfoTemplateId, licensePubinfoTempalteId};
 
 	private enum FillMode { USE, SUPERSEDE, DERIVE }
 
@@ -141,7 +137,8 @@ public class PublishForm extends Panel {
 			}
 		}
 		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
-		for (PublishFormContext c : fixedPubInfoContexts) {
+		for (String templateId : fixedPubInfoTemplates) {
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, templateId, "pi-statement");
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
