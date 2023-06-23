@@ -224,18 +224,22 @@ a.actionlink {
 ::placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   color: #444;
+  opacity: 1;
 }
 ::-webkit-input-placeholder { /* Edge */
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444;
+  color: #444 !important;
+  opacity: 1;
 }
 :-ms-input-placeholder { /* Internet Explorer 10-11 */
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444;
+  color: #444 !important;
+  opacity: 1;
 }
 .select2-selection__placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444;
+  color: #444 !important;
+  opacity: 1;
 }
 .select2-selection__placeholder strong {
   font-weight: normal;  # ignore <strong> in Select2 placeholders
@@ -303,6 +307,10 @@ input, select, textarea {
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
+}
+
+input[type=text] {
+  height: 22px;
 }
 
 .select2 {
