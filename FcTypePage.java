@@ -3,15 +3,15 @@ package com.knowledgepixels.nanodash.connector.ios;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.base.TypePage;
 
-public class FcNanopubPage extends NanopubPage {
+public class FcTypePage extends TypePage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/ios/fc/np";
+	public static final String MOUNT_PATH = "/connector/ios/fc/type";
 
-	public FcNanopubPage(final PageParameters parameters) {
+	public FcTypePage(PageParameters parameters) {
 		super(parameters);
 	}
 

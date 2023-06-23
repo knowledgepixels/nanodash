@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title>nanodash</title>
+<title>Nanopublishing in FAIR Connect | nanodash</title>
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
@@ -12,43 +12,84 @@
 
 <div wicket:id="titlebar"></div>
 
-<div id="content">
+<div id="content" class="widthmax">
 
 <h2>Nanopublishing in FAIR Connect</h2>
 
-<p class="negative">[Under construction...]</p>
+<a href="https://fairconnect.pro/"><img alt="FAIR Connect logo" wicket:id="logo" style="width: 200px"></a>
 
-<a href="https://fairconnect.pro/"><img alt="FAIR Connect logo" wicket:id="logo"></a>
+<p>
+Papers at the FAIR Connect journal should have their findings represented in a machine-understandable way as <a href="https://nanopub.net/" target="_blank">nanopublications</a>.
+</p>
 
-<p>The FAIR Connect journal accepts submissions of thumbnail articles around FAIR-Enabling Resources.</p>
+<div class="instruction">
+<h4><em>Author Instruction</em></h4>
+<p>
+Explore the different types below to publish your findings as candidate nanopublications.
+They can then be submitted at the <a href="https://fairconnect.pro/" target="_blank">journal website</a>.
+</p>
+</div>
 
-<p>Start a <a href="https://fairconnect.pro/">new submission</a> at the journal website.</p>
 
-<h3>Submission Candidates</h3>
+<h3>Choose Nanopublication Types</h3>
 
-<p>You have these nanopublications that match the journal's requirements:</p>
-
-<ul wicket:id="formalization-nps">
-<li><a wicket:id="nplink"><span wicket:id="nplinktext"></span></a></li>
-</ul>
-
-<p><a class="smallbutton" href="./publish?template=http://purl.org/np/RAbBzu9jMPnOap2Wh9vS1fJ5My5oBqbswun4nFoLXdTVc">create new...</a></p>
-
-<h3>Submitted Nanopublications</h3>
-
-<p>You have these nanopublications in submission stage at the journal:</p>
-
-<ul>
-<li><em>(none)</em></li>
-</ul>
-
-<h3>Included Nanopublications</h3>
-
-<p>You have these nanopublications that have been included in the journal:</p>
+<p>
+These types are currently supported:
+</p>
 
 <ul>
-<li><em>(none)</em></li>
+
+<li>
+<strong><a href="/connector/ios/fc/type?type=superpattern">Fully-formal Advanced Statements (Super-Pattern)</a></strong>
+(e.g. <em>whenever a person has a headache then this is mostly caused by a dehydration of that person</em>)
+</li>
+
+<li>
+<strong><a href="/connector/ios/fc/type?type=aida">Semi-formal Statements Based on English Sentences (AIDA)</a></strong>
+(e.g. <em>"Teenagers reply on average faster to emails than adults." is about: teenager, email, adult</em>)
+</li>
+
 </ul>
+
+<p>
+To use the types above, you might need to define a new class or individual:
+</p>
+
+<ul>
+
+<li>
+<strong><a href="/connector/ios/fc/type?type=classdef">Class Definitions</a></strong>
+(e.g. <em>operant research</em> as a subclass of <em>research</em>)
+</li>
+
+<li>
+<strong><a href="/connector/ios/fc/type?type=inddef">Definitions of Individuals</a></strong>
+(e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>)
+</li>
+
+</ul>
+
+<p>
+If you can't find a type that works for your claims, tell us by opening a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[FC%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.
+</p>
+
+
+<h3>Accepted Nanopublications</h3>
+
+<p>Your nanopublications included in accepted papers:</p>
+
+<ul></ul>
+
+<p class="emptynotice"><em>(none yet)</em></p>
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to open a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[FC%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
 
 </div>
 
