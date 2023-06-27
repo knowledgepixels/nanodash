@@ -1,24 +1,24 @@
 @font-face {
   font-family: "Inter";
-  src: url("/fonts/Inter-Light.woff2") format("woff2");
+  src: url("fonts/Inter-Light.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: "Inter";
-  src: url("/fonts/Inter-Medium.woff2") format("woff2");
+  src: url("fonts/Inter-Medium.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
 }
 @font-face {
   font-family: "Martian";
-  src: url("/fonts/MartianMono-StdxLt.woff2") format("woff2");
+  src: url("fonts/MartianMono-StdxLt.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: "Martian";
-  src: url("/fonts/MartianMono-StdLt.woff2") format("woff2");
+  src: url("fonts/MartianMono-StdLt.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
 }
