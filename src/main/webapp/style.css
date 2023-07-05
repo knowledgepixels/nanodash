@@ -223,22 +223,22 @@ a.actionlink {
 
 ::placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444;
+  color: #888;
   opacity: 1;
 }
 ::-webkit-input-placeholder { /* Edge */
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444 !important;
+  color: #888 !important;
   opacity: 1;
 }
 :-ms-input-placeholder { /* Internet Explorer 10-11 */
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444 !important;
+  color: #888 !important;
   opacity: 1;
 }
 .select2-selection__placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  color: #444 !important;
+  color: #888 !important;
   opacity: 1;
 }
 .select2-selection__placeholder strong {
