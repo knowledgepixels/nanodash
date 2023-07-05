@@ -13,7 +13,7 @@ public class FcOverviewPage extends OverviewPage {
 	public static final String MOUNT_PATH = "/connector/ios/fc";
 
 	static {
-		ConnectorListPage.addConnector(FcOverviewPage.class, "Nanopublishing in FAIR Connect journal at IOS Press");
+		//ConnectorListPage.addConnector(FcOverviewPage.class, "Nanopublishing in FAIR Connect journal at IOS Press");
 	}
 
 	public FcOverviewPage(PageParameters params) {
