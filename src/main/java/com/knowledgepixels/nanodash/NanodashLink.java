@@ -105,7 +105,7 @@ public class NanodashLink extends Panel {
 				label = User.getShortDisplayName(iriObj);
 			} else {
 				for (Template template : templates) {
-					// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial): else {
+					// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):
 					String l = template.getLabel(iriObj);
 					if (l != null) {
 						label = l;

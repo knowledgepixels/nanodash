@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -381,11 +380,10 @@ public class Template implements Serializable {
 		if (nanopubList != null) {
 			for (IRI npIri : new ArrayList<>(nanopubList)) {
 				try {
-					Nanopub valuesNanopub = new NanopubImpl(new URL(npIri.stringValue()));
+					Nanopub valuesNanopub = Utils.getNanopub(npIri.stringValue());
 					for (Statement st : valuesNanopub.getAssertion()) {
 						if (st.getPredicate().equals(RDFS.LABEL)) {
 							l.add((IRI) st.getSubject());
-							labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
 						}
 					}
 					nanopubList.remove(npIri);
@@ -500,6 +498,12 @@ public class Template implements Serializable {
 				}
 				if (st.getObject() instanceof IRI) {
 					l.add((IRI) st.getObject());
+					Nanopub valuesNanopub = Utils.getNanopub(st.getObject().stringValue());
+					for (Statement s : valuesNanopub.getAssertion()) {
+						if (s.getPredicate().equals(RDFS.LABEL)) {
+							labelMap.put((IRI) s.getSubject(), s.getObject().stringValue());
+						}
+					}
 				}
 			} else if (st.getPredicate().equals(POSSIBLE_VALUES_FROM_API_PREDICATE)) {
 				List<String> l = apiMap.get(st.getSubject());
