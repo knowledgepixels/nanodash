@@ -97,6 +97,10 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Association between an Organism Taxon and a gene";
 			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
+		} else if (type.equals("orgorg")) {
+			title = "Biotic association between two individual organisms";
+			template = Template.getTemplate("http://purl.org/np/RAH7ZlSo6mlqVsLHa5leleWuER3-WjRe6RNRh4LBMyqNY");
+			exampleId = "http://purl.org/np/RABFmaJ4Z5i0DaLe_gN8yh4DRKw2S1sLluiXB3SLfHWwU";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
