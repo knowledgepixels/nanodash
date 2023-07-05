@@ -86,7 +86,7 @@ public abstract class TypePage extends ConnectorPage {
 			template = Template.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		} else if (type.equals("taxontaxon")) {
-			title = "Biotic association between two biological taxa";
+			title = "Association between taxa";
 			template = Template.getTemplate("http://purl.org/np/RAfkBEHGmvTphfKcesMTreOcXTekxZmf3iO50SXoRBX48");
 			exampleId = "http://purl.org/np/RAmlZqUxZndYaflGLxhspiGCdN6UNi4G2W7JQEiSApmFc";
 		} else if (type.equals("taxonenv")) {
@@ -98,8 +98,8 @@ public abstract class TypePage extends ConnectorPage {
 			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 		} else if (type.equals("orgorg")) {
-			title = "Biotic association between two individual organisms";
-			template = Template.getTemplate("http://purl.org/np/RAH7ZlSo6mlqVsLHa5leleWuER3-WjRe6RNRh4LBMyqNY");
+			title = "Association between organisms";
+			template = Template.getTemplate("http://purl.org/np/RAcc8MwwX42L0zIE9RbzxiSoeOlpBqIqYMmJNiCwmjAnU");
 			exampleId = "http://purl.org/np/RABFmaJ4Z5i0DaLe_gN8yh4DRKw2S1sLluiXB3SLfHWwU";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
