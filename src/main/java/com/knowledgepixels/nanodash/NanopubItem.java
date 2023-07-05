@@ -335,8 +335,10 @@ public class NanopubItem extends Panel {
 		private static final long serialVersionUID = 1L;
 
 		private IRI introducedThing = null;
+		private Nanopub np;
 
 		public StatementComparator(Nanopub np) {
+			this.np = np;
 			for (Statement st : np.getPubinfo()) {
 				if (st.getSubject().equals(np.getUri()) && st.getPredicate().equals(PublishForm.INTRODUCES_PREDICATE) && st.getObject().isIRI()) {
 					introducedThing = (IRI) st.getObject();
@@ -348,6 +350,16 @@ public class NanopubItem extends Panel {
 		@Override
 		public int compare(Statement arg0, Statement arg1) {
 			if (!arg0.getSubject().stringValue().equals(arg1.getSubject().stringValue())) {
+				if (arg0.getSubject().equals(np.getUri())) {
+					return -1;
+				} else if (arg1.getSubject().equals(np.getUri())) {
+					return 1;
+				}
+				if (arg0.getSubject().equals(np.getAssertionUri())) {
+					return -1;
+				} else if (arg1.getSubject().equals(np.getAssertionUri())) {
+					return 1;
+				}
 				if (arg0.getSubject().equals(introducedThing)) {
 					return -1;
 				} else if (arg1.getSubject().equals(introducedThing)) {
