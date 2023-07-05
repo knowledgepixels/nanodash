@@ -98,7 +98,9 @@ public class Template implements Serializable {
 		if (template != null) return template;
 		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) {
 			try {
-				return new Template(id);
+				Template t = new Template(id);
+				templateMap.put(id, t);
+				return t;
 			} catch (Exception ex) {
 				System.err.println("Exception: " + ex.getMessage());
 				return null;
