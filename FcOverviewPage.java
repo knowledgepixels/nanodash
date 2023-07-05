@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.ConnectorListPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 
