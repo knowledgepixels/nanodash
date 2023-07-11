@@ -1,9 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class TitleBar extends Panel {
 
@@ -14,13 +12,6 @@ public class TitleBar extends Panel {
 		add(new ProfileItem("profile", page));
 
 		WebMarkupContainer mychannel = new WebMarkupContainer("mychannel");
-		if (NanodashSession.get().getUserIri() != null) {
-			PageParameters params = new PageParameters();
-			params.add("id", NanodashSession.get().getUserIri());
-			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", UserPage.class, params));
-		} else {
-			mychannel.add(new BookmarkablePageLink<UserPage>("mychannellink", ProfilePage.class));
-		}
 		mychannel.setVisible(!NanodashPreferences.get().isReadOnlyMode());
 		add(mychannel);
 
