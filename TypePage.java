@@ -87,20 +87,20 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		} else if (type.equals("taxontaxon")) {
 			title = "Association between taxa";
-			template = Template.getTemplate("http://purl.org/np/RA7MadcYjbTWvUyDN4yxyJgTY6ffARgHXmQYYqnyO3c-0");
-			exampleId = "http://purl.org/np/RAmlZqUxZndYaflGLxhspiGCdN6UNi4G2W7JQEiSApmFc";
+			template = Template.getTemplate("http://purl.org/np/RAglrcCumrWiKKbvE4HVYqzO_QPWlYBpHS44ndSRhMlt8");
+			exampleId = "http://purl.org/np/RA1_CsSpc__QUd5Aq5LNMPxsnPrSMTdTL-h_fz-9YnslU";
 		} else if (type.equals("taxonenv")) {
 			title = "Association between biological species and environments";
-			template = Template.getTemplate("http://purl.org/np/RAVGPqNqmjVhPn0wDkLIMRBLwwvx-QM0syuZxj1wjD7go");
-			exampleId = "http://purl.org/np/RAZbVnR5w1ui3i_VTM7cfljCyiywneCE_B7f6uDmiLV7c";
+			template = Template.getTemplate("http://purl.org/np/RAROt9vGqnWyFrhtw71SdUldC9oCjaCXI6IO6QNqoFZHg");
+			exampleId = "http://purl.org/np/RAemwNrsw7vOqdLkbsqx59DJXfYNnrc2uVBxumzP9t_3g";
 		} else if (type.equals("taxongene")) {
 			title = "Association between an Organism Taxon and a gene";
 			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 		} else if (type.equals("orgorg")) {
 			title = "Association between organisms";
-			template = Template.getTemplate("http://purl.org/np/RAq1O4leF2Mx78Vsna_vUso_YvBrVGiN2LY4lbTcmBdek");
-			exampleId = "http://purl.org/np/RABFmaJ4Z5i0DaLe_gN8yh4DRKw2S1sLluiXB3SLfHWwU";
+			template = Template.getTemplate("http://purl.org/np/RA0oVqDHRG64nwWp_rAeIirpckjXRbohDoatOAqA8-eXU");
+			exampleId = "http://purl.org/np/RAQtRoj_9TqF4yu4Reg5DbKwoH3qGgleosG6VoCL6oE4o";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
