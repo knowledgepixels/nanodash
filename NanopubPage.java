@@ -77,14 +77,11 @@ public abstract class NanopubPage extends ConnectorPage {
 			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
 			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "author")) + "\">Switch to Author View</a> |";
-//		} else if (mode.equals("example")) {
-//			navigationLinks += backLink;
 		}
 		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
 
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
-//		add(new WebMarkupContainer("example-message").setVisible(mode.equals("example")));
 
 		HashMap<String,String> newerVersionParams = new HashMap<>();
 		newerVersionParams.put("np", np.getUri().stringValue());
