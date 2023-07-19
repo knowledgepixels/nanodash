@@ -77,6 +77,8 @@ public abstract class NanopubPage extends ConnectorPage {
 			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
 		} else if (mode.equals("reviewer")) {
 			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "author")) + "\">Switch to Author View</a> |";
+		} else if (mode.equals("final")) {
+			navigationLinks = "";
 		}
 		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
 
