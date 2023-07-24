@@ -124,6 +124,10 @@ public class PublishForm extends Panel {
 
 		String templateId = pageParams.get("template").toString();
 		targetNamespace = Template.getTemplate(templateId).getTargetNamespace();
+		if (!pageParams.get("target-namespace").isNull()) {
+			// TODO: properly integrate this feature:
+			targetNamespace = pageParams.get("target-namespace").toString();
+		}
 
 		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
 		String prTemplateId = pageParams.get("prtemplate").toString();
@@ -634,7 +638,6 @@ public class PublishForm extends Panel {
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
 		assertionContext.getIntroducedIris().clear();
-		String targetNamespace = assertionContext.getTemplate().getTargetNamespace();
 		NanopubCreator npCreator = new NanopubCreator(targetNamespace);
 		npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
 		assertionContext.propagateStatements(npCreator);
