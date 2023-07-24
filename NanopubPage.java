@@ -51,10 +51,8 @@ public abstract class NanopubPage extends ConnectorPage {
 		}
 
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
-		if (requestUrl.matches(getMountPath().substring(1) + "/RA[A-Za-z0-9\\-_]{43,}(\\?.*)?")) {
-			// TODO: Don't assume purl.org namespace here:
-			String ref = "http://purl.org/np/" + requestUrl.replaceFirst("^" + getMountPath().substring(1) + "/(RA[A-Za-z0-9\\-_]{43,})(\\?.*)?.", "$1");
-			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("id", ref)));
+		if (requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}(\\?.*)?")) {
+			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("id", Utils.getArtifactCode(requestUrl))));
 		}
 
 		String ref = getPageParameters().get("id").toString();
