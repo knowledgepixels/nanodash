@@ -58,17 +58,22 @@ public class Utils {
 
 	private static Map<String,Nanopub> nanopubs = new HashMap<>();
 
-	public static Nanopub getNanopub(String uri) {
-		if (!nanopubs.containsKey(uri)) {
+	public static Nanopub getNanopub(String uriOrArtifactCode) {
+		String artifactCode = getArtifactCode(uriOrArtifactCode);
+		if (!nanopubs.containsKey(artifactCode)) {
 			for (int i = 0; i < 3; i++) {  // Try 3 times to get nanopub
-				Nanopub np = GetNanopub.get(uri);
+				Nanopub np = GetNanopub.get(artifactCode);
 				if (np != null) {
-					nanopubs.put(uri, np);
+					nanopubs.put(artifactCode, np);
 					break;
 				}
 			}
 		}
-		return nanopubs.get(uri);
+		return nanopubs.get(artifactCode);
+	}
+
+	public static String getArtifactCode(String uriOrArtifactCode) {
+		return uriOrArtifactCode.replaceFirst("^.*(RA[0-9a-zA-Z\\-_]{43})$", "$1");
 	}
 
 	public static String urlEncode(Object o) {
