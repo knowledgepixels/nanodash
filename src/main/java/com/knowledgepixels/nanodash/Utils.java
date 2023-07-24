@@ -73,7 +73,7 @@ public class Utils {
 	}
 
 	public static String getArtifactCode(String uriOrArtifactCode) {
-		return uriOrArtifactCode.replaceFirst("^.*(RA[0-9a-zA-Z\\-_]{43})$", "$1");
+		return uriOrArtifactCode.replaceFirst("^.*(RA[0-9a-zA-Z\\-_]{43})(\\?.*)?$", "$1");
 	}
 
 	public static String urlEncode(Object o) {
