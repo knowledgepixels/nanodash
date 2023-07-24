@@ -183,6 +183,13 @@ public class PublishForm extends Panel {
 			piParamIdMap.put(i, c);
 			if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
 		}
+		if (fillNp != null && !fillOnlyAssertion) {
+			for (IRI piTemplateId : Template.getPubinfoTemplateIds(fillNp)) {
+				if (piTemplateId.stringValue().equals(supersedesPubinfoTemplateId)) continue;
+				PublishFormContext c = getPubinfoContext(piTemplateId.stringValue());
+				if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
+			}
+		}
 		for (String k : pageParams.getNamedKeys()) {
 			if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
 			if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
