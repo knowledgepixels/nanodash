@@ -70,6 +70,7 @@ public class PublishForm extends Panel {
 	private List<PublishFormContext> pubInfoContexts = new ArrayList<>();
 	private Map<String,PublishFormContext> pubInfoContextMap = new HashMap<>();
 	private List<PublishFormContext> requiredPubInfoContexts = new ArrayList<>();
+	private String targetNamespace;
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
 		super(id);
@@ -121,7 +122,10 @@ public class PublishForm extends Panel {
 			fillMode = null;
 		}
 
-		assertionContext = new PublishFormContext(ContextType.ASSERTION, pageParams.get("template").toString(), "statement");
+		String templateId = pageParams.get("template").toString();
+		targetNamespace = Template.getTemplate(templateId).getTargetNamespace();
+
+		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
 			if (fillNp != null && !fillOnlyAssertion) {
@@ -136,21 +140,21 @@ public class PublishForm extends Panel {
 				prTemplateId = defaultProvTemplateId;
 			}
 		}
-		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
-		for (String templateId : fixedPubInfoTemplates) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, templateId, "pi-statement");
+		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
+		for (String t : fixedPubInfoTemplates) {
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
 		if (fillMode == FillMode.SUPERSEDE) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement");
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
 			//requiredPubInfoContexts.add(c);
 			c.setParam("np", fillNp.getUri().stringValue());
 		} else if (fillMode == FillMode.DERIVE) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement");
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
 			c.setParam("np", fillNp.getUri().stringValue());
@@ -158,7 +162,7 @@ public class PublishForm extends Panel {
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
 			String latestId = ApiAccess.getLatestVersionId(r.stringValue());
 			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
+			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
@@ -451,7 +455,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement");
+				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
 				provenanceContext.initStatements();
 				refreshProvenance(target);
 			}
@@ -519,7 +523,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement");
+				PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace);
 				c.initStatements();
 				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
@@ -620,7 +624,7 @@ public class PublishForm extends Panel {
 		if (pubInfoContextMap.containsKey(piTemplateId)) {
 			c = pubInfoContextMap.get(piTemplateId);
 		} else {
-			c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement");
+			c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
 			pubInfoContextMap.put(piTemplateId, c);
 		}
 		return c;
@@ -630,8 +634,9 @@ public class PublishForm extends Panel {
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
 		assertionContext.getIntroducedIris().clear();
-		NanopubCreator npCreator = new NanopubCreator(PublishFormContext.NP_TEMP_IRI);
-		npCreator.setAssertionUri(PublishFormContext.ASSERTION_TEMP_IRI);
+		String targetNamespace = assertionContext.getTemplate().getTargetNamespace();
+		NanopubCreator npCreator = new NanopubCreator(targetNamespace);
+		npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
 		assertionContext.propagateStatements(npCreator);
 		provenanceContext.propagateStatements(npCreator);
 		for (PublishFormContext c : pubInfoContexts) {
@@ -640,8 +645,8 @@ public class PublishForm extends Panel {
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
-		npCreator.addNamespace("this", "http://purl.org/nanopub/temp/nanodash-new-nanopub/");
-		npCreator.addNamespace("sub", "http://purl.org/nanopub/temp/nanodash-new-nanopub/#");
+		npCreator.addNamespace("this", targetNamespace);
+		npCreator.addNamespace("sub", targetNamespace + "#");
 		npCreator.addTimestampNow();
 //		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();

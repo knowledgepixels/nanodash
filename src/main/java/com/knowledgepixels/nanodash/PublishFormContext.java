@@ -25,9 +25,6 @@ public class PublishFormContext implements Serializable {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	public static IRI NP_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanodash-new-nanopub/");
-	public static IRI ASSERTION_TEMP_IRI = vf.createIRI("http://purl.org/nanopub/temp/nanodash-new-nanopub/assertion");
-
 	private final ContextType contextType;
 	private final Template template;
 	private final String componentId;
@@ -39,13 +36,15 @@ public class PublishFormContext implements Serializable {
 	private List<StatementItem> statementItems;
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
+	private String targetNamespace;
 
-	public PublishFormContext(ContextType contextType, String templateId, String componentId) {
+	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
 		this.contextType = contextType;
 		this.isLocal = templateId != null && templateId.startsWith("file://");
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
 		this.componentId = componentId;
+		this.targetNamespace = targetNamespace;
 	}
 
 	public void initStatements() {
@@ -156,13 +155,13 @@ public class PublishFormContext implements Serializable {
 			iri = NanodashSession.get().getUserIri();
 		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			iri = ASSERTION_TEMP_IRI;
+			iri = vf.createIRI(targetNamespace + "assertion");
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			iri = NP_TEMP_IRI;
+			iri = vf.createIRI(targetNamespace);
 		}
 		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
 			// TODO: deprecate this (use LocalResource instead)
-			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", NP_TEMP_IRI.stringValue()));
+			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", targetNamespace));
 		}
 		// TODO: Move this code below to the respective placeholder classes:
 		IModel<String> tf = formComponentModels.get(iri);
@@ -170,10 +169,10 @@ public class PublishFormContext implements Serializable {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			String prefix = template.getPrefix(iri);
 			if (prefix == null) prefix = "";
-			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
+			if (template.isLocalResource(iri)) prefix = targetNamespace;
 			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 			String v = prefix + tf.getObject();
-			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = targetNamespace + v;
 			if (v.matches("https?://.*")) {
 				return vf.createIRI(v);
 			}
@@ -182,7 +181,7 @@ public class PublishFormContext implements Serializable {
 			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
 			String prefix = template.getPrefix(iri);
 			if (prefix == null) prefix = "";
-			if (template.isLocalResource(iri)) prefix = NP_TEMP_IRI.stringValue();
+			if (template.isLocalResource(iri)) prefix = targetNamespace;
 			String v;
 			if (template.isAutoEscapePlaceholder(iri)) {
 				v = prefix + Utils.urlEncode(tf.getObject());
@@ -190,7 +189,7 @@ public class PublishFormContext implements Serializable {
 				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
 				v = prefix + tf.getObject();
 			}
-			if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+			if (v.matches("[^:# ]+")) v = targetNamespace + v;
 			IRI processedIri = vf.createIRI(v);
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
@@ -198,7 +197,7 @@ public class PublishFormContext implements Serializable {
 			return processedIri;
 		} else if (template.isLocalResource(iri)) {
 			String prefix = Utils.getUriPrefix(iri);
-			IRI processedIri = vf.createIRI(iri.stringValue().replace(prefix, NP_TEMP_IRI.stringValue()));
+			IRI processedIri = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
 			if (template.isIntroducedResource(iri)) {
 				introducedIris.add(processedIri);
 			}
@@ -215,7 +214,7 @@ public class PublishFormContext implements Serializable {
 				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
 			} else {
 				String v = tf.getObject();
-				if (v.matches("[^:# ]+")) v = NP_TEMP_IRI.stringValue() + v;
+				if (v.matches("[^:# ]+")) v = targetNamespace + v;
 				return vf.createIRI(v);
 			}
 		}
