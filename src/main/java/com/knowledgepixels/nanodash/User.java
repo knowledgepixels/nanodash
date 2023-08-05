@@ -36,6 +36,8 @@ import org.nanopub.extra.setting.NanopubSetting;
 
 import com.opencsv.exceptions.CsvValidationException;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class User {
 
 	private User() {}  // no instances allowed
@@ -147,6 +149,7 @@ public class User {
 	}
 
 	private static void register(String npId, boolean approved) {
+		if (!TrustyUriUtils.isPotentialTrustyUri(npId)) return;
 		IntroNanopub introNp = toIntroNanopub(npId);
 		if (introNp == null) {
 			//System.err.println("No latest version of introduction found");
