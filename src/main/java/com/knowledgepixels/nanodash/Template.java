@@ -155,6 +155,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_LABEL_FROM_API = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLabelFromApi");
 	public static final IRI HAS_DEFAULT_VALUE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultValue");
 	public static final IRI HAS_TARGET_NAMESPACE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNamespace");
+	public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
 
 
 	private Nanopub nanopub;
@@ -181,6 +182,7 @@ public class Template implements Serializable {
 	private String tag = null;
 	private Map<IRI,Value> defaultValues = new HashMap<>();
 	private String targetNamespace = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
+	private String nanopubLabelPattern;
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
@@ -407,6 +409,10 @@ public class Template implements Serializable {
 		return targetNamespace;
 	}
 
+	public String getNanopubLabelPattern() {
+		return nanopubLabelPattern;
+	}
+
 	public List<IRI> getRequiredPubinfoElements() {
 		return requiredPubinfoElements;
 	}
@@ -473,10 +479,14 @@ public class Template implements Serializable {
 					} else if (st.getPredicate().equals(HAS_TARGET_NAMESPACE)) {
 						targetNamespace = st.getObject().stringValue();
 					}
-				} else if (st.getPredicate().equals(HAS_TAG) && st.getObject() instanceof Literal) {
-					// TODO This should be replaced at some point with a more sophisticated mechanism based on classes.
-					// We are assuming that there is at most one tag.
-					this.tag = st.getObject().stringValue();
+				} else if (st.getObject() instanceof Literal) {
+					if (st.getPredicate().equals(HAS_TAG)) {
+						// TODO This should be replaced at some point with a more sophisticated mechanism based on classes.
+						// We are assuming that there is at most one tag.
+						this.tag = st.getObject().stringValue();
+					} else if (st.getPredicate().equals(HAS_NANOPUB_LABEL_PATTERN)) {
+						nanopubLabelPattern = st.getObject().stringValue();
+					}	
 				}
 			}
 			if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {

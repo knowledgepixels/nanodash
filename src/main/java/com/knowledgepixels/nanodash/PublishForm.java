@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,6 +36,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
@@ -658,7 +660,6 @@ public class PublishForm extends Panel {
 		npCreator.addNamespace("this", targetNamespace);
 		npCreator.addNamespace("sub", targetNamespace + "#");
 		npCreator.addTimestampNow();
-//		npCreator.addPubinfoStatement(SimpleCreatorPattern.DCT_CREATOR, ProfilePage.getUserIri());
 		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
 		IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
@@ -667,7 +668,40 @@ public class PublishForm extends Panel {
 			IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
 			npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
 		}
+		String nanopubLabel = getNanopubLabel();
+		if (nanopubLabel != null) {
+			npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
+		}
 		return npCreator.finalizeNanopub();
+	}
+
+	private String getNanopubLabel() {
+		if (assertionContext.getTemplate().getNanopubLabelPattern() == null) return null;
+		String nanopubLabel = assertionContext.getTemplate().getNanopubLabelPattern();
+		while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
+			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
+			IRI placeholderIri = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
+			String placeholderValue = assertionContext.getFormComponentModels().get(placeholderIri).getObject();
+			if (placeholderValue == null) placeholderValue = "";
+			String placeholderLabel = placeholderValue;
+			if (assertionContext.getTemplate().isUriPlaceholder(placeholderIri)) {
+				try {
+					IRI placeholderValueIri = vf.createIRI(placeholderValue);
+					String l = assertionContext.getTemplate().getLabel(placeholderValueIri);
+					if (l == null) l = GuidedChoiceItem.getLabel(placeholderValue);
+					if (l != null && !l.isEmpty()) {
+						placeholderLabel = l.replaceFirst(" - .*$", "");
+					} else {
+						placeholderLabel = Utils.getShortNameFromURI(placeholderValueIri);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+			placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
+			nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
+		}
+		return nanopubLabel;
 	}
 
 	private boolean isLocal() {
