@@ -156,6 +156,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_DEFAULT_VALUE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultValue");
 	public static final IRI HAS_TARGET_NAMESPACE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNamespace");
 	public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
+	public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
 
 
 	private Nanopub nanopub;
@@ -183,6 +184,7 @@ public class Template implements Serializable {
 	private Map<IRI,Value> defaultValues = new HashMap<>();
 	private String targetNamespace = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
 	private String nanopubLabelPattern;
+	private IRI targetNanopubType;
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
@@ -413,6 +415,10 @@ public class Template implements Serializable {
 		return nanopubLabelPattern;
 	}
 
+	public IRI getTargetNanopubType() {
+		return targetNanopubType;
+	}
+
 	public List<IRI> getRequiredPubinfoElements() {
 		return requiredPubinfoElements;
 	}
@@ -478,6 +484,8 @@ public class Template implements Serializable {
 						requiredPubinfoElements.add((IRI) st.getObject());
 					} else if (st.getPredicate().equals(HAS_TARGET_NAMESPACE)) {
 						targetNamespace = st.getObject().stringValue();
+					} else if (st.getPredicate().equals(HAS_TARGET_NANOPUB_TYPE)) {
+						targetNanopubType = (IRI) st.getObject();
 					}
 				} else if (st.getObject() instanceof Literal) {
 					if (st.getPredicate().equals(HAS_TAG)) {

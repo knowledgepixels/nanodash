@@ -644,6 +644,7 @@ public class PublishForm extends Panel {
 	}
 
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
+	public static final IRI NANOPUB_TYPE_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/hasNanopubType");
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
 		assertionContext.getIntroducedIris().clear();
@@ -671,6 +672,9 @@ public class PublishForm extends Panel {
 		String nanopubLabel = getNanopubLabel();
 		if (nanopubLabel != null) {
 			npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
+		}
+		if (assertionContext.getTemplate().getTargetNanopubType() != null) {
+			npCreator.addPubinfoStatement(NANOPUB_TYPE_PREDICATE, assertionContext.getTemplate().getTargetNanopubType());
 		}
 		return npCreator.finalizeNanopub();
 	}
