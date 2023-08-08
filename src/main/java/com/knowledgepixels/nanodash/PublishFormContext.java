@@ -165,60 +165,60 @@ public class PublishFormContext implements Serializable {
 		}
 		// TODO: Move this code below to the respective placeholder classes:
 		IModel<String> tf = formComponentModels.get(iri);
+		Value processedValue = null;
 		if (template.isRestrictedChoicePlaceholder(iri)) {
-			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
-			String prefix = template.getPrefix(iri);
-			if (prefix == null) prefix = "";
-			if (template.isLocalResource(iri)) prefix = targetNamespace;
-			if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-			String v = prefix + tf.getObject();
-			if (v.matches("[^:# ]+")) v = targetNamespace + v;
-			if (v.matches("https?://.*")) {
-				return vf.createIRI(v);
-			}
-			return vf.createLiteral(tf.getObject());
-		} else if (template.isUriPlaceholder(iri)) {
-			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
-			String prefix = template.getPrefix(iri);
-			if (prefix == null) prefix = "";
-			if (template.isLocalResource(iri)) prefix = targetNamespace;
-			String v;
-			if (template.isAutoEscapePlaceholder(iri)) {
-				v = prefix + Utils.urlEncode(tf.getObject());
-			} else {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+				String prefix = template.getPrefix(iri);
+				if (prefix == null) prefix = "";
+				if (template.isLocalResource(iri)) prefix = targetNamespace;
 				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
-				v = prefix + tf.getObject();
+				String v = prefix + tf.getObject();
+				if (v.matches("[^:# ]+")) v = targetNamespace + v;
+				if (v.matches("https?://.*")) {
+					processedValue = vf.createIRI(v);
+				} else {
+					processedValue = vf.createLiteral(tf.getObject());
+				}
 			}
-			if (v.matches("[^:# ]+")) v = targetNamespace + v;
-			IRI processedIri = vf.createIRI(v);
-			if (template.isIntroducedResource(iri)) {
-				introducedIris.add(processedIri);
+		} else if (template.isUriPlaceholder(iri)) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+				String prefix = template.getPrefix(iri);
+				if (prefix == null) prefix = "";
+				if (template.isLocalResource(iri)) prefix = targetNamespace;
+				String v;
+				if (template.isAutoEscapePlaceholder(iri)) {
+					v = prefix + Utils.urlEncode(tf.getObject());
+				} else {
+					if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+					v = prefix + tf.getObject();
+				}
+				if (v.matches("[^:# ]+")) v = targetNamespace + v;
+				processedValue = vf.createIRI(v);
 			}
-			return processedIri;
 		} else if (template.isLocalResource(iri)) {
 			String prefix = Utils.getUriPrefix(iri);
-			IRI processedIri = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
-			if (template.isIntroducedResource(iri)) {
-				introducedIris.add(processedIri);
-			}
-			return processedIri;
-		} else if (template.isIntroducedResource(iri)) {
-			introducedIris.add(iri);
-			return iri;
+			processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
 		} else if (template.isLiteralPlaceholder(iri)) {
-			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
-			return vf.createLiteral(tf.getObject());
-		} else if (template.isValuePlaceholder(iri)) {
-			if (tf == null || tf.getObject() == null || tf.getObject().isEmpty()) return null;
-			if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
-				return vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
-			} else {
-				String v = tf.getObject();
-				if (v.matches("[^:# ]+")) v = targetNamespace + v;
-				return vf.createIRI(v);
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+				processedValue = vf.createLiteral(tf.getObject());
 			}
+		} else if (template.isValuePlaceholder(iri)) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+				if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
+					processedValue = vf.createLiteral(tf.getObject().substring(1, tf.getObject().length()-1).replaceAll("\\\\(\\\\|\\\")", "$1"));
+				} else {
+					String v = tf.getObject();
+					if (v.matches("[^:# ]+")) v = targetNamespace + v;
+					processedValue = vf.createIRI(v);
+				}
+			}
+		} else {
+			processedValue = iri;
 		}
-		return iri;
+		if (processedValue instanceof IRI && template.isIntroducedResource((IRI) processedValue)) {
+			introducedIris.add((IRI) processedValue);
+		}
+		return processedValue;
 	}
 
 	public List<StatementItem> getStatementItems() {
