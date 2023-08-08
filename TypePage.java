@@ -99,8 +99,8 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 		} else if (type.equals("orgorg")) {
 			title = "Association between organisms";
-			template = Template.getTemplate("http://purl.org/np/RA0oVqDHRG64nwWp_rAeIirpckjXRbohDoatOAqA8-eXU");
-			exampleId = "http://purl.org/np/RAQtRoj_9TqF4yu4Reg5DbKwoH3qGgleosG6VoCL6oE4o";
+			template = Template.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
+			exampleId = "http://purl.org/np/RANJRezzW-S9NY7TtMsfsPthhL35mjnNlq8nbeopGSJy0";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
