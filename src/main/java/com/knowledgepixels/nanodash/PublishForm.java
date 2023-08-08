@@ -690,6 +690,8 @@ public class PublishForm extends Panel {
 			String placeholderLabel = placeholderValue;
 			if (assertionContext.getTemplate().isUriPlaceholder(placeholderIri)) {
 				try {
+					// TODO Fix this. It doesn't work for placeholders with prefixes, auto-encode placeholders, etc.
+					//      Not sure we need labels for these, but this code should be improved anyway.
 					IRI placeholderValueIri = vf.createIRI(placeholderValue);
 					String l = assertionContext.getTemplate().getLabel(placeholderValueIri);
 					if (l == null) l = GuidedChoiceItem.getLabel(placeholderValue);
