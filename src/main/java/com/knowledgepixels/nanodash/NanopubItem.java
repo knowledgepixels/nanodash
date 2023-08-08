@@ -49,6 +49,7 @@ public class NanopubItem extends Panel {
 		super(id);
 
 		add(new NanodashLink("nanopub-id-link", n.getUri()));
+		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
 
 		String userString = "";
 		String pubkey = null;

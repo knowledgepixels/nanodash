@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.47</version>
+      <version>1.48</version>
     </dependency>
 
   </dependencies>

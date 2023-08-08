@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -21,6 +22,7 @@ public class NanopubElement implements Serializable {
 
 	private Nanopub nanopub;
 	private String uriString; // Keeping URI separately, as nanopub might be null when it cannot be fetched
+	private String label;
 	private Calendar creationTime;
 	private Boolean seemsToHaveSignature;
 	private Boolean hasValidSignature;
@@ -55,6 +57,14 @@ public class NanopubElement implements Serializable {
 
 	public String getUri() {
 		return uriString;
+	}
+
+	public String getLabel() {
+		if (label != null) return label;
+		if (nanopub == null) return null;
+		label = NanopubUtils.getLabel(nanopub);
+		if (label == null) label = "";
+		return label;
 	}
 
 	public Calendar getCreationTime() {
