@@ -101,6 +101,10 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Association between organisms";
 			template = Template.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
 			exampleId = "http://purl.org/np/RANJRezzW-S9NY7TtMsfsPthhL35mjnNlq8nbeopGSJy0";
+		} else if (type.equals("orgenv")) {
+			title = "Association between an organism and an environment";
+			template = Template.getTemplate("http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc");
+			exampleId = "http://purl.org/np/RADum72ve5zot8z3BBKGeZXvOuivkTXMmVuAjRYfMbI7Y";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
