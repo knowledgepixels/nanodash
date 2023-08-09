@@ -13,6 +13,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -85,6 +86,7 @@ public class ValueFiller {
 			if (st.getSubject().equals(fillNp.getUri())) {
 				if (pred.equals(DCTERMS.CREATED)) return null;
 				if (pred.equals(Nanopub.SUPERSEDES)) return null;
+				if (pred.equals(RDFS.LABEL)) return null;
 				if (pred.equals(PublishForm.INTRODUCES_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
