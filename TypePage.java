@@ -108,7 +108,7 @@ public abstract class TypePage extends ConnectorPage {
 		} else if (type.equals("taxonnames")) {
 			title = "Association between taxon names (nomenclature)";
 			template = Template.getTemplate("http://purl.org/np/RAcpoj_PDVTA516HQ-lSMKTssnhp2ADi3td6ZGBvW4cQU");
-			exampleId = "http://purl.org/np/RAObMTzkCeDFqZJdibyBvryNkjKUGh-2t3-9EwgzhG_hY";
+			exampleId = "http://purl.org/np/RA0zXAlJ1mZ1aIEu-V19jJ_y7uPvL-Urjoy0f6e7-83XA";
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RA3kgvKf_8HHLSYHPzFZB7HCr35cC60p46qZVxhhSZnnI");
