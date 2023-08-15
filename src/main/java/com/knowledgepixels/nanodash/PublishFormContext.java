@@ -215,7 +215,7 @@ public class PublishFormContext implements Serializable {
 		} else {
 			processedValue = iri;
 		}
-		if (processedValue instanceof IRI && template.isIntroducedResource((IRI) processedValue)) {
+		if (processedValue instanceof IRI && template.isIntroducedResource(iri)) {
 			introducedIris.add((IRI) processedValue);
 		}
 		return processedValue;
