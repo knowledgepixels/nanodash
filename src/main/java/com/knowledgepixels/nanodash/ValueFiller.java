@@ -87,6 +87,7 @@ public class ValueFiller {
 				if (pred.equals(DCTERMS.CREATED)) return null;
 				if (pred.equals(Nanopub.SUPERSEDES)) return null;
 				if (pred.equals(RDFS.LABEL)) return null;
+				if (pred.equals(PublishForm.NANOPUB_TYPE_PREDICATE)) return null;
 				if (pred.equals(PublishForm.INTRODUCES_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
