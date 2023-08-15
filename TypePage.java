@@ -111,8 +111,12 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RAObMTzkCeDFqZJdibyBvryNkjKUGh-2t3-9EwgzhG_hY";
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
-			template = Template.getTemplate("http://purl.org/np/RAU9t6bWj3QVoTwNttzAvB7a_lnHe0nFC-XJue8o_GeIo");
-			exampleId = "http://purl.org/np/RAhxVSmIVwCIz6WRMoTYVcwQEDj_aR73WG9XiSFaXqYHw";
+			template = Template.getTemplate("http://purl.org/np/RA3kgvKf_8HHLSYHPzFZB7HCr35cC60p46qZVxhhSZnnI");
+			exampleId = "http://purl.org/np/RAr8Xd0MF0xmo_48tc6_bQyZ9XcXQZ_MptZLwQr_Yr34s";
+		} else if (type.equals("taxonns")) {
+			title = "Association between taxa and nucleotide sequences";
+			template = Template.getTemplate("http://purl.org/np/RAdS--RUjXxxwABDBbmXPOofQEwBDynssTzvDyYgxJJqU");
+			exampleId = "http://purl.org/np/RAw8WxiLwkIaLDTR8ooXMrByTGQM0Mom8InwHsmT8ce-c";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
