@@ -159,10 +159,6 @@ public class PublishFormContext implements Serializable {
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
 			iri = vf.createIRI(targetNamespace);
 		}
-		if (iri.stringValue().startsWith("https://w3id.org/np/o/ntemplate/local/")) {
-			// TODO: deprecate this (use LocalResource instead)
-			return vf.createIRI(iri.stringValue().replaceFirst("^https://w3id.org/np/o/ntemplate/local/", targetNamespace));
-		}
 		// TODO: Move this code below to the respective placeholder classes:
 		IModel<String> tf = formComponentModels.get(iri);
 		Value processedValue = null;
