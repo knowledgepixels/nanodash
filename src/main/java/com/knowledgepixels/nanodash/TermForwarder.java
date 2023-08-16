@@ -31,7 +31,13 @@ public class TermForwarder extends NanodashPage {
 	public TermForwarder(final PageParameters parameters) {
 		super(parameters);
 		IRI id = vf.createIRI(parameters.get("id").toString());
-		IRI authority = vf.createIRI(parameters.get("authority").toString());
+		IRI authority = null;
+		if (!parameters.get("authority").isEmpty()) {
+			authority = vf.createIRI(parameters.get("authority").toString());
+		}
+		if (Group.get(id.stringValue()) != null) {
+			throw new RedirectToUrlException(Utils.getUrlWithParameters(GroupPage.MOUNT_PATH, new PageParameters().add("id", id)));
+		}
 		Map<String,String> params = new HashMap<>();
 		params.put("graphpred", "http://www.nanopub.org/nschema#hasPublicationInfo");
 		params.put("pred", "http://purl.org/nanopub/x/introduces");
@@ -42,9 +48,14 @@ public class TermForwarder extends NanodashPage {
 		} catch (IOException|CsvValidationException ex) {
 			throw new RuntimeException(ex);
 		}
-		List<ApiResponseEntry> responses = new ArrayList<>();
-		for (ApiResponseEntry r : dataResponse.getData()) {
-			if (authority.equals(User.getUserIri(r.get("pubkey")))) responses.add(r);
+		List<ApiResponseEntry> responses;
+		if (authority == null) {
+			responses = dataResponse.getData();
+		} else {
+			responses = new ArrayList<>();
+			for (ApiResponseEntry r : dataResponse.getData()) {
+				if (authority.equals(User.getUserIri(r.get("pubkey")))) responses.add(r);
+			}
 		}
 		if (responses.size() != 1) {
 			throw new RedirectToUrlException(Utils.getUrlWithParameters(SearchPage.MOUNT_PATH, new PageParameters().add("query", id.stringValue())));
