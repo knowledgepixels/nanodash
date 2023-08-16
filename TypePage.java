@@ -185,8 +185,7 @@ public abstract class TypePage extends ConnectorPage {
 							"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
 							"<p>You can leave the provenance (red) and publication info (yellow) parts as they are.</p>" +
 							createNewParagraph +
-							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>" +
-							"<p>Close this tab to <strong>abort</strong> the nanopublication creation.</p>")
+							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>")
 			));
 	}
 
