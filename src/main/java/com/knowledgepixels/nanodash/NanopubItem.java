@@ -3,14 +3,12 @@ package com.knowledgepixels.nanodash;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,15 +17,10 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
-import org.wicketstuff.select2.ChoiceProvider;
-import org.wicketstuff.select2.Response;
-import org.wicketstuff.select2.Select2Choice;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
@@ -81,67 +74,7 @@ public class NanopubItem extends Panel {
 			actionList.add(action);
 			actionMap.put(action.getLinkLabel(n.getNanopub()), action);
 		}
-
-		ChoiceProvider<NanopubAction> choiceProvider = new ChoiceProvider<NanopubAction>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getDisplayValue(NanopubAction action) {
-				return action.getLinkLabel(n.getNanopub()) + "...";
-			}
-
-			@Override
-			public String getIdValue(NanopubAction object) {
-				return object.getLinkLabel(n.getNanopub());
-			}
-
-			// Getting strange errors with Tomcat if this method is not overridden:
-			@Override
-			public void detach() {
-			}
-
-			@Override
-			public void query(String term, int page, Response<NanopubAction> response) {
-				for (NanopubAction action : actionList) {
-					response.add(action);
-				}
-			}
-
-			@Override
-			public Collection<NanopubAction> toChoices(Collection<String> ids) {
-				List<NanopubAction> list = new ArrayList<>();
-				for (String s : ids) {
-					list.add(actionMap.get(s));
-				}
-				return list;
-			}
-
-		};
-		Model<NanopubAction> menuModel = new Model<>();
-		Select2Choice<NanopubAction> menu = new Select2Choice<NanopubAction>("action-menu", menuModel, choiceProvider);
-		menu.setVisible(!allActions.isEmpty());
-		menu.getSettings().setPlaceholder("");
-		menu.getSettings().setWidth("20px");
-		menu.getSettings().setDropdownCssClass("actionmenuresults");
-		menu.getSettings().setCloseOnSelect(true);
-		menu.getSettings().setMinimumResultsForSearch(-1);
-		menu.getSettings().setDropdownAutoWidth(true);
-		menu.add(new OnChangeAjaxBehavior() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				NanopubAction action = menu.getModel().getObject();
-				String url = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
-						"&" + action.getParamString(n.getNanopub()) +
-						"&template-version=latest";
-				throw new RedirectToUrlException(url);
-			}
-
-		});
-		add(menu);
+		add(new ActionMenu("action-menu", actionList, n.getNanopub()));
 
 		if (n.getCreationTime() != null) {
 			add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
