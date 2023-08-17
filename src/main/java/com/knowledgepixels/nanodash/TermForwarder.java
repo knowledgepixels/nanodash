@@ -30,6 +30,32 @@ public class TermForwarder extends NanodashPage {
 
 	public TermForwarder(final PageParameters parameters) {
 		super(parameters);
+		// Getting HTTP Accept header:
+		//
+		//System.err.println("P: " + ((HttpServletRequest) getRequest().getContainerRequest()).getHeader("Accept"));
+		//
+		// Works with these additions to pom.xml:
+		//
+		//<dependency>
+        //  <groupId>javax.servlet</groupId
+        //  <artifactId>javax.servlet-api</artifactId>
+        //  <version>3.0.1</version>
+        //  <scope>provided</scope>
+        //</dependency>
+		//...
+		//<groupId>org.apache.tomcat.maven</groupId>
+		//<artifactId>tomcat7-maven-plugin</artifactId>
+		//<version>2.2</version>
+		//<dependencies>
+		//    <dependency>
+		//        <groupId>org.apache.tomcat.embed</groupId>
+		//        <artifactId>tomcat-embed-core</artifactId>
+		//        <version>7.0.93</version>
+		//    </dependency>
+		//</dependencies>
+		//...
+		//
+		// But we should probably update to a newer version of Tomcat first...
 		IRI id = vf.createIRI(parameters.get("id").toString());
 		IRI authority = null;
 		if (!parameters.get("authority").isEmpty()) {
