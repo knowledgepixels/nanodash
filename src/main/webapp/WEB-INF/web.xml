@@ -43,4 +43,8 @@
     <location>/error/500</location>
   </error-page>
 
+  <session-config>
+    <session-timeout>720</session-timeout>
+  </session-config>
+
 </web-app>
