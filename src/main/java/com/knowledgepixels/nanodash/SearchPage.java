@@ -122,7 +122,7 @@ public class SearchPage extends NanodashPage {
 							}
 							try {
 								// nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
-								nanopubResults = ApiAccess.getAll("find_signed_nanopubs_with_uri", nanopubParams).getData();
+								nanopubResults = ApiAccess.getAll("find_valid_signed_nanopubs_with_uri", nanopubParams).getData();
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}
@@ -139,7 +139,7 @@ public class SearchPage extends NanodashPage {
 								}
 								try {
 									// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-									nanopubResults = ApiAccess.getAll("find_signed_nanopubs_with_text", nanopubParams).getData();
+									nanopubResults = ApiAccess.getAll("find_valid_signed_nanopubs_with_text", nanopubParams).getData();
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}
