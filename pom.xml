@@ -151,8 +151,15 @@
       <plugin>
         <!-- Generate with: $ mvn clean install tomcat7:exec-war-only -->
         <groupId>org.apache.tomcat.maven</groupId>
-        <artifactId>tomcat7-maven-plugin</artifactId>
-        <version>2.1</version>
+		<artifactId>tomcat7-maven-plugin</artifactId>
+		<version>2.2</version>
+		<dependencies>
+		    <dependency>
+		        <groupId>org.apache.tomcat.embed</groupId>
+		        <artifactId>tomcat-embed-core</artifactId>
+		        <version>7.0.93</version>
+		    </dependency>
+		</dependencies>
         <configuration>
           <port>37373</port>
           <path>/</path>
