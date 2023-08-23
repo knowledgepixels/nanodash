@@ -673,8 +673,8 @@ public class PublishForm extends Panel {
 		if (nanopubLabel != null) {
 			npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
 		}
-		if (assertionContext.getTemplate().getTargetNanopubType() != null) {
-			npCreator.addPubinfoStatement(NANOPUB_TYPE_PREDICATE, assertionContext.getTemplate().getTargetNanopubType());
+		for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
+			npCreator.addPubinfoStatement(NANOPUB_TYPE_PREDICATE, type);
 		}
 		return npCreator.finalizeNanopub();
 	}

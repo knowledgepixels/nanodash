@@ -184,7 +184,7 @@ public class Template implements Serializable {
 	private Map<IRI,Value> defaultValues = new HashMap<>();
 	private String targetNamespace = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
 	private String nanopubLabelPattern;
-	private IRI targetNanopubType;
+	private List<IRI> targetNanopubTypes = new ArrayList<>();
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
 		if (templateId.startsWith("file://")) {
@@ -415,8 +415,8 @@ public class Template implements Serializable {
 		return nanopubLabelPattern;
 	}
 
-	public IRI getTargetNanopubType() {
-		return targetNanopubType;
+	public List<IRI> getTargetNanopubTypes() {
+		return targetNanopubTypes;
 	}
 
 	public List<IRI> getRequiredPubinfoElements() {
@@ -485,7 +485,7 @@ public class Template implements Serializable {
 					} else if (st.getPredicate().equals(HAS_TARGET_NAMESPACE)) {
 						targetNamespace = st.getObject().stringValue();
 					} else if (st.getPredicate().equals(HAS_TARGET_NANOPUB_TYPE)) {
-						targetNanopubType = (IRI) st.getObject();
+						targetNanopubTypes.add((IRI) st.getObject());
 					}
 				} else if (st.getObject() instanceof Literal) {
 					if (st.getPredicate().equals(HAS_TAG)) {
