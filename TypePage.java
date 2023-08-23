@@ -117,6 +117,14 @@ public abstract class TypePage extends ConnectorPage {
 			title = "Association between taxa and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RAdS--RUjXxxwABDBbmXPOofQEwBDynssTzvDyYgxJJqU");
 			exampleId = "http://purl.org/np/RAw8WxiLwkIaLDTR8ooXMrByTGQM0Mom8InwHsmT8ce-c";
+		} else if (type.equals("biolinkrel")) {
+			title = "Expressing a biological relation between two entities";
+			template = Template.getTemplate("http://purl.org/np/RAjvwGtEUz07hIGUZ_kHpW8R1TSeUhbWH8NdpC0MIvv_A");
+			exampleId = "http://purl.org/np/RAPeBcr6fuTot6fU5bKyspkFD_5RX9tLXcCIs1UkEEUUo";
+		} else if (type.equals("eqrel")) {
+			title = "Mapping two equivalent or related resource identifiers";
+			template = Template.getTemplate("http://purl.org/np/RA_HQBugwEbRD4oClCPjyOJhbau84xnhrrr-lzE4seKDI");
+			exampleId = "http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
