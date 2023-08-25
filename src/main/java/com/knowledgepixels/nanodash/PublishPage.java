@@ -37,7 +37,8 @@ public class PublishPage extends NanodashPage {
 		super.renderHead(response);
 		// TODO: There is probably a better place to define this function:
 		response.render(JavaScriptHeaderItem.forScript(
-				"function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }",
+				"function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }\n"
+				//+ "$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
 				"custom-functions"));
 	}
 
