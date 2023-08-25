@@ -418,6 +418,16 @@ public class PublishForm extends Panel {
 
 		});
 
+		final List<Template> provTemplateOptions;
+		if (pageParams.get("prtemplate-options").isNull()) {
+			provTemplateOptions = Template.getProvenanceTemplates();
+		} else {
+			provTemplateOptions = new ArrayList<>();
+			for (String tid : pageParams.get("prtemplate-options").toString().split(" ")) {
+				provTemplateOptions.add(Template.getTemplate(tid));
+			}
+		}
+
 		ChoiceProvider<String> prTemplateChoiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
@@ -444,7 +454,7 @@ public class PublishForm extends Panel {
 			public void query(String term, int page, Response<String> response) {
 				if (term == null) term = "";
 				term = term.toLowerCase();
-				for (Template t : Template.getProvenanceTemplates()) {
+				for (Template t : provTemplateOptions) {
 					String s = t.getLabel();
 					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
 						response.add(t.getId());
