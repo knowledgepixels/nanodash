@@ -52,6 +52,12 @@ public abstract class TypePage extends ConnectorPage {
 		Template template = null;
 		String exampleId = null;
 		String prTemplateId = "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ";
+		String prTemplateOptions = null;
+
+		String biodivPrTemplateOptions = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU " +
+				"http://purl.org/np/RAOPP484JwAjwKkj1l4ZCg0zkbd3yExNiniodAMudmqoE " +
+				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M " +
+				"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k";
 
 		if (type.equals("superpattern")) {
 			title = "Fully-formal Advanced Statements (Super-Pattern)";
@@ -87,24 +93,28 @@ public abstract class TypePage extends ConnectorPage {
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		} else if (type.equals("taxontaxon")) {
 			title = "Association between taxa";
-			template = Template.getTemplate("http://purl.org/np/RAglrcCumrWiKKbvE4HVYqzO_QPWlYBpHS44ndSRhMlt8");
+			template = Template.getTemplate("http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0");
 			exampleId = "http://purl.org/np/RA1_CsSpc__QUd5Aq5LNMPxsnPrSMTdTL-h_fz-9YnslU";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonenv")) {
 			title = "Association between taxa and environments";
 			template = Template.getTemplate("http://purl.org/np/RAROt9vGqnWyFrhtw71SdUldC9oCjaCXI6IO6QNqoFZHg");
 			exampleId = "http://purl.org/np/RAemwNrsw7vOqdLkbsqx59DJXfYNnrc2uVBxumzP9t_3g";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxongene")) {
 			title = "Association between taxa and genes";
 			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgorg")) {
 			title = "Association between organisms";
 			template = Template.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
 			exampleId = "http://purl.org/np/RANJRezzW-S9NY7TtMsfsPthhL35mjnNlq8nbeopGSJy0";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgenv")) {
 			title = "Association between organisms and environments";
 			template = Template.getTemplate("http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc");
@@ -112,14 +122,16 @@ public abstract class TypePage extends ConnectorPage {
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("taxonnames")) {
 			title = "Association between taxon names (nomenclature)";
-			template = Template.getTemplate("http://purl.org/np/RAFZVCvFTwhuGWf7nzovfrWipaPUZbqeYw99XtL5q6KL8");
+			template = Template.getTemplate("http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8");
 			exampleId = "http://purl.org/np/RAHUxVIomCv7jqS6fsnrgqvaXZ4uTAOBQT8unPZbMZiaM";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RA3kgvKf_8HHLSYHPzFZB7HCr35cC60p46qZVxhhSZnnI");
 			exampleId = "http://purl.org/np/RAr8Xd0MF0xmo_48tc6_bQyZ9XcXQZ_MptZLwQr_Yr34s";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonns")) {
 			title = "Association between taxa and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RAdS--RUjXxxwABDBbmXPOofQEwBDynssTzvDyYgxJJqU");
@@ -130,9 +142,10 @@ public abstract class TypePage extends ConnectorPage {
 			template = Template.getTemplate("http://purl.org/np/RAjvwGtEUz07hIGUZ_kHpW8R1TSeUhbWH8NdpC0MIvv_A");
 			exampleId = "http://purl.org/np/RAPeBcr6fuTot6fU5bKyspkFD_5RX9tLXcCIs1UkEEUUo";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
+			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("eqrel")) {
 			title = "Mapping two equivalent or related resource identifiers";
-			template = Template.getTemplate("http://purl.org/np/RA_HQBugwEbRD4oClCPjyOJhbau84xnhrrr-lzE4seKDI");
+			template = Template.getTemplate("http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk");
 			exampleId = "http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
@@ -194,16 +207,21 @@ public abstract class TypePage extends ConnectorPage {
 
 		add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getPageParameters()));
 
-		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class,
-				new PageParameters().add("template", template.getId()).add("template-version", "latest")
-					.add("prtemplate", prTemplateId)
-					.add("postpub-redirect-url", getConfig().getNanopubPage().getMountPath())
-					.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
-							"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
-							"<p>You can leave the provenance (red) and publication info (yellow) parts as they are.</p>" +
-							createNewParagraph +
-							"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>")
-			));
+		PageParameters createNewParams = new PageParameters().add("template", template.getId()).add("template-version", "latest")
+			.add("prtemplate", prTemplateId)
+			.add("postpub-redirect-url", getConfig().getNanopubPage().getMountPath())
+			.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
+				"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
+				"<p>To specify the URL of a preprint or source, you can switch to another provenance template (red). You can leave the pubinfo (yellow) part as it is.</p>" +
+				createNewParagraph +
+				"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() +
+					"%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>");
+
+		if (prTemplateOptions != null) {
+			createNewParams.add("prtemplate-options", prTemplateOptions);
+		}
+
+		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class, createNewParams));
 	}
 
 }
