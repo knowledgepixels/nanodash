@@ -695,7 +695,9 @@ public class PublishForm extends Panel {
 		while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
 			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
 			IRI placeholderIri = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
-			String placeholderValue = assertionContext.getFormComponentModels().get(placeholderIri).orElse("").getObject();
+			String placeholderValue = "";
+			IModel<String> m = assertionContext.getFormComponentModels().get(placeholderIri);
+			if (m != null) placeholderValue = m.orElse("").getObject();
 			if (placeholderValue == null) placeholderValue = "";
 			String placeholderLabel = placeholderValue;
 			if (assertionContext.getTemplate().isUriPlaceholder(placeholderIri)) {
