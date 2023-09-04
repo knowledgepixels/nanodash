@@ -128,8 +128,8 @@ public abstract class TypePage extends ConnectorPage {
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
-			template = Template.getTemplate("http://purl.org/np/RA3kgvKf_8HHLSYHPzFZB7HCr35cC60p46qZVxhhSZnnI");
-			exampleId = "http://purl.org/np/RAGO4L8q6Uxoz1ZkGb0V0pVLtX6OKGe1uOvMrB3sSwKjw";
+			template = Template.getTemplate("http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE");
+			exampleId = "http://purl.org/np/RAks7xCPlXZRhDufGp67-bGTuBNowPrmGg029qFh7MpK0";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonns")) {
