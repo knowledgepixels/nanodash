@@ -134,8 +134,8 @@ public abstract class TypePage extends ConnectorPage {
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonns")) {
 			title = "Association between taxa and nucleotide sequences";
-			template = Template.getTemplate("http://purl.org/np/RAdS--RUjXxxwABDBbmXPOofQEwBDynssTzvDyYgxJJqU");
-			exampleId = "http://purl.org/np/RAnA9oL71Vnax3eqHK-0I-mCsdca_nglEptVXFowzCdq4";
+			template = Template.getTemplate("http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM");
+			exampleId = "http://purl.org/np/RAjW5y752bAlM608SWbV-J3B6bGGzKJ_wkIPOgzKpF3Po";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("biolinkrel")) {
 			title = "Expressing a biological relation between two entities";
