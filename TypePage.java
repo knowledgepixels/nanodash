@@ -99,7 +99,7 @@ public abstract class TypePage extends ConnectorPage {
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonenv")) {
 			title = "Association between taxa and environments";
-			template = Template.getTemplate("http://purl.org/np/RAROt9vGqnWyFrhtw71SdUldC9oCjaCXI6IO6QNqoFZHg");
+			template = Template.getTemplate("http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k");
 			exampleId = "http://purl.org/np/RACnDGLKKS0AJKrJiU35wkU5LEpFq0BbbYrn1anCBv2Bw";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
