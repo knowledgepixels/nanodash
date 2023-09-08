@@ -56,8 +56,8 @@ public abstract class TypePage extends ConnectorPage {
 
 		String biodivPrTemplateOptions = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU " +
 				"http://purl.org/np/RAOPP484JwAjwKkj1l4ZCg0zkbd3yExNiniodAMudmqoE " +
-				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M " +
-				"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k";
+				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M ";
+				//"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k"
 
 		if (type.equals("superpattern")) {
 			title = "Fully-formal Advanced Statements (Super-Pattern)";
@@ -198,24 +198,29 @@ public abstract class TypePage extends ConnectorPage {
 			}
 		}
 
-		String createNewParagraph = "";
+		add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getPageParameters()));
+
+		String createNewMessage = "";
 		if (type.equals("superpattern") || type.equals("crel") || type.equals("inddef")) {
-			createNewParagraph += "<p>If you don't find the class you need, <a href=\"" + getMountPath() + "?type=classdef\">create a new class</a> first.</p>";
+			createNewMessage += "<p>If you don't find the class you need, <a href=\"" + getMountPath() + "?type=classdef\">create a new class</a> first.</p>";
 		} else if (type.equals("linkflowsrel") || type.equals("ml")) {
-			createNewParagraph += "<p>If you don't find the individual you need, <a href=\"" + getMountPath() + "?type=inddef\">create a new individual</a> first.</p>";
+			createNewMessage += "<p>If you don't find the individual you need, <a href=\"" + getMountPath() + "?type=inddef\">create a new individual</a> first.</p>";
 		}
 
-		add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getPageParameters()));
+		String publishFormMessage = getConfig().getPublishFormMessage();
+		if (publishFormMessage == null) {
+			publishFormMessage = "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
+				"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
+				"<p>To specify the URL of a preprint or source, you can switch to another provenance template (red). You can leave the pubinfo (yellow) part as it is.</p>";
+		}
+
+		String supportMessage = "<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() +
+			"%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>";
 
 		PageParameters createNewParams = new PageParameters().add("template", template.getId()).add("template-version", "latest")
 			.add("prtemplate", prTemplateId)
 			.add("postpub-redirect-url", getConfig().getNanopubPage().getMountPath())
-			.add("link-message", "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom " +
-				"to publish a nanopublication that you can later link to your " + getConfig().getJournalName() + " submission</strong>.</p>" +
-				"<p>To specify the URL of a preprint or source, you can switch to another provenance template (red). You can leave the pubinfo (yellow) part as it is.</p>" +
-				createNewParagraph +
-				"<p>Open a <a href=\"mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() +
-					"%20make-np]%20my%20problem/question&body=type%20your%20problem/question%20here\">support ticket</a> if you need help.</p>");
+			.add("link-message",  publishFormMessage + createNewMessage + supportMessage);
 
 		if (prTemplateOptions != null) {
 			createNewParams.add("prtemplate-options", prTemplateOptions);

@@ -36,4 +36,8 @@ public abstract class ConnectorConfig {
 
 	public abstract String getReviewUrlPrefix();
 
+	public String getPublishFormMessage() {
+		return null;
+	}
+
 }
