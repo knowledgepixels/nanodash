@@ -94,13 +94,13 @@ public abstract class TypePage extends ConnectorPage {
 		} else if (type.equals("taxontaxon")) {
 			title = "Association between taxa";
 			template = Template.getTemplate("http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0");
-			exampleId = "http://purl.org/np/RAmbEzfoycl5defvAnIQKsWaUlAaiYnwTO-22r3t5Nq2E";
+			exampleId = "http://purl.org/np/RALX2suiPKea3pm65RjS97EL6k9iY1Jew_mb30hO5Zjv0";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonenv")) {
 			title = "Association between taxa and environments";
 			template = Template.getTemplate("http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k");
-			exampleId = "http://purl.org/np/RACnDGLKKS0AJKrJiU35wkU5LEpFq0BbbYrn1anCBv2Bw";
+			exampleId = "http://purl.org/np/RATlLG_xH-woxWfvHYC-7LyV5F0V6Sq4EbDWS86h6CrUI";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxongene")) {
@@ -112,30 +112,30 @@ public abstract class TypePage extends ConnectorPage {
 		} else if (type.equals("orgorg")) {
 			title = "Association between organisms";
 			template = Template.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
-			exampleId = "http://purl.org/np/RA8qSfr83L1LdNmESIqS2d6xMxemBnpoSziJxSuYenWsg";
+			exampleId = "http://purl.org/np/RAafGz8UV6Nz4m8wyCLV4eJ_bdNfXKpGie0FH6TQZFa84";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgenv")) {
 			title = "Association between organisms and environments";
 			template = Template.getTemplate("http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc");
-			exampleId = "http://purl.org/np/RAfREjTR-dMaVpFZWXazLEG0oa1Ulh3sGphsIi3h_KifY";
+			exampleId = "http://purl.org/np/RAWxvypUU6OabNGlBz9jDGLnftqRXdokzI2oemf9vQRGY";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("taxonnames")) {
 			title = "Association between taxon names (nomenclature)";
 			template = Template.getTemplate("http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8");
-			exampleId = "http://purl.org/np/RAOul9SdMZU9iEmw-O2G7tJk2wQ4362iKpZwJFdTdgWfc";
+			exampleId = "http://purl.org/np/RAIz2ACUDvk3OAcXc-OjYSuLglUZu-fsJXrC4UtoAF7k4";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE");
-			exampleId = "http://purl.org/np/RAks7xCPlXZRhDufGp67-bGTuBNowPrmGg029qFh7MpK0";
+			exampleId = "http://purl.org/np/RAyOMh3jJ2PWrgis-My3-QbN9yoBXVBulweANHdvJPhak";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonns")) {
 			title = "Association between taxa and nucleotide sequences";
 			template = Template.getTemplate("http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM");
-			exampleId = "http://purl.org/np/RAjW5y752bAlM608SWbV-J3B6bGGzKJ_wkIPOgzKpF3Po";
+			exampleId = "http://purl.org/np/RA5lyV7V98AAm6BM_s8gv17eRRFZsJqvp2TqCGV6QD3gk";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("biolinkrel")) {
 			title = "Expressing a biological relation between two entities";
