@@ -13,6 +13,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.ConnectorListPage;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
@@ -22,6 +23,10 @@ public class BdjOverviewPage extends OverviewPage {
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/pensoft/bdj";
+
+	static {
+		ConnectorListPage.addConnector(BdjOverviewPage.class, "Nanopublishing in Biodiversity Data Journal (BDJ) at Pensoft");
+	}
 
 	public BdjOverviewPage(PageParameters params) {
 		super(params);
