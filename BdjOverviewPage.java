@@ -13,7 +13,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.ExplorePage;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
@@ -43,8 +42,8 @@ public class BdjOverviewPage extends OverviewPage {
 				@Override
 				protected void populateItem(Item<ApiResponseEntry> item) {
 					ApiResponseEntry e = item.getModelObject();
-					PageParameters params = new PageParameters().add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", ExplorePage.class, params);
+					PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", getConfig().getNanopubPage().getClass(), params);
 					l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
 					item.add(l);
 					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
