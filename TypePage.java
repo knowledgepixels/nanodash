@@ -55,7 +55,7 @@ public abstract class TypePage extends ConnectorPage {
 		String prTemplateOptions = null;
 
 		String biodivPrTemplateOptions = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU " +
-				"http://purl.org/np/RAOPP484JwAjwKkj1l4ZCg0zkbd3yExNiniodAMudmqoE " +
+				"http://purl.org/np/RALfxe37qzq5rEk6tLLcsSeKtKQZ1FcoHZdf2nYVfU66w " +
 				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M ";
 				//"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k"
 
