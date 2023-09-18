@@ -27,10 +27,10 @@ if [ -z $1 ] || [[ "$1" != "-" ]]; then
   exit
 fi
 
-# If we move too fast, the error below is triggered
-sleep 1
+git update-index --refresh -q || true
+git diff-index --quiet HEAD -- || LOCAL_CHANGES=1
 
-if ! git diff-index --quiet HEAD --; then
+if [[ "$LOCAL_CHANGES" == 1 ]]; then
   echo "ERROR: Uncommitted local changes"
   exit 1
 fi
