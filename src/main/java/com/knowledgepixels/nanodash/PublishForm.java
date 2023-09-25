@@ -719,7 +719,7 @@ public class PublishForm extends Panel {
 				}
 			}
 			placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
-			if (placeholderLabel.length() > 80) placeholderLabel = placeholderLabel.substring(0, 77) + "...";
+			if (placeholderLabel.length() > 100) placeholderLabel = placeholderLabel.substring(0, 97) + "...";
 			nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
 		}
 		return nanopubLabel;
