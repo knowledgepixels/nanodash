@@ -36,7 +36,7 @@ public class ProfileIntroItem extends Panel {
 		super(id);
 
 		String publishIntroLinkString = PublishPage.MOUNT_PATH +
-				"?template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+				"?template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
 				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
 				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
 				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
@@ -161,7 +161,7 @@ public class ProfileIntroItem extends Panel {
 				retractLink.setVisible(session.getLocalIntroCount() > 1 && session.isIntroWithLocalKey(inp));
 
 				ExternalLink deriveLink = new ExternalLink("derive-link", PublishPage.MOUNT_PATH + "?" +
-							"template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+							"template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
 							"derive-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
 							"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
 							"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
@@ -175,7 +175,7 @@ public class ProfileIntroItem extends Panel {
 
 				if (includeKeysParamMap.containsKey(inp)) {
 					item.add(new ExternalLink("include-keys-link", PublishPage.MOUNT_PATH + "?" +
-								"template=http://purl.org/np/RAr2tFRzWYsYNdtfZBkT9b47gbLWiHM_Sd_uenlqcYKt8&" +
+								"template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
 								"supersede=" + urlEncode(session.getLocalIntro().getNanopub().getUri()) +
 								includeKeysParamMap.get(inp) + "&" +
 								"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
