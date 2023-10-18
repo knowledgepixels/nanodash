@@ -14,6 +14,8 @@ public abstract class ConnectorConfig {
 		if ("get-ml-nanopubs".equals(operation)) return true;
 		if ("get-superpattern-nanopubs".equals(operation)) return true;
 		if ("get-reaction-nanopubs".equals(operation)) return true;
+		if ("get-eqrel-nanopubs".equals(operation)) return true;
+		if ("get-biolinkrel-nanopubs".equals(operation)) return true;
 		if ("get-reactions".equals(operation)) return true;
 		return false;
 	}
