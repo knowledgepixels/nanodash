@@ -18,7 +18,7 @@ You can use Nanodash by login in via ORCID in one of the online instances:
 
 ## Local Installation
 
-To use Nanodash locally, see the [installation instructions](INSTALL.md) (or the [installation instructions with Docker](INSTALL-with-Docker.md) if you are familiar with Docker).
+To use Nanodash locally, see the [installation instructions with Docker](INSTALL-with-Docker.md).
 
 
 ### Tutorials

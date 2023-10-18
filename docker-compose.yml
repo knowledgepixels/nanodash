@@ -5,7 +5,7 @@ services:
     image: nanopub/nanodash
     restart: unless-stopped
     ports:
-      - 37373:37373
+      - 37373:8080
     volumes:
       - ~/.nanopub:/root/.nanopub
       - .:/local

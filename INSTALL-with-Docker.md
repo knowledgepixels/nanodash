@@ -3,9 +3,6 @@ Nanodash Installation Instructions with Docker
 
 Nanodash is a client application that you can run on your own computer to browse and publish nanopublications by connecting to a decentralized network of services.
 
-These are the installation instructions using Docker and Docker Compose.
-If you are not familiar with these technologies, see the [regular installation instructions](INSTALL.md).
-
 
 ## Step 1: Install Docker and Docker Compose
 

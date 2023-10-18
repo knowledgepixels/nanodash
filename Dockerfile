@@ -1,5 +1,3 @@
-FROM openjdk
+FROM tomcat:11.0
 
-ADD package/nanodash.jar /package/
-ADD package/run /package/
-CMD "package/run"
+COPY target/nanodash-*.war /usr/local/tomcat/webapps/ROOT.war
