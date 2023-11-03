@@ -37,14 +37,16 @@ public class PublishFormContext implements Serializable {
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
 	private String targetNamespace;
+	private boolean readOnly;
 
-	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
+	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace, boolean readOnly) {
 		this.contextType = contextType;
 		this.isLocal = templateId != null && templateId.startsWith("file://");
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
 		this.componentId = componentId;
 		this.targetNamespace = targetNamespace;
+		this.readOnly = readOnly;
 	}
 
 	public void initStatements() {
@@ -245,6 +247,10 @@ public class PublishFormContext implements Serializable {
 		for (StatementItem si : statementItems) {
 			si.fill(statements);
 		}
+	}
+
+	public boolean isReadOnly() {
+		return readOnly;
 	}
 
 }

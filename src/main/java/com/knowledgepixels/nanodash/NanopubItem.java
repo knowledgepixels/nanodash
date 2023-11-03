@@ -13,6 +13,8 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -111,8 +113,8 @@ public class NanopubItem extends Panel {
 		WebMarkupContainer assertionPart2 = new WebMarkupContainer("assertion-part2");
 		assertionPart2.setOutputMarkupPlaceholderTag(true);
 		assertionPart2.setVisible(false);
-		List<Statement> assertionStatements1 = new ArrayList<>();
-		List<Statement> assertionStatements2 = new ArrayList<>();
+		List<StatementItem> assertionStatements1 = new ArrayList<>();
+		List<StatementItem> assertionStatements2 = new ArrayList<>();
 		AjaxLink<Void> showMoreLink = new AjaxLink<Void>("showmore"){
 
 			private static final long serialVersionUID = 7877892803130782900L;
@@ -160,16 +162,38 @@ public class NanopubItem extends Panel {
 			}
 		}
 
+		
+		
+		PublishFormContext assertionContext = new PublishFormContext(ContextType.ASSERTION, template.getId(), "statement", template.getTargetNamespace(), true);
+		assertionContext.initStatements();
+		ValueFiller filler = new ValueFiller(n.getNanopub(), ContextType.ASSERTION);
+		filler.fill(assertionContext);
+		assertionContext.finalizeStatements();
+		List<StatementItem> assertionStatements = new ArrayList<>();
+		for (StatementItem si : assertionContext.getStatementItems()) {
+			if (!si.isEmpty()) assertionStatements.add(si);
+		}
+		add(new ListView<StatementItem>("statements", assertionStatements) {
+
+			private static final long serialVersionUID = 1L;
+
+			protected void populateItem(ListItem<StatementItem> item) {
+				item.add(item.getModelObject());
+			}
+
+		});
+
+		
 		StatementComparator statementComparator = null;
 
 		if (n.getNanopub() != null) {
 			statementComparator = new StatementComparator(n.getNanopub());
 	
-			List<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
-			a.sort(statementComparator);
-			if (a.size() > 10) {
+			List<StatementItem> a = new ArrayList<>(assertionStatements);
+			//a.sort(statementComparator);
+			if (a.size() > 3) {
 				for (int i = 0 ; i < a.size() ; i++) {
-					if (i < 5) {
+					if (i < 2) {
 						assertionStatements1.add(a.get(i));
 					} else {
 						assertionStatements2.add(a.get(i));
@@ -181,27 +205,25 @@ public class NanopubItem extends Panel {
 			}
 		}
 
-		assertionPart1.add(new DataView<Statement>("assertion-statements1", new ListDataProvider<Statement>(assertionStatements1)) {
+		assertionPart1.add(new DataView<StatementItem>("assertion-statements1", new ListDataProvider<StatementItem>(assertionStatements1)) {
 
 			private static final long serialVersionUID = -4523773471034490379L;
 
 			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement1", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
+			protected void populateItem(Item<StatementItem> item) {
+				item.add(item.getModelObject());
 			}
 
 		});
 		add(assertionPart1);
 
-		assertionPart2.add(new DataView<Statement>("assertion-statements2", new ListDataProvider<Statement>(assertionStatements2)) {
+		assertionPart2.add(new DataView<StatementItem>("assertion-statements2", new ListDataProvider<StatementItem>(assertionStatements2)) {
 
 			private static final long serialVersionUID = -6119278916371285402L;
 
 			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement2", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
+			protected void populateItem(Item<StatementItem> item) {
+				item.add(item.getModelObject());
 			}
 
 		});
