@@ -25,7 +25,7 @@ public class ValueItem extends Panel implements ContextComponent {
 			IRI iri = (IRI) value;
 			if (rg.getContext().isReadOnly()) {
 				if (template.isPlaceholder(iri)) {
-					component = new IriReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+					component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
 				} else {
 					component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
 				}

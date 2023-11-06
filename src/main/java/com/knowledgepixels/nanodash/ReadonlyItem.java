@@ -20,7 +20,7 @@ import com.knowledgepixels.nanodash.StatementItem.RepetitionGroup;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class IriReadonlyItem extends Panel implements ContextComponent {
+public class ReadonlyItem extends Panel implements ContextComponent {
 
 	// TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
@@ -32,7 +32,7 @@ public class IriReadonlyItem extends Panel implements ContextComponent {
 	private IRI iri;
 	private final Template template;
 
-	public IriReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
+	public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
 		PublishFormContext context = rg.getContext();
 		this.iri = iriP;

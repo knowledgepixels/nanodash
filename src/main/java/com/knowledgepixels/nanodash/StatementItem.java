@@ -86,10 +86,10 @@ public class StatementItem extends Panel {
 			first = false;
 		}
 		String htmlClassString = "";
-		if (isOptional()) {
+		if (!context.isReadOnly() && isOptional()) {
 			htmlClassString += "nanopub-optional ";
 		}
-		if (isGrouped() || isRepeatable()) {
+		if (isGrouped() || (!context.isReadOnly() && isRepeatable())) {
 			htmlClassString += "nanopub-group ";
 		}
 		if (!htmlClassString.isEmpty()) {
@@ -188,12 +188,12 @@ public class StatementItem extends Panel {
 				if (statements.size() == 1 && !isFirst()) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
 				}
-				if (isFirst() && isOptional() && statements.size() == statementPartIds.size()) {
+				if (!context.isReadOnly() && isFirst() && isOptional() && statements.size() == statementPartIds.size()) {
 					statement.add(new Label("label", "(optional)"));
 				} else {
 					statement.add(new Label("label", "").setVisible(false));
 				}
-				if (isRepeatable() && statements.size() == statementPartIds.size() && isLast()) {
+				if (!context.isReadOnly() && isRepeatable() && statements.size() == statementPartIds.size() && isLast()) {
 					Label b = new Label("add-repetition", "+");
 					statement.add(b);
 					b.add(new AjaxEventBehavior("click") {
@@ -209,7 +209,7 @@ public class StatementItem extends Panel {
 					l.setVisible(false);
 					statement.add(l);
 				}
-				if (isRepeatable() && statements.size() == 1 && !isOnly()) {
+				if (!context.isReadOnly() && isRepeatable() && statements.size() == 1 && !isOnly()) {
 					Label b = new Label("remove-repetition", "-");
 					statement.add(b);
 					b.add(new AjaxEventBehavior("click") {
