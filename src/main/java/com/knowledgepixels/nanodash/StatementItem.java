@@ -118,19 +118,19 @@ public class StatementItem extends Panel {
 		return repetitionGroups.size();
 	}
 
-	private boolean isOptional() {
+	public boolean isOptional() {
 		return repetitionGroups.size() == 1 && getTemplate().isOptionalStatement(statementId);
 	}
 
-	private boolean isGrouped() {
+	public boolean isGrouped() {
 		return getTemplate().isGroupedStatement(statementId);
 	}
 
-	private boolean isRepeatable() {
+	public boolean isRepeatable() {
 		return getTemplate().isRepeatableStatement(statementId);
 	}
 
-	private boolean hasEmptyElements() {
+	public boolean hasEmptyElements() {
 		return repetitionGroups.get(0).hasEmptyElements();
 	}
 
@@ -273,10 +273,10 @@ public class StatementItem extends Panel {
 			String thisSuffix = getRepeatSuffix();
 			for (IRI iriBase : iriSet) {
 				IRI thisIri = vf.createIRI(iriBase + thisSuffix);
-				if (context.getFormComponentModels().containsKey(thisIri)) {
-					IModel<String> swapModel1 = context.getFormComponentModels().get(thisIri);
+				if (context.getComponentModels().containsKey(thisIri)) {
+					IModel<String> swapModel1 = context.getComponentModels().get(thisIri);
 					for (int i = getRepeatIndex() + 1 ; i < repetitionGroups.size(); i++) {
-						IModel<String> swapModel2 = context.getFormComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
+						IModel<String> swapModel2 = context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
 						if (swapModel1 != null && swapModel2 != null) {
 							swapModel1.setObject(swapModel2.getObject());
 						}

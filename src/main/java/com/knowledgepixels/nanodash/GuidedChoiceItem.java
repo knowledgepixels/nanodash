@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -67,10 +67,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		this.context = context;
 		this.iri = iriP;
 		final Template template = context.getTemplate();
-		model = context.getFormComponentModels().get(iri);
+		model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
-			context.getFormComponentModels().put(iri, model);
+			context.getComponentModels().put(iri, model);
 		}
 		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
@@ -164,7 +164,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new AttributeAppender("style", "width:750px;"));
 		textfield.add(new Validator(iri, template, prefix));
-		context.getFormComponents().add(textfield);
+		context.getComponents().add(textfield);
 
 		tooltipDescription = new Label("description", new IModel<String>() {
 
@@ -193,11 +193,11 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : context.getFormComponents()) {
-					if (fc == textfield) continue;
-					if (fc.getModel() == textfield.getModel()) {
-						fc.modelChanged();
-						target.add(fc);
+				for (Component c : context.getComponents()) {
+					if (c == textfield) continue;
+					if (c.getDefaultModel() == textfield.getModel()) {
+						c.modelChanged();
+						target.add(c);
 					}
 				}
 				target.add(tooltipLink);
@@ -220,7 +220,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(textfield);
+		context.getComponents().remove(textfield);
 	}
 
 	@Override

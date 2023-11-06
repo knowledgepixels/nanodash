@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -379,22 +380,24 @@ public class PublishForm extends Panel {
 			@Override
 		    protected void onValidate() {
 				super.onValidate();
-				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
+				for (Component fc : assertionContext.getComponents()) {
 					processFeedback(fc);
 				}
-				for (FormComponent<String> fc : provenanceContext.getFormComponents()) {
+				for (Component fc : provenanceContext.getComponents()) {
 					processFeedback(fc);
 				}
 				for (PublishFormContext c : pubInfoContexts) {
-					for (FormComponent<String> fc : c.getFormComponents()) {
+					for (Component fc : c.getComponents()) {
 						processFeedback(fc);
 					}
 				}
 			}
 
-			private void processFeedback(FormComponent<String> fc) {
-				fc.processInput();
-				for (FeedbackMessage fm : fc.getFeedbackMessages()) {
+			private void processFeedback(Component c) {
+				if (c instanceof FormComponent) {
+					((FormComponent<?>) c).processInput();
+				}
+				for (FeedbackMessage fm : c.getFeedbackMessages()) {
 					form.getFeedbackMessages().add(fm);
 				}
 			}
@@ -696,7 +699,7 @@ public class PublishForm extends Panel {
 			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
 			IRI placeholderIri = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
 			String placeholderValue = "";
-			IModel<String> m = assertionContext.getFormComponentModels().get(placeholderIri);
+			IModel<String> m = assertionContext.getComponentModels().get(placeholderIri);
 			if (m != null) placeholderValue = m.orElse("").getObject();
 			if (placeholderValue == null) placeholderValue = "";
 			String placeholderLabel = placeholderValue;

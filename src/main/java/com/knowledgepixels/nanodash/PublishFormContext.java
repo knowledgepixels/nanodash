@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -29,8 +29,8 @@ public class PublishFormContext implements Serializable {
 	private final Template template;
 	private final String componentId;
 	private final Map<String,String> params = new HashMap<>();
-	private List<FormComponent<String>> formComponents = new ArrayList<>();
-	private Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
+	private List<Component> components = new ArrayList<>();
+	private Map<IRI,IModel<String>> componentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
 	private boolean isLocal;
 	private List<StatementItem> statementItems;
@@ -131,12 +131,12 @@ public class PublishFormContext implements Serializable {
 		return params.containsKey(name);
 	}
 
-	public List<FormComponent<String>> getFormComponents() {
-		return formComponents;
+	public List<Component> getComponents() {
+		return components;
 	}
 
-	public Map<IRI,IModel<String>> getFormComponentModels() {
-		return formComponentModels;
+	public Map<IRI,IModel<String>> getComponentModels() {
+		return componentModels;
 	}
 
 	public Set<IRI> getIntroducedIris() {
@@ -162,7 +162,7 @@ public class PublishFormContext implements Serializable {
 			iri = vf.createIRI(targetNamespace);
 		}
 		// TODO: Move this code below to the respective placeholder classes:
-		IModel<String> tf = formComponentModels.get(iri);
+		IModel<String> tf = componentModels.get(iri);
 		Value processedValue = null;
 		if (template.isRestrictedChoicePlaceholder(iri)) {
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {

@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -47,10 +47,10 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		this.context = context;
 		this.iri = iri;
 		template = context.getTemplate();
-		model = context.getFormComponentModels().get(iri);
+		model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
-			context.getFormComponentModels().put(iri, model);
+			context.getComponentModels().put(iri, model);
 		}
 		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
@@ -141,7 +141,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.getSettings().setAllowClear(true);
 		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		choice.add(new Validator());
-		context.getFormComponents().add(choice);
+		context.getComponents().add(choice);
 
 		tooltipDescription = new Label("description", new IModel<String>() {
 
@@ -173,11 +173,11 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : context.getFormComponents()) {
-					if (fc == choice) continue;
-					if (fc.getModel() == choice.getModel()) {
-						fc.modelChanged();
-						target.add(fc);
+				for (Component c : context.getComponents()) {
+					if (c == choice) continue;
+					if (c.getDefaultModel() == choice.getModel()) {
+						c.modelChanged();
+						target.add(c);
 					}
 				}
 				target.add(tooltipLink);
@@ -202,7 +202,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(choice);
+		context.getComponents().remove(choice);
 	}
 
 	@Override
@@ -243,7 +243,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				String suffix = "__" + i;
 				if (i == 0) suffix = "";
 				IRI refIri = vf.createIRI(r.stringValue() + suffix);
-				IModel<String> m = context.getFormComponentModels().get(refIri);
+				IModel<String> m = context.getComponentModels().get(refIri);
 				if (m == null) break;
 				if (m.getObject() != null && !m.getObject().startsWith("\"")) {
 					possibleValues.add(m.getObject());

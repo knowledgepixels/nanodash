@@ -2,13 +2,8 @@ package com.knowledgepixels.nanodash;
 
 import java.net.URISyntaxException;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -18,27 +13,31 @@ import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+
+import com.knowledgepixels.nanodash.StatementItem.RepetitionGroup;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class IriTextfieldItem extends Panel implements ContextComponent {
+public class IriReadonlyItem extends Panel implements ContextComponent {
 
 	// TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
 	private static final long serialVersionUID = 1L;
 
+	IModel<String> model;
 	private String prefix;
-	private PublishFormContext context;
-	private TextField<String> textfield;
+	private Label labelComp;
 	private IRI iri;
+	private final Template template;
 
-	public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
+	public IriReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
-		this.context = context;
+		PublishFormContext context = rg.getContext();
 		this.iri = iriP;
-		final Template template = context.getTemplate();
-		IModel<String> model = context.getComponentModels().get(iri);
+		template = context.getTemplate();
+		model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
 			context.getComponentModels().put(iri, model);
@@ -73,45 +72,20 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			}
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
-		textfield = new TextField<>("textfield", model);
-		if (!optional) textfield.setRequired(true);
-		if (template.isLocalResource(iri)) {
-			textfield.add(new AttributeAppender("style", "width:400px;"));
+
+		labelComp = new Label("label", model);
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
+			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			labelComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
 		}
-		textfield.add(new Validator(iri, template, prefix));
-		context.getComponents().add(textfield);
-		if (template.getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
-			textfield.setLabel(Model.of(template.getLabel(iri)));
-		}
-		textfield.add(new OnChangeAjaxBehavior() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				for (Component c : context.getComponents()) {
-					if (c == textfield) continue;
-					if (c.getDefaultModel() == textfield.getModel()) {
-						c.modelChanged();
-						target.add(c);
-					}
-				}
-			}
-
-		});
-		add(textfield);
-
-		try {
-			unifyWith(template.getDefault(iri));
-		} catch (UnificationException ex) {
-			ex.printStackTrace();
-		}
+		add(labelComp);
 	}
 
 	@Override
 	public void removeFromContext() {
-		context.getComponents().remove(textfield);
+		// Nothing to be done here.
 	}
 
 	@Override
@@ -121,21 +95,29 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-			if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
+			if (template.isAutoEscapePlaceholder(iri)) {
 				vs = Utils.urlDecode(vs);
 			}
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+			if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
 			}
-			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
+			new Validator(iri, template, prefix).validate(validatable);
 			if (!validatable.isValid()) {
 				return false;
 			}
-			if (textfield.getModelObject().isEmpty()) {
+			if (model.getObject().isEmpty()) {
 				return true;
 			}
-			return vs.equals(textfield.getModelObject());
+			return vs.equals(model.getObject());
+		} else if (v instanceof Literal) {
+			if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
+				return false;
+			}
+			if (labelComp.getDefaultModelObject() == null || labelComp.getDefaultModelObject().toString().isEmpty()) {
+				return true;
+			}
+			return labelComp.getDefaultModelObject().equals("\"" + v.stringValue() + "\"");
 		}
 		return false;
 	}
@@ -145,17 +127,21 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		if (v == null) return;
 		String vs = v.stringValue();
 		if (!isUnifiableWith(v)) throw new UnificationException(vs);
-		if (!prefix.isEmpty() && vs.startsWith(prefix)) {
-			vs = vs.substring(prefix.length());
-		} else if (vs.startsWith("local:")) {
-			vs = vs.replaceFirst("^local:", "");
-		} else if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-			vs = Utils.getUriPostfix(vs);
+		if (v instanceof IRI) {
+			if (!prefix.isEmpty() && vs.startsWith(prefix)) {
+				vs = vs.substring(prefix.length());
+			} else if (vs.startsWith("local:")) {
+				vs = vs.replaceFirst("^local:", "");
+			} else if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+				vs = Utils.getUriPostfix(vs);
+			}
+			if (template.isAutoEscapePlaceholder(iri)) {
+				vs = Utils.urlDecode(vs);
+			}
+			model.setObject(vs);
+		} else if (v instanceof Literal) {
+			model.setObject("\"" + vs + "\"");
 		}
-		if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
-			vs = Utils.urlDecode(vs);
-		}
-		textfield.setModelObject(vs);
 	}
 
 
@@ -222,7 +208,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	}
 
 	public String toString() {
-		return "[IRI textfield item: " + iri + "]";
+		return "[read-only IRI item: " + iri + "]";
 	}
 
 }

@@ -3,9 +3,9 @@ package com.knowledgepixels.nanodash;
 import java.net.URISyntaxException;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -32,10 +32,10 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		this.context = context;
 		this.iri = iriP;
 		final Template template = context.getTemplate();
-		IModel<String> model = context.getFormComponentModels().get(iri);
+		IModel<String> model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
-			context.getFormComponentModels().put(iri, model);
+			context.getComponentModels().put(iri, model);
 		}
 		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
@@ -44,7 +44,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new Validator(iri, template));
-		context.getFormComponents().add(textfield);
+		context.getComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
 			textfield.setLabel(Model.of(template.getLabel(iri)));
@@ -55,11 +55,11 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : context.getFormComponents()) {
-					if (fc == textfield) continue;
-					if (fc.getModel() == textfield.getModel()) {
-						fc.modelChanged();
-						target.add(fc);
+				for (Component c : context.getComponents()) {
+					if (c == textfield) continue;
+					if (c.getDefaultModel() == textfield.getModel()) {
+						c.modelChanged();
+						target.add(c);
 					}
 				}
 			}
@@ -76,7 +76,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(textfield);
+		context.getComponents().remove(textfield);
 	}
 
 	@Override

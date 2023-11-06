@@ -171,7 +171,9 @@ public class NanopubItem extends Panel {
 		assertionContext.finalizeStatements();
 		List<StatementItem> assertionStatements = new ArrayList<>();
 		for (StatementItem si : assertionContext.getStatementItems()) {
-			if (!si.isEmpty()) assertionStatements.add(si);
+			if (!(si.isOptional() && si.hasEmptyElements())) {
+				assertionStatements.add(si);
+			}
 		}
 		add(new ListView<StatementItem>("statements", assertionStatements) {
 
