@@ -15,6 +15,8 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.knowledgepixels.nanodash.StatementItem.RepetitionGroup;
 
@@ -26,7 +28,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 	private static final long serialVersionUID = 1L;
 
-	IModel<String> model;
+	private IModel<String> model;
+	private PublishFormContext context;
 	private String prefix;
 	private Label labelComp;
 	private IRI iri;
@@ -34,7 +37,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 	public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
-		PublishFormContext context = rg.getContext();
+		context = rg.getContext();
 		this.iri = iriP;
 		template = context.getTemplate();
 		model = context.getComponentModels().get(iri);
@@ -73,7 +76,25 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
 
-		labelComp = new Label("label", model);
+		labelComp = new Label("label", new Model<String>() {
+
+			private static final long serialVersionUID = -5035468183533000988L;
+
+			@Override
+			public String getObject() {
+				String obj = model.getObject();
+				if (obj != null && obj.matches("(https?|file)://.+")) {
+					IRI objIri = vf.createIRI(obj);
+					if (template.isPlaceholder(iri)) {
+						if (template.getLabel(objIri) != null) {
+							return template.getLabel(objIri);
+						}
+					}
+				}
+				return obj;
+			}
+			
+		});
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
 			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
@@ -210,5 +231,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	public String toString() {
 		return "[read-only IRI item: " + iri + "]";
 	}
+
+	static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 }
