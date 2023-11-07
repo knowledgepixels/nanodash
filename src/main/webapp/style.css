@@ -709,3 +709,5 @@ div.widthmax {
   max-width: 1400px;
   margin-bottom: 50px;
 }
+
+.readonly { background: rgba(0, 0, 0, 0.08); padding: 4px; border-radius: 4px; }
