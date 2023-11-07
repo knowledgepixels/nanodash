@@ -4,6 +4,7 @@ import java.net.URISyntaxException;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -78,18 +79,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 		labelComp = new Label("label", new Model<String>() {
 
-			private static final long serialVersionUID = -5035468183533000988L;
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
 				String obj = model.getObject();
 				if (obj != null && obj.matches("(https?|file)://.+")) {
 					IRI objIri = vf.createIRI(obj);
-					if (template.isPlaceholder(iri)) {
-						if (template.getLabel(objIri) != null) {
-							return template.getLabel(objIri);
-						}
-					}
+					return getLabelString(objIri);
 				}
 				return obj;
 			}
@@ -102,6 +99,49 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			labelComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
 		}
 		add(labelComp);
+		add(new Label("description", new Model<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String obj = model.getObject();
+				if (obj != null && obj.matches("(https?|file)://.+")) {
+					IRI objIri = vf.createIRI(obj);
+					String description = "";
+					// TODO We'd need the nanopub ID here, not the template ID:
+//					if (obj.startsWith(context.getTemplateId())) {
+//						obj = obj.replace(context.getTemplateId(), "");
+//						description = "This is a local identifier that was minted when the nanopublication was created.";
+//					}
+					String labelString = getLabelString(objIri);
+					if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
+					return description;
+				}
+				return "";
+			}
+			
+		}));
+		add(new ExternalLink("uri", model, new Model<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String obj = model.getObject();
+				if (obj != null && obj.startsWith("\"")) return "";
+				return obj;
+			}
+			
+		}));
+	}
+
+	private String getLabelString(IRI iri) {
+		if (template.getLabel(iri) != null) {
+			return template.getLabel(iri);
+		} else {
+			return IriItem.getShortNameFromURI(iri.stringValue());
+		}
 	}
 
 	@Override

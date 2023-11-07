@@ -548,6 +548,10 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   margin: 5px;
 }
 
+.tooltiptext:has(> a:empty) {
+  display: none;
+}
+
 .uri {
   font-family: Martian,monaco,monospace;
   white-space: nowrap;
