@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.wicket.AttributeModifier;
@@ -145,7 +146,6 @@ public class StatementItem extends Panel {
 			matches = rg.tryToMatch(statements);
 			if (matches != null) {
 				rg.fill(matches);
-				statements.removeAll(matches);
 			}
 		}
 		if (matches == null || !isRepeatable()) return;
@@ -155,7 +155,6 @@ public class StatementItem extends Panel {
 			matches = newGroup.tryToMatch(statements);
 			if (matches != null) {
 				newGroup.fill(matches);
-				statements.removeAll(matches);
 				repetitionGroups.add(newGroup);
 				refreshStatements();
 			} else {
@@ -383,20 +382,21 @@ public class StatementItem extends Panel {
 			if (filled) return null;
 			List<Statement> matches = new ArrayList<>();
 			for (StatementPartItem p : statements) {
-				boolean matchFound = false;
+				Statement matchedStatement = null;
 				for (Statement s : st) {
-					if (matches.contains(s)) continue;
 					if (
 							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
-						matchFound = true;
+						matchedStatement = s;
 						matches.add(s);
 						break;
 					}
 				}
-				if (!matchFound) {
+				if (matchedStatement == null) {
 					return null;
+				} else {
+					st.remove(matchedStatement);
 				}
 			}
 			return matches;
