@@ -117,6 +117,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 					String labelString = getLabelString(objIri);
 					if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 					return description;
+				} else if (obj != null && obj.startsWith("\"")) {
+					return "(this is a literal)";
 				}
 				return "";
 			}
