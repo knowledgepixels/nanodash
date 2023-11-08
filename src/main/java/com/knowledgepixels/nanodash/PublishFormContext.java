@@ -80,7 +80,7 @@ public class PublishFormContext implements Serializable {
 			while (true) {
 				String p = postfix + "__" + i;
 				if (hasParam(p)) {
-					si.repeat();
+					si.addRepetitionGroup();
 				} else {
 					break;
 				}
@@ -105,9 +105,8 @@ public class PublishFormContext implements Serializable {
 		}
 		for (StatementItem si : finalRepetitionCount.keySet()) {
 			for (int i = 0 ; i < finalRepetitionCount.get(si) ; i++) {
-				si.repeat();
+				si.addRepetitionGroup();
 			}
-			si.refreshStatements();
 		}
 	}
 
