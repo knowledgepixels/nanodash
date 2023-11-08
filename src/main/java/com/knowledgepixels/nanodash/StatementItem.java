@@ -140,7 +140,8 @@ public class StatementItem extends Panel {
 
 	public void fill(List<Statement> statements) throws UnificationException {
 		List<Statement> matches = null;
-		for (RepetitionGroup rg : repetitionGroups) {
+		if (repetitionGroups.size() == 1) {
+			RepetitionGroup rg = repetitionGroups.get(0);
 			matches = rg.tryToMatch(statements);
 			if (matches != null) {
 				rg.fill(matches);
@@ -175,6 +176,7 @@ public class StatementItem extends Panel {
 
 		private List<StatementPartItem> statements;
 		private List<ValueItem> localItems = new ArrayList<>();
+		private boolean filled = false;
 
 		public RepetitionGroup() {
 		}
@@ -378,6 +380,7 @@ public class StatementItem extends Panel {
 		}
 
 		public List<Statement> tryToMatch(List<Statement> st) {
+			if (filled) return null;
 			List<Statement> matches = new ArrayList<>();
 			for (StatementPartItem p : statements) {
 				boolean matchFound = false;
@@ -400,6 +403,7 @@ public class StatementItem extends Panel {
 		}
 
 		public void fill(List<Statement> matches) throws UnificationException {
+			if (filled) throw new UnificationException("Already filled");
 			for (int i = 0 ; i < statements.size() ; i++) {
 				StatementPartItem p = statements.get(i);
 				Statement s = matches.get(i);
@@ -407,6 +411,7 @@ public class StatementItem extends Panel {
 				p.getSubject().unifyWith(s.getSubject());
 				p.getObject().unifyWith(s.getObject());
 			}
+			filled = true;
 		}
 
 	}

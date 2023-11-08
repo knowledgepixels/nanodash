@@ -257,6 +257,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			vs = vs.replaceFirst("^local:", "");
 		}
 		textfield.setModelObject(vs);
+		// TODO: This should be done differently, at a different place (can slow down unification):
 		if (!labelMap.containsKey(vs)) {
 			context.getTemplate().getPossibleValuesFromApi(iri, vs, labelMap);
 		}
