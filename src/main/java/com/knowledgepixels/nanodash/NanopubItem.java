@@ -166,8 +166,11 @@ public class NanopubItem extends Panel {
 		}
 
 		
-		
-		PublishFormContext assertionContext = new PublishFormContext(ContextType.ASSERTION, template.getId(), "statement", template.getTargetNamespace(), true);
+		Template fillTemplate = template;
+		if (fillTemplate == null) {
+			fillTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");  // arbitrary triple template
+		}
+		PublishFormContext assertionContext = new PublishFormContext(ContextType.ASSERTION, fillTemplate.getId(), "statement", fillTemplate.getTargetNamespace(), true);
 		assertionContext.initStatements();
 		ValueFiller filler = new ValueFiller(n.getNanopub(), ContextType.ASSERTION);
 		if (signerId != null) {
