@@ -26,14 +26,6 @@ public class IriItem extends Panel implements ContextComponent {
 		this.context = rg.getContext();
 		final Template template = context.getTemplate();
 		String labelString = null;
-		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = NanodashSession.get().getUserIri();
-			if (objectPosition) {
-				labelString = "me (" + User.getShortDisplayName(iri) + ")";
-			} else {
-				labelString = "I (" + User.getShortDisplayName(iri) + ")";
-			}
-		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			if (context.getType() == ContextType.ASSERTION) {
 				labelString = "this assertion";

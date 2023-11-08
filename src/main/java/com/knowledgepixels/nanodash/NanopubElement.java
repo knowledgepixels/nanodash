@@ -26,6 +26,7 @@ public class NanopubElement implements Serializable {
 	private Calendar creationTime;
 	private Boolean seemsToHaveSignature;
 	private Boolean hasValidSignature;
+	private IRI signerId;
 	private List<IRI> types;
 	private Boolean isRetraction;
 	private Boolean hasRetractionTarget;
@@ -94,11 +95,22 @@ public class NanopubElement implements Serializable {
 			NanopubSignatureElement se = SignatureUtils.getSignatureElement(nanopub);
 			if (se != null) {
 				hasValidSignature = SignatureUtils.hasValidSignature(se);
+				if (se.getSigners().size() == 1) signerId = se.getSigners().iterator().next();
 			} else {
 				hasValidSignature = false;
 			}
 		}
 		return hasValidSignature;
+	}
+
+	public IRI getSignerId() {
+		if (nanopub == null) return null;
+		try {
+			if (hasValidSignature == null) hasValidSignature();
+		} catch (GeneralSecurityException | MalformedCryptoElementException ex) {
+			ex.printStackTrace();
+		}
+		return signerId;
 	}
 
 	public List<IRI> getTypes() {

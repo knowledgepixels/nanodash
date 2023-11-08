@@ -86,6 +86,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				String obj = model.getObject();
 				if (obj != null && obj.matches("(https?|file)://.+")) {
 					IRI objIri = vf.createIRI(obj);
+					if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+						if (objectPosition) {
+							return "me (" + User.getShortDisplayName(objIri) + ")";
+						} else {
+							return "I (" + User.getShortDisplayName(objIri) + ")";
+						}
+					}
 					return getLabelString(objIri);
 				}
 				return obj;

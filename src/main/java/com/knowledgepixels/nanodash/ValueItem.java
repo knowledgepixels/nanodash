@@ -23,7 +23,10 @@ public class ValueItem extends Panel implements ContextComponent {
 		final Template template = rg.getContext().getTemplate();
 		if (value instanceof IRI) {
 			IRI iri = (IRI) value;
-			if (rg.getContext().isReadOnly()) {
+			if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+				// This is a special placeholder that is always read-only
+				component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+			} else if (rg.getContext().isReadOnly()) {
 				if (template.isPlaceholder(iri)) {
 					component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
 				} else {

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -47,6 +48,9 @@ public class PublishFormContext implements Serializable {
 		this.componentId = componentId;
 		this.targetNamespace = targetNamespace;
 		this.readOnly = readOnly;
+		if (!readOnly && NanodashSession.get().getUserIri() != null) {
+			componentModels.put(Template.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
+		}
 	}
 
 	public void initStatements() {

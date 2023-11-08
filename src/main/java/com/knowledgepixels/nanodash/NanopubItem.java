@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -47,10 +48,12 @@ public class NanopubItem extends Panel {
 		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
 
 		String userString = "";
+		IRI signerId = null;
 		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
 				pubkey = n.getPubkey();
+				signerId = n.getSignerId();
 				userString = User.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
@@ -167,6 +170,9 @@ public class NanopubItem extends Panel {
 		PublishFormContext assertionContext = new PublishFormContext(ContextType.ASSERTION, template.getId(), "statement", template.getTargetNamespace(), true);
 		assertionContext.initStatements();
 		ValueFiller filler = new ValueFiller(n.getNanopub(), ContextType.ASSERTION);
+		if (signerId != null) {
+			assertionContext.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+		}
 		filler.fill(assertionContext);
 		assertionContext.finalizeStatements();
 		List<StatementItem> assertionStatements = new ArrayList<>();
