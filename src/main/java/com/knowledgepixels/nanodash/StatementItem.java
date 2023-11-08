@@ -139,19 +139,22 @@ public class StatementItem extends Panel {
 	}
 
 	public void fill(List<Statement> statements) throws UnificationException {
-		boolean hasMatch = false;
+		List<Statement> matches = null;
 		for (RepetitionGroup rg : repetitionGroups) {
-			hasMatch = rg.canMatch(statements);
-			if (hasMatch) {
-				rg.fill(statements);
+			matches = rg.tryToMatch(statements);
+			if (matches != null) {
+				rg.fill(matches);
+				statements.removeAll(matches);
 			}
 		}
-		if (!hasMatch || !isRepeatable()) return;
+		if (matches == null || !isRepeatable()) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
 			newGroup.refresh();
-			if (newGroup.canMatch(statements)) {
-				newGroup.fill(statements);
+			matches = newGroup.tryToMatch(statements);
+			if (matches != null) {
+				newGroup.fill(matches);
+				statements.removeAll(matches);
 				repetitionGroups.add(newGroup);
 				refreshStatements();
 			} else {
@@ -374,48 +377,35 @@ public class StatementItem extends Panel {
 			return true;
 		}
 
-		public boolean canMatch(List<Statement> st) {
-			//System.err.println("Try to match repetition group...");
+		public List<Statement> tryToMatch(List<Statement> st) {
+			List<Statement> matches = new ArrayList<>();
 			for (StatementPartItem p : statements) {
-				//System.err.println("Try to match: " + p);
 				boolean matchFound = false;
 				for (Statement s : st) {
-					//System.err.println("Checking statement: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
+					if (matches.contains(s)) continue;
 					if (
 							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
 						matchFound = true;
-						//System.err.println("Statement matched.");
+						matches.add(s);
 						break;
 					}
 				}
 				if (!matchFound) {
-					//System.err.println("Not matched.");
-					return false;
+					return null;
 				}
 			}
-			//System.err.println("Repetition group matched.");
-			return true;
+			return matches;
 		}
 
-		public void fill(List<Statement> st) throws UnificationException {
-			for (StatementPartItem p : statements) {
-				boolean matchFound = false;
-				for (Statement s : st) {
-					if (
-							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
-							p.getSubject().isUnifiableWith(s.getSubject()) &&
-							p.getObject().isUnifiableWith(s.getObject())) {
-						p.getPredicate().unifyWith(s.getPredicate());
-						p.getSubject().unifyWith(s.getSubject());
-						p.getObject().unifyWith(s.getObject());
-						st.remove(s);
-						matchFound = true;
-						break;
-					}
-				}
-				if (!matchFound) throw new UnificationException("Unification seemed to work but then didn't");
+		public void fill(List<Statement> matches) throws UnificationException {
+			for (int i = 0 ; i < statements.size() ; i++) {
+				StatementPartItem p = statements.get(i);
+				Statement s = matches.get(i);
+				p.getPredicate().unifyWith(s.getPredicate());
+				p.getSubject().unifyWith(s.getSubject());
+				p.getObject().unifyWith(s.getObject());
 			}
 		}
 
