@@ -382,8 +382,8 @@ public class StatementItem extends Panel {
 				for (Statement s : st) {
 					//System.err.println("Checking statement: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
 					if (
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
-							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
 						matchFound = true;
 						//System.err.println("Statement matched.");
@@ -404,11 +404,11 @@ public class StatementItem extends Panel {
 				boolean matchFound = false;
 				for (Statement s : st) {
 					if (
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
-							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
-						p.getSubject().unifyWith(s.getSubject());
 						p.getPredicate().unifyWith(s.getPredicate());
+						p.getSubject().unifyWith(s.getSubject());
 						p.getObject().unifyWith(s.getObject());
 						st.remove(s);
 						matchFound = true;
