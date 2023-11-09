@@ -227,24 +227,36 @@ public class NanopubItem extends Panel {
 		});
 		add(assertionPart2);
 
+		List<StatementItem> provenanceStatements = new ArrayList<>();
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
-		List<Statement> provenanceStatements = new ArrayList<>();
 		if (hideProvenance) {
 			provenance.setVisible(false);
-		} else {
-			if (n.getNanopub() != null) {
-				provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
-				provenanceStatements.sort(statementComparator);
+		} else if (n.getNanopub() != null) {
+			// TODO Can/should nanopub really be null here?
+			Template prFillTemplate = Template.getProvenanceTemplate(n.getNanopub());
+			if (prFillTemplate == null) {
+				prFillTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");  // arbitrary triple template
+			}
+			PublishFormContext provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prFillTemplate.getId(), "provenance-statement", prFillTemplate.getTargetNamespace(), true);
+			provenanceContext.initStatements();
+			if (signerId != null) {
+				provenanceContext.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+			}
+			ValueFiller prFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE);
+			prFiller.fill(provenanceContext);
+			for (StatementItem si : provenanceContext.getStatementItems()) {
+				if (!(si.isOptional() && si.hasEmptyElements())) {
+					provenanceStatements.add(si);
+				}
 			}
 		}
-		provenance.add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
+		provenance.add(new DataView<StatementItem>("provenance-statements", new ListDataProvider<StatementItem>(provenanceStatements)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("provenance-statement", st, n.getNanopub(), Template.PROVENANCE_TEMPLATE_CLASS));
+			protected void populateItem(Item<StatementItem> item) {
+				item.add(item.getModelObject());
 			}
 
 		});
