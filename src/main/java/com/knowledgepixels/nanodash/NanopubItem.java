@@ -13,8 +13,6 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -184,16 +182,6 @@ public class NanopubItem extends Panel {
 				assertionStatements.add(si);
 			}
 		}
-		add(new ListView<StatementItem>("statements", assertionStatements) {
-
-			private static final long serialVersionUID = 1L;
-
-			protected void populateItem(ListItem<StatementItem> item) {
-				item.add(item.getModelObject());
-			}
-
-		});
-
 		
 		StatementComparator statementComparator = null;
 
@@ -201,7 +189,6 @@ public class NanopubItem extends Panel {
 			statementComparator = new StatementComparator(n.getNanopub());
 	
 			List<StatementItem> a = new ArrayList<>(assertionStatements);
-			//a.sort(statementComparator);
 			if (a.size() > 3) {
 				for (int i = 0 ; i < a.size() ; i++) {
 					if (i < 2) {
