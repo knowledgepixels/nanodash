@@ -34,6 +34,7 @@ public class NanopubItem extends Panel {
 
 	private final Map<IRI,Integer> predicateOrder = new HashMap<>();
 	private Template template;
+	private IRI signerId;
 
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		this(id, n, hideProvenance, hidePubinfo, null);
@@ -46,7 +47,6 @@ public class NanopubItem extends Panel {
 		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
 
 		String userString = "";
-		IRI signerId = null;
 		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
@@ -162,27 +162,8 @@ public class NanopubItem extends Panel {
 			}
 		}
 
-		
-		Template fillTemplate = template;
-		if (fillTemplate == null) {
-			fillTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");  // arbitrary triple template
-		}
-		PublishFormContext assertionContext = new PublishFormContext(ContextType.ASSERTION, fillTemplate.getId(), "statement", fillTemplate.getTargetNamespace(), true);
-		assertionContext.initStatements();
-		ValueFiller filler = new ValueFiller(n.getNanopub(), ContextType.ASSERTION);
-		if (signerId != null) {
-			assertionContext.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
-		}
-		filler.fill(assertionContext);
-		assertionContext.finalizeStatements();
 		List<StatementItem> assertionStatements = new ArrayList<>();
-		for (StatementItem si : assertionContext.getStatementItems()) {
-			if (!(si.isOptional() && si.hasEmptyElements())) {
-				assertionStatements.add(si);
-			}
-		}
-		
-		StatementComparator statementComparator = new StatementComparator(n.getNanopub());
+		populateStatementItemList(ContextType.ASSERTION, n.getNanopub(), assertionStatements);
 
 		List<StatementItem> a = new ArrayList<>(assertionStatements);
 		if (a.size() > 3) {
@@ -227,22 +208,7 @@ public class NanopubItem extends Panel {
 		if (hideProvenance) {
 			provenance.setVisible(false);
 		} else {
-			Template prFillTemplate = Template.getProvenanceTemplate(n.getNanopub());
-			if (prFillTemplate == null) {
-				prFillTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");  // arbitrary triple template
-			}
-			PublishFormContext provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prFillTemplate.getId(), "provenance-statement", prFillTemplate.getTargetNamespace(), true);
-			provenanceContext.initStatements();
-			if (signerId != null) {
-				provenanceContext.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
-			}
-			ValueFiller prFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE);
-			prFiller.fill(provenanceContext);
-			for (StatementItem si : provenanceContext.getStatementItems()) {
-				if (!(si.isOptional() && si.hasEmptyElements())) {
-					provenanceStatements.add(si);
-				}
-			}
+			populateStatementItemList(ContextType.PROVENANCE, n.getNanopub(), provenanceStatements);
 		}
 		provenance.add(new DataView<StatementItem>("provenance-statements", new ListDataProvider<StatementItem>(provenanceStatements)) {
 
@@ -262,7 +228,7 @@ public class NanopubItem extends Panel {
 			pubInfo.setVisible(false);
 		} else {
 			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-			pubinfoStatements.sort(statementComparator);
+			pubinfoStatements.sort(new StatementComparator(n.getNanopub()));
 		}
 		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
 			
@@ -276,6 +242,38 @@ public class NanopubItem extends Panel {
 
 		});
 		add(pubInfo);
+	}
+
+	private void populateStatementItemList(ContextType contextType, Nanopub np, List<StatementItem> list) {
+		Template fillTemplate = null;
+		String fallbackTemplateId = null;
+		String elementId = null;
+		if (contextType == ContextType.ASSERTION) {
+			fillTemplate = Template.getTemplate(np);
+			fallbackTemplateId = "http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU";
+			elementId = "statement";
+		} else if (contextType == ContextType.PROVENANCE) {
+			fillTemplate = Template.getProvenanceTemplate(np);
+			fallbackTemplateId = "http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4";
+			elementId = "provenance-statement";
+		} else {
+			throw new IllegalArgumentException("Invalid context type: " + contextType);
+		}
+		if (fillTemplate == null) {
+			fillTemplate = Template.getTemplate(fallbackTemplateId);
+		}
+		PublishFormContext context = new PublishFormContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
+		context.initStatements();
+		if (signerId != null) {
+			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+		}
+		ValueFiller prFiller = new ValueFiller(np, contextType);
+		prFiller.fill(context);
+		for (StatementItem si : context.getStatementItems()) {
+			if (!(si.isOptional() && si.hasEmptyElements())) {
+				list.add(si);
+			}
+		}
 	}
 
 	private void processStatementForPredicateOrder(IRI statementId) {
