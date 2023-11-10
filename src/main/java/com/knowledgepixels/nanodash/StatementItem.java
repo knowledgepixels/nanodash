@@ -33,6 +33,7 @@ public class StatementItem extends Panel {
 	private List<IRI> statementPartIds = new ArrayList<>();
 	private List<WebMarkupContainer> viewElements = new ArrayList<>();
 	private List<RepetitionGroup> repetitionGroups = new ArrayList<>();
+	private boolean repetitionGroupsChanged = true;
 	private Set<IRI> iriSet = new HashSet<>();
 
 	public StatementItem(String id, IRI statementId, PublishFormContext context) {
@@ -69,7 +70,16 @@ public class StatementItem extends Panel {
 
 	public void addRepetitionGroup(RepetitionGroup rg) {
 		repetitionGroups.add(rg);
-		updateViewElements();
+		repetitionGroupsChanged = true;
+	}
+
+	@Override
+	protected void onBeforeRender() {
+		if (repetitionGroupsChanged) {
+			updateViewElements();
+		}
+		repetitionGroupsChanged = false;
+		super.onBeforeRender();
 	}
 
 	private void updateViewElements() {
@@ -291,10 +301,11 @@ public class StatementItem extends Panel {
 				}
 			}
 			repetitionGroups.remove(this);
+			repetitionGroupsChanged = true;
 			for (ValueItem vi : items) {
 				vi.removeFromContext();
 			}
-			updateViewElements();
+			//updateViewElements();
 		}
 
 		private String getRepeatSuffix() {
