@@ -181,7 +181,7 @@ public class NanopubItem extends Panel {
 
 		assertionPart1.add(new DataView<StatementItem>("assertion-statements1", new ListDataProvider<StatementItem>(assertionStatements1)) {
 
-			private static final long serialVersionUID = -4523773471034490379L;
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(Item<StatementItem> item) {
@@ -193,7 +193,7 @@ public class NanopubItem extends Panel {
 
 		assertionPart2.add(new DataView<StatementItem>("assertion-statements2", new ListDataProvider<StatementItem>(assertionStatements2)) {
 
-			private static final long serialVersionUID = -6119278916371285402L;
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(Item<StatementItem> item) {
