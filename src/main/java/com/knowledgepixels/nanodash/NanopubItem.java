@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -18,7 +19,6 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
@@ -142,9 +142,9 @@ public class NanopubItem extends Panel {
 		assertionPart1.add(showMoreLink);
 		assertionPart2.add(showLessLink);
 
-		List<StatementItem> assertionStatements = new ArrayList<>();
 		Template assertionTemplate = Template.getTemplate(n.getNanopub());
 		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+		List<StatementItem> assertionStatements = new ArrayList<>();
 		populateStatementItemList(ContextType.ASSERTION, n.getNanopub(), assertionTemplate, "assertion-statement", assertionStatements);
 
 		List<StatementItem> a = new ArrayList<>(assertionStatements);
@@ -169,48 +169,59 @@ public class NanopubItem extends Panel {
 		if (hideProvenance) {
 			provenance.setVisible(false);
 		} else {
-			List<StatementItem> provenanceStatements = new ArrayList<>();
 			Template provenanceTemplate = Template.getProvenanceTemplate(n.getNanopub());
 			if (provenanceTemplate == null) provenanceTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
+			List<StatementItem> provenanceStatements = new ArrayList<>();
 			populateStatementItemList(ContextType.PROVENANCE, n.getNanopub(), provenanceTemplate, "provenance-statement", provenanceStatements);
 			provenance.add(createStatementView("provenance-statements", provenanceStatements));
 		}
 		add(provenance);
 
 		WebMarkupContainer pubInfo = new WebMarkupContainer("pubinfo");
-		List<Statement> pubinfoStatements = new ArrayList<>();
 		if (hidePubinfo) {
 			pubInfo.setVisible(false);
 		} else {
-			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-		}
-		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("pubinfo-statement", st, n.getNanopub(), Template.PUBINFO_TEMPLATE_CLASS));
+			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO);
+			Set<Template> pubinfoTemplates = Template.getPubinfoTemplates(n.getNanopub());
+			if (pubinfoTemplates.isEmpty()) pubinfoTemplates.add(Template.getTemplate("http://purl.org/np/RAv4Knz3yIWofRt_Hpghs67iDKTAixqNthOM75OB4Ltvo"));
+			List<WebMarkupContainer> elements = new ArrayList<>();
+			for (Template pubinfoTemplate : pubinfoTemplates) {
+				WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
+				List<StatementItem> pubinfoStatements = new ArrayList<>();
+				populateStatementItemList(ContextType.PUBINFO, pubinfoFiller, pubinfoTemplate, "pubinfo-statement", pubinfoStatements);
+				pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
+				elements.add(pubInfoElement);
 			}
-
-		});
+			pubInfo.add(new DataView<WebMarkupContainer>("pubinfo-elements", new ListDataProvider<WebMarkupContainer>(elements)) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<WebMarkupContainer> item) {
+					item.add(item.getModelObject());
+				}
+	
+			});
+		}
 		add(pubInfo);
 	}
 
-	private void populateStatementItemList(ContextType contextType, Nanopub np, Template fillTemplate, String elementId, List<StatementItem> list) {
+	private void populateStatementItemList(ContextType contextType, ValueFiller filler, Template fillTemplate, String elementId, List<StatementItem> list) {
 		PublishFormContext context = new PublishFormContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
 		context.initStatements();
 		if (signerId != null) {
 			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
 		}
-		ValueFiller prFiller = new ValueFiller(np, contextType);
-		prFiller.fill(context);
+		filler.fill(context);
 		for (StatementItem si : context.getStatementItems()) {
 			if (!(si.isOptional() && si.hasEmptyElements())) {
 				list.add(si);
 			}
 		}
+	}
+
+	private void populateStatementItemList(ContextType contextType, Nanopub np, Template fillTemplate, String elementId, List<StatementItem> list) {
+		populateStatementItemList(contextType, new ValueFiller(np, contextType), fillTemplate, elementId, list);
 	}
 
 	private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {

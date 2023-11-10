@@ -119,6 +119,10 @@ table {
 	font-size: inherit;
 }
 
+table.thin td {
+	padding: 0px;
+}
+
 table, th, td {
     border-collapse: collapse;
 }
