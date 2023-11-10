@@ -305,7 +305,6 @@ public class StatementItem extends Panel {
 			for (ValueItem vi : items) {
 				vi.removeFromContext();
 			}
-			//updateViewElements();
 		}
 
 		private String getRepeatSuffix() {
