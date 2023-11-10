@@ -1,9 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +30,6 @@ public class NanopubItem extends Panel {
 	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
-	private final Map<IRI,Integer> predicateOrder = new HashMap<>();
-	private Template template;
 	private IRI signerId;
 
 	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
@@ -146,22 +142,6 @@ public class NanopubItem extends Panel {
 		assertionPart1.add(showMoreLink);
 		assertionPart2.add(showLessLink);
 
-		// Getting predicate order in assertion template in order to sort statements:
-		// TODO This is just a quick-and-dirty solution. Properly trying to fill the template should be done at some point.
-		// TODO We should also do this for the provenance and pubinfo graphs too.
-		template = Template.getTemplate(n.getNanopub());
-		if (template != null) {
-			for (IRI statementId : template.getStatementIris()) {
-				if (template.isGroupedStatement(statementId)) {
-					for (IRI subStatementId : template.getStatementIris(statementId)) {
-						processStatementForPredicateOrder(subStatementId);
-					}
-				} else {
-					processStatementForPredicateOrder(statementId);
-				}
-			}
-		}
-
 		List<StatementItem> assertionStatements = new ArrayList<>();
 		populateStatementItemList(ContextType.ASSERTION, n.getNanopub(), assertionStatements);
 
@@ -228,7 +208,6 @@ public class NanopubItem extends Panel {
 			pubInfo.setVisible(false);
 		} else {
 			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-			pubinfoStatements.sort(new StatementComparator(n.getNanopub()));
 		}
 		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
 			
@@ -245,23 +224,24 @@ public class NanopubItem extends Panel {
 	}
 
 	private void populateStatementItemList(ContextType contextType, Nanopub np, List<StatementItem> list) {
-		Template fillTemplate = null;
-		String fallbackTemplateId = null;
-		String elementId = null;
 		if (contextType == ContextType.ASSERTION) {
-			fillTemplate = Template.getTemplate(np);
-			fallbackTemplateId = "http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU";
-			elementId = "statement";
+			Template t = Template.getTemplate(np);
+			if (t == null) t = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+			populateStatementItemList(contextType, np, t, "statement", list);
 		} else if (contextType == ContextType.PROVENANCE) {
-			fillTemplate = Template.getProvenanceTemplate(np);
-			fallbackTemplateId = "http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4";
-			elementId = "provenance-statement";
+			Template t = Template.getProvenanceTemplate(np);
+			if (t == null) t = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
+			populateStatementItemList(contextType, np, t, "provenance-statement", list);
+		} else if (contextType == ContextType.PUBINFO) {
+//			fillTemplates = List.copyOf(Template.getPubinfoTemplates(np));
+//			fallbackTemplateId = "http://purl.org/np/RAv4Knz3yIWofRt_Hpghs67iDKTAixqNthOM75OB4Ltvo";
+//			elementId = "pubinfo-statement";
 		} else {
 			throw new IllegalArgumentException("Invalid context type: " + contextType);
 		}
-		if (fillTemplate == null) {
-			fillTemplate = Template.getTemplate(fallbackTemplateId);
-		}
+	}
+
+	private void populateStatementItemList(ContextType contextType, Nanopub np, Template fillTemplate, String elementId, List<StatementItem> list) {
 		PublishFormContext context = new PublishFormContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
 		context.initStatements();
 		if (signerId != null) {
@@ -274,74 +254,6 @@ public class NanopubItem extends Panel {
 				list.add(si);
 			}
 		}
-	}
-
-	private void processStatementForPredicateOrder(IRI statementId) {
-		IRI pred = template.getPredicate(statementId);
-		if (template.isRestrictedChoicePlaceholder(pred)) {
-			// TODO
-		} else if (!template.isPlaceholder(pred)) {
-			if (!predicateOrder.containsKey(pred)) predicateOrder.put(pred, predicateOrder.size());
-		}
-	}
-	
-
-	private class StatementComparator implements Comparator<Statement>, Serializable {
-
-		private static final long serialVersionUID = 1L;
-
-		private IRI introducedThing = null;
-		private Nanopub np;
-
-		public StatementComparator(Nanopub np) {
-			this.np = np;
-			for (Statement st : np.getPubinfo()) {
-				if (st.getSubject().equals(np.getUri()) && st.getPredicate().equals(PublishForm.INTRODUCES_PREDICATE) && st.getObject().isIRI()) {
-					introducedThing = (IRI) st.getObject();
-					break;
-				}
-			}
-		}
-
-		@Override
-		public int compare(Statement arg0, Statement arg1) {
-			if (!arg0.getSubject().stringValue().equals(arg1.getSubject().stringValue())) {
-				if (arg0.getSubject().equals(np.getUri())) {
-					return -1;
-				} else if (arg1.getSubject().equals(np.getUri())) {
-					return 1;
-				}
-				if (arg0.getSubject().equals(np.getAssertionUri())) {
-					return -1;
-				} else if (arg1.getSubject().equals(np.getAssertionUri())) {
-					return 1;
-				}
-				if (arg0.getSubject().equals(introducedThing)) {
-					return -1;
-				} else if (arg1.getSubject().equals(introducedThing)) {
-					return 1;
-				}
-				return arg0.getSubject().toString().compareTo(arg1.getSubject().toString());
-			}
-			IRI pred0 = arg0.getPredicate();
-			IRI pred1 = arg1.getPredicate();
-			if (predicateOrder.containsKey(pred0) && predicateOrder.containsKey(pred1)) {
-				int order0 = predicateOrder.get(pred0);
-				int order1 = predicateOrder.get(pred1);
-				if (order0 == order1) {
-					return pred0.toString().compareTo(pred1.toString());
-				} else {
-					return order0 - order1;
-				}
-			} else if (predicateOrder.containsKey(pred0)) {
-				return -1;
-			} else if (predicateOrder.containsKey(pred1)) {
-				return 1;
-			} else {
-				return pred0.toString().compareTo(pred1.toString());
-			}
-		}
-
 	}
 
 }
