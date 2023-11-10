@@ -72,8 +72,7 @@ public class NanopubItem extends Panel {
 		for (NanopubAction action : allActions) {
 			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
 			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
-			Nanopub np = n.getNanopub();
-			if (np == null || !action.isApplicableTo(np)) continue;
+			if (!action.isApplicableTo(n.getNanopub())) continue;
 			actionList.add(action);
 			actionMap.put(action.getLinkLabel(n.getNanopub()), action);
 		}
@@ -183,24 +182,20 @@ public class NanopubItem extends Panel {
 			}
 		}
 		
-		StatementComparator statementComparator = null;
+		StatementComparator statementComparator = new StatementComparator(n.getNanopub());
 
-		if (n.getNanopub() != null) {
-			statementComparator = new StatementComparator(n.getNanopub());
-	
-			List<StatementItem> a = new ArrayList<>(assertionStatements);
-			if (a.size() > 3) {
-				for (int i = 0 ; i < a.size() ; i++) {
-					if (i < 2) {
-						assertionStatements1.add(a.get(i));
-					} else {
-						assertionStatements2.add(a.get(i));
-					}
+		List<StatementItem> a = new ArrayList<>(assertionStatements);
+		if (a.size() > 3) {
+			for (int i = 0 ; i < a.size() ; i++) {
+				if (i < 2) {
+					assertionStatements1.add(a.get(i));
+				} else {
+					assertionStatements2.add(a.get(i));
 				}
-				showMoreLink.setVisible(true);
-			} else {
-				assertionStatements1 = a;
 			}
+			showMoreLink.setVisible(true);
+		} else {
+			assertionStatements1 = a;
 		}
 
 		assertionPart1.add(new DataView<StatementItem>("assertion-statements1", new ListDataProvider<StatementItem>(assertionStatements1)) {
@@ -231,8 +226,7 @@ public class NanopubItem extends Panel {
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
 		if (hideProvenance) {
 			provenance.setVisible(false);
-		} else if (n.getNanopub() != null) {
-			// TODO Can/should nanopub really be null here?
+		} else {
 			Template prFillTemplate = Template.getProvenanceTemplate(n.getNanopub());
 			if (prFillTemplate == null) {
 				prFillTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");  // arbitrary triple template
@@ -267,10 +261,8 @@ public class NanopubItem extends Panel {
 		if (hidePubinfo) {
 			pubInfo.setVisible(false);
 		} else {
-			if (n.getNanopub() != null) {
-				pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-				pubinfoStatements.sort(statementComparator);
-			}
+			pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
+			pubinfoStatements.sort(statementComparator);
 		}
 		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
 			

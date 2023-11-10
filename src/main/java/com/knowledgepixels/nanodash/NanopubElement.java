@@ -40,6 +40,7 @@ public class NanopubElement implements Serializable {
 	public NanopubElement(String uri, boolean retracted) {
 		this.uriString = uri;
 		this.nanopub = Utils.getNanopub(uri);
+		if (nanopub == null) throw new IllegalArgumentException("No nanopublication found for URI: " + uri);
 		this.retracted = retracted;
 	}
 
