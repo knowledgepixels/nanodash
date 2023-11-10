@@ -90,7 +90,9 @@ public class StatementItem extends Panel {
 		if (!context.isReadOnly() && isOptional()) {
 			htmlClassString += "nanopub-optional ";
 		}
-		if (isGrouped() || (!context.isReadOnly() && isRepeatable()) || (context.isReadOnly() && getRepetitionCount() > 1)) {
+		boolean singleItem = context.getStatementItems().size() == 1;
+		boolean repeatableOrRepeated = (!context.isReadOnly() && isRepeatable()) || (context.isReadOnly() && getRepetitionCount() > 1);
+		if ((isGrouped() || repeatableOrRepeated) && !singleItem) {
 			htmlClassString += "nanopub-group ";
 		}
 		if (!htmlClassString.isEmpty()) {
