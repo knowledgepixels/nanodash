@@ -184,8 +184,12 @@ public class NanopubItem extends Panel {
 			List<Template> pubinfoTemplates = new ArrayList<>();
 			pubinfoTemplates.addAll(Template.getPubinfoTemplates(n.getNanopub()));
 			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk")); // nanopub label
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg")); // nanopub type
 			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RALmzqHlrRfeTD8ESZdKFyDNYY6eFuyQ8GAe_4N5eVytc")); // timestamp
 			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y")); // templates
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAvqXPNKPf56b2226oqhKzARyvIhnpnTrRpLGC1cYweMw")); // introductions
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAgIlomuR39mN-Z39bbv59-h2DgQBnLyNdL22YmOJ_VHM")); // labels from APIs
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAFqeX7LWdwsVtJ8SMvvYPX1iGTwFkKcSnfbZGDnjeG10")); // signature
 			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")); // generic
 			List<WebMarkupContainer> elements = new ArrayList<>();
 			for (Template pubinfoTemplate : pubinfoTemplates) {
