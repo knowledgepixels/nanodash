@@ -94,6 +94,7 @@ public class StatementItem extends Panel {
 			boolean isLast = repetitionGroups.get(repetitionGroups.size()-1) == r;
 			r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast);
 			r.removeRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && !isOnly);
+			r.optionalMark.setVisible(isOnly);
 			first = false;
 		}
 		String htmlClassString = "";
@@ -189,7 +190,7 @@ public class StatementItem extends Panel {
 
 		private List<ValueItem> items = new ArrayList<>();
 
-		Label addRepetitionButton, removeRepetitionButton;
+		Label addRepetitionButton, removeRepetitionButton, optionalMark;
 
 		public RepetitionGroup() {
 			statementParts = new ArrayList<>();
@@ -211,11 +212,13 @@ public class StatementItem extends Panel {
 				if (statementParts.size() == 1 && !isFirstGroup) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
 				}
-				if (!context.isReadOnly() && isFirstGroup && isOptional && isLastLine) {
-					statement.add(new Label("label", "(optional)"));
+				if (!context.isReadOnly() && isOptional && isLastLine) {
+					optionalMark = new Label("label", "(optional)");
 				} else {
-					statement.add(new Label("label", "").setVisible(false));
+					optionalMark = new Label("label", "");
+					optionalMark.setVisible(false);
 				}
+				statement.add(optionalMark);
 				if (isLastLine) {
 					addRepetitionButton = new Label("add-repetition", "+");
 					statement.add(addRepetitionButton);
@@ -300,7 +303,7 @@ public class StatementItem extends Panel {
 					if (swapModel1 != null) swapModel1.setObject("");
 				}
 			}
-			repetitionGroups.remove(this);
+			repetitionGroups.remove(repetitionGroups.size()-1);
 			repetitionGroupsChanged = true;
 			for (ValueItem vi : items) {
 				vi.removeFromContext();
