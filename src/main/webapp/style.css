@@ -123,6 +123,10 @@ table.thin td {
 	padding: 0px;
 }
 
+div.nanopub-pubinfo td {
+	padding: 5px;
+}
+
 table, th, td {
     border-collapse: collapse;
 }

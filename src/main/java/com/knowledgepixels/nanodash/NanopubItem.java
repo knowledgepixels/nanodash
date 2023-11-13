@@ -184,7 +184,9 @@ public class NanopubItem extends Panel {
 			List<Template> pubinfoTemplates = new ArrayList<>();
 			pubinfoTemplates.addAll(Template.getPubinfoTemplates(n.getNanopub()));
 			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk")); // nanopub label
-			pubinfoTemplates.add(Template.getTemplate("http://purl.org/np/RAv4Knz3yIWofRt_Hpghs67iDKTAixqNthOM75OB4Ltvo")); // generic
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RALmzqHlrRfeTD8ESZdKFyDNYY6eFuyQ8GAe_4N5eVytc")); // timestamp
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y")); // templates
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")); // generic
 			List<WebMarkupContainer> elements = new ArrayList<>();
 			for (Template pubinfoTemplate : pubinfoTemplates) {
 				WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
