@@ -322,7 +322,10 @@ public class StatementItem extends Panel {
 		}
 
 		public boolean isOptional() {
-			return StatementItem.this.isOptional();
+			if (!getTemplate().isOptionalStatement(statementId)) return false;
+			if (repetitionGroups.size() == 0) return true;
+			if (repetitionGroups.size() == 1 && repetitionGroups.get(0) == this) return true;
+			return false;
 		}
 
 		private Value transform(Value value) {

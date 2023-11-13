@@ -241,16 +241,16 @@ public class PublishForm extends Panel {
 		final List<Statement> unusedPrStatementList = new ArrayList<>();
 		final List<Statement> unusedPiStatementList = new ArrayList<>();
 		if (fillNp != null) {
-			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION);
+			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION, true);
 			filler.fill(assertionContext);
 			unusedStatementList.addAll(filler.getUnusedStatements());
 
 			if (!fillOnlyAssertion) {
-				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
+				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE, true);
 				prFiller.fill(provenanceContext);
 				unusedPrStatementList.addAll(prFiller.getUnusedStatements());
 	
-				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
+				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
 				for (PublishFormContext c : pubInfoContexts) {
 					piFiller.fill(c);
 				}
@@ -275,7 +275,7 @@ public class PublishForm extends Panel {
 //				}
 			}
 		} else if (improveNp != null) {
-			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION);
+			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION, true);
 			filler.fill(assertionContext);
 			unusedStatementList.addAll(filler.getUnusedStatements());
 		}

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -181,16 +180,20 @@ public class NanopubItem extends Panel {
 		if (hidePubinfo) {
 			pubInfo.setVisible(false);
 		} else {
-			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO);
-			Set<Template> pubinfoTemplates = Template.getPubinfoTemplates(n.getNanopub());
-			if (pubinfoTemplates.isEmpty()) pubinfoTemplates.add(Template.getTemplate("http://purl.org/np/RAv4Knz3yIWofRt_Hpghs67iDKTAixqNthOM75OB4Ltvo"));
+			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
+			List<Template> pubinfoTemplates = new ArrayList<>();
+			pubinfoTemplates.addAll(Template.getPubinfoTemplates(n.getNanopub()));
+			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk")); // nanopub label
+			pubinfoTemplates.add(Template.getTemplate("http://purl.org/np/RAv4Knz3yIWofRt_Hpghs67iDKTAixqNthOM75OB4Ltvo")); // generic
 			List<WebMarkupContainer> elements = new ArrayList<>();
 			for (Template pubinfoTemplate : pubinfoTemplates) {
 				WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
 				List<StatementItem> pubinfoStatements = new ArrayList<>();
 				populateStatementItemList(ContextType.PUBINFO, pubinfoFiller, pubinfoTemplate, "pubinfo-statement", pubinfoStatements);
-				pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
-				elements.add(pubInfoElement);
+				if (!pubinfoStatements.isEmpty()) {
+					pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
+					elements.add(pubInfoElement);
+				}
 			}
 			pubInfo.add(new DataView<WebMarkupContainer>("pubinfo-elements", new ListDataProvider<WebMarkupContainer>(elements)) {
 	
@@ -221,7 +224,7 @@ public class NanopubItem extends Panel {
 	}
 
 	private void populateStatementItemList(ContextType contextType, Nanopub np, Template fillTemplate, String elementId, List<StatementItem> list) {
-		populateStatementItemList(contextType, new ValueFiller(np, contextType), fillTemplate, elementId, list);
+		populateStatementItemList(contextType, new ValueFiller(np, contextType, false), fillTemplate, elementId, list);
 	}
 
 	private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {

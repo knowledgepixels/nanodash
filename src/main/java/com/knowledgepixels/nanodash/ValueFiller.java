@@ -25,9 +25,11 @@ public class ValueFiller {
 	private Nanopub fillNp;
 	private List<Statement> unusedStatements = new ArrayList<>();
 	private int initialSize;
+	private boolean formMode;
 
-	public ValueFiller(Nanopub fillNp, ContextType contextType) {
+	public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode) {
 		this.fillNp = fillNp;
+		this.formMode = formMode;
 		Set<Statement> statements;
 		if (contextType == ContextType.ASSERTION) {
 			statements = fillNp.getAssertion();
@@ -81,7 +83,7 @@ public class ValueFiller {
 	}
 
 	private Statement transform(Statement st) {
-		if (st.getContext().equals(fillNp.getPubinfoUri())) {
+		if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
 			IRI pred = st.getPredicate();
 			if (st.getSubject().equals(fillNp.getUri())) {
 				if (pred.equals(DCTERMS.CREATED)) return null;
