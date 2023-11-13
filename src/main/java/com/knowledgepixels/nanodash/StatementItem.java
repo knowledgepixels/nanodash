@@ -303,11 +303,12 @@ public class StatementItem extends Panel {
 					if (swapModel1 != null) swapModel1.setObject("");
 				}
 			}
-			repetitionGroups.remove(repetitionGroups.size()-1);
-			repetitionGroupsChanged = true;
-			for (ValueItem vi : items) {
+			RepetitionGroup lastGroup = repetitionGroups.get(repetitionGroups.size()-1);
+			repetitionGroups.remove(lastGroup);
+			for (ValueItem vi : lastGroup.items) {
 				vi.removeFromContext();
 			}
+			repetitionGroupsChanged = true;
 		}
 
 		private String getRepeatSuffix() {
