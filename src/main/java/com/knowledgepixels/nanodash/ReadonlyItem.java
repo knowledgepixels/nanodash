@@ -36,7 +36,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private IRI iri;
 	private final Template template;
 
-	public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
+	public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, final RepetitionGroup rg) {
 		super(id);
 		context = rg.getContext();
 		this.iri = iriP;
@@ -116,11 +116,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
 					String description = "";
-					// TODO We'd need the nanopub ID here, not the template ID:
-//					if (obj.startsWith(context.getTemplateId())) {
-//						obj = obj.replace(context.getTemplateId(), "");
-//						description = "This is a local identifier that was minted when the nanopublication was created.";
-//					}
+					if (context.isReadOnly() && obj.startsWith(context.getExistingNanopub().getUri().stringValue())) {
+						description = "This is a local identifier minted within the nanopublication.";
+					}
 					String labelString = getLabelString(objIri);
 					if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 					return description;
@@ -164,14 +162,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+//			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
 			if (template.isAutoEscapePlaceholder(iri)) {
 				vs = Utils.urlDecode(vs);
 			}
 			Validatable<String> validatable = new Validatable<>(vs);
-			if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-				vs = Utils.getUriPostfix(vs);
-			}
+//			if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+//				vs = Utils.getUriPostfix(vs);
+//			}
 			new Validator(iri, template, prefix).validate(validatable);
 			if (!validatable.isValid()) {
 				return false;
@@ -200,10 +198,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			if (!prefix.isEmpty() && vs.startsWith(prefix)) {
 				vs = vs.substring(prefix.length());
-			} else if (vs.startsWith("local:")) {
-				vs = vs.replaceFirst("^local:", "");
-			} else if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-				vs = Utils.getUriPostfix(vs);
+			// With read-only items, we don't need preliminary local identifiers:
+//			} else if (vs.startsWith("local:")) {
+//				vs = vs.replaceFirst("^local:", "");
+//			} else if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+//				vs = Utils.getUriPostfix(vs);
 			}
 			if (template.isAutoEscapePlaceholder(iri)) {
 				vs = Utils.urlDecode(vs);

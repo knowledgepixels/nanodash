@@ -29,14 +29,17 @@ public class NanopubItem extends Panel {
 	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
+	private final NanopubElement n;
 	private IRI signerId;
 
-	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
+	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		this(id, n, hideProvenance, hidePubinfo, null);
 	}
 
-	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
+	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
 		super(id);
+
+		this.n = n;
 
 		add(new NanodashLink("nanopub-id-link", n.getUri()));
 		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
@@ -216,7 +219,7 @@ public class NanopubItem extends Panel {
 	}
 
 	private void populateStatementItemList(ContextType contextType, ValueFiller filler, Template fillTemplate, String elementId, List<StatementItem> list) {
-		TemplateContext context = new TemplateContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
+		TemplateContext context = new TemplateContext(contextType, fillTemplate.getId(), elementId, n.getNanopub());
 		context.initStatements();
 		if (signerId != null) {
 			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));

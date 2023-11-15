@@ -60,22 +60,36 @@ public class IriItem extends Panel implements ContextComponent {
 		}
 		add(labelComp);
 		String iriString = iri.stringValue();
-		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			iriString = "local:assertion";
-		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			iriString = "local:nanopub";
-		} else if (template.isLocalResource(iri)) {
-			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
-		}
-		String uri = iri.stringValue();
 		String description = "";
-		if (uri.startsWith(context.getTemplateId())) {
-			uri = uri.replace(context.getTemplateId(), "");
-			description = "This is a local identifier that will be minted when the nanopublication is created.";
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
+			} else {
+				iriString = "local:assertion";
+			}
+			description = "This is the identifier for the assertion of this nanopublication.";
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
+			} else {
+				iriString = "local:nanopub";
+			}
+			description = "This is the identifier for this whole nanopublication.";
+		} else if (template.isLocalResource(iri)) {
+			if (rg.getContext().getExistingNanopub() == null) {
+				iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
+			}
+		}
+		if (iriString.startsWith(context.getTemplateId())) {
+			iriString = iriString.replace(context.getTemplateId(), "");
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getUri().stringValue() + iriString;
+			}
+			description = "This is a local identifier minted within the nanopublication.";
 		}
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 		add(new Label("description", description));
-		add(new ExternalLink("uri", iri.stringValue(), uri));
+		add(new ExternalLink("uri", iriString, iriString));
 	}
 
 	public static String getShortNameFromURI(String uri) {

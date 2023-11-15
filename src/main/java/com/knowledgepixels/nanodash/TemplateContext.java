@@ -17,6 +17,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
 
@@ -36,17 +37,29 @@ public class TemplateContext implements Serializable {
 	private List<StatementItem> statementItems;
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
-	private String targetNamespace;
-	private boolean readOnly;
+	private String targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
+	private Nanopub existingNanopub;
 
-	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace, boolean readOnly) {
+	// For PublishForm when nanopub doesn't exist yet:
+	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
+		this(contextType, templateId, componentId, targetNamespace, null);
+	}
+
+	// For NanopubItem to show existing nanopub in read-only mode:
+	public TemplateContext(ContextType contextType, String templateId, String componentId, Nanopub existingNanopub) {
+		this(contextType, templateId, componentId, null, existingNanopub);
+	}
+
+	private TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace, Nanopub existingNanopub) {
 		this.contextType = contextType;
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
 		this.componentId = componentId;
-		this.targetNamespace = targetNamespace;
-		this.readOnly = readOnly;
-		if (!readOnly && NanodashSession.get().getUserIri() != null) {
+		if (targetNamespace != null) {
+			this.targetNamespace = targetNamespace;
+		}
+		this.existingNanopub = existingNanopub;
+		if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
 			componentModels.put(Template.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
 		}
 	}
@@ -246,8 +259,12 @@ public class TemplateContext implements Serializable {
 		}
 	}
 
+	public Nanopub getExistingNanopub() {
+		return existingNanopub;
+	}
+
 	public boolean isReadOnly() {
-		return readOnly;
+		return existingNanopub != null;
 	}
 
 }

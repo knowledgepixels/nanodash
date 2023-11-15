@@ -170,6 +170,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
 	public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
 
+	public static final String DEFAULT_TARGET_NAMESPACE = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
 
 	private Nanopub nanopub;
 	private String label;
@@ -194,7 +195,7 @@ public class Template implements Serializable {
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
 	private String tag = null;
 	private Map<IRI,Value> defaultValues = new HashMap<>();
-	private String targetNamespace = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
+	private String targetNamespace = DEFAULT_TARGET_NAMESPACE;
 	private String nanopubLabelPattern;
 	private List<IRI> targetNanopubTypes = new ArrayList<>();
 

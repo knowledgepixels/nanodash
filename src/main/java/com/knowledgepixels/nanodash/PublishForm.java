@@ -131,7 +131,7 @@ public class PublishForm extends Panel {
 			targetNamespace = pageParams.get("target-namespace").toString();
 		}
 
-		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace, false);
+		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
 			if (fillNp != null && !fillOnlyAssertion) {
@@ -146,21 +146,21 @@ public class PublishForm extends Panel {
 				prTemplateId = defaultProvTemplateId;
 			}
 		}
-		provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace, false);
+		provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
 		for (String t : fixedPubInfoTemplates) {
-			TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace, false);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
 		if (fillMode == FillMode.SUPERSEDE) {
-			TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace, false);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
 			//requiredPubInfoContexts.add(c);
 			c.setParam("np", fillNp.getUri().stringValue());
 		} else if (fillMode == FillMode.DERIVE) {
-			TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace, false);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
 			c.setParam("np", fillNp.getUri().stringValue());
@@ -168,7 +168,7 @@ public class PublishForm extends Panel {
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
 			String latestId = ApiAccess.getLatestVersionId(r.stringValue());
 			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
-			TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace, false);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
@@ -472,7 +472,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace, false);
+				provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
 				provenanceContext.initStatements();
 				refreshProvenance(target);
 			}
@@ -540,7 +540,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				TemplateContext c = new TemplateContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace, false);
+				TemplateContext c = new TemplateContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace);
 				c.initStatements();
 				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
@@ -626,7 +626,7 @@ public class PublishForm extends Panel {
 		if (pubInfoContextMap.containsKey(piTemplateId)) {
 			c = pubInfoContextMap.get(piTemplateId);
 		} else {
-			c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace, false);
+			c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
 			pubInfoContextMap.put(piTemplateId, c);
 		}
 		return c;
