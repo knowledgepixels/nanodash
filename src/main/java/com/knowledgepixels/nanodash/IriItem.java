@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -51,14 +52,7 @@ public class IriItem extends Panel implements ContextComponent {
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
 		labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
-		Label labelComp = new Label("label", labelString.replaceFirst(" - .*$", ""));
-		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
-			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
-		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
-		}
-		add(labelComp);
+
 		String iriString = iri.stringValue();
 		String description = "";
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
@@ -90,6 +84,21 @@ public class IriItem extends Panel implements ContextComponent {
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 		add(new Label("description", description));
 		add(new ExternalLink("uri", iriString, iriString));
+
+		String href = null;
+		if (iriString.startsWith("local:")) {
+			href = "";
+		} else {
+			href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, Charsets.UTF_8);
+		}
+		ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
+			linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+		}
+		add(linkComp);
 	}
 
 	public static String getShortNameFromURI(String uri) {
