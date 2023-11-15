@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash;
 
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -32,7 +34,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private IModel<String> model;
 	private TemplateContext context;
 	private String prefix;
-	private Label labelComp;
+	private ExternalLink linkComp;
 	private IRI iri;
 	private RestrictedChoice restrictedChoice;
 	private final Template template;
@@ -81,7 +83,21 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		}
 		add(new Label("prefixtooltiptext", prefixTooltip));
 
-		labelComp = new Label("label", new Model<String>() {
+		linkComp = new ExternalLink("link", new Model<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String obj = model.getObject();
+				if (obj != null && obj.matches("https?://.+")) {
+					return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
+				} else {
+					return "";
+				}
+			}
+			
+		}, new Model<String>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -104,12 +120,12 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			
 		});
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
-			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+			linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
+			linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+			linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
 		}
-		add(labelComp);
+		add(linkComp);
 		add(new Label("description", new Model<String>() {
 
 			private static final long serialVersionUID = 1L;
@@ -188,10 +204,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
 				return false;
 			}
-			if (labelComp.getDefaultModelObject() == null || labelComp.getDefaultModelObject().toString().isEmpty()) {
+			if (linkComp.getDefaultModelObject() == null || linkComp.getDefaultModelObject().toString().isEmpty()) {
 				return true;
 			}
-			return labelComp.getDefaultModelObject().equals("\"" + v.stringValue() + "\"");
+			return linkComp.getDefaultModelObject().equals("\"" + v.stringValue() + "\"");
 		}
 		return false;
 	}

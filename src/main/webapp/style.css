@@ -464,7 +464,7 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	overflow-wrap: anywhere;
 }
 
-.nanopub a { color: #000; margin: 3px; }
+.nanopub a { color: #444; margin: 3px; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
 a.nanopub-assertion { color: #000; }
@@ -558,6 +558,10 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 
 .tooltiptext:has(> a:empty) {
   display: none;
+}
+
+a[href=""] {
+  pointer-events: none;
 }
 
 .uri {
