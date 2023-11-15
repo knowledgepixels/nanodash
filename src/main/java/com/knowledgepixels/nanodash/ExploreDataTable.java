@@ -96,7 +96,7 @@ public class ExploreDataTable extends Panel {
 				cellItem.add(new Label(componentId, "<strong>" + IriItem.getShortNameFromURI(value) + "</strong>").setEscapeModelStrings(false));
 			} else if (key.equals("pubkey")) {
 				cellItem.add(new Label(componentId, User.getShortDisplayNameForPubkey(value)));
-			} else if (value.matches("(https?|file)://.+")) {
+			} else if (value.matches("https?://.+")) {
 				cellItem.add(new NanodashLink(componentId, value));
 			} else {
 				cellItem.add(new Label(componentId, value));

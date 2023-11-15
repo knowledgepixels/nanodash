@@ -53,7 +53,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 	private String getChoiceLabel(String choiceId) {
 		Template template = context.getTemplate();
 		String label = null;
-		if (choiceId.matches("(https?|file)://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
+		if (choiceId.matches("https?://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
 			label = template.getLabel(vf.createIRI(choiceId));
 		} else if (labelMap.containsKey(choiceId)) {
 			label = labelMap.get(choiceId);

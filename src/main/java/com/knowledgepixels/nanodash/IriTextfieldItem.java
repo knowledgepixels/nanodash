@@ -180,7 +180,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (template.isAutoEscapePlaceholder(iri)) {
 				sv = Utils.urlEncode(sv);
 			}
-			if (sv.matches("(https?|file)://.+")) {
+			if (sv.matches("https?://.+")) {
 				p = "";
 			} else if (sv.contains(":")) {
 				s.error(new ValidationError("Colon character is not allowed in postfix"));
@@ -208,7 +208,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 				}
 			}
 			if (template.isExternalUriPlaceholder(iri)) {
-				if (!iriString.matches("(https?|file)://.+")) {
+				if (!iriString.matches("https?://.+")) {
 					s.error(new ValidationError("Not an external IRI"));
 				}
 			}

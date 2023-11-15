@@ -170,7 +170,7 @@ public class TemplateContext implements Serializable {
 				String prefix = template.getPrefix(iri);
 				if (prefix == null) prefix = "";
 				if (template.isLocalResource(iri)) prefix = targetNamespace;
-				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+				if (tf.getObject().matches("https?://.+")) prefix = "";
 				String v = prefix + tf.getObject();
 				if (v.matches("[^:# ]+")) v = targetNamespace + v;
 				if (v.matches("https?://.*")) {
@@ -188,7 +188,7 @@ public class TemplateContext implements Serializable {
 				if (template.isAutoEscapePlaceholder(iri)) {
 					v = prefix + Utils.urlEncode(tf.getObject());
 				} else {
-					if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+					if (tf.getObject().matches("https?://.+")) prefix = "";
 					v = prefix + tf.getObject();
 				}
 				if (v.matches("[^:# ]+")) v = targetNamespace + v;

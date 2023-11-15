@@ -84,7 +84,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			@Override
 			public String getObject() {
 				String obj = model.getObject();
-				if (obj != null && obj.matches("(https?|file)://.+")) {
+				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
 					if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
 						if (objectPosition) {
@@ -113,7 +113,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			@Override
 			public String getObject() {
 				String obj = model.getObject();
-				if (obj != null && obj.matches("(https?|file)://.+")) {
+				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
 					String description = "";
 					// TODO We'd need the nanopub ID here, not the template ID:
@@ -236,7 +236,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			if (template.isAutoEscapePlaceholder(iri)) {
 				sv = Utils.urlEncode(sv);
 			}
-			if (sv.matches("(https?|file)://.+")) {
+			if (sv.matches("https?://.+")) {
 				p = "";
 			} else if (sv.contains(":")) {
 				s.error(new ValidationError("Colon character is not allowed in postfix"));
@@ -264,7 +264,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				}
 			}
 			if (template.isExternalUriPlaceholder(iri)) {
-				if (!iriString.matches("(https?|file)://.+")) {
+				if (!iriString.matches("https?://.+")) {
 					s.error(new ValidationError("Not an external IRI"));
 				}
 			}

@@ -85,7 +85,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 			@Override
 			public String getDisplayValue(String choiceId) {
 				if (choiceId == null || choiceId.isEmpty()) return "";
-				if (!choiceId.matches("(https?|file)://.+")) {
+				if (!choiceId.matches("https?://.+")) {
 					return choiceId;
 				}
 				String label = "";
@@ -253,7 +253,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		List<String> possibleValuesList = new ArrayList<>();
 		for (String s : possibleValues) {
 			if (template.isLocalResource(iri)) {
-				if (s.matches("(https?|file)://.+")) continue;
+				if (s.matches("https?://.+")) continue;
 			}
 			possibleValuesList.add(s);
 		}
