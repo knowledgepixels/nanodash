@@ -19,7 +19,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -355,16 +354,8 @@ public class PublishForm extends Panel {
 					Nanopub np = createNanopub();
 					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), null, false, false);
 					signedNp = SignNanopub.signAndTransform(np, tc);
-					if (isLocal()) {
-						// Testing mode
-						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
-						System.err.println("----------");
-						System.err.println(org.nanopub.NanopubUtils.writeToString(signedNp, org.eclipse.rdf4j.rio.RDFFormat.TRIG));
-						System.err.println("----------");
-					} else {
-						PublishNanopub.publish(signedNp);
-						System.err.println("Published " + signedNp.getUri());
-					}
+					PublishNanopub.publish(signedNp);
+					System.err.println("Published " + signedNp.getUri());
 				} catch (Exception ex) {
 					signedNp = null;
 					ex.printStackTrace();
@@ -563,21 +554,6 @@ public class PublishForm extends Panel {
 		form.add(consentCheck);
 		add(form);
 
-		if (isLocal()) {
-			add(new Link<Object>("local-reload-link") {
-				private static final long serialVersionUID = 1L;
-				public void onClick() {
-					setResponsePage(page.getPageClass(), page.getPageParameters());
-				};
-			});
-			form.add(new Label("local-file-text", "TEST MODE. Nanopublication will not actually be published."));
-		} else {
-			Label l = new Label("local-reload-link", "");
-			l.setVisible(false);
-			add(l);
-			form.add(new Label("local-file-text", ""));
-		}
-
 		feedbackPanel = new FeedbackPanel("feedback");
 		feedbackPanel.setOutputMarkupId(true);
 		add(feedbackPanel);
@@ -726,15 +702,6 @@ public class PublishForm extends Panel {
 			nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
 		}
 		return nanopubLabel;
-	}
-
-	private boolean isLocal() {
-		if (assertionContext.isLocal()) return true;
-		if (provenanceContext.isLocal()) return true;
-		for (PublishFormContext c : pubInfoContexts) {
-			if (c.isLocal()) return true;
-		}
-		return false;
 	}
 
 }

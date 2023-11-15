@@ -96,7 +96,7 @@ public class Template implements Serializable {
 		if (assertionTemplates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
-		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) {
+		if (TrustyUriUtils.isPotentialTrustyUri(id)) {
 			try {
 				Template t = new Template(id);
 				templateMap.put(id, t);
@@ -201,11 +201,7 @@ public class Template implements Serializable {
 	private List<IRI> targetNanopubTypes = new ArrayList<>();
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
-		if (templateId.startsWith("file://")) {
-			nanopub = new NanopubImpl(new File(templateId.substring(7)));
-		} else {
-			nanopub = Utils.getNanopub(templateId);
-		}
+		nanopub = Utils.getNanopub(templateId);
 		processTemplate(nanopub);
 	}
 

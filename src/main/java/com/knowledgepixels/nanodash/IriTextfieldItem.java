@@ -195,8 +195,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 				if (!piri.isAbsolute()) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				if (p.isEmpty() && !sv.startsWith("local:") && !sv.matches("(https?|file)://.+")) {
-					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
+				if (p.isEmpty() && !sv.startsWith("local:") && !sv.matches("https?://.+")) {
+					s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
 				}
 			} catch (URISyntaxException ex) {
 				s.error(new ValidationError("IRI not well-formed"));

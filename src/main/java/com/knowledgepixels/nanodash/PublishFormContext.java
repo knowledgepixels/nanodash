@@ -33,7 +33,6 @@ public class PublishFormContext implements Serializable {
 	private List<Component> components = new ArrayList<>();
 	private Map<IRI,IModel<String>> componentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
-	private boolean isLocal;
 	private List<StatementItem> statementItems;
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
@@ -42,7 +41,6 @@ public class PublishFormContext implements Serializable {
 
 	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace, boolean readOnly) {
 		this.contextType = contextType;
-		this.isLocal = templateId != null && templateId.startsWith("file://");
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
 		this.componentId = componentId;
@@ -236,10 +234,6 @@ public class PublishFormContext implements Serializable {
 		for (StatementItem si : statementItems) {
 			si.addTriplesTo(npCreator);
 		}
-	}
-
-	public boolean isLocal() {
-		return isLocal;
 	}
 
 	public boolean hasNarrowScope(IRI iri) {
