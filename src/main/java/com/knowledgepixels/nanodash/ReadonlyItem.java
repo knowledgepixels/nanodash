@@ -150,6 +150,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private String getLabelString(IRI iri) {
 		if (template.getLabel(iri) != null) {
 			return template.getLabel(iri);
+		} else if (context.getLabel(iri) != null) {
+			return context.getLabel(iri);
 		} else {
 			return IriItem.getShortNameFromURI(iri.stringValue());
 		}

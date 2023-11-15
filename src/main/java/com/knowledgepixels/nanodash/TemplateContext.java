@@ -39,6 +39,7 @@ public class TemplateContext implements Serializable {
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
 	private String targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
 	private Nanopub existingNanopub;
+	private Map<IRI,String> labels;
 
 	// For PublishForm when nanopub doesn't exist yet:
 	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
@@ -265,6 +266,19 @@ public class TemplateContext implements Serializable {
 
 	public boolean isReadOnly() {
 		return existingNanopub != null;
+	}
+
+	public String getLabel(IRI iri) {
+		if (labels == null && existingNanopub != null) {
+			labels = new HashMap<>();
+			for (Statement st : existingNanopub.getPubinfo()) {
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {
+					String label = st.getObject().stringValue();
+					labels.put((IRI) st.getSubject(), label);
+				}
+			}
+		}
+		return labels.get(iri);
 	}
 
 }
