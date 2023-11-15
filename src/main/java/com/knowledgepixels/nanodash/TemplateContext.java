@@ -269,7 +269,8 @@ public class TemplateContext implements Serializable {
 	}
 
 	public String getLabel(IRI iri) {
-		if (labels == null && existingNanopub != null) {
+		if (existingNanopub == null) return null;
+		if (labels == null) {
 			labels = new HashMap<>();
 			for (Statement st : existingNanopub.getPubinfo()) {
 				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {

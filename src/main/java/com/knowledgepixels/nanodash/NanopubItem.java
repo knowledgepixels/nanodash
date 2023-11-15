@@ -18,7 +18,9 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.Nanopub;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
@@ -147,7 +149,20 @@ public class NanopubItem extends Panel {
 		Template assertionTemplate = Template.getTemplate(n.getNanopub());
 		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
 		List<StatementItem> assertionStatements = new ArrayList<>();
-		populateStatementItemList(ContextType.ASSERTION, n.getNanopub(), assertionTemplate, "assertion-statement", assertionStatements);
+		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
+		populateStatementItemList(ContextType.ASSERTION, assertionFiller, assertionTemplate, "assertion-statement", assertionStatements);
+
+		assertionPart2.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				item.add(new TripleItem("unused-assertion-statement", item.getModelObject(), n.getNanopub(), null));
+			}
+
+		});
+		if (!assertionFiller.getUnusedStatements().isEmpty()) showMoreLink.setVisible(true);
 
 		List<StatementItem> a = new ArrayList<>(assertionStatements);
 		if (a.size() > 3) {
@@ -174,7 +189,8 @@ public class NanopubItem extends Panel {
 			Template provenanceTemplate = Template.getProvenanceTemplate(n.getNanopub());
 			if (provenanceTemplate == null) provenanceTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
 			List<StatementItem> provenanceStatements = new ArrayList<>();
-			populateStatementItemList(ContextType.PROVENANCE, n.getNanopub(), provenanceTemplate, "provenance-statement", provenanceStatements);
+			ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
+			populateStatementItemList(ContextType.PROVENANCE, provenanceFiller, provenanceTemplate, "provenance-statement", provenanceStatements);
 			provenance.add(createStatementView("provenance-statements", provenanceStatements));
 		}
 		add(provenance);
@@ -230,10 +246,6 @@ public class NanopubItem extends Panel {
 				list.add(si);
 			}
 		}
-	}
-
-	private void populateStatementItemList(ContextType contextType, Nanopub np, Template fillTemplate, String elementId, List<StatementItem> list) {
-		populateStatementItemList(contextType, new ValueFiller(np, contextType, false), fillTemplate, elementId, list);
 	}
 
 	private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {
