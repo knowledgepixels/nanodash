@@ -19,8 +19,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
@@ -192,6 +190,16 @@ public class NanopubItem extends Panel {
 			ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
 			populateStatementItemList(ContextType.PROVENANCE, provenanceFiller, provenanceTemplate, "provenance-statement", provenanceStatements);
 			provenance.add(createStatementView("provenance-statements", provenanceStatements));
+			provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void populateItem(Item<Statement> item) {
+					item.add(new TripleItem("unused-provenance-statement", item.getModelObject(), n.getNanopub(), null));
+				}
+
+			});
 		}
 		add(provenance);
 
