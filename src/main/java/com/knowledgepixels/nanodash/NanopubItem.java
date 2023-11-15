@@ -226,7 +226,7 @@ public class NanopubItem extends Panel {
 		}
 		filler.fill(context);
 		for (StatementItem si : context.getStatementItems()) {
-			if (!(si.isOptional() && si.hasEmptyElements())) {
+			if (si.isMatched()) {
 				list.add(si);
 			}
 		}

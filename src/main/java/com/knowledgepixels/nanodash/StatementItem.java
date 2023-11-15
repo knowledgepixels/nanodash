@@ -35,6 +35,7 @@ public class StatementItem extends Panel {
 	private List<RepetitionGroup> repetitionGroups = new ArrayList<>();
 	private boolean repetitionGroupsChanged = true;
 	private Set<IRI> iriSet = new HashSet<>();
+	private boolean isMatched = false;
 
 	public StatementItem(String id, IRI statementId, TemplateContext context) {
 		super(id);
@@ -161,7 +162,9 @@ public class StatementItem extends Panel {
 				rg.fill(matches);
 			}
 		}
-		if (matches == null || !isRepeatable()) return;
+		if (matches == null) return;
+		isMatched = true;
+		if (!isRepeatable()) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
 			matches = newGroup.tryToMatch(statements);
@@ -173,6 +176,10 @@ public class StatementItem extends Panel {
 				return;
 			}
 		}
+	}
+
+	public boolean isMatched() {
+		return isMatched;
 	}
 
 	public boolean isEmpty() {

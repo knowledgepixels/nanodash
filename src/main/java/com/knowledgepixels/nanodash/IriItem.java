@@ -114,9 +114,13 @@ public class IriItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (!(v instanceof IRI)) return false;
-		// TODO: Check that template URI doesn't have regex characters:
+		// TODO: Check that template URIs don't have regex characters:
 		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", "local:");
-		return iriS.equals(v.stringValue());
+		if (context.isReadOnly()) {
+			return iriS.equals(v.stringValue().replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", "local:"));
+		} else {
+			return iriS.equals(v.stringValue());
+		}
 	}
 
 	@Override
