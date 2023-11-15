@@ -1,13 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,8 +33,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private Label tooltipDescription;
 	private IModel<String> model;
 	private Template template;
-	private final Map<String,Boolean> fixedPossibleValues = new HashMap<>();
-	private final List<IRI> possibleRefValues = new ArrayList<>();
+	private RestrictedChoice restrictedChoice;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
 		super(id);
@@ -56,13 +49,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
-		for (Value v : template.getPossibleValues(iri)) {
-			if (v instanceof IRI && template.isPlaceholder((IRI) v)) {
-				possibleRefValues.add((IRI) v);
-			} else {
-				fixedPossibleValues.put(v.toString(), true);
-			}
-		}
+		restrictedChoice = new RestrictedChoice(iri, context);
 
 		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
@@ -89,7 +76,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 					return choiceId;
 				}
 				String label = "";
-				if (fixedPossibleValues.containsKey(choiceId)) {
+				if (restrictedChoice.hasFixedPossibleValue(choiceId)) {
 					label = template.getLabel(vf.createIRI(choiceId));
 				}
 				if (label == null || label.isBlank()) {
@@ -110,7 +97,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 			@Override
 			public void query(String term, int page, Response<String> response) {
-				List<String> possibleValues = getPossibleValues();
+				List<String> possibleValues = restrictedChoice.getPossibleValues();
 				
 				if (term == null) {
 					response.addAll(possibleValues);
@@ -152,7 +139,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 				String obj = RestrictedChoiceItem.this.getModel().getObject();
 				if (obj == null || obj.isEmpty()) return "choose a value";
 				String label = null;
-				if (fixedPossibleValues.containsKey(obj)) {
+				if (restrictedChoice.hasFixedPossibleValue(obj)) {
 					label = template.getLabel(vf.createIRI(obj));
 				}
 				if (label == null || !label.contains(" - ")) return "";
@@ -211,7 +198,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		if (v instanceof IRI) {
 			String vs = v.stringValue();
 			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-			if (possibleRefValues.size() == 0 && !fixedPossibleValues.containsKey(vs)) {
+			if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
 				return false;
 			}
 			if (choice.getModelObject().isEmpty()) {
@@ -235,32 +222,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		return "[Restricted choice item: " + iri + "]";
 	}
 
-	public List<String> getPossibleValues() {
-		Set<String> possibleValues = new HashSet<>();
-		possibleValues.addAll(fixedPossibleValues.keySet());
-		for (IRI r : possibleRefValues) {
-			for (int i = 0 ; true ; i++) {
-				String suffix = "__" + i;
-				if (i == 0) suffix = "";
-				IRI refIri = vf.createIRI(r.stringValue() + suffix);
-				IModel<String> m = context.getComponentModels().get(refIri);
-				if (m == null) break;
-				if (m.getObject() != null && !m.getObject().startsWith("\"")) {
-					possibleValues.add(m.getObject());
-				}
-			}
-		}
-		List<String> possibleValuesList = new ArrayList<>();
-		for (String s : possibleValues) {
-			if (template.isLocalResource(iri)) {
-				if (s.matches("https?://.+")) continue;
-			}
-			possibleValuesList.add(s);
-		}
-		Collections.sort(possibleValuesList);
-		return possibleValuesList;
-	}
-
 
 	protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
@@ -271,7 +232,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 		@Override
 		public void validate(IValidatable<String> s) {
-			if (!getPossibleValues().contains(s.getValue())) {
+			if (!restrictedChoice.getPossibleValues().contains(s.getValue())) {
 				s.error(new ValidationError("Invalid choice"));
 			}
 		}

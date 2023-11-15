@@ -34,6 +34,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private String prefix;
 	private Label labelComp;
 	private IRI iri;
+	private RestrictedChoice restrictedChoice;
 	private final Template template;
 
 	public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, final RepetitionGroup rg) {
@@ -54,6 +55,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		if (prefix == null) prefix = "";
 		if (template.isLocalResource(iri)) {
 			prefix = Utils.getUriPrefix(iri);
+		}
+		if (template.isRestrictedChoicePlaceholder(iri)) {
+			restrictedChoice = new RestrictedChoice(iri, context);
 		}
 		String prefixLabel = template.getPrefixLabel(iri);
 		Label prefixLabelComp;
@@ -170,7 +174,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 //			if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 //				vs = Utils.getUriPostfix(vs);
 //			}
-			new Validator(iri, template, prefix).validate(validatable);
+			new Validator().validate(validatable);
 			if (!validatable.isValid()) {
 				return false;
 			}
@@ -214,18 +218,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	}
 
 
-	protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
+	protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
 		private static final long serialVersionUID = 1L;
 
-		private IRI iri;
-		private Template template;
-		private String prefix;
-
-		public Validator(IRI iri, Template template, String prefix) {
-			this.iri = iri;
-			this.template = template;
-			this.prefix = prefix;
+		public Validator() {
 		}
 
 		@Override
@@ -260,6 +257,12 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			if (regex != null) {
 				if (!sv.matches(regex)) {
 					s.error(new ValidationError("Value '" + sv + "' doesn't match the pattern '" + regex + "'"));
+				}
+			}
+			if (template.isRestrictedChoicePlaceholder(iri)) {
+				if (!restrictedChoice.getPossibleValues().contains(iriString) && !restrictedChoice.hasPossibleRefValues()) {
+					// not checking the possible ref values can overgenerate, but normally works
+					s.error(new ValidationError("Invalid choice"));
 				}
 			}
 			if (template.isExternalUriPlaceholder(iri)) {
