@@ -20,7 +20,7 @@ import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
 
-public class PublishFormContext implements Serializable {
+public class TemplateContext implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -39,7 +39,7 @@ public class PublishFormContext implements Serializable {
 	private String targetNamespace;
 	private boolean readOnly;
 
-	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace, boolean readOnly) {
+	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace, boolean readOnly) {
 		this.contextType = contextType;
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);

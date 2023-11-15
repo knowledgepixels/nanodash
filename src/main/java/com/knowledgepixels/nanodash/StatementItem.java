@@ -28,7 +28,7 @@ public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	private PublishFormContext context;
+	private TemplateContext context;
 	private IRI statementId;
 	private List<IRI> statementPartIds = new ArrayList<>();
 	private List<WebMarkupContainer> viewElements = new ArrayList<>();
@@ -36,7 +36,7 @@ public class StatementItem extends Panel {
 	private boolean repetitionGroupsChanged = true;
 	private Set<IRI> iriSet = new HashSet<>();
 
-	public StatementItem(String id, IRI statementId, PublishFormContext context) {
+	public StatementItem(String id, IRI statementId, TemplateContext context) {
 		super(id);
 		this.statementId = statementId;
 		this.context = context;
@@ -321,7 +321,7 @@ public class StatementItem extends Panel {
 			return "__" + i;
 		}
 
-		public PublishFormContext getContext() {
+		public TemplateContext getContext() {
 			return context;
 		}
 

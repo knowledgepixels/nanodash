@@ -18,7 +18,7 @@ public class IriItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 
 	private IRI iri;
-	private PublishFormContext context;
+	private TemplateContext context;
 
 	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);

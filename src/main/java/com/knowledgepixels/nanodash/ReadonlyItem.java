@@ -30,7 +30,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 
 	private IModel<String> model;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private String prefix;
 	private Label labelComp;
 	private IRI iri;

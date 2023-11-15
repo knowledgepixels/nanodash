@@ -29,7 +29,7 @@ import com.knowledgepixels.nanodash.IriTextfieldItem.Validator;
 public class GuidedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private Select2Choice<String> textfield;
 	private ExternalLink tooltipLink;
 	private Label tooltipDescription;
@@ -62,7 +62,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		return label;
 	}
 
-	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
+	public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iriP;

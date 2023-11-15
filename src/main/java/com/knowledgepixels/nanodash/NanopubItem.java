@@ -216,7 +216,7 @@ public class NanopubItem extends Panel {
 	}
 
 	private void populateStatementItemList(ContextType contextType, ValueFiller filler, Template fillTemplate, String elementId, List<StatementItem> list) {
-		PublishFormContext context = new PublishFormContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
+		TemplateContext context = new TemplateContext(contextType, fillTemplate.getId(), elementId, fillTemplate.getTargetNamespace(), true);
 		context.initStatements();
 		if (signerId != null) {
 			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));

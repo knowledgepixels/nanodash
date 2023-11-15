@@ -16,11 +16,11 @@ import org.eclipse.rdf4j.model.Value;
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private AbstractTextComponent<String> textfield;
 	private final String regex;
 
-	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
+	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
 		super(id);
 		this.context = context;
 		final Template template = context.getTemplate();

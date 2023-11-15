@@ -53,7 +53,7 @@ public class ValueFiller {
 		initialSize = unusedStatements.size();
 	}
 
-	public void fill(PublishFormContext context) {
+	public void fill(TemplateContext context) {
 		try {
 			context.fill(unusedStatements);
 		} catch (UnificationException ex) {

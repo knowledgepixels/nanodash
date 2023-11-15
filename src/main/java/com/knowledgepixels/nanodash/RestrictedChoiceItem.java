@@ -32,7 +32,7 @@ import org.wicketstuff.select2.Select2Choice;
 public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private IRI iri;
 	private Select2Choice<String> choice;
 	private ExternalLink tooltipLink;
@@ -42,7 +42,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private final Map<String,Boolean> fixedPossibleValues = new HashMap<>();
 	private final List<IRI> possibleRefValues = new ArrayList<>();
 
-	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final PublishFormContext context) {
+	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iri;

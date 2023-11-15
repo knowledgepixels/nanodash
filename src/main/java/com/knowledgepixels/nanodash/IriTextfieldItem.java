@@ -29,11 +29,11 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 
 	private String prefix;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private TextField<String> textfield;
 	private IRI iri;
 
-	public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
+	public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iriP;
