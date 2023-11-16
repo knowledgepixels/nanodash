@@ -89,7 +89,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 			@Override
 			public String getObject() {
-				String obj = model.getObject();
+				String obj = getFullValue();
 				if (obj != null && obj.matches("https?://.+")) {
 					return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
 				} else {
@@ -103,7 +103,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 			@Override
 			public String getObject() {
-				String obj = model.getObject();
+				String obj = getFullValue();
 				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
 					if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
@@ -132,7 +132,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 			@Override
 			public String getObject() {
-				String obj = model.getObject();
+				String obj = getFullValue();
 				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
 					String description = "";
@@ -155,7 +155,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 			@Override
 			public String getObject() {
-				String obj = model.getObject();
+				String obj = getFullValue();
 				if (obj != null && obj.startsWith("\"")) return "";
 				return obj;
 			}
@@ -176,6 +176,17 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	@Override
 	public void removeFromContext() {
 		// Nothing to be done here.
+	}
+
+	private String getFullValue() {
+		String s = model.getObject();
+		if (template.isAutoEscapePlaceholder(iri)) {
+			s = Utils.urlEncode(s);
+		}
+		if (!prefix.isEmpty()) {
+			s = prefix + s;
+		}
+		return s;
 	}
 
 	@Override
