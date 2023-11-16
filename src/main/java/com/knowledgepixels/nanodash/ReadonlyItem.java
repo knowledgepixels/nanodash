@@ -74,14 +74,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			prefixLabelComp = new Label("prefix", prefixLabel);
 		}
 		add(prefixLabelComp);
-		String prefixTooltip = prefix;
-		if (!prefix.isEmpty()) {
-			prefixTooltip += "...";
-			if (template.isLocalResource(iri)) {
-				prefixTooltip = "local:...";
-			}
-		}
-		add(new Label("prefixtooltiptext", prefixTooltip));
 
 		linkComp = new ExternalLink("link", new Model<String>() {
 
@@ -165,9 +157,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 	private String getLabelString(IRI iri) {
 		if (template.getLabel(iri) != null) {
-			return template.getLabel(iri);
+			return template.getLabel(iri).replaceFirst(" - .*$", "");
 		} else if (context.getLabel(iri) != null) {
-			return context.getLabel(iri);
+			return context.getLabel(iri).replaceFirst(" - .*$", "");
 		} else {
 			return IriItem.getShortNameFromURI(iri.stringValue());
 		}

@@ -9,6 +9,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -72,7 +73,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 				prefixTooltip = "local:...";
 			}
 		}
-		add(new Label("prefixtooltiptext", prefixTooltip));
+		add(new ExternalLink("prefixtooltiptext", "", prefixTooltip));
 		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		if (template.isLocalResource(iri)) {

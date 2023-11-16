@@ -532,6 +532,10 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   top: 100%;
 }
 
+a.tooltiptext {
+  font-family: Martian,monaco,monospace !important;
+}
+
 #.tooltip:hover a {
 #  color: #fff;
 #  font-weight: bold;
