@@ -55,9 +55,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		}
 		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
-		if (template.isLocalResource(iri)) {
-			prefix = Utils.getUriPrefix(iri);
-		}
 		if (template.isRestrictedChoicePlaceholder(iri)) {
 			restrictedChoice = new RestrictedChoice(iri, context);
 		}
