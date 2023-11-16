@@ -31,6 +31,8 @@ public class NanopubItem extends Panel {
 
 	private final NanopubElement n;
 	private IRI signerId;
+	private WebMarkupContainer assertionPart1, assertionPart2;
+	private AjaxLink<Void> showMoreLink, showLessLink;
 
 	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
 		this(id, n, hideProvenance, hidePubinfo, null);
@@ -107,13 +109,13 @@ public class NanopubItem extends Panel {
 		add(new Label("positive-notes", positiveNotes));
 		add(new Label("negative-notes", negativeNotes));
 
-		WebMarkupContainer assertionPart1 = new WebMarkupContainer("assertion-part1");
-		WebMarkupContainer assertionPart2 = new WebMarkupContainer("assertion-part2");
+		assertionPart1 = new WebMarkupContainer("assertion-part1");
+		assertionPart2 = new WebMarkupContainer("assertion-part2");
 		assertionPart2.setOutputMarkupPlaceholderTag(true);
 		assertionPart2.setVisible(false);
 		List<StatementItem> assertionStatements1 = new ArrayList<>();
 		List<StatementItem> assertionStatements2 = new ArrayList<>();
-		AjaxLink<Void> showMoreLink = new AjaxLink<Void>("showmore"){
+		showMoreLink = new AjaxLink<Void>("showmore"){
 
 			private static final long serialVersionUID = 7877892803130782900L;
 
@@ -128,7 +130,7 @@ public class NanopubItem extends Panel {
 		};
 		showMoreLink.setOutputMarkupPlaceholderTag(true);
 		showMoreLink.setVisible(false);
-		AjaxLink<Void> showLessLink = new AjaxLink<Void>("showless"){
+		showLessLink = new AjaxLink<Void>("showless"){
 
 			private static final long serialVersionUID = 7877892803130782900L;
 
@@ -240,6 +242,13 @@ public class NanopubItem extends Panel {
 			});
 		}
 		add(pubInfo);
+	}
+
+	public NanopubItem expanded() {
+		assertionPart2.setVisible(true);
+		showMoreLink.setVisible(false);
+		showLessLink.setVisible(false);
+		return this;
 	}
 
 	private void populateStatementItemList(ContextType contextType, ValueFiller filler, Template fillTemplate, String elementId, List<StatementItem> list) {
