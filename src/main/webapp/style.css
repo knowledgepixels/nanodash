@@ -492,7 +492,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 
 .nanopub-statement span {
   line-height: 25px;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
