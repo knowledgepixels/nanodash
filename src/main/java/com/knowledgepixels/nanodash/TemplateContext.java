@@ -254,6 +254,14 @@ public class TemplateContext implements Serializable {
 		return narrowScopeMap.containsKey(iri);
 	}
 
+	public boolean willMatchAnyTriple() {
+		initStatements();
+		for (StatementItem si : statementItems) {
+			if (si.willMatchAnyTriple()) return true;
+		}
+		return false;
+	}
+
 	public void fill(List<Statement> statements) throws UnificationException {
 		for (StatementItem si : statementItems) {
 			si.fill(statements);

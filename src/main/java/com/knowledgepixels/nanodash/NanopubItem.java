@@ -29,7 +29,6 @@ public class NanopubItem extends Panel {
 	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
-	private final NanopubElement n;
 	private IRI signerId;
 	private WebMarkupContainer assertionPart1, assertionPart2;
 	private AjaxLink<Void> showMoreLink, showLessLink;
@@ -40,8 +39,6 @@ public class NanopubItem extends Panel {
 
 	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
 		super(id);
-
-		this.n = n;
 
 		add(new NanodashLink("nanopub-id-link", n.getUri()));
 		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
@@ -150,7 +147,8 @@ public class NanopubItem extends Panel {
 		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
 		List<StatementItem> assertionStatements = new ArrayList<>();
 		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
-		populateStatementItemList(ContextType.ASSERTION, assertionFiller, assertionTemplate, "assertion-statement", assertionStatements);
+		TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
+		populateStatementItemList(context, assertionFiller, assertionStatements);
 
 		assertionPart2.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
 
@@ -190,7 +188,8 @@ public class NanopubItem extends Panel {
 			if (provenanceTemplate == null) provenanceTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
 			List<StatementItem> provenanceStatements = new ArrayList<>();
 			ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
-			populateStatementItemList(ContextType.PROVENANCE, provenanceFiller, provenanceTemplate, "provenance-statement", provenanceStatements);
+			TemplateContext prContext = new TemplateContext(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
+			populateStatementItemList(prContext, provenanceFiller, provenanceStatements);
 			provenance.add(createStatementView("provenance-statements", provenanceStatements));
 			provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
 
@@ -210,21 +209,32 @@ public class NanopubItem extends Panel {
 			pubInfo.setVisible(false);
 		} else {
 			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
-			List<Template> pubinfoTemplates = new ArrayList<>();
-			pubinfoTemplates.addAll(Template.getPubinfoTemplates(n.getNanopub()));
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk")); // nanopub label
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg")); // nanopub type
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RALmzqHlrRfeTD8ESZdKFyDNYY6eFuyQ8GAe_4N5eVytc")); // timestamp
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y")); // templates
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAvqXPNKPf56b2226oqhKzARyvIhnpnTrRpLGC1cYweMw")); // introductions
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAgIlomuR39mN-Z39bbv59-h2DgQBnLyNdL22YmOJ_VHM")); // labels from APIs
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAFqeX7LWdwsVtJ8SMvvYPX1iGTwFkKcSnfbZGDnjeG10")); // signature
-			pubinfoTemplates.add(Template.getTemplate("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")); // generic
+			List<String> pubinfoTemplateIds = new ArrayList<>();
+			for (IRI iri : Template.getPubinfoTemplateIds(n.getNanopub())) pubinfoTemplateIds.add(iri.stringValue());
+			pubinfoTemplateIds.add("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk"); // nanopub label
+			pubinfoTemplateIds.add("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg"); // nanopub type
+			pubinfoTemplateIds.add("https://w3id.org/np/RALmzqHlrRfeTD8ESZdKFyDNYY6eFuyQ8GAe_4N5eVytc"); // timestamp
+			pubinfoTemplateIds.add("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y"); // templates
+			pubinfoTemplateIds.add("https://w3id.org/np/RAvqXPNKPf56b2226oqhKzARyvIhnpnTrRpLGC1cYweMw"); // introductions
+			pubinfoTemplateIds.add("https://w3id.org/np/RAgIlomuR39mN-Z39bbv59-h2DgQBnLyNdL22YmOJ_VHM"); // labels from APIs
+			pubinfoTemplateIds.add("https://w3id.org/np/RAFqeX7LWdwsVtJ8SMvvYPX1iGTwFkKcSnfbZGDnjeG10"); // signature
+			pubinfoTemplateIds.add("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM"); // generic
+			List<TemplateContext> contexts = new ArrayList<>();
+			List<TemplateContext> genericContexts = new ArrayList<>();
+			for (String s : pubinfoTemplateIds) {
+				TemplateContext piContext = new TemplateContext(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
+				if (piContext.willMatchAnyTriple()) {
+					genericContexts.add(piContext);
+				} else {
+					contexts.add(piContext);
+				}
+			}
+			contexts.addAll(genericContexts);  // make sure the generic one are at the end
 			List<WebMarkupContainer> elements = new ArrayList<>();
-			for (Template pubinfoTemplate : pubinfoTemplates) {
+			for (TemplateContext piContext : contexts) {
 				WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
 				List<StatementItem> pubinfoStatements = new ArrayList<>();
-				populateStatementItemList(ContextType.PUBINFO, pubinfoFiller, pubinfoTemplate, "pubinfo-statement", pubinfoStatements);
+				populateStatementItemList(piContext, pubinfoFiller,  pubinfoStatements);
 				if (!pubinfoStatements.isEmpty()) {
 					pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
 					elements.add(pubInfoElement);
@@ -251,8 +261,7 @@ public class NanopubItem extends Panel {
 		return this;
 	}
 
-	private void populateStatementItemList(ContextType contextType, ValueFiller filler, Template fillTemplate, String elementId, List<StatementItem> list) {
-		TemplateContext context = new TemplateContext(contextType, fillTemplate.getId(), elementId, n.getNanopub());
+	private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
 		context.initStatements();
 		if (signerId != null) {
 			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));

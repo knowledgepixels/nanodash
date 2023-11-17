@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -151,6 +152,10 @@ public class StatementItem extends Panel {
 
 	public Set<IRI> getIriSet() {
 		return iriSet;
+	}
+
+	public boolean willMatchAnyTriple() {
+		return repetitionGroups.get(0).tryToMatch(dummyStatementList) != null;
 	}
 
 	public void fill(List<Statement> statements) throws UnificationException {
@@ -444,6 +449,7 @@ public class StatementItem extends Panel {
 
 	}
 
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy"), vf.createIRI("http://dummy"), vf.createIRI("http://dummy"))));
 
 }
