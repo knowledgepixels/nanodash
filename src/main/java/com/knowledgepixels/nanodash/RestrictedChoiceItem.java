@@ -218,6 +218,10 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 		choice.setModelObject(vs);
 	}
 
+	@Override
+	public void fillFinished() {
+	}
+
 	public String toString() {
 		return "[Restricted choice item: " + iri + "]";
 	}

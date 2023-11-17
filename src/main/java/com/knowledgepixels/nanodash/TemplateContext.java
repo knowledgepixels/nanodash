@@ -266,6 +266,9 @@ public class TemplateContext implements Serializable {
 		for (StatementItem si : statementItems) {
 			si.fill(statements);
 		}
+		for (StatementItem si : statementItems) {
+			si.fillFinished();
+		}
 	}
 
 	public Nanopub getExistingNanopub() {

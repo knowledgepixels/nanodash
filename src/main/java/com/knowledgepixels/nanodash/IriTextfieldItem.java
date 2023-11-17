@@ -222,6 +222,10 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
 	}
 
+	@Override
+	public void fillFinished() {
+	}
+
 	public String toString() {
 		return "[IRI textfield item: " + iri + "]";
 	}

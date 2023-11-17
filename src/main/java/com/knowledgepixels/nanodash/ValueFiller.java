@@ -59,11 +59,6 @@ public class ValueFiller {
 		} catch (UnificationException ex) {
 			ex.printStackTrace();
 		}
-//		if (unusedStatements.size() == initialSize) {
-//			warningMessage = "Could not fill in form with content from given existing nanopublication.";
-//		} else if (!statements.isEmpty()) {
-//			warningMessage = "Content from given existing nanopublication could only partially be filled in.";
-//		}
 	}
 
 	public boolean hasStatements() {

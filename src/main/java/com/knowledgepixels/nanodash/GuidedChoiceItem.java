@@ -263,6 +263,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		}
 	}
 
+	@Override
+	public void fillFinished() {
+	}
+
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	public String toString() {

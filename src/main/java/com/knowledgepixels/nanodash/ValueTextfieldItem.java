@@ -151,6 +151,10 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	}
 
+	@Override
+	public void fillFinished() {
+	}
+
 	public String toString() {
 		return "[value textfield item: " + iri + "]";
 	}

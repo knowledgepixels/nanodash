@@ -225,6 +225,9 @@ public class NanopubItem extends Panel {
 				TemplateContext piContext = new TemplateContext(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
 				if (piContext.willMatchAnyTriple()) {
 					genericContexts.add(piContext);
+				} else if (piContext.getTemplateId().equals("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")) {
+					// TODO: This is a work-around; check why this template doesn't give true to willMatchAnyTriple()
+					genericContexts.add(piContext);
 				} else {
 					contexts.add(piContext);
 				}

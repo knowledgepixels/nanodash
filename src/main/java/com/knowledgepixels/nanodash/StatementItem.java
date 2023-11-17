@@ -183,6 +183,12 @@ public class StatementItem extends Panel {
 		}
 	}
 
+	public void fillFinished() {
+		for (RepetitionGroup rg : repetitionGroups) {
+			rg.fillFinished();
+		}
+	}
+
 	public boolean isMatched() {
 		return isMatched;
 	}
@@ -447,9 +453,15 @@ public class StatementItem extends Panel {
 			filled = true;
 		}
 
+		public void fillFinished() {
+			for (ValueItem vi : items) {
+				vi.fillFinished();
+			}
+		}
+
 	}
 
 	private static final ValueFactory vf = SimpleValueFactory.getInstance();
-	private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy"), vf.createIRI("http://dummy"), vf.createIRI("http://dummy"))));
+	private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
 
 }

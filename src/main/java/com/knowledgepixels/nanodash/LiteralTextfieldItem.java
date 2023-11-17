@@ -102,6 +102,10 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		getTextComponent().setModelObject(v.stringValue());
 	}
 
+	@Override
+	public void fillFinished() {
+	}
+
 	public String toString() {
 		return "[Literal textfield item]";
 	}

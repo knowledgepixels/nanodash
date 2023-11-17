@@ -80,6 +80,19 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			public String getObject() {
 				String obj = getFullValue();
 				if (obj != null && obj.matches("https?://.+")) {
+					if (obj.equals(Template.ASSERTION_PLACEHOLDER.stringValue())) {
+						if (context.getExistingNanopub() != null) {
+							obj = context.getExistingNanopub().getAssertionUri().stringValue();
+						} else {
+							return "";
+						}
+					} else  if (obj.equals(Template.NANOPUB_PLACEHOLDER.stringValue())) {
+						if (context.getExistingNanopub() != null) {
+							obj = context.getExistingNanopub().getUri().stringValue();
+						} else {
+							return "";
+						}
+					}
 					return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
 				} else {
 					return "";
@@ -101,6 +114,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 						} else {
 							return "I (" + User.getShortDisplayName(objIri) + ")";
 						}
+					} else if (objIri.equals(Template.ASSERTION_PLACEHOLDER)) {
+						if (context.getType() == ContextType.ASSERTION) {
+							return "this assertion";
+						} else {
+							return "the assertion above";
+						}
+					} else if (objIri.equals(Template.NANOPUB_PLACEHOLDER)) {
+						return "this nanopublication";
 					}
 					return getLabelString(objIri);
 				}
@@ -108,12 +129,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			}
 			
 		});
-		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
-			linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
-		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
-		}
 		add(linkComp);
 		add(new Label("description", new Model<String>() {
 
@@ -124,11 +139,15 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				String obj = getFullValue();
 				if (obj != null && obj.matches("https?://.+")) {
 					IRI objIri = vf.createIRI(obj);
-					String description = "";
-					if (context.isReadOnly() && obj.startsWith(context.getExistingNanopub().getUri().stringValue())) {
-						description = "This is a local identifier minted within the nanopublication.";
+					if (objIri.equals(Template.ASSERTION_PLACEHOLDER)) {
+						return "This is the identifier for this whole nanopublication.";
+					} else if (objIri.equals(Template.NANOPUB_PLACEHOLDER)) {
+						return "This is the identifier for this whole nanopublication.";
+					} else if (context.isReadOnly() && obj.startsWith(context.getExistingNanopub().getUri().stringValue())) {
+						return "This is a local identifier minted within the nanopublication.";
 					}
 					String labelString = getLabelString(objIri);
+					String description = "";
 					if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 					return description;
 				} else if (obj != null && obj.startsWith("\"")) {
@@ -146,10 +165,37 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			public String getObject() {
 				String obj = getFullValue();
 				if (obj != null && obj.startsWith("\"")) return "";
+				if (obj.equals(Template.ASSERTION_PLACEHOLDER.stringValue())) {
+					if (context.getExistingNanopub() != null) {
+						return context.getExistingNanopub().getAssertionUri().stringValue();
+					} else {
+						return "local:assertion";
+					}
+				} else  if (obj.equals(Template.NANOPUB_PLACEHOLDER.stringValue())) {
+					if (context.getExistingNanopub() != null) {
+						return context.getExistingNanopub().getUri().stringValue();
+					} else {
+						return "local:nanopub";
+					}
+				}
 				return obj;
 			}
 			
 		}));
+	}
+
+	@Override
+	public void fillFinished() {
+		String obj = getFullValue();
+		if (obj != null) {
+			if (obj.equals(Template.ASSERTION_PLACEHOLDER.stringValue())) {
+				linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
+				linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+			} else if (obj.equals(Template.NANOPUB_PLACEHOLDER.stringValue())) {
+				linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+			}
+		}
+		super.onBeforeRender();
 	}
 
 	private String getLabelString(IRI iri) {
@@ -169,6 +215,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
 	private String getFullValue() {
 		String s = model.getObject();
+		if (s == null) return null;
 		if (template.isAutoEscapePlaceholder(iri)) {
 			s = Utils.urlEncode(s);
 		}

@@ -79,6 +79,11 @@ public class ValueItem extends Panel implements ContextComponent {
 		component.unifyWith(v);
 	}
 
+	@Override
+	public void fillFinished() {
+		component.fillFinished();
+	}
+
 	public Value getValue() {
 		return value;
 	}
