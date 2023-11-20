@@ -20,9 +20,13 @@ public class ViewPage extends NanodashPage {
 	}
 
 	static void addNanopubItem(NanodashPage page, final PageParameters parameters) {
-		final String ref = parameters.get("id").toString();
+		String ref = parameters.get("id").toString();
 		Nanopub np = Utils.getAsNanopub(ref);
-		page.add(new NanopubItem("nanopub", new NanopubElement(np), false, false).expanded());
+		boolean showHeader = "on".equals(parameters.get("show-header").toOptionalString());
+		boolean showFooter = "on".equals(parameters.get("show-footer").toOptionalString());
+		boolean showProv = !"off".equals(parameters.get("show-prov").toOptionalString());
+		boolean showPubinfo = !"off".equals(parameters.get("show-pubinfo").toOptionalString());
+		page.add(new NanopubItem("nanopub", new NanopubElement(np)).expand().setProvenanceHidden(!showProv).setPubinfoHidden(!showPubinfo).setHeaderHidden(!showHeader).setFooterHidden(!showFooter));
 	}
 
 }

@@ -48,7 +48,7 @@ public class NanopubResults extends Panel {
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
 				NanodashSession session = NanodashSession.get();
-				item.add(new NanopubItem("nanopub", item.getModelObject(), !session.isShowProvenanceEnabled(), !session.isShowPubinfoEnabled()));
+				item.add(new NanopubItem("nanopub", item.getModelObject()).setProvenanceHidden(!session.isShowProvenanceEnabled()).setPubinfoHidden(!session.isShowPubinfoEnabled()));
 			}
 
 		});

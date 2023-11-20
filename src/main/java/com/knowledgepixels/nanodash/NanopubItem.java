@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,25 +24,32 @@ import org.eclipse.rdf4j.model.Statement;
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
 public class NanopubItem extends Panel {
-	
+
 	private static final long serialVersionUID = -5109507637942030910L;
 
 	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
+	private boolean isInitialized = false;
+	private NanopubElement n;
+	private boolean hideProvenance = false;
+	private boolean hidePubinfo = false;
+	private boolean hideHeader = false;
+	private boolean hideFooter = false;
+	private boolean expanded = false;
+	private List<NanopubAction> actions;
 	private IRI signerId;
 	private WebMarkupContainer assertionPart1, assertionPart2;
 	private AjaxLink<Void> showMoreLink, showLessLink;
 
-	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
-		this(id, n, hideProvenance, hidePubinfo, null);
+	public NanopubItem(String id, NanopubElement n) {
+		super(id);
+		this.n = n;
 	}
 
-	public NanopubItem(String id, NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
-		super(id);
+	private void initialize() {
+		if (isInitialized) return;
 
-		add(new NanodashLink("nanopub-id-link", n.getUri()));
-		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
 
 		String userString = "";
 		String pubkey = null;
@@ -55,56 +63,74 @@ public class NanopubItem extends Panel {
 			ex.printStackTrace();
 		}
 
-		NanodashSession session = NanodashSession.get();
-		boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
-		final List<NanopubAction> actionList = new ArrayList<>();
-		final Map<String,NanopubAction> actionMap = new HashMap<>();
-		List<NanopubAction> allActions = new ArrayList<>();
-		if (actions == null) {
-			allActions.addAll(NanopubAction.defaultActions);
-			allActions.addAll(NanopubAction.getActionsFromPreferences(NanodashPreferences.get()));
+		if (hideHeader) {
+			add(new Label("header", "").setVisible(false));
 		} else {
-			allActions.addAll(actions);
-		}
-		for (NanopubAction action : allActions) {
-			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
-			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
-			if (!action.isApplicableTo(n.getNanopub())) continue;
-			actionList.add(action);
-			actionMap.put(action.getLinkLabel(n.getNanopub()), action);
-		}
-		add(new ActionMenu("action-menu", actionList, n.getNanopub()));
-
-		if (n.getCreationTime() != null) {
-			add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
-		} else {
-			add(new Label("datetime", "(undated)"));
-		}
-		PageParameters params = new PageParameters();
-		IRI uIri = User.findSingleIdForPubkey(pubkey);
-		if (uIri != null) params.add("id", uIri);
-		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
-		userLink.add(new Label("user-text", userString));
-		add(userLink);
-
-		String positiveNotes = "";
-		String negativeNotes = "";
-		if (n.seemsToHaveSignature()) {
-			try {
-				if (!n.hasValidSignature()) {
-					negativeNotes = "- invalid signature";
+			WebMarkupContainer header = new WebMarkupContainer("header");
+			header.add(new NanodashLink("nanopub-id-link", n.getUri()));
+			header.add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
+			if (actions == null || !actions.isEmpty()) {
+				NanodashSession session = NanodashSession.get();
+				boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
+				final List<NanopubAction> actionList = new ArrayList<>();
+				final Map<String,NanopubAction> actionMap = new HashMap<>();
+				List<NanopubAction> allActions = new ArrayList<>();
+				if (actions == null) {
+					allActions.addAll(Arrays.asList(NanopubAction.defaultActions));
+					allActions.addAll(NanopubAction.getActionsFromPreferences(NanodashPreferences.get()));
+				} else {
+					allActions.addAll(actions);
 				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				negativeNotes = "- malformed or legacy signature";
+				for (NanopubAction action : allActions) {
+					if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
+					if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
+					if (!action.isApplicableTo(n.getNanopub())) continue;
+					actionList.add(action);
+					actionMap.put(action.getLinkLabel(n.getNanopub()), action);
+				}
+				header.add(new ActionMenu("action-menu", actionList, n.getNanopub()));
+			} else {
+				header.add(new Label("action-menu", "").setVisible(false));
 			}
+			add(header);
 		}
-		if (n.isRetracted()) {
-			positiveNotes = "";
-			negativeNotes = "- retracted";
+
+		if (hideFooter) {
+			add(new Label("footer", "").setVisible(false));
+		} else {
+			WebMarkupContainer footer = new WebMarkupContainer("footer");
+			if (n.getCreationTime() != null) {
+				footer.add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
+			} else {
+				footer.add(new Label("datetime", "(undated)"));
+			}
+			PageParameters params = new PageParameters();
+			IRI uIri = User.findSingleIdForPubkey(pubkey);
+			if (uIri != null) params.add("id", uIri);
+			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
+			userLink.add(new Label("user-text", userString));
+			footer.add(userLink);
+	
+			String positiveNotes = "";
+			String negativeNotes = "";
+			if (n.seemsToHaveSignature()) {
+				try {
+					if (!n.hasValidSignature()) {
+						negativeNotes = "- invalid signature";
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					negativeNotes = "- malformed or legacy signature";
+				}
+			}
+			if (n.isRetracted()) {
+				positiveNotes = "";
+				negativeNotes = "- retracted";
+			}
+			footer.add(new Label("positive-notes", positiveNotes));
+			footer.add(new Label("negative-notes", negativeNotes));
+			add(footer);
 		}
-		add(new Label("positive-notes", positiveNotes));
-		add(new Label("negative-notes", negativeNotes));
 
 		assertionPart1 = new WebMarkupContainer("assertion-part1");
 		assertionPart2 = new WebMarkupContainer("assertion-part2");
@@ -141,6 +167,7 @@ public class NanopubItem extends Panel {
 
 		};
 		assertionPart1.add(showMoreLink);
+		showLessLink.setVisible(!expanded);
 		assertionPart2.add(showLessLink);
 
 		Template assertionTemplate = Template.getTemplate(n.getNanopub());
@@ -171,13 +198,14 @@ public class NanopubItem extends Panel {
 					assertionStatements2.add(a.get(i));
 				}
 			}
-			showMoreLink.setVisible(true);
+			showMoreLink.setVisible(!expanded);
 		} else {
 			assertionStatements1 = a;
 		}
 		assertionPart1.add(createStatementView("assertion-statements1", assertionStatements1));
 		add(assertionPart1);
 		assertionPart2.add(createStatementView("assertion-statements2", assertionStatements2));
+		assertionPart2.setVisible(expanded);
 		add(assertionPart2);
 
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
@@ -255,13 +283,89 @@ public class NanopubItem extends Panel {
 			});
 		}
 		add(pubInfo);
+
+		isInitialized = true;
 	}
 
-	public NanopubItem expanded() {
-		assertionPart2.setVisible(true);
-		showMoreLink.setVisible(false);
-		showLessLink.setVisible(false);
+	public NanopubItem expand() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		expanded = true;
 		return this;
+	}
+
+	public NanopubItem setExpanded(boolean expanded) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.expanded = expanded;
+		return this;
+	}
+
+	public NanopubItem hideProvenance() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideProvenance = true;
+		return this;
+	}
+
+	public NanopubItem setProvenanceHidden(boolean hideProvenance) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideProvenance = hideProvenance;
+		return this;
+	}
+
+	public NanopubItem hidePubinfo() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hidePubinfo = true;
+		return this;
+	}
+
+	public NanopubItem setPubinfoHidden(boolean hidePubinfo) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hidePubinfo = hidePubinfo;
+		return this;
+	}
+
+	public NanopubItem hideHeader() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideHeader = true;
+		return this;
+	}
+
+	public NanopubItem setHeaderHidden(boolean hideHeader) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideHeader = hideHeader;
+		return this;
+	}
+
+	public NanopubItem hideFooter() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideFooter = true;
+		return this;
+	}
+
+	public NanopubItem setFooterHidden(boolean hideFooter) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideFooter = hideFooter;
+		return this;
+	}
+
+	public NanopubItem addActions(NanopubAction... a) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		if (actions == null) actions = new ArrayList<>();
+		for (NanopubAction na : a) {
+			actions.add(na);
+		}
+		return this;
+	}
+
+	public NanopubItem noActions() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		actions = new ArrayList<>();
+		return this;
+	}
+	
+	@Override
+	protected void onBeforeRender() {
+		initialize();
+		super.onBeforeRender();
 	}
 
 	private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
