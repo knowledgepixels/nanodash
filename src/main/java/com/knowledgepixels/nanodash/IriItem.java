@@ -9,6 +9,8 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.SimpleCreatorPattern;
 
 import com.google.common.base.Charsets;
@@ -95,11 +97,15 @@ public class IriItem extends Panel implements ContextComponent {
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
 			linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+			iri = vf.createIRI("local:assertion");
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
 			linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+			iri = vf.createIRI("local:nanopub");
 		}
 		add(linkComp);
 	}
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	public static String getShortNameFromURI(String uri) {
 		uri = uri.replaceFirst("[/#]$", "");

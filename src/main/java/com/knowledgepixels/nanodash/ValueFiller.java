@@ -108,9 +108,11 @@ public class ValueFiller {
 
 	private Value transform(Value v) {
 		if (fillNp.getUri().equals(v)) {
-			return Template.NANOPUB_PLACEHOLDER;
+			return vf.createIRI("local:nanopub");
+//			return Template.NANOPUB_PLACEHOLDER;
 		} else if (fillNp.getAssertionUri().equals(v)) {
-			return Template.ASSERTION_PLACEHOLDER;
+			return vf.createIRI("local:assertion");
+//			return Template.ASSERTION_PLACEHOLDER;
 		} else if (v instanceof IRI && formMode) {
 			if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
 				return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
