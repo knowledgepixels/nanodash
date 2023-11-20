@@ -26,7 +26,6 @@ import com.knowledgepixels.nanodash.PublishPage;
 import com.knowledgepixels.nanodash.Template;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class TypePage extends ConnectorPage {
@@ -169,7 +168,7 @@ public abstract class TypePage extends ConnectorPage {
 			params.put("creator", userIri.stringValue());
 		}
 
-		add(new NanopubItem("example-nanopub", new NanopubElement(Utils.getAsNanopub(exampleId)), false, true, NanopubAction.noActions));
+		add(new NanopubItem("example-nanopub", new NanopubElement(Utils.getAsNanopub(exampleId))).hidePubinfo().expand().noActions());
 
 		if (userIri == null) {
 			add(new WebMarkupContainer("candidate-nps")
