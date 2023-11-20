@@ -125,6 +125,8 @@ public class WicketApplication extends WebApplication {
 		mountPage(ConnectorListPage.MOUNT_PATH, ConnectorListPage.class);
 		mountPage(MyChannelPage.MOUNT_PATH, MyChannelPage.class);
 		mountPage(TermForwarder.MOUNT_PATH, TermForwarder.class);
+		mountPage(ViewPage.MOUNT_PATH, ViewPage.class);
+		mountPage(GetViewPage.MOUNT_PATH, GetViewPage.class);
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsNanopubPage");

@@ -183,10 +183,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		String obj = getFullValue();
 		if (obj != null) {
 			if (isAssertionValue(obj)) {
-				linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
-				linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+				linkComp.add(new AttributeAppender("class", " this-assertion "));
 			} else if (isNanopubValue(obj)) {
-				linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+				linkComp.add(new AttributeAppender("class", " this-nanopub "));
 			}
 		}
 	}

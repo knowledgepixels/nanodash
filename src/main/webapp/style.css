@@ -486,6 +486,25 @@ a:active.nanopub-pubinfo { color: #666; }
 
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
 
+.this-assertion {
+  background: #99ccff;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #88aaff;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.this-nanopub {
+  background: #ffffff;
+  background-image: url(npback-left.png);
+  border-width: 1px;
+  border-color: #666;
+  border-style: solid;
+  padding: 4px 4px 4px 20px;
+  border-radius: 4px;
+}
+
 .nanopub-statement {
   padding: 2px;
 }

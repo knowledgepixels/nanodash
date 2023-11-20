@@ -95,11 +95,10 @@ public class IriItem extends Panel implements ContextComponent {
 		}
 		ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			linkComp.add(new AttributeAppender("class", " nanopub-assertion "));
-			linkComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
+			linkComp.add(new AttributeAppender("class", " this-assertion "));
 			iri = vf.createIRI("local:assertion");
 		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
+			linkComp.add(new AttributeAppender("class", " this-nanopub "));
 			iri = vf.createIRI("local:nanopub");
 		}
 		add(linkComp);
