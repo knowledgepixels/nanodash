@@ -4,7 +4,7 @@
   <groupId>com.knowledgepixels</groupId>
   <artifactId>nanodash</artifactId>
   <packaging>war</packaging>
-  <version>2.11-SNAPSHOT</version>
+  <version>2.11</version>
   <name>nanodash</name>
   <url>https://github.com/knowledgepixels/nanodash</url>
   <licenses>
