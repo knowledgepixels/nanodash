@@ -85,7 +85,7 @@ public class IriItem extends Panel implements ContextComponent {
 		}
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 		add(new Label("description", description));
-		add(new ExternalLink("uri", iriString, iriString));
+		add(new ExternalLink("uri", (iriString.startsWith("local:") ? "" : iriString), iriString));
 
 		String href = null;
 		if (iriString.startsWith("local:")) {
