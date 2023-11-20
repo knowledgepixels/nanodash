@@ -189,7 +189,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				linkComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
 			}
 		}
-		super.onBeforeRender();
 	}
 
 	private String getLabelString(IRI iri) {
