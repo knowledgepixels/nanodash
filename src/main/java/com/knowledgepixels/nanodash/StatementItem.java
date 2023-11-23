@@ -155,26 +155,27 @@ public class StatementItem extends Panel {
 	}
 
 	public boolean willMatchAnyTriple() {
-		return repetitionGroups.get(0).tryToMatch(dummyStatementList) != null;
+		return repetitionGroups.get(0).matches(dummyStatementList);
 	}
 
 	public void fill(List<Statement> statements) throws UnificationException {
-		List<Statement> matches = null;
+		if (isMatched) return;
 		if (repetitionGroups.size() == 1) {
 			RepetitionGroup rg = repetitionGroups.get(0);
-			matches = rg.tryToMatch(statements);
-			if (matches != null) {
-				rg.fill(matches);
+			if (rg.matches(statements)) {
+				rg.fill(statements);
+			} else {
+				return;
 			}
+		} else {
+			return;
 		}
-		if (matches == null) return;
 		isMatched = true;
 		if (!isRepeatable()) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
-			matches = newGroup.tryToMatch(statements);
-			if (matches != null) {
-				newGroup.fill(matches);
+			if (newGroup.matches(statements)) {
+				newGroup.fill(statements);
 				addRepetitionGroup(newGroup);
 			} else {
 				newGroup.disconnect();
@@ -417,9 +418,9 @@ public class StatementItem extends Panel {
 			return true;
 		}
 
-		public List<Statement> tryToMatch(List<Statement> st) {
-			if (filled) return null;
-			List<Statement> matches = new ArrayList<>();
+		public boolean matches(List<Statement> statements) {
+			if (filled) return false;
+			List<Statement> st = new ArrayList<>(statements);
 			for (StatementPartItem p : statementParts) {
 				Statement matchedStatement = null;
 				for (Statement s : st) {
@@ -428,29 +429,41 @@ public class StatementItem extends Panel {
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
 						matchedStatement = s;
-						matches.add(s);
 						break;
 					}
 				}
 				if (matchedStatement == null) {
-					return null;
+					return false;
 				} else {
 					st.remove(matchedStatement);
 				}
 			}
-			return matches;
+			return true;
 		}
 
-		public void fill(List<Statement> matches) throws UnificationException {
+		public void fill(List<Statement> statements) throws UnificationException {
 			if (filled) throw new UnificationException("Already filled");
-			for (int i = 0 ; i < statementParts.size() ; i++) {
-				StatementPartItem p = statementParts.get(i);
-				Statement s = matches.get(i);
-				p.getPredicate().unifyWith(s.getPredicate());
-				p.getSubject().unifyWith(s.getSubject());
-				p.getObject().unifyWith(s.getObject());
+			for (StatementPartItem p : statementParts) {
+				Statement matchedStatement = null;
+				for (Statement s : statements) {
+					if (
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
+							p.getSubject().isUnifiableWith(s.getSubject()) &&
+							p.getObject().isUnifiableWith(s.getObject())) {
+						p.getPredicate().unifyWith(s.getPredicate());
+						p.getSubject().unifyWith(s.getSubject());
+						p.getObject().unifyWith(s.getObject());
+						matchedStatement = s;
+						break;
+					}
+				}
+				if (matchedStatement == null) {
+					throw new UnificationException("Unification seemed to work but then didn't");
+				} else {
+					statements.remove(matchedStatement);
+				}
+				filled = true;
 			}
-			filled = true;
 		}
 
 		public void fillFinished() {
