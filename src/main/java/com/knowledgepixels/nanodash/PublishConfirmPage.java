@@ -52,7 +52,9 @@ public class PublishConfirmPage extends NanodashPage {
 
 		PageParameters plainLinkParams = new PageParameters();
 		plainLinkParams.add("template", params.get("template"));
-		plainLinkParams.add("template-version", params.get("template-version"));
+		if (!params.get("template-version").isEmpty()) {
+			plainLinkParams.add("template-version", params.get("template-version"));
+		}
 		add(new BookmarkablePageLink<WebPage>("publish-another-link", PublishPage.class, plainLinkParams));
 
 		PageParameters linkParams = new PageParameters(params);
