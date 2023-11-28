@@ -187,7 +187,7 @@ public class NanopubItem extends Panel {
 			}
 
 		});
-		if (!assertionFiller.getUnusedStatements().isEmpty()) showMoreLink.setVisible(true);
+		if (!assertionFiller.getUnusedStatements().isEmpty()) showMoreLink.setVisible(!expanded);
 
 		List<StatementItem> a = new ArrayList<>(assertionStatements);
 		if (a.size() > 3) {
