@@ -492,6 +492,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   border-radius: 4px;
 }
 
+/*
 .this-assertion {
   background: #99ccff;
   border-style: solid;
@@ -510,6 +511,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   padding: 4px 4px 4px 20px;
   border-radius: 4px;
 }
+*/
 
 .nanopub-statement {
   padding: 2px;
@@ -567,14 +569,16 @@ a.tooltiptext {
   font-family: Martian,monaco,monospace !important;
 }
 
-#.tooltip:hover a {
-#  color: #fff;
-#  font-weight: bold;
-#}
-#
-#.tooltip:hover {
-#  background-color: black;
-#}
+/*
+.tooltip:hover a {
+  color: #fff;
+  font-weight: bold;
+}
+
+.tooltip:hover {
+  background-color: black;
+}
+*/
 
 .tooltiptext a {
   color: #fff; 
