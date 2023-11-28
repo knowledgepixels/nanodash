@@ -41,10 +41,16 @@ public class NanopubItem extends Panel {
 	private IRI signerId;
 	private WebMarkupContainer assertionPart1, assertionPart2;
 	private AjaxLink<Void> showMoreLink, showLessLink;
+	private String tempalteId;
 
-	public NanopubItem(String id, NanopubElement n) {
+	public NanopubItem(String id, NanopubElement n, String tempalteId) {
 		super(id);
 		this.n = n;
+		this.tempalteId = tempalteId;
+	}
+
+	public NanopubItem(String id, NanopubElement n) {
+		this(id, n, null);
 	}
 
 	private void initialize() {
@@ -171,6 +177,7 @@ public class NanopubItem extends Panel {
 		assertionPart2.add(showLessLink);
 
 		Template assertionTemplate = Template.getTemplate(n.getNanopub());
+		if (tempalteId != null) assertionTemplate = Template.getTemplate(tempalteId);
 		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
 		List<StatementItem> assertionStatements = new ArrayList<>();
 		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
