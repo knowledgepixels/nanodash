@@ -1,4 +1,5 @@
 *~
+*.bak
 /.*
 /docker-compose.override.yml
 /local-data
