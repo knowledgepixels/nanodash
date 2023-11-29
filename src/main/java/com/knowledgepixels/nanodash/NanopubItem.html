@@ -5,7 +5,7 @@
 <body>
 
 <wicket:panel>
-<p class="meta">
+<p wicket:id="header" class="meta">
 <span class="meta"><span wicket:id="nanopub-id-link">link-ID</span> <span wicket:id="nanopub-label">nanopub label</span></span>
 <span class="actionmenuspan"><span wicket:id="action-menu" /></span>
 </p>
@@ -13,29 +13,39 @@
 <div class="nanopub-assertion">
 <div wicket:id="assertion-part1">
 <div wicket:id="assertion-statements1">
-<span wicket:id="assertion-statement1"></span>
+<div wicket:id="assertion-statement" class="nanopub-statement"></div>
 </div>
 <a href="#" class="actionlink" wicket:id="showmore">... (show more)</a>
 </div>
 <div wicket:id="assertion-part2">
 <div wicket:id="assertion-statements2">
-<span wicket:id="assertion-statement2"></span>
+<div wicket:id="assertion-statement" class="nanopub-statement"></div>
+</div>
+<div wicket:id="unused-assertion-statements">
+<div wicket:id="unused-assertion-statement" class="nanopub-statement"></div>
 </div>
 <a href="#" class="actionlink" wicket:id="showless">(show less)</a>
 </div>
 </div>
 <div class="nanopub-provenance" wicket:id="provenance">
 <div wicket:id="provenance-statements">
-<span wicket:id="provenance-statement"></span>
+<div wicket:id="provenance-statement" class="nanopub-statement"></div>
+</div>
+<div wicket:id="unused-provenance-statements">
+<div wicket:id="unused-provenance-statement" class="nanopub-statement"></div>
 </div>
 </div>
-<div class="nanopub-pubinfo" wicket:id="pubinfo">
+<div wicket:id="pubinfo">
+<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
-<span wicket:id="pubinfo-statement"></span>
+<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
 </div>
 </div>
 </div>
-<p class="postmeta">
+</div>
+</div>
+<p wicket:id="footer" class="postmeta">
 <a class="meta" wicket:id="user-link"><span wicket:id="user-text">user name</span></a>
 <span wicket:id="datetime">datetime</span>
 <span class="positive" wicket:id="positive-notes">positive notes</span>

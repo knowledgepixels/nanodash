@@ -8,18 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
 
-public class PublishFormContext implements Serializable {
+public class TemplateContext implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -29,22 +31,38 @@ public class PublishFormContext implements Serializable {
 	private final Template template;
 	private final String componentId;
 	private final Map<String,String> params = new HashMap<>();
-	private List<FormComponent<String>> formComponents = new ArrayList<>();
-	private Map<IRI,IModel<String>> formComponentModels = new HashMap<>();
+	private List<Component> components = new ArrayList<>();
+	private Map<IRI,IModel<String>> componentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
-	private boolean isLocal;
 	private List<StatementItem> statementItems;
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
-	private String targetNamespace;
+	private String targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
+	private Nanopub existingNanopub;
+	private Map<IRI,String> labels;
 
-	public PublishFormContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
+	// For PublishForm when nanopub doesn't exist yet:
+	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
+		this(contextType, templateId, componentId, targetNamespace, null);
+	}
+
+	// For NanopubItem to show existing nanopub in read-only mode:
+	public TemplateContext(ContextType contextType, String templateId, String componentId, Nanopub existingNanopub) {
+		this(contextType, templateId, componentId, null, existingNanopub);
+	}
+
+	private TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace, Nanopub existingNanopub) {
 		this.contextType = contextType;
-		this.isLocal = templateId != null && templateId.startsWith("file://");
 		// TODO: check whether template is of correct type:
 		this.template = Template.getTemplate(templateId);
 		this.componentId = componentId;
-		this.targetNamespace = targetNamespace;
+		if (targetNamespace != null) {
+			this.targetNamespace = targetNamespace;
+		}
+		this.existingNanopub = existingNanopub;
+		if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
+			componentModels.put(Template.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
+		}
 	}
 
 	public void initStatements() {
@@ -74,7 +92,7 @@ public class PublishFormContext implements Serializable {
 			while (true) {
 				String p = postfix + "__" + i;
 				if (hasParam(p)) {
-					si.repeat();
+					si.addRepetitionGroup();
 				} else {
 					break;
 				}
@@ -99,9 +117,8 @@ public class PublishFormContext implements Serializable {
 		}
 		for (StatementItem si : finalRepetitionCount.keySet()) {
 			for (int i = 0 ; i < finalRepetitionCount.get(si) ; i++) {
-				si.repeat();
+				si.addRepetitionGroup();
 			}
-			si.refreshStatements();
 		}
 	}
 
@@ -129,12 +146,12 @@ public class PublishFormContext implements Serializable {
 		return params.containsKey(name);
 	}
 
-	public List<FormComponent<String>> getFormComponents() {
-		return formComponents;
+	public List<Component> getComponents() {
+		return components;
 	}
 
-	public Map<IRI,IModel<String>> getFormComponentModels() {
-		return formComponentModels;
+	public Map<IRI,IModel<String>> getComponentModels() {
+		return componentModels;
 	}
 
 	public Set<IRI> getIntroducedIris() {
@@ -160,14 +177,14 @@ public class PublishFormContext implements Serializable {
 			iri = vf.createIRI(targetNamespace);
 		}
 		// TODO: Move this code below to the respective placeholder classes:
-		IModel<String> tf = formComponentModels.get(iri);
+		IModel<String> tf = componentModels.get(iri);
 		Value processedValue = null;
 		if (template.isRestrictedChoicePlaceholder(iri)) {
 			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
 				String prefix = template.getPrefix(iri);
 				if (prefix == null) prefix = "";
 				if (template.isLocalResource(iri)) prefix = targetNamespace;
-				if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+				if (tf.getObject().matches("https?://.+")) prefix = "";
 				String v = prefix + tf.getObject();
 				if (v.matches("[^:# ]+")) v = targetNamespace + v;
 				if (v.matches("https?://.*")) {
@@ -185,7 +202,7 @@ public class PublishFormContext implements Serializable {
 				if (template.isAutoEscapePlaceholder(iri)) {
 					v = prefix + Utils.urlEncode(tf.getObject());
 				} else {
-					if (tf.getObject().matches("(https?|file)://.+")) prefix = "";
+					if (tf.getObject().matches("https?://.+")) prefix = "";
 					v = prefix + tf.getObject();
 				}
 				if (v.matches("[^:# ]+")) v = targetNamespace + v;
@@ -233,18 +250,47 @@ public class PublishFormContext implements Serializable {
 		}
 	}
 
-	public boolean isLocal() {
-		return isLocal;
-	}
-
 	public boolean hasNarrowScope(IRI iri) {
 		return narrowScopeMap.containsKey(iri);
+	}
+
+	public boolean willMatchAnyTriple() {
+		initStatements();
+		for (StatementItem si : statementItems) {
+			if (si.willMatchAnyTriple()) return true;
+		}
+		return false;
 	}
 
 	public void fill(List<Statement> statements) throws UnificationException {
 		for (StatementItem si : statementItems) {
 			si.fill(statements);
 		}
+		for (StatementItem si : statementItems) {
+			si.fillFinished();
+		}
+	}
+
+	public Nanopub getExistingNanopub() {
+		return existingNanopub;
+	}
+
+	public boolean isReadOnly() {
+		return existingNanopub != null;
+	}
+
+	public String getLabel(IRI iri) {
+		if (existingNanopub == null) return null;
+		if (labels == null) {
+			labels = new HashMap<>();
+			for (Statement st : existingNanopub.getPubinfo()) {
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {
+					String label = st.getObject().stringValue();
+					labels.put((IRI) st.getSubject(), label);
+				}
+			}
+		}
+		return labels.get(iri);
 	}
 
 }

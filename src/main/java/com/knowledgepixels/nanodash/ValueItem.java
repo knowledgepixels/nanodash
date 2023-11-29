@@ -23,7 +23,16 @@ public class ValueItem extends Panel implements ContextComponent {
 		final Template template = rg.getContext().getTemplate();
 		if (value instanceof IRI) {
 			IRI iri = (IRI) value;
-			if (template.isRestrictedChoicePlaceholder(iri)) {
+			if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+				// This is a special placeholder that is always read-only
+				component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+			} else if (rg.getContext().isReadOnly()) {
+				if (template.isPlaceholder(iri)) {
+					component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+				} else {
+					component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+				}
+			} else if (template.isRestrictedChoicePlaceholder(iri)) {
 				component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isGuidedChoicePlaceholder(iri)) {
 				component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
@@ -68,6 +77,11 @@ public class ValueItem extends Panel implements ContextComponent {
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
 		component.unifyWith(v);
+	}
+
+	@Override
+	public void fillFinished() {
+		component.fillFinished();
 	}
 
 	public Value getValue() {

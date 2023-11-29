@@ -16,19 +16,19 @@ import org.eclipse.rdf4j.model.Value;
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	
 	private static final long serialVersionUID = 1L;
-	private PublishFormContext context;
+	private TemplateContext context;
 	private AbstractTextComponent<String> textfield;
 	private final String regex;
 
-	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
+	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
 		super(id);
 		this.context = context;
 		final Template template = context.getTemplate();
 		regex = template.getRegex(iri);
-		IModel<String> model = context.getFormComponentModels().get(iri);
+		IModel<String> model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
-			context.getFormComponentModels().put(iri, model);
+			context.getComponentModels().put(iri, model);
 		}
 		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
@@ -53,8 +53,8 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 			}
 
 		});
-		context.getFormComponentModels().put(iri, tc.getModel());
-		context.getFormComponents().add(tc);
+		context.getComponentModels().put(iri, tc.getModel());
+		context.getComponents().add(tc);
 		tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		tc.add(new InvalidityHighlighting());
 		add(tc);
@@ -77,7 +77,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(getTextComponent());
+		context.getComponents().remove(getTextComponent());
 	}
 
 	@Override
@@ -100,6 +100,10 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		if (v == null) return;
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		getTextComponent().setModelObject(v.stringValue());
+	}
+
+	@Override
+	public void fillFinished() {
 	}
 
 	public String toString() {

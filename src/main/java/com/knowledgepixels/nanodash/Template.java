@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.wicket.util.file.File;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -26,7 +25,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubImpl;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -96,7 +94,7 @@ public class Template implements Serializable {
 		if (assertionTemplates == null) refreshTemplates();
 		Template template = templateMap.get(id);
 		if (template != null) return template;
-		if (id.startsWith("file://") || TrustyUriUtils.isPotentialTrustyUri(id)) {
+		if (TrustyUriUtils.isPotentialTrustyUri(id)) {
 			try {
 				Template t = new Template(id);
 				templateMap.put(id, t);
@@ -113,6 +111,20 @@ public class Template implements Serializable {
 		IRI templateId = getTemplateId(np);
 		if (templateId == null) return null;
 		return getTemplate(templateId.stringValue());
+	}
+
+	public static Template getProvenanceTemplate(Nanopub np) {
+		IRI templateId = getProvenanceTemplateId(np);
+		if (templateId == null) return null;
+		return getTemplate(templateId.stringValue());
+	}
+
+	public static Set<Template> getPubinfoTemplates(Nanopub np) {
+		Set<Template> templates = new HashSet<>();
+		for (IRI id : getPubinfoTemplateIds(np)) {
+			templates.add(getTemplate(id.stringValue()));
+		}
+		return templates;
 	}
 
 
@@ -158,6 +170,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
 	public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
 
+	public static final String DEFAULT_TARGET_NAMESPACE = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
 
 	private Nanopub nanopub;
 	private String label;
@@ -182,16 +195,12 @@ public class Template implements Serializable {
 	private List<IRI> requiredPubinfoElements = new ArrayList<>();
 	private String tag = null;
 	private Map<IRI,Value> defaultValues = new HashMap<>();
-	private String targetNamespace = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
+	private String targetNamespace = DEFAULT_TARGET_NAMESPACE;
 	private String nanopubLabelPattern;
 	private List<IRI> targetNanopubTypes = new ArrayList<>();
 
 	private Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
-		if (templateId.startsWith("file://")) {
-			nanopub = new NanopubImpl(new File(templateId.substring(7)));
-		} else {
-			nanopub = Utils.getNanopub(templateId);
-		}
+		nanopub = Utils.getNanopub(templateId);
 		processTemplate(nanopub);
 	}
 

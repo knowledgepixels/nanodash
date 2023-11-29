@@ -53,7 +53,7 @@ public class ExplorePage extends NanodashPage {
 						"<strong>" + relCount + "</strong> times as relation.").setEscapeModelStrings(false));
 			} else {
 				add(new Label("name", "Nanopublication"));
-				add(new NanopubItem("nanopub", new NanopubElement(np), false, false));
+				add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
 				add(new Label("counts", ""));
 			}
 

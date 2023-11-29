@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash.action;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,11 +15,11 @@ public abstract class NanopubAction implements Serializable {
 
 	private static final long serialVersionUID = 4086842804225420496L;
 
-	public static final List<NanopubAction> noActions = Collections.emptyList();
+	public static final NanopubAction[] noActions = new NanopubAction[0];
 
-	public static final List<NanopubAction> defaultActions;
+	public static final NanopubAction[] defaultActions;
 
-	public static final List<NanopubAction> ownActions;
+	public static final NanopubAction[] ownActions;
 
 	private static Map<String,NanopubAction> defaultClassNameMap = new HashMap<>();
 
@@ -31,12 +30,12 @@ public abstract class NanopubAction implements Serializable {
 		da.add(new ApprovalAction());
 		da.add(new UpdateAction());
 		da.add(new DeriveAction());
-		defaultActions = Collections.unmodifiableList(da);
+		defaultActions = da.toArray(new NanopubAction[0]);
 
 		List<NanopubAction> oa = new ArrayList<>();
 		oa.add(new RetractionAction());
 		oa.add(new UpdateAction());
-		ownActions = Collections.unmodifiableList(oa);
+		ownActions = oa.toArray(new NanopubAction[0]);
 
 		for (NanopubAction na : defaultActions) {
 			defaultClassNameMap.put(na.getClass().getCanonicalName(), na);

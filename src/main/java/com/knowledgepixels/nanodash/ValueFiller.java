@@ -25,9 +25,11 @@ public class ValueFiller {
 	private Nanopub fillNp;
 	private List<Statement> unusedStatements = new ArrayList<>();
 	private int initialSize;
+	private boolean formMode;
 
-	public ValueFiller(Nanopub fillNp, ContextType contextType) {
+	public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode) {
 		this.fillNp = fillNp;
+		this.formMode = formMode;
 		Set<Statement> statements;
 		if (contextType == ContextType.ASSERTION) {
 			statements = fillNp.getAssertion();
@@ -51,17 +53,12 @@ public class ValueFiller {
 		initialSize = unusedStatements.size();
 	}
 
-	public void fill(PublishFormContext context) {
+	public void fill(TemplateContext context) {
 		try {
 			context.fill(unusedStatements);
 		} catch (UnificationException ex) {
 			ex.printStackTrace();
 		}
-//		if (unusedStatements.size() == initialSize) {
-//			warningMessage = "Could not fill in form with content from given existing nanopublication.";
-//		} else if (!statements.isEmpty()) {
-//			warningMessage = "Content from given existing nanopublication could only partially be filled in.";
-//		}
 	}
 
 	public boolean hasStatements() {
@@ -81,7 +78,7 @@ public class ValueFiller {
 	}
 
 	private Statement transform(Statement st) {
-		if (st.getContext().equals(fillNp.getPubinfoUri())) {
+		if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
 			IRI pred = st.getPredicate();
 			if (st.getSubject().equals(fillNp.getUri())) {
 				if (pred.equals(DCTERMS.CREATED)) return null;
@@ -111,12 +108,15 @@ public class ValueFiller {
 
 	private Value transform(Value v) {
 		if (fillNp.getUri().equals(v)) {
-			return Template.NANOPUB_PLACEHOLDER;
+			return vf.createIRI("local:nanopub");
+//			return Template.NANOPUB_PLACEHOLDER;
 		} else if (fillNp.getAssertionUri().equals(v)) {
-			return Template.ASSERTION_PLACEHOLDER;
-		} else if (v instanceof IRI) {
-			// TODO: Check that there are no regex characters in nanopub URI:
-			return vf.createIRI(v.stringValue().replaceFirst("^" + fillNp.getUri().stringValue() + "[#/]?", "local:"));
+			return vf.createIRI("local:assertion");
+//			return Template.ASSERTION_PLACEHOLDER;
+		} else if (v instanceof IRI && formMode) {
+			if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
+				return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
+			}
 		}
 		return v;
 	}

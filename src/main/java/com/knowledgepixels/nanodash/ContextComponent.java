@@ -10,4 +10,6 @@ public interface ContextComponent {
 
 	public void unifyWith(Value v) throws UnificationException;
 
+	public void fillFinished();
+
 }

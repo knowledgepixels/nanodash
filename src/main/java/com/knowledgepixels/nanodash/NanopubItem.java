@@ -1,9 +1,8 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,103 +16,135 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
 public class NanopubItem extends Panel {
-	
+
 	private static final long serialVersionUID = -5109507637942030910L;
 
 	public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
 	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
-	private final Map<IRI,Integer> predicateOrder = new HashMap<>();
-	private Template template;
+	private boolean isInitialized = false;
+	private NanopubElement n;
+	private boolean hideProvenance = false;
+	private boolean hidePubinfo = false;
+	private boolean hideHeader = false;
+	private boolean hideFooter = false;
+	private boolean expanded = false;
+	private List<NanopubAction> actions;
+	private IRI signerId;
+	private WebMarkupContainer assertionPart1, assertionPart2;
+	private AjaxLink<Void> showMoreLink, showLessLink;
+	private String tempalteId;
 
-	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo) {
-		this(id, n, hideProvenance, hidePubinfo, null);
+	public NanopubItem(String id, NanopubElement n, String tempalteId) {
+		super(id);
+		this.n = n;
+		this.tempalteId = tempalteId;
 	}
 
-	public NanopubItem(String id, final NanopubElement n, boolean hideProvenance, boolean hidePubinfo, List<NanopubAction> actions) {
-		super(id);
+	public NanopubItem(String id, NanopubElement n) {
+		this(id, n, null);
+	}
 
-		add(new NanodashLink("nanopub-id-link", n.getUri()));
-		add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
+	private void initialize() {
+		if (isInitialized) return;
+
 
 		String userString = "";
 		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
 				pubkey = n.getPubkey();
+				signerId = n.getSignerId();
 				userString = User.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
-		NanodashSession session = NanodashSession.get();
-		boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
-		final List<NanopubAction> actionList = new ArrayList<>();
-		final Map<String,NanopubAction> actionMap = new HashMap<>();
-		List<NanopubAction> allActions = new ArrayList<>();
-		if (actions == null) {
-			allActions.addAll(NanopubAction.defaultActions);
-			allActions.addAll(NanopubAction.getActionsFromPreferences(NanodashPreferences.get()));
+		if (hideHeader) {
+			add(new Label("header", "").setVisible(false));
 		} else {
-			allActions.addAll(actions);
-		}
-		for (NanopubAction action : allActions) {
-			if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
-			if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
-			Nanopub np = n.getNanopub();
-			if (np == null || !action.isApplicableTo(np)) continue;
-			actionList.add(action);
-			actionMap.put(action.getLinkLabel(n.getNanopub()), action);
-		}
-		add(new ActionMenu("action-menu", actionList, n.getNanopub()));
-
-		if (n.getCreationTime() != null) {
-			add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
-		} else {
-			add(new Label("datetime", "(undated)"));
-		}
-		PageParameters params = new PageParameters();
-		IRI uIri = User.findSingleIdForPubkey(pubkey);
-		if (uIri != null) params.add("id", uIri);
-		BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
-		userLink.add(new Label("user-text", userString));
-		add(userLink);
-
-		String positiveNotes = "";
-		String negativeNotes = "";
-		if (n.seemsToHaveSignature()) {
-			try {
-				if (!n.hasValidSignature()) {
-					negativeNotes = "- invalid signature";
+			WebMarkupContainer header = new WebMarkupContainer("header");
+			header.add(new NanodashLink("nanopub-id-link", n.getUri()));
+			header.add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
+			if (actions == null || !actions.isEmpty()) {
+				NanodashSession session = NanodashSession.get();
+				boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
+				final List<NanopubAction> actionList = new ArrayList<>();
+				final Map<String,NanopubAction> actionMap = new HashMap<>();
+				List<NanopubAction> allActions = new ArrayList<>();
+				if (actions == null) {
+					allActions.addAll(Arrays.asList(NanopubAction.defaultActions));
+					allActions.addAll(NanopubAction.getActionsFromPreferences(NanodashPreferences.get()));
+				} else {
+					allActions.addAll(actions);
 				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				negativeNotes = "- malformed or legacy signature";
+				for (NanopubAction action : allActions) {
+					if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
+					if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
+					if (!action.isApplicableTo(n.getNanopub())) continue;
+					actionList.add(action);
+					actionMap.put(action.getLinkLabel(n.getNanopub()), action);
+				}
+				header.add(new ActionMenu("action-menu", actionList, n.getNanopub()));
+			} else {
+				header.add(new Label("action-menu", "").setVisible(false));
 			}
+			add(header);
 		}
-		if (n.isRetracted()) {
-			positiveNotes = "";
-			negativeNotes = "- retracted";
-		}
-		add(new Label("positive-notes", positiveNotes));
-		add(new Label("negative-notes", negativeNotes));
 
-		WebMarkupContainer assertionPart1 = new WebMarkupContainer("assertion-part1");
-		WebMarkupContainer assertionPart2 = new WebMarkupContainer("assertion-part2");
+		if (hideFooter) {
+			add(new Label("footer", "").setVisible(false));
+		} else {
+			WebMarkupContainer footer = new WebMarkupContainer("footer");
+			if (n.getCreationTime() != null) {
+				footer.add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
+			} else {
+				footer.add(new Label("datetime", "(undated)"));
+			}
+			PageParameters params = new PageParameters();
+			IRI uIri = User.findSingleIdForPubkey(pubkey);
+			if (uIri != null) params.add("id", uIri);
+			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
+			userLink.add(new Label("user-text", userString));
+			footer.add(userLink);
+	
+			String positiveNotes = "";
+			String negativeNotes = "";
+			if (n.seemsToHaveSignature()) {
+				try {
+					if (!n.hasValidSignature()) {
+						negativeNotes = "- invalid signature";
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					negativeNotes = "- malformed or legacy signature";
+				}
+			}
+			if (n.isRetracted()) {
+				positiveNotes = "";
+				negativeNotes = "- retracted";
+			}
+			footer.add(new Label("positive-notes", positiveNotes));
+			footer.add(new Label("negative-notes", negativeNotes));
+			add(footer);
+		}
+
+		assertionPart1 = new WebMarkupContainer("assertion-part1");
+		assertionPart2 = new WebMarkupContainer("assertion-part2");
 		assertionPart2.setOutputMarkupPlaceholderTag(true);
 		assertionPart2.setVisible(false);
-		List<Statement> assertionStatements1 = new ArrayList<>();
-		List<Statement> assertionStatements2 = new ArrayList<>();
-		AjaxLink<Void> showMoreLink = new AjaxLink<Void>("showmore"){
+		List<StatementItem> assertionStatements1 = new ArrayList<>();
+		List<StatementItem> assertionStatements2 = new ArrayList<>();
+		showMoreLink = new AjaxLink<Void>("showmore"){
 
 			private static final long serialVersionUID = 7877892803130782900L;
 
@@ -128,7 +159,7 @@ public class NanopubItem extends Panel {
 		};
 		showMoreLink.setOutputMarkupPlaceholderTag(true);
 		showMoreLink.setVisible(false);
-		AjaxLink<Void> showLessLink = new AjaxLink<Void>("showless"){
+		showLessLink = new AjaxLink<Void>("showless"){
 
 			private static final long serialVersionUID = 7877892803130782900L;
 
@@ -142,184 +173,232 @@ public class NanopubItem extends Panel {
 
 		};
 		assertionPart1.add(showMoreLink);
+		showLessLink.setVisible(!expanded);
 		assertionPart2.add(showLessLink);
 
-		// Getting predicate order in assertion template in order to sort statements:
-		// TODO This is just a quick-and-dirty solution. Properly trying to fill the template should be done at some point.
-		// TODO We should also do this for the provenance and pubinfo graphs too.
-		template = Template.getTemplate(n.getNanopub());
-		if (template != null) {
-			for (IRI statementId : template.getStatementIris()) {
-				if (template.isGroupedStatement(statementId)) {
-					for (IRI subStatementId : template.getStatementIris(statementId)) {
-						processStatementForPredicateOrder(subStatementId);
-					}
+		Template assertionTemplate = Template.getTemplate(n.getNanopub());
+		if (tempalteId != null) assertionTemplate = Template.getTemplate(tempalteId);
+		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+		List<StatementItem> assertionStatements = new ArrayList<>();
+		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
+		TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
+		populateStatementItemList(context, assertionFiller, assertionStatements);
+
+		assertionPart2.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Statement> item) {
+				item.add(new TripleItem("unused-assertion-statement", item.getModelObject(), n.getNanopub(), null));
+			}
+
+		});
+		if (!assertionFiller.getUnusedStatements().isEmpty()) showMoreLink.setVisible(!expanded);
+
+		List<StatementItem> a = new ArrayList<>(assertionStatements);
+		if (a.size() > 3) {
+			for (int i = 0 ; i < a.size() ; i++) {
+				if (i < 2) {
+					assertionStatements1.add(a.get(i));
 				} else {
-					processStatementForPredicateOrder(statementId);
+					assertionStatements2.add(a.get(i));
 				}
 			}
+			showMoreLink.setVisible(!expanded);
+		} else {
+			assertionStatements1 = a;
 		}
-
-		StatementComparator statementComparator = null;
-
-		if (n.getNanopub() != null) {
-			statementComparator = new StatementComparator(n.getNanopub());
-	
-			List<Statement> a = new ArrayList<>(n.getNanopub().getAssertion());
-			a.sort(statementComparator);
-			if (a.size() > 10) {
-				for (int i = 0 ; i < a.size() ; i++) {
-					if (i < 5) {
-						assertionStatements1.add(a.get(i));
-					} else {
-						assertionStatements2.add(a.get(i));
-					}
-				}
-				showMoreLink.setVisible(true);
-			} else {
-				assertionStatements1 = a;
-			}
-		}
-
-		assertionPart1.add(new DataView<Statement>("assertion-statements1", new ListDataProvider<Statement>(assertionStatements1)) {
-
-			private static final long serialVersionUID = -4523773471034490379L;
-
-			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement1", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
-			}
-
-		});
+		assertionPart1.add(createStatementView("assertion-statements1", assertionStatements1));
 		add(assertionPart1);
-
-		assertionPart2.add(new DataView<Statement>("assertion-statements2", new ListDataProvider<Statement>(assertionStatements2)) {
-
-			private static final long serialVersionUID = -6119278916371285402L;
-
-			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("assertion-statement2", st, n.getNanopub(), Template.ASSERTION_TEMPLATE_CLASS));
-			}
-
-		});
+		assertionPart2.add(createStatementView("assertion-statements2", assertionStatements2));
+		assertionPart2.setVisible(expanded);
 		add(assertionPart2);
 
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
-		List<Statement> provenanceStatements = new ArrayList<>();
 		if (hideProvenance) {
 			provenance.setVisible(false);
 		} else {
-			if (n.getNanopub() != null) {
-				provenanceStatements = new ArrayList<>(n.getNanopub().getProvenance());
-				provenanceStatements.sort(statementComparator);
-			}
+			Template provenanceTemplate = Template.getProvenanceTemplate(n.getNanopub());
+			if (provenanceTemplate == null) provenanceTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
+			List<StatementItem> provenanceStatements = new ArrayList<>();
+			ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
+			TemplateContext prContext = new TemplateContext(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
+			populateStatementItemList(prContext, provenanceFiller, provenanceStatements);
+			provenance.add(createStatementView("provenance-statements", provenanceStatements));
+			provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void populateItem(Item<Statement> item) {
+					item.add(new TripleItem("unused-provenance-statement", item.getModelObject(), n.getNanopub(), null));
+				}
+
+			});
 		}
-		provenance.add(new DataView<Statement>("provenance-statements", new ListDataProvider<Statement>(provenanceStatements)) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("provenance-statement", st, n.getNanopub(), Template.PROVENANCE_TEMPLATE_CLASS));
-			}
-
-		});
 		add(provenance);
 
 		WebMarkupContainer pubInfo = new WebMarkupContainer("pubinfo");
-		List<Statement> pubinfoStatements = new ArrayList<>();
 		if (hidePubinfo) {
 			pubInfo.setVisible(false);
 		} else {
-			if (n.getNanopub() != null) {
-				pubinfoStatements = new ArrayList<>(n.getNanopub().getPubinfo());
-				pubinfoStatements.sort(statementComparator);
+			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
+			List<String> pubinfoTemplateIds = new ArrayList<>();
+			for (IRI iri : Template.getPubinfoTemplateIds(n.getNanopub())) pubinfoTemplateIds.add(iri.stringValue());
+			pubinfoTemplateIds.add("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk"); // nanopub label
+			pubinfoTemplateIds.add("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg"); // nanopub type
+			pubinfoTemplateIds.add("https://w3id.org/np/RALmzqHlrRfeTD8ESZdKFyDNYY6eFuyQ8GAe_4N5eVytc"); // timestamp
+			pubinfoTemplateIds.add("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y"); // templates
+			pubinfoTemplateIds.add("https://w3id.org/np/RAvqXPNKPf56b2226oqhKzARyvIhnpnTrRpLGC1cYweMw"); // introductions
+			pubinfoTemplateIds.add("https://w3id.org/np/RAgIlomuR39mN-Z39bbv59-h2DgQBnLyNdL22YmOJ_VHM"); // labels from APIs
+			pubinfoTemplateIds.add("https://w3id.org/np/RAFqeX7LWdwsVtJ8SMvvYPX1iGTwFkKcSnfbZGDnjeG10"); // signature
+			pubinfoTemplateIds.add("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM"); // generic
+			List<TemplateContext> contexts = new ArrayList<>();
+			List<TemplateContext> genericContexts = new ArrayList<>();
+			for (String s : pubinfoTemplateIds) {
+				TemplateContext piContext = new TemplateContext(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
+				if (piContext.willMatchAnyTriple()) {
+					genericContexts.add(piContext);
+				} else if (piContext.getTemplateId().equals("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")) {
+					// TODO: This is a work-around; check why this template doesn't give true to willMatchAnyTriple()
+					genericContexts.add(piContext);
+				} else {
+					contexts.add(piContext);
+				}
+			}
+			contexts.addAll(genericContexts);  // make sure the generic one are at the end
+			List<WebMarkupContainer> elements = new ArrayList<>();
+			for (TemplateContext piContext : contexts) {
+				WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
+				List<StatementItem> pubinfoStatements = new ArrayList<>();
+				populateStatementItemList(piContext, pubinfoFiller,  pubinfoStatements);
+				if (!pubinfoStatements.isEmpty()) {
+					pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
+					elements.add(pubInfoElement);
+				}
+			}
+			pubInfo.add(new DataView<WebMarkupContainer>("pubinfo-elements", new ListDataProvider<WebMarkupContainer>(elements)) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<WebMarkupContainer> item) {
+					item.add(item.getModelObject());
+				}
+	
+			});
+		}
+		add(pubInfo);
+
+		isInitialized = true;
+	}
+
+	public NanopubItem expand() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		expanded = true;
+		return this;
+	}
+
+	public NanopubItem setExpanded(boolean expanded) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.expanded = expanded;
+		return this;
+	}
+
+	public NanopubItem hideProvenance() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideProvenance = true;
+		return this;
+	}
+
+	public NanopubItem setProvenanceHidden(boolean hideProvenance) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideProvenance = hideProvenance;
+		return this;
+	}
+
+	public NanopubItem hidePubinfo() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hidePubinfo = true;
+		return this;
+	}
+
+	public NanopubItem setPubinfoHidden(boolean hidePubinfo) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hidePubinfo = hidePubinfo;
+		return this;
+	}
+
+	public NanopubItem hideHeader() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideHeader = true;
+		return this;
+	}
+
+	public NanopubItem setHeaderHidden(boolean hideHeader) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideHeader = hideHeader;
+		return this;
+	}
+
+	public NanopubItem hideFooter() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		hideFooter = true;
+		return this;
+	}
+
+	public NanopubItem setFooterHidden(boolean hideFooter) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideFooter = hideFooter;
+		return this;
+	}
+
+	public NanopubItem addActions(NanopubAction... a) {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		if (actions == null) actions = new ArrayList<>();
+		for (NanopubAction na : a) {
+			actions.add(na);
+		}
+		return this;
+	}
+
+	public NanopubItem noActions() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		actions = new ArrayList<>();
+		return this;
+	}
+	
+	@Override
+	protected void onBeforeRender() {
+		initialize();
+		super.onBeforeRender();
+	}
+
+	private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
+		context.initStatements();
+		if (signerId != null) {
+			context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+		}
+		filler.fill(context);
+		for (StatementItem si : context.getStatementItems()) {
+			if (si.isMatched()) {
+				list.add(si);
 			}
 		}
-		pubInfo.add(new DataView<Statement>("pubinfo-statements", new ListDataProvider<Statement>(pubinfoStatements)) {
-			
+	}
+
+	private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {
+		return new DataView<StatementItem>(elementId, new ListDataProvider<StatementItem>(list)) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<Statement> item) {
-				Statement st = item.getModelObject();
-				item.add(new TripleItem("pubinfo-statement", st, n.getNanopub(), Template.PUBINFO_TEMPLATE_CLASS));
+			protected void populateItem(Item<StatementItem> item) {
+				item.add(item.getModelObject());
 			}
 
-		});
-		add(pubInfo);
-	}
-
-	private void processStatementForPredicateOrder(IRI statementId) {
-		IRI pred = template.getPredicate(statementId);
-		if (template.isRestrictedChoicePlaceholder(pred)) {
-			// TODO
-		} else if (!template.isPlaceholder(pred)) {
-			if (!predicateOrder.containsKey(pred)) predicateOrder.put(pred, predicateOrder.size());
-		}
-	}
-	
-
-	private class StatementComparator implements Comparator<Statement>, Serializable {
-
-		private static final long serialVersionUID = 1L;
-
-		private IRI introducedThing = null;
-		private Nanopub np;
-
-		public StatementComparator(Nanopub np) {
-			this.np = np;
-			for (Statement st : np.getPubinfo()) {
-				if (st.getSubject().equals(np.getUri()) && st.getPredicate().equals(PublishForm.INTRODUCES_PREDICATE) && st.getObject().isIRI()) {
-					introducedThing = (IRI) st.getObject();
-					break;
-				}
-			}
-		}
-
-		@Override
-		public int compare(Statement arg0, Statement arg1) {
-			if (!arg0.getSubject().stringValue().equals(arg1.getSubject().stringValue())) {
-				if (arg0.getSubject().equals(np.getUri())) {
-					return -1;
-				} else if (arg1.getSubject().equals(np.getUri())) {
-					return 1;
-				}
-				if (arg0.getSubject().equals(np.getAssertionUri())) {
-					return -1;
-				} else if (arg1.getSubject().equals(np.getAssertionUri())) {
-					return 1;
-				}
-				if (arg0.getSubject().equals(introducedThing)) {
-					return -1;
-				} else if (arg1.getSubject().equals(introducedThing)) {
-					return 1;
-				}
-				return arg0.getSubject().toString().compareTo(arg1.getSubject().toString());
-			}
-			IRI pred0 = arg0.getPredicate();
-			IRI pred1 = arg1.getPredicate();
-			if (predicateOrder.containsKey(pred0) && predicateOrder.containsKey(pred1)) {
-				int order0 = predicateOrder.get(pred0);
-				int order1 = predicateOrder.get(pred1);
-				if (order0 == order1) {
-					return pred0.toString().compareTo(pred1.toString());
-				} else {
-					return order0 - order1;
-				}
-			} else if (predicateOrder.containsKey(pred0)) {
-				return -1;
-			} else if (predicateOrder.containsKey(pred1)) {
-				return 1;
-			} else {
-				return pred0.toString().compareTo(pred1.toString());
-			}
-		}
-
+		};
 	}
 
 }

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,15 +29,16 @@ public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	private PublishFormContext context;
+	private TemplateContext context;
 	private IRI statementId;
 	private List<IRI> statementPartIds = new ArrayList<>();
-	private List<WebMarkupContainer> allStatements = new ArrayList<>();
+	private List<WebMarkupContainer> viewElements = new ArrayList<>();
 	private List<RepetitionGroup> repetitionGroups = new ArrayList<>();
+	private boolean repetitionGroupsChanged = true;
 	private Set<IRI> iriSet = new HashSet<>();
-	private List<ValueItem> items = new ArrayList<>();
+	private boolean isMatched = false;
 
-	public StatementItem(String id, IRI statementId, PublishFormContext context) {
+	public StatementItem(String id, IRI statementId, TemplateContext context) {
 		super(id);
 		this.statementId = statementId;
 		this.context = context;
@@ -48,9 +50,9 @@ public class StatementItem extends Panel {
 			statementPartIds.add(statementId);
 		}
 
-		repeat();
+		addRepetitionGroup();
 
-		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", allStatements) {
+		ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", viewElements) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -64,32 +66,46 @@ public class StatementItem extends Panel {
 		add(v);
 	}
 
-	public void repeat() {
-		RepetitionGroup rg = new RepetitionGroup();
-		repetitionGroups.add(rg);
-		refreshStatements();
+	public void addRepetitionGroup() {
+		addRepetitionGroup(new RepetitionGroup());
 	}
 
-	public void refreshStatements() {
-		allStatements.clear();
-		for (ValueItem vi : items) {
-			vi.removeFromContext();
+	public void addRepetitionGroup(RepetitionGroup rg) {
+		repetitionGroups.add(rg);
+		repetitionGroupsChanged = true;
+	}
+
+	@Override
+	protected void onBeforeRender() {
+		if (repetitionGroupsChanged) {
+			updateViewElements();
 		}
-		items.clear();
+		repetitionGroupsChanged = false;
+		super.onBeforeRender();
+	}
+
+	private void updateViewElements() {
+		viewElements.clear();
 		boolean first = true;
 		for (RepetitionGroup r : repetitionGroups) {
 			if (isGrouped() && !first) {
-				allStatements.add(new HorizontalLine("statement"));
+				viewElements.add(new HorizontalLine("statement"));
 			}
-			r.refresh();
-			allStatements.addAll(r.getStatements());
+			viewElements.addAll(r.getStatementParts());
+			boolean isOnly = repetitionGroups.size() == 1;
+			boolean isLast = repetitionGroups.get(repetitionGroups.size()-1) == r;
+			r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast);
+			r.removeRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && !isOnly);
+			r.optionalMark.setVisible(isOnly);
 			first = false;
 		}
 		String htmlClassString = "";
-		if (isOptional()) {
+		if (!context.isReadOnly() && isOptional()) {
 			htmlClassString += "nanopub-optional ";
 		}
-		if (isGrouped() || isRepeatable()) {
+		boolean singleItem = context.getStatementItems().size() == 1;
+		boolean repeatableOrRepeated = (!context.isReadOnly() && isRepeatable()) || (context.isReadOnly() && getRepetitionCount() > 1);
+		if ((isGrouped() || repeatableOrRepeated) && !singleItem) {
 			htmlClassString += "nanopub-group ";
 		}
 		if (!htmlClassString.isEmpty()) {
@@ -118,19 +134,19 @@ public class StatementItem extends Panel {
 		return repetitionGroups.size();
 	}
 
-	private boolean isOptional() {
+	public boolean isOptional() {
 		return repetitionGroups.size() == 1 && getTemplate().isOptionalStatement(statementId);
 	}
 
-	private boolean isGrouped() {
+	public boolean isGrouped() {
 		return getTemplate().isGroupedStatement(statementId);
 	}
 
-	private boolean isRepeatable() {
+	public boolean isRepeatable() {
 		return getTemplate().isRepeatableStatement(statementId);
 	}
 
-	private boolean hasEmptyElements() {
+	public boolean hasEmptyElements() {
 		return repetitionGroups.get(0).hasEmptyElements();
 	}
 
@@ -138,27 +154,44 @@ public class StatementItem extends Panel {
 		return iriSet;
 	}
 
+	public boolean willMatchAnyTriple() {
+		return repetitionGroups.get(0).matches(dummyStatementList);
+	}
+
 	public void fill(List<Statement> statements) throws UnificationException {
-		boolean hasMatch = false;
-		for (RepetitionGroup rg : repetitionGroups) {
-			hasMatch = rg.canMatch(statements);
-			if (hasMatch) {
+		if (isMatched) return;
+		if (repetitionGroups.size() == 1) {
+			RepetitionGroup rg = repetitionGroups.get(0);
+			if (rg.matches(statements)) {
 				rg.fill(statements);
+			} else {
+				return;
 			}
+		} else {
+			return;
 		}
-		if (!hasMatch || !isRepeatable()) return;
+		isMatched = true;
+		if (!isRepeatable()) return;
 		while (true) {
 			RepetitionGroup newGroup = new RepetitionGroup();
-			newGroup.refresh();
-			if (newGroup.canMatch(statements)) {
+			if (newGroup.matches(statements)) {
 				newGroup.fill(statements);
-				repetitionGroups.add(newGroup);
-				refreshStatements();
+				addRepetitionGroup(newGroup);
 			} else {
 				newGroup.disconnect();
 				return;
 			}
 		}
+	}
+
+	public void fillFinished() {
+		for (RepetitionGroup rg : repetitionGroups) {
+			rg.fillFinished();
+		}
+	}
+
+	public boolean isMatched() {
+		return isMatched;
 	}
 
 	public boolean isEmpty() {
@@ -170,61 +203,68 @@ public class StatementItem extends Panel {
 
 		private static final long serialVersionUID = 1L;
 
-		private List<StatementPartItem> statements;
+		private List<StatementPartItem> statementParts;
 		private List<ValueItem> localItems = new ArrayList<>();
+		private boolean filled = false;
+
+		private List<ValueItem> items = new ArrayList<>();
+
+		Label addRepetitionButton, removeRepetitionButton, optionalMark;
 
 		public RepetitionGroup() {
-		}
-
-		public void refresh() {
-			statements = new ArrayList<>();
+			statementParts = new ArrayList<>();
 			for (IRI s : statementPartIds) {
 				StatementPartItem statement = new StatementPartItem("statement",
 						makeValueItem("subj", getTemplate().getSubject(s), s),
 						makeValueItem("pred", getTemplate().getPredicate(s), s),
 						makeValueItem("obj", getTemplate().getObject(s), s)
 					);
-				statements.add(statement);
-				if (statements.size() == 1 && !isFirst()) {
+				statementParts.add(statement);
+
+				// Some of the methods of StatementItem and RepetitionGroup don't work properly before this
+				// object is fully instantiated:
+				boolean isFirstGroup = repetitionGroups.size() == 0;
+				boolean isFirstLine = statementParts.size() == 1;
+				boolean isLastLine = statementParts.size() == statementPartIds.size();
+				boolean isOptional = getTemplate().isOptionalStatement(statementId);
+
+				if (statementParts.size() == 1 && !isFirstGroup) {
 					statement.add(new AttributeAppender("class", " separate-statement"));
 				}
-				if (isFirst() && isOptional() && statements.size() == statementPartIds.size()) {
-					statement.add(new Label("label", "(optional)"));
+				if (!context.isReadOnly() && isOptional && isLastLine) {
+					optionalMark = new Label("label", "(optional)");
 				} else {
-					statement.add(new Label("label", "").setVisible(false));
+					optionalMark = new Label("label", "");
+					optionalMark.setVisible(false);
 				}
-				if (isRepeatable() && statements.size() == statementPartIds.size() && isLast()) {
-					Label b = new Label("add-repetition", "+");
-					statement.add(b);
-					b.add(new AjaxEventBehavior("click") {
+				statement.add(optionalMark);
+				if (isLastLine) {
+					addRepetitionButton = new Label("add-repetition", "+");
+					statement.add(addRepetitionButton);
+					addRepetitionButton.add(new AjaxEventBehavior("click") {
 						private static final long serialVersionUID = 1L;
 						@Override
 						protected void onEvent(AjaxRequestTarget target) {
-							repeat();
+							addRepetitionGroup(new RepetitionGroup());
 							target.add(StatementItem.this);
 						}
 					});
 				} else {
-					Label l = new Label("add-repetition", "");
-					l.setVisible(false);
-					statement.add(l);
+					statement.add(new Label("add-repetition", "").setVisible(false));
 				}
-				if (isRepeatable() && statements.size() == 1 && !isOnly()) {
-					Label b = new Label("remove-repetition", "-");
-					statement.add(b);
-					b.add(new AjaxEventBehavior("click") {
+				if (isFirstLine) {
+					removeRepetitionButton = new Label("remove-repetition", "-");
+					statement.add(removeRepetitionButton);
+					removeRepetitionButton.add(new AjaxEventBehavior("click") {
 						private static final long serialVersionUID = 1L;
 						@Override
 						protected void onEvent(AjaxRequestTarget target) {
 							RepetitionGroup.this.remove();
-							refreshStatements();
 							target.add(StatementItem.this);
 						}
 					});
 				} else {
-					Label l = new Label("remove-repetition", "");
-					l.setVisible(false);
-					statement.add(l);
+					statement.add(new Label("remove-repetition", "").setVisible(false));
 				}
 			}
 		}
@@ -248,8 +288,8 @@ public class StatementItem extends Panel {
 			}
 		}
 
-		public List<StatementPartItem> getStatements() {
-			return statements;
+		public List<StatementPartItem> getStatementParts() {
+			return statementParts;
 		}
 
 		public int getRepeatIndex() {
@@ -265,18 +305,14 @@ public class StatementItem extends Panel {
 			return getRepeatIndex() == repetitionGroups.size() - 1;
 		}
 
-		public boolean isOnly() {
-			return repetitionGroups.size() == 1;
-		}
-
 		private void remove() {
 			String thisSuffix = getRepeatSuffix();
 			for (IRI iriBase : iriSet) {
 				IRI thisIri = vf.createIRI(iriBase + thisSuffix);
-				if (context.getFormComponentModels().containsKey(thisIri)) {
-					IModel<String> swapModel1 = context.getFormComponentModels().get(thisIri);
+				if (context.getComponentModels().containsKey(thisIri)) {
+					IModel<String> swapModel1 = context.getComponentModels().get(thisIri);
 					for (int i = getRepeatIndex() + 1 ; i < repetitionGroups.size(); i++) {
-						IModel<String> swapModel2 = context.getFormComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
+						IModel<String> swapModel2 = context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
 						if (swapModel1 != null && swapModel2 != null) {
 							swapModel1.setObject(swapModel2.getObject());
 						}
@@ -286,7 +322,12 @@ public class StatementItem extends Panel {
 					if (swapModel1 != null) swapModel1.setObject("");
 				}
 			}
-			repetitionGroups.remove(this);
+			RepetitionGroup lastGroup = repetitionGroups.get(repetitionGroups.size()-1);
+			repetitionGroups.remove(lastGroup);
+			for (ValueItem vi : lastGroup.items) {
+				vi.removeFromContext();
+			}
+			repetitionGroupsChanged = true;
 		}
 
 		private String getRepeatSuffix() {
@@ -299,12 +340,15 @@ public class StatementItem extends Panel {
 			return "__" + i;
 		}
 
-		public PublishFormContext getContext() {
+		public TemplateContext getContext() {
 			return context;
 		}
 
 		public boolean isOptional() {
-			return StatementItem.this.isOptional();
+			if (!getTemplate().isOptionalStatement(statementId)) return false;
+			if (repetitionGroups.size() == 0) return true;
+			if (repetitionGroups.size() == 1 && repetitionGroups.get(0) == this) return true;
+			return false;
 		}
 
 		private Value transform(Value value) {
@@ -374,53 +418,63 @@ public class StatementItem extends Panel {
 			return true;
 		}
 
-		public boolean canMatch(List<Statement> st) {
-			//System.err.println("Try to match repetition group...");
-			for (StatementPartItem p : statements) {
-				//System.err.println("Try to match: " + p);
-				boolean matchFound = false;
+		public boolean matches(List<Statement> statements) {
+			if (filled) return false;
+			List<Statement> st = new ArrayList<>(statements);
+			for (StatementPartItem p : statementParts) {
+				Statement matchedStatement = null;
 				for (Statement s : st) {
-					//System.err.println("Checking statement: " + s.getSubject() + " " + s.getPredicate() + " " + s.getObject());
 					if (
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
-							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
-						matchFound = true;
-						//System.err.println("Statement matched.");
+						matchedStatement = s;
 						break;
 					}
 				}
-				if (!matchFound) {
-					//System.err.println("Not matched.");
+				if (matchedStatement == null) {
 					return false;
+				} else {
+					st.remove(matchedStatement);
 				}
 			}
-			//System.err.println("Repetition group matched.");
 			return true;
 		}
 
-		public void fill(List<Statement> st) throws UnificationException {
-			for (StatementPartItem p : statements) {
-				boolean matchFound = false;
-				for (Statement s : st) {
+		public void fill(List<Statement> statements) throws UnificationException {
+			if (filled) throw new UnificationException("Already filled");
+			for (StatementPartItem p : statementParts) {
+				Statement matchedStatement = null;
+				for (Statement s : statements) {
 					if (
+							p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
 							p.getSubject().isUnifiableWith(s.getSubject()) &&
-							p.getPredicate().isUnifiableWith(s.getPredicate()) &&
 							p.getObject().isUnifiableWith(s.getObject())) {
-						p.getSubject().unifyWith(s.getSubject());
 						p.getPredicate().unifyWith(s.getPredicate());
+						p.getSubject().unifyWith(s.getSubject());
 						p.getObject().unifyWith(s.getObject());
-						st.remove(s);
-						matchFound = true;
+						matchedStatement = s;
 						break;
 					}
 				}
-				if (!matchFound) throw new UnificationException("Unification seemed to work but then didn't");
+				if (matchedStatement == null) {
+					throw new UnificationException("Unification seemed to work but then didn't");
+				} else {
+					statements.remove(matchedStatement);
+				}
+				filled = true;
+			}
+		}
+
+		public void fillFinished() {
+			for (ValueItem vi : items) {
+				vi.fillFinished();
 			}
 		}
 
 	}
 
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
 
 }

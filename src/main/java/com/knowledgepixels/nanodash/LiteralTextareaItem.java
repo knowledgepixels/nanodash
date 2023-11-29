@@ -10,7 +10,7 @@ public class LiteralTextareaItem extends LiteralTextfieldItem {
 	private static final long serialVersionUID = 1L;
 	private TextArea<String> textarea;
 
-	public LiteralTextareaItem(String id, final IRI iri, boolean optional, PublishFormContext context) {
+	public LiteralTextareaItem(String id, final IRI iri, boolean optional, TemplateContext context) {
 		super(id, iri, optional, context);
 	}
 	protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {

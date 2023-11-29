@@ -119,6 +119,10 @@ table {
 	font-size: inherit;
 }
 
+div.nanopub-pubinfo td {
+	padding: 5px;
+}
+
 table, th, td {
     border-collapse: collapse;
 }
@@ -456,29 +460,73 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	overflow-wrap: anywhere;
 }
 
-.nanopub a { color: #000; margin: 3px; }
+.nanopub a { color: #444; margin: 3px; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
-a.nanopub-assertion { color: #000; }
+a.nanopub-assertion { color: #444; }
 a:hover.nanopub-assertion { color: #666; }
 a:active.nanopub-assertion { color: #666; }
-a.nanopub-provenance { color: #000; }
+a.nanopub-provenance { color: #444; }
 a:hover.nanopub-provenance { color: #666; }
 a:active.nanopub-provenance { color: #666; }
-a.nanopub-pubinfo { color: #000; }
+a.nanopub-pubinfo { color: #444; }
 a:hover.nanopub-pubinfo { color: #666; }
 a:active.nanopub-pubinfo { color: #666; }
 
 .nanopub { background-color: #666; font-family: Martian,monaco,monospace; font-size: 10pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
-#.nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+/*
+.nanopub { background-color: #666; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 .nanopub-prefixes { display: none; margin-top: 3px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
+*/
 .nanopub-assertion { background: #99ccff; padding: 10px; margin-top: 3px; border-style: solid; border-width: 1px; border-color: #88aaff; border-radius: 10px; }
 .nanopub-provenance { background: #f3a08c; padding: 10px; margin-top: 3px; border-radius: 10px; }
-.nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 3px; border-radius: 10px; }
+.nanopub-pubinfo { background: #ffff66; padding: 10px; margin-top: 1.5px; }
+.nanopub-pubinfo:first-of-type { margin-top: 3px; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+.nanopub-pubinfo:last-of-type { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
 .nanopub-context-switch { display: none; }
 
+/*
+.nanopub { background-color: white; font-family: Inter; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 0; }
+.nanopub-assertion { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #99ccff; border-radius: 0; }
+.nanopub-provenance { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #f3a08c; border-radius: 0; }
+.nanopub-pubinfo { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #dddd66; border-radius: 0; }
+.nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 0; }
+.nanopub-pubinfo:last-of-type { border-radius: 0; }
+*/
+
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
+
+.readonly {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+/*
+.this-assertion {
+  background: #99ccff;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #88aaff;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.this-nanopub {
+  background: #ffffff;
+  background-image: url(npback-left.png);
+  border-width: 1px;
+  border-color: #666;
+  border-style: solid;
+  padding: 4px 4px 4px 20px;
+  border-radius: 4px;
+}
+*/
+
+.nanopub-statement {
+  padding: 2px;
+}
 
 .nanopub-statement span {
   line-height: 25px;
@@ -496,6 +544,10 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
    display: block;
    height: 0;
    clear: both;
+}
+
+.nanopub-group .nanopub-statement {
+  padding: 1px;
 }
 
 .nanopub table {
@@ -524,14 +576,20 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   top: 100%;
 }
 
-#.tooltip:hover a {
-#  color: #fff;
-#  font-weight: bold;
-#}
-#
-#.tooltip:hover {
-#  background-color: black;
-#}
+a.tooltiptext {
+  font-family: Martian,monaco,monospace !important;
+}
+
+/*
+.tooltip:hover a {
+  color: #fff;
+  font-weight: bold;
+}
+
+.tooltip:hover {
+  background-color: black;
+}
+*/
 
 .tooltiptext a {
   color: #fff; 
@@ -546,6 +604,14 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   position: absolute;
   top: 50%;
   margin: 5px;
+}
+
+.tooltiptext:has(> a:empty) {
+  display: none;
+}
+
+a[href=""] {
+  pointer-events: none;
 }
 
 .uri {
@@ -616,11 +682,11 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   width: 1400px;
 }
 
-.nanopub-optional { background: rgba(255, 255, 255, 0.6); padding: 8px; border-radius: 8px; margin-top: 3px; }
+.nanopub-optional { background: rgba(255, 255, 255, 0.6); padding: 8px; border-radius: 8px; margin-top: 8px; margin-bottom: 8px; }
 .optional-label { color: rgba(0, 0, 0, 0.3); font-family: Inter, Verdana, Helvetica, sans-serif; font-style: italic; }
 .nanopub-statement-float { margin-left: 15px; margin-right: 10px; margin-top: 3px; float:right; }
 
-.nanopub-group { padding: 8px; border-radius: 8px; margin-top: 3px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.3); }
+.nanopub-group { padding: 8px; border-radius: 8px; margin-top: 12px; margin-bottom: 12px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.3); }
 
 .separate-statement { border-top: 1px solid rgba(0, 0, 0, 0.3); padding-top: 10px; margin-top: 10px; }
 

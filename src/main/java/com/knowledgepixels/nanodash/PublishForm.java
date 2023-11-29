@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,7 +19,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -67,11 +67,11 @@ public class PublishForm extends Panel {
 
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
-	private final PublishFormContext assertionContext;
-	private PublishFormContext provenanceContext;
-	private List<PublishFormContext> pubInfoContexts = new ArrayList<>();
-	private Map<String,PublishFormContext> pubInfoContextMap = new HashMap<>();
-	private List<PublishFormContext> requiredPubInfoContexts = new ArrayList<>();
+	private final TemplateContext assertionContext;
+	private TemplateContext provenanceContext;
+	private List<TemplateContext> pubInfoContexts = new ArrayList<>();
+	private Map<String,TemplateContext> pubInfoContextMap = new HashMap<>();
+	private List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
 	private String targetNamespace;
 
 	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
@@ -131,7 +131,7 @@ public class PublishForm extends Panel {
 			targetNamespace = pageParams.get("target-namespace").toString();
 		}
 
-		assertionContext = new PublishFormContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
+		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
 			if (fillNp != null && !fillOnlyAssertion) {
@@ -146,21 +146,21 @@ public class PublishForm extends Panel {
 				prTemplateId = defaultProvTemplateId;
 			}
 		}
-		provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
+		provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
 		for (String t : fixedPubInfoTemplates) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
 		if (fillMode == FillMode.SUPERSEDE) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
 			//requiredPubInfoContexts.add(c);
 			c.setParam("np", fillNp.getUri().stringValue());
 		} else if (fillMode == FillMode.DERIVE) {
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
 			c.setParam("np", fillNp.getUri().stringValue());
@@ -168,16 +168,16 @@ public class PublishForm extends Panel {
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
 			String latestId = ApiAccess.getLatestVersionId(r.stringValue());
 			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
-			PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
+			TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
 			requiredPubInfoContexts.add(c);
 		}
-		Map<Integer,PublishFormContext> piParamIdMap = new HashMap<>();
+		Map<Integer,TemplateContext> piParamIdMap = new HashMap<>();
 		for (String k : pageParams.getNamedKeys()) {
 			if (!k.matches("pitemplate[1-9][0-9]*")) continue;
 			Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
-			PublishFormContext c = getPubinfoContext(pageParams.get(k).toString());
+			TemplateContext c = getPubinfoContext(pageParams.get(k).toString());
 			if (piParamIdMap.containsKey(i)) {
 				// TODO: handle this error better
 				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
@@ -188,7 +188,7 @@ public class PublishForm extends Panel {
 		if (fillNp != null && !fillOnlyAssertion) {
 			for (IRI piTemplateId : Template.getPubinfoTemplateIds(fillNp)) {
 				if (piTemplateId.stringValue().equals(supersedesPubinfoTemplateId)) continue;
-				PublishFormContext c = getPubinfoContext(piTemplateId.stringValue());
+				TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
 				if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
 			}
 		}
@@ -211,7 +211,7 @@ public class PublishForm extends Panel {
 		// Init statements only now, in order to pick up parameter values:
 		assertionContext.initStatements();
 		provenanceContext.initStatements();
-		for (PublishFormContext c : pubInfoContexts) {
+		for (TemplateContext c : pubInfoContexts) {
 			c.initStatements();
 		}
 
@@ -240,21 +240,21 @@ public class PublishForm extends Panel {
 		final List<Statement> unusedPrStatementList = new ArrayList<>();
 		final List<Statement> unusedPiStatementList = new ArrayList<>();
 		if (fillNp != null) {
-			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION);
+			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION, true);
 			filler.fill(assertionContext);
 			unusedStatementList.addAll(filler.getUnusedStatements());
 
 			if (!fillOnlyAssertion) {
-				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE);
+				ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE, true);
 				prFiller.fill(provenanceContext);
 				unusedPrStatementList.addAll(prFiller.getUnusedStatements());
 	
-				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
-				for (PublishFormContext c : pubInfoContexts) {
+				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
+				for (TemplateContext c : pubInfoContexts) {
 					piFiller.fill(c);
 				}
 				if (piFiller.hasUnusedStatements()) {
-					PublishFormContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
+					TemplateContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
 					if (!pubInfoContexts.contains(c)) {
 						pubInfoContexts.add(c);
 						c.initStatements();
@@ -274,7 +274,7 @@ public class PublishForm extends Panel {
 //				}
 			}
 		} else if (improveNp != null) {
-			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION);
+			ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION, true);
 			filler.fill(assertionContext);
 			unusedStatementList.addAll(filler.getUnusedStatements());
 		}
@@ -317,7 +317,7 @@ public class PublishForm extends Panel {
 		// Finalize statements, which picks up parameter values in repetitions:
 		assertionContext.finalizeStatements();
 		provenanceContext.finalizeStatements();
-		for (PublishFormContext c : pubInfoContexts) {
+		for (TemplateContext c : pubInfoContexts) {
 			c.finalizeStatements();
 		}
 
@@ -354,16 +354,8 @@ public class PublishForm extends Panel {
 					Nanopub np = createNanopub();
 					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), null, false, false);
 					signedNp = SignNanopub.signAndTransform(np, tc);
-					if (isLocal()) {
-						// Testing mode
-						System.err.println("This nanopublication would have been published (if we were not in testing mode):");
-						System.err.println("----------");
-						System.err.println(org.nanopub.NanopubUtils.writeToString(signedNp, org.eclipse.rdf4j.rio.RDFFormat.TRIG));
-						System.err.println("----------");
-					} else {
-						PublishNanopub.publish(signedNp);
-						System.err.println("Published " + signedNp.getUri());
-					}
+					PublishNanopub.publish(signedNp);
+					System.err.println("Published " + signedNp.getUri());
 				} catch (Exception ex) {
 					signedNp = null;
 					ex.printStackTrace();
@@ -379,22 +371,24 @@ public class PublishForm extends Panel {
 			@Override
 		    protected void onValidate() {
 				super.onValidate();
-				for (FormComponent<String> fc : assertionContext.getFormComponents()) {
+				for (Component fc : assertionContext.getComponents()) {
 					processFeedback(fc);
 				}
-				for (FormComponent<String> fc : provenanceContext.getFormComponents()) {
+				for (Component fc : provenanceContext.getComponents()) {
 					processFeedback(fc);
 				}
-				for (PublishFormContext c : pubInfoContexts) {
-					for (FormComponent<String> fc : c.getFormComponents()) {
+				for (TemplateContext c : pubInfoContexts) {
+					for (Component fc : c.getComponents()) {
 						processFeedback(fc);
 					}
 				}
 			}
 
-			private void processFeedback(FormComponent<String> fc) {
-				fc.processInput();
-				for (FeedbackMessage fm : fc.getFeedbackMessages()) {
+			private void processFeedback(Component c) {
+				if (c instanceof FormComponent) {
+					((FormComponent<?>) c).processInput();
+				}
+				for (FeedbackMessage fm : c.getFeedbackMessages()) {
 					form.getFeedbackMessages().add(fm);
 				}
 			}
@@ -478,7 +472,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				provenanceContext = new PublishFormContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
+				provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
 				provenanceContext.initStatements();
 				refreshProvenance(target);
 			}
@@ -516,7 +510,7 @@ public class PublishForm extends Panel {
 				for (Template t : Template.getPubInfoTemplates()) {
 					String s = t.getLabel();
 					boolean isAlreadyUsed = false;
-					for (PublishFormContext c : pubInfoContexts) {
+					for (TemplateContext c : pubInfoContexts) {
 						// TODO: make this more efficient/nicer
 						if (c.getTemplate().getId().equals(t.getId())) {
 							isAlreadyUsed = true;
@@ -546,7 +540,7 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				PublishFormContext c = new PublishFormContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace);
+				TemplateContext c = new TemplateContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace);
 				c.initStatements();
 				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
@@ -559,21 +553,6 @@ public class PublishForm extends Panel {
 
 		form.add(consentCheck);
 		add(form);
-
-		if (isLocal()) {
-			add(new Link<Object>("local-reload-link") {
-				private static final long serialVersionUID = 1L;
-				public void onClick() {
-					setResponsePage(page.getPageClass(), page.getPageParameters());
-				};
-			});
-			form.add(new Label("local-file-text", "TEST MODE. Nanopublication will not actually be published."));
-		} else {
-			Label l = new Label("local-reload-link", "");
-			l.setVisible(false);
-			add(l);
-			form.add(new Label("local-file-text", ""));
-		}
 
 		feedbackPanel = new FeedbackPanel("feedback");
 		feedbackPanel.setOutputMarkupId(true);
@@ -601,12 +580,12 @@ public class PublishForm extends Panel {
 	}
 
 	private void refreshPubInfo(AjaxRequestTarget target) {
-		ListView<PublishFormContext> list = new ListView<PublishFormContext>("pis", pubInfoContexts) {
+		ListView<TemplateContext> list = new ListView<TemplateContext>("pis", pubInfoContexts) {
 
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<PublishFormContext> item) {
-				final PublishFormContext pic = item.getModelObject();
+			protected void populateItem(ListItem<TemplateContext> item) {
+				final TemplateContext pic = item.getModelObject();
 				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
 				item.add(new BookmarkablePageLink<UserPage>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
 				Label remove = new Label("piremove", "×");
@@ -642,12 +621,12 @@ public class PublishForm extends Panel {
 		}
 	}
 
-	private PublishFormContext getPubinfoContext(String piTemplateId) {
-		PublishFormContext c;
+	private TemplateContext getPubinfoContext(String piTemplateId) {
+		TemplateContext c;
 		if (pubInfoContextMap.containsKey(piTemplateId)) {
 			c = pubInfoContextMap.get(piTemplateId);
 		} else {
-			c = new PublishFormContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
+			c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
 			pubInfoContextMap.put(piTemplateId, c);
 		}
 		return c;
@@ -662,7 +641,7 @@ public class PublishForm extends Panel {
 		npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
 		assertionContext.propagateStatements(npCreator);
 		provenanceContext.propagateStatements(npCreator);
-		for (PublishFormContext c : pubInfoContexts) {
+		for (TemplateContext c : pubInfoContexts) {
 			c.propagateStatements(npCreator);
 		}
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
@@ -675,7 +654,7 @@ public class PublishForm extends Panel {
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
 		IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
-		for (PublishFormContext c : pubInfoContexts) {
+		for (TemplateContext c : pubInfoContexts) {
 			IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
 			npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
 		}
@@ -696,7 +675,7 @@ public class PublishForm extends Panel {
 			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
 			IRI placeholderIri = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
 			String placeholderValue = "";
-			IModel<String> m = assertionContext.getFormComponentModels().get(placeholderIri);
+			IModel<String> m = assertionContext.getComponentModels().get(placeholderIri);
 			if (m != null) placeholderValue = m.orElse("").getObject();
 			if (placeholderValue == null) placeholderValue = "";
 			String placeholderLabel = placeholderValue;
@@ -723,15 +702,6 @@ public class PublishForm extends Panel {
 			nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
 		}
 		return nanopubLabel;
-	}
-
-	private boolean isLocal() {
-		if (assertionContext.isLocal()) return true;
-		if (provenanceContext.isLocal()) return true;
-		for (PublishFormContext c : pubInfoContexts) {
-			if (c.isLocal()) return true;
-		}
-		return false;
 	}
 
 }

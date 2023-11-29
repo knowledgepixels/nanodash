@@ -3,9 +3,9 @@ package com.knowledgepixels.nanodash;
 import java.net.URISyntaxException;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -23,19 +23,19 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	private static final long serialVersionUID = 1L;
 
-	private PublishFormContext context;
+	private TemplateContext context;
 	private TextField<String> textfield;
 	private IRI iri;
 
-	public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final PublishFormContext context) {
+	public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iriP;
 		final Template template = context.getTemplate();
-		IModel<String> model = context.getFormComponentModels().get(iri);
+		IModel<String> model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
-			context.getFormComponentModels().put(iri, model);
+			context.getComponentModels().put(iri, model);
 		}
 		String postfix = Utils.getUriPostfix(iri);
 		if (context.hasParam(postfix)) {
@@ -44,7 +44,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 		textfield = new TextField<>("textfield", model);
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new Validator(iri, template));
-		context.getFormComponents().add(textfield);
+		context.getComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
 			textfield.setLabel(Model.of(template.getLabel(iri)));
@@ -55,11 +55,11 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FormComponent<String> fc : context.getFormComponents()) {
-					if (fc == textfield) continue;
-					if (fc.getModel() == textfield.getModel()) {
-						fc.modelChanged();
-						target.add(fc);
+				for (Component c : context.getComponents()) {
+					if (c == textfield) continue;
+					if (c.getDefaultModel() == textfield.getModel()) {
+						c.modelChanged();
+						target.add(c);
 					}
 				}
 			}
@@ -76,7 +76,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void removeFromContext() {
-		context.getFormComponents().remove(textfield);
+		context.getComponents().remove(textfield);
 	}
 
 	@Override
@@ -141,14 +141,18 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 				if (!piri.isAbsolute()) {
 					s.error(new ValidationError("IRI not well-formed"));
 				}
-				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("(https?|file)://.+")) {
-					s.error(new ValidationError("Only http(s):// and file:// IRIs are allowed here"));
+				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("https?://.+")) {
+					s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
 				}
 			} catch (URISyntaxException ex) {
 				s.error(new ValidationError("IRI not well-formed"));
 			}
 		}
 
+	}
+
+	@Override
+	public void fillFinished() {
 	}
 
 	public String toString() {

@@ -6,8 +6,6 @@
 
 <wicket:panel>
 
-<p><a wicket:id="local-reload-link" href="." class="button">Reload local files</a></p>
-
 <p><span wicket:id="newversion" class="negative">information about new versions of templates will be put here:</span> <a wicket:id="newversionlink">switch to latest version</a></p>
 
 <p><span wicket:id="warnings" class="negative">warning messages will be put here</span></p>
@@ -42,9 +40,7 @@
 <div class="nanopub">
 <div class="nanopub-assertion">
 <div wicket:id="statements">
-<table><tr><td>
 <div wicket:id="statement" class="nanopub-statement"></div>
-</td></tr></table>
 </div>
 </div>
 </div>
@@ -58,9 +54,7 @@
 <div class="nanopub">
 <div class="nanopub-provenance">
 <div wicket:id="pr-statements">
-<table><tr><td>
 <div wicket:id="pr-statement" class="nanopub-statement"></div>
-</td></tr></table>
 </div>
 </div>
 </div>
@@ -80,9 +74,7 @@
 <div class="nanopub">
 <div class="nanopub-pubinfo">
 <div wicket:id="pi-statements">
-<table><tr><td>
 <div wicket:id="pi-statement" class="nanopub-statement"></div>
-</td></tr></table>
 </div>
 </div>
 </div>
@@ -96,7 +88,6 @@ I understand that publishing cannot be fully undone and that the provided inform
 
 <p>
 <input type="submit" class="button" value="Publish" />
-<span wicket:id="local-file-text" class="negative"></span>
 </p>
 
 </form>

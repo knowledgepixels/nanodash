@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -8,6 +9,8 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.SimpleCreatorPattern;
 
 import com.google.common.base.Charsets;
@@ -18,7 +21,7 @@ public class IriItem extends Panel implements ContextComponent {
 	private static final long serialVersionUID = 1L;
 
 	private IRI iri;
-	private PublishFormContext context;
+	private TemplateContext context;
 
 	public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
 		super(id);
@@ -26,14 +29,6 @@ public class IriItem extends Panel implements ContextComponent {
 		this.context = rg.getContext();
 		final Template template = context.getTemplate();
 		String labelString = null;
-		if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
-			iri = NanodashSession.get().getUserIri();
-			if (objectPosition) {
-				labelString = "me (" + User.getShortDisplayName(iri) + ")";
-			} else {
-				labelString = "I (" + User.getShortDisplayName(iri) + ")";
-			}
-		}
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
 			if (context.getType() == ContextType.ASSERTION) {
 				labelString = "this assertion";
@@ -59,32 +54,57 @@ public class IriItem extends Panel implements ContextComponent {
 			labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
 		}
 		labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
-		Label labelComp = new Label("label", labelString.replaceFirst(" - .*$", ""));
-		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("class", " nanopub-assertion "));
-			labelComp.add(new AttributeAppender("style", "padding: 4px; border-radius: 4px;"));
-		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			labelComp.add(new AttributeAppender("style", "background: #ffffff; background-image: url(\"npback-left.png\"); border-width: 1px; border-color: #666; border-style: solid; padding: 4px 4px 4px 20px; border-radius: 4px;"));
-		}
-		add(labelComp);
+
 		String iriString = iri.stringValue();
-		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
-			iriString = "local:assertion";
-		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
-			iriString = "local:nanopub";
-		} else if (template.isLocalResource(iri)) {
-			iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
-		}
-		String uri = iri.stringValue();
 		String description = "";
-		if (uri.startsWith(context.getTemplateId())) {
-			uri = uri.replace(context.getTemplateId(), "");
-			description = "This is a local identifier that will be minted when the nanopublication is created.";
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
+			} else {
+				iriString = "local:assertion";
+			}
+			description = "This is the identifier for the assertion of this nanopublication.";
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
+			} else {
+				iriString = "local:nanopub";
+			}
+			description = "This is the identifier for this whole nanopublication.";
+		} else if (template.isLocalResource(iri)) {
+			if (rg.getContext().getExistingNanopub() == null) {
+				iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
+			}
+		}
+		if (iriString.startsWith(context.getTemplateId())) {
+			iriString = iriString.replace(context.getTemplateId(), "");
+			if (rg.getContext().getExistingNanopub() != null) {
+				iriString = rg.getContext().getExistingNanopub().getUri().stringValue() + iriString;
+			}
+			description = "This is a local identifier minted within the nanopublication.";
 		}
 		if (labelString.contains(" - ")) description = labelString.replaceFirst("^.* - ", "");
 		add(new Label("description", description));
-		add(new ExternalLink("uri", iri.stringValue(), uri));
+		add(new ExternalLink("uri", (iriString.startsWith("local:") ? "" : iriString), iriString));
+
+		String href = null;
+		if (iriString.startsWith("local:")) {
+			href = "";
+		} else {
+			href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, Charsets.UTF_8);
+		}
+		ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
+		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+			linkComp.add(new AttributeAppender("class", " this-assertion "));
+			iri = vf.createIRI("local:assertion");
+		} else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+			linkComp.add(new AttributeAppender("class", " this-nanopub "));
+			iri = vf.createIRI("local:nanopub");
+		}
+		add(linkComp);
 	}
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	public static String getShortNameFromURI(String uri) {
 		uri = uri.replaceFirst("[/#]$", "");
@@ -108,15 +128,23 @@ public class IriItem extends Panel implements ContextComponent {
 	@Override
 	public boolean isUnifiableWith(Value v) {
 		if (!(v instanceof IRI)) return false;
-		// TODO: Check that template URI doesn't have regex characters:
+		// TODO: Check that template URIs don't have regex characters:
 		String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", "local:");
-		return iriS.equals(v.stringValue());
+		if (context.isReadOnly()) {
+			return iriS.equals(v.stringValue().replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", "local:"));
+		} else {
+			return iriS.equals(v.stringValue());
+		}
 	}
 
 	@Override
 	public void unifyWith(Value v) throws UnificationException {
 		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
 		// Nothing left to be done here.
+	}
+
+	@Override
+	public void fillFinished() {
 	}
 
 	public String toString() {
