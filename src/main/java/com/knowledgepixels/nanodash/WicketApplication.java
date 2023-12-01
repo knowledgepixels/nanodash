@@ -2,8 +2,6 @@ package com.knowledgepixels.nanodash;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -20,55 +18,12 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
-import org.eclipse.rdf4j.common.io.ZipUtil;
 
 public class WicketApplication extends WebApplication {
 
 	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
 
 	public WicketApplication() {
-		String runParam = System.getProperty("nanodash.run");
-		if (runParam != null) {
-			if (runParam.equals("update")) {
-				System.err.println("");
-				System.err.println("----------------------------------------");
-				System.err.println("         Updating Nanodash...");
-				System.err.println("----------------------------------------");
-				System.err.println(" Nanodash is being updated. This might");
-				System.err.println(" take a minute.");
-				System.err.println("----------------------------------------");
-				System.err.println("");
-				try {
-					String version = getLatestVersion();
-					System.err.println("Found latest version: nanodash-" + version);
-					String url = "https://github.com/knowledgepixels/nanodash/releases/download/nanodash-" + version + "/nanodash-" + version + ".zip";
-					System.err.println("Downloading " + url);
-					HttpResponse resp2 = HttpClientBuilder.create().build().execute(new HttpGet(url));
-					int c2 = resp2.getStatusLine().getStatusCode();
-					if (c2 < 200 || c2 >= 300) throw new RuntimeException("HTTP error: " + c2);
-					File zipFile = new File(System.getProperty("user.dir") + "/nanodash.zip");
-					FileOutputStream fileOut = new FileOutputStream(zipFile);
-					resp2.getEntity().writeTo(fileOut);
-					fileOut.close();
-					System.err.println("Unzipping " + zipFile);
-					ZipUtil.extract(zipFile, new File(System.getProperty("user.dir")));
-					zipFile.delete();
-					System.err.println("");
-					System.err.println("----------------------------------------");
-					System.err.println(" Nanodash updated successfully");
-					System.err.println("----------------------------------------");
-					System.err.println("");
-					System.exit(0);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					System.err.println("Failed to update Nanodash");
-					System.exit(1);
-				}
-			}
-			System.err.println("Unknown command: " + runParam);
-			System.exit(1);
-		}
-
 		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 			try {
 				Desktop.getDesktop().browse(new URI("http://localhost:37373"));
