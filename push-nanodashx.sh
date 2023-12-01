@@ -5,7 +5,7 @@ set -e
 LATESTVERSION=$(git describe --tags `git rev-list --tags --max-count=1`)
 git checkout $LATESTVERSION
 
-package/package.sh
+mvn clean package
 
 docker build -t nanopub/nanodashx .
 docker push nanopub/nanodashx

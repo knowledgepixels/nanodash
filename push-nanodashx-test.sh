@@ -2,7 +2,7 @@
 
 set -e
 
-package/package.sh
+mvn clean package
 
 docker build -t nanopub/nanodashx-test .
 docker push nanopub/nanodashx-test
