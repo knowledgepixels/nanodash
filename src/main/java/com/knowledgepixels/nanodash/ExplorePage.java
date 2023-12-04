@@ -57,7 +57,7 @@ public class ExplorePage extends NanodashPage {
 				add(new Label("counts", ""));
 			}
 
-			if (subjCount + relCount + objCount < maxDetailTableCount) {
+//			if (subjCount + relCount + objCount < maxDetailTableCount) {
 				add(new AjaxLazyLoadPanel<ExploreDataTable>("tablepart") {
 
 					private static final long serialVersionUID = 1L;
@@ -70,9 +70,9 @@ public class ExplorePage extends NanodashPage {
 					}
 
 				});
-			} else {
-				add(new Label("tablepart", "(This term is too frequent to show a detailed table.)"));
-			}
+//			} else {
+//				add(new Label("tablepart", "(This term is too frequent to show a detailed table.)"));
+//			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
