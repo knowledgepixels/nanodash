@@ -48,7 +48,6 @@ Report is then generated here: target/site/dependencies.html
 ## Old API usage
 
 - ExploreDataTable: `find_signed_nanopubs_with_uri ? ref=`
-- ExplorePage: `get_uri_usage ? ref=`
 - Group: `find_valid_signed_things ? type= searchterm=`
 - PublishForm: `getLatestVersionId` (2x)
 - SearchPage: `find_valid_signed_nanopubs_with_uri ? ref= pubkey=` / `find_valid_signed_nanopubs_with_text ? text= pubkey=`

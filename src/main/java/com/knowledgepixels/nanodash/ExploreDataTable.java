@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,8 +30,6 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.opencsv.exceptions.CsvValidationException;
-
 public class ExploreDataTable extends Panel {
 	
 	private static final long serialVersionUID = 1L;
@@ -47,22 +44,25 @@ public class ExploreDataTable extends Panel {
 		ApiResponse dataResponse = null;
 		try {
 			dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
-		} catch (IOException|CsvValidationException ex) {
+			columns.add(new Column("Nanopublication", "np", ref));
+			columns.add(new Column("Part", "graphpred", ref));
+			columns.add(new Column("Subject", "subj", ref));
+			columns.add(new Column("Predicate", "pred", ref));
+			columns.add(new Column("Object", "obj", ref));
+			columns.add(new Column("Published By", "pubkey", ref));
+			columns.add(new Column("Published On", "date", ref));
+			dp = new DataProvider(filterData(dataResponse.getData(), ref));
+			DataTable<ApiResponseEntry,String> table = new DataTable<>("datatable", columns, dp, 100);
+			table.addBottomToolbar(new NavigationToolbar(table));
+			table.addBottomToolbar(new NoRecordsToolbar(table));
+			table.addTopToolbar(new HeadersToolbar<String>(table, dp));
+			add(table);
+			add(new Label("message", "").setVisible(false));
+		} catch (Exception ex) {
 			ex.printStackTrace();
+			add(new Label("datatable", "").setVisible(false));
+			add(new Label("message", "Could not load data table."));
 		}
-		columns.add(new Column("Nanopublication", "np", ref));
-		columns.add(new Column("Part", "graphpred", ref));
-		columns.add(new Column("Subject", "subj", ref));
-		columns.add(new Column("Predicate", "pred", ref));
-		columns.add(new Column("Object", "obj", ref));
-		columns.add(new Column("Published By", "pubkey", ref));
-		columns.add(new Column("Published On", "date", ref));
-		dp = new DataProvider(filterData(dataResponse.getData(), ref));
-		DataTable<ApiResponseEntry,String> table = new DataTable<>("datatable", columns, dp, 100);
-		table.addBottomToolbar(new NavigationToolbar(table));
-		table.addBottomToolbar(new NoRecordsToolbar(table));
-		table.addTopToolbar(new HeadersToolbar<String>(table, dp));
-		add(table);
 	}
 
 	
