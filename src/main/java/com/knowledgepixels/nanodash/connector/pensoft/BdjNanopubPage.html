@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>Nanopublication for Biodiversity Data Journal | nanodash</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content" class="widthmax">
+
+<h2>Nanopublication for Biodiversity Data Journal</h2>
+
+<a href="https://bdj.pensoft.net/"><img alt="Biodiversity Data Journal logo" wicket:id="logo" style="width: 400px"></a>
+
+<div wicket:id="navigation"></div>
+
+<div class="instruction" wicket:id="author-instruction">
+<h4><em>Author Instruction</em></h4>
+<p>
+Here you can check your nanopublication, and follow the instructions below, in case you want to include it in your Biodiversity Data Journal submission.
+</p>
+</div>
+
+<div class="instruction" wicket:id="reviewer-instruction">
+<h4><em>Reviewer Instruction</em></h4>
+<p>
+To assess this nanopublication, check its content below, <strong>most importantly the blue assertion part</strong>,
+and also consider the description of the used template and any reactions it has received.
+</p>
+<p>
+<strong>This is experimental and optional.</strong>
+We hope you can help us assess this nanopublication and we can assist you with that (see at the bottom of this page), but it is also perfectly fine to skip this step if you do not feel up to it
+(which you can indicate in the review form).
+</p>
+<p>
+Hover over the terms in the blue assertion part to see tooltips explaining what these terms mean.
+</p>
+<p>
+You are also encouraged to take any reactions listed below into account for your review.
+You may also publish reactions yourself below, but this is not required.
+</p>
+<p>
+In the end, provide your assessment via the review form at <code>bdj.pensoft.net</code>.
+</p>
+</div>
+
+<div class="instruction" wicket:id="candidate-instruction">
+<h4><em>Candidate</em></h4>
+<p>This nanopublication is a candidate for inclusion in the journal, but is not peer-reviewed and has at this point no formal link to the journal.</p>
+</div>
+
+<!--
+<div class="message" wicket:id="example-message">
+<h4><em>Example</em></h4>
+<p>This is an example of a nanopublication that could be included in a Biodiversity Data Journal submission.</p>
+</div>
+-->
+
+
+<h3>Nanopublication
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+A nanopublication contains as main content a statement in the <strong>assertion part (shown in blue)</strong> encoded in a way that computers can understand.
+It is expressed as one or more <strong>subject-relation-object structures</strong>, each shown on a separate line,
+where the identifier of the subject (left) is connected to the identifier of the object (right) via the identifier of the relation type (middle).
+</span></span>
+</h3>
+
+<span wicket:id="nanopub"></span>
+
+<p wicket:id="newer-version" class="negative">
+This nanopublication has a <a wicket:id="newer-version-link" href=".">newer version</a>.
+</p>
+
+
+<h3>Type Description
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+This is the description of the type this nanopublication belongs to.
+</span></span>
+</h3>
+
+<div class="message">
+<p wicket:id="template-description">(template description)</p>
+</div>
+
+
+<h3>Reactions
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+Anyone can write reactions to this nanopublication, including the Biodiversity Data Journal reviewers and editors.
+When a new reaction is published, it can take a minute or two before it shows up here (after refreshing &#128472;).
+</span></span>
+<a wicket:id="refresh-link" class="actionbutton" href=".">&#128472;</a>
+</h3>
+
+<ul>
+<li wicket:id="reactions"><em wicket:id="reactionnote"></em> <span wicket:id="reactiontext"></span> <a wicket:id="reactionlink"><span wicket:id="reactionlinktext"></span></a></li>
+</ul>
+
+<p class="emptynotice"><em>(no reactions yet)</em></p>
+
+<p>
+<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">new reaction...</a>
+</p>
+
+
+<div class="instruction" wicket:id="includeinstruction">
+
+<h4><em>Author Instruction:</em></h4>
+
+<p>To include this nanopublication in your submission, use this link:</p>
+
+<ul>
+<li><a href="." wicket:id="np-link"></a></li>
+</ul>
+
+<p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
+
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 900px; border: 1px solid #000; margin: 10px 10px 10px 40px;">
+
+<p>Additionally, if you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
+
+<blockquote>
+This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
+</blockquote>
+
+<p>For <strong>LaTeX</strong>, use this line (and make sure you have <code>\usepackage{hyperref}</code> in the beginning of your LaTeX document):</p>
+
+<blockquote>
+This statement is formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
+</blockquote>
+
+</div>
+
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[BDJ%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+</body>
+
+</html>

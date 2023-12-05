@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title wicket:id="pagetitle">... | nanodash</title>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content" class="widthmax">
+
+<h2><span wicket:id="title">Type Page Title</span></h2>
+
+<a href="https://riojournal.com/"><img alt="RIO Journal logo" wicket:id="logo" style="width: 300px"></a>
+
+<p>| <a href="/connector/pensoft/rio">&lt; Back to Overview</a> |</p>
+
+<div class="instruction">
+<h4><em>Author Instruction</em></h4>
+<p>
+Here you find more information about this type of nanopublication. You can create a new one below,
+and check out the ones you have already created, as candidates for your RIO Journal submission.
+</p>
+</div>
+
+<h3>Type Description
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+This is the description of the type of nanopublications you can create through this page.
+</span></span>
+</h3>
+
+<div class="message">
+<p wicket:id="template-description">(template description)</p>
+</div>
+
+
+<h3>Example Nanopublication
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+A nanopublication contains as main content a statement in the <strong>assertion part (shown in blue)</strong> encoded in a way that computers can understand.
+It is expressed as one or more <strong>subject-relation-object structures</strong>, each shown on a separate line,
+where the identifier of the subject (left) is connected to the identifier of the object (right) via the identifier of the relation type (middle).
+</span></span>
+</h3>
+
+<span wicket:id="example-nanopub"></span>
+
+
+<h3>Your Candidates
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+Here, the nanopublications of this type are shown that you have already created. It might take a minute of two before new nanopublications show up here (after refreshing &#128472;).
+</span></span>
+<a wicket:id="refresh-link" class="actionbutton" href=".">&#128472;</a>
+</h3>
+
+<ul>
+<li wicket:id="candidate-nps"><a wicket:id="nplink"><span wicket:id="nplinktext"></span></a></li>
+</ul>
+
+<p class="emptynotice"><em>(you don't have any candidates yet)</em></p>
+
+<p>
+<a wicket:id="create-new-link" class="button" href="/publish">create new...</a>
+</p>
+
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+</body>
+
+</html>
