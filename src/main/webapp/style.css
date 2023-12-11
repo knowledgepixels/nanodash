@@ -485,16 +485,14 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-pubinfo:first-of-type { margin-top: 3px; border-top-left-radius: 10px; border-top-right-radius: 10px; }
 .nanopub-pubinfo:last-of-type { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
 .nanopub-context-switch { display: none; }
-
 /*
 .nanopub { background-color: white; font-family: Inter; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 0; }
-.nanopub-assertion { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #99ccff; border-radius: 0; }
-.nanopub-provenance { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #f3a08c; border-radius: 0; }
-.nanopub-pubinfo { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #dddd66; border-radius: 0; }
+.nanopub-assertion { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #ffbb00; border-radius: 0; }
+.nanopub-provenance { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #8d3b72; border-radius: 0; }
+.nanopub-pubinfo { background: #e8e8e8; padding: 5px; margin-top: 3px; border-style: solid; border-width: 0 0 0 15px; border-color: #5c93c9; border-radius: 0; }
 .nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 0; }
 .nanopub-pubinfo:last-of-type { border-radius: 0; }
 */
-
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
 
 .readonly {
