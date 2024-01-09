@@ -119,15 +119,6 @@ section div.container div.column {
   }
 }
 
-p.graphheader {
-	margin-bottom: 1.5mm;
-}
-
-p.graphsubheader {
-	margin-top: 1.5mm;
-	margin-bottom: 0;
-}
-
 li {
 	margin-top: 2mm;
 }
@@ -485,6 +476,49 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	overflow-wrap: anywhere;
 }
 
+
+.graphheader {
+	margin-bottom: 1.5mm;
+}
+
+.graphsubheader {
+	margin-top: 1.5mm;
+	margin-bottom: 0;
+}
+
+.assertionsection {
+  padding-left: 10px; margin-left: -20px; border-style: solid; border-width: 0 0 0 10px; border-color: #ffbb00;
+}
+
+.assertionsection .graphheader strong {
+  color: #ffbb00;
+  font-size: 14pt;
+  font-family: Martian,monaco,monospace;
+  font-weight: 700;
+}
+
+.provsection {
+  padding-left: 10px; margin-left: -20px; border-style: solid; border-width: 0 0 0 10px; border-color: #8d3b72;
+}
+
+.provsection .graphheader strong {
+  color: #8d3b72;
+  font-size: 14pt;
+  font-family: Martian,monaco,monospace;
+  font-weight: 700;
+}
+
+.pubinfosection {
+  padding-left: 10px; margin-left: -20px; border-style: solid; border-width: 0 0 0 10px; border-color: #5c93c9;
+}
+
+.pubinfosection .graphheader strong {
+  color: #5c93c9;
+  font-size: 14pt;
+  font-family: Martian,monaco,monospace;
+  font-weight: 700;
+}
+
 .nanopub a { color: #444; margin: 3px; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
@@ -503,9 +537,9 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
 .nanopub { background-color: white; font-family: Inter; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4; }
-.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; margin-left: -10px; border-style: solid; border-width: 0 0 0 10px; border-color: #ffbb00; border-radius: 4; }
-.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; margin-left: -10px; border-style: solid; border-width: 0 0 0 10px; border-color: #8d3b72; border-radius: 4; }
-.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; margin-left: -10px; border-style: solid; border-width: 0 0 0 10px; border-color: #5c93c9; border-radius: 4; }
+.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
+.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
+.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
 .nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 4; }
 .nanopub-pubinfo:last-of-type { border-radius: 4; }
 
