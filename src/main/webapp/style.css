@@ -53,7 +53,7 @@ h1, h2, h3, h4, h5, h6 {
 	color: black;
 	background-color: inherit;
 	clear: both;
-	font-family: Martian,monaco,monospace;
+	font-family: Martian, monaco, monospace;
 	font-weight: bold;
 	margin-top: 5mm;
 }
@@ -75,9 +75,27 @@ h5, h6 {
 }
 
 .menu {
-	font-size: 14pt;
-	margin-left: 1em;
-	vertical-align: middle;
+  font-size: 17px;
+  margin-left: 40px;
+  vertical-align: middle;
+  font-family: Martian, monaco, monospace;
+}
+
+.menu a {
+  margin: 20px;
+  color: #1A1F23;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+.menu a:hover {
+  color: #1A1F23;
+  opacity: 1;
+}
+
+.menu a:active {
+  color: #1A1F23;
+  opacity: 1;
 }
 
 section {
@@ -404,10 +422,10 @@ select {
 #titlebar {
 	clear: both;
 	padding: 0px 10px;
-	background-color: #f8f8f8;
-	border-color: #888;
+	background-color: white;
+	border-color: #F3F6F9;
 	border-style: solid;
-	border-width: 0 0 1px 0;
+	border-width: 0 0 4px 0;
 }
 
 #titlebar::after {
