@@ -154,6 +154,10 @@ img {
 	vertical-align: middle;
 }
 
+img.thirdparty {
+  filter: grayscale(1);
+}
+
 hr {
 	background: #ccc;
 	border: 0;
