@@ -400,7 +400,7 @@ input.invalid + label {
 }
 
 select {
-  width: 500px;
+  width: 400px;
 }
 
 .hidden {
@@ -426,10 +426,6 @@ select {
   display: table;
 }
 
-#content {
-	padding: 10px 20px;
-}
-
 #outer {
 	background-color: #fff;
 	height:100%;
@@ -440,6 +436,7 @@ select {
 }
 
 #content {
+	padding: 10px 20px;
 	background-color: #fff;
 	width: 1440px;
 	margin-top: 20px;
@@ -554,7 +551,7 @@ a:active.nanopub-pubinfo { color: #666; }
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
 
 .nanopub-textfield {
-  width: 500px;
+  width: 400px;
 }
 
 .readonly {
@@ -585,12 +582,14 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 */
 
 .nanopub-statement {
-  padding: 2px;
+  padding: 4px 2px;
+  text-indent: 20px hanging;
 }
 
 .nanopub-statement span {
-  line-height: 25px;
+  line-height: 30px;
   vertical-align: top;
+  margin-top: 2px;
 }
 
 .nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
@@ -604,10 +603,6 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
    display: block;
    height: 0;
    clear: both;
-}
-
-.nanopub-group .nanopub-statement {
-  padding: 1px;
 }
 
 .nanopub table {
@@ -745,6 +740,11 @@ a[href=""] {
 .nanopub-optional { padding: 8px; border-radius: 4px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
 .optional-label { color: rgba(0, 0, 0, 0.3); font-family: Inter, Verdana, Helvetica, sans-serif; font-style: italic; font-size: 9pt; margin-right: 5px; }
 .nanopub-statement-float { margin-left: 15px; margin-right: 10px; margin-top: 3px; float:right; }
+
+.optional-label:empty {
+  display: none;
+}
+
 
 .nanopub-group { padding: 8px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
 
