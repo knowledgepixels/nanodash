@@ -32,10 +32,9 @@
 
 <div class="assertionsection">
 
-<p class="graphheader">
-<strong>Assertion</strong>
-<br>
-<span wicket:id="templatename"></span>
+<p class="graphheader"><strong>Assertion</strong></p>
+<p>
+<span wicket:id="templatename" class="templatename"></span>
 <a href="#" wicket:id="templatelink">^</a>
 </p>
 
@@ -55,8 +54,10 @@
 <div class="provsection">
 
 <p class="graphheader">
-<strong>Provenance:</strong>
-<select wicket:id="prtemplate"></select>
+<strong>Provenance</strong>
+</p>
+<p>
+<span class="templatename"><select wicket:id="prtemplate"></select></span>
 <a href="#" wicket:id="prtemplatelink">^</a>
 </p>
 
@@ -80,7 +81,7 @@
 
 <div wicket:id="pis">
 <p class="graphsubheader">
-<span wicket:id="pitemplatename"></span>:
+<span wicket:id="pitemplatename" class="templatename"></span>
 <span wicket:id="piremove" class="smallbutton">&times;</span>
 <a href="#" wicket:id="pitemplatelink">^</a>
 </p>
@@ -102,7 +103,7 @@ I understand that publishing cannot be fully undone and that the provided inform
 (but nanopublications can be retracted, which makes them invisible in most situations).
 </p>
 
-<p>
+<p class="center">
 <input type="submit" class="button" value="Publish" />
 </p>
 

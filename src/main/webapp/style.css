@@ -66,6 +66,10 @@ h5, h6 {
 	font-style: italic;
 }
 
+p.center {
+  text-align: center;
+}
+
 .title img.logo {
   height: 12mm;
 }
@@ -359,6 +363,7 @@ input[type=text] {
   border-style: solid !important;
   border-width: 1px !important;
   border-radius: 2px !important;
+  font-weight: normal;
   font-size: 10pt;
   background-color: #fff;
   min-width: 250px;
@@ -386,12 +391,12 @@ input[type=text] {
 
 
 .invalid, select.invalid + span > span > span, input.invalid + label {
-  border-color: #f00 !important;
+  border-color: #A01208 !important;
   border-width: 3px !important;
 }
 
 input.invalid + label {
-  color: #f00 !important;
+  color: #A01208 !important;
 }
 
 select {
@@ -440,15 +445,17 @@ select {
 	margin-top: 20px;
 	margin-left: auto;
 	margin-right: auto;
+	margin-bottom: 60px;
 }
 
 .meta-action {
-	margin: 10px 3px 0 3px;
+	margin: 15px 3px 0 3px;
 }
 
-.meta , .meta a {
+.meta {
 	color: #666;
-	margin: 10px 10px 0 5px;
+	margin: 40px 10px 0 1px;
+	font-weight: bold;
 }
 
 a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
@@ -456,16 +463,16 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 }
 
 .postmeta {
-	margin: 0 10px 20px 10px;
+	margin: 0 10px 40px 5px;
 	color: #666;
 }
 
 .positive {
-	color: #080;
+	color: #26A008;
 }
 
 .negative {
-	color: #f00;
+	color: #A01208;
 }
 
 .valueitem {
@@ -513,6 +520,10 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
   color: #5c93c9;
   font-size: 14pt;
   font-family: Martian,monaco,monospace;
+  font-weight: 700;
+}
+
+.templatename {
   font-weight: 700;
 }
 
@@ -754,11 +765,8 @@ hr {
 }
 
 .filter > span {
-  background-color: #eee;
-  border-style: solid;
-  border-width: 1px;
-  border-color: #ccc;
-  border-radius: 3px;
+  background-color: #F3F6F9;
+  border-radius: 4px;
   padding: 5px 10px;
 }
 
@@ -783,13 +791,10 @@ hr {
 }
 
 .message {
-  background: #eee;
+  background: #F3F6F9;
   padding: 10px;
   margin-bottom: 25px;
-  border-style: solid;
-  border-width: 1px;
-  border-color: #ccc;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .message p, .message h1, .message h2, .message h3, .message h4, .message h5, .message h6 {
@@ -812,12 +817,9 @@ hr {
 }
 
 blockquote {
-  background: #eee;
+  background: #F3F6F9;
   padding: 10px;
-  border-style: solid;
-  border-width: 1px;
-  border-color: #ccc;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 div.widthmax {
