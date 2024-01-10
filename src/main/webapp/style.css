@@ -237,6 +237,7 @@ a.actionlink {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   color: #888;
   opacity: 1;
+  font-size: 9pt;
 }
 ::-webkit-input-placeholder { /* Edge */
   font-family: Inter, Verdana, Helvetica, sans-serif;
@@ -258,7 +259,7 @@ a.actionlink {
 }
 .select2-search--dropdown::before {
   content: "search/filter:";
-  font-size: 60%
+  font-size: 60%;
 }
 
 .select2-selection__rendered {
@@ -307,7 +308,7 @@ span.term {
 
 .select2-selection__placeholder span.term {
   font-family: Inter, Verdana, Helvetica, sans-serif;
-  font-size: 10pt;
+  font-size: 9pt;
 }
 
 input, select, textarea {
@@ -442,7 +443,8 @@ select {
 	background-color: #fff;
 	width: 1440px;
 	margin-top: 20px;
-	margin-left: 56px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .meta-action {
@@ -544,6 +546,10 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-pubinfo:last-of-type { border-radius: 4; }
 
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
+
+.nanopub-textfield {
+  width: 500px;
+}
 
 .readonly {
   background: white;
@@ -731,7 +737,7 @@ a[href=""] {
 }
 
 .nanopub-optional { padding: 8px; border-radius: 4px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
-.optional-label { color: rgba(0, 0, 0, 0.3); font-family: Inter, Verdana, Helvetica, sans-serif; font-style: italic; }
+.optional-label { color: rgba(0, 0, 0, 0.3); font-family: Inter, Verdana, Helvetica, sans-serif; font-style: italic; font-size: 9pt; margin-right: 5px; }
 .nanopub-statement-float { margin-left: 15px; margin-right: 10px; margin-top: 3px; float:right; }
 
 .nanopub-group { padding: 8px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }

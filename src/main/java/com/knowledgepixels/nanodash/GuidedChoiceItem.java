@@ -162,7 +162,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		textfield.getSettings().setAllowClear(true);
 
 		if (!optional) textfield.setRequired(true);
-		textfield.add(new AttributeAppender("style", "width:750px;"));
+		textfield.add(new AttributeAppender("style", "width:500px;"));
 		textfield.add(new Validator(iri, template, prefix));
 		context.getComponents().add(textfield);
 
