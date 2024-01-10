@@ -193,37 +193,33 @@ a:active {
 
 a.button, input.button {
 	font-size: 12pt;
-	font-weight: normal;
-	padding: 5px 10px;
+	font-weight: 700;
+	padding: 8px 16px;
 	margin: 3px;
-	background-color: #eee;
-	color: #000;
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 5px;
-	border-color: black;
+	background-color: #0B73DA;
+	color: #fff;
+	border-radius: 4px;
 	display:inline-block;
 	cursor: pointer;
 }
 
 .smallbutton {
-	font-size: 10pt;
-	font-weight: normal;
+	font-size: 11pt;
+	font-weight: 700;
 	padding: 0px 5px;
 	margin: 0;
-	background-color: #eee;
-	color: #000;
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 5px;
-	border-color: black;
+	background-color: #0B73DA;
+	color: #fff;
+	border-radius: 4px;
 	display:inline-block;
 	cursor: pointer;
     line-height: 20px !important;
+    min-width: 10px;
+    text-align: center;
 }
 
 a.button:hover, a.smallbutton:hover, input.button:hover {
-	background-color: #f8f8f8;
+	background-color: #0B73DAC0;
 }
 
 a.actionlink {
@@ -334,20 +330,19 @@ input[type=text] {
 
 .actionmenu-button {
 	font-size: 7pt;
-	font-weight: normal;
+	font-weight: 700;
 	width: 20px;
 	height: 20px;
 	padding: 0px;
 	margin: 1px;
-	background-color: #fff;
-	color: #666;
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 5px;
-	border-color: #666;
+	background-color: #0B73DA;
+	color: #fff;
+	border-width: 0px;
+	border-radius: 4px;
 	display:inline-block;
 	cursor: pointer;
     line-height: 20px !important;
+    text-align: center;
 }
 
 .actionmenu {
@@ -383,7 +378,7 @@ input[type=text] {
 
 .actionmenu:hover .actionmenu-content {display: block;}
 
-.actionmenu:hover .actionmenu-button {background-color: #fff;} 
+.actionmenu:hover .actionmenu-button { background-color: #0B73DAC0; } 
 
 
 
@@ -439,7 +434,7 @@ select {
   color: #888888;
 }
 
-.backpane {
+#content {
 	background-color: #fff;
 	width: 1440px;
 	margin-top: 20px;
