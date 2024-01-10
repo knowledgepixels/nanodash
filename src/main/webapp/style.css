@@ -582,8 +582,12 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 */
 
 .nanopub-statement {
-  padding: 4px 2px;
+  padding: 2px 1px;
   text-indent: 20px hanging;
+}
+
+.nanopub-group .nanopub-statement {
+  padding: 4px 2px;
 }
 
 .nanopub-statement span {
