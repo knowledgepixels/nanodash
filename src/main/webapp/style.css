@@ -175,6 +175,11 @@ img.thirdparty {
   filter: grayscale(1);
 }
 
+img.nanopub-icon {
+  width: 15px;
+  height: 15px;
+}
+
 hr {
 	background: #ccc;
 	border: 0;
