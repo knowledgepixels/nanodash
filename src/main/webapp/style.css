@@ -321,6 +321,7 @@ input, select, textarea {
   background-color: #fff;
   margin: 3px;
   color: #000;
+  accent-color: #0B73DAC0;
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
