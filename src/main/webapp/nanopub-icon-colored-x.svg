@@ -1,74 +1,20 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   id="Layer_2"
-   data-name="Layer 2"
-   viewBox="0 0 186.32 186.32"
-   version="1.1"
-   sodipodi:docname="nanopub-icon.svg"
-   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview16"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     showgrid="false"
-     inkscape:zoom="5.4017382"
-     inkscape:cx="44.152454"
-     inkscape:cy="48.780594"
-     inkscape:window-width="3770"
-     inkscape:window-height="2321"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="Layer_2" />
-  <defs
-     id="defs4">
-    <style
-       id="style2">
-      .a { fill: #EBAC00; stroke-width: 0px; }
-      .p { fill: #AA0987; stroke-width: 0px; }
-      .i { fill: #325981; stroke-width: 0px; }
-    </style>
-  </defs>
-  <rect
-     style="fill:#000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linejoin:round;stroke-miterlimit:1.3;stroke-dasharray:none"
-     id="rect297"
-     width="68.026146"
-     height="186.3022"
-     x="0.10117286"
-     y="-0.0015836706" />
-  <rect
-     style="fill:#000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linejoin:round;stroke-miterlimit:1.3;stroke-dasharray:none"
-     id="rect297-3"
-     width="68.026146"
-     height="186.3022"
-     x="118.26141"
-     y="0.0075690048" />
-  <g
-     id="Layer_1-2"
-     data-name="Layer 1">
-    <g
-       id="g12">
-      <polygon
-         class="p"
-         points="186.32 114.41 186.32 0 117.64 0 186.32 114.41"
-         id="polygon6" />
-      <polygon
-         class="a"
-         points="111.74 186.32 185.61 186.32 73.77 0 0 0 0 .15 111.74 186.32"
-         id="polygon8" />
-      <polygon
-         class="i"
-         points="0 73.25 0 186.32 67.87 186.32 0 73.25"
-         id="polygon10" />
-    </g>
-  </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 186.32 186.32">
+<defs>
+<style>
+* { stroke-width: 0; }
+.a { fill: #EBAC00; }
+.p { fill: #AA0987; }
+.i { fill: #325981; }
+.b { fill: #000; }
+</style>
+</defs>
+<g>
+<rect class="b" x="0" y="0" height="186.32" width="67.87"/>
+<rect class="b" x="118.45" y="0" height="186.32" width="67.87"/>
+<polygon class="p" points="186.32 114.41 186.32 0 117.64 0 186.32 114.41"/>
+<polygon class="a" points="111.74 186.32 185.61 186.32 73.77 0 0 0 0 .15 111.74 186.32"/>
+<polygon class="i" points="0 73.25 0 186.32 67.87 186.32 0 73.25"/>
+</g>
 </svg>
+
