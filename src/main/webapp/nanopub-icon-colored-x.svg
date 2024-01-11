@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 186.32 186.32">
-<defs>
-<style>
+<defs><style>
 .a{fill: #EBAC00}
 .p{fill: #AA0987}
 .i{fill: #325981}
-</style>
-</defs>
-<g>
+</style></defs>
 <rect x="0" y="0" height="186.32" width="67.87"/>
 <rect x="118.45" y="0" height="186.32" width="67.87"/>
 <polygon class="p" points="186.32 114.41 186.32 0 117.64 0 186.32 114.41"/>
 <polygon class="a" points="111.74 186.32 185.61 186.32 73.77 0 0 0 0 .15 111.74 186.32"/>
 <polygon class="i" points="0 73.25 0 186.32 67.87 186.32 0 73.25"/>
-</g>
 </svg>
 
