@@ -6,7 +6,7 @@
 .p{fill: #AA0987}
 .i{fill: #325981}
 </style></defs>
-<polygon class="a" points="25 40 40 40 15 0 0 0 25 40"/>
-<polygon class="p" points="40 24 40 0 25 0 40 24"/>
-<polygon class="i" points="0 16 0 40 15 40 0 16"/>
+<polygon class="a" points="25 40 40 40 15 0 0 0"/>
+<polygon class="p" points="40 24 40 0 25 0"/>
+<polygon class="i" points="0 16 0 40 15 40"/>
 </svg>

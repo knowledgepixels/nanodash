@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-<polygon points="25 40 40 40 15 0 0 0 25 40"/>
-<polygon points="40 24 40 0 25 0 40 24"/>
-<polygon points="0 16 0 40 15 40 0 16"/>
+<polygon points="25 40 40 40 15 0 0 0"/>
+<polygon points="40 24 40 0 25 0"/>
+<polygon points="0 16 0 40 15 40"/>
 </svg>
