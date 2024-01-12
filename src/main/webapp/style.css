@@ -312,8 +312,7 @@ code.bold {
 }
 
 span.term {
-  font-family: Martian,monaco,monospace;
-  font-size: 10pt;
+  vertical-align: middle;
 }
 
 .select2-selection__placeholder span.term {
@@ -331,6 +330,8 @@ input, select, textarea {
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 input[type=text] {
@@ -507,6 +508,7 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
   font-size: 14pt;
   font-family: Martian,monaco,monospace;
   font-weight: 700;
+  margin-right: 15px;
 }
 
 .provsection {
@@ -518,17 +520,19 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
   font-size: 14pt;
   font-family: Martian,monaco,monospace;
   font-weight: 700;
+  margin-right: 15px;
 }
 
 .pubinfosection {
-  padding-left: 10px; margin-left: -20px; border-style: solid; border-width: 0 0 0 10px; border-color: #5c93c9;
+  padding-left: 10px; margin-left: -20px; border-style: solid; border-width: 0 0 0 10px; border-color: #325981;
 }
 
 .pubinfosection .graphheader strong {
-  color: #5c93c9;
+  color: #325981;
   font-size: 14pt;
   font-family: Martian,monaco,monospace;
   font-weight: 700;
+  margin-right: 15px;
 }
 
 .templatename {
@@ -552,7 +556,7 @@ a:active.nanopub-pubinfo { color: #666; }
 .nanopub-prefixes { display: none; margin-top: 3px; }
 .nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
-.nanopub { background-color: white; font-family: Inter; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4; }
+.nanopub { background-color: white; font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4; }
 .nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
 .nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
 .nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4; }
@@ -604,13 +608,10 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 .nanopub-statement span {
   line-height: 30px;
   vertical-align: top;
-  margin-top: 2px;
 }
 
 .nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
   margin: 2px;
-  font-family: Martian,monaco,monospace;
-  font-size: 10pt;
 }
 .nanopub-statement:after { 
    content: ".";
