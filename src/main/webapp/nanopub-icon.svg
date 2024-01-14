@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-<polygon points="25 40 40 40 15 0 0 0"/>
-<polygon points="40 24 40 0 25 0"/>
-<polygon points="0 16 0 40 15 40"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8">
+<path d="M5,8H8L3,0H0M8,4.8V0H5M0,3.2V8H3"/>
 </svg>
