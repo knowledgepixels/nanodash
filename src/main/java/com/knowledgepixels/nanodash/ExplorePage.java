@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -15,6 +16,9 @@ public class ExplorePage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/explore";
 
+	
+	private final String ref;
+
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
@@ -25,17 +29,21 @@ public class ExplorePage extends NanodashPage {
 
 		add(new TitleBar("titlebar", this));
 
-		final String ref = parameters.get("id").toString();
+		ref = parameters.get("id").toString();
 		final String shortName = IriItem.getShortNameFromURI(ref);
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
+
+		WebMarkupContainer npStatusLine = new WebMarkupContainer("npstatusline");
+		add(npStatusLine);
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", ref);
 		try {
 			Nanopub np = Utils.getAsNanopub(ref);
 			if (np == null) {
+				npStatusLine.setVisible(false);
 				add(new Label("name", "Term"));
 				add(new Label("nanopub", ""));
 			} else {

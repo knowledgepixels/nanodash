@@ -19,7 +19,13 @@
 
 <h3><span wicket:id="name">Term</span>: <span wicket:id="termname"></span></h3>
 
-<p>Full identifier: <a href="#" wicket:id="urilink"></a></p>
+<p>Full identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
+
+<div wicket:id="npstatusline">
+<p><span id="status"><em>Checking for updates...</em></span></p>
+<script type="text/javascript" src="scripts/nanopub.js"></script>
+<script>getStatus("status", document.getElementById('ref').innerHTML);</script>
+</div>
 
 <span wicket:id="nanopub"></span>
 
