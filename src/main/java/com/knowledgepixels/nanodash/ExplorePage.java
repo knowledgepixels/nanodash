@@ -51,6 +51,14 @@ public class ExplorePage extends NanodashPage {
 			} else {
 				add(new Label("name", "Nanopublication"));
 				add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
+				npStatusLine.add(new ExternalLink("trig-txt", ref + ".trig.txt"));
+				npStatusLine.add(new ExternalLink("jsonld-txt", ref + ".jsonld.txt"));
+				npStatusLine.add(new ExternalLink("nq-txt", ref + ".nq.txt"));
+				npStatusLine.add(new ExternalLink("xml-txt", ref + ".xml.txt"));
+				npStatusLine.add(new ExternalLink("trig", ref + ".trig"));
+				npStatusLine.add(new ExternalLink("jsonld", ref + ".jsonld"));
+				npStatusLine.add(new ExternalLink("nq", ref + ".nq"));
+				npStatusLine.add(new ExternalLink("xml", ref + ".xml"));
 			}
 
 			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(ref, Charsets.UTF_8), "show references"));
