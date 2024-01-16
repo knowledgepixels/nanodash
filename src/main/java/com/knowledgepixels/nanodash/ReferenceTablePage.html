@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title wicket:id="pagetitle">... (explore) | nanodash</title>
+<title wicket:id="pagetitle">... (references) | nanodash</title>
 <link rel="stylesheet" href="style.css?v=2.21" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
@@ -17,19 +17,11 @@
 
 <div id="content">
 
-<h3><span wicket:id="name">Term</span>: <span wicket:id="termname"></span></h3>
+<h3>References for: <span wicket:id="termname"></span></h3>
 
 <p>Full identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
 
-<div wicket:id="npstatusline">
-<p><span id="status"><em>Checking for updates...</em></span></p>
-<script type="text/javascript" src="scripts/nanopub.js"></script>
-<script>getStatus("status", document.getElementById('ref').innerHTML);</script>
-</div>
-
-<span wicket:id="nanopub"></span>
-
-<a wicket:id="show-references" class="smallbutton">show references</a>
+<table wicket:id="table"></table>
 
 </div>
 

@@ -1,14 +1,16 @@
 package com.knowledgepixels.nanodash;
 
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
+
+import com.google.common.base.Charsets;
 
 public class ExplorePage extends NanodashPage {
 
@@ -51,18 +53,7 @@ public class ExplorePage extends NanodashPage {
 				add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
 			}
 
-			add(new AjaxLazyLoadPanel<ExploreDataTable>("tablepart") {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public ExploreDataTable getLazyLoadComponent(String id) {
-					ExploreDataTable t = new ExploreDataTable(id, ref);
-					setResponsePage(getPage());
-					return t;
-				}
-
-			});
+			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(ref, Charsets.UTF_8), "show references"));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

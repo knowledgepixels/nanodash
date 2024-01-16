@@ -60,7 +60,7 @@ function getUpdateStatusX(elementId, npUri, apiUrls) {
         }
         for (const b of bindings) {
           l = b['latest']['value'];
-          h += ' <a href="./explore?id=' + l + '">' + l + '</a>';
+          h += ' <a href="./explore?id=' + l + '">' + l.substring(l.length-45, l.length-35) + '</a>';
         }
       }
       document.getElementById(elementId).innerHTML = h;

@@ -68,6 +68,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(UserPage.MOUNT_PATH, UserPage.class);
 		mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
 		mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
+		mountPage(ReferenceTablePage.MOUNT_PATH, ReferenceTablePage.class);
 		mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
 		mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
 		mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
