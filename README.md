@@ -13,6 +13,7 @@ Nanodash is a client to browse and publish nanopublications.
 You can use Nanodash by login in via ORCID in one of the online instances:
 
 - https://nanodash.petapico.org/
+- https://nanodash.knowledgepixels.com/
 - https://nanodash.np.trustyuri.net/
 
 
