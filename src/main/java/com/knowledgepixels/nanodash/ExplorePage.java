@@ -20,9 +20,6 @@ public class ExplorePage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/explore";
 
-	
-	private final String ref;
-
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
@@ -33,11 +30,7 @@ public class ExplorePage extends NanodashPage {
 
 		add(new TitleBar("titlebar", this));
 
-		ref = parameters.get("id").toString();
-		final String shortName = IriItem.getShortNameFromURI(ref);
-		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
-		add(new Label("termname", shortName));
-		add(new ExternalLink("urilink", ref, ref));
+		String ref = parameters.get("id").toString();
 
 		WebMarkupContainer npStatusLine = new WebMarkupContainer("npstatusline");
 		add(npStatusLine);
@@ -51,6 +44,7 @@ public class ExplorePage extends NanodashPage {
 				add(new Label("name", "Term"));
 				add(new Label("nanopub", ""));
 			} else {
+				ref = np.getUri().stringValue();
 				add(new Label("name", "Nanopublication"));
 				add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
 				String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(ref);
@@ -69,6 +63,10 @@ public class ExplorePage extends NanodashPage {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		final String shortName = IriItem.getShortNameFromURI(ref);
+		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
+		add(new Label("termname", shortName));
+		add(new ExternalLink("urilink", ref, ref));
 	}
 
 }
