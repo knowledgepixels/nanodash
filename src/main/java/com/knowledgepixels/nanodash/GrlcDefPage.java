@@ -10,13 +10,12 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
 
 public class GrlcDefPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/grlc-def";
+	public static final String MOUNT_PATH = "/grlc-spec";
 
 	public static final ValueFactory vf = SimpleValueFactory.getInstance();
 	public static final IRI HAS_SPARQL = vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
@@ -75,10 +74,15 @@ public class GrlcDefPage extends NanodashPage {
 				response.write("title: \"" + escape(label) + "\"\n");
 			}
 			response.write("description: \"" + escape(desc) + "\"\n");
+			IRI userIri = NanodashSession.get().getUserIri();
+			String userName = User.getShortDisplayName(userIri);
+			response.write("contact:\n");
+			response.write("  name: \"" + escape(userName) + "\"\n");
+			response.write("  url: " + userIri.stringValue() + "\n");
 			response.write("queries:\n");
 			String baseUrl = NanodashPreferences.get().getWebsiteUrl();
-			response.write("  - " + baseUrl + requestUrl + queryName);
-		} else if (queryPart.equals(queryName)) {
+			response.write("  - " + baseUrl + requestUrl + queryName + ".rq");
+		} else if (queryPart.equals(queryName + ".rq")) {
 			if (label != null) {
 				response.write("#+ summary: \"" + escape(label) + "\"\n");
 			}
