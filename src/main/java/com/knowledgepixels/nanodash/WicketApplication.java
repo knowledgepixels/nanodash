@@ -96,6 +96,8 @@ public class WicketApplication extends WebApplication {
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage");
 
+		mountPage(GrlcDefPage.MOUNT_PATH, GrlcDefPage.class);
+
 		getCspSettings().blocking().disabled();
 	}
 
