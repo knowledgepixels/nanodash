@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import java.util.Set;
+
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -10,6 +12,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
+import org.nanopub.SimpleCreatorPattern;
 
 public class GrlcDefPage extends NanodashPage {
 
@@ -19,6 +22,7 @@ public class GrlcDefPage extends NanodashPage {
 
 	public static final ValueFactory vf = SimpleValueFactory.getInstance();
 	public static final IRI HAS_SPARQL = vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
+	public static final IRI HAS_ENDPOINT = vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
 
 	private Nanopub np;
 	private String requestUrl;
@@ -27,6 +31,7 @@ public class GrlcDefPage extends NanodashPage {
 	private String label;
 	private String desc;
 	private String queryContent;
+	private String endpoint;
 
 	public GrlcDefPage(PageParameters parameters) {
 		super(parameters);
@@ -49,6 +54,8 @@ public class GrlcDefPage extends NanodashPage {
 				desc = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_SPARQL)) {
 				queryContent = st.getObject().stringValue();
+			} else if (st.getPredicate().equals(HAS_ENDPOINT) && st.getObject() instanceof IRI) {
+				endpoint = st.getObject().stringValue();
 			}
 		}
 	}
@@ -67,18 +74,23 @@ public class GrlcDefPage extends NanodashPage {
 		}
 		response.setContentType("text/plain");
 		if (queryPart.isEmpty()) {
-			// TODO: proper escaping:
 			if (label == null) {
 				response.write("title: \"untitled query\"\n");
 			} else {
 				response.write("title: \"" + escape(label) + "\"\n");
 			}
 			response.write("description: \"" + escape(desc) + "\"\n");
-			IRI userIri = NanodashSession.get().getUserIri();
-			String userName = User.getShortDisplayName(userIri);
+			String userName = "";
+			Set<IRI> creators = SimpleCreatorPattern.getCreators(np);
+			for (IRI userIri : creators) {
+				userName += ", " + User.getShortDisplayName(userIri);
+			}
+			if (!userName.isEmpty()) userName = userName.substring(2);
+			String url = "";
+			if (!creators.isEmpty()) url = creators.iterator().next().stringValue();
 			response.write("contact:\n");
 			response.write("  name: \"" + escape(userName) + "\"\n");
-			response.write("  url: " + userIri.stringValue() + "\n");
+			response.write("  url: " + url + "\n");
 			response.write("queries:\n");
 			String baseUrl = NanodashPreferences.get().getWebsiteUrl();
 			response.write("  - " + baseUrl + requestUrl + queryName + ".rq");
@@ -88,6 +100,9 @@ public class GrlcDefPage extends NanodashPage {
 			}
 			if (desc != null) {
 				response.write("#+ description: \"" + escape(desc) + "\"\n");
+			}
+			if (endpoint != null) {
+				response.write("#+ endpoint: " + endpoint + "\n");
 			}
 			response.write(queryContent);
 		} else {
