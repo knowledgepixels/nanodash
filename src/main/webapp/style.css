@@ -573,6 +573,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   background: white;
   padding: 4px;
   border-radius: 2px;
+  white-space: pre;
 }
 
 /*
