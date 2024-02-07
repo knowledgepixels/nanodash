@@ -36,6 +36,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
@@ -352,7 +353,7 @@ public class PublishForm extends Panel {
 				Nanopub signedNp = null;
 				try {
 					Nanopub np = createNanopub();
-					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), null, false, false);
+					TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false);
 					signedNp = SignNanopub.signAndTransform(np, tc);
 					PublishNanopub.publish(signedNp);
 					System.err.println("Published " + signedNp.getUri());
@@ -664,6 +665,15 @@ public class PublishForm extends Panel {
 		}
 		for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
 			npCreator.addPubinfoStatement(NANOPUB_TYPE_PREDICATE, type);
+		}
+		IRI userIri = NanodashSession.get().getUserIri();
+		if (User.getName(userIri) != null) {
+			npCreator.addPubinfoStatement(userIri, FOAF.NAME, vf.createLiteral(User.getName(userIri)));
+			npCreator.addNamespace("foaf", FOAF.NAMESPACE);
+		}
+		String websiteUrl = NanodashPreferences.get().getWebsiteUrl();
+		if (websiteUrl != null) {
+			npCreator.addPubinfoStatement(vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt"), vf.createIRI(websiteUrl));
 		}
 		return npCreator.finalizeNanopub();
 	}
