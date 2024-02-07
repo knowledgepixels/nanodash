@@ -20,6 +20,7 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
@@ -105,7 +106,8 @@ public class TemplateList extends Panel {
 						try {
 							NanopubSignatureElement se = SignatureUtils.getSignatureElement(item.getModelObject().getNanopub());
 							if (se != null) {
-								userString = User.getShortDisplayNameForPubkey(se.getPublicKeyString());
+								IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
+								userString = User.getShortDisplayName(signer, se.getPublicKeyString());
 							}
 						} catch (Exception ex) {
 							ex.printStackTrace();

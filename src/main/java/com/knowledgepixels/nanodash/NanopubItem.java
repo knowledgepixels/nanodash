@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -20,6 +21,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
+import org.nanopub.SimpleCreatorPattern;
 
 import com.knowledgepixels.nanodash.action.NanopubAction;
 
@@ -56,14 +58,11 @@ public class NanopubItem extends Panel {
 	private void initialize() {
 		if (isInitialized) return;
 
-
-		String userString = "";
 		String pubkey = null;
 		try {
 			if (n.hasValidSignature()) {
 				pubkey = n.getPubkey();
 				signerId = n.getSignerId();
-				userString = User.getShortDisplayNameForPubkey(pubkey);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -112,8 +111,18 @@ public class NanopubItem extends Panel {
 			}
 			PageParameters params = new PageParameters();
 			IRI uIri = User.findSingleIdForPubkey(pubkey);
+			if (uIri == null) {
+				Set<IRI> creators = SimpleCreatorPattern.getCreators(n.getNanopub());
+				if (creators.size() == 1) uIri = creators.iterator().next();
+			}
 			if (uIri != null) params.add("id", uIri);
 			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
+			String userString;
+			if (signerId != null) {
+				userString = User.getShortDisplayName(signerId, pubkey);
+			} else {
+				userString = User.getShortDisplayName(uIri, pubkey);
+			}
 			userLink.add(new Label("user-text", userString));
 			footer.add(userLink);
 	

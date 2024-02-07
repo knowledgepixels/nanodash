@@ -225,6 +225,7 @@ public class User {
 	}
 
 	private static String getShortId(IRI userIri) {
+		if (userIri == null) return "(unknown)";
 		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}
 
@@ -270,17 +271,17 @@ public class User {
 		return getShortId(userIri);
 	}
 
-	public static String getShortDisplayNameForPubkey(String pubkey) {
+	public static String getShortDisplayName(IRI userIri, String pubkey) {
 		ensureLoaded();
 		Set<IRI> ids = approvedPubkeyIdMap.get(pubkey);
 		if (ids == null || ids.isEmpty()) {
 			ids = unapprovedPubkeyIdMap.get(pubkey);
 			if (ids == null || ids.isEmpty()) {
-				return "(unknown)";
+				return getShortId(userIri);
 			} else if (ids.size() == 1) {
 				return getShortDisplayName(ids.iterator().next());
 			} else {
-				return "(contested identity)";
+				return getShortId(userIri) + " (contested identity)";
 			}
 		} else if (ids.size() == 1) {
 			return getShortDisplayName(ids.iterator().next());

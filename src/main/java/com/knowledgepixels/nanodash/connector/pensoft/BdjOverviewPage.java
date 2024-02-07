@@ -51,7 +51,7 @@ public class BdjOverviewPage extends OverviewPage {
 					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", getConfig().getNanopubPage().getClass(), params);
 					l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
 					item.add(l);
-					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
+					String username = User.getShortDisplayName(null, e.get("pubkey"));
 					item.add(new Label("candidatenote", "by " + username + " on " + e.get("date").substring(0, 10)));
 				}
 	

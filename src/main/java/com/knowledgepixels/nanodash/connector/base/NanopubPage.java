@@ -133,7 +133,7 @@ public abstract class NanopubPage extends ConnectorPage {
 					item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
 					params.add("id", e.get("np"));
 					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", ExplorePage.class, params);
-					String username = User.getShortDisplayNameForPubkey(e.get("pubkey"));
+					String username = User.getShortDisplayName(null, e.get("pubkey"));
 					l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
 					item.add(l);
 				}
