@@ -24,7 +24,11 @@ To use Nanodash locally, see the [installation instructions with Docker](INSTALL
 
 ### Tutorials
 
-You can check out these video tutorials to learn more about Nanodash and how it can be used (the videos are from the time when Nanodash was still called Nanobench):
+This quick introduction to nanopublications and Nanodash (with a practical hands-on part) was recorded for the [Lorentz workshop on 'The Road to FAIR and Equitable Science'](https://www.lorentzcenter.nl/the-road-to-fair-and-equitable-science.html) in early 2024:
+
+- [Short video on nanopublications](https://www.youtube.com/watch?v=vml-PywEQzE&t=226s)
+
+You can also check out these older video tutorials to learn more about Nanodash and how it can be used (the videos are from the time when Nanodash was still called Nanobench):
 
 - [Nanobench Tutorial 1: The Nanopublication Ecosystem](https://youtu.be/wPAd9wPkvEg)
 - (This second video is a bit outdated. You no longer need to install Nanobench/Nanodash locally, but you can use the link of the online instance above and skip this video.)
