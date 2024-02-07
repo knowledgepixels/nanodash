@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
@@ -43,6 +45,7 @@ public class ExplorePage extends NanodashPage {
 				npStatusLine.setVisible(false);
 				add(new Label("name", "Term"));
 				add(new Label("nanopub", ""));
+				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 			} else {
 				ref = np.getUri().stringValue();
 				add(new Label("name", "Nanopublication"));
@@ -57,6 +60,13 @@ public class ExplorePage extends NanodashPage {
 				npStatusLine.add(new ExternalLink("jsonld", url + ".jsonld"));
 				npStatusLine.add(new ExternalLink("nq", url + ".nq"));
 				npStatusLine.add(new ExternalLink("xml", url + ".xml"));
+				if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
+					add(new WebMarkupContainer("use-template").add(
+							new BookmarkablePageLink<WebPage>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
+						);
+				} else {
+					add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+				}
 			}
 
 			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(ref, Charsets.UTF_8), "show references"));
