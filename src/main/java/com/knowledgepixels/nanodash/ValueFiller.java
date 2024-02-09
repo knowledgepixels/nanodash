@@ -13,6 +13,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.CryptoElement;
@@ -77,15 +78,20 @@ public class ValueFiller {
 		return unusedStatements;
 	}
 
+	public void removeUnusedStatement(Statement st) {
+		unusedStatements.remove(st);
+	}
+
 	private Statement transform(Statement st) {
 		if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
 			IRI pred = st.getPredicate();
+			// TODO We might want to filter some of these out afterwards in PublishForm, to be more precise:
 			if (st.getSubject().equals(fillNp.getUri())) {
 				if (pred.equals(DCTERMS.CREATED)) return null;
 				if (pred.equals(Nanopub.SUPERSEDES)) return null;
 				if (pred.equals(RDFS.LABEL)) return null;
-				if (pred.equals(PublishForm.NANOPUB_TYPE_PREDICATE)) return null;
 				if (pred.equals(PublishForm.INTRODUCES_PREDICATE)) return null;
+				if (pred.equals(PublishForm.WAS_CREATED_AT_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) return null;
@@ -94,6 +100,8 @@ public class ValueFiller {
 			if (pred.equals(CryptoElement.HAS_PUBLIC_KEY)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
+			if (pred.equals(NanopubSignatureElement.SIGNED_BY)) return null;
+			if (pred.equals(FOAF.NAME)) return null;
 			if (pred.equals(Template.HAS_LABEL_FROM_API)) {
 				GuidedChoiceItem.setLabel(st.getSubject().stringValue(), st.getObject().stringValue());
 				return null;

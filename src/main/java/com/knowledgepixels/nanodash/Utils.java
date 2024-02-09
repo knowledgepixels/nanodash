@@ -39,9 +39,6 @@ public class Utils {
 
 	static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	public static final IRI DECLARED_BY = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
-	public static final IRI HAS_PUBLIC_KEY = vf.createIRI("http://purl.org/nanopub/x/hasPublicKey");
-
 	public static String getShortNameFromURI(IRI uri) {
 		String u = uri.stringValue();
 		u = u.replaceFirst("[/#]$", "");

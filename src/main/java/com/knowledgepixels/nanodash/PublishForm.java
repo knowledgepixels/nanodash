@@ -251,6 +251,15 @@ public class PublishForm extends Panel {
 				unusedPrStatementList.addAll(prFiller.getUnusedStatements());
 	
 				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
+				if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
+					for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
+						if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(PublishForm.NANOPUB_TYPE_PREDICATE)) {
+							if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
+								piFiller.removeUnusedStatement(st);
+							}
+						}
+					}
+				}
 				for (TemplateContext c : pubInfoContexts) {
 					piFiller.fill(c);
 				}
@@ -635,6 +644,7 @@ public class PublishForm extends Panel {
 
 	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
 	public static final IRI NANOPUB_TYPE_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/hasNanopubType");
+	public static final IRI WAS_CREATED_AT_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt");
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
 		assertionContext.getIntroducedIris().clear();
@@ -673,7 +683,7 @@ public class PublishForm extends Panel {
 		}
 		String websiteUrl = NanodashPreferences.get().getWebsiteUrl();
 		if (websiteUrl != null) {
-			npCreator.addPubinfoStatement(vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt"), vf.createIRI(websiteUrl));
+			npCreator.addPubinfoStatement(WAS_CREATED_AT_PREDICATE, vf.createIRI(websiteUrl));
 		}
 		return npCreator.finalizeNanopub();
 	}
