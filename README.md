@@ -8,7 +8,7 @@ Nanodash was previously called Nanobench.
 Nanodash is a client to browse and publish nanopublications.
 
 
-## Online Instances
+### Online Instances
 
 You can use Nanodash by login in via ORCID in one of the online instances:
 
@@ -17,7 +17,7 @@ You can use Nanodash by login in via ORCID in one of the online instances:
 - https://nanodash.np.trustyuri.net/
 
 
-## Local Installation
+### Local Installation
 
 To use Nanodash locally, see the [installation instructions with Docker](INSTALL-with-Docker.md).
 
@@ -38,7 +38,7 @@ You can also check out these older video tutorials to learn more about Nanodash 
 - [Nanobench Tutorial 5: Using the Query Services](https://youtu.be/U200GuqOBso)
 
 
-## License
+### License
 
 Copyright (C) 2019-2023 Tobias Kuhn
 
