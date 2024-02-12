@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.security.SignatureUtils;
 
 import com.google.common.base.Charsets;
 
@@ -66,6 +67,11 @@ public class ExplorePage extends NanodashPage {
 						);
 				} else {
 					add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+				}
+				if (SignatureUtils.seemsToHaveSignature(np)) {
+					npStatusLine.add(new WebMarkupContainer("updateline"));
+				} else {
+					npStatusLine.add(new WebMarkupContainer("updateline").setVisible(false));
 				}
 			}
 
