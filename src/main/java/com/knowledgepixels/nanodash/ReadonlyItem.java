@@ -20,6 +20,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.SimpleCreatorPattern;
 
 import com.knowledgepixels.nanodash.StatementItem.RepetitionGroup;
 
@@ -370,6 +371,15 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			if (template.isTrustyUriPlaceholder(iri)) {
 				if (!TrustyUriUtils.isPotentialTrustyUri(iriString)) {
 					s.error(new ValidationError("Not a trusty URI"));
+				}
+			}
+			if (iri.equals(Template.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
+				boolean found = false;
+				for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
+					if (creator.stringValue().equals(iriString)) { found = true; break; }
+				}
+				if (!found) {
+					s.error(new ValidationError("Not a creator of nanopub"));
 				}
 			}
 		}

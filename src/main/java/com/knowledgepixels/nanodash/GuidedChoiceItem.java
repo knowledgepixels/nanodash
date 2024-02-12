@@ -163,7 +163,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 		if (!optional) textfield.setRequired(true);
 		textfield.add(new AttributeAppender("style", "width:500px;"));
-		textfield.add(new Validator(iri, template, prefix));
+		textfield.add(new Validator(iri, template, prefix, context));
 		context.getComponents().add(textfield);
 
 		tooltipDescription = new Label("description", new IModel<String>() {
@@ -234,7 +234,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
 			}
-			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
+			new Validator(iri, context.getTemplate(), prefix, context).validate(validatable);
 			if (!validatable.isValid()) {
 				return false;
 			}

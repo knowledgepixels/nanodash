@@ -20,6 +20,7 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.nanopub.SimpleCreatorPattern;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -79,7 +80,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		if (template.isLocalResource(iri)) {
 			textfield.add(new AttributeAppender("style", "width:250px;"));
 		}
-		textfield.add(new Validator(iri, template, prefix));
+		textfield.add(new Validator(iri, template, prefix, context));
 		context.getComponents().add(textfield);
 		if (template.getLabel(iri) != null) {
 			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
@@ -129,7 +130,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 				vs = Utils.getUriPostfix(vs);
 			}
-			new Validator(iri, context.getTemplate(), prefix).validate(validatable);
+			new Validator(iri, context.getTemplate(), prefix, context).validate(validatable);
 			if (!validatable.isValid()) {
 				return false;
 			}
@@ -167,11 +168,13 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		private IRI iri;
 		private Template template;
 		private String prefix;
+		private TemplateContext context;
 
-		public Validator(IRI iri, Template template, String prefix) {
+		public Validator(IRI iri, Template template, String prefix, TemplateContext context) {
 			this.iri = iri;
 			this.template = template;
 			this.prefix = prefix;
+			this.context = context;
 		}
 
 		@Override
@@ -216,6 +219,15 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			if (template.isTrustyUriPlaceholder(iri)) {
 				if (!TrustyUriUtils.isPotentialTrustyUri(iriString)) {
 					s.error(new ValidationError("Not a trusty URI"));
+				}
+			}
+			if (iri.equals(Template.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
+				boolean found = false;
+				for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
+					if (creator.stringValue().equals(iriString)) { found = true; break; }
+				}
+				if (!found) {
+					s.error(new ValidationError("Not a creator of nanopub"));
 				}
 			}
 		}
