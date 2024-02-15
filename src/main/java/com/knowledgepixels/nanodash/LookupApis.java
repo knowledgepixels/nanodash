@@ -113,6 +113,17 @@ public class LookupApis {
 						labelMap.put(uri, label);
 					}
 				}
+			} else if (apiString.startsWith("https://api.ror.org/organizations")) {
+				// TODO This is just a test and needs to be improved
+				JSONArray responseArray = new JSONObject(respString).getJSONArray("items");
+				for (int i = 0; i < responseArray.length(); i++) {
+					String uri = responseArray.getJSONObject(i).getString("id");
+					String label = responseArray.getJSONObject(i).getString("name");
+					if (!values.contains(uri)) {
+						values.add(uri);
+						labelMap.put(uri, label);
+					}
+				}
 			} else {
 				// TODO: create parseJsonApi() ?
 				boolean foundId = false;
