@@ -14,7 +14,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
-public class GrlcDefPage extends NanodashPage {
+public class GrlcSpecPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -34,7 +34,7 @@ public class GrlcDefPage extends NanodashPage {
 	private String queryContent;
 	private String endpoint;
 
-	public GrlcDefPage(PageParameters parameters) {
+	public GrlcSpecPage(PageParameters parameters) {
 		super(parameters);
 		requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (!requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}/(.*)?")) return;
