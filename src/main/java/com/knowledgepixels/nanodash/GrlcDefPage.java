@@ -30,6 +30,7 @@ public class GrlcDefPage extends NanodashPage {
 	private String queryName;
 	private String label;
 	private String desc;
+	private String license;
 	private String queryContent;
 	private String endpoint;
 
@@ -52,6 +53,8 @@ public class GrlcDefPage extends NanodashPage {
 				label = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
 				desc = st.getObject().stringValue();
+			} else if (st.getPredicate().equals(DCTERMS.LICENSE) && st.getObject() instanceof IRI) {
+				license = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_SPARQL)) {
 				queryContent = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_ENDPOINT) && st.getObject() instanceof IRI) {
@@ -91,6 +94,9 @@ public class GrlcDefPage extends NanodashPage {
 			response.write("contact:\n");
 			response.write("  name: \"" + escape(userName) + "\"\n");
 			response.write("  url: " + url + "\n");
+			if (license != null) {
+				response.write("license: " + license + "\n");
+			}
 			response.write("queries:\n");
 			String baseUrl = NanodashPreferences.get().getWebsiteUrl();
 			response.write("  - " + baseUrl + requestUrl + queryName + ".rq");
@@ -100,6 +106,9 @@ public class GrlcDefPage extends NanodashPage {
 			}
 			if (desc != null) {
 				response.write("#+ description: \"" + escape(desc) + "\"\n");
+			}
+			if (license != null) {
+				response.write("#+ license: " + license + "\n");
 			}
 			if (endpoint != null) {
 				response.write("#+ endpoint: " + endpoint + "\n");
