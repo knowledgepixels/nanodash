@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.MarkupContainer;
@@ -30,8 +31,25 @@ public class UserListPage extends NanodashPage {
 		super(parameters);
 
 		add(new TitleBar("titlebar", this));
-		final List<IRI> userList = User.getUsers(true);
 
+		final List<Group> groupList = new ArrayList<Group>(Group.getGroups());
+		add(new DataView<Group>("groups", new ListDataProvider<Group>(groupList)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<Group> item) {
+				Group g = item.getModelObject();
+				PageParameters params = new PageParameters();
+				params.add("id", g.getIri());
+				BookmarkablePageLink<GroupPage> l = new BookmarkablePageLink<GroupPage>("grouplink", GroupPage.class, params);
+				l.add(new Label("linktext", g.getName()));
+				item.add(l);
+			}
+
+		});
+
+		final List<IRI> userList = User.getUsers(true);
 		add(new Label("usercount", userList.size()));
 
 		add(new DataView<IRI>("approved-users", new ListDataProvider<IRI>(userList)) {
@@ -77,11 +95,13 @@ public class UserListPage extends NanodashPage {
 			@Override
 			public void onClick() {
 				User.refreshUsers();
+				Group.refreshGroups();
 				throw new RestartResponseException(UserListPage.class);
 			}
 
 		});
 		add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));
+		add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
 	}
 
 }
