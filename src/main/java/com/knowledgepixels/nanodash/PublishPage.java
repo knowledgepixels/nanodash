@@ -43,4 +43,9 @@ public class PublishPage extends NanodashPage {
 				"custom-functions"));
 	}
 
+	@Override
+	protected boolean hasAutoRefreshEnabled() {
+		return true;
+	}
+
 }
