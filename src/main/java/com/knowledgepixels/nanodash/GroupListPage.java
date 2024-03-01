@@ -46,23 +46,6 @@ public class GroupListPage extends NanodashPage {
 			}
 
 		});
-
-		add(new Link<String>("refresh") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public MarkupContainer setDefaultModel(IModel<?> arg0) {
-				return null;
-			}
-
-			@Override
-			public void onClick() {
-				Group.refreshGroups();
-				throw new RestartResponseException(GroupListPage.class);
-			}
-
-		});
 	}
 
 }

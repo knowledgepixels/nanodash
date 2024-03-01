@@ -82,24 +82,6 @@ public class UserListPage extends NanodashPage {
 			}
 
 		});
-
-		add(new Link<String>("refresh") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public MarkupContainer setDefaultModel(IModel<?> arg0) {
-				return null;
-			}
-
-			@Override
-			public void onClick() {
-				User.refreshUsers();
-				Group.refreshGroups();
-				throw new RestartResponseException(UserListPage.class);
-			}
-
-		});
 		add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));
 		add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
 	}

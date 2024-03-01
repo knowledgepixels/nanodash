@@ -9,16 +9,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
@@ -31,23 +27,6 @@ public class TemplateList extends Panel {
 
 	public TemplateList(String id) {
 		super(id);
-
-		add(new Link<String>("refresh") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public MarkupContainer setDefaultModel(IModel<?> arg0) {
-				return null;
-			}
-
-			@Override
-			public void onClick() {
-				Template.refreshTemplates();
-				throw new RestartResponseException(PublishPage.class);
-			}
-
-		});
 
 		ArrayList<Template> templateList = new ArrayList<>(Template.getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
