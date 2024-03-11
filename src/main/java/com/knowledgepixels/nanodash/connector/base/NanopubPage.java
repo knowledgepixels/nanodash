@@ -26,6 +26,7 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
 import com.knowledgepixels.nanodash.PublishPage;
 import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -104,7 +105,7 @@ public abstract class NanopubPage extends ConnectorPage {
 
 		try {
 
-			Template template = Template.getTemplate(np);
+			Template template = TemplateData.get().getTemplate(np);
 			if (template == null) {
 				add(new Label("template-description", ""));
 			} else {

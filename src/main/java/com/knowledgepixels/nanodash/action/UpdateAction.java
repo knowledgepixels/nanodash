@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TemplateData;
 
 public class UpdateAction extends NanopubAction {
 
@@ -15,8 +15,8 @@ public class UpdateAction extends NanopubAction {
 
 	@Override
 	public String getTemplateUri(Nanopub np) {
-		if (Template.getTemplateId(np) != null) {
-			return Template.getTemplateId(np).stringValue();
+		if (TemplateData.get().getTemplateId(np) != null) {
+			return TemplateData.get().getTemplateId(np).stringValue();
 		} else {
 			return "http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA";
 		}

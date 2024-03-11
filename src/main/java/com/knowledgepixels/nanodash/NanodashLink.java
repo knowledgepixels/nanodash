@@ -35,20 +35,23 @@ public class NanodashLink extends Panel {
 				}
 			}
 		}
+
+		final TemplateData td = TemplateData.get();
+
 		if (Template.ASSERTION_TEMPLATE_CLASS.equals(templateClass)) {
-			IRI templateId = Template.getTemplateId(np);
+			IRI templateId = td.getTemplateId(np);
 			if (templateId != null) {
-				templates.add(Template.getTemplate(templateId.stringValue()));
+				templates.add(td.getTemplate(templateId.stringValue()));
 			}
 		} else if (Template.PROVENANCE_TEMPLATE_CLASS.equals(templateClass)) {
-			IRI templateId = Template.getProvenanceTemplateId(np);
+			IRI templateId = td.getProvenanceTemplateId(np);
 			if (templateId != null) {
-				templates.add(Template.getTemplate(templateId.stringValue()));
+				templates.add(td.getTemplate(templateId.stringValue()));
 			}
 		} else if (Template.PUBINFO_TEMPLATE_CLASS.equals(templateClass)) {
-			Set<IRI> templateIds = Template.getPubinfoTemplateIds(np);
+			Set<IRI> templateIds = td.getPubinfoTemplateIds(np);
 			for (IRI templateId : templateIds) {
-				templates.add(Template.getTemplate(templateId.stringValue()));
+				templates.add(td.getTemplate(templateId.stringValue()));
 			}
 		}
 

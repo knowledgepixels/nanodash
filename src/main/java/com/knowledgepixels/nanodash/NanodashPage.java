@@ -27,7 +27,7 @@ public abstract class NanodashPage extends WebPage {
 					System.err.println("Refreshing...");
 					User.refreshUsers();
 					Group.refreshGroups();
-					Template.refreshTemplates();
+					TemplateData.refreshTemplates();
 					System.err.println("Refreshing done.");
 					lastRefresh = System.currentTimeMillis();
 				}

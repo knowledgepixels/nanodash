@@ -28,7 +28,7 @@ public class TemplateList extends Panel {
 	public TemplateList(String id) {
 		super(id);
 
-		ArrayList<Template> templateList = new ArrayList<>(Template.getAssertionTemplates());
+		ArrayList<Template> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
 			@Override
 			public int compare(Template t1, Template t2) {

@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TemplateData;
 
 public class ImproveAction extends NanopubAction {
 
@@ -15,7 +15,7 @@ public class ImproveAction extends NanopubAction {
 
 	@Override
 	public String getTemplateUri(Nanopub np) {
-		return Template.getTemplateId(np).stringValue();
+		return TemplateData.get().getTemplateId(np).stringValue();
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class ImproveAction extends NanopubAction {
 
 	@Override
 	public boolean isApplicableTo(Nanopub np) {
-		return Template.getTemplateId(np) != null;
+		return TemplateData.get().getTemplateId(np) != null;
 	}
 
 }

@@ -54,7 +54,7 @@ public class TemplateContext implements Serializable {
 	private TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace, Nanopub existingNanopub) {
 		this.contextType = contextType;
 		// TODO: check whether template is of correct type:
-		this.template = Template.getTemplate(templateId);
+		this.template = TemplateData.get().getTemplate(templateId);
 		this.componentId = componentId;
 		if (targetNamespace != null) {
 			this.targetNamespace = targetNamespace;

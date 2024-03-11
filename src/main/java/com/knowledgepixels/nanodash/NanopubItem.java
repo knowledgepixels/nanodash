@@ -185,9 +185,11 @@ public class NanopubItem extends Panel {
 		showLessLink.setVisible(!expanded);
 		assertionPart2.add(showLessLink);
 
-		Template assertionTemplate = Template.getTemplate(n.getNanopub());
-		if (tempalteId != null) assertionTemplate = Template.getTemplate(tempalteId);
-		if (assertionTemplate == null) assertionTemplate = Template.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+		final TemplateData td = TemplateData.get();
+
+		Template assertionTemplate = td.getTemplate(n.getNanopub());
+		if (tempalteId != null) assertionTemplate = td.getTemplate(tempalteId);
+		if (assertionTemplate == null) assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
 		List<StatementItem> assertionStatements = new ArrayList<>();
 		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
 		TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
@@ -228,8 +230,8 @@ public class NanopubItem extends Panel {
 		if (hideProvenance) {
 			provenance.setVisible(false);
 		} else {
-			Template provenanceTemplate = Template.getProvenanceTemplate(n.getNanopub());
-			if (provenanceTemplate == null) provenanceTemplate = Template.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
+			Template provenanceTemplate = td.getProvenanceTemplate(n.getNanopub());
+			if (provenanceTemplate == null) provenanceTemplate = td.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
 			List<StatementItem> provenanceStatements = new ArrayList<>();
 			ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
 			TemplateContext prContext = new TemplateContext(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
@@ -254,7 +256,7 @@ public class NanopubItem extends Panel {
 		} else {
 			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
 			List<String> pubinfoTemplateIds = new ArrayList<>();
-			for (IRI iri : Template.getPubinfoTemplateIds(n.getNanopub())) pubinfoTemplateIds.add(iri.stringValue());
+			for (IRI iri : td.getPubinfoTemplateIds(n.getNanopub())) pubinfoTemplateIds.add(iri.stringValue());
 			pubinfoTemplateIds.add("https://w3id.org/np/RAXVsr624oEAJvCt1WZXoUJ90lFYC5LUMoYHgEUOwmrLw"); // user name
 			pubinfoTemplateIds.add("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk"); // nanopub label
 			pubinfoTemplateIds.add("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg"); // nanopub type

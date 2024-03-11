@@ -125,8 +125,10 @@ public class PublishForm extends Panel {
 			fillMode = null;
 		}
 
+		final TemplateData td = TemplateData.get();
+
 		String templateId = pageParams.get("template").toString();
-		targetNamespace = Template.getTemplate(templateId).getTargetNamespace();
+		targetNamespace = td.getTemplate(templateId).getTargetNamespace();
 		if (!pageParams.get("target-namespace").isNull()) {
 			// TODO: properly integrate this feature:
 			targetNamespace = pageParams.get("target-namespace").toString();
@@ -136,8 +138,8 @@ public class PublishForm extends Panel {
 		String prTemplateId = pageParams.get("prtemplate").toString();
 		if (prTemplateId == null) {
 			if (fillNp != null && !fillOnlyAssertion) {
-				if (Template.getProvenanceTemplateId(fillNp) != null) {
-					prTemplateId = Template.getProvenanceTemplateId(fillNp).stringValue();
+				if (td.getProvenanceTemplateId(fillNp) != null) {
+					prTemplateId = td.getProvenanceTemplateId(fillNp).stringValue();
 				} else {
 					prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
 				}
@@ -187,7 +189,7 @@ public class PublishForm extends Panel {
 			if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
 		}
 		if (fillNp != null && !fillOnlyAssertion) {
-			for (IRI piTemplateId : Template.getPubinfoTemplateIds(fillNp)) {
+			for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
 				if (piTemplateId.stringValue().equals(supersedesPubinfoTemplateId)) continue;
 				TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
 				if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
@@ -429,11 +431,11 @@ public class PublishForm extends Panel {
 
 		final List<Template> provTemplateOptions;
 		if (pageParams.get("prtemplate-options").isNull()) {
-			provTemplateOptions = Template.getProvenanceTemplates();
+			provTemplateOptions = td.getProvenanceTemplates();
 		} else {
 			provTemplateOptions = new ArrayList<>();
 			for (String tid : pageParams.get("prtemplate-options").toString().split(" ")) {
-				provTemplateOptions.add(Template.getTemplate(tid));
+				provTemplateOptions.add(td.getTemplate(tid));
 			}
 		}
 
@@ -444,7 +446,7 @@ public class PublishForm extends Panel {
 			@Override
 			public String getDisplayValue(String object) {
 				if (object == null || object.isEmpty()) return "";
-				Template t = Template.getTemplate(object);
+				Template t = td.getTemplate(object);
 				if (t != null) return t.getLabel();
 				return "";
 			}
@@ -503,7 +505,7 @@ public class PublishForm extends Panel {
 			@Override
 			public String getDisplayValue(String object) {
 				if (object == null || object.isEmpty()) return "";
-				Template t = Template.getTemplate(object);
+				Template t = td.getTemplate(object);
 				if (t != null) return t.getLabel();
 				return "";
 			}
@@ -522,7 +524,7 @@ public class PublishForm extends Panel {
 			public void query(String term, int page, Response<String> response) {
 				if (term == null) term = "";
 				term = term.toLowerCase();
-				for (Template t : Template.getPubInfoTemplates()) {
+				for (Template t : td.getPubInfoTemplates()) {
 					String s = t.getLabel();
 					boolean isAlreadyUsed = false;
 					for (TemplateContext c : pubInfoContexts) {

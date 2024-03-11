@@ -24,6 +24,7 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
 import com.knowledgepixels.nanodash.PublishPage;
 import com.knowledgepixels.nanodash.Template;
+import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.Utils;
 import com.opencsv.exceptions.CsvValidationException;
@@ -58,98 +59,100 @@ public abstract class TypePage extends ConnectorPage {
 				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M ";
 				//"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k"
 
+		final TemplateData td = TemplateData.get();
+
 		if (type.equals("superpattern")) {
 			title = "Fully-formal Advanced Statements (Super-Pattern)";
-			template = Template.getTemplate("http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI");
+			template = td.getTemplate("http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI");
 			exampleId = "http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4";
 		} else if (type.equals("linkflowsrel")) {
 			title = "Simple Scientific Relations between Individuals";
-			template = Template.getTemplate("http://purl.org/np/RAsz-9JwiOPQufQ5AGSNepkPG0hkWWYutBDWtsMRgKaaU");
+			template = td.getTemplate("http://purl.org/np/RAsz-9JwiOPQufQ5AGSNepkPG0hkWWYutBDWtsMRgKaaU");
 			exampleId = "http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY";
 		} else if (type.equals("crel")) {
 			title = "Simple Scientific Relations based on Classes";
-			template = Template.getTemplate("http://purl.org/np/RAQ9wpGlnll9o034hWI9tGZw6oTBvcN9azFS7hzdESY0I");
+			template = td.getTemplate("http://purl.org/np/RAQ9wpGlnll9o034hWI9tGZw6oTBvcN9azFS7hzdESY0I");
 			exampleId = "http://purl.org/np/RAkX1V_9VIscbvJ6Nz4BKUdgywO0UWgBQlzJUEvdMYG-M";
 		} else if (type.equals("aida")) {
 			title = "Semi-formal Statements Based on English Sentences (AIDA)";
-			template = Template.getTemplate("http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY");
+			template = td.getTemplate("http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY");
 			exampleId = "http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs";
 		} else if (type.equals("classdef")) {
 			title = "Class Definitions";
-			template = Template.getTemplate("http://purl.org/np/RAcWWF8kSXfwZ77XdC59IyH1MJ24wFp-dDeXkPjKHAXM0");
+			template = td.getTemplate("http://purl.org/np/RAcWWF8kSXfwZ77XdC59IyH1MJ24wFp-dDeXkPjKHAXM0");
 			exampleId = "http://purl.org/np/RAj26TjulpgBHXJGe0OwZZZ-cZCJ9WE7ICug5EW2tGH7s";
 		} else if (type.equals("inddef")) {
 			title = "Definitions of Individuals";
-			template = Template.getTemplate("http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c");
+			template = td.getTemplate("http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c");
 			exampleId = "http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0";
 		} else if (type.equals("ml")) {
 			title = "Evaluation results of a Machine Learning experiment";
-			template = Template.getTemplate("http://purl.org/np/RAGEv4a9uT48mgnIlWqAvL-XnupfNYojIUmszJDa50xoc");
+			template = td.getTemplate("http://purl.org/np/RAGEv4a9uT48mgnIlWqAvL-XnupfNYojIUmszJDa50xoc");
 			exampleId = "http://purl.org/np/RAQV0grGVX22NUdKxBijorX0vy06-hdDY3BpScIeQzhx0";
 		} else if (type.equals("biorel")) {
 			title = "Simple Biological Relation";
-			template = Template.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
+			template = td.getTemplate("http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs");
 			exampleId = "http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM";
 		} else if (type.equals("taxontaxon")) {
 			title = "Association between taxa";
-			template = Template.getTemplate("http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0");
+			template = td.getTemplate("http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0");
 			exampleId = "http://purl.org/np/RALX2suiPKea3pm65RjS97EL6k9iY1Jew_mb30hO5Zjv0";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonenv")) {
 			title = "Association between taxa and environments";
-			template = Template.getTemplate("http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k");
+			template = td.getTemplate("http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k");
 			exampleId = "http://purl.org/np/RATlLG_xH-woxWfvHYC-7LyV5F0V6Sq4EbDWS86h6CrUI";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxongene")) {
 			title = "Association between taxa and genes";
-			template = Template.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
+			template = td.getTemplate("http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk");
 			exampleId = "http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgorg")) {
 			title = "Association between organisms";
-			template = Template.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
+			template = td.getTemplate("http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI");
 			exampleId = "http://purl.org/np/RAafGz8UV6Nz4m8wyCLV4eJ_bdNfXKpGie0FH6TQZFa84";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgenv")) {
 			title = "Association between organisms and environments";
-			template = Template.getTemplate("http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc");
+			template = td.getTemplate("http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc");
 			exampleId = "http://purl.org/np/RAWxvypUU6OabNGlBz9jDGLnftqRXdokzI2oemf9vQRGY";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("taxonnames")) {
 			title = "Association between taxon names (nomenclature)";
-			template = Template.getTemplate("http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8");
+			template = td.getTemplate("http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8");
 			exampleId = "http://purl.org/np/RAIz2ACUDvk3OAcXc-OjYSuLglUZu-fsJXrC4UtoAF7k4";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("orgns")) {
 			title = "Association between organisms and nucleotide sequences";
-			template = Template.getTemplate("http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE");
+			template = td.getTemplate("http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE");
 			exampleId = "http://purl.org/np/RAyOMh3jJ2PWrgis-My3-QbN9yoBXVBulweANHdvJPhak";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("taxonns")) {
 			title = "Association between taxa and nucleotide sequences";
-			template = Template.getTemplate("http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM");
+			template = td.getTemplate("http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM");
 			exampleId = "http://purl.org/np/RA5lyV7V98AAm6BM_s8gv17eRRFZsJqvp2TqCGV6QD3gk";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 		} else if (type.equals("biolinkrel")) {
 			title = "Expressing a biological relation between two entities";
-			template = Template.getTemplate("http://purl.org/np/RAjvwGtEUz07hIGUZ_kHpW8R1TSeUhbWH8NdpC0MIvv_A");
+			template = td.getTemplate("http://purl.org/np/RAjvwGtEUz07hIGUZ_kHpW8R1TSeUhbWH8NdpC0MIvv_A");
 			exampleId = "http://purl.org/np/RAPeBcr6fuTot6fU5bKyspkFD_5RX9tLXcCIs1UkEEUUo";
 			prTemplateId = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU";
 			prTemplateOptions = biodivPrTemplateOptions;
 		} else if (type.equals("eqrel")) {
 			title = "Mapping two equivalent or related resource identifiers";
-			template = Template.getTemplate("http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk");
+			template = td.getTemplate("http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk");
 			exampleId = "http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI";
 		} else if (type.equals("reaction")) {
 			// This is still experimental and not yet used
 			title = "A reaction or comment on a paper or nanopublication";
-			template = Template.getTemplate("http://purl.org/np/RANWGVogb5j_VQ6A4nabA34_-zkZTRYNYtItRJXGf2TVQ");
+			template = td.getTemplate("http://purl.org/np/RANWGVogb5j_VQ6A4nabA34_-zkZTRYNYtItRJXGf2TVQ");
 			exampleId = "http://purl.org/np/RAxjCU5pZDoGox98Hb36mquM9Bc1xv0qz4P19p2avnNPI";
 			prTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
 		}
