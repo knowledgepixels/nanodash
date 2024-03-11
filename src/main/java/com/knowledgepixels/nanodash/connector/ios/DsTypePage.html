@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title wicket:id="pagetitle">... | nanodash</title>
 <link rel="stylesheet" href="style.css?v=2.25" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
@@ -14,19 +15,14 @@
 
 <div id="content" class="widthmax">
 
-<h2><span wicket:id="title">Type Page Title</span></h2>
+<div class="row">
 
-<a href="https://datasciencehub.net/"><img class="thirdparty" alt="Data Science logo" wicket:id="logo" style="width: 300px"></a>
+<div class="col-8">
+
+<h2><span wicket:id="title">Type Page Title</span></h2>
 
 <p>| <a href="/connector/ios/ds">&lt; Back to Overview</a> |</p>
 
-<div class="instruction">
-<h4><em>Author Instruction</em></h4>
-<p>
-Here you find more information about this type of nanopublication. You can create a new one below,
-and check out the ones you have already created, as candidates for your Data Science submission.
-</p>
-</div>
 
 <h3>Type Description
 <span class="expltooltip">&#9432;<span class="expltooltiptext">
@@ -75,6 +71,25 @@ Don't hesitate to
 <a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
 if you have any questions or problems, no matter how trivial or how complex.
 </p>
+
+</div>
+
+<div class="col-4">
+
+<div class="sidelogo">
+<a href="https://datasciencehub.net/"><img class="thirdparty" alt="Data Science logo" wicket:id="logo" style="width: 300px" src="DsLogo.png"></a>
+</div>
+
+<h4>Author Instruction</h4>
+
+<p class="instruction">
+Here you find more information about this type of nanopublication. You can create a new one on the left,
+and check out the ones you have already created, as candidates for your Data Science submission.
+</p>
+
+</div>
+
+</div>
 
 </div>
 
