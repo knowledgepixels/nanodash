@@ -41,6 +41,12 @@
   box-sizing: border-box;
 }
 
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
 .col-1 {width: 8.33%;}
 .col-2 {width: 16.66%;}
 .col-3 {width: 25%;}
