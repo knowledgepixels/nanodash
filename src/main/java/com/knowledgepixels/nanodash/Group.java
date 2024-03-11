@@ -14,6 +14,9 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
@@ -32,27 +35,28 @@ public class Group implements Serializable {
 		return groups.values();
 	}
 
-	public static void ensureLoaded() {
+	public static synchronized void ensureLoaded() {
 		if (groups == null) {
 			refreshGroups();
 		}
 	}
 
-	public static void refreshGroups() {
+	public static synchronized void refreshGroups() {
+		Map<String,Group> newGroups = new HashMap<>();
 		try {
-			groups = new HashMap<>();
 			Map<String,String> params = new HashMap<>();
 			params.put("type", "http://xmlns.com/foaf/0.1/Group");
 			params.put("searchterm", " ");
 			ApiResponse result = ApiAccess.getAll("find_valid_signed_things", params);
 			for (ApiResponseEntry e : result.getData()) {
 				Group g = new Group(e);
-				groups.put(g.getId(), g);
+				newGroups.put(g.getId(), g);
 			}
 		} catch (CsvValidationException | IOException ex) {
 			ex.printStackTrace();
-			groups = null;
+			newGroups = null;
 		}
+		groups = newGroups;
 	}
 
 	public static Group get(String groupId) {
@@ -65,14 +69,14 @@ public class Group implements Serializable {
 	private final IRI iri;
 	private final String name;
 	private final Nanopub np;
-	private final List<IRI> owners = new ArrayList<>();
+	private final IRI owner;
 	private final List<IRI> members = new ArrayList<>();
 
 	private Group(ApiResponseEntry e) {
 		iri = vf.createIRI(e.get("thing"));
 		name = e.get("label");
 		np = GetNanopub.get(e.get("np"));
-		owners.add(User.getSignatureOwnerIri(np));
+		owner = User.getSignatureOwnerIri(np);
 		for (Statement st : np.getAssertion()) {
 			if (!st.getSubject().equals(iri)) continue;
 			if (!st.getPredicate().equals(FOAF.MEMBER)) continue;
@@ -101,8 +105,22 @@ public class Group implements Serializable {
 		return members;
 	}
 
-	public List<IRI> getOwners() {
-		return owners;
+	public IRI getOwner() {
+		return owner;
+	}
+
+	public String getOwnerPubkey() {
+		NanopubSignatureElement e = null;
+		try {
+			e = SignatureUtils.getSignatureElement(np);
+		} catch (MalformedCryptoElementException ex) {
+			ex.printStackTrace();
+		}
+		if (e == null) {
+			return null;
+		} else {
+			return e.getPublicKeyString();
+		}
 	}
 
 	@Override
