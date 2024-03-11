@@ -15,53 +15,13 @@
 
 <div id="content" class="widthmax">
 
+<div class="row">
+
+<div class="col-8">
+
 <h2>Nanopublication for RIO Journal</h2>
 
-<a href="https://riojournal.com/"><img class="thirdparty" alt="RIO Journal logo" wicket:id="logo" style="width: 300px"></a>
-
 <div wicket:id="navigation"></div>
-
-<div class="instruction" wicket:id="author-instruction">
-<h4><em>Author Instruction</em></h4>
-<p>
-Here you can check your nanopublication, and follow the instructions below to include it in your RIO Journal submission.
-</p>
-</div>
-
-<div class="instruction" wicket:id="reviewer-instruction">
-<h4><em>Reviewer Instruction</em></h4>
-<p>
-To assess this nanopublication, check its content below, <strong>most importantly the blue assertion part</strong>,
-and also consider the description of the used template and any reactions it has received.
-</p>
-<p>
-<strong>This is experimental and optional.</strong>
-We hope you can help us assess this nanopublication and we can assist you with that (see at the bottom of this page), but it is also perfectly fine to skip this step if you do not feel up to it
-(which you can indicate in the review form).
-</p>
-<p>
-Hover over the terms in the blue assertion part to see tooltips explaining what these terms mean.
-</p>
-<p>
-You are also encouraged to take any reactions listed below into account for your review.
-You may also publish reactions yourself below, but this is not required.
-</p>
-<p>
-In the end, provide your assessment via the review form at <code>riojournal.com</code>.
-</p>
-</div>
-
-<div class="instruction" wicket:id="candidate-instruction">
-<h4><em>Candidate</em></h4>
-<p>This nanopublication is a candidate for inclusion in the journal, but is not peer-reviewed and has at this point no formal link to the journal.</p>
-</div>
-
-<!--
-<div class="message" wicket:id="example-message">
-<h4><em>Example</em></h4>
-<p>This is an example of a nanopublication that could be included in a RIO Journal submission.</p>
-</div>
--->
 
 
 <h3>Nanopublication
@@ -109,9 +69,26 @@ When a new reaction is published, it can take a minute or two before it shows up
 </p>
 
 
-<div class="instruction" wicket:id="includeinstruction">
+<h3>Help</h3>
 
-<h4><em>Author Instruction:</em></h4>
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[RIO%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+<div class="col-4">
+
+<div class="sidelogo">
+<a href="https://riojournal.com/"><img class="thirdparty" alt="RIO Journal logo" wicket:id="logo" style="width: 300px" src="RioLogo.svg"></a>
+</div>
+
+<div wicket:id="author-instruction">
+<h4><em>Author Instruction</em></h4>
+</div>
+<div class="instruction" wicket:id="includeinstruction">
 
 <p>To include this nanopublication in your submission, use this link:</p>
 
@@ -121,7 +98,7 @@ When a new reaction is published, it can take a minute or two before it shows up
 
 <p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
 
-<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 900px; border: 1px solid #000; margin: 10px 10px 10px 40px;">
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 85%; border: 1px solid #000; margin: 10px 10px 10px 40px;" src="RioFormSubmit.png">
 
 <p>Additionally, if you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
 
@@ -137,14 +114,39 @@ This statement is formalized in a machine-interpretable manner in our nanopublic
 
 </div>
 
-
-<h3>Help</h3>
-
+<div wicket:id="reviewer-instruction">
+<h4><em>Reviewer Instruction</em></h4>
+<div class="instruction">
 <p>
-Don't hesitate to
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[RIO%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
-if you have any questions or problems, no matter how trivial or how complex.
+To assess this nanopublication, check its content below, <strong>most importantly the blue assertion part</strong>,
+and also consider the description of the used template and any reactions it has received.
 </p>
+<p>
+<strong>This is experimental and optional.</strong>
+We hope you can help us assess this nanopublication and we can assist you with that (see at the bottom of this page), but it is also perfectly fine to skip this step if you do not feel up to it
+(which you can indicate in the review form).
+</p>
+<p>
+Hover over the terms in the blue assertion part to see tooltips explaining what these terms mean.
+</p>
+<p>
+You are also encouraged to take any reactions listed below into account for your review.
+You may also publish reactions yourself below, but this is not required.
+</p>
+<p>
+In the end, provide your assessment via the review form at <code>riojournal.com</code>.
+</p>
+</div>
+</div>
+
+<div wicket:id="candidate-instruction">
+<h4><em>Candidate</em></h4>
+<p class="instruction">This nanopublication is a candidate for inclusion in the journal, but is not peer-reviewed and has at this point no formal link to the journal.</p>
+</div>
+
+</div>
+
+</div>
 
 </div>
 
