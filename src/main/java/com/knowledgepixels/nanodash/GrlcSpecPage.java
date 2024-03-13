@@ -95,7 +95,7 @@ public class GrlcSpecPage extends NanodashPage {
 			response.write("  name: \"" + escape(userName) + "\"\n");
 			response.write("  url: " + url + "\n");
 			if (license != null) {
-				response.write("license: " + license + "\n");
+				response.write("licence: " + license + "\n");
 			}
 			response.write("queries:\n");
 			String baseUrl = NanodashPreferences.get().getWebsiteUrl();
@@ -108,7 +108,7 @@ public class GrlcSpecPage extends NanodashPage {
 				response.write("#+ description: \"" + escape(desc) + "\"\n");
 			}
 			if (license != null) {
-				response.write("#+ license: " + license + "\n");
+				response.write("#+ licence: " + license + "\n");
 			}
 			if (endpoint != null) {
 				response.write("#+ endpoint: " + endpoint + "\n");
