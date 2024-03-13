@@ -63,6 +63,7 @@
 [class*="col-"] {
   float: left;
   padding: 15px;
+  /* border: 1px solid red; */
 }
 
 html {
@@ -871,4 +872,16 @@ blockquote {
 div.widthmax {
   max-width: 1400px;
   margin-bottom: 50px;
+}
+
+.itemtitle {
+  font-family: Martian, monaco, monospace;
+  font-size: 130%;
+  font-weight: bold;
+  margin-top: 5mm;
+  margin-bottom: 5mm;
+}
+
+.item {
+  text-align: center;
 }

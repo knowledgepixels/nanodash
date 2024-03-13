@@ -7,6 +7,8 @@ import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class RioConfig extends ConnectorConfig {
 
+	private static final long serialVersionUID = 1L;
+
 	private static RioConfig instance;
 
 	public static RioConfig get() {

@@ -7,6 +7,8 @@ import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class BdjConfig extends ConnectorConfig {
 
+	private static final long serialVersionUID = 1L;
+
 	private static BdjConfig instance;
 
 	public static BdjConfig get() {

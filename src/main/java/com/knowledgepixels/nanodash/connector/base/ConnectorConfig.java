@@ -1,6 +1,10 @@
 package com.knowledgepixels.nanodash.connector.base;
 
-public abstract class ConnectorConfig {
+import java.io.Serializable;
+
+public abstract class ConnectorConfig implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	public static final String baseApi = "https://grlc.petapico.org/api-git/knowledgepixels/connector-nanopub-api/";
 

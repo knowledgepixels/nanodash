@@ -7,6 +7,8 @@ import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class FcConfig extends ConnectorConfig {
 
+	private static final long serialVersionUID = 1L;
+
 	private static FcConfig instance;
 
 	public static FcConfig get() {

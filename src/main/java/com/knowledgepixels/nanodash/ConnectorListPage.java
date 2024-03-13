@@ -1,17 +1,22 @@
 package com.knowledgepixels.nanodash;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
+
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.ios.DsConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 
 public class ConnectorListPage extends NanodashPage {
 
@@ -24,10 +29,12 @@ public class ConnectorListPage extends NanodashPage {
 		return MOUNT_PATH;
 	}
 
-	private static final Map<Class<? extends WebPage>,String> connectors = new HashMap<>();
+	private static final List<ConnectorConfig> connectors = new ArrayList<>();
 
-	public static void addConnector(Class<? extends WebPage> c, String label) {
-		connectors.put(c, label);
+	static {
+		connectors.add(DsConfig.get());
+		connectors.add(BdjConfig.get());
+		connectors.add(RioConfig.get());
 	}
 
 	public static int getConnectorCount() {
@@ -39,17 +46,16 @@ public class ConnectorListPage extends NanodashPage {
 
 		add(new TitleBar("titlebar", this));
 
-		List<Class<? extends WebPage>> connectorList = new ArrayList<>(connectors.keySet());
-		
-		add(new DataView<Class<? extends WebPage>>("connectors", new ListDataProvider<Class<? extends WebPage>>(connectorList)) {
+		add(new DataView<ConnectorConfig>("connectors", new ListDataProvider<ConnectorConfig>(connectors)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(Item<Class<? extends WebPage>> item) {
-				Class<? extends WebPage> c = item.getModelObject();
-				BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("connectorlink", c);
-				l.add(new Label("connectortext", connectors.get(c)));
+			protected void populateItem(Item<ConnectorConfig> item) {
+				ConnectorConfig c = item.getModelObject();
+				BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("connectorlink", c.getOverviewPage().getClass());
+				l.add(new Image("logo", new PackageResourceReference(c.getOverviewPage().getClass(), c.getLogoFileName())));
+				l.add(new Label("connectortext", c.getJournalName()));
 				item.add(l);
 			}
 

@@ -7,6 +7,8 @@ import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsConfig extends ConnectorConfig {
 
+	private static final long serialVersionUID = 1L;
+
 	private static DsConfig instance;
 
 	public static DsConfig get() {
