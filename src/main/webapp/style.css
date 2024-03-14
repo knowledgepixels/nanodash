@@ -885,3 +885,7 @@ div.widthmax {
 .item {
   text-align: center;
 }
+
+.breakall {
+  word-break: break-all;
+}
