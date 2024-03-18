@@ -16,7 +16,7 @@ public class BdjConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/bdj-nanopub-api/";
+	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/bdj-nanopub-api/";
 
 	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
 	private static final BdjTypePage typePageInstance = new BdjTypePage(null);

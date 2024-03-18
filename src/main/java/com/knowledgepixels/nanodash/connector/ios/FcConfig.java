@@ -16,7 +16,7 @@ public class FcConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/fc-nanopub-api/";
+	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/fc-nanopub-api/";
 
 	private static final FcOverviewPage overviewPageInstance = new FcOverviewPage(null);
 	private static final FcTypePage typePageInstance = new FcTypePage(null);

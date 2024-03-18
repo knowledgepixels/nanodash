@@ -6,7 +6,7 @@ public abstract class ConnectorConfig implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String baseApi = "https://grlc.petapico.org/api-git/knowledgepixels/connector-nanopub-api/";
+	public static final String baseApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/connector-nanopub-api/";
 
 	public static boolean isBaseApiOperation(String operation) {
 		if ("get-aida-nanopubs".equals(operation)) return true;

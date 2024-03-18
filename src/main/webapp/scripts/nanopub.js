@@ -1,5 +1,5 @@
-const serverNpApiUrls = ['https://server.np.trustyuri.net/', 'https://np.knowledgepixels.com/', 'https://np.petapico.org/']
-const grlcNpApiUrls = ['https://grlc.nps.petapico.org/api/local/local/', 'https://grlc.services.np.trustyuri.net/api/local/local/', 'https://grlc.nps.knowledgepixels.com/api/local/local/'];
+const serverNpApiUrls = ['https://server.np.trustyuri.net/', 'https://np.knowledgepixels.com/']
+const grlcNpApiUrls = ['https://grlc.services.np.trustyuri.net/api/local/local/', 'https://grlc.nps.knowledgepixels.com/api/local/local/'];
 
 function getStatus(elementId, npUri) {
   document.getElementById(elementId).innerHTML = "<em>Checking for updates...</em>";

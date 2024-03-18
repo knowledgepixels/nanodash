@@ -16,7 +16,7 @@ public class RioConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/rio-nanopub-api/";
+	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/rio-nanopub-api/";
 
 	private static final RioOverviewPage overviewPageInstance = new RioOverviewPage(null);
 	private static final RioTypePage typePageInstance = new RioTypePage(null);

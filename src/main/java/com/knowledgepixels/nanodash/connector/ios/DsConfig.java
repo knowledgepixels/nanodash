@@ -16,7 +16,7 @@ public class DsConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.petapico.org/api-git/knowledgepixels/ds-nanopub-api/";
+	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/ds-nanopub-api/";
 
 	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
 	private static final DsTypePage typePageInstance = new DsTypePage(null);
