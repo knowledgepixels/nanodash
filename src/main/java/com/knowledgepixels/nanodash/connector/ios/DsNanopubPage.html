@@ -91,28 +91,26 @@ if you have any questions or problems, no matter how trivial or how complex.
 
 <div class="instruction" wicket:id="includeinstruction">
 
-<h4><em>Author Instruction:</em></h4>
-
 <p>To include this nanopublication in your submission metadata, use this link:</p>
 
 <ul>
-<li><a href="." wicket:id="np-link"></a></li>
+<li><a href="." class="breakall" wicket:id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
 </ul>
 
 <p>Paste it in one of the textfields under "Nanopublication URLs":</p>
 
 <img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 85%; border: 1px solid #000; margin: 10px 10px 10px 40px;" src="DsFormSubmit.png">
 
-<p>Additionally, if you like to mention this nanopublication in the manuscript in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
+<p>Additionally, if you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
 
 <blockquote>
-This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link"></a>.
+This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link">np:RAxxxxxxxx</a>.
 </blockquote>
 
 <p>For <strong>LaTeX</strong>, use this line (and make sure you have <code>\usepackage{hyperref}</code> in the beginning of your LaTeX document):</p>
 
 <blockquote>
-This statement is formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri"></span>}{<span wicket:id="latex-np-label"></span>}.
+This statement is formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri" class="breakall">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>}{<span wicket:id="latex-np-label">NP label</span>}.
 </blockquote>
 
 </div>
