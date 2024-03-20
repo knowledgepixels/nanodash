@@ -160,7 +160,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			}
 			
 		}));
-		add(new ExternalLink("uri", model, new Model<String>() {
+		Model<String> uriModel = new Model<String>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -176,7 +176,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 				return obj;
 			}
 			
-		}));
+		};
+		add(new ExternalLink("uri", uriModel, uriModel));
 	}
 
 	@Override
