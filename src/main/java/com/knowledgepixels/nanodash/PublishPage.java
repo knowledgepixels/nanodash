@@ -10,6 +10,8 @@ public class PublishPage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/publish";
 
+	private boolean autoRefresh = false;
+
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
@@ -28,6 +30,7 @@ public class PublishPage extends NanodashPage {
 				add(new PublishForm("form", parameters, this));
 			}
 		} else {
+			autoRefresh = true;
 			add(new TemplateList("form"));
 		}
 	}
@@ -45,7 +48,7 @@ public class PublishPage extends NanodashPage {
 
 	@Override
 	protected boolean hasAutoRefreshEnabled() {
-		return true;
+		return autoRefresh;
 	}
 
 }
