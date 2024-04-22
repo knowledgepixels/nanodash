@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.connector.pensoft;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
+import com.knowledgepixels.nanodash.connector.base.SelectPage;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class BdjConfig extends ConnectorConfig {
@@ -19,12 +20,18 @@ public class BdjConfig extends ConnectorConfig {
 	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/bdj-nanopub-api/";
 
 	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
+	private static final SelectPage selectPageInstance = new BdjSelectPage(null);
 	private static final BdjTypePage typePageInstance = new BdjTypePage(null);
 	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
 
 	@Override
 	public OverviewPage getOverviewPage() {
 		return overviewPageInstance;
+	}
+
+	@Override
+	public SelectPage getSelectPage() {
+		return selectPageInstance;
 	}
 
 	@Override

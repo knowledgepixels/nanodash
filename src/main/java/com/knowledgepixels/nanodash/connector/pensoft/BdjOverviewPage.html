@@ -22,88 +22,14 @@
 <h2>Nanopublishing in Biodiversity Data Journal</h2>
 
 
-<h3>Choose Nanopublication Type</h3>
-
-<p>
-Biodiversity associations:
-</p>
+<h3>Your Nanopublications</h3>
 
 <ul>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgorg">Association between organisms</a></strong>,
-e.g. an observation that <em>a particular individual grass snake (Natrix natrix Linnaeus, 1758) ate a particular individual of a tree frog (Hyla arborea (Linnaeus, 1758))</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxontaxon">Association between taxa</a></strong>,
-e.g. <em>The wolf (Canis lupus Linnaeus, 1758) preys on white-tailed deer (Odocoileus virginianus (Zimmermann, 1780))</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonenv">Association between taxa and environments</a></strong>,
-e.g. <em>The wolf (Canis lupus Linnaeus, 1758) occurs in forest habitats</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgenv">Association between organisms and environments</a></strong>,
-e.g. <em>A particular badger (Meles meles (Linnaeus, 1758)) was observed to inhabit a city</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonnames">Association between taxon names</a></strong>,
-e.g. <em>Ursus meles Linnaeus, 1758 is a synonym of Meles meles (Linnaeus, 1758)</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgns">Association between organisms and nucleotide sequences</a></strong>,
-e.g. <em>The nucleotide sequence MT149719 was found in an organism of the species Doryrhina camerunensis (Eisentraut, 1956)</em>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonns">Association between taxa and nucleotide sequences</a></strong>,
-e.g. <em>The nucleotide sequence GU682758 can be used to identify the species Araneus diadematus Clerck, 1757</em>
-</li>
-
+<li wicket:id="own"><a wicket:id="ownlink"><span wicket:id="ownlinktext"></span></a> <span wicket:id="ownnote"></span></li>
 </ul>
 
-<p>
-With these types, you can express general links between entities:
-</p>
-
-<ul>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=biolinkrel">Expressing a biological relation between two entities</a></strong>
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=eqrel">Mapping two equivalent or related resource identifiers</a></strong>
-</li>
-
-</ul>
-
-<p>
-Using the types above, you might see that you need to define a new class or individual first:
-</p>
-
-<ul>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=classdef">Class Definitions</a></strong>
-(e.g. <em>operant research</em> as a subclass of <em>research</em>)
-</li>
-
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=inddef">Definitions of Individuals</a></strong>
-(e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>)
-</li>
-
-</ul>
-
-<p>
-If you can't find a type that works for your claims, tell us by opening a
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[BDJ%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.
+<p class="center">
+<a wicket:id="create-new" class="button" href="/connector/pensoft/bdj/select">Create New Nanopublication</a>
 </p>
 
 </div>
