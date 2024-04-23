@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -74,10 +76,12 @@ public class PublishForm extends Panel {
 	private Map<String,TemplateContext> pubInfoContextMap = new HashMap<>();
 	private List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
 	private String targetNamespace;
+	private Class<? extends WebPage> confirmPageClass;
 
-	public PublishForm(String id, final PageParameters pageParams, final PublishPage page) {
+	public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass) {
 		super(id);
 		setOutputMarkupId(true);
+		this.confirmPageClass = confirmPageClass;
 
 		WebMarkupContainer linkMessageItem = new WebMarkupContainer("link-message-item");
 		if (pageParams.get("link-message").isNull()) {
@@ -223,9 +227,9 @@ public class PublishForm extends Panel {
 			add(new Label("newversion", "There is a new version of this assertion template:"));
 			PageParameters params = new PageParameters(pageParams);
 			params.set("template", latestAssertionId);
-			add(new BookmarkablePageLink<PublishPage>("newversionlink", PublishPage.class, params));
+			add(new BookmarkablePageLink<PublishPage>("newversionlink", publishPageClass, params));
 			if ("latest".equals(pageParams.get("template-version").toString())) {
-				throw new RestartResponseException(PublishPage.class, params);
+				throw new RestartResponseException(publishPageClass, params);
 			}
 		} else {
 			add(new Label("newversion", "").setVisible(false));
@@ -379,7 +383,7 @@ public class PublishForm extends Panel {
 					feedbackPanel.error(message);
 				}
 				if (signedNp != null) {
-					throw new RestartResponseException(new PublishConfirmPage(signedNp, pageParams));
+					throw new RestartResponseException(getConfirmPage(signedNp, pageParams));
 				} else {
 					System.err.println("Nanopublication publishing failed");
 				}
@@ -729,6 +733,15 @@ public class PublishForm extends Panel {
 			nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
 		}
 		return nanopubLabel;
+	}
+
+	private NanodashPage getConfirmPage(Nanopub signedNp, PageParameters pageParams) {
+		try {
+			return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+			ex.printStackTrace();
+		}
+		return null;
 	}
 
 }

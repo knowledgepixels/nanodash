@@ -30,6 +30,14 @@ public abstract class ConnectorConfig implements Serializable {
 		return null;
 	}
 
+	public ConnectorPublishPage getPublishPage() {
+		return null;
+	}
+
+	public ConnectPage getConnectPage() {
+		return null;
+	}
+
 	public abstract TypePage getTypePage();
 
 	public abstract NanopubPage getNanopubPage();

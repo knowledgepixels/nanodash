@@ -27,7 +27,7 @@ public class PublishPage extends NanodashPage {
 				add(new DifferentKeyErrorItem("form", parameters));
 			} else {
 				session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
-				add(new PublishForm("form", parameters, this));
+				add(new PublishForm("form", parameters, PublishPage.class, PublishConfirmPage.class));
 			}
 		} else {
 			autoRefresh = true;

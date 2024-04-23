@@ -95,6 +95,8 @@ public class WicketApplication extends WebApplication {
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjSelectPage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjPublishPage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjTypePage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage");
 

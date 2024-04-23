@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
+import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 import com.knowledgepixels.nanodash.connector.base.SelectPage;
@@ -21,6 +23,8 @@ public class BdjConfig extends ConnectorConfig {
 
 	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
 	private static final SelectPage selectPageInstance = new BdjSelectPage(null);
+	private static final ConnectorPublishPage publishPageInstance = new BdjPublishPage(null);
+	private static final ConnectPage connectPageInstance = new BdjConnectPage(null, null);
 	private static final BdjTypePage typePageInstance = new BdjTypePage(null);
 	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
 
@@ -32,6 +36,16 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public SelectPage getSelectPage() {
 		return selectPageInstance;
+	}
+
+	@Override
+	public ConnectorPublishPage getPublishPage() {
+		return publishPageInstance;
+	}
+
+	@Override
+	public ConnectPage getConnectPage() {
+		return connectPageInstance;
 	}
 
 	@Override

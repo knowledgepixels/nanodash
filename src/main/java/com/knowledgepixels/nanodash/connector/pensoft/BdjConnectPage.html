@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>Nanopublishing in Biodiversity Data Journal | nanodash</title>
+<link rel="stylesheet" href="style.css?v=2.35" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content-pane">
+
+<div class="row-section">
+
+<div class="col-8">
+
+<h1>Biodiversity Data Journal (BDJ)</h1>
+
+<p class="subtitle">Papers at BDJ can have their findings represented in a machine-understandable way as <a href="https://nanopub.net" target="_blank">nanopublications</a>.</p>
+
+
+<h2>Connect to Submission</h2>
+
+<h3>Nanopublication</h3>
+
+<div wicket:id="nanopub">
+</div>
+
+</div>
+
+<div class="col-4">
+
+<div class="sidelogo">
+<a href="https://bdj.pensoft.net/"><img class="thirdparty" alt="Biodiversity Data Journal logo" wicket:id="logo" style="width: 400px" src="BdjLogo.svg"></a>
+</div>
+
+
+<h4>Author Instruction</h4>
+
+<div class="instruction" wicket:id="includeinstruction">
+
+<p>To include this nanopublication in your submission, use this link:</p>
+
+<ul>
+<li><a href="." class="breakall" wicket:id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
+</ul>
+
+<p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
+
+<img alt="link nanopublication in submission form" wicket:id="form-submit" style="width: 85%; border: 1px solid #000; margin: 10px 10px 10px 40px;" src="RioFormSubmit.png">
+
+<p>Additionally, if you like to mention this nanopublication in the manuscript text in <strong>MS Word or similar</strong>, start from copy-pasting this snippet (make sure the link is kept):</p>
+
+<blockquote>
+This statement is formalized in a machine-interpretable manner in our nanopublication <a href="." wicket:id="word-np-link">np:RAxxxxxxxx</a>.
+</blockquote>
+
+<p>For <strong>LaTeX</strong>, use this line (and make sure you have <code>\usepackage{hyperref}</code> in the beginning of your LaTeX document):</p>
+
+<blockquote>
+This statement is formalized in a machine-interpretable manner in our nanopublication \href{<span wicket:id="latex-np-uri" class="breakall">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>}{<span wicket:id="latex-np-label">NP label</span>}.
+</blockquote>
+
+</div>
+
+
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-8">
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to open a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[BDJ%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+</div></div>
+
+</div>
+
+</body>
+
+</html>

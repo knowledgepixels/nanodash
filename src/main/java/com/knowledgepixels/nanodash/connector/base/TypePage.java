@@ -228,7 +228,9 @@ public abstract class TypePage extends ConnectorPage {
 			createNewParams.add("prtemplate-options", prTemplateOptions);
 		}
 
-		add(new BookmarkablePageLink<WebPage>("create-new-link", PublishPage.class, createNewParams));
+		Class<? extends WebPage> publishPageClass = PublishPage.class;
+		if (getConfig().getPublishPage() != null) publishPageClass = getConfig().getPublishPage().getClass();
+		add(new BookmarkablePageLink<WebPage>("create-new-link", publishPageClass, createNewParams));
 	}
 
 }
