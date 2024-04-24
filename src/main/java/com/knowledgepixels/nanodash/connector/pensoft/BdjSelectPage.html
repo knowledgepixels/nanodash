@@ -26,82 +26,150 @@
 
 <h2>Select Template</h2>
 
+<form wicket:id="form">
+
+<div wicket:id="radio-group">
+
 <h3>Biodiversity Associations</h3>
 
-<ul class="box">
+<div class="box">
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgorg">Association between organisms</a></strong>,
+<div class="option">
+<input type="radio" id="orgorg-select" wicket:id="orgorg-select" name="select" value="orgorg">
+<label for="orgorg-select">
+<strong>Association between organisms</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. an observation that <em>a particular individual grass snake (Natrix natrix Linnaeus, 1758) ate a particular individual of a tree frog (Hyla arborea (Linnaeus, 1758))</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxontaxon">Association between taxa</a></strong>,
+<div class="option">
+<input type="radio" id="taxontaxon-select" wicket:id="taxontaxon-select" name="select" value="taxontaxon">
+<label for="taxontaxon-select">
+<strong>Association between taxa</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>The wolf (Canis lupus Linnaeus, 1758) preys on white-tailed deer (Odocoileus virginianus (Zimmermann, 1780))</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonenv">Association between taxa and environments</a></strong>,
+<div class="option">
+<input type="radio" id="taxonenv-select" wicket:id="taxonenv-select" name="select" value="taxonenv">
+<label for="taxonenv-select">
+<strong>Association between taxa and environments</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>The wolf (Canis lupus Linnaeus, 1758) occurs in forest habitats</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgenv">Association between organisms and environments</a></strong>,
+<div class="option">
+<input type="radio" id="orgenv-select" wicket:id="orgenv-select" name="select" value="orgenv">
+<label for="orgenv-select">
+<strong>Association between organisms and environments</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>A particular badger (Meles meles (Linnaeus, 1758)) was observed to inhabit a city</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonnames">Association between taxon names</a></strong>,
+<div class="option">
+<input type="radio" id="taxonnames-select" wicket:id="taxonnames-select" name="select" value="taxonnames">
+<label for="taxonnames-select">
+<strong>Association between taxon names</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>Ursus meles Linnaeus, 1758 is a synonym of Meles meles (Linnaeus, 1758)</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=orgns">Association between organisms and nucleotide sequences</a></strong>,
+<div class="option">
+<input type="radio" id="orgns-select" wicket:id="orgns-select" name="select" value="orgns">
+<label for="orgns-select">
+<strong>Association between organisms and nucleotide sequences</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>The nucleotide sequence MT149719 was found in an organism of the species Doryrhina camerunensis (Eisentraut, 1956)</em>
-</li>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=taxonns">Association between taxa and nucleotide sequences</a></strong>,
+<div class="option">
+<input type="radio" id="taxonns-select" wicket:id="taxonns-select" name="select" value="taxonns">
+<label for="taxonns-select">
+<strong>Association between taxa and nucleotide sequences</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
 e.g. <em>The nucleotide sequence GU682758 can be used to identify the species Araneus diadematus Clerck, 1757</em>
-</li>
+</span></span>
+</label>
+</div>
 
-</ul>
+</div>
+
 
 <h3>General Links</h3>
 
-<ul class="box">
+<div class="box">
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=biolinkrel">Expressing a biological relation between two entities</a></strong>
-</li>
+<div class="option">
+<input type="radio" id="biolinkrel-select" wicket:id="biolinkrel-select" name="select" value="biolinkrel">
+<label for="biolinkrel-select">
+<strong>Expressing a biological relation between two entities</strong>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=eqrel">Mapping two equivalent or related resource identifiers</a></strong>
-</li>
 
-</ul>
+<div class="option">
+<input type="radio" id="eqrel-select" wicket:id="eqrel-select" name="select" value="eqrel">
+<label for="eqrel-select">
+<strong>Mapping two equivalent or related resource identifiers</strong>
+</label>
+</div>
+
+
+</div>
+
 
 <h3>Definitions</h3>
 
 
-<ul class="box">
+<div class="box">
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=classdef">Class Definitions</a></strong>
-(e.g. <em>operant research</em> as a subclass of <em>research</em>)
-</li>
+<div class="option">
+<input type="radio" id="classdef-select" wicket:id="classdef-select" name="select" value="biolinkrel">
+<label for="classdef-select">
+<strong>Class Definition</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+e.g. <em>operant research</em> as a subclass of <em>research</em>
+</span></span>
+</label>
+</div>
 
-<li>
-<strong><a href="/connector/pensoft/bdj/type?type=inddef">Definitions of Individuals</a></strong>
-(e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>)
-</li>
+<div class="option">
+<input type="radio" id="inddef-select" wicket:id="inddef-select" name="select" value="inddef">
+<label for="inddef-select">
+<strong>Definition of Individual</strong>
+<span class="expltooltip">&#9432;<span class="expltooltiptext">
+e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>
+</span></span>
+</label>
+</div>
 
-</ul>
+</div>
 
 <p>
-If you can't find a type that works for your claims, tell us by opening a
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[BDJ%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.
+(If you can't find a type that works for your claims, tell us by opening a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[BDJ%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.)
 </p>
+
+</div>
+
+<p class="center">
+<input type="submit" class="button" value="Select" />
+</p>
+
+</form>
+
 
 </div>
 

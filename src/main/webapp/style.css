@@ -209,6 +209,18 @@ tbody tr:nth-child(even) {
 	background-color: #efefef;
 }
 
+.box {
+  background: #F3F6F9;
+  padding: 25px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.box div.option:not(:last-child) { 
+   margin-bottom: 15px;  
+}
+
 ul {
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
@@ -219,11 +231,7 @@ ul:not(:empty) + .emptynotice {
 }
 
 ul.box {
-  background: #F3F6F9;
   padding: 25px 25px 25px 40px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  border-radius: 4px;
 }
 
 ul.box.odd {
@@ -406,6 +414,15 @@ input, select, textarea {
 
 input[type=text] {
   height: 22px;
+}
+
+input[type=radio] {
+  cursor: pointer;
+}
+
+input[type=radio] + label strong {
+  color: #0b73da;
+  cursor: pointer;
 }
 
 .select2 {

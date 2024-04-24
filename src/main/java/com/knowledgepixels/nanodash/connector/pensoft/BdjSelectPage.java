@@ -25,4 +25,9 @@ public class BdjSelectPage extends SelectPage {
 		return BdjConfig.get();
 	}
 
+	@Override
+	protected String[] getOptions() {
+		return new String[] { "orgorg", "taxontaxon", "taxonenv", "orgenv", "taxonnames", "orgns", "taxonns", "biolinkrel", "eqrel", "classdef", "inddef" };
+	}
+
 }

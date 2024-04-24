@@ -21,6 +21,7 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		if (parameters.get("template").toString() != null) {
+			parameters.add("template-version", "latest");
 			add(new PublishForm("form", parameters, BdjPublishPage.class, BdjConnectPage.class));
 		} else {
 			throw new RuntimeException("no template parameter");
