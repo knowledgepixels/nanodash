@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.connector.base;
 
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -17,6 +19,8 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
+		final ConnectorNanopubType type = ConnectorNanopubType.get(parameters.get("type").toString());
+
 		add(new TitleBar("titlebar", this));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
@@ -26,6 +30,11 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 		} else {
 			throw new RuntimeException("no template parameter");
 		}
+
+		PageParameters pageParams = new PageParameters();
+		pageParams.add("id", type.getExampleId());
+		pageParams.add("mode", "final");
+		add(new BookmarkablePageLink<WebPage>("show-example", getConfig().getNanopubPage().getClass(), pageParams));
 	}
 
 }

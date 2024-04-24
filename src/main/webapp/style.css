@@ -293,6 +293,17 @@ a.button, input.button {
 	border-radius: 4px;
 	display:inline-block;
 	cursor: pointer;
+	vertical-align: middle;
+}
+
+a.button.light {
+	background-color: #fff;
+	color: #0B73DA;
+	border: 1px solid #0B73DA;
+}
+
+a.button > * {
+    vertical-align:middle;
 }
 
 .smallbutton {
@@ -312,6 +323,7 @@ a.button, input.button {
 
 a.button:hover, a.smallbutton:hover, input.button:hover {
 	background-color: #0B73DAC0;
+	color: #fff;
 }
 
 a.actionlink {

@@ -34,6 +34,7 @@ public abstract class SelectPage extends ConnectorPage {
 			protected void onSubmit() {
 				ConnectorNanopubType type = ConnectorNanopubType.get(radioGroup.getModelObject());
 				PageParameters params = new PageParameters();
+				params.add("type", type.getId());
 				params.add("template", type.getTemplate().getId());
 				params.add("prtemplate", type.getPrTemplateId());
 				throw new RestartResponseException(getConfig().getPublishPage().getClass(), params);
