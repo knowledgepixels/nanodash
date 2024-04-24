@@ -59,9 +59,18 @@
 
 <p>To include this nanopublication in your submission, use this link:</p>
 
+<script>
+function copy(id) {
+  var element = document.getElementById(id);
+  navigator.clipboard.writeText(element.textContent);
+} 
+</script>
+
 <ul>
-<li><a href="." class="breakall" wicket:id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
+<li><a href="." class="breakall" wicket:id="np-link" id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
 </ul>
+
+<p class="center"><button onclick="copy('np-link')">Copy Link</button></p>
 
 <p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
 

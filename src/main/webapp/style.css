@@ -287,13 +287,14 @@ a:active {
 	color: #6eb2f7;
 }
 
-a.button, input.button {
+a.button, input.button, button {
 	font-size: 12pt;
 	font-weight: 700;
 	padding: 8px 16px;
 	margin: 3px;
 	background-color: #0B73DA;
 	color: #fff;
+	border-width: 0;
 	border-radius: 4px;
 	display:inline-block;
 	cursor: pointer;
