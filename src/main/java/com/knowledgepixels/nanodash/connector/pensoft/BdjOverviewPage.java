@@ -64,7 +64,7 @@ public class BdjOverviewPage extends OverviewPage {
 				ex.printStackTrace();
 			}
 
-			add(new ExternalLink("create-new", BdjSelectPage.MOUNT_PATH, "Create New Nanopublication"));
+			add(new ExternalLink("create-new", BdjSelectPage.MOUNT_PATH, "Create Nanopublication"));
 		} else {
 			add(new Label("own", "").setVisible(false));
 			if (NanodashPreferences.get().isOrcidLoginMode()) {

@@ -226,7 +226,11 @@ ul {
 	margin-bottom: 0.5em;
 }
 
-ul:not(:empty) + .emptynotice {
+ul:has(li) + .emptynotice {
+   display: none;
+}
+
+ul:not(:has(li)) {
    display: none;
 }
 
@@ -914,7 +918,7 @@ hr {
 
 .message {
   background: #F3F6F9;
-  padding: 10px;
+  padding: 15px;
   margin-bottom: 25px;
   border-radius: 4px;
 }

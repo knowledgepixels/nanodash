@@ -25,7 +25,6 @@ public class BdjConfig extends ConnectorConfig {
 	private static final SelectPage selectPageInstance = new BdjSelectPage(null);
 	private static final ConnectorPublishPage publishPageInstance = new BdjPublishPage(null);
 	private static final ConnectPage connectPageInstance = new BdjConnectPage(null, null);
-	private static final BdjTypePage typePageInstance = new BdjTypePage(null);
 	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
 
 	@Override
@@ -50,7 +49,7 @@ public class BdjConfig extends ConnectorConfig {
 
 	@Override
 	public TypePage getTypePage() {
-		return typePageInstance;
+		return null;
 	}
 
 	@Override
