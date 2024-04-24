@@ -65,9 +65,18 @@ This is the description of the type this nanopublication belongs to.
 
 <p>To include this nanopublication in your submission, use this link:</p>
 
+<script>
+function copy(id) {
+  var element = document.getElementById(id);
+  navigator.clipboard.writeText(element.textContent);
+} 
+</script>
+
 <ul>
-<li><a href="." class="breakall" wicket:id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
+<li><a href="." class="breakall" wicket:id="np-link" id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
 </ul>
+
+<p class="center"><button onclick="copy('np-link'); this.textContent='Copied'; setTimeout(() => this.textContent='Copy Link', 1000)">Copy Link</button></p>
 
 <p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
 

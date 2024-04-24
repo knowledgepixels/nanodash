@@ -70,7 +70,7 @@ function copy(id) {
 <li><a href="." class="breakall" wicket:id="np-link" id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
 </ul>
 
-<p class="center"><button onclick="copy('np-link')">Copy Link</button></p>
+<p class="center"><button onclick="copy('np-link'); this.textContent='Copied'; setTimeout(() => this.textContent='Copy Link', 1000)">Copy Link</button></p>
 
 <p>Paste it in the ARPHA Writing Tool as a "Nanopublications" element:</p>
 
