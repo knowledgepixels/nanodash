@@ -64,22 +64,22 @@ public abstract class NanopubPage extends ConnectorPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
-		String backLink = " <a href=\"" + getConfig().getOverviewPage().getMountPath() + "\">&lt; Back to Overview</a> |";
+		String backLink = " <a class=\"button light\" href=\"" + getConfig().getOverviewPage().getMountPath() + "\">&lt; Back to Overview</a> ";
 		if (!getPageParameters().get("type").isEmpty()) {
 			String type = getPageParameters().get("type").toString();
-			backLink = " <a href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type</a> |";
+			backLink = " <a class=\"button light\" href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type</a> ";
 		}
 
-		String navigationLinks = "|";
+		String navigationLinks = "";
 		if (mode.equals("author")) {
 			navigationLinks += backLink;
-			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> |";
+			navigationLinks += " <a class=\"button light\" href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> ";
 		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "author")) + "\">Switch to Author View</a> |";
+			navigationLinks += " <a class=\"button light\" href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "author")) + "\">Switch to Author View</a> ";
 		} else if (mode.equals("final") || mode.equals("candidate")) {
 			navigationLinks = "";
 		}
-		add(new Label("navigation", "<p>" + navigationLinks + "</p>").setEscapeModelStrings(false));
+		add(new Label("navigation", "<p class=\"center\">" + navigationLinks + "</p>").setEscapeModelStrings(false));
 
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
