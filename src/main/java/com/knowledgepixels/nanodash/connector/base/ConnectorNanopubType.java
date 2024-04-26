@@ -111,6 +111,14 @@ public class ConnectorNanopubType implements Serializable {
 			"Mapping two equivalent or related resource identifiers",
 			"http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk",
 			"http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI");
+		new ConnectorNanopubType("spectaxon",
+			"Identifying a specimn with a taxon name",
+			"https://w3id.org/np/RAzUQLB8nr99kcm5Av4KXFYOfjPamrBFRAsO7WNu7Gg2c",
+			"https://w3id.org/np/RAvHuSAQNPeo-kzp3krcSiXQyyTusDoDmcOv9yI4G30_4");
+		new ConnectorNanopubType("specpub",
+				"Identifying a specimn with a taxon name",
+				"https://w3id.org/np/RA_rnly1RAPPSMqgy0qTlEhDCRqt6Fx3NOQECCUBt5mQQ",
+				"https://w3id.org/np/RAA7G5E1wwYCaQsu092uJOYqiBaSRM__6ltpJ6nzwR5vE");
 		new ConnectorNanopubType("reaction",
 			// This is still experimental and not yet used
 			"A reaction or comment on a paper or nanopublication",
