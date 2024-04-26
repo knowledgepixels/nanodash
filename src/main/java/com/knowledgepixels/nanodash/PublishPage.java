@@ -21,7 +21,7 @@ public class PublishPage extends NanodashPage {
 		super(parameters);
 
 		final NanodashSession session = NanodashSession.get();
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "publish"));
 		if (parameters.get("template").toString() != null) {
 			if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
 				add(new DifferentKeyErrorItem("form", parameters));

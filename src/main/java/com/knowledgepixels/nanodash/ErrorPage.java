@@ -17,7 +17,7 @@ public class ErrorPage extends NanodashPage {
 	public ErrorPage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, null));
 	}
 
     @Override

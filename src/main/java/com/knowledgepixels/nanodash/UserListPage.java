@@ -26,7 +26,7 @@ public class UserListPage extends NanodashPage {
 	public UserListPage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "users"));
 
 		final List<Group> groupList = new ArrayList<Group>(Group.getGroups());
 		add(new DataView<Group>("groups", new ListDataProvider<Group>(groupList)) {

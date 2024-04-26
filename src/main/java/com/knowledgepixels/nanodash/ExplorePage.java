@@ -31,7 +31,7 @@ public class ExplorePage extends NanodashPage {
 	public ExplorePage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, null));
 
 		String ref = parameters.get("id").toString();
 

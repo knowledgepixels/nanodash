@@ -37,15 +37,18 @@ public class UserPage extends NanodashPage {
 	public UserPage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this));
-
 		if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
 		userIri = Utils.vf.createIRI(parameters.get("id").toString());
+		NanodashSession session = NanodashSession.get();
+
+		String pageType = "users";
+		if (session.getUserIri() != null && userIri.equals(session.getUserIri())) pageType = "mychannel";
+		add(new TitleBar("titlebar", this, pageType));
+
 		final String displayName = User.getDisplayName(userIri);
 		add(new Label("pagetitle", displayName + " (user) | nanodash"));
 		add(new Label("username", displayName));
 
-		NanodashSession session = NanodashSession.get();
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
 		if (userIri.equals(session.getUserIri())) {

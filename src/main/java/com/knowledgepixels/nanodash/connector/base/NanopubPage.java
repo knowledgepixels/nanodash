@@ -42,7 +42,7 @@ public abstract class NanopubPage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "connectors"));
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 

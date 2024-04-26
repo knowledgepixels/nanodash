@@ -33,7 +33,7 @@ public class ProfilePage extends NanodashPage {
 		User.refreshUsers();
 		final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, null));
 
 		if (session.isProfileComplete()) {
 			if ("publish-intro".equals(parameters.get("message").toString())) {

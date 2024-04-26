@@ -23,7 +23,7 @@ public class PublishConfirmPage extends NanodashPage {
 
 	public PublishConfirmPage(Nanopub np, PageParameters params) {
 		super(params);
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "publish"));
 
 		if (!getPageParameters().get("postpub-redirect-url").isNull()) {
 			String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();

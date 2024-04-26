@@ -40,7 +40,7 @@ public abstract class TypePage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "connectors"));
 
 		session = NanodashSession.get();
 

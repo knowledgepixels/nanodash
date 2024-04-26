@@ -22,7 +22,7 @@ public class ReferenceTablePage extends NanodashPage {
 		super(parameters);
 
 		ref = parameters.get("id").toString();
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, null));
 		final String shortName = IriItem.getShortNameFromURI(ref);
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));

@@ -141,7 +141,17 @@ p.center {
 }
 
 .menu a {
-  margin: 20px;
+  display: inline-block;
+  padding: 12px;
+  color: #1A1F23;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+.menu .selected a {
+  display: inline-block;
+  padding: 12px 12px 8px 12px;
+  border-bottom: 4px solid #0b73da;
   color: #1A1F23;
   opacity: 0.6;
   font-weight: 700;
@@ -529,7 +539,6 @@ select {
 
 #titlebar {
 	clear: both;
-	padding: 0px 10px;
 	background-color: white;
 	border-color: #F3F6F9;
 	border-style: solid;
@@ -850,7 +859,7 @@ a[href=""] {
 
 .profilelink {
 	float: right;
-	padding: 15px 20px;
+	padding: 12px 20px;
 }
 
 .figure {

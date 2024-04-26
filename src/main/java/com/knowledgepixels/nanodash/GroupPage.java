@@ -24,7 +24,7 @@ public class GroupPage extends NanodashPage {
 		super(parameters);
 
 		User.ensureLoaded();
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "users"));
 		final String groupId = parameters.get("id").toString();
 		final Group group = Group.get(groupId);
 

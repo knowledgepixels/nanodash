@@ -21,7 +21,7 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 
 		final ConnectorNanopubType type = ConnectorNanopubType.get(parameters.get("type").toString());
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "connectors"));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		if (parameters.get("template").toString() != null) {

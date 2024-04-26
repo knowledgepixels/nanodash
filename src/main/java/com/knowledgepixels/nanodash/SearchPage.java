@@ -40,7 +40,7 @@ public class SearchPage extends NanodashPage {
 	public SearchPage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this));
+		add(new TitleBar("titlebar", this, "search"));
 
 		final String searchText = parameters.get("query").toString();
 		final Boolean filterCheck = Boolean.valueOf(parameters.get("filter").toString());
