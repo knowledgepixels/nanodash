@@ -142,7 +142,7 @@ p.center {
 
 .menu a {
   display: inline-block;
-  padding: 12px;
+  padding: 12px 16px;
   color: #1A1F23;
   opacity: 0.6;
   font-weight: 700;
