@@ -539,6 +539,7 @@ select {
 
 #titlebar {
 	clear: both;
+	padding: 0 10px;
 	background-color: white;
 	border-color: #F3F6F9;
 	border-style: solid;
