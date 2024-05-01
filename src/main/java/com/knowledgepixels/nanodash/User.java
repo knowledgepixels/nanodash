@@ -21,7 +21,7 @@ public class User {
 		if (userData == null) refreshUsers();
 	}
 
-	private static UserData getUserData() {
+	public static UserData getUserData() {
 		ensureLoaded();
 		return userData;
 	}

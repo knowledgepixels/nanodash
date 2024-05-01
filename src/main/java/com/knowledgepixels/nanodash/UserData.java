@@ -42,15 +42,17 @@ public class UserData {
 
 	private Map<IRI,Set<String>> approvedIdPubkeyMap = new HashMap<>();
 	private Map<String,Set<IRI>> approvedPubkeyIdMap = new HashMap<>();
+	private Map<String,Set<IRI>> approvedPubkeyLocationMap = new HashMap<>();
 	private Map<IRI,Set<String>> unapprovedIdPubkeyMap = new HashMap<>();
 	private Map<String,Set<IRI>> unapprovedPubkeyIdMap = new HashMap<>();
+	private Map<String,Set<IRI>> unapprovedPubkeyLocationMap = new HashMap<>();
 	private Map<String,Set<IRI>> pubkeyIntroMap = new HashMap<>();
 	private Map<IRI,IntroNanopub> introMap = new HashMap<>();
 	private Map<IRI,IntroNanopub> approvedIntroMap = new HashMap<>();
 	private Map<IRI,String> idNameMap = new HashMap<>();
 	private Map<IRI,List<IntroNanopub>> introNanopubLists = new HashMap<>();
 
-	public UserData() {
+	UserData() {
 		final NanodashPreferences pref = NanodashPreferences.get();
 
 		// TODO Make nanopublication setting configurable:
@@ -158,13 +160,16 @@ public class UserData {
 		}
 		for (KeyDeclaration kd : introNp.getKeyDeclarations()) {
 			String pubkey = kd.getPublicKeyString();
+			IRI keyLocation = kd.getKeyLocation();
 			if (approved) {
 				addValue(approvedIdPubkeyMap, userIri, pubkey);
 				addValue(approvedPubkeyIdMap, pubkey, userIri);
+				if (keyLocation != null) addValue(approvedPubkeyLocationMap, pubkey, keyLocation);
 			} else {
 				if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
 					addValue(unapprovedIdPubkeyMap, userIri, pubkey);
 					addValue(unapprovedPubkeyIdMap, pubkey, userIri);
+					if (keyLocation != null) addValue(unapprovedPubkeyLocationMap, pubkey, keyLocation);
 				}
 				addValue(pubkeyIntroMap, pubkey, introNp.getNanopub().getUri());
 			}
@@ -372,6 +377,17 @@ public class UserData {
 
 	public boolean isApproved(IntroNanopub in) {
 		return approvedIntroMap.containsKey(in.getNanopub().getUri());
+	}
+
+	public IRI getKeyLocation(String pubkey) {
+		if (approvedPubkeyLocationMap.containsKey(pubkey) && !approvedPubkeyLocationMap.get(pubkey).isEmpty()) {
+			if (approvedPubkeyLocationMap.get(pubkey).size() == 1) return approvedPubkeyLocationMap.get(pubkey).iterator().next();
+			return null;
+		}
+		if (unapprovedPubkeyLocationMap.containsKey(pubkey) && unapprovedPubkeyLocationMap.get(pubkey).size() == 1) {
+			return unapprovedPubkeyLocationMap.get(pubkey).iterator().next();
+		}
+		return null;
 	}
 
 }

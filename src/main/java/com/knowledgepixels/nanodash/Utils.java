@@ -111,6 +111,23 @@ public class Utils {
 		return s;
 	}
 
+	public static String getPubkeyLocationName(String pubkey) {
+		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
+		if (keyLocation != null) return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
+		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+	}
+
+	public static String getShortPubkeyLocationLabel(String pubkey, IRI user) {
+		String s = getPubkeyLocationName(pubkey);
+		NanodashSession session = NanodashSession.get();
+		List<String> l = new ArrayList<>();
+		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		// TODO: Make this more efficient:
+		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
+		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
+		return s;
+	}
+
 	public static String getShortOrcidId(IRI orcidIri) {
 		return orcidIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}
