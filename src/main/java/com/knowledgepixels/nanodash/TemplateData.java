@@ -60,10 +60,8 @@ public class TemplateData implements Serializable {
 		params.put("graphpred", Nanopub.HAS_ASSERTION_URI.toString());
 		ApiResponse templateEntries;
 		try {
-			templateEntries = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params);
+			templateEntries = ApiAccess.getAll("find_valid_signed_nanopubs_with_pattern", params);
 			for (ApiResponseEntry entry : templateEntries.getData()) {
-				if (entry.get("superseded").equals("1") || entry.get("superseded").equals("true")) continue;
-				if (entry.get("retracted").equals("1") || entry.get("retracted").equals("true")) continue;
 				try {
 					Template t = new Template(entry.get("np"));
 					if (!t.isUnlisted()) templates.add(t);
