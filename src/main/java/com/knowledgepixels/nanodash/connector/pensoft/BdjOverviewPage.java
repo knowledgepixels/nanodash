@@ -51,7 +51,7 @@ public class BdjOverviewPage extends OverviewPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
+						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "author");
 						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("ownlink", getConfig().getNanopubPage().getClass(), params);
 						l.add(new Label("ownlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);

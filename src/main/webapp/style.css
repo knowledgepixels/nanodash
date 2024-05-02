@@ -150,10 +150,10 @@ p.center {
 
 .menu .selected a {
   display: inline-block;
-  padding: 12px 16px 8px 16px;
-  border-bottom: 4px solid #0b73da;
+  padding: 12px 16px 9px 16px;
+  border-bottom: 3px solid #0b73da;
   color: #1A1F23;
-  opacity: 0.6;
+  opacity: 1;
   font-weight: 700;
 }
 
