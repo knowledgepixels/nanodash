@@ -113,8 +113,10 @@ public class Utils {
 
 	public static String getPubkeyLocationName(String pubkey) {
 		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
-		if (keyLocation != null) return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
-		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+		if (keyLocation == null) return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+		if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
+		return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
+		
 	}
 
 	public static String getShortPubkeyLocationLabel(String pubkey, IRI user) {
