@@ -22,6 +22,13 @@ You can use Nanodash by login in via ORCID in one of the online instances:
 To use Nanodash locally, see the [installation instructions with Docker](INSTALL-with-Docker.md).
 
 
+### Screenshot
+
+This screenshot of Nanodash is showing its publishing feature with auto-complete-powered forms generated from semantic templates:
+
+![screenshot of Nanodash showing the publishing feature](screenshot.png)
+
+
 ### Tutorials
 
 [This demo](https://knowledgepixels.com/nanopub-demo/) gives you a quick hands-on introduction into nanopublications via the Nanodash interface, including a video:
