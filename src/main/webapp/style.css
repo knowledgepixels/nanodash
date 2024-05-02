@@ -999,10 +999,10 @@ div.widthmax {
 .progress-item::after {
   position: absolute;
   content: "";
-  border-bottom: 4px solid #a6c7e7;
-  width: 80%;
-  top: 15px;
-  left: 60%;
+  border-bottom: 3px solid #bdbdbd;
+  width: 88%;
+  top: 10px;
+  left: 56%;
 }
 
 .progress-item .step {
@@ -1010,16 +1010,17 @@ div.widthmax {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 4px solid #a6c7e7;
+  border: 3px solid #bdbdbd;
   margin-bottom: 6px;
 }
 
 .progress-item .step-name {
   font-family: Martian, monaco, monospace;
-  color: #a6c7e7;
+  color: #bdbdbd;
+  font-size: 10pt;
 }
 
 .progress-item.active {
@@ -1029,7 +1030,7 @@ div.widthmax {
 .progress-item.completed .step::before {
   content: "✓";
   font-weight: bold;
-  font-size: 16pt;
+  font-size: 14pt;
 }
 
 .progress-item.completed .step {
@@ -1043,7 +1044,7 @@ div.widthmax {
 }
 
 .progress-item.active .step {
-  border: 8px solid #0b73da;
+  border: 6px solid #0b73da;
 }
 
 .progress-item.active .step-name {
@@ -1054,10 +1055,10 @@ div.widthmax {
 .progress-item.completed::after {
   position: absolute;
   content: "";
-  border-bottom: 4px solid #0b73da;
-  width: 80%;
-  top: 15px;
-  left: 60%;
+  border-bottom: 3px solid #0b73da;
+  width: 88%;
+  top: 10px;
+  left: 56%;
 }
 
 .progress-item:first-child::before {
