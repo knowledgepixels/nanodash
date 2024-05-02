@@ -227,8 +227,12 @@ tbody tr:nth-child(even) {
   border-radius: 4px;
 }
 
+.box.main a {
+  font-weight: bold;
+}
+
 .box div.option:not(:last-child) { 
-   margin-bottom: 15px;  
+  margin-bottom: 15px;  
 }
 
 ul {
