@@ -58,15 +58,8 @@ public class NanopubItem extends Panel {
 	private void initialize() {
 		if (isInitialized) return;
 
-		String pubkey = null;
-		try {
-			if (n.hasValidSignature()) {
-				pubkey = n.getPubkey();
-				signerId = n.getSignerId();
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		String pubkey = n.getPubkey();
+		signerId = n.getSignerId();
 
 		if (hideHeader) {
 			add(new Label("header", "").setVisible(false));
@@ -76,7 +69,8 @@ public class NanopubItem extends Panel {
 			header.add(new Label("nanopub-label", "\"" + n.getLabel() + "\"").setVisible(!n.getLabel().isEmpty()));
 			if (actions == null || !actions.isEmpty()) {
 				NanodashSession session = NanodashSession.get();
-				boolean isOwnNanopub = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
+				final boolean isOwnNanopub = session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIri(pubkey, false));
+				final boolean hasLocalPubkey = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 				final List<NanopubAction> actionList = new ArrayList<>();
 				final Map<String,NanopubAction> actionMap = new HashMap<>();
 				List<NanopubAction> allActions = new ArrayList<>();
@@ -88,12 +82,13 @@ public class NanopubItem extends Panel {
 				}
 				for (NanopubAction action : allActions) {
 					if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
+					if (isOwnNanopub && !hasLocalPubkey && !action.isApplicableToOthersNanopubs() && !Utils.hasNanodashLocation(pubkey)) continue;
 					if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
 					if (!action.isApplicableTo(n.getNanopub())) continue;
 					actionList.add(action);
 					actionMap.put(action.getLinkLabel(n.getNanopub()), action);
 				}
-				header.add(new ActionMenu("action-menu", actionList, n.getNanopub()));
+				header.add(new ActionMenu("action-menu", actionList, n));
 			} else {
 				header.add(new Label("action-menu", "").setVisible(false));
 			}

@@ -85,20 +85,31 @@ public class NanopubElement implements Serializable {
 		return seemsToHaveSignature;
 	}
 
-	public String getPubkey() throws GeneralSecurityException, MalformedCryptoElementException {
+	public String getPubkey() {
 		if (!hasValidSignature()) return null;
-		return SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
+		try {
+			return SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
+		} catch (MalformedCryptoElementException ex) {
+			ex.printStackTrace();
+			return null;
+		}
 	}
 
-	public boolean hasValidSignature() throws GeneralSecurityException, MalformedCryptoElementException {
+	public boolean hasValidSignature() {
 		if (nanopub == null) return false;
 		if (hasValidSignature == null) {
-			NanopubSignatureElement se = SignatureUtils.getSignatureElement(nanopub);
-			if (se != null) {
-				hasValidSignature = SignatureUtils.hasValidSignature(se);
-				if (se.getSigners().size() == 1) signerId = se.getSigners().iterator().next();
-			} else {
-				hasValidSignature = false;
+			try {
+				NanopubSignatureElement se;
+				se = SignatureUtils.getSignatureElement(nanopub);
+				if (se != null) {
+					hasValidSignature = SignatureUtils.hasValidSignature(se);
+					if (se.getSigners().size() == 1) signerId = se.getSigners().iterator().next();
+				} else {
+					hasValidSignature = false;
+				}
+			} catch (MalformedCryptoElementException | GeneralSecurityException ex) {
+				ex.printStackTrace();
+				return false;
 			}
 		}
 		return hasValidSignature;
@@ -106,11 +117,7 @@ public class NanopubElement implements Serializable {
 
 	public IRI getSignerId() {
 		if (nanopub == null) return null;
-		try {
-			if (hasValidSignature == null) hasValidSignature();
-		} catch (GeneralSecurityException | MalformedCryptoElementException ex) {
-			ex.printStackTrace();
-		}
+		if (!hasValidSignature()) return null;
 		return signerId;
 	}
 

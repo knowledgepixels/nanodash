@@ -112,11 +112,14 @@ public class Utils {
 	}
 
 	public static String getPubkeyLocationName(String pubkey) {
+		return getPubkeyLocationName(pubkey, pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2.."));
+	}
+
+	public static String getPubkeyLocationName(String pubkey, String fallback) {
 		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
-		if (keyLocation == null) return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+		if (keyLocation == null) return fallback;
 		if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
 		return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
-		
 	}
 
 	public static String getShortPubkeyLocationLabel(String pubkey, IRI user) {
@@ -128,6 +131,15 @@ public class Utils {
 		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
 		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
 		return s;
+	}
+
+	public static boolean hasNanodashLocation(String pubkey) {
+		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
+		if (keyLocation == null) return true; // potentially a Nanodash location
+		if (keyLocation.stringValue().contains("nanodash")) return true;
+		if (keyLocation.stringValue().contains("nanobench")) return true;
+		if (keyLocation.stringValue().contains(":37373")) return true;
+		return false;
 	}
 
 	public static String getShortOrcidId(IRI orcidIri) {

@@ -218,10 +218,18 @@ public class UserData {
 		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
 	}
 
-	public IRI getUserIri(String pubkey) {
+	public IRI getUserIri(String pubkey, boolean approvedOnly) {
 		Set<IRI> userIris = approvedPubkeyIdMap.get(pubkey);
 		if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
+		if (!approvedOnly) {
+			userIris = unapprovedPubkeyIdMap.get(pubkey);
+			if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
+		}
 		return null;
+	}
+
+	public IRI getUserIri(String pubkey) {
+		return getUserIri(pubkey, true);
 	}
 
 	public IRI getSignatureOwnerIri(Nanopub np) {

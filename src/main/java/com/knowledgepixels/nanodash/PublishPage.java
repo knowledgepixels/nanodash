@@ -23,10 +23,10 @@ public class PublishPage extends NanodashPage {
 		final NanodashSession session = NanodashSession.get();
 		add(new TitleBar("titlebar", this, "publish"));
 		if (parameters.get("template").toString() != null) {
+			session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 			if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
 				add(new DifferentKeyErrorItem("form", parameters));
 			} else {
-				session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
 				add(new PublishForm("form", parameters, PublishPage.class, PublishConfirmPage.class));
 			}
 		} else {
