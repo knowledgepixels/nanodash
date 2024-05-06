@@ -301,7 +301,7 @@ a:active {
 	color: #6eb2f7;
 }
 
-a.button, input.button, button {
+.button {
 	font-size: 12pt;
 	font-weight: 700;
 	padding: 8px 16px;
@@ -315,13 +315,13 @@ a.button, input.button, button {
 	vertical-align: middle;
 }
 
-a.button.light {
+.button.light {
 	background-color: #fff;
 	color: #0B73DA;
 	border: 1px solid #0B73DA;
 }
 
-a.button > * {
+.button > * {
     vertical-align:middle;
 }
 
@@ -340,7 +340,7 @@ a.button > * {
     text-align: center;
 }
 
-a.button:hover, a.smallbutton:hover, input.button:hover {
+.button:hover, .smallbutton:hover {
 	background-color: #0B73DAC0;
 	color: #fff;
 }
