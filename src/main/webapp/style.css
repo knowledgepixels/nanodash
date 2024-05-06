@@ -666,31 +666,30 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 .nanopub a { color: #444; margin: 3px; }
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
-a.nanopub-assertion { color: #444; }
-a:hover.nanopub-assertion { color: #666; }
-a:active.nanopub-assertion { color: #666; }
-a.nanopub-provenance { color: #444; }
-a:hover.nanopub-provenance { color: #666; }
-a:active.nanopub-provenance { color: #666; }
-a.nanopub-pubinfo { color: #444; }
-a:hover.nanopub-pubinfo { color: #666; }
-a:active.nanopub-pubinfo { color: #666; }
 
 .nanopub { background-color: #F3F6F9; color: #000; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
-.nanopub-prefixes { display: none; margin-top: 3px; }
-.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
+div.nanopub-prefixes { display: none; margin-top: 3px; }
+div.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
 .nanopub { background-color: white; font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4px; }
-.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
-.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
-.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
-.nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 4px; }
-.nanopub-pubinfo:last-of-type { border-radius: 4px; }
+div.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
+div.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
+div.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
+div.nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 4px; }
+div.nanopub-pubinfo:last-of-type { border-radius: 4px; }
 
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
 
 .nanopub-textfield {
   width: 400px;
+}
+
+.nanopub-textfield.wide {
+  width: 500px;
+}
+
+.nanopub-textfield.local {
+  width: 250px;
 }
 
 .readonly {

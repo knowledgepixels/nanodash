@@ -58,35 +58,30 @@ public class NanodashLink extends Panel {
 		final IRI iriObj = vf.createIRI(uri);
 		if (np != null && uri.equals(np.getUri().stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this");
-			link.add(new AttributeAppender("style", "background: #666; color: #fff; padding: 0 5px; border-radius: 7px;"));
 			add(link);
 			add(new Label("description", "this specific nanopublication"));
 			add(new ExternalLink("uri", uri, uri));
 		} else if (np != null && uri.equals(np.getAssertionUri().stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
-			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
 			add(new Label("description", "the assertion of this specific nanopublication"));
 			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_ASSERTION_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
-			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
 			add(new Label("description", "links a nanopublication to its assertion"));
 			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PROVENANCE_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "provenance");
 			link.add(new AttributeAppender("class", " nanopub-provenance "));
-			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
 			add(new Label("description", "links a nanopublication to its provenance"));
 			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PUBINFO_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "pubinfo");
 			link.add(new AttributeAppender("class", " nanopub-pubinfo "));
-			link.add(new AttributeAppender("style", "padding: 0 5px; border-radius: 7px; border-width: 1px; border-color: #666; border-style: solid;"));
 			add(link);
 			add(new Label("description", "links a nanopublication to its pubinfo"));
 			add(new ExternalLink("uri", uri, uri));
