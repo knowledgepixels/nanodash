@@ -2,15 +2,12 @@ package com.knowledgepixels.nanodash;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -23,9 +20,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiAccess;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
 
 public class Template implements Serializable {
 
@@ -341,12 +335,7 @@ public class Template implements Serializable {
 		List<String> apiList = apiMap.get(iri);
 		if (apiList != null) {
 			for (String apiString : apiList) {
-				if (apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
-					List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
-					getPossibleValuesFromNanopubApi(urlParams, searchterm, labelMap, values);
-				} else {
-					LookupApis.getPossibleValues(apiString, searchterm, labelMap, values);
-				}
+				LookupApis.getPossibleValues(apiString, searchterm, labelMap, values);
 			}
 		}
 		return values;
@@ -354,31 +343,6 @@ public class Template implements Serializable {
 
 	public String getTag() {
 		return tag;
-	}
-
-	private void getPossibleValuesFromNanopubApi(List<NameValuePair> urlParams, String searchterm, Map<String,String> labelMap, List<String> values) {
-		try {
-			Map<String,String> params = new HashMap<>();
-			for (NameValuePair p : urlParams) {
-				params.put(p.getName(), p.getValue());
-			}
-			params.put("searchterm", " " + searchterm);
-			ApiResponse result = ApiAccess.getAll("find_signed_things", params);
-			int count = 0;
-			for (ApiResponseEntry r : result.getData()) {
-				if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
-				String uri = r.get("thing");
-				values.add(uri);
-				String desc = r.get("description");
-				if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-				if (!desc.isEmpty()) desc = " - " + desc;
-				labelMap.put(uri, r.get("label") + " - by " + User.getShortDisplayName(null, r.get("pubkey")));
-				count++;
-				if (count > 9) return;
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {

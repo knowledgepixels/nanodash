@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.beust.jcommander.Strings;
 import com.github.openjson.JSONArray;
@@ -28,29 +34,51 @@ public class LookupApis {
 		for (int i = 0; i < resultsArray.length(); i++) {
 			JSONObject resultObject = resultsArray.getJSONObject(i);
 			// Get the nanopub URI
-			String uri = resultObject.getJSONObject("np").getString("value");
+			String uri = resultObject.getJSONObject("thing").getString("value");
 			// Get the string which matched with the search term  
-			String label = resultObject.getJSONObject("v").getString("value");
+			String label = resultObject.getJSONObject("label").getString("value");
 			values.add(uri);
 			labelMap.put(uri, label);
 		}
 	}
 
 	public static void getPossibleValues(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
+		// TODO This method is a mess and needs some serious clean-up and structuring...
 		try {
+			if (apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
+				List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
+				Map<String,String> params = new HashMap<>();
+				for (NameValuePair p : urlParams) {
+					params.put(p.getName(), p.getValue());
+				}
+				params.put("searchterm", " " + searchterm);
+				ApiResponse result = ApiAccess.getAll("find_signed_things", params);
+				int count = 0;
+				for (ApiResponseEntry r : result.getData()) {
+					if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
+					String uri = r.get("thing");
+					values.add(uri);
+					String desc = r.get("description");
+					if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+					if (!desc.isEmpty()) desc = " - " + desc;
+					labelMap.put(uri, r.get("label") + " - by " + User.getShortDisplayName(null, r.get("pubkey")));
+					count++;
+					if (count > 9) return;
+				}
+				return;
+			}
+
 			if (apiString.startsWith("https://vodex.")) {
 				searchterm = "( " + Strings.join(" AND ", searchterm.split(" ")) + "* )";
 			}
-			HttpGet get = new HttpGet(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
-			
-			// Quick fix to resolve Nanopubs grlc API as JSON
-			// Otherwise call fails if no ACCEPT header provided
-			// TODO: can also be done using the Nanodash ApiAccess class:
-			// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
-				get.setHeader(HttpHeaders.ACCEPT, "application/json");
+			String callUrl;
+			if (apiString.contains(" ")) {
+				callUrl = apiString.replaceAll(" ", URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
+			} else {
+				callUrl = apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString());
 			}
-			
+			HttpGet get = new HttpGet(callUrl);
+			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
 	
 			if (resp.getStatusLine().getStatusCode() == 405) {
@@ -64,8 +92,17 @@ public class LookupApis {
 			String respString = IOUtils.toString(in, StandardCharsets.UTF_8);
 			// System.out.println(respString);
 	
-			if (apiString.startsWith("http://purl.org/nanopub/api/")) {
-				parseNanopubGrlcApi(new JSONObject(respString), labelMap, values);
+			if (apiString.startsWith("https://grlc.")) {
+				JSONArray resultsArray = new JSONObject(respString).getJSONObject("results").getJSONArray("bindings");
+				for (int i = 0; i < resultsArray.length(); i++) {
+					JSONObject resultObject = resultsArray.getJSONObject(i);
+					// Get the nanopub URI
+					String uri = resultObject.getJSONObject("thing").getString("value");
+					// Get the string which matched with the search term  
+					String label = resultObject.getJSONObject("label").getString("value");
+					values.add(uri);
+					labelMap.put(uri, label);
+				}
 			} else if (apiString.startsWith("https://www.ebi.ac.uk/ols/api/select")) {
 				// Resolve EBI Ontology Lookup Service
 				// e.g. https://www.ebi.ac.uk/ols/api/select?q=interacts%20with 
