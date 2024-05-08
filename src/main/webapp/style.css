@@ -278,7 +278,10 @@ img.thirdparty {
   filter: grayscale(1);
 }
 
-img.nanopub-icon {
+.nanopub-icon {
+  display: inline-block;
+  background-image: url("nanopub-icon.svg");
+  vertical-align: middle;
   width: 15px;
   height: 15px;
 }
