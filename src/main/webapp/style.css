@@ -569,6 +569,20 @@ select {
   display: table;
 }
 
+.titlepath {
+  font-family: Martian,monaco,monospace;
+  font-weight: 700;
+  font-size: 9pt;
+  background-color: #F3F6F9;
+  border-color: #F3F6F9;
+  border-style: solid;
+  border-width: 0 0 4px 0;
+}
+
+.titlepath [class*="col-"] {
+  padding: 10px 15px;
+}
+
 #outer {
 	background-color: #fff;
 	height:100%;
@@ -592,6 +606,12 @@ select {
 	padding: 10px 0;
 	margin-top: 20px;
 	margin-bottom: 60px;
+}
+
+#content-pane.plain {  /* content-pane: new element to supersede content */
+	padding: 0;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .meta-action {
