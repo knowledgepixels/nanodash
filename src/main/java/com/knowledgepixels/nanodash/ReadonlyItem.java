@@ -36,6 +36,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 	private TemplateContext context;
 	private String prefix;
 	private ExternalLink linkComp;
+	private Label extraComp;
+	private IModel<String> extraModel;
 	private IRI iri;
 	private RestrictedChoice restrictedChoice;
 	private final Template template;
@@ -178,6 +180,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			
 		};
 		add(new ExternalLink("uri", uriModel, uriModel));
+		extraModel = Model.of("");
+		extraComp = new Label("extra", extraModel);
+		extraComp.setVisible(false);
+		add(extraComp);
 	}
 
 	@Override
@@ -313,6 +319,12 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			model.setObject(vs);
 		} else if (v instanceof Literal) {
 			model.setObject("\"" + vs + "\"");
+			if (vs.startsWith("<")) {
+				linkComp.setVisible(false);
+				extraModel.setObject("<span class=\"internal\">" + Utils.sanitizeHtml(vs) + "</span>");
+				extraComp.setEscapeModelStrings(false);
+				extraComp.setVisible(true);
+			}
 		}
 	}
 

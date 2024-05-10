@@ -206,9 +206,11 @@ public class Utils {
 	private static PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
 			.allowCommonBlockElements()
 			.allowCommonInlineFormattingElements()
-		    .allowElements("a")
 		    .allowUrlProtocols("https", "http", "mailto")
+		    .allowElements("a")
 		    .allowAttributes("href").onElements("a")
+		    .allowElements("img")
+		    .allowAttributes("src").onElements("img")
 		    .requireRelNofollowOnLinks()
 		    .toFactory();
 
