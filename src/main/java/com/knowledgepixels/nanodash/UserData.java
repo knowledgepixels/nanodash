@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -38,7 +39,9 @@ import com.opencsv.exceptions.CsvValidationException;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class UserData {
+public class UserData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private Map<IRI,Set<String>> approvedIdPubkeyMap = new HashMap<>();
 	private Map<String,Set<IRI>> approvedPubkeyIdMap = new HashMap<>();
@@ -302,7 +305,7 @@ public class UserData {
 		return null;
 	}
 
-	private Comparator<IRI> comparator = new Comparator<IRI>() {
+	private transient Comparator<IRI> comparator = new Comparator<IRI>() {
 
 		@Override
 		public int compare(IRI iri1, IRI iri2) {

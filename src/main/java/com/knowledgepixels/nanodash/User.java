@@ -11,7 +11,7 @@ public class User {
 
 	private User() {}  // no instances allowed
 
-	private static UserData userData;
+	private static transient UserData userData;
 
 	public static synchronized void refreshUsers() {
 		userData = new UserData();
