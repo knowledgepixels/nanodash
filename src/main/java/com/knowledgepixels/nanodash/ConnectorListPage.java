@@ -45,6 +45,7 @@ public class ConnectorListPage extends NanodashPage {
 		super(parameters);
 
 		add(new TitleBar("titlebar", this, "connectors"));
+		//add(new TitleBar("titlebar", this, "connectors", "http://example.com/1", "http://example.com/2"));
 
 		add(new DataView<ConnectorConfig>("connectors", new ListDataProvider<ConnectorConfig>(connectors)) {
 
