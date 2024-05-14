@@ -59,6 +59,9 @@ public class GrlcSpecPage extends NanodashPage {
 				queryContent = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_ENDPOINT) && st.getObject() instanceof IRI) {
 				endpoint = st.getObject().stringValue();
+				if (NanodashPreferences.get().getQueryUrl() != null && endpoint.startsWith("https://w3id.org/np/l/nanopub-query-1.1/")) {
+					endpoint = endpoint.replace("https://w3id.org/np/l/nanopub-query-1.1/", NanodashPreferences.get().getQueryUrl());
+				}
 			}
 		}
 	}
@@ -113,6 +116,7 @@ public class GrlcSpecPage extends NanodashPage {
 			if (endpoint != null) {
 				response.write("#+ endpoint: " + endpoint + "\n");
 			}
+			response.write("\n");
 			response.write(queryContent);
 		} else {
 			response.sendError(404, "query definition not found / not valid");

@@ -8,3 +8,4 @@ services:
       - NANODASH_ORCID_LOGIN_MODE=true
       - NANOPUB_ORCID_CLIENT_ID=your-orcid-client-id
       - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
+      - NANOPUB_QUERY_URL=https://query.knowledgepixels.com/  # (local) instance of Nanopub Query service

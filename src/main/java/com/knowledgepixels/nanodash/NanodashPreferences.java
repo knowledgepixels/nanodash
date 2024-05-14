@@ -105,4 +105,11 @@ public class NanodashPreferences implements Serializable {
 	public void setSettingUri(String settingUri) {
 		this.settingUri = settingUri;
 	}
+
+	public String getQueryUrl() {
+		String s = System.getenv("NANOPUB_QUERY_URL");
+		if (!(s == null) && !s.isEmpty()) return s;
+		return null;
+	}
+
 }
