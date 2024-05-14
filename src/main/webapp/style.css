@@ -1110,3 +1110,18 @@ span.internal img {
 }
 span.internal { display:inline-block; background: white; padding: 8px; border-radius: 8px; margin-top: 8px; margin-bottom: 8px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
 
+.refresh-icon {
+  display: inline-block;
+  background-image: url("images/refresh.svg");
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.info-icon {
+  display: inline-block;
+  background-image: url("images/info.svg");
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
