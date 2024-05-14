@@ -150,6 +150,7 @@ public abstract class NanopubPage extends ConnectorPage {
 						.add("template-version", "latest")
 						.add("link-message","Here you can publish a reaction to the given nanopublication by typing your text into the text field below and " +
 								"choosing the relation that fits best (if unsure, you can choose 'cites as related').")
+						.add("postpub-redirect-url", this.getMountPath() + "?" + Utils.getPageParametersAsString(parameters))
 					)
 				);
 

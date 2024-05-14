@@ -16,6 +16,8 @@ public class PublishConfirmPage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/publishconfirm";
 
+	private final Nanopub np;
+
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
@@ -23,13 +25,9 @@ public class PublishConfirmPage extends NanodashPage {
 
 	public PublishConfirmPage(Nanopub np, PageParameters params) {
 		super(params);
-		add(new TitleBar("titlebar", this, "publish"));
+		this.np = np;
 
-		if (!getPageParameters().get("postpub-redirect-url").isNull()) {
-			String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();
-			String paramString = Utils.getPageParametersAsString(new PageParameters().add("id", np.getUri()));
-			throw new RedirectToUrlException(forwardUrl + "?" + paramString);
-		}
+		add(new TitleBar("titlebar", this, "publish"));
 
 		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, new PageParameters().add("id", NanodashSession.get().getUserIri())));
 		add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
@@ -71,6 +69,21 @@ public class PublishConfirmPage extends NanodashPage {
 		} else {
 			add(new Label("publish-another-filled-link", "").setVisible(false));
 		}
+	}
+
+	@Override
+	protected void onBeforeRender() {
+		if (!getPageParameters().get("postpub-redirect-url").isNull()) {
+			String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();
+			if (forwardUrl.contains("?")) {
+				// TODO: Add here URI of created nanopublication too?
+				throw new RedirectToUrlException(forwardUrl);
+			} else {
+				String paramString = Utils.getPageParametersAsString(new PageParameters().add("id", np.getUri()));
+				throw new RedirectToUrlException(forwardUrl + "?" + paramString);
+			}
+		}
+		super.onBeforeRender();
 	}
 
 }
