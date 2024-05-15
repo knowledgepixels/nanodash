@@ -410,6 +410,12 @@ a.actionlink {
   font-weight: bold;
 }
 
+.select2-dropdown.select2-dropdown--below {
+  min-width: 600px !important;
+  margin-top -1px;
+  border-top: solid 1px #aaa;
+}
+
 button.select2-selection__clear {
   color: #888;
 }
@@ -558,7 +564,7 @@ input.invalid + label {
 }
 
 select {
-  width: 400px;
+  width: 350px;
 }
 
 .hidden {
@@ -746,11 +752,11 @@ div.nanopub-pubinfo:last-of-type { border-radius: 4px; }
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding: 0px 5px; margin-top: 0px; border-radius: 5px; }
 
 .nanopub-textfield {
-  width: 400px;
+  width: 350px;
 }
 
 .nanopub-textfield.wide {
-  width: 500px;
+  width: 350px;
 }
 
 .nanopub-textfield.local {
