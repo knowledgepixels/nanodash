@@ -1020,6 +1020,15 @@ div.widthmax {
   margin-top: 40px;
   margin-bottom: 40px;
 }
+
+.progress .progress-item:first-child {
+  margin-left: -22%;
+}
+
+.progress .progress-item:last-child {
+  margin-right: -22%;
+}
+
 .progress-item {
   position: relative;
   display: flex;
@@ -1053,6 +1062,16 @@ div.widthmax {
   font-family: Martian, monaco, monospace;
   color: #bdbdbd;
   font-size: 10pt;
+  white-space: nowrap;
+}
+
+.progress .progress-item:first-child .step-name {
+  width: 30px;
+}
+
+.progress .progress-item:last-child .step-name {
+  width: 30px;
+  direction: rtl;
 }
 
 .progress-item.active {
