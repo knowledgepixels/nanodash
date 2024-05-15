@@ -1041,9 +1041,9 @@ div.widthmax {
   position: absolute;
   content: "";
   border-bottom: 3px solid #bdbdbd;
-  width: 88%;
   top: 10px;
-  left: 56%;
+  width: 92%;
+  left: 54%;
 }
 
 .progress-item .step {
@@ -1107,9 +1107,9 @@ div.widthmax {
   position: absolute;
   content: "";
   border-bottom: 3px solid #0b73da;
-  width: 88%;
   top: 10px;
-  left: 56%;
+  width: 92%;
+  left: 54%;
 }
 
 .progress-item:first-child::before {
