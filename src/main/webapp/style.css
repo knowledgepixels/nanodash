@@ -381,6 +381,9 @@ a.actionlink {
   color: #888 !important;
   opacity: 1;
 }
+.select2-selection {
+  border-color: #ccc !important;
+}
 .select2-selection__placeholder {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   color: #888 !important;
@@ -398,9 +401,20 @@ a.actionlink {
   max-height: 28px;
 }
 
+.select2-selection__rendered > span.term {
+  display: inline-block;
+  margin-top: 3px;
+}
+
 .select2-dropdown span.term {
   font-weight: bold;
 }
+
+button.select2-selection__clear {
+  color: #888;
+}
+
+
 
 strong {
 	font-weight: bold;
@@ -440,13 +454,14 @@ span.term {
 .select2-selection__placeholder span.term {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 9pt;
+  vertical-align: middle;
+  padding-top: 4px;
 }
 
 input, select, textarea {
   padding: 3px 5px;
   border-color: #ccc;
   background-color: #fff;
-  margin: 3px;
   color: #000;
   accent-color: #0B73DAC0;
   border-style: solid;
@@ -457,7 +472,7 @@ input, select, textarea {
 }
 
 input[type=text] {
-  height: 22px;
+  height: 28px;
 }
 
 input[type=radio] {
@@ -642,10 +657,27 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 }
 
 .valueitem {
-	margin-right: 12px;
+	margin: 2px 6px 2px 0;
 	overflow-wrap: anywhere;
+	display: inline-block;
+	vertical-align: top;
 }
 
+.valueitem span {
+	vertical-align: top;
+}
+
+.fullstop {
+	margin: 2px;
+	padding: 4px 0;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.quote {
+	padding: 2px;
+	display: inline-block;
+}
 
 .graphheader {
 	margin-bottom: 1.5mm;
@@ -762,14 +794,17 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   padding: 4px 2px;
 }
 
-.nanopub-statement span {
+.nanopub-statement a {
   line-height: 30px;
   vertical-align: top;
 }
 
-.nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea {
-  margin: 2px;
+/*
+.nanopub-statement input, .nanopub-statement select, .nanopub-statement textarea, .select2-container {
+  margin: 2px 0;
 }
+*/
+
 .nanopub-statement:after { 
    content: ".";
    visibility: hidden;
@@ -794,8 +829,8 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   background-color: black;
   color: #fff;
   text-align: left;
+  text-indent: 0px !important;
   padding: 5px;
-  line-height: normal;
   min-width: 500px;
   max-width: 800px;
   border-radius: 0px 5px 5px 5px;
