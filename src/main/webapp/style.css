@@ -739,9 +739,9 @@ div.nanopub-prefixes { display: none; margin-top: 3px; }
 div.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
 .nanopub { background-color: white; font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4px; }
-div.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
-div.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
-div.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; }
+div.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
+div.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
+div.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
 div.nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 4px; }
 div.nanopub-pubinfo:last-of-type { border-radius: 4px; }
 
@@ -760,18 +760,56 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 }
 
 .nanopub-expand {
+  //display: none;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  bottom: 0;
+  right: 0;
+  padding: 2px;
+  margin: 21px;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+  background: white;
+  color: #0b73da;
+  font-weight: bold;
+  border-radius: 3px;
+  border: 3px solid #F3F6F9;
+}
+.nanopub-expand:hover {
+  color: #6eb2f7;
+}
+
+.nanopub-collapse {
   display: none;
   position: absolute;
   width: 30px;
   height: 30px;
   bottom: 0;
   right: 0;
-  padding: 5px;
-  margin: 5px;
+  padding: 2px;
+  margin: 21px;
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
-  background: rgba(0, 0, 0, 0.15);
+  color: #0b73da;
+  transform: scale(1, -1);
+  font-weight: bold;
+  background: white;
+  border-radius: 3px;
+  border: 3px solid #F3F6F9;
+}
+.nanopub-collapse:hover {
+  color: #6eb2f7;
+}
+
+.pubinfosection .nanopub-pubinfo {
+  display: none;
+}
+
+.pubinfosection .nanopub-pubinfo:first-child {
+  display: block;
 }
 
 .readonly {

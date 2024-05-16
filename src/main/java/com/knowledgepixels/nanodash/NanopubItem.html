@@ -3,6 +3,7 @@
 
 <head>
 <link rel="stylesheet" href="../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body style="margin-left:100px; margin-right:100px;">
 
@@ -42,7 +43,9 @@
 </div>
 </div>
 <div class="pubinfosection">
+
 <div wicket:id="pubinfo">
+
 <div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
 <div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
@@ -50,9 +53,30 @@
 </div>
 </div>
 </div>
+
+<!--
+<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div wicket:id="pubinfo-element">
+<div wicket:id="pubinfo-statements">
+<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
 </div>
 </div>
-<div class="nanopub-expand">V</div>
+</div>
+
+<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div wicket:id="pubinfo-element">
+<div wicket:id="pubinfo-statements">
+<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+-->
+
+<div class="nanopub-expand" onclick="$(this).parent().find('.nanopub-pubinfo').each(function(){ $(this).show(); }); $(this).hide(); $($(this).parent().find('.nanopub-collapse')[0]).show();">V</div>
+<div class="nanopub-collapse" onclick="first=true; $(this).parent().find('.nanopub-pubinfo').each(function(){ if (!first) { $(this).hide(); } first=false; }); $(this).hide(); $($(this).parent().find('.nanopub-expand')[0]).show();">V</div>
+</div>
+
+</div>
 </div>
 <p wicket:id="footer" class="postmeta">
 <a wicket:id="user-link"><span wicket:id="user-text">user name</span></a>

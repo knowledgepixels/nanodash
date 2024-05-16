@@ -58,7 +58,7 @@ public abstract class NanopubPage extends ConnectorPage {
 
 		String ref = getPageParameters().get("id").toString();
 		Nanopub np = Utils.getAsNanopub(ref);
-		add(new NanopubItem("nanopub", new NanopubElement(np)).hidePubinfo().expand().addActions(NanopubAction.ownActions));
+		add(new NanopubItem("nanopub", new NanopubElement(np)).expand().addActions(NanopubAction.ownActions));
 		String uri = np.getUri().stringValue();
 		String shortId = "np:" + Utils.getShortNanopubId(uri);
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
