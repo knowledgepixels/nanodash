@@ -90,9 +90,8 @@ public class BdjConfig extends ConnectorConfig {
 
 	@Override
 	public String getPublishFormMessage() {
-		return "<p><strong>Fill in the assertion (blue) part below, and then click \"Publish\" at the bottom to publish a nanopublication.</strong></p> " +
-			"<p>You can later include the nanopublication link(s) in your Biodiversity Data Journal submission or leave it as a standalone publication related to other articles or resources.</p>" +
-			"<p>To specify the URL of a preprint or source, you can switch to another provenance template (red). You can leave the pubinfo (yellow) part as it is.</p>";
+		// TODO This method is no longer needed with the redesign.
+		return "";
 	}
 
 }
