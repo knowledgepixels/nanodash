@@ -550,10 +550,6 @@ input[type=radio] + label strong {
 .actionmenu:hover .actionmenu-button { background-color: #0B73DAC0; } 
 
 
-
-
-
-
 .invalid, select.invalid + span > span > span, input.invalid + label {
   border-color: #A01208 !important;
   border-width: 3px !important;
@@ -900,16 +896,18 @@ a[href=""] {
   visibility: hidden;
   background-color: white;
   border-style: solid;
-  border-color: black;
+  border-color: #bdbdbd;
   border-width: 1px;
   border-radius: 5px;
   text-align: left;
   padding: 5px 10px;
   position: absolute;
   z-index: 1;
-  top: -5px;
-  left: 105%;
-  width: 1000px;
+  top: 100%;
+  margin-top: 5px;
+  left: 100%;
+  margin-left: 5px;
+  width: 600px;
   font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: normal;
