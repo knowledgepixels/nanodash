@@ -585,6 +585,7 @@ public class PublishForm extends Panel {
 			form.remove("prtemplatelink");
 			form.remove("pr-statements");
 			target.add(form);
+			target.appendJavaScript("adjustValueWidths();");
 		}
 		form.add(new BookmarkablePageLink<UserPage>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
 		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
@@ -639,6 +640,7 @@ public class PublishForm extends Panel {
 			form.remove("pis");
 			form.add(list);
 			target.add(form);
+			target.appendJavaScript("adjustValueWidths();");
 		}
 	}
 

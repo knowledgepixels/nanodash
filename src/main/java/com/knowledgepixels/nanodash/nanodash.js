@@ -8,7 +8,7 @@ function getMaxWidth(el, type, limit) {
 }
 
 $(window).on('load', function() {
-  adjustValueWidths(this);
+  adjustValueWidths();
   addExpandCollapseHandles();
 });
 
@@ -24,7 +24,7 @@ function addExpandCollapseHandles() {
   });
 }
 
-function adjustValueWidths(el) {
+function adjustValueWidths() {
   limit = 251;
   $(".nanopub-graph").each(function() {
     updateNanopubGraph(this);
