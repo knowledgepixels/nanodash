@@ -15,15 +15,7 @@ function getMaxWidth(el, type, limit) {
 
 $(window).on('load', function() {
   adjustValueWidths();
-  addExpandCollapseHandles();
 });
-
-function addExpandCollapseHandles() {
-  $(".nanopub-view").each(function() {
-    $(this).append('<div class="nanopub-expand" onclick="expandNanopub(this);"></div>');
-    $(this).append('<div class="nanopub-collapse" onclick="collapseNanopub(this);"></div>');
-  });
-}
 
 function adjustValueWidths() {
   limit = 251;
