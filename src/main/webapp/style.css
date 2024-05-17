@@ -804,6 +804,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   color: #6eb2f7;
 }
 
+/*
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
@@ -811,6 +812,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 .pubinfosection .nanopub-pubinfo:first-child {
   display: block;
 }
+*/
 
 .readonly {
   background: white;

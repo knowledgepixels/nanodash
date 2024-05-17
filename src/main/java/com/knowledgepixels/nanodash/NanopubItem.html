@@ -3,18 +3,20 @@
 
 <head>
 <link rel="stylesheet" href="../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="../../../../webapp/scripts/jquery.js"></script>
+<script type="text/javascript" src="nanodash.js"></script>
 </head>
 <body style="margin-left:100px; margin-right:100px;">
 
 <wicket:panel>
+
 <p wicket:id="header" class="meta">
 <span class="meta"><span class="nanopub-icon"></span> &nbsp;<span wicket:id="nanopub-id-link">link-ID</span>&nbsp; <span wicket:id="nanopub-label">nanopub label</span></span>
 <span class="actionmenuspan"><span wicket:id="action-menu" /></span>
 </p>
-<div class="nanopub" style="position:relative">
+<div class="nanopub nanopub-view" style="position:relative">
 <div class="assertionsection">
-<div class="nanopub-assertion">
+<div class="nanopub-assertion nanopub-graph">
 <div wicket:id="assertion-part1">
 <div wicket:id="assertion-statements1">
 <div wicket:id="assertion-statement" class="nanopub-statement"></div>
@@ -33,7 +35,7 @@
 </div>
 </div>
 <div class="provsection">
-<div class="nanopub-provenance" wicket:id="provenance">
+<div class="nanopub-provenance nanopub-graph" wicket:id="provenance">
 <div wicket:id="provenance-statements">
 <div wicket:id="provenance-statement" class="nanopub-statement"></div>
 </div>
@@ -46,7 +48,7 @@
 
 <div wicket:id="pubinfo">
 
-<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
 <div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
 <div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
@@ -55,7 +57,7 @@
 </div>
 
 <!--
-<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
 <div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
 <div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
@@ -63,7 +65,7 @@
 </div>
 </div>
 
-<div class="nanopub-pubinfo" wicket:id="pubinfo-elements">
+<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
 <div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
 <div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
@@ -72,8 +74,6 @@
 </div>
 -->
 
-<div class="nanopub-expand" onclick="$(this).parent().find('.nanopub-pubinfo').each(function(){ $(this).show(); }); $(this).hide(); $($(this).parent().find('.nanopub-collapse')[0]).show();">V</div>
-<div class="nanopub-collapse" onclick="first=true; $(this).parent().find('.nanopub-pubinfo').each(function(){ if (!first) { $(this).hide(); } first=false; }); $(this).hide(); $($(this).parent().find('.nanopub-expand')[0]).show();">V</div>
 </div>
 
 </div>

@@ -11,6 +11,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -28,6 +30,7 @@ import org.nanopub.NanopubCreator;
 public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
+	private static int count = 0;
 
 	private TemplateContext context;
 	private IRI statementId;
@@ -40,6 +43,10 @@ public class StatementItem extends Panel {
 
 	public StatementItem(String id, IRI statementId, TemplateContext context) {
 		super(id);
+
+		setOutputMarkupId(true);
+		setMarkupId("statement-" + count++);
+
 		this.statementId = statementId;
 		this.context = context;
 		setOutputMarkupId(true);
@@ -64,6 +71,8 @@ public class StatementItem extends Panel {
 		};
 		v.setOutputMarkupId(true);
 		add(v);
+
+		contentChanged = false;
 	}
 
 	public void addRepetitionGroup() {
@@ -73,6 +82,7 @@ public class StatementItem extends Panel {
 	public void addRepetitionGroup(RepetitionGroup rg) {
 		repetitionGroups.add(rg);
 		repetitionGroupsChanged = true;
+		contentChanged = true;
 	}
 
 	@Override
@@ -260,6 +270,7 @@ public class StatementItem extends Panel {
 						@Override
 						protected void onEvent(AjaxRequestTarget target) {
 							RepetitionGroup.this.remove();
+							contentChanged = true;
 							target.add(StatementItem.this);
 						}
 					});
@@ -476,5 +487,16 @@ public class StatementItem extends Panel {
 
 	private static final ValueFactory vf = SimpleValueFactory.getInstance();
 	private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
+
+	
+	private static boolean contentChanged = false;
+
+	@Override
+	public void renderHead(IHeaderResponse response) {
+		if (contentChanged) {
+			response.render(OnDomReadyHeaderItem.forScript("updateNanopubGraphForId('" + getMarkupId() + "');"));
+			contentChanged = false;
+		}
+	}
 
 }

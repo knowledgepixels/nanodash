@@ -2,9 +2,11 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
 public abstract class NanodashPage extends WebPage {
 
@@ -50,10 +52,14 @@ public abstract class NanodashPage extends WebPage {
 		super.onRender();
 	}
 
+	private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(NanodashPage.class, "nanodash.js");
+
 	@Override
 	public void renderHead(IHeaderResponse response) {
 		super.renderHead(response);
 		response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
+		response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
+		response.render(JavaScriptHeaderItem.forUrl("/scripts/nanopub.js"));
 	}
 
 }
