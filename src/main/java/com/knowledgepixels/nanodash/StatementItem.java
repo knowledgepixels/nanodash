@@ -28,7 +28,6 @@ import org.nanopub.NanopubCreator;
 public class StatementItem extends Panel {
 
 	private static final long serialVersionUID = 1L;
-	private static int count = 0;
 
 	private TemplateContext context;
 	private IRI statementId;
@@ -41,9 +40,6 @@ public class StatementItem extends Panel {
 
 	public StatementItem(String id, IRI statementId, TemplateContext context) {
 		super(id);
-
-		setOutputMarkupId(true);
-		setMarkupId("statement-" + count++);
 
 		this.statementId = statementId;
 		this.context = context;

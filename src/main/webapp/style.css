@@ -739,9 +739,15 @@ div.nanopub-prefixes { display: none; margin-top: 3px; }
 div.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
 .nanopub { background-color: white; font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4px; }
-div.nanopub-assertion { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
-div.nanopub-provenance { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
-div.nanopub-pubinfo { background: #F3F6F9; padding: 10px; margin-top: 3px; border-radius: 4px; min-height: 50px; }
+
+div.nanopub-graph {
+  background: #F3F6F9;
+  padding: 10px 15px;
+  margin-top: 3px;
+  border-radius: 4px;
+  min-height: 50px;
+}
+
 div.nanopub-pubinfo:first-of-type { margin-top: 3px; border-radius: 4px; }
 div.nanopub-pubinfo:last-of-type { border-radius: 4px; }
 
@@ -996,7 +1002,16 @@ a[href=""] {
   width: 1400px;
 }
 
-.nanopub-optional { padding: 8px; border-radius: 4px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
+.nanopub-optional {
+  padding: 8px 4px;
+  margin: 16px -5px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
 .optional-label { color: rgba(0, 0, 0, 0.3); font-family: Inter, Verdana, Helvetica, sans-serif; font-style: italic; font-size: 9pt; margin-right: 5px; }
 .nanopub-statement-float { margin-left: 15px; margin-right: 10px; margin-top: 3px; float:right; }
 
@@ -1005,7 +1020,14 @@ a[href=""] {
 }
 
 
-.nanopub-group { padding: 8px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px; border-style: solid; border-width: 1px; border-color: rgba(0, 0, 0, 0.15); }
+.nanopub-group {
+  padding: 8px 4px;
+  margin: 16px -5px;
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.15);
+}
 
 .separate-statement { border-top: 1px solid rgba(0, 0, 0, 0.3); padding-top: 10px; margin-top: 10px; }
 
