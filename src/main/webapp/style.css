@@ -760,25 +760,22 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 }
 
 .nanopub-expand {
-  //display: none;
   position: absolute;
   width: 30px;
   height: 30px;
   bottom: 0;
   right: 0;
-  padding: 2px;
   margin: 21px;
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
   background: white;
-  color: #0b73da;
-  font-weight: bold;
   border-radius: 3px;
   border: 3px solid #F3F6F9;
+  background-image: url("images/down-arrow.svg");
 }
 .nanopub-expand:hover {
-  color: #6eb2f7;
+  opacity: 0.7;
 }
 
 .nanopub-collapse {
@@ -788,23 +785,19 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   height: 30px;
   bottom: 0;
   right: 0;
-  padding: 2px;
   margin: 21px;
   cursor: pointer;
-  vertical-align: middle;
   text-align: center;
-  color: #0b73da;
-  transform: scale(1, -1);
-  font-weight: bold;
   background: white;
   border-radius: 3px;
   border: 3px solid #F3F6F9;
+  background-image: url("images/down-arrow.svg");
+  transform: scale(1, -1);
 }
 .nanopub-collapse:hover {
-  color: #6eb2f7;
+  opacity: 0.7;
 }
 
-/*
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
@@ -812,7 +805,6 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
 .pubinfosection .nanopub-pubinfo:first-child {
   display: block;
 }
-*/
 
 .readonly {
   background: white;

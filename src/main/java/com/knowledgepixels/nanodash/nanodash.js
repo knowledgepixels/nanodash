@@ -2,9 +2,15 @@ function getMaxWidth(el, type, limit) {
   max = 0;
   $(el).find(type).each(function() {
     w = parseInt($(this).width());
-    if (w > max && w < limit) { max = w; }
+    if (w > max) {
+      if (w < limit) {
+        max = w;
+      } else {
+        max = limit;
+      }
+    }
   });
-  return max + 1;
+  return max;
 }
 
 $(window).on('load', function() {
@@ -14,13 +20,8 @@ $(window).on('load', function() {
 
 function addExpandCollapseHandles() {
   $(".nanopub-view").each(function() {
-    first=true;
-    $(this).find('.nanopub-pubinfo').each(function() {
-      if (!first) { $(this).hide(); }
-      first=false;
-    });
-    $(this).append('<div class="nanopub-expand" onclick="expandNanopub(this);">V</div>');
-    $(this).append('<div class="nanopub-collapse" onclick="collapseNanopub(this);">V</div>');
+    $(this).append('<div class="nanopub-expand" onclick="expandNanopub(this);"></div>');
+    $(this).append('<div class="nanopub-collapse" onclick="collapseNanopub(this);"></div>');
   });
 }
 
@@ -36,18 +37,22 @@ function updateNanopubGraph(el) {
   maxp = getMaxWidth(el, ".nanopub-statement .pred", limit);
   $(el).find(".nanopub-statement").each(function() {
     limitExceeded = false;
-    $(this).find(".subj").each(function() {
-      if ($(this).width() < limit) {
-        $(this).width(maxs);
-      } else {
-        limitExceeded = true;
-      }
-    });
-    $(this).find(".pred").each(function() {
-      if ($(this).width() < limit && !limitExceeded) {
-        $(this).width(maxp);
-      }
-    });
+    if (maxs > 0 ) {
+      $(this).find(".subj").each(function() {
+        if ($(this).width() < limit) {
+          $(this).width(maxs + 1);
+        } else {
+          limitExceeded = true;
+        }
+      });
+    }
+    if (maxp > 0 ) {
+      $(this).find(".pred").each(function() {
+        if ($(this).width() < limit && !limitExceeded) {
+          $(this).width(maxp + 1);
+        }
+      });
+    }
   });
 }
 
