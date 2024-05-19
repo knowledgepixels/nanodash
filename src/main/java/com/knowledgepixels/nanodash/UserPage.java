@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -76,6 +77,7 @@ public class UserPage extends NanodashPage {
 				System.err.println("PUBKEY SELECTED: " + selected.getObject());
 				refresh();
 				setResponsePage(target.getPage());
+				target.appendJavaScript("adjustValueWidths();");
 			}
 
 		});
@@ -112,6 +114,13 @@ public class UserPage extends NanodashPage {
 				NanopubResults r = new NanopubResults(markupId, nanopubs);
 				return r;
 			}
+
+			@Override
+			protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
+				super.onContentLoaded(content, target);
+				if (target.get() != null) target.get().appendJavaScript("adjustValueWidths();");
+			}
+
 		});
 	}
 

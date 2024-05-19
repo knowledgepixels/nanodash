@@ -2,13 +2,7 @@ function getMaxWidth(el, type, limit) {
   max = 0;
   $(el).find(type).each(function() {
     w = parseInt($(this).width());
-    if (w > max) {
-      if (w < limit) {
-        max = w;
-      } else {
-        max = limit;
-      }
-    }
+    if (w > max && w < limit) { max = w; }
   });
   return max;
 }

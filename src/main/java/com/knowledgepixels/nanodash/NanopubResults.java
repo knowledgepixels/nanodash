@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -26,6 +29,7 @@ public class NanopubResults extends Panel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanodashSession.get().setShowProvenanceEnabled(getModelObject());
 				setResponsePage(target.getPage());
+				target.appendJavaScript("adjustValueWidths();");
 			}
 
 		});
@@ -37,6 +41,7 @@ public class NanopubResults extends Panel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanodashSession.get().setShowPubinfoEnabled(getModelObject());
 				setResponsePage(target.getPage());
+				target.appendJavaScript("adjustValueWidths();");
 			}
 
 		});

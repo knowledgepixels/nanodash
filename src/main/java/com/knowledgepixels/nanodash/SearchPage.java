@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -159,6 +161,13 @@ public class SearchPage extends NanodashPage {
 					for (String id : nanopubIds) nanopubs.add(new NanopubElement(id));
 					return new NanopubResults(markupId, nanopubs);
 				}
+
+				@Override
+				protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
+					super.onContentLoaded(content, target);
+					if (target.get() != null) target.get().appendJavaScript("adjustValueWidths();");
+				}
+
 			});
 
 		}
