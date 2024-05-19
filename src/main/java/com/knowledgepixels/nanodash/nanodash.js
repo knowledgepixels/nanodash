@@ -52,6 +52,9 @@ function expandNanopub(el) {
   });
   $(el).hide();
   $($(el).parent().find('.nanopub-collapse')[0]).show();
+  $(el).parent().find(".nanopub-graph").each(function() {
+    updateNanopubGraph(this);
+  });
 }
 
 function collapseNanopub(el) {
