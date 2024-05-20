@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.connector.base;
 
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -35,6 +37,17 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 		pageParams.add("id", type.getExampleId());
 		pageParams.add("mode", "final");
 		add(new BookmarkablePageLink<WebPage>("show-example", getConfig().getNanopubPage().getClass(), pageParams));
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response) {
+		super.renderHead(response);
+		// TODO: There is probably a better place to define this function:
+		response.render(JavaScriptHeaderItem.forScript(
+				"function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }\n" +
+				//"$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
+				"",
+				"custom-functions"));
 	}
 
 }

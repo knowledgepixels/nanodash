@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>Nanopublishing in Data Science Journal | nanodash</title>
+<link rel="stylesheet" href="style.css?v=2.45" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content-pane">
+
+<div class="row-section">
+
+<div class="col-8">
+
+<h1>Create Nanopublication</h1>
+
+<div class="progress">
+
+<div class="progress-item active">
+<div class="step"></div><div class="step-name">Select Template</div>
+</div>
+
+<div class="progress-item">
+<div class="step"></div><div class="step-name">Fill in and Publish</div>
+</div>
+
+<div class="progress-item">
+<div class="step"></div>
+<div class="step-name">Connect to Submission</div>
+</div>
+
+</div>
+
+
+<form wicket:id="form">
+
+<div wicket:id="radio-group">
+
+<h3>Simple Scientific Statements</h3>
+
+<div class="box">
+
+<div class="option">
+<input type="radio" id="linkflowsrel" wicket:id="linkflowsrel-select" name="select" value="linkflowsrel">
+<label for="linkflowsrel-select">
+<strong>Simple Scientific Relations between Individuals</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>the invention of the telephone was necessary for the Internet</em>
+</span></span>
+</label>
+</div>
+
+<div class="option">
+<input type="radio" id="crel-select" wicket:id="crel-select" name="select" value="crel">
+<label for="crel-select">
+<strong>Simple Scientific Relations based on Classes</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>instances of smoking tend to cause instances of lung cancer</em>
+</span></span>
+</label>
+</div>
+
+</div>
+
+
+<h3>Complex Scientific Statements</h3>
+
+<div class="box">
+
+<div class="option">
+<input type="radio" id="superpattern-select" wicket:id="superpattern-select" name="select" value="superpattern">
+<label for="superpattern-select">
+<strong>Fully-formal Advanced Statements (Super-Pattern)</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>whenever a person has a headache then this is mostly caused by a dehydration of that person</em>
+</span></span>
+</label>
+</div>
+
+
+<div class="option">
+<input type="radio" id="aida-select" wicket:id="aida-select" name="select" value="aida">
+<label for="aida-select">
+<strong>Semi-formal Statements Based on English Sentences (AIDA)</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>"Teenagers reply on average faster to emails than adults." is about: teenager, email, adult</em>
+</span></span>
+</label>
+</div>
+
+</div>
+
+
+<h3>Specific Types of Statements</h3>
+
+<div class="box">
+
+<div class="option">
+<input type="radio" id="biorel-select" wicket:id="biorel-select" name="select" value="biorel">
+<label for="biorel-select">
+<strong>Simple Biological Relations</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>the gene p53 interacts with the gene AIMP2</em>
+</span></span>
+</label>
+</div>
+
+
+<div class="option">
+<input type="radio" id="ml-select" wicket:id="ml-select" name="select" value="ml">
+<label for="ml-select">
+<strong>Evaluation Results from a Machine Learning experiment</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>we ran a Random Forest classifier to detect texts about animals and achieved an F-Score of 86%</em>
+</span></span>
+</label>
+</div>
+
+</div>
+
+
+<h3>Definitions</h3>
+
+
+<div class="box">
+
+<div class="option">
+<input type="radio" id="classdef-select" wicket:id="classdef-select" name="select" value="biolinkrel">
+<label for="classdef-select">
+<strong>Class Definition</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>operant research</em> as a subclass of <em>research</em>
+</span></span>
+</label>
+</div>
+
+<div class="option">
+<input type="radio" id="inddef-select" wicket:id="inddef-select" name="select" value="inddef">
+<label for="inddef-select">
+<strong>Definition of Individual</strong>
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>
+</span></span>
+</label>
+</div>
+
+</div>
+
+</div>
+
+<p class="center">
+<input type="submit" class="button" value="Select" />
+</p>
+
+</form>
+
+
+</div>
+
+<div class="col-4">
+
+<div class="sidelogo">
+<a href="https://datasciencehub.net/"><img class="thirdparty" alt="Data Science logo" wicket:id="logo" style="width: 300px" src="DsLogo.png"></a>
+</div>
+
+<h4>Author Instruction</h4>
+
+<p class="instruction">
+Explore the different templates to find out which one fits for your findings.
+<br><br>
+If you can't find a type that works for your claims, tell us by opening a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.
+</p>
+
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-12">
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to open a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+</div></div>
+
+</div>
+
+</body>
+
+</html>

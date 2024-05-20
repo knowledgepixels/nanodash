@@ -94,4 +94,9 @@ public class BdjConfig extends ConnectorConfig {
 		return "";
 	}
 
+	@Override
+	public String getGeneralApiCall() {
+		return "get-biodiv-nanopubs";
+	}
+
 }

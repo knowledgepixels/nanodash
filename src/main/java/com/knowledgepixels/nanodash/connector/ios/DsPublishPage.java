@@ -1,28 +1,28 @@
-package com.knowledgepixels.nanodash.connector.pensoft;
+package com.knowledgepixels.nanodash.connector.ios;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 
-public class BdjPublishPage extends ConnectorPublishPage {
+public class DsPublishPage extends ConnectorPublishPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/pensoft/bdj/publish";
+	public static final String MOUNT_PATH = "/connector/ios/ds/publish";
 
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
 	}
 
-	public BdjPublishPage(final PageParameters parameters) {
+	public DsPublishPage(final PageParameters parameters) {
 		super(parameters);
 	}
 
 	@Override
 	protected ConnectorConfig getConfig() {
-		return BdjConfig.get();
+		return DsConfig.get();
 	}
 
 }

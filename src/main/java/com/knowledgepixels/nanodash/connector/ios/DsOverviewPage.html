@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title>Nanopublishing in Data Science | nanodash</title>
+<title>Nanopublishing in Data Science Journal | nanodash</title>
 <link rel="stylesheet" href="style.css?v=2.45" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
@@ -13,105 +13,27 @@
 
 <div wicket:id="titlebar"></div>
 
-<div id="content" class="widthmax">
+<div id="content-pane">
 
-<div class="row">
+<div class="row-section">
 
 <div class="col-8">
 
-<h2>Nanopublishing in Data Science</h2>
+<h1>Data Science</h1>
 
-<p>
-Papers at the Data Science journal should have their findings represented in a machine-understandable way as <a href="https://nanopub.net/" target="_blank">nanopublications</a>.
-</p>
+<p class="subtitle">Papers at the <a href="https://datasciencehub.net/">Data Science</a> journal can have their findings represented in a machine-understandable way as <a href="https://nanopub.net" target="_blank">nanopublications</a>.</p>
 
 
-<h3>Choose Nanopublication Type</h3>
+<h2>Your Nanopublications</h2>
 
-<p>
-These types work for simpler kinds of scientific statements:
-</p>
+<h3>Latest Candidates</h3>
 
-<ul>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=linkflowsrel">Simple Scientific Relations between Individuals</a></strong>
-(e.g. <em>the invention of the telephone was necessary for the Internet</em>)
-</li>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=crel">Simple Scientific Relations based on Classes</a></strong>
-(e.g. <em>instances of smoking tend to cause instances of lung cancer</em>)
-</li>
-
+<ul class="box main">
+<li wicket:id="own"><a wicket:id="ownlink"><span wicket:id="ownlinktext">nanopub label</span></a> <span wicket:id="ownnote">note</span></li>
 </ul>
 
-<p>
-If your statement is more complex, one of these general types might work:
-</p>
-
-<ul>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=superpattern">Fully-formal Advanced Statements (Super-Pattern)</a></strong>
-(e.g. <em>whenever a person has a headache then this is mostly caused by a dehydration of that person</em>)
-</li>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=aida">Semi-formal Statements Based on English Sentences (AIDA)</a></strong>
-(e.g. <em>"Teenagers reply on average faster to emails than adults." is about: teenager, email, adult</em>)
-</li>
-
-</ul>
-
-<p>
-There are also these more specific types:
-</p>
-
-<ul>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=biorel">Simple Biological Relations</a></strong>
-(e.g. <em>the gene p53 interacts with the gene AIMP2</em>)
-</li>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=ml">Evaluation Results from a Machine Learning experiment</a></strong>
-(e.g. <em>we ran a Random Forest classifier to detect texts about animals and achieved an F-Score of 86%</em>)
-</li>
-
-</ul>
-
-<p>
-To use the types above, you might need to define a new class or individual:
-</p>
-
-<ul>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=classdef">Class Definitions</a></strong>
-(e.g. <em>operant research</em> as a subclass of <em>research</em>)
-</li>
-
-<li>
-<strong><a href="/connector/ios/ds/type?type=inddef">Definitions of Individuals</a></strong>
-(e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>)
-</li>
-
-</ul>
-
-<p>
-If you can't find a type that works for your claims, tell us by opening a
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20type]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>.
-</p>
-
-
-<h3>Help</h3>
-
-<p>
-Don't hesitate to open a
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>
-if you have any questions or problems, no matter how trivial or how complex.
+<p class="center">
+<a wicket:id="create-new" class="button" href="/connector/ios/ds/select">Create Nanopublication</a>
 </p>
 
 </div>
@@ -125,8 +47,40 @@ if you have any questions or problems, no matter how trivial or how complex.
 <h4>Author Instruction</h4>
 
 <p class="instruction">
-Explore the different types on the left to publish your findings as candidate nanopublications.
-They can then be linked from your new submission or existing manuscript at the <a href="https://datasciencehub.net/" target="_blank">journal website</a>.
+Get an overview on your own contributions, create a new nanopublication, or have a look what others have done.
+</p>
+
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-8">
+
+
+<h2>Other Nanopublications</h2>
+
+<h3>Latest Candidates</h3>
+
+<ul class="box odd">
+<li wicket:id="candidates"><a wicket:id="candidatelink"><span wicket:id="candidatelinktext">nanopub label</span></a> <span wicket:id="candidatenote">note</span></li>
+</ul>
+
+</div>
+
+</div></div>
+
+<div class="row-section">
+
+<div class="col-12">
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to open a
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20general]%20my%20problem/question&body=type%20your%20problem/question%20here">support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
 </p>
 
 </div>

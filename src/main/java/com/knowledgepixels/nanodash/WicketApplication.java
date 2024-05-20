@@ -85,7 +85,9 @@ public class WicketApplication extends WebApplication {
 		mountPage(ViewPage.MOUNT_PATH, ViewPage.class);
 		mountPage(GetViewPage.MOUNT_PATH, GetViewPage.class);
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsOverviewPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsTypePage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsSelectPage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsPublishPage");
+		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsConnectPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsNanopubPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcOverviewPage");
 		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcTypePage");

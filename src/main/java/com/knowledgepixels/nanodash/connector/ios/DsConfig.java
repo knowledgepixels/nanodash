@@ -1,8 +1,11 @@
 package com.knowledgepixels.nanodash.connector.ios;
 
+import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
+import com.knowledgepixels.nanodash.connector.base.SelectPage;
 import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsConfig extends ConnectorConfig {
@@ -19,6 +22,9 @@ public class DsConfig extends ConnectorConfig {
 	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/ds-nanopub-api/";
 
 	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
+	private static final DsSelectPage selectPageInstance = new DsSelectPage(null);
+	private static final DsPublishPage publishPageInstance = new DsPublishPage(null);
+	private static final DsConnectPage connectPageInstance = new DsConnectPage(null, null);
 	private static final DsTypePage typePageInstance = new DsTypePage(null);
 	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage(null);
 
@@ -66,6 +72,27 @@ public class DsConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://ds.kpxl.org/";
+	}
+
+	@Override
+	public String getGeneralApiCall() {
+		return "get-linkflowsrel-nanopubs";
+	}
+
+	@Override
+	public SelectPage getSelectPage() {
+		return selectPageInstance;
+	}
+
+	@Override
+	public ConnectorPublishPage getPublishPage() {
+		return publishPageInstance;
+	}
+
+	@Override
+	public ConnectPage getConnectPage() {
+		// TODO Auto-generated method stub
+		return super.getConnectPage();
 	}
 
 }

@@ -13,24 +13,13 @@
 
 <div wicket:id="titlebar"></div>
 
-<div id="content" class="widthmax">
+<div id="content-pane">
 
-<div class="row">
+<div class="row-section">
 
 <div class="col-8">
 
-<h2>Nanopublication for Data Science</h2>
-
-<div wicket:id="navigation"></div>
-
-
-<h3>Nanopublication
-<span class="expltooltip info-icon"><span class="expltooltiptext">
-A nanopublication contains as main content a statement in the <strong>assertion part (shown in blue)</strong> encoded in a way that computers can understand.
-It is expressed as one or more <strong>subject-relation-object structures</strong>, each shown on a separate line,
-where the identifier of the subject (left) is connected to the identifier of the object (right) via the identifier of the relation type (middle).
-</span></span>
-</h3>
+<h1>Nanopublication</h1>
 
 <span wicket:id="nanopub"></span>
 
@@ -49,33 +38,7 @@ This is the description of the type this nanopublication belongs to.
 <p wicket:id="template-description">(template description)</p>
 </div>
 
-
-<h3>Reactions
-<span class="expltooltip info-icon"><span class="expltooltiptext">
-Anyone can write reactions to this nanopublication, including the Data Science reviewers and editors.
-When a new reaction is published, it can take a minute or two before it shows up here (after refreshing <span class="refresh-icon"></span>).
-</span></span>
-<a wicket:id="refresh-link" class="refresh-icon actionbutton" href="."></a>
-</h3>
-
-<ul>
-<li wicket:id="reactions"><em wicket:id="reactionnote"></em> <span wicket:id="reactiontext"></span> <a wicket:id="reactionlink"><span wicket:id="reactionlinktext"></span></a></li>
-</ul>
-
-<p class="emptynotice"><em>(no reactions yet)</em></p>
-
-<p>
-<a class="smallbutton" wicket:id="create-new-reaction" href="." target="_blank">new reaction...</a>
-</p>
-
-
-<h3>Help</h3>
-
-<p>
-Don't hesitate to
-<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
-if you have any questions or problems, no matter how trivial or how complex.
-</p>
+<div wicket:id="navigation"></div>
 
 </div>
 
@@ -91,11 +54,20 @@ if you have any questions or problems, no matter how trivial or how complex.
 
 <div class="instruction" wicket:id="includeinstruction">
 
-<p>To include this nanopublication in your submission metadata, use this link:</p>
+<p>To include this nanopublication in your submission, use this link:</p>
+
+<script>
+function copy(id) {
+  var element = document.getElementById(id);
+  navigator.clipboard.writeText(element.textContent);
+}
+</script>
 
 <ul>
-<li><a href="." class="breakall" wicket:id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
+<li><a href="." class="breakall" wicket:id="np-link" id="np-link">https://w3id.org/np/RAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</a></li>
 </ul>
+
+<p class="center"><button class="button" onclick="copy('np-link'); this.textContent='Copied'; setTimeout(() => this.textContent='Copy Link', 1000)">Copy Link</button></p>
 
 <p>Paste it in one of the textfields under "Nanopublication URLs":</p>
 
@@ -123,7 +95,7 @@ This statement is formalized in a machine-interpretable manner in our nanopublic
 <h4>Reviewer Instruction</h4>
 <div class="instruction">
 <p>
-To assess this nanopublication, check its content below, <strong>most importantly the blue assertion part</strong>,
+To assess this nanopublication, check its content below, <strong>most importantly the yellow assertion part</strong>,
 and also consider the description of the used template and any reactions it has received.
 </p>
 <p>
@@ -132,7 +104,7 @@ We hope you can help us assess this nanopublication and we can assist you with t
 (which you can indicate in the review form).
 </p>
 <p>
-Hover over the terms in the blue assertion part to see tooltips explaining what these terms mean.
+Hover over the terms in the yellow assertion part to see tooltips explaining what these terms mean.
 </p>
 <p>
 You are also encouraged to take any reactions listed below into account for your review.
@@ -148,6 +120,48 @@ In the end, provide your assessment via the review form at <code>datasciencehub.
 <h4>Candidate</h4>
 <p class="instruction">This nanopublication is a candidate for inclusion in the journal, but is not peer-reviewed and has at this point no formal link to the journal.</p>
 </div>
+
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-8">
+
+<h3>Reactions
+<span class="expltooltip info-icon"><span class="expltooltiptext">
+Anyone can write reactions to this nanopublication, including the Data Science reviewers and editors.
+When a new reaction is published, it can take a minute or two before it shows up here (after refreshing <span class="refresh-icon"></span>).
+</span></span>
+<a wicket:id="refresh-link" class="actionbutton refresh-icon" href="."></a>
+</h3>
+
+<ul class="box odd">
+<li wicket:id="reactions"><em wicket:id="reactionnote"></em> <span wicket:id="reactiontext"></span> <a wicket:id="reactionlink"><span wicket:id="reactionlinktext"></span></a></li>
+</ul>
+
+<p class="emptynotice"><em>(no reactions yet)</em></p>
+
+<p class="center">
+<a class="button light" wicket:id="create-new-reaction" href=".">Add Reaction</a>
+</p>
+
+</div>
+
+</div></div>
+
+<div class="row-section">
+
+<div class="col-12">
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to
+<a href="mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[DS%20author]%20my%20problem/question&body=type%20your%20problem/question%20here">open a support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
 
 </div>
 
