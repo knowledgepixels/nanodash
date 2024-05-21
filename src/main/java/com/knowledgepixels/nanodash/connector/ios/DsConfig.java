@@ -76,7 +76,7 @@ public class DsConfig extends ConnectorConfig {
 
 	@Override
 	public String getGeneralApiCall() {
-		return "get-linkflowsrel-nanopubs";
+		return "get-ds-nanopubs";
 	}
 
 	@Override
@@ -91,8 +91,7 @@ public class DsConfig extends ConnectorConfig {
 
 	@Override
 	public ConnectPage getConnectPage() {
-		// TODO Auto-generated method stub
-		return super.getConnectPage();
+		return connectPageInstance;
 	}
 
 }
