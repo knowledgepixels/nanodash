@@ -158,7 +158,7 @@ public class NanopubItem extends Panel {
 				target.add(assertionPart2);
 				setVisible(false);
 				target.add(this);
-				target.appendJavaScript("adjustValueWidths();");
+				target.appendJavaScript("updateElements();");
 			}
 
 		};
@@ -174,7 +174,7 @@ public class NanopubItem extends Panel {
 				target.add(assertionPart2);
 				showMoreLink.setVisible(true);
 				target.add(showMoreLink);
-				target.appendJavaScript("adjustValueWidths();");
+				target.appendJavaScript("updateElements();");
 			}
 
 		};

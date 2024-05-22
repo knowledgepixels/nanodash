@@ -26,7 +26,7 @@ public class NanopubResults extends Panel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanodashSession.get().setShowProvenanceEnabled(getModelObject());
 				setResponsePage(target.getPage());
-				target.appendJavaScript("adjustValueWidths();");
+				target.appendJavaScript("updateElements();");
 			}
 
 		});
@@ -38,7 +38,7 @@ public class NanopubResults extends Panel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				NanodashSession.get().setShowPubinfoEnabled(getModelObject());
 				setResponsePage(target.getPage());
-				target.appendJavaScript("adjustValueWidths();");
+				target.appendJavaScript("updateElements();");
 			}
 
 		});

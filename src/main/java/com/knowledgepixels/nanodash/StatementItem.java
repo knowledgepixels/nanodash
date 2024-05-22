@@ -248,7 +248,7 @@ public class StatementItem extends Panel {
 						protected void onEvent(AjaxRequestTarget target) {
 							addRepetitionGroup(new RepetitionGroup());
 							target.add(StatementItem.this);
-							target.appendJavaScript("adjustValueWidths();");
+							target.appendJavaScript("updateElements();");
 						}
 					});
 				} else {
@@ -262,7 +262,7 @@ public class StatementItem extends Panel {
 						@Override
 						protected void onEvent(AjaxRequestTarget target) {
 							RepetitionGroup.this.remove();
-							target.appendJavaScript("adjustValueWidths();");
+							target.appendJavaScript("updateElements();");
 							target.add(StatementItem.this);
 						}
 					});

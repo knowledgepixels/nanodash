@@ -77,7 +77,7 @@ public class UserPage extends NanodashPage {
 				System.err.println("PUBKEY SELECTED: " + selected.getObject());
 				refresh();
 				setResponsePage(target.getPage());
-				target.appendJavaScript("adjustValueWidths();");
+				target.appendJavaScript("updateElements();");
 			}
 
 		});
@@ -118,7 +118,7 @@ public class UserPage extends NanodashPage {
 			@Override
 			protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
 				super.onContentLoaded(content, target);
-				if (target.get() != null) target.get().appendJavaScript("adjustValueWidths();");
+				if (target.get() != null) target.get().appendJavaScript("updateElements();");
 			}
 
 		});

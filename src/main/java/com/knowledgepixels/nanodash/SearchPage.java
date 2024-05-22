@@ -165,7 +165,7 @@ public class SearchPage extends NanodashPage {
 				@Override
 				protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
 					super.onContentLoaded(content, target);
-					if (target.get() != null) target.get().appendJavaScript("adjustValueWidths();");
+					if (target.get() != null) target.get().appendJavaScript("updateElements();");
 				}
 
 			});

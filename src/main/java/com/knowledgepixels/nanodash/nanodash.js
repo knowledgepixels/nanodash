@@ -7,10 +7,12 @@ function getMaxWidth(el, type, limit) {
   return max;
 }
 
-$(window).on('load', function() {
+$(window).on('load', updateElements);
+
+function updateElements() {
   adjustValueWidths();
   setCollapseOverflow();
-});
+};
 
 function adjustValueWidths() {
   limit = 251;
