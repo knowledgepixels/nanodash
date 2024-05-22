@@ -766,45 +766,6 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   width: 250px;
 }
 
-.nanopub-expand {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  bottom: 0;
-  right: 0;
-  margin: 21px;
-  cursor: pointer;
-  vertical-align: middle;
-  text-align: center;
-  background: white;
-  border-radius: 3px;
-  border: 3px solid #F3F6F9;
-  background-image: url("images/down-arrow.svg");
-}
-.nanopub-expand:hover {
-  opacity: 0.7;
-}
-
-.nanopub-collapse {
-  display: none;
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  bottom: 0;
-  right: 0;
-  margin: 21px;
-  cursor: pointer;
-  text-align: center;
-  background: white;
-  border-radius: 3px;
-  border: 3px solid #F3F6F9;
-  background-image: url("images/down-arrow.svg");
-  transform: scale(1, -1);
-}
-.nanopub-collapse:hover {
-  opacity: 0.7;
-}
-
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
@@ -1265,4 +1226,53 @@ span.internal {
   width: 16px;
   height: 16px;
   vertical-align: middle;
+}
+
+.collapse-overflow {
+  position: relative;
+}
+
+.collapse-content {
+  display: inline-block;
+  overflow: hidden;
+  padding-right: 50px;
+}
+
+.expand {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  bottom: 0;
+  right: 0;
+  margin: 21px;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+  background: white;
+  border-radius: 3px;
+  border: 3px solid #F3F6F9;
+  background-image: url("images/down-arrow.svg");
+}
+.expand:hover {
+  opacity: 0.7;
+}
+
+.collapse {
+  display: none;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  bottom: 0;
+  right: 0;
+  margin: 21px;
+  cursor: pointer;
+  text-align: center;
+  background: white;
+  border-radius: 3px;
+  border: 3px solid #F3F6F9;
+  background-image: url("images/down-arrow.svg");
+  transform: scale(1, -1);
+}
+.collapse:hover {
+  opacity: 0.7;
 }

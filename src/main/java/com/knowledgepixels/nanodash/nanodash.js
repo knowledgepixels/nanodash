@@ -9,6 +9,7 @@ function getMaxWidth(el, type, limit) {
 
 $(window).on('load', function() {
   adjustValueWidths();
+  setCollapseOverflow();
 });
 
 function adjustValueWidths() {
@@ -18,12 +19,35 @@ function adjustValueWidths() {
   });
 }
 
+function setCollapseOverflow() {
+  $(".collapse-overflow").each(function() {
+    p = $(this).find('.collapse-content')[0];
+    if ($(p).height() > 45) {
+      $(p).css('max-height', '36px');
+    } else {
+      $($(this).find(".expand")[0]).hide();
+    }
+  });
+}
+
+function expandOverflow(el) {
+  $($(el).closest('.collapse-overflow').find('.collapse-content')[0]).css('max-height', 'none');
+  $(el).hide();
+  $($(el).closest('.collapse-overflow').find(".collapse")[0]).show();
+}
+
+function collapseOverflow(el) {
+  $($(el).closest('.collapse-overflow').find('.collapse-content')[0]).css('max-height', '36px');
+  $(el).hide();
+  $($(el).closest('.collapse-overflow').find(".expand")[0]).show();
+}
+
 function updateNanopubGraph(el) {
   maxs = getMaxWidth(el, ".nanopub-statement .subj", limit);
   maxp = getMaxWidth(el, ".nanopub-statement .pred", limit);
   $(el).find(".nanopub-statement").each(function() {
     limitExceeded = false;
-    if (maxs > 0 ) {
+    if (maxs > 0) {
       $(this).find(".subj").each(function() {
         if ($(this).width() < limit) {
           $(this).width(maxs + 1);
@@ -51,7 +75,7 @@ function expandNanopub(el) {
     $(this).show();
   });
   $(el).hide();
-  $($(el).parent().find('.nanopub-collapse')[0]).show();
+  $($(el).parent().find('.collapse')[0]).show();
   $(el).parent().find(".nanopub-graph").each(function() {
     updateNanopubGraph(this);
   });
@@ -64,5 +88,5 @@ function collapseNanopub(el) {
     first=false;
   });
   $(el).hide();
-  $($(el).parent().find('.nanopub-expand')[0]).show();
+  $($(el).parent().find('.expand')[0]).show();
 }

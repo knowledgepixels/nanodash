@@ -3,8 +3,10 @@
 
 <head>
 <link rel="stylesheet" href="../../../../webapp/style.css" type="text/css" media="screen" title="Stylesheet" />
+<script type="text/javascript" src="../../../../webapp/scripts/jquery.js"></script>
+<script type="text/javascript" src="nanodash.js"></script>
 </head>
-<body>
+<body style="margin-left:100px; margin-right:100px;">
 
 <wicket:panel>
 
@@ -31,15 +33,25 @@
 
 <form wicket:id="form">
 
+<p class="graphheader">
+<strong wicket:id="templatename" class="templatename">Assertion template name</strong>
+<a href="#" wicket:id="templatelink">^</a>
+</p>
+
+<div class="message collapse-overflow">
+<span class="collapse-content">
+<p wicket:id="templatedesc">
+(assertion template description)
+</p>
+</span>
+<div class="expand" onclick="expandOverflow(this);"></div>
+<div class="collapse" onclick="collapseOverflow(this);"></div>
+</div>
 
 <div class="assertionsection">
 
 <p class="graphheader"><strong>Assertion:</strong>
-<span wicket:id="templatename" class="templatename"></span>
-<a href="#" wicket:id="templatelink">^</a>
 </p>
-
-<p wicket:id="templatedesc"></p>
 
 <div class="nanopub">
 <div class="nanopub-assertion nanopub-graph">
@@ -80,7 +92,7 @@
 
 <div wicket:id="pis">
 <p class="graphsubheader">
-<span wicket:id="pitemplatename" class="templatename"></span>
+<span wicket:id="pitemplatename" class="templatename">Pubinfo template name</span>
 <span wicket:id="piremove" class="smallbutton">&times;</span>
 <a href="#" wicket:id="pitemplatelink">^</a>
 </p>

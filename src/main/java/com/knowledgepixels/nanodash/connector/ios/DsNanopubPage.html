@@ -27,15 +27,20 @@
 This nanopublication has a <a wicket:id="newer-version-link" href=".">newer version</a>.
 </p>
 
-
 <h3>Type Description
 <span class="expltooltip info-icon"><span class="expltooltiptext">
 This is the description of the type this nanopublication belongs to.
 </span></span>
 </h3>
 
-<div class="message">
-<p wicket:id="template-description">(template description)</p>
+<div class="message collapse-overflow">
+<span class="collapse-content">
+<p wicket:id="template-description">
+(template description)
+</p>
+</span>
+<div class="expand" onclick="expandOverflow(this);"></div>
+<div class="collapse" onclick="collapseOverflow(this);"></div>
 </div>
 
 <div wicket:id="navigation"></div>
