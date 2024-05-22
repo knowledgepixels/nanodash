@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.PublishForm;
 import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage;
@@ -23,7 +24,11 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 
 		final ConnectorNanopubType type = ConnectorNanopubType.get(parameters.get("type").toString());
 
-		add(new TitleBar("titlebar", this, "connectors"));
+		add(new TitleBar("titlebar", this, "connectors",
+				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
+				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),
+				new NanodashPageRef("Publish")
+			));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		if (parameters.get("template").toString() != null) {

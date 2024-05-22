@@ -8,6 +8,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
 import com.knowledgepixels.nanodash.TitleBar;
@@ -23,7 +24,11 @@ public abstract class ConnectPage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
-		add(new TitleBar("titlebar", this, "connectors"));
+		add(new TitleBar("titlebar", this, "connectors",
+				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
+				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),
+				new NanodashPageRef("Connect")
+			));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 		add(new NanopubItem("nanopub", new NanopubElement(np)).expand());

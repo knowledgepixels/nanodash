@@ -28,13 +28,13 @@
 
 </div>
 
-<div id="content-pane" class="plain titlepath" wicket:id="titlepath">
+<div id="content-pane" class="plain breadcrumbpath" wicket:id="breadcrumbpath">
 <div class="row-section">
 <div class="col-12">
 
-<a wicket:id="firstpathelement" href=".">Top Level</a>
+<a wicket:id="firstpathelement" href="."><span wicket:id="firstpathelement-label">Top Level</span></a>
 <span wicket:id="morepathelements">
-&gt; <a wicket:id="furtherpathelement" href=".">Lower Level</a>
+<span class="nextlevel">&gt;</span> <a wicket:id="furtherpathelement" href="."><span wicket:id="furtherpathelement-label">Lower Level</span></a>
 </span>
 
 </div></div></div>

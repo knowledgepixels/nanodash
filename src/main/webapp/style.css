@@ -587,7 +587,7 @@ select {
   display: table;
 }
 
-.titlepath {
+.breadcrumbpath {
   font-family: Martian,monaco,monospace;
   font-weight: 700;
   font-size: 9pt;
@@ -597,8 +597,16 @@ select {
   border-width: 0 0 4px 0;
 }
 
-.titlepath [class*="col-"] {
-  padding: 10px 15px;
+.breadcrumbpath [class*="col-"] {
+  padding: 10px 0;
+}
+
+.breadcrumbpath .nextlevel {
+  font-size: 24px;
+  margin: -10px 0;
+  vertical-align: top;
+  display: inline-block;
+  font-weight: normal;
 }
 
 #outer {

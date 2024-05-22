@@ -59,7 +59,7 @@ public abstract class ConnectorConfig implements Serializable {
 	}
 
 	public String getGeneralApiCall() {
-		return "";
+		return null;
 	}
 
 }

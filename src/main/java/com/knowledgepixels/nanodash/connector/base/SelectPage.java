@@ -9,6 +9,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.TitleBar;
 
 
@@ -23,7 +24,10 @@ public abstract class SelectPage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
-		add(new TitleBar("titlebar", this, "connectors"));
+		add(new TitleBar("titlebar", this, "connectors",
+				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
+				new NanodashPageRef("Create Nanopublication")
+			));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
 

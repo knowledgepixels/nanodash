@@ -22,6 +22,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ExplorePage;
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NanopubItem;
 import com.knowledgepixels.nanodash.PublishPage;
@@ -42,7 +43,10 @@ public abstract class NanopubPage extends ConnectorPage {
 		super(parameters);
 		if (parameters == null) return;
 
-		add(new TitleBar("titlebar", this, "connectors"));
+		add(new TitleBar("titlebar", this, "connectors",
+				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
+				new NanodashPageRef("Nanopublication")
+			));
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
