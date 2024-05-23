@@ -6,7 +6,7 @@
 <script type="text/javascript" src="../../../../webapp/scripts/jquery.js"></script>
 <script type="text/javascript" src="nanodash.js"></script>
 </head>
-<body style="margin-left:100px; margin-right:100px;">
+<body style="margin-left: auto; margin-right: auto; max-width: 1400px">
 
 <wicket:panel>
 
@@ -33,12 +33,16 @@
 
 <form wicket:id="form">
 
-<p class="graphheader">
+<div class="assertionsection">
+
+<p class="graphheader"><strong>Assertion</strong></p>
+
+<p class="graphsubheader">
 <strong wicket:id="templatename" class="templatename">Assertion template name</strong>
 <a href="#" wicket:id="templatelink">^</a>
 </p>
 
-<div class="message collapse-overflow">
+<div class="message plain collapse-overflow">
 <span class="collapse-content">
 <p wicket:id="templatedesc">
 (assertion template description)
@@ -47,11 +51,6 @@
 <div class="expand" onclick="expandOverflow(this);"></div>
 <div class="collapse" onclick="collapseOverflow(this);"></div>
 </div>
-
-<div class="assertionsection">
-
-<p class="graphheader"><strong>Assertion:</strong>
-</p>
 
 <div class="nanopub">
 <div class="nanopub-assertion nanopub-graph">
@@ -67,8 +66,10 @@
 <div class="provsection">
 
 <p class="graphheader">
-<strong>Provenance:</strong>
-<span class="templatename"><select wicket:id="prtemplate"></select></span>
+<strong>Provenance</strong>
+</p>
+<p class="graphsubheader">
+<span class="templatename"><select wicket:id="prtemplate" class="provselect"></select></span>
 <a href="#" wicket:id="prtemplatelink">^</a>
 </p>
 
@@ -86,8 +87,8 @@
 <div class="pubinfosection">
 
 <p class="graphheader">
-<strong>Publication info:</strong>
-<select wicket:id="pitemplate"></select>
+<strong>Publication info</strong>
+<select wicket:id="pitemplate" class="pubinfoadd"></select>
 </p>
 
 <div wicket:id="pis">

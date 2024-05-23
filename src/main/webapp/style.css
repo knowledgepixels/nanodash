@@ -421,7 +421,13 @@ button.select2-selection__clear {
   color: #888;
 }
 
+select.provselect {
+  width: 500px;
+}
 
+select.pubinfoadd {
+  width: 150px;
+}
 
 strong {
 	font-weight: bold;
@@ -1052,6 +1058,12 @@ hr {
   margin: 8px 0;
 }
 
+.message.plain {
+  background: white;
+  margin: 0;
+  padding: 0;
+}
+
 .instruction {
   background: #DAE5F1;
   padding: 25px;
@@ -1265,6 +1277,13 @@ span.internal {
   opacity: 0.7;
 }
 
+.message.plain .expand {
+  margin: 6px;
+  border-color: white;
+  background: #F3F6F9;
+  background-image: url("images/down-arrow.svg");
+}
+
 .collapse {
   display: none;
   position: absolute;
@@ -1283,4 +1302,11 @@ span.internal {
 }
 .collapse:hover {
   opacity: 0.7;
+}
+
+.message.plain .collapse {
+  margin: 6px;
+  border-color: white;
+  background: #F3F6F9;
+  background-image: url("images/down-arrow.svg");
 }
