@@ -108,6 +108,37 @@ public abstract class OverviewPage extends ConnectorPage {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+
+			if (getConfig().getGeneralReactionsApiCall() != null ) {
+				try {
+					ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+	
+					ArrayList<ApiResponseEntry> respList = new ArrayList<>();
+					for (ApiResponseEntry a : resp.getData()) {
+						if (respList.size() == 10) break;
+						respList.add(a);
+					}
+	
+					add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(respList)) {
+	
+						private static final long serialVersionUID = 1L;
+	
+						@Override
+						protected void populateItem(Item<ApiResponseEntry> item) {
+							ApiResponseEntry e = item.getModelObject();
+							PageParameters params = new PageParameters().add("id", e.get("ref_np")).add("mode", "candidate");
+							BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", getConfig().getNanopubPage().getClass(), params);
+							l.add(new Label("reactionlinktext", "\"" +  e.get("comment") + "\""));
+							item.add(l);
+							String username = User.getShortDisplayName(null, e.get("pubkey"));
+							item.add(new Label("reactionnote", "by " + username + " on " + e.get("date").substring(0, 10)));
+						}
+	
+					});
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
 		}
 	}
 

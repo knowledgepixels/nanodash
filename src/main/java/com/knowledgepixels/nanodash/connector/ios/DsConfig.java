@@ -80,6 +80,11 @@ public class DsConfig extends ConnectorConfig {
 	}
 
 	@Override
+	public String getGeneralReactionsApiCall() {
+		return "get-ds-reactions";
+	}
+
+	@Override
 	public SelectPage getSelectPage() {
 		return selectPageInstance;
 	}
