@@ -1310,3 +1310,12 @@ span.internal {
   background: #F3F6F9;
   background-image: url("images/down-arrow.svg");
 }
+
+.listcomponent {
+  position: relative;
+}
+.listcomponent .listaction {
+  position: absolute;
+  right: 0;
+  top: 0;
+}

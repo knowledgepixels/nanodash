@@ -26,11 +26,17 @@
 
 <h2>Your Nanopublications</h2>
 
+<div wicket:id="owncandidates-component" class="listcomponent">
+
 <h3>Latest Candidates</h3>
+
+<p class="listaction"><a wicket:id="allowncandidates">show all</a></p>
 
 <ul class="box main">
 <li wicket:id="own"><a wicket:id="ownlink"><span wicket:id="ownlinktext">nanopub label</span></a> <span wicket:id="ownnote">note</span></li>
 </ul>
+
+</div>
 
 <p class="center">
 <a wicket:id="create-new" class="button" href="/connector/pensoft/bdj/select">Create Nanopublication</a>
@@ -64,11 +70,17 @@ See the "Nanopublications" guidelines in the <a href="https://bdj.pensoft.net/ab
 
 <h2>Other Nanopublications</h2>
 
+<div wicket:id="candidates-component" class="listcomponent">
+
 <h3>Latest Candidates</h3>
+
+<p class="listaction"><a wicket:id="allcandidates">show all</a></p>
 
 <ul class="box odd">
 <li wicket:id="candidates"><a wicket:id="candidatelink"><span wicket:id="candidatelinktext">nanopub label</span></a> <span wicket:id="candidatenote">note</span></li>
 </ul>
+
+</div>
 
 </div>
 

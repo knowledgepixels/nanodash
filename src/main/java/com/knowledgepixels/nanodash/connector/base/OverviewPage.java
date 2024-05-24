@@ -2,7 +2,11 @@ package com.knowledgepixels.nanodash.connector.base;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -39,17 +43,23 @@ public abstract class OverviewPage extends ConnectorPage {
 			if (NanodashSession.get().getUserIri() != null) {
 
 				try {
+					final WebMarkupContainer c = new WebMarkupContainer("owncandidates-component");
+					c.setOutputMarkupId(true);
+					add(c);
+
 					HashMap<String,String> apiParam = new HashMap<>();
 					apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
 					ApiResponse resp = callApi(getConfig().getGeneralApiCall(), apiParam);
 
-					ArrayList<ApiResponseEntry> respList = new ArrayList<>();
+					final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+					final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
 					for (ApiResponseEntry a : resp.getData()) {
-						if (respList.size() == 10) break;
-						respList.add(a);
+						if (listData.size() < 10) listData.add(a);
+						// TODO This will become inefficient at some point:
+						fullList.add(a);
 					}
 
-					add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(respList)) {
+					c.add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(listData)) {
 
 						private static final long serialVersionUID = 1L;
 
@@ -65,6 +75,25 @@ public abstract class OverviewPage extends ConnectorPage {
 						}
 
 					});
+
+					c.add(new AjaxLink<>("allowncandidates") {
+
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							try {
+								listData.clear();
+								listData.addAll(fullList);
+								target.add(c);
+								setVisible(false);
+								target.add(this);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+						}
+
+					}.setVisible(fullList.size() > 10));
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -81,15 +110,21 @@ public abstract class OverviewPage extends ConnectorPage {
 			}
 
 			try {
+				final WebMarkupContainer c = new WebMarkupContainer("candidates-component");
+				c.setOutputMarkupId(true);
+				add(c);
+
 				ApiResponse resp = callApi(getConfig().getGeneralApiCall(), new HashMap<>());
 
-				ArrayList<ApiResponseEntry> respList = new ArrayList<>();
+				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
 				for (ApiResponseEntry a : resp.getData()) {
-					if (respList.size() == 10) break;
-					respList.add(a);
+					if (listData.size() < 10) listData.add(a);
+					// TODO This will become inefficient at some point:
+					fullList.add(a);
 				}
 
-				add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(respList)) {
+				c.add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(listData)) {
 
 					private static final long serialVersionUID = 1L;
 
@@ -105,22 +140,48 @@ public abstract class OverviewPage extends ConnectorPage {
 					}
 
 				});
+
+				c.add(new AjaxLink<>("allcandidates") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						try {
+							listData.clear();
+							listData.addAll(fullList);
+							target.add(c);
+							setVisible(false);
+							target.add(this);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+
+				}.setVisible(fullList.size() > 10));
+
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 
 			if (getConfig().getGeneralReactionsApiCall() != null ) {
 				try {
+					final WebMarkupContainer c = new WebMarkupContainer("reactions-component");
+					c.setOutputMarkupId(true);
+					add(c);
+	
 					ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
-	
-					ArrayList<ApiResponseEntry> respList = new ArrayList<>();
+
+					final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+					final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
 					for (ApiResponseEntry a : resp.getData()) {
-						if (respList.size() == 10) break;
-						respList.add(a);
+						if (listData.size() < 10) listData.add(a);
+						// TODO This will become inefficient at some point:
+						fullList.add(a);
 					}
-	
-					add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(respList)) {
-	
+
+					c.add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(listData)) {
+						
 						private static final long serialVersionUID = 1L;
 	
 						@Override
@@ -135,6 +196,26 @@ public abstract class OverviewPage extends ConnectorPage {
 						}
 	
 					});
+
+					c.add(new AjaxLink<>("allreactions") {
+
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							try {
+								listData.clear();
+								listData.addAll(fullList);
+								target.add(c);
+								setVisible(false);
+								target.add(this);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+						}
+
+					}.setVisible(fullList.size() > 10));
+	
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
