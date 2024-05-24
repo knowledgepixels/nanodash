@@ -40,12 +40,13 @@ public abstract class OverviewPage extends ConnectorPage {
 
 		if (getConfig().getGeneralApiCall() != null) {
 
-			if (NanodashSession.get().getUserIri() != null) {
+			try {
 
-				try {
-					final WebMarkupContainer c = new WebMarkupContainer("owncandidates-component");
-					c.setOutputMarkupId(true);
-					add(c);
+				final WebMarkupContainer c = new WebMarkupContainer("owncandidates-component");
+				c.setOutputMarkupId(true);
+				add(c);
+
+				if (NanodashSession.get().getUserIri() != null) {
 
 					HashMap<String,String> apiParam = new HashMap<>();
 					apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
@@ -94,19 +95,20 @@ public abstract class OverviewPage extends ConnectorPage {
 						}
 
 					}.setVisible(fullList.size() > 10));
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
 
-				add(new ExternalLink("create-new", getConfig().getSelectPage().getMountPath(), "Create Nanopublication"));
-			} else {
-				add(new Label("own", "").setVisible(false));
-				if (NanodashPreferences.get().isOrcidLoginMode()) {
-					String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath());
-					add(new ExternalLink("create-new", loginUrl, "Login to See More"));
+					add(new ExternalLink("create-new", getConfig().getSelectPage().getMountPath(), "Create Nanopublication"));
 				} else {
-					add(new ExternalLink("create-new", ProfilePage.MOUNT_PATH, "Complete Your Profile to See More"));
+					c.add(new Label("allowncandidates", "").setVisible(false));
+					c.add(new Label("own", "").setVisible(false));
+					if (NanodashPreferences.get().isOrcidLoginMode()) {
+						String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath());
+						add(new ExternalLink("create-new", loginUrl, "Login to See More"));
+					} else {
+						add(new ExternalLink("create-new", ProfilePage.MOUNT_PATH, "Complete Your Profile to See More"));
+					}
 				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 
 			try {
