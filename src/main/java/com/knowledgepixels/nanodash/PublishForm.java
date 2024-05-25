@@ -618,6 +618,7 @@ public class PublishForm extends Panel {
 					protected void onEvent(AjaxRequestTarget target) {
 						pubInfoContexts.remove(pic);
 						target.add(PublishForm.this);
+						target.appendJavaScript("updateElements();");
 					}
 				});
 				if (requiredPubInfoContexts.contains(pic)) remove.setVisible(false);
