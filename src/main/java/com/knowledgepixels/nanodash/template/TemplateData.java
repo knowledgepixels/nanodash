@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.template;
 
 import java.io.IOException;
 import java.io.Serializable;

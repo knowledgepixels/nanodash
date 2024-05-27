@@ -19,9 +19,9 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.google.gson.Gson;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.OrcidLoginResponse;
 import com.knowledgepixels.nanodash.Utils;
 
 
@@ -85,6 +85,53 @@ public class OrcidLoginPage extends WebPage {
 			ex.printStackTrace();
 		}
 		throw new RedirectToUrlException(redirectHashMap.get(parameters.get("redirect-hash").toString()));
+	}
+
+
+	static class OrcidLoginResponse {
+
+		private static Gson g = new Gson();
+
+		public static OrcidLoginResponse fromJson(String jsonString) {
+			return g.fromJson(jsonString, OrcidLoginResponse.class);
+		}
+
+		private String access_token;
+		private String token_type;
+		private String refresh_token;
+		private long expires_in;
+		private String scope;
+		private String name;
+		private String orcid;
+
+		public String getAccessToken() {
+			return access_token;
+		}
+
+		public String getTokenType() {
+			return token_type;
+		}
+
+		public String getRefreshToken() {
+			return refresh_token;
+		}
+
+		public long getExpiresIn() {
+			return expires_in;
+		}
+
+		public String getScope() {
+			return scope;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getOrcid() {
+			return orcid;
+		}
+
 	}
 
 }

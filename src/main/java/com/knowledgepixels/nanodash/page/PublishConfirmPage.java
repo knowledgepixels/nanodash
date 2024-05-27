@@ -12,11 +12,11 @@ import org.nanopub.extra.security.KeyDeclaration;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Template;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.template.Template;
 
 public class PublishConfirmPage extends NanodashPage {
 

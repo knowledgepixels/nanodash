@@ -8,10 +8,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
-import com.knowledgepixels.nanodash.ContextComponent;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.UnificationException;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 public class ValueItem extends Panel implements ContextComponent {
 

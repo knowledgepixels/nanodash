@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.template;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +19,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.NanopubSignatureElement;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 

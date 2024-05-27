@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.template;
 
 public class MalformedTemplateException extends Exception {
 

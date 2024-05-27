@@ -21,11 +21,11 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 public class TemplateList extends Panel {
 	

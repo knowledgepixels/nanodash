@@ -21,12 +21,12 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class TypePage extends ConnectorPage {

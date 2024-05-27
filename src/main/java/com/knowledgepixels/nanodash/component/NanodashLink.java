@@ -18,10 +18,10 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 public class NanodashLink extends Panel {
 	

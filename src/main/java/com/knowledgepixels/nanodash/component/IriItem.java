@@ -14,14 +14,13 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.SimpleCreatorPattern;
 
 import com.google.common.base.Charsets;
-import com.knowledgepixels.nanodash.ContextComponent;
-import com.knowledgepixels.nanodash.ContextType;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateContext;
-import com.knowledgepixels.nanodash.UnificationException;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 public class IriItem extends Panel implements ContextComponent {
 	

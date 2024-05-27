@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.TemplateData;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 public class ImproveAction extends NanopubAction {
 

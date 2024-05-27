@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.template;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,6 +21,8 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
 
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem;
 
 public class TemplateContext implements Serializable {

@@ -15,6 +15,8 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
+import com.knowledgepixels.nanodash.template.TemplateContext;
+
 public class RestrictedChoice implements Serializable {
 
 	private static final long serialVersionUID = 1L;

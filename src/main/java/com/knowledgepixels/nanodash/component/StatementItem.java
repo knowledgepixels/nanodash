@@ -25,10 +25,10 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
 
-import com.knowledgepixels.nanodash.ContextType;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateContext;
-import com.knowledgepixels.nanodash.UnificationException;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 public class StatementItem extends Panel {
 

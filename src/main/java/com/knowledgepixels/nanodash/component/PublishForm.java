@@ -52,20 +52,19 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.ContextType;
-import com.knowledgepixels.nanodash.InvalidityHighlighting;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateContext;
-import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.ValueFiller;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 public class PublishForm extends Panel {
 

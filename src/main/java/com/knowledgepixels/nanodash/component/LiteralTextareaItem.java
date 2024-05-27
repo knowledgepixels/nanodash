@@ -5,7 +5,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
 
-import com.knowledgepixels.nanodash.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateContext;
 
 public class LiteralTextareaItem extends LiteralTextfieldItem {
 	

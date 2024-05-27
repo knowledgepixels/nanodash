@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.template;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -20,6 +20,9 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+
+import com.knowledgepixels.nanodash.LookupApis;
+import com.knowledgepixels.nanodash.Utils;
 
 public class Template implements Serializable {
 

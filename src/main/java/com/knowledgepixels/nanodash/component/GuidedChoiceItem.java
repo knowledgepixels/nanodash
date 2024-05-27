@@ -24,12 +24,11 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.ContextComponent;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateContext;
-import com.knowledgepixels.nanodash.UnificationException;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 public class GuidedChoiceItem extends Panel implements ContextComponent {
 	

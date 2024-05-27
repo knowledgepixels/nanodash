@@ -9,10 +9,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
 import com.knowledgepixels.nanodash.Group;
-import com.knowledgepixels.nanodash.TemplateData;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 public abstract class NanodashPage extends WebPage {
 

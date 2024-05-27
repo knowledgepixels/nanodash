@@ -1,6 +1,8 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.component;
 
 import org.eclipse.rdf4j.model.Value;
+
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 public interface ContextComponent {
 

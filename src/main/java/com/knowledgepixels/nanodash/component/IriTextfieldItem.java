@@ -22,12 +22,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
 
-import com.knowledgepixels.nanodash.ContextComponent;
-import com.knowledgepixels.nanodash.InvalidityHighlighting;
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateContext;
-import com.knowledgepixels.nanodash.UnificationException;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 import net.trustyuri.TrustyUriUtils;
 

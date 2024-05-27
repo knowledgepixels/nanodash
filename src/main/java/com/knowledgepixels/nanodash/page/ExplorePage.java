@@ -15,11 +15,11 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Template;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.template.Template;
 
 import net.trustyuri.TrustyUriUtils;
 

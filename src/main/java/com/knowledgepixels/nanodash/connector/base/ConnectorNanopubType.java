@@ -3,8 +3,8 @@ package com.knowledgepixels.nanodash.connector.base;
 import java.io.Serializable;
 import java.util.HashMap;
 
-import com.knowledgepixels.nanodash.Template;
-import com.knowledgepixels.nanodash.TemplateData;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 
 public class ConnectorNanopubType implements Serializable {
