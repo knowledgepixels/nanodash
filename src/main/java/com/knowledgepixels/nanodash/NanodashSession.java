@@ -56,9 +56,6 @@ public class NanodashSession extends WebSession {
 	private Boolean isOrcidLinked;
 	private String orcidLinkError;
 
-	private boolean showProvenance = true;
-	private boolean showPubinfo = false;
-
 	private Integer localIntroCount = null;
 	private IntroNanopub localIntro = null;
 
@@ -261,22 +258,6 @@ public class NanodashSession extends WebSession {
 		if (introExtractor == null || introExtractor.getName() == null) return null;
 		if (introExtractor.getName().trim().isEmpty()) return null;
 		return introExtractor.getName();
-	}
-
-	public boolean isShowProvenanceEnabled() {
-		return showProvenance;
-	}
-
-	public void setShowProvenanceEnabled(boolean showProvenance) {
-		this.showProvenance = showProvenance;
-	}
-
-	public boolean isShowPubinfoEnabled() {
-		return showPubinfo;
-	}
-
-	public void setShowPubinfoEnabled(boolean showPubinfo) {
-		this.showPubinfo = showPubinfo;
 	}
 
 	private File getOrcidFile() {
