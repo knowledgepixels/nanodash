@@ -27,6 +27,9 @@ import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.IntroNanopub.IntroExtractor;
 
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.ProfilePage;
+
 public class NanodashSession extends WebSession {
 
 	private static final long serialVersionUID = -7920814788717089213L;

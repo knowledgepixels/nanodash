@@ -8,6 +8,8 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.knowledgepixels.nanodash.page.NanodashPage;
+
 public class NanodashPageRef implements Serializable {
 
 	private static final long serialVersionUID = 1L;

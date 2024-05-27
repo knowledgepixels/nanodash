@@ -7,7 +7,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 
-import com.knowledgepixels.nanodash.NanodashPage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.opencsv.exceptions.CsvValidationException;
 
 public abstract class ConnectorPage extends NanodashPage {

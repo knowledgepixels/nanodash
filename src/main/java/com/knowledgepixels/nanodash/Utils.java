@@ -37,7 +37,7 @@ public class Utils {
 
 	private Utils() {}  // no instances allowed
 
-	static ValueFactory vf = SimpleValueFactory.getInstance();
+	public static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 	public static String getShortNameFromURI(IRI uri) {
 		String u = uri.stringValue();

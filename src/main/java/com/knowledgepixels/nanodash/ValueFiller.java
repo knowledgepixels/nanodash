@@ -19,6 +19,9 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.NanopubSignatureElement;
 
+import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
+import com.knowledgepixels.nanodash.component.PublishForm;
+
 public class ValueFiller {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();

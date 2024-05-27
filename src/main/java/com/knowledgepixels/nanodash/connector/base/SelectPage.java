@@ -10,7 +10,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.TitleBar;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 
 public abstract class SelectPage extends ConnectorPage {

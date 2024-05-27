@@ -9,8 +9,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.PublishForm;
-import com.knowledgepixels.nanodash.TitleBar;
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjPublishPage;
 

@@ -21,6 +21,8 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
 
+import com.knowledgepixels.nanodash.component.StatementItem;
+
 public class TemplateContext implements Serializable {
 
 	private static final long serialVersionUID = 1L;

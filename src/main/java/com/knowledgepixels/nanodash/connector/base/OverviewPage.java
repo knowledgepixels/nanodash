@@ -22,10 +22,10 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.OrcidLoginPage;
-import com.knowledgepixels.nanodash.ProfilePage;
-import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.ProfilePage;
 
 public abstract class OverviewPage extends ConnectorPage {
 

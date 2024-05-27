@@ -10,9 +10,9 @@ import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.NanopubItem;
-import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 import net.trustyuri.TrustyUriUtils;
 

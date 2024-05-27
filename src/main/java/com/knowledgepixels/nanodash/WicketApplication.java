@@ -13,15 +13,49 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
 
+import com.knowledgepixels.nanodash.connector.ios.DsConnectPage;
+import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
+import com.knowledgepixels.nanodash.connector.ios.DsOverviewPage;
+import com.knowledgepixels.nanodash.connector.ios.DsPublishPage;
+import com.knowledgepixels.nanodash.connector.ios.DsSelectPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjPublishPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjSelectPage;
+import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
+import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
+import com.knowledgepixels.nanodash.connector.pensoft.RioTypePage;
+import com.knowledgepixels.nanodash.page.ConnectorListPage;
+import com.knowledgepixels.nanodash.page.ErrorPage;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.GetViewPage;
+import com.knowledgepixels.nanodash.page.GrlcSpecPage;
+import com.knowledgepixels.nanodash.page.GroupDemoPage;
+import com.knowledgepixels.nanodash.page.GroupDemoPageSoc;
+import com.knowledgepixels.nanodash.page.GroupListPage;
+import com.knowledgepixels.nanodash.page.GroupPage;
+import com.knowledgepixels.nanodash.page.HomePage;
+import com.knowledgepixels.nanodash.page.MyChannelPage;
+import com.knowledgepixels.nanodash.page.OrcidLinkingPage;
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.ProfilePage;
+import com.knowledgepixels.nanodash.page.PublishConfirmPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.ReferenceTablePage;
+import com.knowledgepixels.nanodash.page.SearchPage;
+import com.knowledgepixels.nanodash.page.UserListPage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.page.ViewPage;
+
 public class WicketApplication extends WebApplication {
 
-	protected static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
+	public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
 
 	public WicketApplication() {
 		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -84,40 +118,23 @@ public class WicketApplication extends WebApplication {
 		mountPage(TermForwarder.MOUNT_PATH, TermForwarder.class);
 		mountPage(ViewPage.MOUNT_PATH, ViewPage.class);
 		mountPage(GetViewPage.MOUNT_PATH, GetViewPage.class);
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsOverviewPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsSelectPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsPublishPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsConnectPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.DsNanopubPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcOverviewPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcTypePage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.ios.FcNanopubPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioTypePage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjSelectPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjPublishPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage");
-		tryToMountPage("com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage");
+		mountPage(DsOverviewPage.MOUNT_PATH, DsOverviewPage.class);
+		mountPage(DsSelectPage.MOUNT_PATH, DsSelectPage.class);
+		mountPage(DsPublishPage.MOUNT_PATH, DsPublishPage.class);
+		mountPage(DsConnectPage.MOUNT_PATH, DsConnectPage.class);
+		mountPage(DsNanopubPage.MOUNT_PATH, DsNanopubPage.class);
+		mountPage(RioOverviewPage.MOUNT_PATH, RioOverviewPage.class);
+		mountPage(RioTypePage.MOUNT_PATH, RioTypePage.class);
+		mountPage(RioNanopubPage.MOUNT_PATH, RioNanopubPage.class);
+		mountPage(BdjOverviewPage.MOUNT_PATH, BdjOverviewPage.class);
+		mountPage(BdjSelectPage.MOUNT_PATH, BdjSelectPage.class);
+		mountPage(BdjPublishPage.MOUNT_PATH, BdjPublishPage.class);
+		mountPage(BdjConnectPage.MOUNT_PATH, BdjConnectPage.class);
+		mountPage(BdjNanopubPage.MOUNT_PATH, BdjNanopubPage.class);
 
 		mountPage(GrlcSpecPage.MOUNT_PATH, GrlcSpecPage.class);
 
 		getCspSettings().blocking().disabled();
-	}
-
-	private void tryToMountPage(String pageClassName) {
-		try {
-			@SuppressWarnings("unchecked")
-			Class<WebPage> pageClass = (Class<WebPage>) Class.forName(pageClassName);
-			String mountPath = pageClass.getField("MOUNT_PATH").get(null).toString();
-			System.err.println("Mounting extra page: " + mountPath);
-			mountPage(mountPath, pageClass);
-		} catch (ClassNotFoundException ex) {
-			// ignore
-		} catch (ClassCastException | NoSuchFieldException | IllegalAccessException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	@Override
@@ -128,7 +145,7 @@ public class WicketApplication extends WebApplication {
 
 	private static String latestVersion = null;
 
-	protected static String getLatestVersion() {
+	public static String getLatestVersion() {
 		if (latestVersion != null) return latestVersion;
 		BufferedReader reader = null;
 		try {
@@ -151,7 +168,7 @@ public class WicketApplication extends WebApplication {
 		return latestVersion;
 	}
 
-	protected final static Properties properties = new Properties();
+	public final static Properties properties = new Properties();
 
 	static {
 		try {
@@ -161,7 +178,7 @@ public class WicketApplication extends WebApplication {
 		}
 	}
 
-	protected static String getThisVersion() {
+	public static String getThisVersion() {
 		return properties.getProperty("nanodash.version");
 	}
 

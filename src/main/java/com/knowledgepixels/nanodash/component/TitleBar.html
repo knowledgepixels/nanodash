@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</head>
+<body>
+
+<wicket:panel>
+
+<div id="titlebar">
+
+<div wicket:id="profile"></div>
+
+<div class="alignleft">
+<span class="title">
+<a href="."><span class="logo"/></a>
+<a href="https://knowledgepixels.com" target="_blank"><span class="orglogo"/></a>
+</span>
+<span class="menu">
+<span wicket:id="mychannel"><a href="./mychannel">My Channel</a></span>
+<span wicket:id="users"><a href="./userlist">Users</a></span>
+<span wicket:id="connectors"><a href="./connectorlist">Journals</a></span>
+<span wicket:id="search"><a href="./search">Search</a></span>
+<span wicket:id="publish"><a href="./publish">Publish</a></span>
+</span>
+</div>
+
+</div>
+
+<div id="content-pane" class="plain breadcrumbpath" wicket:id="breadcrumbpath">
+<div class="row-section">
+<div class="col-12">
+
+<a wicket:id="firstpathelement" href="."><span wicket:id="firstpathelement-label">Top Level</span></a>
+<span wicket:id="morepathelements">
+<span class="nextlevel">&gt;</span> <a wicket:id="furtherpathelement" href="."><span wicket:id="furtherpathelement-label">Lower Level</span></a>
+</span>
+
+</div></div></div>
+
+</wicket:panel>
+
+</body>
+
+</html>

@@ -21,17 +21,17 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.ExplorePage;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.NanopubItem;
-import com.knowledgepixels.nanodash.PublishPage;
 import com.knowledgepixels.nanodash.Template;
 import com.knowledgepixels.nanodash.TemplateData;
-import com.knowledgepixels.nanodash.TitleBar;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 
 import net.trustyuri.TrustyUriUtils;
 

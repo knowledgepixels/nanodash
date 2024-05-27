@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>Search | nanodash</title>
+<link rel="stylesheet" href="style.css?v=2.51" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div id="outer">
+
+<div wicket:id="titlebar"></div>
+
+<div id="content">
+
+<h2>Search</h2>
+
+<form wicket:id="form">
+<input wicket:id="search" type="text" class="textfield" size="100" required />
+<input type="submit" class="button" value="Search">
+<br>
+<div class="filter" wicket:id="own-filter">
+<input id="owncb" type="checkbox" wicket:id="filter" />
+<label for="owncb">Only show my nanopubs</label>
+<span>
+keys:
+<span class="pubkeyselect" wicket:id="pubkeygroup"></span>
+</span>
+</div>
+</form>
+
+<h2>Results</h2>
+
+<div wicket:id="nanopubs">
+</div>
+
+<div class="status" wicket:id="progress"></div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<script type="text/javascript" src="../../../../../webapp/scripts/jquery.js?for-local-testing-only"></script>
+<script type="text/javascript" src="../nanodash.js?for-local-testing-only"></script>
+</head>
+<body style="margin-left: auto; margin-right: auto; max-width: 1400px">
+
+<wicket:panel>
+
+<p><span wicket:id="newversion" class="negative">information about new versions of templates will be put here:</span> <a wicket:id="newversionlink">switch to latest version</a></p>
+
+<p><span wicket:id="warnings" class="negative">warning messages will be put here</span></p>
+
+<ul>
+<li wicket:id="unused-statements"><span class="negative">Assertion: </span> <span wicket:id="unused-statement"></span></li>
+</ul>
+<ul>
+<li wicket:id="unused-prstatements"><span class="negative">Provenance: </span> <span wicket:id="unused-prstatement"></span></li>
+</ul>
+<ul>
+<li wicket:id="unused-pistatements"><span class="negative">Publication info: </span> <span wicket:id="unused-pistatement"></span></li>
+</ul>
+
+<div wicket:id="link-message-item">
+<p><strong>Message for this link:</strong></p>
+<div class="message">
+<span wicket:id="link-message">the link message (if any) will be shown here</span>
+</div>
+</div>
+
+<form wicket:id="form">
+
+<div class="assertionsection">
+
+<p class="graphheader"><strong>Assertion</strong></p>
+
+<p class="graphsubheader">
+<strong wicket:id="templatename" class="templatename">Assertion template name</strong>
+<a href="#" wicket:id="templatelink">^</a>
+</p>
+
+<div class="message plain collapse-overflow">
+<span class="collapse-content">
+<p wicket:id="templatedesc">
+(assertion template description)
+</p>
+</span>
+<div class="expand" onclick="expandOverflow(this);"></div>
+<div class="collapse" onclick="collapseOverflow(this);"></div>
+</div>
+
+<div class="nanopub">
+<div class="nanopub-assertion nanopub-graph">
+<div wicket:id="statements">
+<div wicket:id="statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="provsection">
+
+<p class="graphheader">
+<strong>Provenance</strong>
+</p>
+<p class="graphsubheader">
+<span class="templatename"><select wicket:id="prtemplate" class="provselect"></select></span>
+<a href="#" wicket:id="prtemplatelink">^</a>
+</p>
+
+<div class="nanopub">
+<div class="nanopub-provenance nanopub-graph">
+<div wicket:id="pr-statements">
+<div wicket:id="pr-statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="pubinfosection">
+
+<p class="graphheader">
+<strong>Publication info</strong>
+<select wicket:id="pitemplate" class="pubinfoadd"></select>
+</p>
+
+<div wicket:id="pis">
+<p class="graphsubheader">
+<span wicket:id="pitemplatename" class="templatename">Pubinfo template name</span>
+<span wicket:id="piremove" class="smallbutton">&times;</span>
+<a href="#" wicket:id="pitemplatelink">^</a>
+</p>
+
+<div class="nanopub">
+<div class="nanopub-pubinfo nanopub-graph">
+<div wicket:id="pi-statements">
+<div wicket:id="pi-statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<p>
+<input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
+I understand that publishing cannot be fully undone and that the provided information will be publicly visible and openly connected to my ORCID identifier
+(but nanopublications can be retracted, which makes them invisible in most situations).
+</p>
+
+<p class="center">
+<input type="submit" class="button" value="Publish" />
+</p>
+
+</form>
+
+<div wicket:id="feedback" class="negative">feedback messages will be put here</div>
+
+</wicket:panel>
+
+</body>
+
+</html>

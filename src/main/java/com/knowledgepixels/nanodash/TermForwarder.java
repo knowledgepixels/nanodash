@@ -15,6 +15,10 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.GroupPage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.SearchPage;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class TermForwarder extends NanodashPage {
