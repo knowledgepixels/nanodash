@@ -29,6 +29,7 @@ import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -68,17 +69,16 @@ public abstract class NanopubPage extends ConnectorPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
-		String backLink = " <a class=\"button light\" href=\"" + getConfig().getOverviewPage().getMountPath() + "\">&lt; Back to Overview</a> ";
-		String navigationLinks = "";
-		if (mode.equals("author")) {
-			navigationLinks += backLink;
-			navigationLinks += " <a class=\"button light\" href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "reviewer")) + "\">Switch to Reviewer View</a> ";
-		} else if (mode.equals("reviewer")) {
-			navigationLinks += " <a class=\"button light\" href=\"" + getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("mode", "author")) + "\">Switch to Author View</a> ";
-		} else if (mode.equals("final") || mode.equals("candidate")) {
-			navigationLinks = "";
-		}
-		add(new Label("navigation", "<p class=\"center\">" + navigationLinks + "</p>").setEscapeModelStrings(false));
+		add(new BookmarkablePageLink<NanodashPage>(
+				"switch-to-reviewer-view",
+				getConfig().getNanopubPage().getClass(),
+				new PageParameters(getPageParameters()).set("mode", "reviewer")
+			).setVisible(mode.equals("author")));
+		add(new BookmarkablePageLink<NanodashPage>(
+				"switch-to-author-view",
+				getConfig().getNanopubPage().getClass(),
+				new PageParameters(getPageParameters()).set("mode", "author")
+			).setVisible(mode.equals("reviewer")));
 
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
