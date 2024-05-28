@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 import com.knowledgepixels.nanodash.connector.base.SelectPage;
-import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class BdjConfig extends ConnectorConfig {
 
@@ -22,9 +21,9 @@ public class BdjConfig extends ConnectorConfig {
 	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/bdj-nanopub-api/";
 
 	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
-	private static final SelectPage selectPageInstance = new BdjSelectPage(null);
-	private static final ConnectorPublishPage publishPageInstance = new BdjPublishPage(null);
-	private static final ConnectPage connectPageInstance = new BdjConnectPage(null, null);
+	private static final BdjSelectPage selectPageInstance = new BdjSelectPage(null);
+	private static final BdjPublishPage publishPageInstance = new BdjPublishPage(null);
+	private static final BdjConnectPage connectPageInstance = new BdjConnectPage(null, null);
 	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
 
 	@Override
@@ -45,11 +44,6 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public ConnectPage getConnectPage() {
 		return connectPageInstance;
-	}
-
-	@Override
-	public TypePage getTypePage() {
-		return null;
 	}
 
 	@Override
@@ -86,12 +80,6 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://bdj.kpxl.org/";
-	}
-
-	@Override
-	public String getPublishFormMessage() {
-		// TODO This method is no longer needed with the redesign.
-		return "";
 	}
 
 	@Override

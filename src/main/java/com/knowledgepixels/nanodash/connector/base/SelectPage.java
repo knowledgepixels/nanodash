@@ -41,6 +41,7 @@ public abstract class SelectPage extends ConnectorPage {
 				params.add("type", type.getId());
 				params.add("template", type.getTemplate().getId());
 				params.add("prtemplate", type.getPrTemplateId());
+				System.err.println(getConfig().getPublishPage().getMountPath());
 				throw new RestartResponseException(getConfig().getPublishPage().getClass(), params);
 			}
 

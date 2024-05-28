@@ -69,11 +69,6 @@ public abstract class NanopubPage extends ConnectorPage {
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
 		String backLink = " <a class=\"button light\" href=\"" + getConfig().getOverviewPage().getMountPath() + "\">&lt; Back to Overview</a> ";
-		if (!getPageParameters().get("type").isEmpty()) {
-			String type = getPageParameters().get("type").toString();
-			backLink = " <a class=\"button light\" href=\"" + getConfig().getTypePage().getMountPath() + "?type=" + type + "\">&lt; Back to Type</a> ";
-		}
-
 		String navigationLinks = "";
 		if (mode.equals("author")) {
 			navigationLinks += backLink;

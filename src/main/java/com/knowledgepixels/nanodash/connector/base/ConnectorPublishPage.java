@@ -11,8 +11,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConnectPage;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjPublishPage;
 
 public abstract class ConnectorPublishPage extends ConnectorPage {
 
@@ -33,7 +31,7 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 
 		if (parameters.get("template").toString() != null) {
 			parameters.add("template-version", "latest");
-			add(new PublishForm("form", parameters, BdjPublishPage.class, BdjConnectPage.class));
+			add(new PublishForm("form", parameters, getConfig().getPublishPage().getClass(), getConfig().getConnectPage().getClass()));
 		} else {
 			throw new RuntimeException("no template parameter");
 		}

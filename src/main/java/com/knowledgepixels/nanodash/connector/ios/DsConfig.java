@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
 import com.knowledgepixels.nanodash.connector.base.SelectPage;
-import com.knowledgepixels.nanodash.connector.base.TypePage;
 
 public class DsConfig extends ConnectorConfig {
 
@@ -25,17 +24,11 @@ public class DsConfig extends ConnectorConfig {
 	private static final DsSelectPage selectPageInstance = new DsSelectPage(null);
 	private static final DsPublishPage publishPageInstance = new DsPublishPage(null);
 	private static final DsConnectPage connectPageInstance = new DsConnectPage(null, null);
-	private static final DsTypePage typePageInstance = new DsTypePage(null);
 	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage(null);
 
 	@Override
 	public OverviewPage getOverviewPage() {
 		return overviewPageInstance;
-	}
-
-	@Override
-	public TypePage getTypePage() {
-		return typePageInstance;
 	}
 
 	@Override

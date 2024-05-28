@@ -38,8 +38,6 @@ public abstract class ConnectorConfig implements Serializable {
 		return null;
 	}
 
-	public abstract TypePage getTypePage();
-
 	public abstract NanopubPage getNanopubPage();
 
 	public abstract String getLogoFileName();
@@ -54,13 +52,7 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getReviewUrlPrefix();
 
-	public String getPublishFormMessage() {
-		return null;
-	}
-
-	public String getGeneralApiCall() {
-		return null;
-	}
+	public abstract String getGeneralApiCall();
 
 	public String getGeneralReactionsApiCall() {
 		return null;

@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
+import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.base.TypePage;
+import com.knowledgepixels.nanodash.connector.base.SelectPage;
 
 public class RioConfig extends ConnectorConfig {
 
@@ -19,7 +21,9 @@ public class RioConfig extends ConnectorConfig {
 	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/rio-nanopub-api/";
 
 	private static final RioOverviewPage overviewPageInstance = new RioOverviewPage(null);
-	private static final RioTypePage typePageInstance = new RioTypePage(null);
+	private static final RioSelectPage selectPageInstance = new RioSelectPage(null);
+	private static final RioPublishPage publishPageInstance = new RioPublishPage(null);
+	private static final RioConnectPage connectPageInstance = new RioConnectPage(null, null);
 	private static final RioNanopubPage nanopubPageInstance = new RioNanopubPage(null);
 
 	@Override
@@ -28,8 +32,18 @@ public class RioConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public TypePage getTypePage() {
-		return typePageInstance;
+	public SelectPage getSelectPage() {
+		return selectPageInstance;
+	}
+
+	@Override
+	public ConnectorPublishPage getPublishPage() {
+		return publishPageInstance;
+	}
+
+	@Override
+	public ConnectPage getConnectPage() {
+		return connectPageInstance;
 	}
 
 	@Override
@@ -66,6 +80,11 @@ public class RioConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://rio.kpxl.org/";
+	}
+
+	@Override
+	public String getGeneralApiCall() {
+		return "get-rio-nanopubs";
 	}
 
 }
