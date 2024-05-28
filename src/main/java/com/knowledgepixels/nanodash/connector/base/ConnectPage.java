@@ -31,7 +31,7 @@ public abstract class ConnectPage extends ConnectorPage {
 			));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
-		add(new NanopubItem("nanopub", new NanopubElement(np)).expand());
+		add(new NanopubItem("nanopub", new NanopubElement(np)));
 
 
 		String uri = np.getUri().stringValue();

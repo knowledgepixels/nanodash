@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -49,11 +47,8 @@ public class NanopubItem extends Panel {
 	private boolean hidePubinfo = false;
 	private boolean hideHeader = false;
 	private boolean hideFooter = false;
-	private boolean expanded = false;
 	private List<NanopubAction> actions;
 	private IRI signerId;
-	private WebMarkupContainer assertionPart1, assertionPart2;
-	private AjaxLink<Void> showMoreLink, showLessLink;
 	private String tempalteId;
 
 	public NanopubItem(String id, NanopubElement n, String tempalteId) {
@@ -153,45 +148,7 @@ public class NanopubItem extends Panel {
 			add(footer);
 		}
 
-		assertionPart1 = new WebMarkupContainer("assertion-part1");
-		assertionPart2 = new WebMarkupContainer("assertion-part2");
-		assertionPart2.setOutputMarkupPlaceholderTag(true);
-		assertionPart2.setVisible(false);
-		List<StatementItem> assertionStatements1 = new ArrayList<>();
-		List<StatementItem> assertionStatements2 = new ArrayList<>();
-		showMoreLink = new AjaxLink<Void>("showmore"){
-
-			private static final long serialVersionUID = 7877892803130782900L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				assertionPart2.setVisible(true);
-				target.add(assertionPart2);
-				setVisible(false);
-				target.add(this);
-				target.appendJavaScript("updateElements();");
-			}
-
-		};
-		showMoreLink.setOutputMarkupPlaceholderTag(true);
-		showMoreLink.setVisible(false);
-		showLessLink = new AjaxLink<Void>("showless"){
-
-			private static final long serialVersionUID = 7877892803130782900L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				assertionPart2.setVisible(false);
-				target.add(assertionPart2);
-				showMoreLink.setVisible(true);
-				target.add(showMoreLink);
-				target.appendJavaScript("updateElements();");
-			}
-
-		};
-		assertionPart1.add(showMoreLink);
-		showLessLink.setVisible(!expanded);
-		assertionPart2.add(showLessLink);
+		WebMarkupContainer assertion = new WebMarkupContainer("assertion");
 
 		final TemplateData td = TemplateData.get();
 
@@ -203,7 +160,8 @@ public class NanopubItem extends Panel {
 		TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
 		populateStatementItemList(context, assertionFiller, assertionStatements);
 
-		assertionPart2.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
+		assertion.add(createStatementView("assertion-statements", assertionStatements));
+		assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -213,26 +171,7 @@ public class NanopubItem extends Panel {
 			}
 
 		});
-		if (!assertionFiller.getUnusedStatements().isEmpty()) showMoreLink.setVisible(!expanded);
-
-		List<StatementItem> a = new ArrayList<>(assertionStatements);
-		if (a.size() > 3) {
-			for (int i = 0 ; i < a.size() ; i++) {
-				if (i < 2) {
-					assertionStatements1.add(a.get(i));
-				} else {
-					assertionStatements2.add(a.get(i));
-				}
-			}
-			showMoreLink.setVisible(!expanded);
-		} else {
-			assertionStatements1 = a;
-		}
-		assertionPart1.add(createStatementView("assertion-statements1", assertionStatements1));
-		add(assertionPart1);
-		assertionPart2.add(createStatementView("assertion-statements2", assertionStatements2));
-		assertionPart2.setVisible(expanded);
-		add(assertionPart2);
+		add(assertion);
 
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
 		if (hideProvenance) {
@@ -322,18 +261,6 @@ public class NanopubItem extends Panel {
 		add(pubInfo);
 
 		isInitialized = true;
-	}
-
-	public NanopubItem expand() {
-		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
-		expanded = true;
-		return this;
-	}
-
-	public NanopubItem setExpanded(boolean expanded) {
-		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
-		this.expanded = expanded;
-		return this;
 	}
 
 	public NanopubItem hideProvenance() {

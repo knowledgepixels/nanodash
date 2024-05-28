@@ -1258,6 +1258,10 @@ span.internal {
   padding-right: 50px;
 }
 
+.nanopub-assertion {
+  position: relative;
+}
+
 .expand {
   position: absolute;
   width: 30px;
@@ -1276,6 +1280,10 @@ span.internal {
 .expand:hover {
   opacity: 0.7;
 }
+.nanopub-assertion .expand {
+  display: none;
+  margin: 21px 18px 18px 21px;
+}
 
 .message.plain .expand {
   margin: 6px;
@@ -1285,8 +1293,8 @@ span.internal {
 }
 
 .collapse {
-  display: none;
   position: absolute;
+  display: none;
   width: 30px;
   height: 30px;
   bottom: 0;

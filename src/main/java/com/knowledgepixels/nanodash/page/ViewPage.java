@@ -31,7 +31,7 @@ public class ViewPage extends NanodashPage {
 		boolean showProv = !"off".equals(parameters.get("show-prov").toOptionalString());
 		boolean showPubinfo = !"off".equals(parameters.get("show-pubinfo").toOptionalString());
 		String templateId = parameters.get("template").toString(null);
-		page.add(new NanopubItem("nanopub", new NanopubElement(np), templateId).expand().setProvenanceHidden(!showProv).setPubinfoHidden(!showPubinfo).setHeaderHidden(!showHeader).setFooterHidden(!showFooter));
+		page.add(new NanopubItem("nanopub", new NanopubElement(np), templateId).setProvenanceHidden(!showProv).setPubinfoHidden(!showPubinfo).setHeaderHidden(!showHeader).setFooterHidden(!showFooter));
 	}
 
 }

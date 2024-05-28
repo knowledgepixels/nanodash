@@ -4,7 +4,7 @@
 <head>
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <script type="text/javascript" src="../../../../../webapp/scripts/jquery.js?for-local-testing-only"></script>
-<script type="text/javascript" src="../nanodash.js?for-local-testing-only"></script>
+<script type="text/javascript" src="../script/nanodash.js?for-local-testing-only"></script>
 </head>
 <body style="margin-left:100px; margin-right:100px;">
 
@@ -14,36 +14,33 @@
 <span class="meta"><span class="nanopub-icon"></span> &nbsp;<span wicket:id="nanopub-id-link">link-ID</span>&nbsp; <span wicket:id="nanopub-label">nanopub label</span></span>
 <span class="actionmenuspan"><span wicket:id="action-menu" /></span>
 </p>
+
 <div class="nanopub nanopub-view" style="position:relative">
+
 <div class="assertionsection">
-<div class="nanopub-assertion nanopub-graph">
-<div wicket:id="assertion-part1">
-<div wicket:id="assertion-statements1">
-<div wicket:id="assertion-statement" class="nanopub-statement"></div>
-</div>
-<a href="#" class="actionlink" wicket:id="showmore">... (show more)</a>
-</div>
-<div wicket:id="assertion-part2">
-<div wicket:id="assertion-statements2">
-<div wicket:id="assertion-statement" class="nanopub-statement"></div>
+<div class="nanopub-assertion nanopub-graph" wicket:id="assertion">
+<div wicket:id="assertion-statements">
+<div wicket:id="assertion-statement"></div>
 </div>
 <div wicket:id="unused-assertion-statements">
-<div wicket:id="unused-assertion-statement" class="nanopub-statement"></div>
+<div wicket:id="unused-assertion-statement"></div>
 </div>
-<a href="#" class="actionlink" wicket:id="showless">(show less)</a>
+<div class="expand" onclick="expandAssertion(this);"></div>
+<div class="collapse" onclick="collapseAssertion(this);"></div>
 </div>
 </div>
-</div>
+
 <div class="provsection">
 <div class="nanopub-provenance nanopub-graph" wicket:id="provenance">
 <div wicket:id="provenance-statements">
-<div wicket:id="provenance-statement" class="nanopub-statement"></div>
+<div wicket:id="provenance-statement"></div>
 </div>
 <div wicket:id="unused-provenance-statements">
-<div wicket:id="unused-provenance-statement" class="nanopub-statement"></div>
+<div wicket:id="unused-provenance-statement"></div>
 </div>
 </div>
 </div>
+
 <div class="pubinfosection">
 
 <div wicket:id="pubinfo">
@@ -51,34 +48,17 @@
 <div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
 <div wicket:id="pubinfo-element">
 <div wicket:id="pubinfo-statements">
-<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
+<div wicket:id="pubinfo-statement"></div>
 </div>
 </div>
 </div>
 
-<!--
-<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
-<div wicket:id="pubinfo-element">
-<div wicket:id="pubinfo-statements">
-<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
-</div>
-</div>
-</div>
-
-<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
-<div wicket:id="pubinfo-element">
-<div wicket:id="pubinfo-statements">
-<div wicket:id="pubinfo-statement" class="nanopub-statement"></div>
-</div>
-</div>
-</div>
--->
-
-<div class="expand" onclick="expandNanopub(this);"></div>
-<div class="collapse" onclick="collapseNanopub(this);"></div>
+<div class="expand" onclick="expandPubinfo(this);"></div>
+<div class="collapse" onclick="collapsePubinfo(this);"></div>
 </div>
 
 </div>
+
 </div>
 
 <p wicket:id="footer" class="postmeta">
