@@ -38,85 +38,17 @@ public abstract class OverviewPage extends ConnectorPage {
 		add(new TitleBar("titlebar", this, "connectors"));
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
-		if (getConfig().getGeneralApiCall() != null) {
+		try {
 
-			try {
+			final WebMarkupContainer c = new WebMarkupContainer("owncandidates-component");
+			c.setOutputMarkupId(true);
+			add(c);
 
-				final WebMarkupContainer c = new WebMarkupContainer("owncandidates-component");
-				c.setOutputMarkupId(true);
-				add(c);
+			if (NanodashSession.get().getUserIri() != null) {
 
-				if (NanodashSession.get().getUserIri() != null) {
-
-					HashMap<String,String> apiParam = new HashMap<>();
-					apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
-					ApiResponse resp = callApi(getConfig().getGeneralApiCall(), apiParam);
-
-					final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
-					final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
-					for (ApiResponseEntry a : resp.getData()) {
-						if (listData.size() < 10) listData.add(a);
-						// TODO This will become inefficient at some point:
-						fullList.add(a);
-					}
-
-					c.add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(listData)) {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						protected void populateItem(Item<ApiResponseEntry> item) {
-							ApiResponseEntry e = item.getModelObject();
-							PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "author");
-							BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("ownlink", getConfig().getNanopubPage().getClass(), params);
-							l.add(new Label("ownlinktext", "\"" +  e.get("label") + "\""));
-							item.add(l);
-							String username = User.getShortDisplayName(null, e.get("pubkey"));
-							item.add(new Label("ownnote", "by " + username + " on " + e.get("date").substring(0, 10)));
-						}
-
-					});
-
-					c.add(new AjaxLink<>("allowncandidates") {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							try {
-								listData.clear();
-								listData.addAll(fullList);
-								target.add(c);
-								setVisible(false);
-								target.add(this);
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-						}
-
-					}.setVisible(fullList.size() > 10));
-
-					add(new ExternalLink("create-new", getConfig().getSelectPage().getMountPath(), "Create Nanopublication"));
-				} else {
-					c.add(new Label("allowncandidates", "").setVisible(false));
-					c.add(new Label("own", "").setVisible(false));
-					if (NanodashPreferences.get().isOrcidLoginMode()) {
-						String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath());
-						add(new ExternalLink("create-new", loginUrl, "Login to See More"));
-					} else {
-						add(new ExternalLink("create-new", ProfilePage.MOUNT_PATH, "Complete Your Profile to See More"));
-					}
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-
-			try {
-				final WebMarkupContainer c = new WebMarkupContainer("candidates-component");
-				c.setOutputMarkupId(true);
-				add(c);
-
-				ApiResponse resp = callApi(getConfig().getGeneralApiCall(), new HashMap<>());
+				HashMap<String,String> apiParam = new HashMap<>();
+				apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
+				ApiResponse resp = callApi(getConfig().getGeneralApiCall(), apiParam);
 
 				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
 				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
@@ -126,24 +58,146 @@ public abstract class OverviewPage extends ConnectorPage {
 					fullList.add(a);
 				}
 
-				c.add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(listData)) {
+				c.add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(listData)) {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", getConfig().getNanopubPage().getClass(), params);
-						l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
+						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "author");
+						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("ownlink", getConfig().getNanopubPage().getClass(), params);
+						l.add(new Label("ownlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));
-						item.add(new Label("candidatenote", "by " + username + " on " + e.get("date").substring(0, 10)));
+						item.add(new Label("ownnote", "by " + username + " on " + e.get("date").substring(0, 10)));
 					}
 
 				});
 
-				c.add(new AjaxLink<>("allcandidates") {
+				c.add(new AjaxLink<>("allowncandidates") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						try {
+							listData.clear();
+							listData.addAll(fullList);
+							target.add(c);
+							setVisible(false);
+							target.add(this);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+
+				}.setVisible(fullList.size() > 10));
+
+				add(new ExternalLink("create-new", getConfig().getSelectPage().getMountPath(), "Create Nanopublication"));
+			} else {
+				c.add(new Label("allowncandidates", "").setVisible(false));
+				c.add(new Label("own", "").setVisible(false));
+				if (NanodashPreferences.get().isOrcidLoginMode()) {
+					String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath());
+					add(new ExternalLink("create-new", loginUrl, "Login to See More"));
+				} else {
+					add(new ExternalLink("create-new", ProfilePage.MOUNT_PATH, "Complete Your Profile to See More"));
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		try {
+			final WebMarkupContainer c = new WebMarkupContainer("candidates-component");
+			c.setOutputMarkupId(true);
+			add(c);
+
+			ApiResponse resp = callApi(getConfig().getGeneralApiCall(), new HashMap<>());
+
+			final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+			final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
+			for (ApiResponseEntry a : resp.getData()) {
+				if (listData.size() < 10) listData.add(a);
+				// TODO This will become inefficient at some point:
+				fullList.add(a);
+			}
+
+			c.add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(listData)) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void populateItem(Item<ApiResponseEntry> item) {
+					ApiResponseEntry e = item.getModelObject();
+					PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
+					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", getConfig().getNanopubPage().getClass(), params);
+					l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
+					item.add(l);
+					String username = User.getShortDisplayName(null, e.get("pubkey"));
+					item.add(new Label("candidatenote", "by " + username + " on " + e.get("date").substring(0, 10)));
+				}
+
+			});
+
+			c.add(new AjaxLink<>("allcandidates") {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					try {
+						listData.clear();
+						listData.addAll(fullList);
+						target.add(c);
+						setVisible(false);
+						target.add(this);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
+
+			}.setVisible(fullList.size() > 10));
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		if (getConfig().getGeneralReactionsApiCall() != null ) {
+			try {
+				final WebMarkupContainer c = new WebMarkupContainer("reactions-component");
+				c.setOutputMarkupId(true);
+				add(c);
+
+				ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+
+				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
+				for (ApiResponseEntry a : resp.getData()) {
+					if (listData.size() < 10) listData.add(a);
+					// TODO This will become inefficient at some point:
+					fullList.add(a);
+				}
+
+				c.add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(listData)) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected void populateItem(Item<ApiResponseEntry> item) {
+						ApiResponseEntry e = item.getModelObject();
+						PageParameters params = new PageParameters().add("id", e.get("ref_np")).add("mode", "candidate");
+						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", getConfig().getNanopubPage().getClass(), params);
+						l.add(new Label("reactionlinktext", "\"" +  e.get("comment") + "\""));
+						item.add(l);
+						String username = User.getShortDisplayName(null, e.get("pubkey"));
+						item.add(new Label("reactionnote", "by " + username + " on " + e.get("date").substring(0, 10)));
+					}
+
+				});
+
+				c.add(new AjaxLink<>("allreactions") {
 
 					private static final long serialVersionUID = 1L;
 
@@ -164,63 +218,6 @@ public abstract class OverviewPage extends ConnectorPage {
 
 			} catch (Exception ex) {
 				ex.printStackTrace();
-			}
-
-			if (getConfig().getGeneralReactionsApiCall() != null ) {
-				try {
-					final WebMarkupContainer c = new WebMarkupContainer("reactions-component");
-					c.setOutputMarkupId(true);
-					add(c);
-	
-					ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
-
-					final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
-					final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
-					for (ApiResponseEntry a : resp.getData()) {
-						if (listData.size() < 10) listData.add(a);
-						// TODO This will become inefficient at some point:
-						fullList.add(a);
-					}
-
-					c.add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(listData)) {
-						
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						protected void populateItem(Item<ApiResponseEntry> item) {
-							ApiResponseEntry e = item.getModelObject();
-							PageParameters params = new PageParameters().add("id", e.get("ref_np")).add("mode", "candidate");
-							BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", getConfig().getNanopubPage().getClass(), params);
-							l.add(new Label("reactionlinktext", "\"" +  e.get("comment") + "\""));
-							item.add(l);
-							String username = User.getShortDisplayName(null, e.get("pubkey"));
-							item.add(new Label("reactionnote", "by " + username + " on " + e.get("date").substring(0, 10)));
-						}
-	
-					});
-
-					c.add(new AjaxLink<>("allreactions") {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							try {
-								listData.clear();
-								listData.addAll(fullList);
-								target.add(c);
-								setVisible(false);
-								target.add(this);
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-						}
-
-					}.setVisible(fullList.size() > 10));
-	
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
 			}
 		}
 	}
