@@ -1337,3 +1337,21 @@ span.internal {
   right: 0;
   top: 0;
 }
+
+div.success-message {
+  border: 2px solid #26A008;
+  border-radius: 4px;
+  padding: 12px 18px;
+  margin-bottom: 30px;
+}
+
+div.success-message strong::before {
+  color: #26A008;
+  content: "✓ ";
+  font-weight: bold;
+}
+
+div.success-message p {
+  padding: 0;
+  margin: 5px 0;
+}
