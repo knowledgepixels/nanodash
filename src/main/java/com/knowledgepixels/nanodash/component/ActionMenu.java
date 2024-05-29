@@ -61,6 +61,8 @@ public class ActionMenu extends Panel {
 			}
 
 		});
+
+		setVisible(!menuItems.isEmpty());
 	}
 
 }
