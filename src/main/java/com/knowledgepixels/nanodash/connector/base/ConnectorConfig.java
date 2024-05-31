@@ -26,17 +26,11 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract OverviewPage getOverviewPage();
 
-	public SelectPage getSelectPage() {
-		return null;
-	}
+	public abstract SelectPage getSelectPage();
 
-	public ConnectorPublishPage getPublishPage() {
-		return null;
-	}
+	public abstract ConnectorPublishPage getPublishPage();
 
-	public ConnectPage getConnectPage() {
-		return null;
-	}
+	public abstract ConnectPage getConnectPage();
 
 	public abstract NanopubPage getNanopubPage();
 
