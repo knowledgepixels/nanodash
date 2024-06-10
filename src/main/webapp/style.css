@@ -391,7 +391,7 @@ a.actionlink {
   opacity: 1;
 }
 .select2-selection__placeholder strong {
-  font-weight: normal;  # ignore <strong> in Select2 placeholders
+  font-weight: normal;  /* ignore <strong> in Select2 placeholders */
 }
 .select2-search--dropdown::before {
   content: "search/filter:";
@@ -413,7 +413,7 @@ a.actionlink {
 
 .select2-dropdown.select2-dropdown--below {
   min-width: 600px !important;
-  margin-top -1px;
+  margin-top: -1px;
   border-top: solid 1px #aaa;
 }
 
