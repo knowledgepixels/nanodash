@@ -164,6 +164,63 @@ public abstract class OverviewPage extends ConnectorPage {
 			ex.printStackTrace();
 		}
 
+		if (getConfig().getAcceptedNanopubsApiCall() != null ) {
+			try {
+				final WebMarkupContainer c = new WebMarkupContainer("accepted-component");
+				c.setOutputMarkupId(true);
+				add(c);
+
+				ApiResponse resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
+
+				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
+				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
+				for (ApiResponseEntry a : resp.getData()) {
+					if (listData.size() < 10) listData.add(a);
+					// TODO This will become inefficient at some point:
+					fullList.add(a);
+				}
+
+				c.add(new DataView<ApiResponseEntry>("accepted", new ListDataProvider<ApiResponseEntry>(listData)) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected void populateItem(Item<ApiResponseEntry> item) {
+						ApiResponseEntry e = item.getModelObject();
+						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "final");
+						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("acceptedlink", getConfig().getNanopubPage().getClass(), params);
+						l.add(new Label("acceptedlinktext", "\"" +  e.get("label") + "\""));
+						item.add(l);
+						String username = User.getShortDisplayName(null, e.get("pubkey"));
+						item.add(new Label("acceptednote", "by " + username + " on " + e.get("date").substring(0, 10)));
+					}
+
+				});
+
+				c.add(new AjaxLink<>("allaccepted") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						try {
+							listData.clear();
+							listData.addAll(fullList);
+							target.add(c);
+							setVisible(false);
+							target.add(this);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+
+				}.setVisible(fullList.size() > 10));
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+
 		if (getConfig().getGeneralReactionsApiCall() != null ) {
 			try {
 				final WebMarkupContainer c = new WebMarkupContainer("reactions-component");

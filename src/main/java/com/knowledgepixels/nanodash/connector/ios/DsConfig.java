@@ -78,6 +78,13 @@ public class DsConfig extends ConnectorConfig {
 	}
 
 	@Override
+	public String getAcceptedNanopubsApiCall() {
+		// Still deactivated:
+		//return "get-accepted-nanopubs";
+		return null;
+	}
+
+	@Override
 	public SelectPage getSelectPage() {
 		return selectPageInstance;
 	}
