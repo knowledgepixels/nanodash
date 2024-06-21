@@ -111,13 +111,13 @@ public class NanopubItem extends Panel {
 				footer.add(new Label("datetime", "(undated)"));
 			}
 
-			Set<IRI> authors = SimpleCreatorPattern.getAuthors(n.getNanopub());
+			List<IRI> authors = SimpleCreatorPattern.getAuthorList(n.getNanopub());
 			WebMarkupContainer authorsSpan = new WebMarkupContainer("authors-span");
 			if (authors.isEmpty()) {
 				authorsSpan.setVisible(false);
 				footer.add(new Label("creator-post", "").setVisible(false));
 			} else {
-				IRI mainAuthor = authors.iterator().next(); // Randomly choose one
+				IRI mainAuthor = authors.get(0);
 				BookmarkablePageLink<UserPage> mainAuthorLink = new BookmarkablePageLink<UserPage>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
 				mainAuthorLink.add(new Label("main-author-text", User.getShortDisplayName(mainAuthor)));
 				authorsSpan.add(mainAuthorLink);
