@@ -12,7 +12,7 @@
 
 <p wicket:id="header" class="meta">
 <span class="meta"><span class="nanopub-icon"></span> &nbsp;<span wicket:id="nanopub-id-link">link-ID</span>&nbsp; <span wicket:id="nanopub-label">nanopub label</span></span>
-<span class="actionmenuspan"><span wicket:id="action-menu" /></span></span>
+<span class="actionmenuspan"><span wicket:id="action-menu"></span></span>
 </p>
 
 <div class="nanopub nanopub-view" style="position:relative">
@@ -62,7 +62,8 @@
 </div>
 
 <p wicket:id="footer" class="postmeta">
-<a wicket:id="user-link"><span wicket:id="user-text">user name</span></a>
+<span wicket:id="authors-span"><a wicket:id="main-author-link"><span wicket:id="main-author-text">user name</span></a><span wicket:id="authors-post"> et al. (authors)</span>,</span>
+<a wicket:id="creator-link"><span wicket:id="creator-text">user name</span></a><span wicket:id="creator-post"> (creator)</span>,
 <span wicket:id="datetime">datetime</span>
 <span class="positive" wicket:id="positive-notes">positive notes</span>
 <span class="negative" wicket:id="negative-notes">negative notes</span>

@@ -110,6 +110,26 @@ public class NanopubItem extends Panel {
 			} else {
 				footer.add(new Label("datetime", "(undated)"));
 			}
+
+			Set<IRI> authors = SimpleCreatorPattern.getAuthors(n.getNanopub());
+			WebMarkupContainer authorsSpan = new WebMarkupContainer("authors-span");
+			if (authors.isEmpty()) {
+				authorsSpan.setVisible(false);
+				footer.add(new Label("creator-post", "").setVisible(false));
+			} else {
+				IRI mainAuthor = authors.iterator().next(); // Randomly choose one
+				BookmarkablePageLink<UserPage> mainAuthorLink = new BookmarkablePageLink<UserPage>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
+				mainAuthorLink.add(new Label("main-author-text", User.getShortDisplayName(mainAuthor)));
+				authorsSpan.add(mainAuthorLink);
+				if (authors.size() > 1) {
+					authorsSpan.add(new Label("authors-post", " et al. (authors)"));
+				} else {
+					authorsSpan.add(new Label("authors-post", " (author)"));
+				}
+				footer.add(new Label("creator-post", " (creator)"));
+			}
+			footer.add(authorsSpan);
+
 			PageParameters params = new PageParameters();
 			IRI uIri = User.findSingleIdForPubkey(pubkey);
 			if (uIri == null) {
@@ -117,14 +137,14 @@ public class NanopubItem extends Panel {
 				if (creators.size() == 1) uIri = creators.iterator().next();
 			}
 			if (uIri != null) params.add("id", uIri);
-			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("user-link", UserPage.class, params);
+			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("creator-link", UserPage.class, params);
 			String userString;
 			if (signerId != null) {
 				userString = User.getShortDisplayName(signerId, pubkey);
 			} else {
 				userString = User.getShortDisplayName(uIri, pubkey);
 			}
-			userLink.add(new Label("user-text", userString));
+			userLink.add(new Label("creator-text", userString));
 			footer.add(userLink);
 	
 			String positiveNotes = "";
