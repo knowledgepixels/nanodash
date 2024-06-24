@@ -78,4 +78,12 @@ public class User {
 		return getUserData().isApproved(in);
 	}
 
+	public static boolean isUser(IRI userIri) {
+		return getUserData().isUser(userIri);
+	}
+
+	public static boolean isUser(String userId) {
+		return getUserData().isUser(userId);
+	}
+
 }

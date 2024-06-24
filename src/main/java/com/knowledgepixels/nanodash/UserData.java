@@ -212,6 +212,20 @@ public class UserData implements Serializable {
 		return values.contains(value);
 	}
 
+	public boolean isUser(IRI userIri) {
+		return approvedIdPubkeyMap.containsKey(userIri) || unapprovedIdPubkeyMap.containsKey(userIri);
+	}
+
+	public boolean isUser(String userId) {
+		if (!userId.startsWith("https://") && !userId.startsWith("http://")) return false;
+		try {
+			IRI userIri = Utils.vf.createIRI(userId);
+			return approvedIdPubkeyMap.containsKey(userIri) || unapprovedIdPubkeyMap.containsKey(userIri);
+		} catch (IllegalArgumentException ex) {
+			return false;
+		}
+	}
+
 	public boolean isApprovedKeyForUser(String key, IRI user) {
 		return hasValue(approvedIdPubkeyMap, user, key);
 	}

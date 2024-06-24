@@ -27,6 +27,7 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -69,19 +70,25 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		if (template.isRestrictedChoicePlaceholder(iri)) {
 			restrictedChoice = new RestrictedChoice(iri, context);
 		}
-		String prefixLabel = template.getPrefixLabel(iri);
-		Label prefixLabelComp;
-		if (prefixLabel == null) {
-			prefixLabelComp = new Label("prefix", "");
-			prefixLabelComp.setVisible(false);
-		} else {
-			if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
-				// Capitalize first letter of label if at subject position:
-				prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
+		add(new Label("prefix", new Model<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String prefixLabel = template.getPrefixLabel(iri);
+				if (prefixLabel == null || User.isUser(getFullValue())) {
+					return "";
+				} else {
+					if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+						// Capitalize first letter of label if at subject position:
+						prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
+					}
+					return prefixLabel;
+				}
 			}
-			prefixLabelComp = new Label("prefix", prefixLabel);
-		}
-		add(prefixLabelComp);
+			
+		}));
 
 		linkComp = new ExternalLink("link", new Model<String>() {
 
@@ -105,6 +112,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 					} else {
 						return "";
 					}
+				} else if (User.isUser(obj)) {
+					return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
 				} else if (obj.matches("https?://.+")) {
 					return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
 				} else {
@@ -135,6 +144,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 						}
 					} else if (isNanopubValue(objIri)) {
 						return "this nanopublication";
+					} else if (User.isUser(obj)) {
+						return User.getShortDisplayName(objIri);
 					}
 					return getLabelString(objIri);
 				}
