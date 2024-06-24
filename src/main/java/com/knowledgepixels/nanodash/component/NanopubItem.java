@@ -224,14 +224,20 @@ public class NanopubItem extends Panel {
 			ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
 
 			// TODO We should do this better:
+			List<String> pubinfoAuthorTemplateIds = new ArrayList<>();
 			List<String> pubinfoTemplateIds = new ArrayList<>();
 			for (IRI iri : td.getPubinfoTemplateIds(n.getNanopub())) {
-				if (iri.stringValue().equals("http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM")) { // creator
+				if (iri.stringValue().equals("https://w3id.org/np/RAl1BUWZ6YK6xjcBSyjM_zi-P25CW07SFFUX79-PnDSaA")) { // author list
+					pubinfoAuthorTemplateIds.add(iri.stringValue());
+				} else if (iri.stringValue().equals("http://purl.org/np/RA4vTctL3Luaj8oI_sPiN7I_8xEnR_hkdz5gN7bCvZpNY")) { // authors
+					pubinfoAuthorTemplateIds.add(iri.stringValue());
+				} else if (iri.stringValue().equals("http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM")) { // creator
 					pubinfoTemplateIds.add(0, iri.stringValue());
 				} else {
 					pubinfoTemplateIds.add(iri.stringValue());
 				}
 			}
+			pubinfoTemplateIds.addAll(0, pubinfoAuthorTemplateIds);
 			pubinfoTemplateIds.add("https://w3id.org/np/RAXVsr624oEAJvCt1WZXoUJ90lFYC5LUMoYHgEUOwmrLw"); // user name
 			pubinfoTemplateIds.add("https://w3id.org/np/RARJj78P72NR5edKOnu_f4ePE9NYYuW2m2pM-fEoobMBk"); // nanopub label
 			pubinfoTemplateIds.add("https://w3id.org/np/RA8iXbwvOC7BwVHuvAhFV235j2582SyAYJ2sfov19ZOlg"); // nanopub type
