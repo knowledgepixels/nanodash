@@ -69,6 +69,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_TARGET_NAMESPACE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNamespace");
 	public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
 	public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
+	public static final IRI SEQUENCE_ELEMENT_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/SequenceElementPlaceholder");
 
 	public static final String DEFAULT_TARGET_NAMESPACE = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
 
@@ -257,6 +258,11 @@ public class Template implements Serializable {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
 	}
 
+	public boolean isSequenceElementPlaceholder(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(SEQUENCE_ELEMENT_PLACEHOLDER);
+	}
+
 	public boolean isPlaceholder(IRI iri) {
 		iri = transform(iri);
 		if (!typeMap.containsKey(iri)) return false;
@@ -270,6 +276,7 @@ public class Template implements Serializable {
 			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(LITERAL_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(LONG_LITERAL_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(SEQUENCE_ELEMENT_PLACEHOLDER)) return true;
 		}
 		return false;
 	}

@@ -229,6 +229,10 @@ public class TemplateContext implements Serializable {
 					processedValue = vf.createIRI(v);
 				}
 			}
+		} else if (template.isSequenceElementPlaceholder(iri)) {
+			if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+				processedValue = vf.createIRI(tf.getObject());
+			}
 		} else {
 			processedValue = iri;
 		}
