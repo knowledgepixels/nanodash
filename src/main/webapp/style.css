@@ -680,6 +680,10 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	vertical-align: top;
 }
 
+.valueitem:empty {
+	display: none;
+}
+
 .valueitem span {
 	vertical-align: top;
 }
