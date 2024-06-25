@@ -119,6 +119,13 @@ public class PublishForm extends Panel {
 		} else if (!pageParams.get("supersede").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("supersede").toString());
 			fillMode = FillMode.SUPERSEDE;
+			String ns = pageParams.get("supersede").toString().replaceFirst("RA[A-Za-z0-9-_]{43}$", "");
+			if (ns.equals("https://w3id.org/np/")) {
+				// Because using "https://w3id.org/np/" as target namespace directly leads to problems with terms in "https://w3id.org/np/o/" namespaces.
+				targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
+			} else {
+				targetNamespace = ns;
+			}
 		} else if (!pageParams.get("supersede-a").isNull()) {
 			fillNp = Utils.getNanopub(pageParams.get("supersede-a").toString());
 			fillMode = FillMode.SUPERSEDE;
@@ -146,10 +153,19 @@ public class PublishForm extends Panel {
 		final TemplateData td = TemplateData.get();
 
 		String templateId = pageParams.get("template").toString();
-		targetNamespace = td.getTemplate(templateId).getTargetNamespace();
+		if (td.getTemplate(templateId).getTargetNamespace() != null) {
+			targetNamespace = td.getTemplate(templateId).getTargetNamespace();
+		}
 		if (!pageParams.get("target-namespace").isNull()) {
 			// TODO: properly integrate this feature:
 			targetNamespace = pageParams.get("target-namespace").toString();
+		}
+		if (targetNamespace == null || targetNamespace.equals("https://w3id.org/np/")) {
+			targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
+		}
+		String targetNamespaceLabel = targetNamespace + "...";
+		if (targetNamespace == null || targetNamespace.equals(Template.DEFAULT_TARGET_NAMESPACE)) {
+			targetNamespaceLabel = "https://w3id.org/np/...";
 		}
 
 		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
@@ -431,7 +447,7 @@ public class PublishForm extends Panel {
 		};
 		form.setOutputMarkupId(true);
 
-		form.add(new Label("nanopub-namespace", targetNamespace + "..."));
+		form.add(new Label("nanopub-namespace", targetNamespaceLabel));
 
 		form.add(new BookmarkablePageLink<UserPage>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
