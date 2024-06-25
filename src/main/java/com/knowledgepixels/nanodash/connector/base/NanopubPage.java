@@ -22,6 +22,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -83,6 +84,22 @@ public abstract class NanopubPage extends ConnectorPage {
 		add(new WebMarkupContainer("author-instruction").setVisible(mode.equals("author")));
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
 		add(new WebMarkupContainer("candidate-instruction").setVisible(mode.equals("candidate")));
+
+		if (getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {
+			WebMarkupContainer technicalEditorActions = new WebMarkupContainer("technical-editor-actions");
+			technicalEditorActions.add(new BookmarkablePageLink<PublishPage>("make-final-version", PublishPage.class,
+					new PageParameters().add("template", TemplateData.get().getTemplateId(np).stringValue())
+						.add("derive", np.getUri().stringValue())
+						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
+						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
+						.add("pitemplate2", "https://w3id.org/np/RA_JdI7pfDcyvEXLr_gper3h8egmNggeTqkJbyHrlMEdo")
+						.add("pitemplate3", "https://w3id.org/np/RAIabr2sRVJ-YOIwZRD__BVMJKnq3QtQw_mjLIGSACPAI")
+						.add("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
+				));
+			add(technicalEditorActions);
+		} else {
+			add(new WebMarkupContainer("technical-editor-actions").setVisible(false));
+		}
 
 		HashMap<String,String> newerVersionParams = new HashMap<>();
 		newerVersionParams.put("np", np.getUri().stringValue());

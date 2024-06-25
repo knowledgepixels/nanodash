@@ -1,6 +1,10 @@
 package com.knowledgepixels.nanodash.connector.base;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
+
+import org.eclipse.rdf4j.model.IRI;
 
 public abstract class ConnectorConfig implements Serializable {
 
@@ -53,6 +57,18 @@ public abstract class ConnectorConfig implements Serializable {
 	}
 
 	public String getAcceptedNanopubsApiCall() {
+		return null;
+	}
+
+	public Set<IRI> getTechnicalEditorIds() {
+		return Collections.emptySet();
+	}
+
+	public IRI getNanopubType() {
+		return null;
+	}
+
+	public String getTargetNamespace() {
 		return null;
 	}
 
