@@ -71,7 +71,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
 	public static final IRI SEQUENCE_ELEMENT_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/SequenceElementPlaceholder");
 
-	public static final String DEFAULT_TARGET_NAMESPACE = "http://purl.org/nanopub/temp/nanodash-new-nanopub/";
+	public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
 	private Nanopub nanopub;
 	private String label;

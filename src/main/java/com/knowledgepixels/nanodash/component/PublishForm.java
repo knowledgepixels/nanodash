@@ -431,6 +431,8 @@ public class PublishForm extends Panel {
 		};
 		form.setOutputMarkupId(true);
 
+		form.add(new Label("nanopub-namespace", targetNamespace + "..."));
+
 		form.add(new BookmarkablePageLink<UserPage>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 		String description = assertionContext.getTemplate().getLabel();

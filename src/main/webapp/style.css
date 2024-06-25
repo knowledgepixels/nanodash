@@ -315,6 +315,10 @@ a:active {
 	color: #6eb2f7;
 }
 
+span.prelink {
+	color: #888;
+}
+
 .button {
 	font-size: 12pt;
 	font-weight: 700;
