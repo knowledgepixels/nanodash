@@ -1,5 +1,11 @@
 package com.knowledgepixels.nanodash.connector.ios;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.eclipse.rdf4j.model.IRI;
+
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
@@ -97,6 +103,27 @@ public class DsConfig extends ConnectorConfig {
 	@Override
 	public ConnectPage getConnectPage() {
 		return connectPageInstance;
+	}
+
+	private Set<IRI> technicalEditorIds;
+
+	@Override
+	public Set<IRI> getTechnicalEditorIds() {
+		if (technicalEditorIds == null) {
+			technicalEditorIds = new HashSet<IRI>();
+			technicalEditorIds.add(Utils.vf.createIRI("https://orcid.org/0000-0002-1267-0234"));
+		}
+		return technicalEditorIds;
+	}
+
+	@Override
+	public IRI getNanopubType() {
+		return Utils.vf.createIRI("https://w3id.org/kpxl/ios/ds/terms/DataScienceNanopub");
+	}
+
+	@Override
+	public String getTargetNamespace() {
+		return "https://w3id.org/kpxl/ios/ds/np/";
 	}
 
 }
