@@ -27,6 +27,8 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
@@ -118,10 +120,11 @@ public class NanopubItem extends Panel {
 				footer.add(new Label("creator-post", "").setVisible(false));
 			} else {
 				IRI mainAuthor = authors.get(0);
-				BookmarkablePageLink<UserPage> mainAuthorLink = new BookmarkablePageLink<UserPage>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
+				BookmarkablePageLink<? extends NanodashPage> mainAuthorLink = new BookmarkablePageLink<ExplorePage>("main-author-link", ExplorePage.class, new PageParameters().add("id", mainAuthor));
 				String authorName = n.getFoafNameMap().get(mainAuthor.stringValue());
 				if (authorName == null) {
 					authorName = User.getShortDisplayName(mainAuthor);
+					mainAuthorLink = new BookmarkablePageLink<UserPage>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
 				}
 				mainAuthorLink.add(new Label("main-author-text", authorName));
 				authorsSpan.add(mainAuthorLink);
