@@ -86,6 +86,7 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://bdj.kpxl.org/";
+		//return "https://w3id.org/kpxl/pensoft/bdj/np/reviewer/";
 	}
 
 	@Override

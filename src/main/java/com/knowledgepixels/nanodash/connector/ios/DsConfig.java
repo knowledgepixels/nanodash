@@ -71,6 +71,7 @@ public class DsConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://ds.kpxl.org/";
+		//return "https://w3id.org/kpxl/ios/ds/np/reviewer/";
 	}
 
 	@Override

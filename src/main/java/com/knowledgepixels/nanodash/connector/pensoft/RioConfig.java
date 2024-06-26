@@ -86,6 +86,7 @@ public class RioConfig extends ConnectorConfig {
 	@Override
 	public String getReviewUrlPrefix() {
 		return "http://rio.kpxl.org/";
+		//return "https://w3id.org/kpxl/pensoft/rio/np/reviewer/";
 	}
 
 	@Override
