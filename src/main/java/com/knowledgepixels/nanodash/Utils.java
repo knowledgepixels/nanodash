@@ -16,9 +16,11 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -254,6 +256,16 @@ public class Utils {
 			}
 		}
 		return false;
+	}
+
+	public static Map<String,String> getFoafNameMap(Nanopub np) {
+		Map<String,String> foafNameMap = new HashMap<>();
+		for (Statement st : np.getPubinfo()) {
+			if (st.getPredicate().equals(FOAF.NAME) && st.getObject() instanceof Literal objL) {
+				foafNameMap.put(st.getSubject().stringValue(), objL.stringValue());
+			}
+		}
+		return foafNameMap;
 	}
 
 }

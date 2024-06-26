@@ -13,7 +13,6 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
-import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.CryptoElement;
@@ -105,7 +104,6 @@ public class ValueFiller {
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
 			if (pred.equals(NanopubSignatureElement.SIGNED_BY)) return null;
-			if (pred.equals(FOAF.NAME)) return null;
 			if (pred.equals(Template.HAS_LABEL_FROM_API)) {
 				GuidedChoiceItem.setLabel(st.getSubject().stringValue(), st.getObject().stringValue());
 				return null;

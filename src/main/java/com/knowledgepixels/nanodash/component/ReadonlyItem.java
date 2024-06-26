@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.component;
 
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -65,6 +67,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		if (context.hasParam(postfix)) {
 			model.setObject(context.getParam(postfix));
 		}
+
+		final Map<String,String> foafNameMap;
+		if (context.getExistingNanopub() == null) {
+			foafNameMap = new HashMap<>();
+		} else {
+			foafNameMap = Utils.getFoafNameMap(context.getExistingNanopub());
+		}
+
 		prefix = template.getPrefix(iri);
 		if (prefix == null) prefix = "";
 		if (template.isRestrictedChoicePlaceholder(iri)) {
@@ -77,7 +87,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			@Override
 			public String getObject() {
 				String prefixLabel = template.getPrefixLabel(iri);
-				if (prefixLabel == null || User.isUser(getFullValue())) {
+				String v = getFullValue();
+				if (prefixLabel == null || User.isUser(v) || foafNameMap.containsKey(v)) {
 					return "";
 				} else {
 					if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
@@ -146,6 +157,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 						return "this nanopublication";
 					} else if (User.isUser(obj)) {
 						return User.getShortDisplayName(objIri);
+					} else if (foafNameMap.containsKey(obj)) {
+						return foafNameMap.get(obj);
 					}
 					return getLabelString(objIri);
 				}

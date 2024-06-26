@@ -5,6 +5,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -155,6 +156,13 @@ public class NanopubElement implements Serializable {
 			}
 		}
 		return retractionTarget;
+	}
+
+	private Map<String,String> foafNameMap;
+
+	public Map<String,String> getFoafNameMap() {
+		if (foafNameMap == null) foafNameMap = Utils.getFoafNameMap(nanopub);
+		return foafNameMap;
 	}
 
 }
