@@ -85,7 +85,7 @@ public abstract class NanopubPage extends ConnectorPage {
 		add(new WebMarkupContainer("reviewer-instruction").setVisible(mode.equals("reviewer")));
 		add(new WebMarkupContainer("candidate-instruction").setVisible(mode.equals("candidate")));
 
-		if (getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {
+		if (mode.equals("reviewer") && getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {
 			WebMarkupContainer technicalEditorActions = new WebMarkupContainer("technical-editor-actions");
 			technicalEditorActions.add(new BookmarkablePageLink<PublishPage>("make-final-version", PublishPage.class,
 					new PageParameters().add("template", TemplateData.get().getTemplateId(np).stringValue())
