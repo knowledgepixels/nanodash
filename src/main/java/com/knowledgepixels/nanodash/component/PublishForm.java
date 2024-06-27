@@ -291,6 +291,7 @@ public class PublishForm extends Panel {
 				for (TemplateContext c : pubInfoContexts) {
 					piFiller.fill(c);
 				}
+				piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
 				if (piFiller.hasUnusedStatements()) {
 					TemplateContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
 					if (!pubInfoContexts.contains(c)) {

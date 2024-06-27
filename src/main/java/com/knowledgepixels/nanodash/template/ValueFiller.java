@@ -85,6 +85,15 @@ public class ValueFiller {
 		unusedStatements.remove(st);
 	}
 
+	public void removeUnusedStatements(IRI subj, IRI pred, Value obj) {
+		for (Statement st : new ArrayList<>(unusedStatements)) {
+			if (subj != null && !st.getSubject().equals(subj)) continue;
+			if (pred != null && !st.getPredicate().equals(pred)) continue;
+			if (obj != null && !st.getObject().equals(obj)) continue;
+			unusedStatements.remove(st);
+		}
+	}
+
 	private Statement transform(Statement st) {
 		if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
 			IRI pred = st.getPredicate();

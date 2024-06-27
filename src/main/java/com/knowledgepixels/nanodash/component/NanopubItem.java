@@ -252,6 +252,7 @@ public class NanopubItem extends Panel {
 			pubinfoTemplateIds.add("https://w3id.org/np/RADVnztsdSc36ffAXTxiIdXpYEMLiJrRENqaJ2Qn2LX3Y"); // templates
 			pubinfoTemplateIds.add("https://w3id.org/np/RAvqXPNKPf56b2226oqhKzARyvIhnpnTrRpLGC1cYweMw"); // introductions
 			pubinfoTemplateIds.add("https://w3id.org/np/RAgIlomuR39mN-Z39bbv59-h2DgQBnLyNdL22YmOJ_VHM"); // labels from APIs
+			pubinfoTemplateIds.add("https://w3id.org/np/RAoWx0AJvNw-WqkGgZO4k8udNCg6kMcGZARN3DgO_5TII"); // contributor names
 			pubinfoTemplateIds.add("https://w3id.org/np/RAY_M7GUmyOTjXQbJArzhVVzQ5XvgHt0JR7h2LZo6TXvY"); // signature
 			pubinfoTemplateIds.add("https://w3id.org/np/RA_TZ9tvF6sBewmbIGbTFguLOPUUS70huklacisZrYtYw"); // creation site
 			pubinfoTemplateIds.add("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM"); // generic
