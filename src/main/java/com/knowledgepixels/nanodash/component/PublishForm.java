@@ -35,6 +35,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -708,7 +709,7 @@ public class PublishForm extends Panel {
 			IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
 			npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
 		}
-		String nanopubLabel = getNanopubLabel();
+		String nanopubLabel = getNanopubLabel(npCreator);
 		if (nanopubLabel != null) {
 			npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
 		}
@@ -727,8 +728,16 @@ public class PublishForm extends Panel {
 		return npCreator.finalizeNanopub();
 	}
 
-	private String getNanopubLabel() {
+	private String getNanopubLabel(NanopubCreator npCreator) {
 		if (assertionContext.getTemplate().getNanopubLabelPattern() == null) return null;
+
+		Map<IRI,String> labelMap = new HashMap<>();
+		for (Statement st : npCreator.getCurrentPubinfoStatements()) {
+			if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal objL) {
+				labelMap.put((IRI) st.getSubject(), objL.stringValue());
+			}
+		}
+
 		String nanopubLabel = assertionContext.getTemplate().getNanopubLabelPattern();
 		while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
 			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
@@ -746,6 +755,9 @@ public class PublishForm extends Panel {
 					if (prefix != null) placeholderValue = prefix + placeholderValue;
 					IRI placeholderValueIri = vf.createIRI(placeholderValue);
 					String l = assertionContext.getTemplate().getLabel(placeholderValueIri);
+					if (labelMap.containsKey(placeholderValueIri)) {
+						l = labelMap.get(placeholderValueIri);
+					}
 					if (l == null) l = GuidedChoiceItem.getLabel(placeholderValue);
 					if (l != null && !l.isEmpty()) {
 						placeholderLabel = l.replaceFirst(" - .*$", "");
