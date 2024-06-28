@@ -358,95 +358,100 @@ public class Template implements Serializable {
 	private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
 		assertionIri = templateNp.getAssertionUri();
 		for (Statement st : templateNp.getAssertion()) {
-			if (st.getSubject().equals(assertionIri)) {
-				if (st.getPredicate().equals(RDFS.LABEL)) {
-					label = st.getObject().stringValue();
-				} else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-					description = Utils.sanitizeHtml(st.getObject().stringValue());
-				} else if (st.getObject() instanceof IRI) {
-					if (st.getPredicate().equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
-						defaultProvenance = (IRI) st.getObject();
-					} else if (st.getPredicate().equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
-						requiredPubinfoElements.add((IRI) st.getObject());
-					} else if (st.getPredicate().equals(HAS_TARGET_NAMESPACE)) {
-						targetNamespace = st.getObject().stringValue();
-					} else if (st.getPredicate().equals(HAS_TARGET_NANOPUB_TYPE)) {
-						targetNanopubTypes.add((IRI) st.getObject());
+			final IRI subj = (IRI) st.getSubject();
+			final IRI pred = st.getPredicate();
+			final Value obj = st.getObject();
+			final String objS = obj.stringValue();
+
+			if (subj.equals(assertionIri)) {
+				if (pred.equals(RDFS.LABEL)) {
+					label = objS;
+				} else if (pred.equals(DCTERMS.DESCRIPTION)) {
+					description = Utils.sanitizeHtml(objS);
+				} else if (obj instanceof IRI objIri) {
+					if (pred.equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
+						defaultProvenance = objIri;
+					} else if (pred.equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
+						requiredPubinfoElements.add(objIri);
+					} else if (pred.equals(HAS_TARGET_NAMESPACE)) {
+						targetNamespace = objS;
+					} else if (pred.equals(HAS_TARGET_NANOPUB_TYPE)) {
+						targetNanopubTypes.add(objIri);
 					}
-				} else if (st.getObject() instanceof Literal) {
-					if (st.getPredicate().equals(HAS_TAG)) {
+				} else if (obj instanceof Literal) {
+					if (pred.equals(HAS_TAG)) {
 						// TODO This should be replaced at some point with a more sophisticated mechanism based on classes.
 						// We are assuming that there is at most one tag.
-						this.tag = st.getObject().stringValue();
-					} else if (st.getPredicate().equals(HAS_NANOPUB_LABEL_PATTERN)) {
-						nanopubLabelPattern = st.getObject().stringValue();
+						this.tag = objS;
+					} else if (pred.equals(HAS_NANOPUB_LABEL_PATTERN)) {
+						nanopubLabelPattern = objS;
 					}	
 				}
 			}
-			if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {
-				List<IRI> l = typeMap.get(st.getSubject());
+			if (pred.equals(RDF.TYPE) && obj instanceof IRI objIri) {
+				List<IRI> l = typeMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
-					typeMap.put((IRI) st.getSubject(), l);
+					typeMap.put(subj, l);
 				}
-				l.add((IRI) st.getObject());
-			} else if (st.getPredicate().equals(HAS_STATEMENT_PREDICATE) && st.getObject() instanceof IRI) {
-				List<IRI> l = statementMap.get(st.getSubject());
+				l.add(objIri);
+			} else if (pred.equals(HAS_STATEMENT_PREDICATE) && obj instanceof IRI objIri) {
+				List<IRI> l = statementMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
-					statementMap.put((IRI) st.getSubject(), l);
+					statementMap.put(subj, l);
 				}
-				l.add((IRI) st.getObject());
-			} else if (st.getPredicate().equals(POSSIBLE_VALUE_PREDICATE)) {
-				List<Value> l = possibleValueMap.get(st.getSubject());
+				l.add((IRI) objIri);
+			} else if (pred.equals(POSSIBLE_VALUE_PREDICATE)) {
+				List<Value> l = possibleValueMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
-					possibleValueMap.put((IRI) st.getSubject(), l);
+					possibleValueMap.put(subj, l);
 				}
-				l.add(st.getObject());
-			} else if (st.getPredicate().equals(POSSIBLE_VALUES_FROM_PREDICATE)) {
-				List<IRI> l = possibleValuesToLoadMap.get(st.getSubject());
+				l.add(obj);
+			} else if (pred.equals(POSSIBLE_VALUES_FROM_PREDICATE)) {
+				List<IRI> l = possibleValuesToLoadMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
-					possibleValuesToLoadMap.put((IRI) st.getSubject(), l);
+					possibleValuesToLoadMap.put(subj, l);
 				}
-				if (st.getObject() instanceof IRI) {
-					l.add((IRI) st.getObject());
-					Nanopub valuesNanopub = Utils.getNanopub(st.getObject().stringValue());
+				if (obj instanceof IRI objIri) {
+					l.add(objIri);
+					Nanopub valuesNanopub = Utils.getNanopub(objS);
 					for (Statement s : valuesNanopub.getAssertion()) {
 						if (s.getPredicate().equals(RDFS.LABEL)) {
 							labelMap.put((IRI) s.getSubject(), s.getObject().stringValue());
 						}
 					}
 				}
-			} else if (st.getPredicate().equals(POSSIBLE_VALUES_FROM_API_PREDICATE)) {
-				List<String> l = apiMap.get(st.getSubject());
+			} else if (pred.equals(POSSIBLE_VALUES_FROM_API_PREDICATE)) {
+				List<String> l = apiMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
-					apiMap.put((IRI) st.getSubject(), l);
+					apiMap.put(subj, l);
 				}
-				if (st.getObject() instanceof Literal) {
-					l.add(st.getObject().stringValue());
+				if (obj instanceof Literal) {
+					l.add(objS);
 				}
-			} else if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal) {
-				labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-			} else if (st.getPredicate().equals(HAS_PREFIX_PREDICATE) && st.getObject() instanceof Literal) {
-				prefixMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-			} else if (st.getPredicate().equals(HAS_PREFIX_LABEL_PREDICATE) && st.getObject() instanceof Literal) {
-				prefixLabelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-			} else if (st.getPredicate().equals(HAS_REGEX_PREDICATE) && st.getObject() instanceof Literal) {
-				regexMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-			} else if (st.getPredicate().equals(RDF.SUBJECT) && st.getObject() instanceof IRI) {
-				statementSubjects.put((IRI) st.getSubject(), (IRI) st.getObject());
-			} else if (st.getPredicate().equals(RDF.PREDICATE) && st.getObject() instanceof IRI) {
-				statementPredicates.put((IRI) st.getSubject(), (IRI) st.getObject());
-			} else if (st.getPredicate().equals(RDF.OBJECT)) {
-				statementObjects.put((IRI) st.getSubject(), st.getObject());
-			} else if (st.getPredicate().equals(HAS_DEFAULT_VALUE)) {
-				defaultValues.put((IRI) st.getSubject(), st.getObject());
-			} else if (st.getPredicate().equals(STATEMENT_ORDER_PREDICATE)) {
-				if (st.getObject() instanceof Literal && st.getObject().stringValue().matches("[0-9]+")) {
-					statementOrder.put((IRI) st.getSubject(), Integer.valueOf(st.getObject().stringValue()));
+			} else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
+				labelMap.put(subj, objS);
+			} else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
+				prefixMap.put(subj, objS);
+			} else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
+				prefixLabelMap.put(subj, objS);
+			} else if (pred.equals(HAS_REGEX_PREDICATE) && obj instanceof Literal) {
+				regexMap.put(subj, objS);
+			} else if (pred.equals(RDF.SUBJECT) && obj instanceof IRI objIri) {
+				statementSubjects.put(subj, objIri);
+			} else if (pred.equals(RDF.PREDICATE) && obj instanceof IRI objIri) {
+				statementPredicates.put(subj, objIri);
+			} else if (pred.equals(RDF.OBJECT)) {
+				statementObjects.put(subj, obj);
+			} else if (pred.equals(HAS_DEFAULT_VALUE)) {
+				defaultValues.put(subj, obj);
+			} else if (pred.equals(STATEMENT_ORDER_PREDICATE)) {
+				if (obj instanceof Literal && objS.matches("[0-9]+")) {
+					statementOrder.put(subj, Integer.valueOf(objS));
 				}
 			}
 		}

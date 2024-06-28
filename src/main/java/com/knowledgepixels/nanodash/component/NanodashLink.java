@@ -16,6 +16,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.User;
@@ -34,7 +35,7 @@ public class NanodashLink extends Panel {
 		final Map<IRI,String> labels = new HashMap<>();
 		if (np != null) {
 			for (Statement st : np.getPubinfo()) {
-				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
 					String label = st.getObject().stringValue();
 					labels.put((IRI) st.getSubject(), label);
 				}

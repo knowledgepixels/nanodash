@@ -113,7 +113,7 @@ public class ValueFiller {
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
 			if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
 			if (pred.equals(NanopubSignatureElement.SIGNED_BY)) return null;
-			if (pred.equals(Template.HAS_LABEL_FROM_API)) {
+			if (pred.equals(Template.HAS_LABEL_FROM_API) || pred.equals(RDFS.LABEL)) {
 				GuidedChoiceItem.setLabel(st.getSubject().stringValue(), st.getObject().stringValue());
 				return null;
 			}

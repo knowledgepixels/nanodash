@@ -16,6 +16,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
@@ -292,7 +293,7 @@ public class TemplateContext implements Serializable {
 		if (labels == null) {
 			labels = new HashMap<>();
 			for (Statement st : existingNanopub.getPubinfo()) {
-				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API)) {
+				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
 					String label = st.getObject().stringValue();
 					labels.put((IRI) st.getSubject(), label);
 				}
