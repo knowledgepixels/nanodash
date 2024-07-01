@@ -88,6 +88,11 @@ public class ValueItem extends Panel implements ContextComponent {
 		component.fillFinished();
 	}
 
+	@Override
+	public void finalizeValues() {
+		component.finalizeValues();
+	}
+
 	public Value getValue() {
 		return value;
 	}

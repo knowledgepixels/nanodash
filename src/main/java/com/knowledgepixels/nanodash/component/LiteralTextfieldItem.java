@@ -24,11 +24,13 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 	private TemplateContext context;
 	private AbstractTextComponent<String> textfield;
 	private final String regex;
+	private final IRI iri;
 
 	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
 		super(id);
 		this.context = context;
 		final Template template = context.getTemplate();
+		this.iri = iri;
 		regex = template.getRegex(iri);
 		IModel<String> model = context.getComponentModels().get(iri);
 		if (model == null) {
@@ -63,12 +65,6 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 		tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
 		tc.add(new InvalidityHighlighting());
 		add(tc);
-
-		try {
-			unifyWith(template.getDefault(iri));
-		} catch (UnificationException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
@@ -109,6 +105,18 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
 	@Override
 	public void fillFinished() {
+	}
+
+	@Override
+	public void finalizeValues() {
+		Value defaultValue = context.getTemplate().getDefault(iri);
+		if (isUnifiableWith(defaultValue)) {
+			try {
+				unifyWith(defaultValue);
+			} catch (UnificationException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 
 	public String toString() {

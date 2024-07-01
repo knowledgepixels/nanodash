@@ -196,6 +196,12 @@ public class StatementItem extends Panel {
 		}
 	}
 
+	public void finalizeValues() {
+		for (RepetitionGroup rg : repetitionGroups) {
+			rg.finalizeValues();
+		}
+	}
+
 	public boolean isMatched() {
 		return isMatched;
 	}
@@ -477,6 +483,12 @@ public class StatementItem extends Panel {
 		public void fillFinished() {
 			for (ValueItem vi : items) {
 				vi.fillFinished();
+			}
+		}
+
+		public void finalizeValues() {
+			for (ValueItem vi : items) {
+				vi.finalizeValues();
 			}
 		}
 

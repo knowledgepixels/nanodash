@@ -125,6 +125,9 @@ public class TemplateContext implements Serializable {
 				si.addRepetitionGroup();
 			}
 		}
+		for (StatementItem si : statementItems) {
+			si.finalizeValues();
+		}
 	}
 
 	public ContextType getType() {

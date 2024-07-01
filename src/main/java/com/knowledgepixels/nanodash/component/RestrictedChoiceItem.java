@@ -38,14 +38,13 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 	private ExternalLink tooltipLink;
 	private Label tooltipDescription;
 	private IModel<String> model;
-	private Template template;
 	private RestrictedChoice restrictedChoice;
 
 	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
 		super(id);
 		this.context = context;
 		this.iri = iri;
-		template = context.getTemplate();
+		Template template = context.getTemplate();
 		model = context.getComponentModels().get(iri);
 		if (model == null) {
 			model = Model.of("");
@@ -179,12 +178,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 		});
 		add(choice);
-
-		try {
-			unifyWith(template.getDefault(iri));
-		} catch (UnificationException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	public IModel<String> getModel() {
@@ -226,6 +219,18 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void fillFinished() {
+	}
+
+	@Override
+	public void finalizeValues() {
+		Value defaultValue = context.getTemplate().getDefault(iri);
+		if (isUnifiableWith(defaultValue)) {
+			try {
+				unifyWith(defaultValue);
+			} catch (UnificationException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 
 	public String toString() {

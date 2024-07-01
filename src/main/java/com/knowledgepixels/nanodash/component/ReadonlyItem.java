@@ -230,6 +230,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		}
 	}
 
+	@Override
+	public void finalizeValues() {
+	}
+
 	private String getLabelString(IRI iri) {
 		if (template.getLabel(iri) != null) {
 			return template.getLabel(iri).replaceFirst(" - .*$", "");

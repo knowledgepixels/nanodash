@@ -60,6 +60,10 @@ public class SequenceElementItem extends Panel implements ContextComponent {
 	public void fillFinished() {
 	}
 
+	@Override
+	public void finalizeValues() {
+	}
+
 	public String toString() {
 		return "[Sequence element]";
 	}

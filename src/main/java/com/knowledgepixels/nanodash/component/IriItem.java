@@ -155,6 +155,10 @@ public class IriItem extends Panel implements ContextComponent {
 	public void fillFinished() {
 	}
 
+	@Override
+	public void finalizeValues() {
+	}
+
 	public String toString() {
 		return "[IRI item: " + iri + "]";
 	}

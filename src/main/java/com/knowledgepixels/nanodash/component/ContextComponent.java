@@ -14,4 +14,6 @@ public interface ContextComponent {
 
 	public void fillFinished();
 
+	public void finalizeValues();
+
 }

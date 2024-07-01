@@ -210,12 +210,6 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 		});
 		add(textfield);
-
-		try {
-			unifyWith(template.getDefault(iri));
-		} catch (UnificationException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	public IModel<String> getModel() {
@@ -269,6 +263,18 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
 	@Override
 	public void fillFinished() {
+	}
+
+	@Override
+	public void finalizeValues() {
+		Value defaultValue = context.getTemplate().getDefault(iri);
+		if (isUnifiableWith(defaultValue)) {
+			try {
+				unifyWith(defaultValue);
+			} catch (UnificationException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
