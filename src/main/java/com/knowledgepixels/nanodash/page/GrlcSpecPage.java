@@ -19,6 +19,8 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class GrlcSpecPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
@@ -30,7 +32,7 @@ public class GrlcSpecPage extends NanodashPage {
 	public static final IRI HAS_ENDPOINT = vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
 
 	private Nanopub np;
-	private String requestUrl;
+	private String requestUrlBase;
 	private String artifactCode, queryPart;
 	private String queryName;
 	private String label;
@@ -41,13 +43,17 @@ public class GrlcSpecPage extends NanodashPage {
 
 	public GrlcSpecPage(PageParameters parameters) {
 		super(parameters);
-		requestUrl = RequestCycle.get().getRequest().getUrl().toString();
+		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
+		requestUrl = requestUrl.replaceFirst("\\?.*$", "");
 		if (!requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}/(.*)?")) return;
-		artifactCode = requestUrl.replaceFirst(".*/(RA[A-Za-z0-9\\-_]{43})/(.*)?", "$1");
-		queryPart = requestUrl.replaceFirst(".*/(RA[A-Za-z0-9\\-_]{43}/)(.*)?", "$2");
+		artifactCode = requestUrl.replaceFirst("^(.*/)(RA[A-Za-z0-9\\-_]{43})/(.*)?$", "$2");
+		queryPart = requestUrl.replaceFirst("^(.*/)(RA[A-Za-z0-9\\-_]{43}/)(.*)?$", "$3");
+		requestUrlBase = requestUrl.replaceFirst("^(.*/)(RA[A-Za-z0-9\\-_]{43})/(.*)?$", "$1");
+
 		np = Utils.getAsNanopub(artifactCode);
-		if ("latest".equals(parameters.get("api-version"))) {
+		if ("latest".equals(getRequest().getQueryParameters().getParameterValue("api-version").toString())) {
 			np = Utils.getAsNanopub(ApiAccess.getLatestVersionId(np.getUri().stringValue()));
+			artifactCode = TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
 		}
 		for (Statement st : np.getAssertion()) {
 			if (!st.getSubject().stringValue().startsWith(np.getUri().stringValue())) continue;
@@ -110,7 +116,7 @@ public class GrlcSpecPage extends NanodashPage {
 			}
 			response.write("queries:\n");
 			String baseUrl = NanodashPreferences.get().getWebsiteUrl();
-			response.write("  - " + baseUrl + requestUrl + queryName + ".rq");
+			response.write("  - " + baseUrl + requestUrlBase + artifactCode + "/" + queryName + ".rq");
 		} else if (queryPart.equals(queryName + ".rq")) {
 			if (label != null) {
 				response.write("#+ summary: \"" + escape(label) + "\"\n");
