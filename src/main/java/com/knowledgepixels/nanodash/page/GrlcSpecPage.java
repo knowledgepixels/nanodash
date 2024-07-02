@@ -13,6 +13,7 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.extra.services.ApiAccess;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.User;
@@ -45,6 +46,9 @@ public class GrlcSpecPage extends NanodashPage {
 		artifactCode = requestUrl.replaceFirst(".*/(RA[A-Za-z0-9\\-_]{43})/(.*)?", "$1");
 		queryPart = requestUrl.replaceFirst(".*/(RA[A-Za-z0-9\\-_]{43}/)(.*)?", "$2");
 		np = Utils.getAsNanopub(artifactCode);
+		if ("latest".equals(parameters.get("api-version"))) {
+			np = Utils.getAsNanopub(ApiAccess.getLatestVersionId(np.getUri().stringValue()));
+		}
 		for (Statement st : np.getAssertion()) {
 			if (!st.getSubject().stringValue().startsWith(np.getUri().stringValue())) continue;
 			String qn = st.getSubject().stringValue().replaceFirst("^.*[#/](.*)$", "$1");
