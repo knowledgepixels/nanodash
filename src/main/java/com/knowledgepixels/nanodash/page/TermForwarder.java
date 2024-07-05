@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.page;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,10 +15,9 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.GroupPage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.SearchPage;
+import com.knowledgepixels.nanodash.Group;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class TermForwarder extends NanodashPage {
@@ -37,17 +36,7 @@ public class TermForwarder extends NanodashPage {
 		// Getting HTTP Accept header:
 		//
 		//System.err.println("P: " + ((HttpServletRequest) getRequest().getContainerRequest()).getHeader("Accept"));
-		//
-		// Works with this addition to pom.xml:
-		//
-		//<dependency>
-        //  <groupId>javax.servlet</groupId
-        //  <artifactId>javax.servlet-api</artifactId>
-        //  <version>3.0.1</version>
-        //  <scope>provided</scope>
-        //</dependency>
-		//
-		// But we should probably update to a newer version of Tomcat first...
+
 		IRI id = vf.createIRI(parameters.get("id").toString());
 		IRI authority = null;
 		if (!parameters.get("authority").isEmpty()) {
