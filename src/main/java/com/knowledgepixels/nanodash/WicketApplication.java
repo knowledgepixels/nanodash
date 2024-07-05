@@ -36,6 +36,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.RioSelectPage;
 import com.knowledgepixels.nanodash.page.ConnectorListPage;
 import com.knowledgepixels.nanodash.page.ErrorPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.FdoForwarder;
 import com.knowledgepixels.nanodash.page.GetViewPage;
 import com.knowledgepixels.nanodash.page.GrlcSpecPage;
 import com.knowledgepixels.nanodash.page.GroupDemoPage;
@@ -51,6 +52,7 @@ import com.knowledgepixels.nanodash.page.PublishConfirmPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.ReferenceTablePage;
 import com.knowledgepixels.nanodash.page.SearchPage;
+import com.knowledgepixels.nanodash.page.TermForwarder;
 import com.knowledgepixels.nanodash.page.UserListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.page.ViewPage;
@@ -135,6 +137,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(BdjPublishPage.MOUNT_PATH, BdjPublishPage.class);
 		mountPage(BdjConnectPage.MOUNT_PATH, BdjConnectPage.class);
 		mountPage(BdjNanopubPage.MOUNT_PATH, BdjNanopubPage.class);
+		mountPage(FdoForwarder.MOUNT_PATH, FdoForwarder.class);
 
 		mountPage(GrlcSpecPage.MOUNT_PATH, GrlcSpecPage.class);
 
