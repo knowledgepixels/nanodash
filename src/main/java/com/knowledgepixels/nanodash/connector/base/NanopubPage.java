@@ -87,8 +87,15 @@ public abstract class NanopubPage extends ConnectorPage {
 
 		if (mode.equals("reviewer") && getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {
 			WebMarkupContainer technicalEditorActions = new WebMarkupContainer("technical-editor-actions");
+
+			// TODO Store/handle general templates better:
+			String templateId = "http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU";
+			if (TemplateData.get().getTemplateId(np) != null) {
+				templateId = TemplateData.get().getTemplateId(np).stringValue();
+			}
+
 			technicalEditorActions.add(new BookmarkablePageLink<PublishPage>("make-final-version", PublishPage.class,
-					new PageParameters().add("template", TemplateData.get().getTemplateId(np).stringValue())
+					new PageParameters().add("template", templateId)
 						.add("derive", np.getUri().stringValue())
 						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
 						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
