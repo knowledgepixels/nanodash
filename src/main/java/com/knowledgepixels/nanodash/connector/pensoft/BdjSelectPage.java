@@ -27,7 +27,7 @@ public class BdjSelectPage extends SelectPage {
 
 	@Override
 	protected String[] getOptions() {
-		return new String[] { "spectaxon", "orgorg", "taxontaxon", "taxonenv", "orgenv", "taxonnames", "orgns", "taxonns", "specpub", "biolinkrel", "eqrel", "classdef", "inddef" };
+		return new String[] { "spectaxon", "orgorg", "taxontaxon", "taxonenv", "orgenv", "taxonnames", "orgns", "taxonns", "specpub", "biolinkrel", "eqrel", "taxondef", "classdef", "inddef" };
 	}
 
 }

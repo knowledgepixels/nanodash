@@ -119,6 +119,10 @@ public class ConnectorNanopubType implements Serializable {
 				"Identifying a specimn with a taxon name",
 				"https://w3id.org/np/RA_rnly1RAPPSMqgy0qTlEhDCRqt6Fx3NOQECCUBt5mQQ",
 				"https://w3id.org/np/RAA7G5E1wwYCaQsu092uJOYqiBaSRM__6ltpJ6nzwR5vE");
+		new ConnectorNanopubType("taxondef",
+				"Defining a new biological taxon",
+				"https://w3id.org/np/RAa7sIgQ77jJL4HYYGVH8sNu1YEKCH3F-CHqHrgbWWGS4",
+				"https://w3id.org/np/RALQ-2tdTMpPks7m9fRMc5Lmia32Zn3_oPCmfdnB1CRAg");
 		new ConnectorNanopubType("reaction",
 			// This is still experimental and not yet used
 			"A reaction or comment on a paper or nanopublication",
