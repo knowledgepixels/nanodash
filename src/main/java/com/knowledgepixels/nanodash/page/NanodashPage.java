@@ -34,6 +34,11 @@ public abstract class NanodashPage extends WebPage {
 
 				@Override
 				public void run() {
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
+					}
 					System.err.println("Refreshing...");
 					User.refreshUsers();
 					Group.refreshGroups();

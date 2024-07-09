@@ -16,7 +16,6 @@ public class GetViewPage extends NanodashPage {
 	public GetViewPage(final PageParameters parameters) {
 		super(parameters);
 		ViewPage.addNanopubItem(this, parameters);
-		// TODO We should return the Content-Type text/plain here, not text/html
 	}
 
 }

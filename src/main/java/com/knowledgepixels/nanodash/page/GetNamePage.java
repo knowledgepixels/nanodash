@@ -25,6 +25,7 @@ public class GetNamePage extends NanodashPage {
 		} else {
 			throw new IllegalArgumentException("argument 'id' not found");
 		}
+		// TODO return Content-Type text/plain instead of text/html
 	}
 
 }
