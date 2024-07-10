@@ -30,6 +30,8 @@ public abstract class NanopubAction implements Serializable {
 		da.add(new ApprovalAction());
 		da.add(new UpdateAction());
 		da.add(new DeriveAction());
+		da.add(new UseSameTemplateAction());
+		da.add(new UseTemplateAction());
 		defaultActions = da.toArray(new NanopubAction[0]);
 
 		List<NanopubAction> oa = new ArrayList<>();
