@@ -2,7 +2,9 @@ package com.knowledgepixels.nanodash.page;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -67,14 +69,17 @@ public class HomePage extends NanodashPage {
 			@Override
 			public UserList getLazyLoadComponent(String markupId) {
 				List<IRI> topUsers = new ArrayList<>();
+				Map<IRI,String> userNotes = new HashMap<>();
 				try {
 					for (ApiResponseEntry e : QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null).getData()) {
-						topUsers.add(Utils.vf.createIRI(e.get("userid")));
+						IRI userIri = Utils.vf.createIRI(e.get("userid"));
+						topUsers.add(userIri);
+						userNotes.put(userIri, "(" + e.get("count") + ")");
 					}
 				} catch (CsvValidationException | IOException ex) {
 					ex.printStackTrace();
 				}
-				return new UserList(markupId, topUsers);
+				return new UserList(markupId, topUsers, userNotes);
 			}
 
 		});
