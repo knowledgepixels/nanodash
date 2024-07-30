@@ -1,12 +1,27 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryAccess;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.opencsv.exceptions.CsvValidationException;
 
 public class HomePage extends NanodashPage {
 
@@ -47,6 +62,29 @@ public class HomePage extends NanodashPage {
 		} else {
 			add(new Label("text", "Before you can start, you first need to <a href=\"" + ProfilePage.MOUNT_PATH + "\">complete your profile</a>.").setEscapeModelStrings(false));
 		}
+
+		List<IRI> topUsers = new ArrayList<>();
+		try {
+			for (ApiResponseEntry e : QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null).getData()) {
+				topUsers.add(Utils.vf.createIRI(e.get("userid")));
+			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
+		add(new DataView<IRI>("topcreators", new ListDataProvider<IRI>(topUsers)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<IRI> item) {
+				PageParameters params = new PageParameters();
+				params.add("id", item.getModelObject());
+				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
+				item.add(l);
+			}
+
+		});
 	}
 
 }
