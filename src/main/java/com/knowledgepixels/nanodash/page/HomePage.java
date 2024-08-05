@@ -15,8 +15,10 @@ import org.nanopub.extra.services.QueryAccess;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.UserList;
 import com.opencsv.exceptions.CsvValidationException;
@@ -62,6 +64,7 @@ public class HomePage extends NanodashPage {
 		}
 
 		setOutputMarkupId(true);
+
 		add(new AjaxLazyLoadPanel<UserList>("topcreators") {
 
 			private static final long serialVersionUID = 1L;
@@ -83,6 +86,27 @@ public class HomePage extends NanodashPage {
 			}
 
 		});
+
+		add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public NanopubResults getLazyLoadComponent(String markupId) {
+				List<NanopubElement> nanopubs = new ArrayList<>();
+				try {
+					for (ApiResponseEntry e : QueryAccess.get("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs", null).getData()) {
+						nanopubs.add(new NanopubElement(e.get("np")));
+						if (nanopubs.size() == 5) break;
+					}
+				} catch (CsvValidationException | IOException ex) {
+					ex.printStackTrace();
+				}
+				return new NanopubResults(markupId, nanopubs);
+			}
+
+		});
+
 	}
 
 }
