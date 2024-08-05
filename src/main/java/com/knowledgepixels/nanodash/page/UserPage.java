@@ -11,7 +11,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.RadioChoice;
+import org.apache.wicket.markup.html.form.CheckBoxMultipleChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,11 +38,11 @@ public class UserPage extends NanodashPage {
 		return MOUNT_PATH;
 	}
 
-	private Model<String> selected = new Model<>();
+	private Model<ArrayList<String>> selected = new Model<>();
 	private IRI userIri;
 	private boolean added = false;
 	private Map<String,String> pubKeyMap;
-	private RadioChoice<String> pubkeySelection;
+	private CheckBoxMultipleChoice<String> pubkeySelection;
 	
 	public UserPage(final PageParameters parameters) {
 		super(parameters);
@@ -74,16 +74,19 @@ public class UserPage extends NanodashPage {
 			}
 		}
 
-		pubkeySelection = new RadioChoice<String>("pubkeygroup", selected, pubKeyList);
-		pubkeySelection.setDefaultModelObject(pubKeyList.get(0));
+		pubkeySelection = new CheckBoxMultipleChoice<String>("pubkeygroup", selected, pubKeyList);
+		pubkeySelection.setDefaultModelObject(new ArrayList<String>(pubKeyList));
 		pubkeySelection.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
 			private static final long serialVersionUID = -6398658082085108029L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				// TODO: implement this
-				System.err.println("PUBKEY SELECTED: " + selected.getObject());
+				System.err.print("PUBKEYS SELECTED:");
+				for (String s : selected.getObject()) {
+					System.err.print(" " + Utils.createSha256HexHash(pubKeyMap.get(s)));
+				}
+				System.err.println();
 				refresh();
 				setResponsePage(target.getPage());
 				target.appendJavaScript("updateElements();");
@@ -110,8 +113,13 @@ public class UserPage extends NanodashPage {
 				try {
 					Map<String,String> nanopubParams = new HashMap<>();
 					List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-					nanopubParams.put("pubkeyhashes", Utils.createSha256HexHash(pubKeyMap.get(pubkeySelection.getModelObject())));  // TODO: only using first public key here
-					nanopubResults = QueryAccess.get("RAmrP4zUmmtPycZ2rMAcd__7M9XpQi2x3O4Mp_8cmkCiI/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
+					String pubkeyHashes = "";
+					for (String s : selected.getObject()) {
+						pubkeyHashes += " " + Utils.createSha256HexHash(pubKeyMap.get(s));
+					}
+					if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
+					nanopubParams.put("pubkeyhashes", pubkeyHashes);
+					nanopubResults = QueryAccess.get("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
 					while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 						ApiResponseEntry resultEntry = nanopubResults.remove(0);
 						String npUri = resultEntry.get("np");
