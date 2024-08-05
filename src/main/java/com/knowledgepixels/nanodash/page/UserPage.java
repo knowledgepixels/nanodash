@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryAccess;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
@@ -24,6 +25,7 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.opencsv.exceptions.CsvValidationException;
 
 public class UserPage extends NanodashPage {
 
@@ -104,19 +106,19 @@ public class UserPage extends NanodashPage {
 
 			@Override
 			public NanopubResults getLazyLoadComponent(String markupId) {
-				Map<String,String> nanopubParams = new HashMap<>();
-				List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-				nanopubParams.put("pubkey", pubKeyMap.get(pubkeySelection.getModelObject()));  // TODO: only using first public key here
-				nanopubResults = ApiAccess.getRecent("find_signed_nanopubs", nanopubParams).getData();
 				List<NanopubElement> nanopubs = new ArrayList<>();
-				while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
-					ApiResponseEntry resultEntry = nanopubResults.remove(0);
-					String npUri = resultEntry.get("np");
-					// Hide retracted nanopublications:
-					if (resultEntry.get("retracted").equals("1") || resultEntry.get("retracted").equals("true")) continue;
-					// Hide superseded nanopublications:
-					if (resultEntry.get("superseded").equals("1") || resultEntry.get("superseded").equals("true")) continue;
-					nanopubs.add(new NanopubElement(npUri, false));
+				try {
+					Map<String,String> nanopubParams = new HashMap<>();
+					List<ApiResponseEntry> nanopubResults = new ArrayList<>();
+					nanopubParams.put("pubkeyhashes", Utils.createSha256HexHash(pubKeyMap.get(pubkeySelection.getModelObject())));  // TODO: only using first public key here
+					nanopubResults = QueryAccess.get("RAmrP4zUmmtPycZ2rMAcd__7M9XpQi2x3O4Mp_8cmkCiI/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
+					while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
+						ApiResponseEntry resultEntry = nanopubResults.remove(0);
+						String npUri = resultEntry.get("np");
+						nanopubs.add(new NanopubElement(npUri, false));
+					}
+				} catch (CsvValidationException | IOException ex) {
+					ex.printStackTrace();
 				}
 				NanopubResults r = new NanopubResults(markupId, nanopubs);
 				return r;

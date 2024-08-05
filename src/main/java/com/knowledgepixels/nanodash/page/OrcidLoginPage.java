@@ -40,7 +40,7 @@ public class OrcidLoginPage extends WebPage {
 
 	public static String getOrcidLoginUrl(String finalRedirectUrl) {
 		NanodashPreferences prefs = NanodashPreferences.get();
-		String finalRedirectUrlHash = Utils.hashString(finalRedirectUrl);
+		String finalRedirectUrlHash = Utils.createSha256HexHash(finalRedirectUrl);
 		redirectHashMap.put(finalRedirectUrlHash, finalRedirectUrl);
 		// orcid.org gives errors if redirect URL is too long, so we need to store 
 		String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + finalRedirectUrlHash;
