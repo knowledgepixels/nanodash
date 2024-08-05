@@ -70,7 +70,7 @@ public class GrlcSpecPage extends NanodashPage {
 			} else if (st.getPredicate().equals(DCTERMS.LICENSE) && st.getObject() instanceof IRI) {
 				license = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_SPARQL)) {
-				queryContent = st.getObject().stringValue();
+				queryContent = st.getObject().stringValue().replace("https://w3id.org/np/l/nanopub-query-1.1/", NanodashPreferences.get().getQueryUrl());
 			} else if (st.getPredicate().equals(HAS_ENDPOINT) && st.getObject() instanceof IRI) {
 				endpoint = st.getObject().stringValue();
 				if (NanodashPreferences.get().getQueryUrl() != null && endpoint.startsWith("https://w3id.org/np/l/nanopub-query-1.1/")) {
