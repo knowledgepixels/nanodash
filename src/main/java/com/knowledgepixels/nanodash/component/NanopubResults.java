@@ -22,7 +22,7 @@ public class NanopubResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<NanopubElement> item) {
-				item.add(new NanopubItem("nanopub", item.getModelObject()));
+				item.add(new NanopubItem("nanopub", item.getModelObject()).setMinimal());
 			}
 
 		});

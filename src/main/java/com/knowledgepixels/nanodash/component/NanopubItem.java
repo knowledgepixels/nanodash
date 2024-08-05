@@ -45,10 +45,12 @@ public class NanopubItem extends Panel {
 
 	private boolean isInitialized = false;
 	private NanopubElement n;
+	private boolean hideAssertion = false;
 	private boolean hideProvenance = false;
 	private boolean hidePubinfo = false;
 	private boolean hideHeader = false;
 	private boolean hideFooter = false;
+	private boolean hideActionMenu = false;
 	private List<NanopubAction> actions;
 	private IRI signerId;
 	private String tempalteId;
@@ -75,7 +77,7 @@ public class NanopubItem extends Panel {
 			WebMarkupContainer header = new WebMarkupContainer("header");
 			header.add(new NanodashLink("nanopub-id-link", n.getUri()));
 			header.add(new Label("nanopub-label", n.getLabel()).setVisible(!n.getLabel().isEmpty()));
-			if (actions == null || !actions.isEmpty()) {
+			if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
 				NanodashSession session = NanodashSession.get();
 				final boolean isOwnNanopub = session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIri(pubkey, false));
 				final boolean hasLocalPubkey = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
@@ -175,29 +177,33 @@ public class NanopubItem extends Panel {
 			add(footer);
 		}
 
-		WebMarkupContainer assertion = new WebMarkupContainer("assertion");
-
 		final TemplateData td = TemplateData.get();
 
-		Template assertionTemplate = td.getTemplate(n.getNanopub());
-		if (tempalteId != null) assertionTemplate = td.getTemplate(tempalteId);
-		if (assertionTemplate == null) assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
-		List<StatementItem> assertionStatements = new ArrayList<>();
-		ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
-		TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
-		populateStatementItemList(context, assertionFiller, assertionStatements);
+		WebMarkupContainer assertion = new WebMarkupContainer("assertion");
 
-		assertion.add(createStatementView("assertion-statements", assertionStatements));
-		assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(Item<Statement> item) {
-				item.add(new TripleItem("unused-assertion-statement", item.getModelObject(), n.getNanopub(), null));
-			}
-
-		});
+		if (hideAssertion) {
+			assertion.setVisible(false);
+		} else {
+			Template assertionTemplate = td.getTemplate(n.getNanopub());
+			if (tempalteId != null) assertionTemplate = td.getTemplate(tempalteId);
+			if (assertionTemplate == null) assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+			List<StatementItem> assertionStatements = new ArrayList<>();
+			ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
+			TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
+			populateStatementItemList(context, assertionFiller, assertionStatements);
+	
+			assertion.add(createStatementView("assertion-statements", assertionStatements));
+			assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<Statement> item) {
+					item.add(new TripleItem("unused-assertion-statement", item.getModelObject(), n.getNanopub(), null));
+				}
+	
+			});
+		}
 		add(assertion);
 
 		WebMarkupContainer provenance = new WebMarkupContainer("provenance");
@@ -342,6 +348,14 @@ public class NanopubItem extends Panel {
 	public NanopubItem setFooterHidden(boolean hideFooter) {
 		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
 		this.hideFooter = hideFooter;
+		return this;
+	}
+
+	public NanopubItem setMinimal() {
+		if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
+		this.hideAssertion = true;
+		this.hideActionMenu = true;
+		setProvenanceHidden(true).setPubinfoHidden(true);
 		return this;
 	}
 

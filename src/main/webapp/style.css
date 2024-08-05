@@ -656,7 +656,7 @@ select {
 
 .meta {
 	color: #666;
-	margin: 40px 10px 0 1px;
+	margin: 25px 10px 0 3px;
 	font-weight: bold;
 }
 
@@ -665,7 +665,7 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 }
 
 .postmeta {
-	margin: 0 10px 40px 5px;
+	margin: 0 10px 25px 5px;
 	color: #666;
 }
 
