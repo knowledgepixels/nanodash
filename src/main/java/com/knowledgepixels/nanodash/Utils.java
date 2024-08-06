@@ -21,6 +21,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -258,6 +259,31 @@ public class Utils {
 
 	public static String createSha256HexHash(Object obj) {
 		return Hashing.sha256().hashString(obj.toString(), StandardCharsets.UTF_8).toString();
+	}
+
+	public static List<IRI> getTypes(Nanopub np) {
+		List<IRI> l = new ArrayList<IRI>();
+		for (IRI t : NanopubUtils.getTypes(np)) {
+			if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource")) continue;
+			if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed")) continue;
+			if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Supporting-Resource")) continue;
+			if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource-to-be-Developed")) continue;
+			l.add(t);
+		}
+		return l;
+	}
+
+	public static String getTypeLabel(IRI typeIri) {
+		String l = typeIri.stringValue();
+		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource")) return "FER";
+		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource")) return "FSR";
+		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile")) return "FIP";
+		if (l.equals("http://purl.org/nanopub/x/declaredBy")) return "user intro";
+		if (l.equals("https://w3id.org/kpxl/grlc/grlc-query")) return "API";
+		l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
+		l = l.replaceFirst("Nanopub$", "");
+		if (l.length() > 25) l = l.substring(0, 20) + "...";
+		return l;
 	}
 
 }

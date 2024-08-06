@@ -102,6 +102,16 @@ public class NanopubItem extends Panel {
 			} else {
 				header.add(new Label("action-menu", "").setVisible(false));
 			}
+			header.add(new DataView<IRI>("typespan", new ListDataProvider<IRI>(Utils.getTypes(n.getNanopub()))) {
+				
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void populateItem(Item<IRI> item) {
+					item.add(new Label("type", Utils.getTypeLabel(item.getModelObject())));
+				}
+	
+			});
 			add(header);
 		}
 
