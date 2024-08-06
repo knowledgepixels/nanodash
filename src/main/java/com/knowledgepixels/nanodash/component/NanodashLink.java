@@ -10,8 +10,12 @@ import java.util.Set;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -20,9 +24,18 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.connector.ios.DsConfig;
+import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
+import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+
+import net.trustyuri.TrustyUriUtils;
 
 public class NanodashLink extends Panel {
 	
@@ -122,7 +135,18 @@ public class NanodashLink extends Panel {
 					}
 				}
 			}
-			add(new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), label.replaceFirst(" - [\\s\\S]*$", "")));
+			boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
+			String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
+			// TODO Improve this
+			if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
+				add(new BookmarkablePageLink<NanodashPage>("link", DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+			} else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
+				add(new BookmarkablePageLink<NanodashPage>("link", BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+			} else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
+				add(new BookmarkablePageLink<NanodashPage>("link", RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+			} else {
+				add(new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(shortLabel)));
+			}
 			String description = "";
 			if (np != null && uri.startsWith(np.getUri().stringValue())) {
 				description = "This is a local identifier that was minted when the nanopublication was created.";

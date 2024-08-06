@@ -10,6 +10,7 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryAccess;
 
@@ -28,6 +29,11 @@ public class HomePage extends NanodashPage {
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/";
+
+	private static List<IRI> topUsers;
+	private static Map<IRI,String> topUserNotes;
+	private static List<NanopubElement> recentNanopubs;
+	private static List<NanopubElement> latestAccepted;
 
 	@Override
 	public String getMountPath() {
@@ -53,9 +59,9 @@ public class HomePage extends NanodashPage {
 			add(new Label("warning", ""));
 		}
 		if (NanodashPreferences.get().isReadOnlyMode()) {
-			add(new Label("text", "Click on the menu items above to explore nanopublications. This is a read-only instance, so you cannot publish new nanopublications here."));
+			add(new Label("text", "This is a read-only instance, so you cannot publish new nanopublications here."));
 		} else if (NanodashSession.get().isProfileComplete()) {
-			add(new Label("text", "Click on the menu items above to explore or publish nanopublications."));
+			add(new Label("text", ""));
 		} else if (NanodashPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
 			String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
 			add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
@@ -65,48 +71,91 @@ public class HomePage extends NanodashPage {
 
 		setOutputMarkupId(true);
 
-		add(new AjaxLazyLoadPanel<UserList>("topcreators") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public UserList getLazyLoadComponent(String markupId) {
-				List<IRI> topUsers = new ArrayList<>();
-				Map<IRI,String> userNotes = new HashMap<>();
-				try {
-					for (ApiResponseEntry e : QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null).getData()) {
-						IRI userIri = Utils.vf.createIRI(e.get("userid"));
-						topUsers.add(userIri);
-						userNotes.put(userIri, "(" + e.get("count") + ")");
-					}
-				} catch (CsvValidationException | IOException ex) {
-					ex.printStackTrace();
+		if (topUsers != null) {
+			add(new UserList("topcreators", topUsers, topUserNotes));
+		} else {
+			add(new AjaxLazyLoadPanel<UserList>("topcreators") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public UserList getLazyLoadComponent(String markupId) {
+					refreshLists();
+					return new UserList(markupId, topUsers, topUserNotes);
 				}
-				return new UserList(markupId, topUsers, userNotes);
-			}
+	
+			});
+		}
 
-		});
-
-		add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public NanopubResults getLazyLoadComponent(String markupId) {
-				List<NanopubElement> nanopubs = new ArrayList<>();
-				try {
-					for (ApiResponseEntry e : QueryAccess.get("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs", null).getData()) {
-						nanopubs.add(new NanopubElement(e.get("np")));
-						if (nanopubs.size() == 5) break;
-					}
-				} catch (CsvValidationException | IOException ex) {
-					ex.printStackTrace();
+		if (recentNanopubs != null) {
+			add(new NanopubResults("mostrecent", recentNanopubs));
+		} else {
+			add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public NanopubResults getLazyLoadComponent(String markupId) {
+					refreshLists();
+					return new NanopubResults(markupId, recentNanopubs);
 				}
-				return new NanopubResults(markupId, nanopubs);
+	
+			});
+		}
+
+		if (latestAccepted != null) {
+			add(new NanopubResults("latestaccepted", latestAccepted));
+		} else {
+			add(new AjaxLazyLoadPanel<NanopubResults>("latestaccepted") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public NanopubResults getLazyLoadComponent(String markupId) {
+					refreshLists();
+					return new NanopubResults(markupId, latestAccepted);
+				}
+	
+			});
+		}
+
+	}
+
+	public static void refreshLists() {
+		try {
+			ApiResponse resp = QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null);
+			topUsers = new ArrayList<>();
+			topUserNotes = new HashMap<>();
+			for (ApiResponseEntry e : resp.getData()) {
+				IRI userIri = Utils.vf.createIRI(e.get("userid"));
+				topUsers.add(userIri);
+				topUserNotes.put(userIri, "(" + e.get("count") + ")");
 			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
 
-		});
+		try {
+			ApiResponse resp = QueryAccess.get("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs", null);
+			recentNanopubs = new ArrayList<>();
+			for (ApiResponseEntry e : resp.getData()) {
+				recentNanopubs.add(new NanopubElement(e.get("np")));
+				if (recentNanopubs.size() == 5) break;
+			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
 
+		try {
+			ApiResponse resp = QueryAccess.get("RAL-Y2PSWEtvpAYpdx4PF3MJ3TuZB7cFskTVdPA_JCg3o/get-latest-accepted", null);
+			latestAccepted = new ArrayList<>();
+			for (ApiResponseEntry e : resp.getData()) {
+				latestAccepted.add(new NanopubElement(e.get("np")));
+				if (latestAccepted.size() == 5) break;
+			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 }
