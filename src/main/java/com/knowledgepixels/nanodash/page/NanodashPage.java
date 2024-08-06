@@ -25,12 +25,15 @@ public abstract class NanodashPage extends WebPage {
 
 	public abstract String getMountPath();
 
+	private transient Thread refreshThread;
+
 	protected NanodashPage(PageParameters parameters) {
 		super(parameters);
+		if (refreshThread != null) return;
 		state = lastRefresh;
 		if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
 			lastRefresh = System.currentTimeMillis();
-			new Thread() {
+			refreshThread = new Thread() {
 
 				@Override
 				public void run() {
@@ -39,16 +42,21 @@ public abstract class NanodashPage extends WebPage {
 					} catch (InterruptedException ex) {
 						ex.printStackTrace();
 					}
-					System.err.println("Refreshing...");
-					User.refreshUsers();
-					Group.refreshGroups();
-					TemplateData.refreshTemplates();
-					HomePage.refreshLists();
-					System.err.println("Refreshing done.");
-					lastRefresh = System.currentTimeMillis();
+					try {
+						System.err.println("Refreshing...");
+						User.refreshUsers();
+						Group.refreshGroups();
+						TemplateData.refreshTemplates();
+						HomePage.refreshLists();
+						System.err.println("Refreshing done.");
+						lastRefresh = System.currentTimeMillis();
+					} finally {
+						refreshThread = null;
+					}
 				}
 
-			}.start();
+			};
+			refreshThread.start();
 		}
 	}
 
