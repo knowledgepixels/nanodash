@@ -287,6 +287,30 @@ img.thirdparty {
   height: 15px;
 }
 
+.user-icon {
+  display: inline-block;
+  background-image: url("images/user-icon.svg");
+  vertical-align: middle;
+  width: 15px;
+  height: 15px;
+}
+
+ul.users {
+	list-style-image: url('images/user-icon.svg');
+}
+
+.form-icon {
+  display: inline-block;
+  background-image: url("images/form-icon.svg");
+  vertical-align: middle;
+  width: 15px;
+  height: 15px;
+}
+
+ul.forms {
+	list-style-image: url('images/form-icon.svg');
+}
+
 .sidelogo {
   margin-bottom: 50px;
 }
