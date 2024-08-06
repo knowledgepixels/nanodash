@@ -31,6 +31,8 @@ public class HomePage extends NanodashPage {
 	public static final String MOUNT_PATH = "/";
 
 	private static List<IRI> topUsers;
+	private static Map<IRI,String> topAuthorNotes;
+	private static List<IRI> topAuthors;
 	private static Map<IRI,String> topUserNotes;
 	private static List<NanopubElement> recentNanopubs;
 	private static List<NanopubElement> latestAccepted;
@@ -87,6 +89,22 @@ public class HomePage extends NanodashPage {
 			});
 		}
 
+		if (topAuthors != null) {
+			add(new UserList("topauthors", topAuthors, topAuthorNotes));
+		} else {
+			add(new AjaxLazyLoadPanel<UserList>("topauthors") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public UserList getLazyLoadComponent(String markupId) {
+					refreshLists();
+					return new UserList(markupId, topAuthors, topAuthorNotes);
+				}
+	
+			});
+		}
+
 		if (recentNanopubs != null) {
 			add(new NanopubResults("mostrecent", recentNanopubs));
 		} else {
@@ -130,6 +148,19 @@ public class HomePage extends NanodashPage {
 				IRI userIri = Utils.vf.createIRI(e.get("userid"));
 				topUsers.add(userIri);
 				topUserNotes.put(userIri, "(" + e.get("count") + ")");
+			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
+
+		try {
+			ApiResponse resp = QueryAccess.get("RACx9IgQMsU3UZqrGlYk6efLg5jJTFldTrXypwTTJbo40/get-top-authors", null);
+			topAuthors = new ArrayList<>();
+			topAuthorNotes = new HashMap<>();
+			for (ApiResponseEntry e : resp.getData()) {
+				IRI userIri = Utils.vf.createIRI(e.get("author"));
+				topAuthors.add(userIri);
+				topAuthorNotes.put(userIri, "(" + e.get("npcount") + ")");
 			}
 		} catch (CsvValidationException | IOException ex) {
 			ex.printStackTrace();
