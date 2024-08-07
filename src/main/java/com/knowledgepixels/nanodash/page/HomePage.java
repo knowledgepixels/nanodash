@@ -82,7 +82,7 @@ public class HomePage extends NanodashPage {
 	
 				@Override
 				public UserList getLazyLoadComponent(String markupId) {
-					refreshLists();
+					refreshLists(false);
 					return new UserList(markupId, topUsers, topUserNotes);
 				}
 	
@@ -98,7 +98,7 @@ public class HomePage extends NanodashPage {
 	
 				@Override
 				public UserList getLazyLoadComponent(String markupId) {
-					refreshLists();
+					refreshLists(false);
 					return new UserList(markupId, topAuthors, topAuthorNotes);
 				}
 	
@@ -114,7 +114,7 @@ public class HomePage extends NanodashPage {
 	
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
-					refreshLists();
+					refreshLists(false);
 					return new NanopubResults(markupId, recentNanopubs);
 				}
 	
@@ -130,7 +130,7 @@ public class HomePage extends NanodashPage {
 	
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
-					refreshLists();
+					refreshLists(false);
 					return new NanopubResults(markupId, latestAccepted);
 				}
 	
@@ -139,53 +139,71 @@ public class HomePage extends NanodashPage {
 
 	}
 
-	public static void refreshLists() {
-		try {
-			ApiResponse resp = QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null);
-			topUsers = new ArrayList<>();
-			topUserNotes = new HashMap<>();
-			for (ApiResponseEntry e : resp.getData()) {
-				IRI userIri = Utils.vf.createIRI(e.get("userid"));
-				topUsers.add(userIri);
-				topUserNotes.put(userIri, "(" + e.get("count") + ")");
-			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
-		}
+	private static boolean refreshingLists = false;
 
-		try {
-			ApiResponse resp = QueryAccess.get("RACx9IgQMsU3UZqrGlYk6efLg5jJTFldTrXypwTTJbo40/get-top-authors", null);
-			topAuthors = new ArrayList<>();
-			topAuthorNotes = new HashMap<>();
-			for (ApiResponseEntry e : resp.getData()) {
-				IRI userIri = Utils.vf.createIRI(e.get("author"));
-				topAuthors.add(userIri);
-				topAuthorNotes.put(userIri, "(" + e.get("npcount") + ")");
+	public static void refreshLists(boolean force) {
+		if (!force && topUsers != null) return;
+		if (refreshingLists) {
+			while (true) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
+				}
+				if (!refreshingLists) return;
 			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
 		}
-
+		refreshingLists = true;
 		try {
-			ApiResponse resp = QueryAccess.get("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs", null);
-			recentNanopubs = new ArrayList<>();
-			for (ApiResponseEntry e : resp.getData()) {
-				recentNanopubs.add(new NanopubElement(e.get("np")));
-				if (recentNanopubs.size() == 5) break;
+			try {
+				ApiResponse resp = QueryAccess.get("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d", null);
+				topUsers = new ArrayList<>();
+				topUserNotes = new HashMap<>();
+				for (ApiResponseEntry e : resp.getData()) {
+					IRI userIri = Utils.vf.createIRI(e.get("userid"));
+					topUsers.add(userIri);
+					topUserNotes.put(userIri, "(" + e.get("count") + ")");
+				}
+			} catch (CsvValidationException | IOException ex) {
+				ex.printStackTrace();
 			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
-		}
-
-		try {
-			ApiResponse resp = QueryAccess.get("RAL-Y2PSWEtvpAYpdx4PF3MJ3TuZB7cFskTVdPA_JCg3o/get-latest-accepted", null);
-			latestAccepted = new ArrayList<>();
-			for (ApiResponseEntry e : resp.getData()) {
-				latestAccepted.add(new NanopubElement(e.get("np")));
-				if (latestAccepted.size() == 5) break;
+	
+			try {
+				ApiResponse resp = QueryAccess.get("RACx9IgQMsU3UZqrGlYk6efLg5jJTFldTrXypwTTJbo40/get-top-authors", null);
+				topAuthors = new ArrayList<>();
+				topAuthorNotes = new HashMap<>();
+				for (ApiResponseEntry e : resp.getData()) {
+					IRI userIri = Utils.vf.createIRI(e.get("author"));
+					topAuthors.add(userIri);
+					topAuthorNotes.put(userIri, "(" + e.get("npcount") + ")");
+				}
+			} catch (CsvValidationException | IOException ex) {
+				ex.printStackTrace();
 			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
+	
+			try {
+				ApiResponse resp = QueryAccess.get("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs", null);
+				recentNanopubs = new ArrayList<>();
+				for (ApiResponseEntry e : resp.getData()) {
+					recentNanopubs.add(new NanopubElement(e.get("np")));
+					if (recentNanopubs.size() == 5) break;
+				}
+			} catch (CsvValidationException | IOException ex) {
+				ex.printStackTrace();
+			}
+	
+			try {
+				ApiResponse resp = QueryAccess.get("RAL-Y2PSWEtvpAYpdx4PF3MJ3TuZB7cFskTVdPA_JCg3o/get-latest-accepted", null);
+				latestAccepted = new ArrayList<>();
+				for (ApiResponseEntry e : resp.getData()) {
+					latestAccepted.add(new NanopubElement(e.get("np")));
+					if (latestAccepted.size() == 5) break;
+				}
+			} catch (CsvValidationException | IOException ex) {
+				ex.printStackTrace();
+			}
+		} finally {
+			refreshingLists = false;
 		}
 	}
 

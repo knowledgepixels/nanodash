@@ -98,48 +98,125 @@ public class UserPage extends NanodashPage {
 		refresh();
 	}
 
-	private void refresh() {
+	protected boolean hasAutoRefreshEnabled() {
+		return true;
+	}
+
+	private synchronized void refresh() {
 		if (added) {
 			remove("nanopubs");
 		}
-		added = true; 
-		add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+		added = true;
+		final String pubkeyHashes = getPubkeyHashesString();
+		if (hasCachedNanopubList(pubkeyHashes)) {
+			add(new NanopubResults("nanopubs", cachedNanopubLists.get(pubkeyHashes)));
+			if (System.currentTimeMillis() - lastRefresh.get(pubkeyHashes) > 60 * 1000 && !isAlreadyRunning(pubkeyHashes)) {
+				refreshRunning.put(pubkeyHashes, true);
+				new Thread() {
 
-			private static final long serialVersionUID = 1L;
+					@Override
+					public void run() {
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException ex) {
+							ex.printStackTrace();
+						}
+						try {
+							updateNanopubList(pubkeyHashes);
+						} finally {
+							refreshRunning.put(pubkeyHashes, false);
+						}
+					}
 
-			@Override
-			public NanopubResults getLazyLoadComponent(String markupId) {
-				List<NanopubElement> nanopubs = new ArrayList<>();
-				try {
-					Map<String,String> nanopubParams = new HashMap<>();
-					List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-					String pubkeyHashes = "";
-					for (String s : selected.getObject()) {
-						pubkeyHashes += " " + Utils.createSha256HexHash(pubKeyMap.get(s));
+				}.start();
+			}
+		} else {
+			final boolean alreadyRunning = isAlreadyRunning(pubkeyHashes);
+			refreshRunning.put(pubkeyHashes, true);
+			add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public NanopubResults getLazyLoadComponent(String markupId) {
+					if (alreadyRunning) {
+						while (true) {
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException ex) {
+								ex.printStackTrace();
+							}
+							if (!refreshRunning.get(pubkeyHashes)) break;
+						}
+						return new NanopubResults(markupId, cachedNanopubLists.get(pubkeyHashes));
+					} else {
+						NanopubResults nr = null;
+						try {
+							updateNanopubList(pubkeyHashes);
+							nr = new NanopubResults(markupId, cachedNanopubLists.get(pubkeyHashes));
+						} finally {
+							refreshRunning.put(pubkeyHashes, false);
+						}
+						return nr;
 					}
-					if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
-					nanopubParams.put("pubkeyhashes", pubkeyHashes);
-					nanopubResults = QueryAccess.get("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
-					while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
-						ApiResponseEntry resultEntry = nanopubResults.remove(0);
-						String npUri = resultEntry.get("np");
-						nanopubs.add(new NanopubElement(npUri, false));
-					}
-				} catch (CsvValidationException | IOException ex) {
-					ex.printStackTrace();
 				}
-				NanopubResults r = new NanopubResults(markupId, nanopubs);
-				return r;
-			}
-
-			@Override
-			protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
-				super.onContentLoaded(content, target);
-				if (target.get() != null) target.get().appendJavaScript("updateElements();");
-			}
-
-		});
+	
+				@Override
+				protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
+					super.onContentLoaded(content, target);
+					if (target.get() != null) target.get().appendJavaScript("updateElements();");
+				}
+	
+			});
+		}
 	}
+
+	private static boolean isAlreadyRunning(String pubkeyHashes) {
+		if (!refreshRunning.containsKey(pubkeyHashes)) return false;
+		return refreshRunning.get(pubkeyHashes);
+	}
+
+	private static void updateNanopubList(String pubkeyHashes) {
+		List<NanopubElement> nanopubs = getNanopubList(pubkeyHashes);
+		cachedNanopubLists.put(pubkeyHashes, nanopubs);
+		lastRefresh.put(pubkeyHashes, System.currentTimeMillis());
+	}
+
+	private static List<NanopubElement> getNanopubList(String pubkeyHashes) {
+		List<NanopubElement> nanopubs = new ArrayList<>();
+		try {
+			Map<String,String> nanopubParams = new HashMap<>();
+			List<ApiResponseEntry> nanopubResults = new ArrayList<>();
+			nanopubParams.put("pubkeyhashes", pubkeyHashes);
+			nanopubResults = QueryAccess.get("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
+			while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
+				ApiResponseEntry resultEntry = nanopubResults.remove(0);
+				String npUri = resultEntry.get("np");
+				nanopubs.add(new NanopubElement(npUri, false));
+			}
+		} catch (CsvValidationException | IOException ex) {
+			ex.printStackTrace();
+		}
+		return nanopubs;
+	}
+
+	private String getPubkeyHashesString() {
+		String pubkeyHashes = "";
+		for (String s : selected.getObject()) {
+			pubkeyHashes += " " + Utils.createSha256HexHash(pubKeyMap.get(s));
+		}
+		if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
+		return pubkeyHashes;
+	}
+
+	private static boolean hasCachedNanopubList(String pubkeyHashes) {
+		if (!cachedNanopubLists.containsKey(pubkeyHashes)) return false;
+		return System.currentTimeMillis() - lastRefresh.get(pubkeyHashes) < 24 * 60 * 60 * 1000;
+	}
+
+	private transient static Map<String,List<NanopubElement>> cachedNanopubLists = new HashMap<>();
+	private transient static Map<String,Long> lastRefresh = new HashMap<>();
+	private transient static Map<String,Boolean> refreshRunning = new HashMap<>();
 
 //	@Override
 //	public void onBeforeRender() {
