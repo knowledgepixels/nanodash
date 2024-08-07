@@ -178,10 +178,6 @@ public class NanopubItem extends Panel {
 					negativeNotes = "- malformed or legacy signature";
 				}
 			}
-			if (n.isRetracted()) {
-				positiveNotes = "";
-				negativeNotes = "- retracted";
-			}
 			footer.add(new Label("positive-notes", positiveNotes));
 			footer.add(new Label("negative-notes", negativeNotes));
 			add(footer);

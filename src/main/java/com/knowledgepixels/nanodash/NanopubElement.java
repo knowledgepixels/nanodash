@@ -29,20 +29,11 @@ public class NanopubElement implements Serializable {
 	private Boolean hasValidSignature;
 	private IRI signerId;
 	private List<IRI> types;
-	private Boolean isRetraction;
-	private Boolean hasRetractionTarget;
-	private IRI retractionTarget;
-	private boolean retracted;
 
 	public NanopubElement(String uri) {
-		this(uri, false);
-	}
-
-	public NanopubElement(String uri, boolean retracted) {
 		this.uriString = uri;
 		this.nanopub = Utils.getNanopub(uri);
 		if (nanopub == null) throw new IllegalArgumentException("No nanopublication found for URI: " + uri);
-		this.retracted = retracted;
 	}
 
 	public NanopubElement(Nanopub nanopub) {
@@ -52,10 +43,6 @@ public class NanopubElement implements Serializable {
 
 	public Nanopub getNanopub() {
 		return nanopub;
-	}
-
-	public boolean isRetracted() {
-		return retracted;
 	}
 
 	public String getUri() {
@@ -123,39 +110,16 @@ public class NanopubElement implements Serializable {
 	}
 
 	public List<IRI> getTypes() {
-		isRetraction = false;
 		if (types == null) {
 			types = new ArrayList<>();
 			if (nanopub == null) return types;
 			for (Statement st : nanopub.getPubinfo()) {
 				if (st.getSubject().equals(nanopub.getUri()) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI) {
 					types.add((IRI) st.getObject());
-					if (st.getObject().stringValue().equals("http://purl.org/nanopub/x/RetractionNanopub")) {
-						isRetraction = true;
-					}
 				}
 			}
 		}
 		return types;
-	}
-
-	public IRI getRetractionTarget() {
-		if (isRetraction == null) {
-			getTypes();
-		}
-		if (hasRetractionTarget == null) {
-			hasRetractionTarget = false;
-			if (nanopub == null) return null;
-			if (isRetraction && nanopub.getAssertion().size() == 1) {
-				Statement aSt = nanopub.getAssertion().iterator().next();
-				String p = aSt.getPredicate().stringValue();
-				if (p.equals("http://purl.org/nanopub/x/retracts") && aSt.getObject() instanceof IRI) {
-					retractionTarget = (IRI) aSt.getObject();
-					hasRetractionTarget = true;
-				}
-			}
-		}
-		return retractionTarget;
 	}
 
 	private Map<String,String> foafNameMap;

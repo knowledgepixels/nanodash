@@ -192,7 +192,7 @@ public class UserPage extends NanodashPage {
 			while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 				ApiResponseEntry resultEntry = nanopubResults.remove(0);
 				String npUri = resultEntry.get("np");
-				nanopubs.add(new NanopubElement(npUri, false));
+				nanopubs.add(new NanopubElement(npUri));
 			}
 		} catch (CsvValidationException | IOException ex) {
 			ex.printStackTrace();
