@@ -111,7 +111,7 @@ public class UserPage extends NanodashPage {
 		if (hasCachedNanopubList(pubkeyHashes)) {
 			add(new NanopubResults("nanopubs", cachedNanopubLists.get(pubkeyHashes)));
 			if (System.currentTimeMillis() - lastRefresh.get(pubkeyHashes) > 60 * 1000 && !isAlreadyRunning(pubkeyHashes)) {
-				refreshRunning.put(pubkeyHashes, true);
+				refreshStart.put(pubkeyHashes, System.currentTimeMillis());
 				new Thread() {
 
 					@Override
@@ -124,7 +124,7 @@ public class UserPage extends NanodashPage {
 						try {
 							updateNanopubList(pubkeyHashes);
 						} finally {
-							refreshRunning.put(pubkeyHashes, false);
+							refreshStart.remove(pubkeyHashes);
 						}
 					}
 
@@ -132,7 +132,7 @@ public class UserPage extends NanodashPage {
 			}
 		} else {
 			final boolean alreadyRunning = isAlreadyRunning(pubkeyHashes);
-			refreshRunning.put(pubkeyHashes, true);
+			refreshStart.put(pubkeyHashes, System.currentTimeMillis());
 			add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 	
 				private static final long serialVersionUID = 1L;
@@ -146,7 +146,7 @@ public class UserPage extends NanodashPage {
 							} catch (InterruptedException ex) {
 								ex.printStackTrace();
 							}
-							if (!refreshRunning.get(pubkeyHashes)) break;
+							if (!refreshStart.containsKey(pubkeyHashes)) break;
 						}
 						return new NanopubResults(markupId, cachedNanopubLists.get(pubkeyHashes));
 					} else {
@@ -155,7 +155,7 @@ public class UserPage extends NanodashPage {
 							updateNanopubList(pubkeyHashes);
 							nr = new NanopubResults(markupId, cachedNanopubLists.get(pubkeyHashes));
 						} finally {
-							refreshRunning.put(pubkeyHashes, false);
+							refreshStart.remove(pubkeyHashes);
 						}
 						return nr;
 					}
@@ -172,8 +172,8 @@ public class UserPage extends NanodashPage {
 	}
 
 	private static boolean isAlreadyRunning(String pubkeyHashes) {
-		if (!refreshRunning.containsKey(pubkeyHashes)) return false;
-		return refreshRunning.get(pubkeyHashes);
+		if (!refreshStart.containsKey(pubkeyHashes)) return false;
+		return System.currentTimeMillis() - refreshStart.get(pubkeyHashes) < 60 * 1000;
 	}
 
 	private static void updateNanopubList(String pubkeyHashes) {
@@ -216,7 +216,7 @@ public class UserPage extends NanodashPage {
 
 	private transient static Map<String,List<NanopubElement>> cachedNanopubLists = new HashMap<>();
 	private transient static Map<String,Long> lastRefresh = new HashMap<>();
-	private transient static Map<String,Boolean> refreshRunning = new HashMap<>();
+	private transient static Map<String,Long> refreshStart = new HashMap<>();
 
 //	@Override
 //	public void onBeforeRender() {
