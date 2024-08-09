@@ -20,20 +20,20 @@ public abstract class NanodashPage extends WebPage {
 
 	private static long lastRefresh = 0l;
 	private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
+	private static boolean refreshRunning = false;
 
 	private long state = 0l;
 
 	public abstract String getMountPath();
 
-	private transient Thread refreshThread;
 
 	protected NanodashPage(PageParameters parameters) {
 		super(parameters);
-		if (refreshThread != null) return;
 		state = lastRefresh;
-		if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+		if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
 			lastRefresh = System.currentTimeMillis();
-			refreshThread = new Thread() {
+			refreshRunning = true;
+			new Thread() {
 
 				@Override
 				public void run() {
@@ -51,12 +51,11 @@ public abstract class NanodashPage extends WebPage {
 						System.err.println("Refreshing done.");
 						lastRefresh = System.currentTimeMillis();
 					} finally {
-						refreshThread = null;
+						refreshRunning = false;
 					}
 				}
 
-			};
-			refreshThread.start();
+			}.start();
 		}
 	}
 
