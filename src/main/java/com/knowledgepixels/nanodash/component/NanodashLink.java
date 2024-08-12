@@ -30,7 +30,6 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
