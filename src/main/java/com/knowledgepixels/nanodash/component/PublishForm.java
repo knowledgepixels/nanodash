@@ -59,8 +59,6 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -250,7 +248,7 @@ public class PublishForm extends Panel {
 			add(new Label("newversion", "There is a new version of this assertion template:"));
 			PageParameters params = new PageParameters(pageParams);
 			params.set("template", latestAssertionId);
-			add(new BookmarkablePageLink<PublishPage>("newversionlink", publishPageClass, params));
+			add(new BookmarkablePageLink<Void>("newversionlink", publishPageClass, params));
 			if ("latest".equals(pageParams.get("template-version").toString())) {
 				throw new RestartResponseException(publishPageClass, params);
 			}
@@ -443,7 +441,7 @@ public class PublishForm extends Panel {
 
 		form.add(new Label("nanopub-namespace", targetNamespaceLabel));
 
-		form.add(new BookmarkablePageLink<UserPage>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
+		form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
 		form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
 		String description = assertionContext.getTemplate().getLabel();
 		if (description == null) description = "";
@@ -613,7 +611,7 @@ public class PublishForm extends Panel {
 			target.add(form);
 			target.appendJavaScript("updateElements();");
 		}
-		form.add(new BookmarkablePageLink<UserPage>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
+		form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
 		ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
 			private static final long serialVersionUID = 1L;
@@ -635,7 +633,7 @@ public class PublishForm extends Panel {
 			protected void populateItem(ListItem<TemplateContext> item) {
 				final TemplateContext pic = item.getModelObject();
 				item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
-				item.add(new BookmarkablePageLink<UserPage>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
+				item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
 				Label remove = new Label("piremove", "×");
 				item.add(remove);
 				remove.add(new AjaxEventBehavior("click") {

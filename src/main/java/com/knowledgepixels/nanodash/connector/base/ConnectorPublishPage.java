@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash.connector.base;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -39,7 +38,7 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 		PageParameters pageParams = new PageParameters();
 		pageParams.add("id", type.getExampleId());
 		pageParams.add("mode", "final");
-		add(new BookmarkablePageLink<WebPage>("show-example", getConfig().getNanopubPage().getClass(), pageParams));
+		add(new BookmarkablePageLink<Void>("show-example", getConfig().getNanopubPage().getClass(), pageParams));
 	}
 
 	@Override

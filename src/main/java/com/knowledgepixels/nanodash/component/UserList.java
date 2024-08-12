@@ -32,9 +32,9 @@ public class UserList extends Panel {
 				IRI userIri = item.getModelObject();
 				PageParameters params = new PageParameters();
 				params.add("id", userIri);
-				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
 				if (!User.isUser(userIri)) {
-					l = new BookmarkablePageLink<UserPage>("userlink", ExplorePage.class, params);
+					l = new BookmarkablePageLink<Void>("userlink", ExplorePage.class, params);
 				}
 				l.add(new Label("linktext", User.getShortDisplayName(userIri)));
 				item.add(l);

@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -37,7 +36,7 @@ public class PublishConfirmPage extends NanodashPage {
 
 		add(new TitleBar("titlebar", this, "publish"));
 
-		add(new BookmarkablePageLink<UserPage>("userlink", UserPage.class, new PageParameters().add("id", NanodashSession.get().getUserIri())));
+		add(new BookmarkablePageLink<Void>("userlink", UserPage.class, new PageParameters().add("id", NanodashSession.get().getUserIri())));
 		add(new NanopubItem("nanopub", new NanopubElement(np)));
 
 		final NanodashSession session = NanodashSession.get();
@@ -50,7 +49,7 @@ public class PublishConfirmPage extends NanodashPage {
 
 		if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
 			add(new WebMarkupContainer("use-template").add(
-					new BookmarkablePageLink<WebPage>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
+					new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
 				);
 		} else {
 			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
@@ -61,7 +60,7 @@ public class PublishConfirmPage extends NanodashPage {
 		if (!params.get("template-version").isEmpty()) {
 			plainLinkParams.add("template-version", params.get("template-version"));
 		}
-		add(new BookmarkablePageLink<WebPage>("publish-another-link", PublishPage.class, plainLinkParams));
+		add(new BookmarkablePageLink<Void>("publish-another-link", PublishPage.class, plainLinkParams));
 
 		PageParameters linkParams = new PageParameters(params);
 		linkParams.remove("supersede");
@@ -73,7 +72,7 @@ public class PublishConfirmPage extends NanodashPage {
 			publishAnotherFilledLinkVisible = true;
 		}
 		if (publishAnotherFilledLinkVisible) {
-			add(new BookmarkablePageLink<WebPage>("publish-another-filled-link", PublishPage.class, linkParams));
+			add(new BookmarkablePageLink<Void>("publish-another-filled-link", PublishPage.class, linkParams));
 		} else {
 			add(new Label("publish-another-filled-link", "").setVisible(false));
 		}

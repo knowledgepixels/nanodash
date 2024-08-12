@@ -84,7 +84,7 @@ public class TemplateList extends Panel {
 					protected void populateItem(Item<Template> item) {
 						PageParameters params = new PageParameters();
 						params.add("template", item.getModelObject().getId());
-						BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("link", PublishPage.class, params);
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
 						l.add(new Label("name", item.getModelObject().getLabel()));
 						item.add(l);
 						String userString = "somebody";

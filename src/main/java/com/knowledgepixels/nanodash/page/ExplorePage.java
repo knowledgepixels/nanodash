@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -69,7 +68,7 @@ public class ExplorePage extends NanodashPage {
 				npStatusLine.add(new ExternalLink("xml", url + ".xml"));
 				if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
 					add(new WebMarkupContainer("use-template").add(
-							new BookmarkablePageLink<WebPage>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
+							new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
 						);
 				} else {
 					add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));

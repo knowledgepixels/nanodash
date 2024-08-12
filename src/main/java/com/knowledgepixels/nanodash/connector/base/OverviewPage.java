@@ -7,7 +7,6 @@ import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -66,7 +65,7 @@ public abstract class OverviewPage extends ConnectorPage {
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
 						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "author");
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("ownlink", getConfig().getNanopubPage().getClass(), params);
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownlink", getConfig().getNanopubPage().getClass(), params);
 						l.add(new Label("ownlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));
@@ -132,7 +131,7 @@ public abstract class OverviewPage extends ConnectorPage {
 				protected void populateItem(Item<ApiResponseEntry> item) {
 					ApiResponseEntry e = item.getModelObject();
 					PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("candidatelink", getConfig().getNanopubPage().getClass(), params);
+					BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("candidatelink", getConfig().getNanopubPage().getClass(), params);
 					l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
 					item.add(l);
 					String username = User.getShortDisplayName(null, e.get("pubkey"));
@@ -188,7 +187,7 @@ public abstract class OverviewPage extends ConnectorPage {
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
 						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "final");
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("acceptedlink", getConfig().getNanopubPage().getClass(), params);
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", getConfig().getNanopubPage().getClass(), params);
 						l.add(new Label("acceptedlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));
@@ -245,7 +244,7 @@ public abstract class OverviewPage extends ConnectorPage {
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
 						PageParameters params = new PageParameters().add("id", e.get("ref_np")).add("mode", "candidate");
-						BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", getConfig().getNanopubPage().getClass(), params);
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", getConfig().getNanopubPage().getClass(), params);
 						l.add(new Label("reactionlinktext", "\"" +  e.get("comment") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));

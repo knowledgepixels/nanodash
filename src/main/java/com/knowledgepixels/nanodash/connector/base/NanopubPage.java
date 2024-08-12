@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -30,7 +29,6 @@ import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -70,12 +68,12 @@ public abstract class NanopubPage extends ConnectorPage {
 		String artifactCode = TrustyUriUtils.getArtifactCode(uri);
 		String reviewUri = getConfig().getReviewUrlPrefix() + artifactCode;
 
-		add(new BookmarkablePageLink<NanodashPage>(
+		add(new BookmarkablePageLink<Void>(
 				"switch-to-reviewer-view",
 				getConfig().getNanopubPage().getClass(),
 				new PageParameters(getPageParameters()).set("mode", "reviewer")
 			).setVisible(mode.equals("author")));
-		add(new BookmarkablePageLink<NanodashPage>(
+		add(new BookmarkablePageLink<Void>(
 				"switch-to-author-view",
 				getConfig().getNanopubPage().getClass(),
 				new PageParameters(getPageParameters()).set("mode", "author")
@@ -94,7 +92,7 @@ public abstract class NanopubPage extends ConnectorPage {
 				templateId = TemplateData.get().getTemplateId(np).stringValue();
 			}
 
-			technicalEditorActions.add(new BookmarkablePageLink<PublishPage>("make-final-version", PublishPage.class,
+			technicalEditorActions.add(new BookmarkablePageLink<Void>("make-final-version", PublishPage.class,
 					new PageParameters().add("template", templateId)
 						.add("derive", np.getUri().stringValue())
 						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
@@ -122,7 +120,7 @@ public abstract class NanopubPage extends ConnectorPage {
 			newerVersionText.add(new Label("newer-version-link"));
 			newerVersionText.setVisible(false);
 		} else {
-			newerVersionText.add(new BookmarkablePageLink<WebPage>("newer-version-link", this.getClass(), new PageParameters(getPageParameters()).set("id", latest)));
+			newerVersionText.add(new BookmarkablePageLink<Void>("newer-version-link", this.getClass(), new PageParameters(getPageParameters()).set("id", latest)));
 		}
 		add(newerVersionText);
 
@@ -156,7 +154,7 @@ public abstract class NanopubPage extends ConnectorPage {
 					}
 					item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
 					params.add("id", e.get("np"));
-					BookmarkablePageLink<WebPage> l = new BookmarkablePageLink<WebPage>("reactionlink", ExplorePage.class, params);
+					BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", ExplorePage.class, params);
 					String username = User.getShortDisplayName(null, e.get("pubkey"));
 					l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
 					item.add(l);
@@ -164,9 +162,9 @@ public abstract class NanopubPage extends ConnectorPage {
 	
 			});
 
-			add(new BookmarkablePageLink<WebPage>("refresh-link", this.getClass(), getPageParameters()));
+			add(new BookmarkablePageLink<Void>("refresh-link", this.getClass(), getPageParameters()));
 
-			add(new BookmarkablePageLink<WebPage>("create-new-reaction", PublishPage.class,
+			add(new BookmarkablePageLink<Void>("create-new-reaction", PublishPage.class,
 					new PageParameters()
 						.add("template", "http://purl.org/np/RAaRGtbno5qhDnHdw0Pae1CEyVmeqE5tuwAJ9bZTc4jaU")
 						.add("param_paper", np.getUri().stringValue())

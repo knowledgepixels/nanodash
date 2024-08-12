@@ -39,7 +39,7 @@ public class GroupPage extends NanodashPage {
 
 
 		PageParameters params = new PageParameters().add("id", group.getOwner());
-		BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("ownerlink", UserPage.class, params);
+		BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownerlink", UserPage.class, params);
 		l.add(new Label("linktext", User.getDisplayName(group.getOwner())));
 		add(l);
 
@@ -50,7 +50,7 @@ public class GroupPage extends NanodashPage {
 			@Override
 			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters().add("id", item.getModelObject());
-				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("memberlink", UserPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("memberlink", UserPage.class, params);
 				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
 				item.add(l);
 			}

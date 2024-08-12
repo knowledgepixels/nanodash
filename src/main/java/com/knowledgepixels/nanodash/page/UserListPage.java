@@ -42,7 +42,7 @@ public class UserListPage extends NanodashPage {
 				Group g = item.getModelObject();
 				PageParameters params = new PageParameters();
 				params.add("id", g.getIri());
-				BookmarkablePageLink<GroupPage> l = new BookmarkablePageLink<GroupPage>("grouplink", GroupPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("grouplink", GroupPage.class, params);
 				l.add(new Label("linktext", g.getName()));
 				item.add(l);
 			}
@@ -60,7 +60,7 @@ public class UserListPage extends NanodashPage {
 			protected void populateItem(Item<IRI> item) {
 				PageParameters params = new PageParameters();
 				params.add("id", item.getModelObject());
-				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
 				l.add(new Label("linktext", User.getDisplayName(item.getModelObject())));
 				item.add(l);
 			}
@@ -76,7 +76,7 @@ public class UserListPage extends NanodashPage {
 				PageParameters params = new PageParameters();
 				IRI iri = item.getModelObject();
 				params.add("id", iri);
-				BookmarkablePageLink<UserPage> l = new BookmarkablePageLink<UserPage>("userlink", UserPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
 				l.add(new Label("linktext", User.getDisplayName(iri)));
 				item.add(l);
 			}

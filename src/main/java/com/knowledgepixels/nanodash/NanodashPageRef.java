@@ -50,7 +50,7 @@ public class NanodashPageRef implements Serializable {
 			l.add(new Label(id + "-label", label));
 			return l;
 		} else {
-			BookmarkablePageLink<NanodashPage> l = new BookmarkablePageLink<>(id, pageClass, parameters);
+			BookmarkablePageLink<Void> l = new BookmarkablePageLink<>(id, pageClass, parameters);
 			l.add(new Label(id + "-label", label));
 			return l;
 		}

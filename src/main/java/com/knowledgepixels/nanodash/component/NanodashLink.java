@@ -138,13 +138,13 @@ public class NanodashLink extends Panel {
 			String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
 			// TODO Improve this
 			if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<NanodashPage>("link", DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+				add(new BookmarkablePageLink<Void>("link", DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
 			} else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<NanodashPage>("link", BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+				add(new BookmarkablePageLink<Void>("link", BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
 			} else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<NanodashPage>("link", RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
+				add(new BookmarkablePageLink<Void>("link", RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
 			} else {
-				add(new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(shortLabel)));
+				add(new BookmarkablePageLink<Void>("link", ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(shortLabel)));
 			}
 			String description = "";
 			if (np != null && uri.startsWith(np.getUri().stringValue())) {

@@ -39,7 +39,7 @@ public class GroupListPage extends NanodashPage {
 				Group g = item.getModelObject();
 				PageParameters params = new PageParameters();
 				params.add("id", g.getIri());
-				BookmarkablePageLink<GroupPage> l = new BookmarkablePageLink<GroupPage>("grouplink", GroupPage.class, params);
+				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("grouplink", GroupPage.class, params);
 				l.add(new Label("linktext", g.getName()));
 				item.add(l);
 			}

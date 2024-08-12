@@ -28,7 +28,6 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
@@ -132,11 +131,11 @@ public class NanopubItem extends Panel {
 				footer.add(new Label("creator-post", "").setVisible(false));
 			} else {
 				IRI mainAuthor = authors.get(0);
-				BookmarkablePageLink<? extends NanodashPage> mainAuthorLink = new BookmarkablePageLink<ExplorePage>("main-author-link", ExplorePage.class, new PageParameters().add("id", mainAuthor));
+				BookmarkablePageLink<Void> mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", ExplorePage.class, new PageParameters().add("id", mainAuthor));
 				String authorName = n.getFoafNameMap().get(mainAuthor.stringValue());
 				if (authorName == null) {
 					authorName = User.getShortDisplayName(mainAuthor);
-					mainAuthorLink = new BookmarkablePageLink<UserPage>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
+					mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
 				}
 				mainAuthorLink.add(new Label("main-author-text", authorName));
 				authorsSpan.add(mainAuthorLink);
@@ -156,7 +155,7 @@ public class NanopubItem extends Panel {
 				if (creators.size() == 1) uIri = creators.iterator().next();
 			}
 			if (uIri != null) params.add("id", uIri);
-			BookmarkablePageLink<UserPage> userLink = new BookmarkablePageLink<UserPage>("creator-link", UserPage.class, params);
+			BookmarkablePageLink<Void> userLink = new BookmarkablePageLink<Void>("creator-link", UserPage.class, params);
 			String userString;
 			if (signerId != null) {
 				userString = User.getShortDisplayName(signerId, pubkey);
