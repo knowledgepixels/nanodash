@@ -25,19 +25,24 @@ public class ApiCache {
 		return System.currentTimeMillis() - refreshStart.get(pubkeyHashes) < 60 * 1000;
 	}
 
-	private static void updateNanopubList(String pubkeyHashes) {
-		List<NanopubElement> nanopubs = getNanopubList(pubkeyHashes);
-		cachedNanopubLists.put(pubkeyHashes, nanopubs);
-		lastRefresh.put(pubkeyHashes, System.currentTimeMillis());
-	}
-
-	private static List<NanopubElement> getNanopubList(String pubkeyHashes) {
+	private static void updateNanopubList(String queryName, String param) {
 		List<NanopubElement> nanopubs = new ArrayList<>();
+		String queryId;
+		String paramName;
+		if (queryName.equals("get-latest-nanopubs-from-pubkeys")) {
+			queryId = "RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys";
+			paramName = "pubkeyhashes";
+		} else if (queryName.equals("get-accepted-nanopubs-by-author")) {
+			queryId = "RAJvhWQvYiSvCSFXSkasBSotzE5Aj9g-jWTox_Cy6eRwU/get-accepted-nanopubs-by-author";
+			paramName = "author";
+		} else {
+			return;
+		}
 		try {
 			Map<String,String> nanopubParams = new HashMap<>();
 			List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-			nanopubParams.put("pubkeyhashes", pubkeyHashes);
-			nanopubResults = QueryAccess.get("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys", nanopubParams).getData();
+			nanopubParams.put(paramName, param);
+			nanopubResults = QueryAccess.get(queryId, nanopubParams).getData();
 			while (!nanopubResults.isEmpty() && nanopubs.size() < 20) {
 				ApiResponseEntry resultEntry = nanopubResults.remove(0);
 				String npUri = resultEntry.get("np");
@@ -46,20 +51,23 @@ public class ApiCache {
 		} catch (CsvValidationException | IOException ex) {
 			ex.printStackTrace();
 		}
-		return nanopubs;
+		String cacheId = queryName + " " + param;
+		cachedNanopubLists.put(cacheId, nanopubs);
+		lastRefresh.put(cacheId, System.currentTimeMillis());
 	}
 
-	public static synchronized List<NanopubElement> retrieveNanopubList(String pubkeyHashes) {
+	public static synchronized List<NanopubElement> retrieveNanopubList(String queryName, String param) {
 		long timeNow = System.currentTimeMillis();
+		String cacheId = queryName + " " + param;
 		boolean isCached = false;
 		boolean needsRefresh = true;
-		if (cachedNanopubLists.containsKey(pubkeyHashes)) {
-			long cacheAge = timeNow - lastRefresh.get(pubkeyHashes);
+		if (cachedNanopubLists.containsKey(cacheId)) {
+			long cacheAge = timeNow - lastRefresh.get(cacheId);
 			isCached = cacheAge < 24 * 60 * 60 * 1000;
 			needsRefresh = cacheAge > 60 * 1000;
 		}
-		if (needsRefresh && !isRunning(pubkeyHashes)) {
-			refreshStart.put(pubkeyHashes, timeNow);
+		if (needsRefresh && !isRunning(cacheId)) {
+			refreshStart.put(cacheId, timeNow);
 			new Thread() {
 
 				@Override
@@ -70,16 +78,16 @@ public class ApiCache {
 						ex.printStackTrace();
 					}
 					try {
-						ApiCache.updateNanopubList(pubkeyHashes);
+						ApiCache.updateNanopubList(queryName, param);
 					} finally {
-						refreshStart.remove(pubkeyHashes);
+						refreshStart.remove(cacheId);
 					}
 				}
 
 			}.start();
 		}
 		if (isCached) {
-			return cachedNanopubLists.get(pubkeyHashes);
+			return cachedNanopubLists.get(cacheId);
 		} else {
 			return null;
 		}
