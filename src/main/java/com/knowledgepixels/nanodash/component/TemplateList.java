@@ -23,7 +23,6 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 

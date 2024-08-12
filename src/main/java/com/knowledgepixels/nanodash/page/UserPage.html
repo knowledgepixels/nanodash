@@ -5,28 +5,30 @@
 <meta charset="utf-8" />
 <title wicket:id="pagetitle">... (user) | nanodash</title>
 <link rel="stylesheet" href="style.css?v=2.67" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
 
-<div id="outer">
-
 <div wicket:id="titlebar"></div>
 
 <div id="content">
 
-<h2>Latest Nanopublications by <span wicket:id="username"></span></h2>
+<div class="row">
 
-<div class="filter">
-<span>
-from:
-<span class="pubkeyselect" wicket:id="pubkeygroup"></span>
-</span>
+<div class="col-12">
+
+<div id="content">
+
+<h2><span wicket:id="username">User Name</span></h2>
+
+<p>Full identifier: <a href="." wicket:id="fullid">https://orcid.org/xxxx-xxxx-xxxx-xxxx</a></p>
+
+<p><a href="." wicket:id="showchannel" class="button">Show Channel</a></p>
+
 </div>
 
-<div wicket:id="nanopubs">
 </div>
 
 </div>

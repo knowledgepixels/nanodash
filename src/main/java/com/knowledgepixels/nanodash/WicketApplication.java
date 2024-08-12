@@ -33,6 +33,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioPublishPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioSelectPage;
+import com.knowledgepixels.nanodash.page.ChannelPage;
 import com.knowledgepixels.nanodash.page.ConnectorListPage;
 import com.knowledgepixels.nanodash.page.ErrorPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -105,6 +106,7 @@ public class WicketApplication extends WebApplication {
 		mountPage("/error/500", ErrorPage.class);
 
 		mountPage(UserPage.MOUNT_PATH, UserPage.class);
+		mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);
 		mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
 		mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
 		mountPage(ReferenceTablePage.MOUNT_PATH, ReferenceTablePage.class);
