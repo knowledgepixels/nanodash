@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.wicket.Component;
@@ -19,13 +21,12 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.StatsPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 public class UserPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
-
-	private String pubkeyHashes = "";
 
 	public static final String MOUNT_PATH = "/user";
 
@@ -35,6 +36,7 @@ public class UserPage extends NanodashPage {
 	}
 
 	private IRI userIri;
+	private String pubkeyHashes = "";
 	
 	public UserPage(final PageParameters parameters) {
 		super(parameters);
@@ -58,9 +60,46 @@ public class UserPage extends NanodashPage {
 
 		add(new ExternalLink("fullid", userIriString, userIriString));
 
+		final Map<String,String> statsParams = new HashMap<>();
+		statsParams.put("userid", userIriString);
+		statsParams.put("pubkeyhashes", pubkeyHashes);
+		Map<String,String> statsMap = ApiCache.retrieveMap("get-user-stats", statsParams);
+		if (statsMap != null) {
+			add(new StatsPanel("stats", userIriString, pubkeyHashes, statsMap));
+		} else {
+			add(new AjaxLazyLoadPanel<Component>("stats") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public Component getLazyLoadComponent(String markupId) {
+					Map<String,String> m = null;
+					while (true) {
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException ex) {
+							ex.printStackTrace();
+						}
+						if (!ApiCache.isRunning("get-user-stats", statsParams)) {
+							m = ApiCache.retrieveMap("get-user-stats", statsParams);
+							if (m != null) break;
+						}
+					}
+					return new StatsPanel(markupId, userIriString, pubkeyHashes, m);
+				}
+
+				@Override
+				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+					super.onContentLoaded(content, target);
+					if (target.get() != null) target.get().appendJavaScript("updateElements();");
+				}
+	
+			});
+		}
+
 		add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
 
-		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", pubkeyHashes);
+		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes);
 		if (nanopubList != null) {
 			add(makeNanopubResultComponent("latestnanopubs", nanopubList));
 		} else {
@@ -77,24 +116,24 @@ public class UserPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning(pubkeyHashes)) {
-							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", pubkeyHashes);
+						if (!ApiCache.isRunning("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes)) {
+							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes);
 							if (l != null) break;
 						}
 					}
 					return makeNanopubResultComponent(markupId, l);
 				}
 	
-				@Override
-				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
-					super.onContentLoaded(content, target);
-					if (target.get() != null) target.get().appendJavaScript("updateElements();");
-				}
+//				@Override
+//				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+//					super.onContentLoaded(content, target);
+//					if (target.get() != null) target.get().appendJavaScript("updateElements();");
+//				}
 	
 			});
 		}
 
-		List<NanopubElement> acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", userIriString);
+		List<NanopubElement> acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
 		if (acceptedNanopubList != null) {
 			add(makeNanopubResultComponent("latestaccepted", acceptedNanopubList));
 		} else {
@@ -111,19 +150,19 @@ public class UserPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning(pubkeyHashes)) {
-							l = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", userIriString);
+						if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
+							l = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
 							if (l != null) break;
 						}
 					}
 					return makeNanopubResultComponent(markupId, l);
 				}
 	
-				@Override
-				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
-					super.onContentLoaded(content, target);
-					if (target.get() != null) target.get().appendJavaScript("updateElements();");
-				}
+//				@Override
+//				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+//					super.onContentLoaded(content, target);
+//					if (target.get() != null) target.get().appendJavaScript("updateElements();");
+//				}
 	
 			});
 		}
