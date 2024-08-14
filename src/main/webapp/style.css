@@ -206,6 +206,7 @@ li {
 table {
 	width: 100%;
 	font-size: inherit;
+	margin-bottom: 30px;
 }
 
 div.nanopub-pubinfo td {
@@ -791,11 +792,11 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 .nanopub a:hover { color: #666; }
 .nanopub a:active { color: #666; }
 
-.nanopub { position:relative; background-color: #F3F6F9; color: #000; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
+.nanopub { position:relative; color: #000; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 13px; }
 div.nanopub-prefixes { display: none; margin-top: 3px; }
 div.nanopub-head { display: none; background: #e8e8e8; padding: 10px; margin-top: 3px; border-radius: 10px; }
 
-.nanopub { background-color: white; font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4px; }
+.nanopub { font-family: Inter, Verdana, Helvetica, sans-serif; font-size: 11pt; color: #444; margin: 0 0 0 0; padding: 0.1px 3px 3px 3px; border-radius: 4px; }
 
 div.nanopub-graph {
   background: #F3F6F9;
