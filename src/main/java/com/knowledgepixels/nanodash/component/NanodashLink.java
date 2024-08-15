@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.Charsets;
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -133,18 +134,8 @@ public class NanodashLink extends Panel {
 					}
 				}
 			}
-			boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
 			String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
-			// TODO Improve this
-			if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<Void>("link", DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
-			} else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<Void>("link", BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
-			} else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-				add(new BookmarkablePageLink<Void>("link", RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(shortLabel)));
-			} else {
-				add(new BookmarkablePageLink<Void>("link", ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(shortLabel)));
-			}
+			add(createLink("link", uri, shortLabel));
 			String description = "";
 			if (np != null && uri.startsWith(np.getUri().stringValue())) {
 				description = "This is a local identifier that was minted when the nanopublication was created.";
@@ -152,6 +143,20 @@ public class NanodashLink extends Panel {
 			if (label.contains(" - ")) description = label.replaceFirst("^.* - ", "");
 			add(new Label("description", description));
 			add(new ExternalLink("uri", uri, uri));
+		}
+	}
+
+	public static Component createLink(String markupId, String uri, String label) {
+		boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
+		// TODO Improve this
+		if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
+			return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+		} else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
+			return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+		} else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
+			return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+		} else {
+			return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(label));
 		}
 	}
 

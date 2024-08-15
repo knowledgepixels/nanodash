@@ -74,8 +74,9 @@ public class NanopubItem extends Panel {
 			add(new Label("header", "").setVisible(false));
 		} else {
 			WebMarkupContainer header = new WebMarkupContainer("header");
-			header.add(new NanodashLink("nanopub-id-link", n.getUri()));
-			header.add(new Label("nanopub-label", n.getLabel()).setVisible(!n.getLabel().isEmpty()));
+			String labelString = n.getLabel();
+			if (labelString == null || labelString.isBlank()) labelString = Utils.getShortNanopubId(n.getUri());
+			header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString));
 			if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
 				NanodashSession session = NanodashSession.get();
 				final boolean isOwnNanopub = session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIri(pubkey, false));

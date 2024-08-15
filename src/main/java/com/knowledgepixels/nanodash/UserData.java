@@ -230,9 +230,12 @@ public class UserData implements Serializable {
 		return hasValue(approvedIdPubkeyMap, user, key);
 	}
 
-	private String getShortId(IRI userIri) {
+	private String getShortName(IRI userIri) {
 		if (userIri == null) return "(unknown)";
-		return userIri.stringValue().replaceFirst("^https://orcid.org/", "");
+		String n = userIri.stringValue();
+		n = n.replaceFirst("^https://orcid.org/", "");
+		if (n.length() > 40) return n.substring(0,30) + "...";
+		return n;
 	}
 
 	public IRI getUserIri(String pubkey, boolean approvedOnly) {
@@ -270,9 +273,9 @@ public class UserData implements Serializable {
 	public String getDisplayName(IRI userIri) {
 		String name = getName(userIri);
 		if (name != null && !name.isEmpty()) {
-			return name + " (" + getShortId(userIri) + ")";
+			return name + " (" + getShortName(userIri) + ")";
 		}
-		return getShortId(userIri);
+		return getShortName(userIri);
 	}
 
 	public String getShortDisplayName(IRI userIri) {
@@ -280,7 +283,7 @@ public class UserData implements Serializable {
 		if (name != null && !name.isEmpty()) {
 			return name;
 		}
-		return getShortId(userIri);
+		return getShortName(userIri);
 	}
 
 	public String getShortDisplayName(IRI userIri, String pubkey) {
@@ -288,11 +291,11 @@ public class UserData implements Serializable {
 		if (ids == null || ids.isEmpty()) {
 			ids = unapprovedPubkeyIdMap.get(pubkey);
 			if (ids == null || ids.isEmpty()) {
-				return getShortId(userIri);
+				return getShortName(userIri);
 			} else if (ids.size() == 1) {
 				return getShortDisplayName(ids.iterator().next());
 			} else {
-				return getShortId(userIri) + " (contested identity)";
+				return getShortName(userIri) + " (contested identity)";
 			}
 		} else if (ids.size() == 1) {
 			return getShortDisplayName(ids.iterator().next());
