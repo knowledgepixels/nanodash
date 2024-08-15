@@ -15,6 +15,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
@@ -79,17 +80,21 @@ public class LookupApis {
 			}
 			HttpGet get = new HttpGet(callUrl);
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpResponse resp = HttpClientBuilder.create().build().execute(get);
-	
-			if (resp.getStatusLine().getStatusCode() == 405) {
-				// Method not allowed, trying POST
-				HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
-				resp = HttpClientBuilder.create().build().execute(post);
+			HttpResponse resp;
+			try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+				resp = client.execute(get);
+				if (resp.getStatusLine().getStatusCode() == 405) {
+					// Method not allowed, trying POST
+					HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
+					resp = client.execute(post);
+				}
 			}
 			// TODO: support other content types (CSV, XML, ...)
 			// System.err.println(resp.getHeaders("Content-Type")[0]);
-			InputStream in = resp.getEntity().getContent();
-			String respString = IOUtils.toString(in, StandardCharsets.UTF_8);
+			String respString;
+			try (InputStream in = resp.getEntity().getContent()) {
+				respString = IOUtils.toString(in, StandardCharsets.UTF_8);
+			}
 			// System.out.println(respString);
 	
 			if (apiString.startsWith("https://grlc.") || apiString.contains("/sparql?")) {

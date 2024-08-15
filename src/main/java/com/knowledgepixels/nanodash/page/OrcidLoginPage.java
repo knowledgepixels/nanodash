@@ -10,9 +10,9 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.wicket.markup.html.WebPage;
@@ -52,7 +52,8 @@ public class OrcidLoginPage extends WebPage {
 	}
 
 	public OrcidLoginPage(PageParameters parameters) {
-		try {
+		CloseableHttpClient client = HttpClientBuilder.create().build();
+		try (client) {
 			NanodashPreferences prefs = NanodashPreferences.get();
 			String authCode = parameters.get("code").toString();
 			HttpPost post = new HttpPost("https://orcid.org/oauth/token");
@@ -65,7 +66,6 @@ public class OrcidLoginPage extends WebPage {
 			urlParams.add(new BasicNameValuePair("redirect_uri", prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + Utils.urlEncode(parameters.get("redirect-hash").toString(""))));
 			urlParams.add(new BasicNameValuePair("code", authCode));
 			post.setEntity(new UrlEncodedFormEntity(urlParams));
-			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response = client.execute(post);
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode >= 200 && statusCode < 300) {

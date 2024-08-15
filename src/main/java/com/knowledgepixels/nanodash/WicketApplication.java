@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
@@ -158,21 +159,20 @@ public class WicketApplication extends WebApplication {
 
 	public static String getLatestVersion() {
 		if (latestVersion != null) return latestVersion;
-		BufferedReader reader = null;
-		try {
-			HttpResponse resp = HttpClientBuilder.create().build().execute(new HttpGet(LATEST_RELEASE_URL));
+		try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+			HttpResponse resp = client.execute(new HttpGet(LATEST_RELEASE_URL));
 			int c = resp.getStatusLine().getStatusCode();
 			if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
-			reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-			while(reader.ready()) {
-				String line = reader.readLine();
-				// TODO: Do proper JSON parsing
-				if (line.matches(".*\"tag_name\":\\s*\"nanodash-[0-9]+\\.[0-9]+\".*")) {
-					latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanodash-([0-9]+\\.[0-9]+)\".*", "$1");
-					break;
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()))) {;
+				while(reader.ready()) {
+					String line = reader.readLine();
+					// TODO: Do proper JSON parsing
+					if (line.matches(".*\"tag_name\":\\s*\"nanodash-[0-9]+\\.[0-9]+\".*")) {
+						latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanodash-([0-9]+\\.[0-9]+)\".*", "$1");
+						break;
+					}
 				}
 			}
-			reader.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
