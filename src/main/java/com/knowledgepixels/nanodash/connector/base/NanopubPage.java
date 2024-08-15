@@ -95,6 +95,7 @@ public abstract class NanopubPage extends ConnectorPage {
 			technicalEditorActions.add(new BookmarkablePageLink<Void>("make-final-version", PublishPage.class,
 					new PageParameters().add("template", templateId)
 						.add("derive", np.getUri().stringValue())
+						.add("template-version", "latest")
 						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
 						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
 						.add("pitemplate2", "https://w3id.org/np/RA_JdI7pfDcyvEXLr_gper3h8egmNggeTqkJbyHrlMEdo")
