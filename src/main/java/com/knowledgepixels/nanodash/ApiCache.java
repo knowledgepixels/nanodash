@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryAccess;
@@ -15,7 +16,6 @@ import com.opencsv.exceptions.CsvValidationException;
 public class ApiCache {
 
 	private ApiCache() {}  // no instances allowed
-
 
 	private transient static Map<String,List<NanopubElement>> cachedNanopubLists = new HashMap<>();
 	private transient static Map<String,Map<String,String>> cachedMaps = new HashMap<>();
@@ -88,7 +88,7 @@ public class ApiCache {
 				@Override
 				public void run() {
 					try {
-						Thread.sleep(100);
+						Thread.sleep(100 + new Random().nextLong(400));
 					} catch (InterruptedException ex) {
 						ex.printStackTrace();
 					}
@@ -150,7 +150,7 @@ public class ApiCache {
 				@Override
 				public void run() {
 					try {
-						Thread.sleep(100);
+						Thread.sleep(100 + new Random().nextLong(400));
 					} catch (InterruptedException ex) {
 						ex.printStackTrace();
 					}
