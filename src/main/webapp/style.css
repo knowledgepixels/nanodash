@@ -690,7 +690,7 @@ select {
 }
 
 .meta {
-	color: #666;
+	color: #222;
 	margin: 25px 10px 0 3px;
 	font-weight: bold;
 }
@@ -701,7 +701,7 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 
 .postmeta {
 	margin: 0 10px 25px 5px;
-	color: #666;
+	color: #222;
 }
 
 .positive {
