@@ -331,7 +331,7 @@ public class UserData implements Serializable {
 
 	};
 
-	public synchronized List<IRI> getUsers(boolean approved) {
+	public List<IRI> getUsers(boolean approved) {
 		List<IRI> list;
 		if (approved) {
 			list = new ArrayList<IRI>(approvedIdPubkeyMap.keySet());
@@ -346,7 +346,7 @@ public class UserData implements Serializable {
 		return list;
 	}
 
-	public synchronized List<String> getPubkeys(IRI user, Boolean approved) {
+	public List<String> getPubkeys(IRI user, Boolean approved) {
 		List<String> pubkeys = new ArrayList<>();
 		if (user != null) {
 			if (approved == null || approved) {

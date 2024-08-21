@@ -65,7 +65,7 @@ public class ApiCache {
 		lastRefresh.put(cacheId, System.currentTimeMillis());
 	}
 
-	public static synchronized List<NanopubElement> retrieveNanopubList(String queryName, String paramName, String paramValue) {
+	public static List<NanopubElement> retrieveNanopubList(String queryName, String paramName, String paramValue) {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramName, paramValue);
 		return retrieveNanopubList(queryName, params);

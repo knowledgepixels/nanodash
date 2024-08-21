@@ -35,13 +35,13 @@ public class Group implements Serializable {
 		return groups.values();
 	}
 
-	public static synchronized void ensureLoaded() {
+	public synchronized static void ensureLoaded() {
 		if (groups == null) {
 			refreshGroups();
 		}
 	}
 
-	public static synchronized void refreshGroups() {
+	public static void refreshGroups() {
 		Map<String,Group> newGroups = new HashMap<>();
 		try {
 			Map<String,String> params = new HashMap<>();

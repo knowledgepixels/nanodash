@@ -13,11 +13,11 @@ public class User {
 
 	private static transient UserData userData;
 
-	public static synchronized void refreshUsers() {
+	public static void refreshUsers() {
 		userData = new UserData();
 	}
 
-	public static synchronized void ensureLoaded() {
+	public synchronized static void ensureLoaded() {
 		if (userData == null) refreshUsers();
 	}
 
@@ -58,11 +58,11 @@ public class User {
 		return getUserData().findSingleIdForPubkey(pubkey);
 	}
 
-	public static synchronized List<IRI> getUsers(boolean approved) {
+	public static List<IRI> getUsers(boolean approved) {
 		return getUserData().getUsers(approved);
 	}
 
-	public static synchronized List<String> getPubkeys(IRI user, Boolean approved) {
+	public static List<String> getPubkeys(IRI user, Boolean approved) {
 		return getUserData().getPubkeys(user, approved);
 	}
 
