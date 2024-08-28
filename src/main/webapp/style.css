@@ -83,6 +83,18 @@
   /* border: 1px solid red; */
 }
 
+.columncontainer {
+  display: flex;
+  column-gap: 60px;
+  row-gap: 15px; 
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.columnelement {
+  width: 45%;
+}
+
 html {
 	height:100%;
 	text-size-adjust: none;
