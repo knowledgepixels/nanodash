@@ -8,3 +8,7 @@ services:
     volumes:
       - ~/.nanopub:/root/.nanopub
       - .:/local
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
