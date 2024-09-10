@@ -47,7 +47,7 @@ You can also check out these older video tutorials to learn more about Nanodash 
 
 ### License
 
-Copyright (C) 2019-2023 Tobias Kuhn
+Copyright (C) 2022-2024 Knowledge Pixels
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
