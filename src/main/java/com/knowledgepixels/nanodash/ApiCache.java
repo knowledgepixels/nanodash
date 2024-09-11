@@ -43,7 +43,7 @@ public class ApiCache {
 		if (queryName.equals("get-latest-nanopubs-from-pubkeys")) {
 			queryId = "RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys";
 		} else if (queryName.equals("get-accepted-nanopubs-by-author")) {
-			queryId = "RAJvhWQvYiSvCSFXSkasBSotzE5Aj9g-jWTox_Cy6eRwU/get-accepted-nanopubs-by-author";
+			queryId = "RAPT_uUoyBjPt0J3FI74XcakoZ7UW6MaiAvHH8mFw-kd4/get-accepted-nanopubs-by-author";
 		} else {
 			return;
 		}

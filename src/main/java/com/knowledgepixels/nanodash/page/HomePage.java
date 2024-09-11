@@ -169,7 +169,7 @@ public class HomePage extends NanodashPage {
 			}
 	
 			try {
-				ApiResponse resp = QueryAccess.get("RACx9IgQMsU3UZqrGlYk6efLg5jJTFldTrXypwTTJbo40/get-top-authors", null);
+				ApiResponse resp = QueryAccess.get("RAmhy4KQe6I80bA2Da4JziYyKBoXuXIzqo57GDSVgLfDg/get-top-authors", null);
 				topAuthors = new ArrayList<>();
 				topAuthorNotes = new HashMap<>();
 				for (ApiResponseEntry e : resp.getData()) {
@@ -193,7 +193,7 @@ public class HomePage extends NanodashPage {
 			}
 	
 			try {
-				ApiResponse resp = QueryAccess.get("RAL-Y2PSWEtvpAYpdx4PF3MJ3TuZB7cFskTVdPA_JCg3o/get-latest-accepted", null);
+				ApiResponse resp = QueryAccess.get("RA52cg2OzJucmpCb7KSKTgfPV5HKIjsFcmww_rxb7v5zU/get-latest-accepted", null);
 				latestAccepted = new ArrayList<>();
 				for (ApiResponseEntry e : resp.getData()) {
 					latestAccepted.add(new NanopubElement(e.get("np")));
