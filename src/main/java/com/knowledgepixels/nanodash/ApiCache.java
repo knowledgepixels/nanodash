@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,9 +8,6 @@ import java.util.Map;
 import java.util.Random;
 
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryAccess;
-
-import com.opencsv.exceptions.CsvValidationException;
 
 public class ApiCache {
 
@@ -39,26 +35,14 @@ public class ApiCache {
 
 	private static void updateNanopubList(String queryName, Map<String,String> params) {
 		List<NanopubElement> nanopubs = new ArrayList<>();
-		String queryId;
-		if (queryName.equals("get-latest-nanopubs-from-pubkeys")) {
-			queryId = "RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys";
-		} else if (queryName.equals("get-accepted-nanopubs-by-author")) {
-			queryId = "RAPT_uUoyBjPt0J3FI74XcakoZ7UW6MaiAvHH8mFw-kd4/get-accepted-nanopubs-by-author";
-		} else {
-			return;
-		}
-		try {
-			Map<String,String> nanopubParams = new HashMap<>();
-			List<ApiResponseEntry> nanopubResults = new ArrayList<>();
-			for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-			nanopubResults = QueryAccess.get(queryId, nanopubParams).getData();
-			while (!nanopubResults.isEmpty()) {
-				ApiResponseEntry resultEntry = nanopubResults.remove(0);
-				String npUri = resultEntry.get("np");
-				nanopubs.add(new NanopubElement(npUri));
-			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
+		Map<String,String> nanopubParams = new HashMap<>();
+		List<ApiResponseEntry> nanopubResults = new ArrayList<>();
+		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
+		nanopubResults = ApiAccess.get(queryName, nanopubParams).getData();
+		while (nanopubResults != null && !nanopubResults.isEmpty()) {
+			ApiResponseEntry resultEntry = nanopubResults.remove(0);
+			String npUri = resultEntry.get("np");
+			nanopubs.add(new NanopubElement(npUri));
 		}
 		String cacheId = getCacheId(queryName, params);
 		cachedNanopubLists.put(cacheId, nanopubs);
@@ -110,23 +94,13 @@ public class ApiCache {
 
 	private static void updateMap(String queryName, Map<String,String> params) {
 		Map<String,String> map = new HashMap<>();
-		String queryId;
-		if (queryName.equals("get-user-stats")) {
-			queryId = "RAmP2Ymp-tiIN0IBzHhdzcYoYAoCr1jJtgH03ekFX6rZA/get-user-stats";
-		} else {
-			return;
-		}
-		try {
-			Map<String,String> nanopubParams = new HashMap<>();
-			List<ApiResponseEntry> result = new ArrayList<>();
-			for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-			result = QueryAccess.get(queryId, nanopubParams).getData();
-			while (!result.isEmpty()) {
-				ApiResponseEntry resultEntry = result.remove(0);
-				map.put(resultEntry.get("key"), resultEntry.get("value"));
-			}
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
+		Map<String,String> nanopubParams = new HashMap<>();
+		List<ApiResponseEntry> result = new ArrayList<>();
+		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
+		result = ApiAccess.get(queryName, nanopubParams).getData();
+		while (result != null && !result.isEmpty()) {
+			ApiResponseEntry resultEntry = result.remove(0);
+			map.put(resultEntry.get("key"), resultEntry.get("value"));
 		}
 		String cacheId = getCacheId(queryName, params);
 		cachedMaps.put(cacheId, map);
