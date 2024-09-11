@@ -10,9 +10,9 @@ import org.nanopub.extra.services.QueryAccess;
 import com.opencsv.exceptions.CsvValidationException;
 
 
-public class ApiAccess {
+public class QueryApiAccess {
 
-	private ApiAccess() {}  // no instances allowed
+	private QueryApiAccess() {}  // no instances allowed
 
 	private static Map<String,String> queryIds = new HashMap<>();
 
@@ -25,7 +25,7 @@ public class ApiAccess {
 		load("RAmhy4KQe6I80bA2Da4JziYyKBoXuXIzqo57GDSVgLfDg/get-top-authors");
 		load("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs");
 		load("RA52cg2OzJucmpCb7KSKTgfPV5HKIjsFcmww_rxb7v5zU/get-latest-accepted");
-		load("RAnwrEraMUbgSrKVasLdbHx9lcrqA1AIFBg0EpuVz8diE/get-publisher-version-at-bdj-journal");
+		load("RAPGhXDRzeGu-Qk0AkjleEtxMxqAvJ-dZn7985gzAbyhs/get-publisher-version");
 	}
 
 	private static void load(String queryId) {

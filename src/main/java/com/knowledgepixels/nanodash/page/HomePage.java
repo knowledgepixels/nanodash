@@ -12,7 +12,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.ApiAccess;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
@@ -157,7 +157,7 @@ public class HomePage extends NanodashPage {
 
 		try {
 
-			resp = ApiAccess.get("get-top-creators-last30d", null);
+			resp = QueryApiAccess.get("get-top-creators-last30d", null);
 			if (resp != null) {
 				topUsers = new ArrayList<>();
 				topUserNotes = new HashMap<>();
@@ -168,7 +168,7 @@ public class HomePage extends NanodashPage {
 				}
 			}
 	
-			resp = ApiAccess.get("get-top-authors", null);
+			resp = QueryApiAccess.get("get-top-authors", null);
 			if (resp != null) {
 				topAuthors = new ArrayList<>();
 				topAuthorNotes = new HashMap<>();
@@ -179,7 +179,7 @@ public class HomePage extends NanodashPage {
 				}
 			}
 	
-			resp = ApiAccess.get("get-most-recent-nanopubs", null);
+			resp = QueryApiAccess.get("get-most-recent-nanopubs", null);
 			if (resp != null) {
 				recentNanopubs = new ArrayList<>();
 				for (ApiResponseEntry e : resp.getData()) {
@@ -188,7 +188,7 @@ public class HomePage extends NanodashPage {
 				}
 			}
 	
-			resp = ApiAccess.get("get-latest-accepted", null);
+			resp = QueryApiAccess.get("get-latest-accepted", null);
 			if (resp != null) {
 				latestAccepted = new ArrayList<>();
 				for (ApiResponseEntry e : resp.getData()) {

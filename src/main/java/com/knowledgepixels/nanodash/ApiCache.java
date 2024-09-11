@@ -38,7 +38,7 @@ public class ApiCache {
 		Map<String,String> nanopubParams = new HashMap<>();
 		List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-		nanopubResults = ApiAccess.get(queryName, nanopubParams).getData();
+		nanopubResults = QueryApiAccess.get(queryName, nanopubParams).getData();
 		while (nanopubResults != null && !nanopubResults.isEmpty()) {
 			ApiResponseEntry resultEntry = nanopubResults.remove(0);
 			String npUri = resultEntry.get("np");
@@ -97,7 +97,7 @@ public class ApiCache {
 		Map<String,String> nanopubParams = new HashMap<>();
 		List<ApiResponseEntry> result = new ArrayList<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-		result = ApiAccess.get(queryName, nanopubParams).getData();
+		result = QueryApiAccess.get(queryName, nanopubParams).getData();
 		while (result != null && !result.isEmpty()) {
 			ApiResponseEntry resultEntry = result.remove(0);
 			map.put(resultEntry.get("key"), resultEntry.get("value"));

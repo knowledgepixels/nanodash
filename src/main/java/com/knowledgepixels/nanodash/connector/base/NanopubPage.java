@@ -23,6 +23,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
@@ -50,17 +51,28 @@ public abstract class NanopubPage extends ConnectorPage {
 
 		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
 
-		String mode = "author";
-		if (!getPageParameters().get("mode").isEmpty()) {
-			mode = getPageParameters().get("mode").toString();
-		}
-
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}(\\?.*)?")) {
 			throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("id", Utils.getArtifactCode(requestUrl))));
 		}
 
+		String mode = "author";
+		if (!getPageParameters().get("mode").isEmpty()) {
+			mode = getPageParameters().get("mode").toString();
+		}
 		String ref = getPageParameters().get("id").toString();
+
+		if (mode.equals("head")) {
+			Map<String,String> params = new HashMap<>();
+			params.put("npid", ref);
+			params.put("type", getConfig().getNanopubType().stringValue());
+			ApiResponse resp = QueryApiAccess.get("get-publisher-version", params);
+			if (resp != null && resp.getData().size() == 1) {
+				ref = resp.getData().get(0).get("publisher_version_np");
+				mode = "final";
+			}
+		}
+
 		Nanopub np = Utils.getAsNanopub(ref);
 		add(new NanopubItem("nanopub", new NanopubElement(np)).addActions(NanopubAction.ownActions));
 		String uri = np.getUri().stringValue();
