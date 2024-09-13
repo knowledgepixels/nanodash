@@ -1,7 +1,7 @@
 Nanodash
 ========
 
-![logo](src/main/webapp/images/logo.svg)
+![logo](nanodash.png)
 
 Nanodash was previously called Nanobench.
 
