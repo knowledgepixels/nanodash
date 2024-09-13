@@ -21,7 +21,7 @@ public class QueryApiAccess {
 		load("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys");
 		load("RAZbyFSenuKSRMLGlRfrbeu6vQ6g2IEECYZ2zSGcIBIhQ/get-accepted-nanopubs-by-author");
 		load("RA4QOk-oMMcr6Y0wbqKgahcMn6NfisFLgDBHOX9U3wF5s/get-user-stats");
-		load("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d");
+		load("RAwuG-bailSFlFMhes_fipE5q-Qv2jbAYeDS5sDZPwvRc/get-top-creators-last30d");
 		load("RAmhy4KQe6I80bA2Da4JziYyKBoXuXIzqo57GDSVgLfDg/get-top-authors");
 		load("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs");
 		load("RA52cg2OzJucmpCb7KSKTgfPV5HKIjsFcmww_rxb7v5zU/get-latest-accepted");
