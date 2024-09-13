@@ -19,8 +19,8 @@ public class QueryApiAccess {
 	static {
 		// TODO Load this dynamically somehow at some point:
 		load("RAaLOqOwHVAfH8PK4AzHz5UF-P4vTnd-QnmH4w9hxTo3Y/get-latest-nanopubs-from-pubkeys");
-		load("RAPT_uUoyBjPt0J3FI74XcakoZ7UW6MaiAvHH8mFw-kd4/get-accepted-nanopubs-by-author");
-		load("RAmP2Ymp-tiIN0IBzHhdzcYoYAoCr1jJtgH03ekFX6rZA/get-user-stats");
+		load("RAZbyFSenuKSRMLGlRfrbeu6vQ6g2IEECYZ2zSGcIBIhQ/get-accepted-nanopubs-by-author");
+		load("RA4QOk-oMMcr6Y0wbqKgahcMn6NfisFLgDBHOX9U3wF5s/get-user-stats");
 		load("RAna6AB9majJbslfFCtrZaM3_QPKzeDnOUsbGOx2LUgfE/get-top-creators-last30d");
 		load("RAmhy4KQe6I80bA2Da4JziYyKBoXuXIzqo57GDSVgLfDg/get-top-authors");
 		load("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs");
