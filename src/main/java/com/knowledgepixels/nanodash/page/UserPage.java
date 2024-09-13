@@ -99,7 +99,10 @@ public class UserPage extends NanodashPage {
 
 		add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
 
-		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes);
+		final Map<String,String> params = new HashMap<>();
+		params.put("pubkeyhashes", pubkeyHashes);
+		params.put("userid", userIri.stringValue());
+		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
 		if (nanopubList != null) {
 			add(makeNanopubResultComponent("latestnanopubs", nanopubList));
 		} else {
@@ -116,8 +119,8 @@ public class UserPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes)) {
-							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys", "pubkeyhashes", pubkeyHashes);
+						if (!ApiCache.isRunning("get-latest-nanopubs-from-pubkey-userid", params)) {
+							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
 							if (l != null) break;
 						}
 					}
