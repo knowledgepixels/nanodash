@@ -18,7 +18,6 @@ public class QueryApiAccess {
 
 	static {
 		// TODO Load this dynamically somehow at some point:
-		load("RAzzbLPp9mjOltAWDiyn9hNVajUY1hBH01BkMnaRV4F5A/get-latest-nanopubs-from-pubkeys");
 		load("RAK_BnN1afUqRNAUDjbZq-N7VN9CVMqOAob4otN288aZM/get-latest-nanopubs-from-pubkeys-userid");
 		load("RAZbyFSenuKSRMLGlRfrbeu6vQ6g2IEECYZ2zSGcIBIhQ/get-accepted-nanopubs-by-author");
 		load("RA3a61zP378T-l2aUmAcov2yDa7-qsl9dFCigZsPmGGyc/get-user-stats");

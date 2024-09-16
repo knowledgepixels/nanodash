@@ -1,9 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -12,15 +10,14 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.UserList;
 
 public class HomePage extends NanodashPage {
 
@@ -28,10 +25,10 @@ public class HomePage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/";
 
-	private static List<IRI> topUsers;
-	private static Map<IRI,String> topAuthorNotes;
-	private static List<IRI> topAuthors;
-	private static Map<IRI,String> topUserNotes;
+	// TODO Move these to a better place:
+	static List<IRI> topUsers;
+	static List<IRI> topAuthors;
+
 	private static List<NanopubElement> recentNanopubs;
 	private static List<NanopubElement> latestAccepted;
 
@@ -70,38 +67,6 @@ public class HomePage extends NanodashPage {
 		}
 
 		setOutputMarkupId(true);
-
-		if (topUsers != null) {
-			add(new UserList("topcreators", topUsers, topUserNotes));
-		} else {
-			add(new AjaxLazyLoadPanel<UserList>("topcreators") {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public UserList getLazyLoadComponent(String markupId) {
-					refreshLists(false);
-					return new UserList(markupId, topUsers, topUserNotes);
-				}
-	
-			});
-		}
-
-		if (topAuthors != null) {
-			add(new UserList("topauthors", topAuthors, topAuthorNotes));
-		} else {
-			add(new AjaxLazyLoadPanel<UserList>("topauthors") {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public UserList getLazyLoadComponent(String markupId) {
-					refreshLists(false);
-					return new UserList(markupId, topAuthors, topAuthorNotes);
-				}
-	
-			});
-		}
 
 		if (recentNanopubs != null) {
 			add(new NanopubResults("mostrecent", recentNanopubs));
@@ -160,22 +125,16 @@ public class HomePage extends NanodashPage {
 			resp = QueryApiAccess.get("get-top-creators-last30d", null);
 			if (resp != null) {
 				topUsers = new ArrayList<>();
-				topUserNotes = new HashMap<>();
 				for (ApiResponseEntry e : resp.getData()) {
-					IRI userIri = Utils.vf.createIRI(e.get("userid"));
-					topUsers.add(userIri);
-					topUserNotes.put(userIri, "(" + e.get("count") + ")");
+					topUsers.add(Utils.vf.createIRI(e.get("userid")));
 				}
 			}
 	
 			resp = QueryApiAccess.get("get-top-authors", null);
 			if (resp != null) {
 				topAuthors = new ArrayList<>();
-				topAuthorNotes = new HashMap<>();
 				for (ApiResponseEntry e : resp.getData()) {
-					IRI userIri = Utils.vf.createIRI(e.get("author"));
-					topAuthors.add(userIri);
-					topAuthorNotes.put(userIri, "(" + e.get("npcount") + ")");
+					topAuthors.add(Utils.vf.createIRI(e.get("author")));
 				}
 			}
 	

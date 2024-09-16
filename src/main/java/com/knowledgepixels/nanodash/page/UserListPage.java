@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.List;
 
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -13,6 +14,7 @@ import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.UserList;
 
 public class UserListPage extends NanodashPage {
 
@@ -46,6 +48,38 @@ public class UserListPage extends NanodashPage {
 //			}
 //
 //		});
+
+		if (HomePage.topUsers != null) {
+			add(new UserList("topcreators", HomePage.topUsers));
+		} else {
+			add(new AjaxLazyLoadPanel<UserList>("topcreators") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public UserList getLazyLoadComponent(String markupId) {
+					HomePage.refreshLists(false);
+					return new UserList(markupId, HomePage.topUsers);
+				}
+	
+			});
+		}
+
+		if (HomePage.topAuthors != null) {
+			add(new UserList("topauthors", HomePage.topAuthors));
+		} else {
+			add(new AjaxLazyLoadPanel<UserList>("topauthors") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public UserList getLazyLoadComponent(String markupId) {
+					HomePage.refreshLists(false);
+					return new UserList(markupId, HomePage.topAuthors);
+				}
+	
+			});
+		}
 
 		final List<IRI> userList = User.getUsers(true);
 		add(new Label("usercount", userList.size()));
