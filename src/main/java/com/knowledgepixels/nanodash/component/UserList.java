@@ -13,7 +13,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 
 public class UserList extends Panel {
@@ -33,9 +32,6 @@ public class UserList extends Panel {
 				PageParameters params = new PageParameters();
 				params.add("id", userIri);
 				BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
-				if (!User.isUser(userIri)) {
-					l = new BookmarkablePageLink<Void>("userlink", ExplorePage.class, params);
-				}
 				l.add(new Label("linktext", User.getShortDisplayName(userIri)));
 				item.add(l);
 				if (notes != null && notes.containsKey(userIri)) {
