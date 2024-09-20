@@ -97,7 +97,7 @@ public class LookupApis {
 			}
 			// System.out.println(respString);
 	
-			if (apiString.startsWith("https://grlc.") || apiString.contains("/sparql?")) {
+			if (apiString.startsWith("https://w3id.org/np/l/nanopub-query") || apiString.startsWith("https://grlc.") || apiString.contains("/sparql?")) {
 				JSONArray resultsArray = new JSONObject(respString).getJSONObject("results").getJSONArray("bindings");
 				for (int i = 0; i < resultsArray.length(); i++) {
 					JSONObject resultObject = resultsArray.getJSONObject(i);
