@@ -132,11 +132,10 @@ public class NanopubItem extends Panel {
 				footer.add(new Label("creator-post", "").setVisible(false));
 			} else {
 				IRI mainAuthor = authors.get(0);
-				BookmarkablePageLink<Void> mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", ExplorePage.class, new PageParameters().add("id", mainAuthor));
+				BookmarkablePageLink<Void> mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
 				String authorName = n.getFoafNameMap().get(mainAuthor.stringValue());
 				if (authorName == null) {
 					authorName = User.getShortDisplayName(mainAuthor);
-					mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
 				}
 				mainAuthorLink.add(new Label("main-author-text", authorName));
 				authorsSpan.add(mainAuthorLink);
