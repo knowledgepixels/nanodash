@@ -26,6 +26,7 @@ public class QueryApiAccess {
 		load("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs");
 		load("RA52cg2OzJucmpCb7KSKTgfPV5HKIjsFcmww_rxb7v5zU/get-latest-accepted");
 		load("RAPGhXDRzeGu-Qk0AkjleEtxMxqAvJ-dZn7985gzAbyhs/get-publisher-version");
+		load("RAT5odJScFpREW7nbgGcnZBw4b4r3nPdqva7h24NJbbiI/get-most-used-templates-last30d");  // not yet used...
 	}
 
 	private static void load(String queryId) {
