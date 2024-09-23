@@ -60,49 +60,49 @@ public class UserPage extends NanodashPage {
 
 		add(new ExternalLink("fullid", userIriString, userIriString));
 
-		final Map<String,String> statsParams = new HashMap<>();
-		final String statsQueryName;
-		if (pubkeyHashes.isEmpty()) {
-			statsQueryName = "get-user-stats-from-userid";
-			statsParams.put("userid", userIriString);
-		} else {
-			statsQueryName = "get-user-stats-from-pubkeys";
-			statsParams.put("userid", userIriString);
-			statsParams.put("pubkeyhashes", pubkeyHashes);
-		} 
-		Map<String,String> statsMap = ApiCache.retrieveMap(statsQueryName, statsParams);
-		if (statsMap != null) {
-			add(new StatsPanel("stats", userIriString, pubkeyHashes, statsMap));
-		} else {
-			add(new AjaxLazyLoadPanel<Component>("stats") {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public Component getLazyLoadComponent(String markupId) {
-					Map<String,String> m = null;
-					while (true) {
-						try {
-							Thread.sleep(500);
-						} catch (InterruptedException ex) {
-							ex.printStackTrace();
-						}
-						if (!ApiCache.isRunning(statsQueryName, statsParams)) {
-							m = ApiCache.retrieveMap(statsQueryName, statsParams);
-							if (m != null) break;
-						}
-					}
-					return new StatsPanel(markupId, userIriString, pubkeyHashes, m);
-				}
-
-				@Override
-				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
-					super.onContentLoaded(content, target);
-					if (target.get() != null) target.get().appendJavaScript("updateElements();");
-				}
-	
-			});
-		}
+//		final Map<String,String> statsParams = new HashMap<>();
+//		final String statsQueryName;
+//		if (pubkeyHashes.isEmpty()) {
+//			statsQueryName = "get-user-stats-from-userid";
+//			statsParams.put("userid", userIriString);
+//		} else {
+//			statsQueryName = "get-user-stats-from-pubkeys";
+//			statsParams.put("userid", userIriString);
+//			statsParams.put("pubkeyhashes", pubkeyHashes);
+//		} 
+//		Map<String,String> statsMap = ApiCache.retrieveMap(statsQueryName, statsParams);
+//		if (statsMap != null) {
+//			add(new StatsPanel("stats", userIriString, pubkeyHashes, statsMap));
+//		} else {
+//			add(new AjaxLazyLoadPanel<Component>("stats") {
+//	
+//				private static final long serialVersionUID = 1L;
+//	
+//				@Override
+//				public Component getLazyLoadComponent(String markupId) {
+//					Map<String,String> m = null;
+//					while (true) {
+//						try {
+//							Thread.sleep(500);
+//						} catch (InterruptedException ex) {
+//							ex.printStackTrace();
+//						}
+//						if (!ApiCache.isRunning(statsQueryName, statsParams)) {
+//							m = ApiCache.retrieveMap(statsQueryName, statsParams);
+//							if (m != null) break;
+//						}
+//					}
+//					return new StatsPanel(markupId, userIriString, pubkeyHashes, m);
+//				}
+//
+//				@Override
+//				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+//					super.onContentLoaded(content, target);
+//					if (target.get() != null) target.get().appendJavaScript("updateElements();");
+//				}
+//	
+//			});
+//		}
 
 		add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
 
