@@ -18,9 +18,11 @@ public class QueryApiAccess {
 
 	static {
 		// TODO Load this dynamically somehow at some point:
-		load("RAK_BnN1afUqRNAUDjbZq-N7VN9CVMqOAob4otN288aZM/get-latest-nanopubs-from-pubkeys-userid");
+		load("RARM13-bl0Tc492EY5ijBjqGi1zKAmtDkmnOMzCuaqwt4/get-latest-nanopubs-from-pubkeys");
+		load("RAuy4N1h4vZ1wgBUMvTiWw2y_Y0_5oFYRTwdq-xj2qqNM/get-latest-nanopubs-from-userid");
 		load("RAZbyFSenuKSRMLGlRfrbeu6vQ6g2IEECYZ2zSGcIBIhQ/get-accepted-nanopubs-by-author");
-		load("RA3a61zP378T-l2aUmAcov2yDa7-qsl9dFCigZsPmGGyc/get-user-stats");
+		load("RAYx5vIObDu1ZQuEV5kShGlnRrLvEFBvC3buF_YLtl8T8/get-user-stats-from-pubkeys");
+		load("RA3U23LL3xbNwsu92fAqsKb0kagOud4f9TlRQq3evNJck/get-user-stats-from-userid");
 		load("RAcNvmEiUNUb2a7O4fwRvy2x2BCN640AC880fTzFworr8/get-top-creators-last30d");
 		load("RAmhy4KQe6I80bA2Da4JziYyKBoXuXIzqo57GDSVgLfDg/get-top-authors");
 		load("RA7oUCHG8TEjVQpGTUN5sfu3_IQmza3aSBSCxfJdBc3Rs/get-most-recent-nanopubs");

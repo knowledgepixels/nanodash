@@ -105,9 +105,17 @@ public class ChannelPage extends NanodashPage {
 		}
 		added = true;
 		final Map<String,String> params = new HashMap<>();
-		params.put("pubkeyhashes", getPubkeyHashesString());
-		params.put("userid", userIri.stringValue());
-		List<NanopubElement> cachedNanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
+		final String queryName;
+		String pubkeyHashes = getPubkeyHashesString();
+		if (pubkeyHashes == null) {
+			queryName = "get-latest-nanopubs-from-userid";
+			params.put("userid", userIri.stringValue());
+		} else {
+			queryName = "get-latest-nanopubs-from-pubkeys";
+			params.put("pubkeyhashes", pubkeyHashes);
+			params.put("userid", userIri.stringValue());
+		} 
+		List<NanopubElement> cachedNanopubList = ApiCache.retrieveNanopubList(queryName, params);
 		if (cachedNanopubList != null) {
 			add(new NanopubResults("nanopubs", cachedNanopubList));
 		} else {
@@ -124,8 +132,8 @@ public class ChannelPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning("get-latest-nanopubs-from-pubkeys-userid", params)) {
-							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
+						if (!ApiCache.isRunning(queryName, params)) {
+							l = ApiCache.retrieveNanopubList(queryName, params);
 							if (l != null) break;
 						}
 					}
@@ -147,8 +155,8 @@ public class ChannelPage extends NanodashPage {
 		for (String s : selected.getObject()) {
 			pubkeyHashes += " " + Utils.createSha256HexHash(pubKeyMap.get(s));
 		}
-		if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
-		return pubkeyHashes;
+		if (pubkeyHashes.isEmpty()) return null;
+		return pubkeyHashes.substring(1);
 	}
 
 //	@Override

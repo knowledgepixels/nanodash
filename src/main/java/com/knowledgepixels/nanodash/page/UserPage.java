@@ -61,9 +61,16 @@ public class UserPage extends NanodashPage {
 		add(new ExternalLink("fullid", userIriString, userIriString));
 
 		final Map<String,String> statsParams = new HashMap<>();
-		statsParams.put("userid", userIriString);
-		statsParams.put("pubkeyhashes", pubkeyHashes);
-		Map<String,String> statsMap = ApiCache.retrieveMap("get-user-stats", statsParams);
+		final String statsQueryName;
+		if (pubkeyHashes.isEmpty()) {
+			statsQueryName = "get-user-stats-from-userid";
+			statsParams.put("userid", userIriString);
+		} else {
+			statsQueryName = "get-user-stats-from-pubkeys";
+			statsParams.put("userid", userIriString);
+			statsParams.put("pubkeyhashes", pubkeyHashes);
+		} 
+		Map<String,String> statsMap = ApiCache.retrieveMap(statsQueryName, statsParams);
 		if (statsMap != null) {
 			add(new StatsPanel("stats", userIriString, pubkeyHashes, statsMap));
 		} else {
@@ -80,8 +87,8 @@ public class UserPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning("get-user-stats", statsParams)) {
-							m = ApiCache.retrieveMap("get-user-stats", statsParams);
+						if (!ApiCache.isRunning(statsQueryName, statsParams)) {
+							m = ApiCache.retrieveMap(statsQueryName, statsParams);
 							if (m != null) break;
 						}
 					}
@@ -100,9 +107,16 @@ public class UserPage extends NanodashPage {
 		add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
 
 		final Map<String,String> params = new HashMap<>();
-		params.put("pubkeyhashes", pubkeyHashes);
-		params.put("userid", userIri.stringValue());
-		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
+		final String queryName;
+		if (pubkeyHashes.isEmpty()) {
+			queryName = "get-latest-nanopubs-from-userid";
+			params.put("userid", userIri.stringValue());
+		} else {
+			queryName = "get-latest-nanopubs-from-pubkeys";
+			params.put("pubkeyhashes", pubkeyHashes);
+			params.put("userid", userIri.stringValue());
+		} 
+		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList(queryName, params);
 		if (nanopubList != null) {
 			add(makeNanopubResultComponent("latestnanopubs", nanopubList));
 		} else {
@@ -119,8 +133,8 @@ public class UserPage extends NanodashPage {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning("get-latest-nanopubs-from-pubkey-userid", params)) {
-							l = ApiCache.retrieveNanopubList("get-latest-nanopubs-from-pubkeys-userid", params);
+						if (!ApiCache.isRunning(queryName, params)) {
+							l = ApiCache.retrieveNanopubList(queryName, params);
 							if (l != null) break;
 						}
 					}
