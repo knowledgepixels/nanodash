@@ -13,7 +13,7 @@ public class ApiCache {
 
 	private ApiCache() {}  // no instances allowed
 
-	private transient static Map<String,List<NanopubElement>> cachedNanopubLists = new HashMap<>();
+	private transient static Map<String,List<ApiResponseEntry>> cachedResponses = new HashMap<>();
 	private transient static Map<String,Map<String,String>> cachedMaps = new HashMap<>();
 	private transient static Map<String,Long> lastRefresh = new HashMap<>();
 	private transient static Map<String,Long> refreshStart = new HashMap<>();
@@ -34,33 +34,26 @@ public class ApiCache {
 	}
 
 	private static void updateNanopubList(String queryName, Map<String,String> params) {
-		List<NanopubElement> nanopubs = new ArrayList<>();
 		Map<String,String> nanopubParams = new HashMap<>();
-		List<ApiResponseEntry> nanopubResults = new ArrayList<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-		nanopubResults = QueryApiAccess.get(queryName, nanopubParams).getData();
-		while (nanopubResults != null && !nanopubResults.isEmpty()) {
-			ApiResponseEntry resultEntry = nanopubResults.remove(0);
-			String npUri = resultEntry.get("np");
-			nanopubs.add(new NanopubElement(npUri));
-		}
+		List<ApiResponseEntry> nanopubResults = QueryApiAccess.get(queryName, nanopubParams).getData();
 		String cacheId = getCacheId(queryName, params);
-		cachedNanopubLists.put(cacheId, nanopubs);
+		cachedResponses.put(cacheId, nanopubResults);
 		lastRefresh.put(cacheId, System.currentTimeMillis());
 	}
 
-	public static List<NanopubElement> retrieveNanopubList(String queryName, String paramName, String paramValue) {
+	public static List<ApiResponseEntry> retrieveNanopubList(String queryName, String paramName, String paramValue) {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramName, paramValue);
 		return retrieveNanopubList(queryName, params);
 	}
 
-	public static synchronized List<NanopubElement> retrieveNanopubList(String queryName, Map<String,String> params) {
+	public static synchronized List<ApiResponseEntry> retrieveNanopubList(String queryName, Map<String,String> params) {
 		long timeNow = System.currentTimeMillis();
 		String cacheId = getCacheId(queryName, params);
 		boolean isCached = false;
 		boolean needsRefresh = true;
-		if (cachedNanopubLists.containsKey(cacheId)) {
+		if (cachedResponses.containsKey(cacheId)) {
 			long cacheAge = timeNow - lastRefresh.get(cacheId);
 			isCached = cacheAge < 24 * 60 * 60 * 1000;
 			needsRefresh = cacheAge > 60 * 1000;
@@ -86,7 +79,7 @@ public class ApiCache {
 			}.start();
 		}
 		if (isCached) {
-			return cachedNanopubLists.get(cacheId);
+			return cachedResponses.get(cacheId);
 		} else {
 			return null;
 		}

@@ -37,7 +37,7 @@ public class PublishConfirmPage extends NanodashPage {
 		add(new TitleBar("titlebar", this, "publish"));
 
 		add(new BookmarkablePageLink<Void>("userlink", UserPage.class, new PageParameters().add("id", NanodashSession.get().getUserIri())));
-		add(new NanopubItem("nanopub", new NanopubElement(np)));
+		add(new NanopubItem("nanopub", NanopubElement.get(np)));
 
 		final NanodashSession session = NanodashSession.get();
 		boolean hasKnownOwnLocalIntro = session.getLocalIntroCount() > 0;

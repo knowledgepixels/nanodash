@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -15,13 +13,12 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.StatsPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 public class UserPage extends NanodashPage {
@@ -116,9 +113,9 @@ public class UserPage extends NanodashPage {
 			params.put("pubkeyhashes", pubkeyHashes);
 			params.put("userid", userIri.stringValue());
 		} 
-		List<NanopubElement> nanopubList = ApiCache.retrieveNanopubList(queryName, params);
-		if (nanopubList != null) {
-			add(makeNanopubResultComponent("latestnanopubs", nanopubList));
+		List<ApiResponseEntry> response = ApiCache.retrieveNanopubList(queryName, params);
+		if (response != null) {
+			add(makeNanopubResultComponent("latestnanopubs", response));
 		} else {
 			add(new AjaxLazyLoadPanel<Component>("latestnanopubs") {
 	
@@ -126,7 +123,7 @@ public class UserPage extends NanodashPage {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<NanopubElement> l = null;
+					List<ApiResponseEntry> l = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -150,7 +147,7 @@ public class UserPage extends NanodashPage {
 			});
 		}
 
-		List<NanopubElement> acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
+		List<ApiResponseEntry> acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
 		if (acceptedNanopubList != null) {
 			add(makeNanopubResultComponent("latestaccepted", acceptedNanopubList));
 		} else {
@@ -160,7 +157,7 @@ public class UserPage extends NanodashPage {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<NanopubElement> l = null;
+					List<ApiResponseEntry> l = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -185,17 +182,17 @@ public class UserPage extends NanodashPage {
 		}
 	}
 
-	private static Component makeNanopubResultComponent(String markupId, List<NanopubElement> nanopubs) {
-		if (nanopubs.isEmpty()) {
+	private static Component makeNanopubResultComponent(String markupId, List<ApiResponseEntry> response) {
+		if (response.isEmpty()) {
 			return new Label(markupId, "(none)");
 		} else {
-			return new NanopubResults(markupId, makeShortList(nanopubs));
+			return NanopubResults.getFromApiResponse(markupId, makeShortList(response));
 		}
 	}
 
-	private static List<NanopubElement> makeShortList(List<NanopubElement> list) {
-		List<NanopubElement> shortList = new ArrayList<>();
-		for (NanopubElement e : list) {
+	private static List<ApiResponseEntry> makeShortList(List<ApiResponseEntry> list) {
+		List<ApiResponseEntry> shortList = new ArrayList<>();
+		for (ApiResponseEntry e : list) {
 			shortList.add(e);
 			if (shortList.size() == 5) break;
 		}

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,23 @@ public class NanopubElement implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private static Map<String,NanopubElement> nanopubCache = new HashMap<>();
+
+	public static NanopubElement get(String uri) {
+		if (!nanopubCache.containsKey(uri)) {
+			nanopubCache.put(uri, new NanopubElement(uri));
+		}
+		return nanopubCache.get(uri);
+	}
+
+	public static NanopubElement get(Nanopub nanopub) {
+		String uri = nanopub.getUri().stringValue();
+		if (!nanopubCache.containsKey(uri)) {
+			nanopubCache.put(uri, new NanopubElement(nanopub));
+		}
+		return nanopubCache.get(uri);
+	}
+
 	private Nanopub nanopub;
 	private String uriString; // Keeping URI separately, as nanopub might be null when it cannot be fetched
 	private String label;
@@ -30,13 +48,13 @@ public class NanopubElement implements Serializable {
 	private IRI signerId;
 	private List<IRI> types;
 
-	public NanopubElement(String uri) {
+	private NanopubElement(String uri) {
 		this.uriString = uri;
 		this.nanopub = Utils.getNanopub(uri);
 		if (nanopub == null) throw new IllegalArgumentException("No nanopublication found for URI: " + uri);
 	}
 
-	public NanopubElement(Nanopub nanopub) {
+	private NanopubElement(Nanopub nanopub) {
 		this.uriString = nanopub.getUri().stringValue();
 		this.nanopub = nanopub;
 	}

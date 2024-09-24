@@ -6,6 +6,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanopubElement;
 
@@ -13,10 +14,9 @@ public class NanopubResults extends Panel {
 	
 	private static final long serialVersionUID = -5109507637942030910L;
 
-	public NanopubResults(String id, List<NanopubElement> nanopubs) {
-		super(id);
-
-		add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
+	public static NanopubResults getFromNanopubs(String id, List<NanopubElement> nanopubs) {
+		NanopubResults r = new NanopubResults(id);
+		r.add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubs)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -26,6 +26,26 @@ public class NanopubResults extends Panel {
 			}
 
 		});
+		return r;
+	}
+
+	public static NanopubResults getFromApiResponse(String id, List<ApiResponseEntry> nanopubs) {
+		NanopubResults r = new NanopubResults(id);
+		r.add(new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(nanopubs)) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<ApiResponseEntry> item) {
+				item.add(new NanopubItem("nanopub", NanopubElement.get(item.getModelObject().get("np"))).setMinimal());
+			}
+
+		});
+		return r;
+	}
+
+	private NanopubResults(String id) {
+		super(id);
 	}
 
 }

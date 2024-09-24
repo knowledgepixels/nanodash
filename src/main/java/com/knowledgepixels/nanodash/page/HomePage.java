@@ -12,7 +12,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -25,12 +24,11 @@ public class HomePage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/";
 
-	// TODO Move these to a better place:
+	// TODO Use ApiCache for these too:
 	static List<IRI> topUsers;
 	static List<IRI> topAuthors;
-
-	private static List<NanopubElement> recentNanopubs;
-	private static List<NanopubElement> latestAccepted;
+	private static List<ApiResponseEntry> recentNanopubs;
+	private static List<ApiResponseEntry> latestAccepted;
 
 	@Override
 	public String getMountPath() {
@@ -69,7 +67,7 @@ public class HomePage extends NanodashPage {
 		setOutputMarkupId(true);
 
 		if (recentNanopubs != null) {
-			add(new NanopubResults("mostrecent", recentNanopubs));
+			add(NanopubResults.getFromApiResponse("mostrecent", recentNanopubs));
 		} else {
 			add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
 	
@@ -78,14 +76,14 @@ public class HomePage extends NanodashPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					refreshLists(false);
-					return new NanopubResults(markupId, recentNanopubs);
+					return NanopubResults.getFromApiResponse(markupId, recentNanopubs);
 				}
 	
 			});
 		}
 
 		if (latestAccepted != null) {
-			add(new NanopubResults("latestaccepted", latestAccepted));
+			add(NanopubResults.getFromApiResponse("latestaccepted", latestAccepted));
 		} else {
 			add(new AjaxLazyLoadPanel<NanopubResults>("latestaccepted") {
 	
@@ -94,7 +92,7 @@ public class HomePage extends NanodashPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					refreshLists(false);
-					return new NanopubResults(markupId, latestAccepted);
+					return NanopubResults.getFromApiResponse(markupId, latestAccepted);
 				}
 	
 			});
@@ -142,7 +140,7 @@ public class HomePage extends NanodashPage {
 			if (resp != null) {
 				recentNanopubs = new ArrayList<>();
 				for (ApiResponseEntry e : resp.getData()) {
-					recentNanopubs.add(new NanopubElement(e.get("np")));
+					recentNanopubs.add(e);
 					if (recentNanopubs.size() == 5) break;
 				}
 			}
@@ -151,7 +149,7 @@ public class HomePage extends NanodashPage {
 			if (resp != null) {
 				latestAccepted = new ArrayList<>();
 				for (ApiResponseEntry e : resp.getData()) {
-					latestAccepted.add(new NanopubElement(e.get("np")));
+					latestAccepted.add(e);
 					if (latestAccepted.size() == 5) break;
 				}
 			}
