@@ -1414,3 +1414,7 @@ div.success-message p {
   padding: 0;
   margin: 5px 0;
 }
+
+.gap-above {
+	margin-top: 3em;
+}

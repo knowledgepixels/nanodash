@@ -7,8 +7,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -20,7 +23,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
@@ -32,6 +37,36 @@ public class TemplateList extends Panel {
 
 	public TemplateList(String id) {
 		super(id);
+
+		final Map<String,String> params = new HashMap<>();
+		final String queryName = "get-most-used-templates-last30d";
+		List<ApiResponseEntry> response = ApiCache.retrieveNanopubList(queryName, params);
+		if (response != null) {
+			add(new TemplateResults("populartemplates", response));
+		} else {
+			add(new AjaxLazyLoadPanel<Component>("populartemplates") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public Component getLazyLoadComponent(String markupId) {
+					List<ApiResponseEntry> l = null;
+					while (true) {
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException ex) {
+							ex.printStackTrace();
+						}
+						if (!ApiCache.isRunning(queryName, params)) {
+							l = ApiCache.retrieveNanopubList(queryName, params);
+							if (l != null) break;
+						}
+					}
+					return new TemplateResults(markupId, l);
+				}
+	
+			});
+		}
 
 		ArrayList<Template> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
