@@ -56,6 +56,7 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.ReferenceTablePage;
 import com.knowledgepixels.nanodash.page.SearchPage;
 import com.knowledgepixels.nanodash.page.TermForwarder;
+import com.knowledgepixels.nanodash.page.TypePage;
 import com.knowledgepixels.nanodash.page.UserListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.page.ViewPage;
@@ -143,6 +144,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(BdjNanopubPage.MOUNT_PATH, BdjNanopubPage.class);
 		mountPage(FdoForwarder.MOUNT_PATH, FdoForwarder.class);
 		mountPage(GetNamePage.MOUNT_PATH, GetNamePage.class);
+		mountPage(TypePage.MOUNT_PATH, TypePage.class);
 
 		mountPage(GrlcSpecPage.MOUNT_PATH, GrlcSpecPage.class);
 

@@ -716,6 +716,10 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 	color: #222;
 }
 
+.typetag a, .typetag a:hover, .typetag a:active {
+	color: white;
+}
+
 .positive {
 	color: #26A008;
 }

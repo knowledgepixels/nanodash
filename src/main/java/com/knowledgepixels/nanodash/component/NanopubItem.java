@@ -27,7 +27,7 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
-import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.TypePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
@@ -108,7 +108,9 @@ public class NanopubItem extends Panel {
 	
 				@Override
 				protected void populateItem(Item<IRI> item) {
-					item.add(new Label("type", Utils.getTypeLabel(item.getModelObject())));
+					IRI typeIri = item.getModelObject();
+					String label = Utils.getTypeLabel(typeIri);
+					item.add(new BookmarkablePageLink<Void>("type", TypePage.class, new PageParameters().add("id", typeIri)).setBody(Model.of(label)));
 				}
 	
 			});
