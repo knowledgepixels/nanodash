@@ -64,7 +64,7 @@ public class TypePage extends NanodashPage {
 		final String queryName = "get-latest-nanopubs-by-type";
 		List<ApiResponseEntry> cachedResponse = ApiCache.retrieveNanopubList(queryName, params);
 		if (cachedResponse != null) {
-			add(NanopubResults.getFromApiResponse("nanopubs", cachedResponse));
+			add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
 		} else {
 			add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 	
@@ -84,7 +84,7 @@ public class TypePage extends NanodashPage {
 							if (l != null) break;
 						}
 					}
-					return NanopubResults.getFromApiResponse(markupId, l);
+					return NanopubResults.fromApiResponse(markupId, l);
 				}
 	
 				@Override

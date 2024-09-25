@@ -167,7 +167,7 @@ public class SearchPage extends NanodashPage {
 					if (nanopubIds.isEmpty()) progress.setObject("nothing found");
 					List<NanopubElement> nanopubs = new ArrayList<>();
 					for (String id : nanopubIds) nanopubs.add(NanopubElement.get(id));
-					return NanopubResults.getFromNanopubs(markupId, nanopubs);
+					return NanopubResults.fromList(markupId, nanopubs);
 				}
 
 				@Override

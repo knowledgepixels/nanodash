@@ -67,7 +67,7 @@ public class HomePage extends NanodashPage {
 		setOutputMarkupId(true);
 
 		if (recentNanopubs != null) {
-			add(NanopubResults.getFromApiResponse("mostrecent", recentNanopubs));
+			add(NanopubResults.fromApiResponse("mostrecent", recentNanopubs));
 		} else {
 			add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
 	
@@ -76,14 +76,14 @@ public class HomePage extends NanodashPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					refreshLists(false);
-					return NanopubResults.getFromApiResponse(markupId, recentNanopubs);
+					return NanopubResults.fromApiResponse(markupId, recentNanopubs);
 				}
 	
 			});
 		}
 
 		if (latestAccepted != null) {
-			add(NanopubResults.getFromApiResponse("latestaccepted", latestAccepted));
+			add(NanopubResults.fromApiResponse("latestaccepted", latestAccepted));
 		} else {
 			add(new AjaxLazyLoadPanel<NanopubResults>("latestaccepted") {
 	
@@ -92,7 +92,7 @@ public class HomePage extends NanodashPage {
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
 					refreshLists(false);
-					return NanopubResults.getFromApiResponse(markupId, latestAccepted);
+					return NanopubResults.fromApiResponse(markupId, latestAccepted);
 				}
 	
 			});

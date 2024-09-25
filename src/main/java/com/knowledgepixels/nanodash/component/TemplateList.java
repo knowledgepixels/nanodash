@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -13,27 +12,36 @@ import java.util.Map;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
-import org.nanopub.extra.security.NanopubSignatureElement;
-import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
 public class TemplateList extends Panel {
 	
 	private static final long serialVersionUID = 1L;
+
+	public final static List<Template> getStartedTemplates = new ArrayList<>();
+
+	static {
+		TemplateData td = TemplateData.get();
+		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw"));
+		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RAxfD9wQMHU4DmWta5uRpo723ZgKpizglley4gtcxG0hg"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAQIX0i-LjZs1mRakp1Ee0wf7XcQmdhFQvrfOd7pjFiuw"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RA95PFSIiN6-B5qh-a89s78Rmna22y2Yy7rGHEI9R6Vws"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAwzk1ZZxsvDWQhCrAGMxtftJ6umMIbDYD2juVqhcPYQA"));
+		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RA580k5zFLCd9N7nPrJgwURUtTgP2mkb2vg-4LBdOetpE"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAqBzkF9Ynpngp16zOX7NdDpWiNpsJdtPlt946tSmwgiA"));
+		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAvMcjsLaMI-sGheG6Fa2yAfUyKYRSJqbIOgmK2lblWGg"));
+		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RAX_4tWTyjFpO6nz63s14ucuejd64t2mK3IBlkwZ7jjLo"));
+	}
 
 	public TemplateList(String id) {
 		super(id);
@@ -42,7 +50,7 @@ public class TemplateList extends Panel {
 		final String queryName = "get-most-used-templates-last30d";
 		List<ApiResponseEntry> response = ApiCache.retrieveNanopubList(queryName, params);
 		if (response != null) {
-			add(new TemplateResults("populartemplates", response));
+			add(TemplateResults.fromApiResponse("populartemplates", response));
 		} else {
 			add(new AjaxLazyLoadPanel<Component>("populartemplates") {
 	
@@ -62,11 +70,13 @@ public class TemplateList extends Panel {
 							if (l != null) break;
 						}
 					}
-					return new TemplateResults(markupId, l);
+					return TemplateResults.fromApiResponse(markupId, l);
 				}
 	
 			});
 		}
+
+		add(TemplateResults.fromList("getstartedtemplates", getStartedTemplates));
 
 		ArrayList<Template> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
@@ -116,28 +126,7 @@ public class TemplateList extends Panel {
 
 					@Override
 					protected void populateItem(Item<Template> item) {
-						PageParameters params = new PageParameters();
-						params.add("template", item.getModelObject().getId());
-						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
-						l.add(new Label("name", item.getModelObject().getLabel()));
-						item.add(l);
-						String userString = "somebody";
-						try {
-							NanopubSignatureElement se = SignatureUtils.getSignatureElement(item.getModelObject().getNanopub());
-							if (se != null) {
-								IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-								userString = User.getShortDisplayName(signer, se.getPublicKeyString());
-							}
-						} catch (Exception ex) {
-							ex.printStackTrace();
-						}
-						item.add(new Label("user", userString));
-						String timeString = "unknown date";
-						Calendar c = getTime(item.getModelObject());
-						if (c != null) {
-							timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
-						}
-						item.add(new Label("timestamp", timeString));
+						item.add(new TemplateItem("template", item.getModelObject()));
 					}
 
 				});
