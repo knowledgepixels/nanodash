@@ -24,6 +24,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
 import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
@@ -78,31 +79,26 @@ public class NanodashLink extends Panel {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this");
 			add(link);
 			add(new Label("description", "this specific nanopublication"));
-			add(new ExternalLink("uri", uri, uri));
 		} else if (np != null && uri.equals(np.getAssertionUri().stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "this assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
 			add(link);
 			add(new Label("description", "the assertion of this specific nanopublication"));
-			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_ASSERTION_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "assertion");
 			link.add(new AttributeAppender("class", " nanopub-assertion "));
 			add(link);
 			add(new Label("description", "links a nanopublication to its assertion"));
-			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PROVENANCE_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "provenance");
 			link.add(new AttributeAppender("class", " nanopub-provenance "));
 			add(link);
 			add(new Label("description", "links a nanopublication to its provenance"));
-			add(new ExternalLink("uri", uri, uri));
 		} else if (uri.equals(Nanopub.HAS_PUBINFO_URI.stringValue())) {
 			ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "pubinfo");
 			link.add(new AttributeAppender("class", " nanopub-pubinfo "));
 			add(link);
 			add(new Label("description", "links a nanopublication to its pubinfo"));
-			add(new ExternalLink("uri", uri, uri));
 		} else {
 			String label = IriItem.getShortNameFromURI(uri);
 //			Set<IRI> creators = null;
@@ -142,8 +138,8 @@ public class NanodashLink extends Panel {
 			}
 			if (label.contains(" - ")) description = label.replaceFirst("^.* - ", "");
 			add(new Label("description", description));
-			add(new ExternalLink("uri", uri, uri));
 		}
+		add(Utils.getUriLink("uri", uri));
 	}
 
 	public static Component createLink(String markupId, String uri, String label) {

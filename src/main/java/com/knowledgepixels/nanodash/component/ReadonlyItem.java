@@ -211,7 +211,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			}
 			
 		};
-		add(new ExternalLink("uri", uriModel, uriModel));
+		add(Utils.getUriLink("uri", uriModel));
 		extraModel = Model.of("");
 		extraComp = new Label("extra", extraModel);
 		extraComp.setVisible(false);

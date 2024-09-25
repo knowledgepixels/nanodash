@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
@@ -284,6 +286,41 @@ public class Utils {
 		l = l.replaceFirst("Nanopub$", "");
 		if (l.length() > 25) l = l.substring(0, 20) + "...";
 		return l;
+	}
+
+	public static String getUriLabel(String uri) {
+		String uriLabel = uri;
+		if (uriLabel.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}([^A-Za-z0-9-_].*)?")) {
+			String newUriLabel = uriLabel.replaceFirst("(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{8})[A-Za-z0-9-_]{35}([^A-Za-z0-9-_].*)?", "$1...$2");
+			if (newUriLabel.length() <= 70) return newUriLabel;
+		}
+		if (uriLabel.length() > 70) return uri.substring(0,30) + "..." + uri.substring(uri.length()-30);
+		return uriLabel;
+	}
+
+	public static ExternalLink getUriLink(String markupId, String uri) {
+		return new ExternalLink(markupId, (uri.startsWith("local:") ? "" : uri), getUriLabel(uri));
+	}
+
+	public static ExternalLink getUriLink(String markupId, IModel<String> model) {
+		return new ExternalLink(markupId, model, new UriLabelModel(model));
+	}
+
+	private static class UriLabelModel implements IModel<String> {
+
+		private static final long serialVersionUID = 1L;
+
+		private IModel<String> uriModel;
+
+		public UriLabelModel(IModel<String> uriModel) {
+			this.uriModel = uriModel;
+		}
+
+		@Override
+		public String getObject() {
+			return getUriLabel(uriModel.getObject());
+		}
+		
 	}
 
 }

@@ -187,7 +187,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		tooltipDescription.setOutputMarkupId(true);
 		add(tooltipDescription);
 
-		tooltipLink = new ExternalLink("uri", model, model);
+		tooltipLink = Utils.getUriLink("uri", model);
 		tooltipLink.setOutputMarkupId(true);
 		add(tooltipLink);
 

@@ -8,6 +8,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 
@@ -34,7 +35,7 @@ public class SequenceElementItem extends Panel implements ContextComponent {
 		label = label.replaceAll("\\$\\{number\\}", number + "");
 
 		add(new Label("description", description));
-		add(new ExternalLink("uri", SEQUENCE_ELEMENT_PROPERTY_PREFIX + number, SEQUENCE_ELEMENT_PROPERTY_PREFIX + number));
+		add(Utils.getUriLink("uri", SEQUENCE_ELEMENT_PROPERTY_PREFIX + number));
 
 		add(new ExternalLink("text", "", label));
 	}
