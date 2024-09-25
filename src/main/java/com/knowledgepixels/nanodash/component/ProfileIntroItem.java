@@ -176,7 +176,7 @@ public class ProfileIntroItem extends Panel {
 							"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 							"param_key-declaration-ref__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 							"param_key-location__.1=" + urlEncode(prefs.getWebsiteUrl()) + "&" +
-							"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
+							"link-message=" + urlEncode("Enter you name below, check the checkbox at the end of the page, and press 'Publish' to publish this " +
 									"introduction linking your ORCID identifier to the given keys."),
 						"derive new introduction...");
 				item.add(deriveLink);
