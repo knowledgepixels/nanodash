@@ -14,6 +14,7 @@ import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
+import com.knowledgepixels.nanodash.page.UserPage;
 
 public class ProfileItem extends Panel {
 	
@@ -39,13 +40,15 @@ public class ProfileItem extends Panel {
 			l.add(new Label("profiletext", ""));
 			add(l);
 		} else {
-			BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
 			if (userId != null) {
+				BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", UserPage.class, new PageParameters().add("id", userId.stringValue()));
 				l.add(new Label("profiletext", User.getShortDisplayName(userId)));
+				add(l);
 			} else {
+				BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
 				l.add(new Label("profiletext", "incomplete profile"));
+				add(l);
 			}
-			add(l);
 		}
 	}
 

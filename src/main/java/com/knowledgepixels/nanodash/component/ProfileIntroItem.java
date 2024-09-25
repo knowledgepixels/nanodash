@@ -46,7 +46,7 @@ public class ProfileIntroItem extends Panel {
 		String publishIntroLinkString = PublishPage.MOUNT_PATH +
 				"?template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
 				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
-				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
+//				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
 				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
 				"param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
 				"param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
@@ -111,7 +111,8 @@ public class ProfileIntroItem extends Panel {
 
 		WebMarkupContainer orcidLinkingItem = new WebMarkupContainer("orcid-linking-item");
 		add(orcidLinkingItem);
-		orcidLinkingItem.setVisible(!session.isOrcidLinked() && session.getLocalIntroCount() == 1);
+		orcidLinkingItem.setVisible(false);
+//		orcidLinkingItem.setVisible(!session.isOrcidLinked() && session.getLocalIntroCount() == 1);
 		if (orcidLinkingItem.isVisible()) recommendedActionsCount++;
 
 		if (session.getUserIntroNanopubs().isEmpty()) {

@@ -46,15 +46,15 @@ public class NanodashSession extends WebSession {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	private IntroExtractor introExtractor;
+//	private IntroExtractor introExtractor;
 
 	private String userDir = System.getProperty("user.home") + "/.nanopub/";
 
 	private KeyPair keyPair;
 	private IRI userIri;
 	private Map<IRI,IntroNanopub> introNps;
-	private Boolean isOrcidLinked;
-	private String orcidLinkError;
+//	private Boolean isOrcidLinked;
+//	private String orcidLinkError;
 
 	private Integer localIntroCount = null;
 	private IntroNanopub localIntro = null;
@@ -98,7 +98,7 @@ public class NanodashSession extends WebSession {
 		if (userIri != null && keyPair != null && introNps == null) {
 			introNps = User.getIntroNanopubs(getPubkeyString());
 		}
-		checkOrcidLink();
+//		checkOrcidLink();
 	}
 
 	public boolean isProfileComplete() {
@@ -215,50 +215,50 @@ public class NanodashSession extends WebSession {
 		return introNps;
 	}
 
-	public void checkOrcidLink() {
-		if (isOrcidLinked == null && userIri != null) {
-			orcidLinkError = "";
-			introExtractor = null;
-			try {
-				introExtractor = IntroNanopub.extract(userIri.stringValue(), null);
-				if (introExtractor.getIntroNanopub() == null) {
-					orcidLinkError = "ORCID account is not linked.";
-					isOrcidLinked = false;
-				} else {
-					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
-					if (introNps != null && introNps.containsKey(inp.getNanopub().getUri())) {
-						// TODO: also check whether introduction contains local key
-						isOrcidLinked = true;
-					} else {
-						isOrcidLinked = false;
-						orcidLinkError = "Error: ORCID is linked to another introduction nanopublication.";
-					}
-				}
-			} catch (Exception ex) {
-				System.err.println("ORCID check failed");
-				orcidLinkError = "ORCID check failed.";
-			}
-		}
-	}
-
-	public void resetOrcidLinked() {
-		isOrcidLinked = null;
-	}
-
-	public boolean isOrcidLinked() {
-		checkOrcidLink();
-		return isOrcidLinked != null && isOrcidLinked == true;
-	}
-
-	public String getOrcidLinkError() {
-		return orcidLinkError;
-	}
-
-	public String getOrcidName() {
-		if (introExtractor == null || introExtractor.getName() == null) return null;
-		if (introExtractor.getName().trim().isEmpty()) return null;
-		return introExtractor.getName();
-	}
+//	public void checkOrcidLink() {
+//		if (isOrcidLinked == null && userIri != null) {
+//			orcidLinkError = "";
+//			introExtractor = null;
+//			try {
+//				introExtractor = IntroNanopub.extract(userIri.stringValue(), null);
+//				if (introExtractor.getIntroNanopub() == null) {
+//					orcidLinkError = "ORCID account is not linked.";
+//					isOrcidLinked = false;
+//				} else {
+//					IntroNanopub inp = IntroNanopub.get(userIri.stringValue(), introExtractor);
+//					if (introNps != null && introNps.containsKey(inp.getNanopub().getUri())) {
+//						// TODO: also check whether introduction contains local key
+//						isOrcidLinked = true;
+//					} else {
+//						isOrcidLinked = false;
+//						orcidLinkError = "Error: ORCID is linked to another introduction nanopublication.";
+//					}
+//				}
+//			} catch (Exception ex) {
+//				System.err.println("ORCID check failed");
+//				orcidLinkError = "ORCID check failed.";
+//			}
+//		}
+//	}
+//
+//	public void resetOrcidLinked() {
+//		isOrcidLinked = null;
+//	}
+//
+//	public boolean isOrcidLinked() {
+//		checkOrcidLink();
+//		return isOrcidLinked != null && isOrcidLinked == true;
+//	}
+//
+//	public String getOrcidLinkError() {
+//		return orcidLinkError;
+//	}
+//
+//	public String getOrcidName() {
+//		if (introExtractor == null || introExtractor.getName() == null) return null;
+//		if (introExtractor.getName().trim().isEmpty()) return null;
+//		return introExtractor.getName();
+//	}
 
 	private File getOrcidFile() {
 		return new File(userDir + "orcid");

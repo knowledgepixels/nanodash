@@ -16,6 +16,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
@@ -56,6 +57,8 @@ public class UserPage extends NanodashPage {
 		add(new Label("username", displayName));
 
 		add(new ExternalLink("fullid", userIriString, userIriString));
+
+		add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(userIri.equals(NanodashSession.get().getUserIri())));
 
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;

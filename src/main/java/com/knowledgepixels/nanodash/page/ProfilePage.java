@@ -100,7 +100,7 @@ public class ProfilePage extends NanodashPage {
 			protected void onSubmit() {
 				if (loginMode) return;
 				session.setOrcid(orcidField.getModelObject());
-				session.resetOrcidLinked();
+//				session.resetOrcidLinked();
 				session.invalidateNow();
 				throw new RestartResponseException(ProfilePage.class);
 			}
@@ -113,12 +113,15 @@ public class ProfilePage extends NanodashPage {
 		}
 		form.add(orcidField);
 		form.add(submitButton);
-		String orcidName = session.getOrcidName();
-		if (orcidName == null) {
-			form.add(new Label("orcidname", ""));
-		} else {
-			form.add(new Label("orcidname", orcidName));
-		}
+
+		form.add(new Label("orcidname", ""));
+//		String orcidName = session.getOrcidName();
+//		if (orcidName == null) {
+//			form.add(new Label("orcidname", ""));
+//		} else {
+//			form.add(new Label("orcidname", orcidName));
+//		}
+
 		add(form);
 		add(new FeedbackPanel("feedback"));
 
