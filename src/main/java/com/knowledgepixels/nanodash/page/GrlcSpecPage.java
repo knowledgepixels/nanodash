@@ -52,7 +52,7 @@ public class GrlcSpecPage extends NanodashPage {
 
 		np = Utils.getAsNanopub(artifactCode);
 		if ("latest".equals(getRequest().getQueryParameters().getParameterValue("api-version").toString())) {
-			np = Utils.getAsNanopub(ApiAccess.getLatestVersionId(np.getUri().stringValue()));
+			np = Utils.getAsNanopub(QueryApiAccess.getLatestVersionId(np.getUri().stringValue()));
 			artifactCode = TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
 		}
 		for (Statement st : np.getAssertion()) {

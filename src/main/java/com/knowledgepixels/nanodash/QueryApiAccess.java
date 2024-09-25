@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryAccess;
 
@@ -30,6 +31,7 @@ public class QueryApiAccess {
 		load("RAPGhXDRzeGu-Qk0AkjleEtxMxqAvJ-dZn7985gzAbyhs/get-publisher-version");
 		load("RAvL7pe2ppsfq4mVWTdJjssYGsjrmliNd_sZO2ytLvg1Y/get-most-used-templates-last30d");
 		load("RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type");
+		load("RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np");
 	}
 
 	private static void load(String queryId) {
@@ -46,6 +48,27 @@ public class QueryApiAccess {
 			ex.printStackTrace();
 		}
 		return null;
+	}
+
+	private static Map<String,Pair<Long,String>> latestVersionMap = new HashMap<>();
+
+	public static String getLatestVersionId(String nanopubId) {
+		long currentTime = System.currentTimeMillis();
+		if (!latestVersionMap.containsKey(nanopubId) || currentTime - latestVersionMap.get(nanopubId).getLeft() > 1000*60) {
+			// Re-fetch if existing value is older than 1 minute
+			Map<String,String> params = new HashMap<>();
+			params.put("np", nanopubId);
+			try {
+				ApiResponse r = get("get-latest-version-of-np", params);
+				if (r.getData().size() != 1) return nanopubId;
+				String l = r.getData().get(0).get("latest");
+				latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return nanopubId;
+			}
+		}
+		return latestVersionMap.get(nanopubId).getRight();
 	}
 
 }

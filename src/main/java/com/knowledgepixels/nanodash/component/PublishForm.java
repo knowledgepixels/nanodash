@@ -55,6 +55,7 @@ import org.wicketstuff.select2.Select2Choice;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -194,7 +195,7 @@ public class PublishForm extends Panel {
 			c.setParam("np", fillNp.getUri().stringValue());
 		}
 		for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
-			String latestId = ApiAccess.getLatestVersionId(r.stringValue());
+			String latestId = QueryApiAccess.getLatestVersionId(r.stringValue());
 			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
 			TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
@@ -243,7 +244,7 @@ public class PublishForm extends Panel {
 			c.initStatements();
 		}
 
-		String latestAssertionId = ApiAccess.getLatestVersionId(assertionContext.getTemplateId());
+		String latestAssertionId = QueryApiAccess.getLatestVersionId(assertionContext.getTemplateId());
 		if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
 			add(new Label("newversion", "There is a new version of this assertion template:"));
 			PageParameters params = new PageParameters(pageParams);

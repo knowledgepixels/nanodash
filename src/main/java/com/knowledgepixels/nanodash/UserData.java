@@ -71,7 +71,7 @@ public class UserData implements Serializable {
 		}
 		String settingId = setting.getNanopub().getUri().stringValue();
 		if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
-			settingId = ApiAccess.getLatestVersionId(settingId);
+			settingId = QueryApiAccess.getLatestVersionId(settingId);
 			setting = new NanopubSetting(GetNanopub.get(settingId));
 		}
 		System.err.println("Using nanopublication setting: " + settingId);
@@ -85,7 +85,7 @@ public class UserData implements Serializable {
 				@Override
 				public void handleNanopub(Nanopub np) {
 					// TODO: Check that latest version talks about same user
-					register(ApiAccess.getLatestVersionId(np.getUri().stringValue()), true);
+					register(QueryApiAccess.getLatestVersionId(np.getUri().stringValue()), true);
 				}
 			});
 		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
