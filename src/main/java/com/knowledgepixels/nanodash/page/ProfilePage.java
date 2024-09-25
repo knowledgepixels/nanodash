@@ -14,7 +14,6 @@ import org.apache.wicket.validation.validator.PatternValidator;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.ProfileIntroItem;
 import com.knowledgepixels.nanodash.component.ProfileSigItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -37,7 +36,7 @@ public class ProfilePage extends NanodashPage {
 
 		final NanodashSession session = NanodashSession.get();
 		session.loadProfileInfo();
-		User.refreshUsers();
+//		User.refreshUsers();
 		final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
 		add(new TitleBar("titlebar", this, null));
