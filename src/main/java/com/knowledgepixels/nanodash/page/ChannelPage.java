@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBoxMultipleChoice;
 import org.apache.wicket.model.Model;
@@ -90,7 +91,10 @@ public class ChannelPage extends NanodashPage {
 			}
 
 		});
-		add(pubkeySelection);
+		WebMarkupContainer selectPanel = new WebMarkupContainer("selectpanel");
+		selectPanel.setVisible(!pubKeyList.isEmpty());
+		selectPanel.add(pubkeySelection);
+		add(selectPanel);
 
 		refresh();
 	}
