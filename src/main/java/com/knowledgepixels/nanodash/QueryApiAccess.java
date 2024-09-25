@@ -32,10 +32,15 @@ public class QueryApiAccess {
 		load("RAvL7pe2ppsfq4mVWTdJjssYGsjrmliNd_sZO2ytLvg1Y/get-most-used-templates-last30d");
 		load("RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type");
 		load("RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np");
+		load("RA5i5-o05hg5KlZocCvKlQAV_CcJn3ToW3AGK7TbrCkVM/get-all-user-intros");
 	}
 
 	private static void load(String queryId) {
 		queryIds.put(queryId.substring(46), queryId);
+	}
+
+	public static ApiResponse get(String queryName) {
+		return get(queryName, new HashMap<>());
 	}
 
 	public static ApiResponse get(String queryName, Map<String,String> params) {

@@ -16,7 +16,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
@@ -119,15 +118,8 @@ public abstract class NanopubPage extends ConnectorPage {
 			add(new WebMarkupContainer("technical-editor-actions").setVisible(false));
 		}
 
-		HashMap<String,String> newerVersionParams = new HashMap<>();
-		newerVersionParams.put("np", np.getUri().stringValue());
-		String latest = null;
-		try {
-			ApiResponse newerVersionResponse = ApiAccess.getAll(ApiAccess.MAIN_GRLC_API_GENERIC_URL, "get_latest_version", newerVersionParams);
-			if (newerVersionResponse.getData().size() == 1) latest = newerVersionResponse.getData().get(0).get("latest");
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		String latest = QueryApiAccess.getLatestVersionId(np.getUri().stringValue());
+
 		WebMarkupContainer newerVersionText = new WebMarkupContainer("newer-version");
 		if (latest == null || latest.equals(np.getUri().stringValue())) {
 			newerVersionText.add(new Label("newer-version-link"));

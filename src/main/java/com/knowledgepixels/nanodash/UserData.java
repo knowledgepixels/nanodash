@@ -116,12 +116,8 @@ public class UserData implements Serializable {
 		}
 
 		// Get latest introductions for all users, including unapproved ones:
-		try {
-			for (ApiResponseEntry entry : ApiAccess.getAll("get_all_users", null).getData()) {
-				register(entry.get("intronp"), false);
-			}
-		} catch (IOException|CsvValidationException ex) {
-			ex.printStackTrace();
+		for (ApiResponseEntry entry : QueryApiAccess.get("get-all-user-intros").getData()) {
+			register(entry.get("intronp"), false);
 		}
 	}
 
