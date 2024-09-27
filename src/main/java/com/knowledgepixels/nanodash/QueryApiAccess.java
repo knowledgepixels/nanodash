@@ -33,6 +33,7 @@ public class QueryApiAccess {
 		load("RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type");
 		load("RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np");
 		load("RA5i5-o05hg5KlZocCvKlQAV_CcJn3ToW3AGK7TbrCkVM/get-all-user-intros");
+		load("RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started");
 	}
 
 	private static void load(String queryId) {

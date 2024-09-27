@@ -27,30 +27,14 @@ public class TemplateList extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public final static List<Template> getStartedTemplates = new ArrayList<>();
-
-	static {
-		TemplateData td = TemplateData.get();
-		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw"));
-		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RAxfD9wQMHU4DmWta5uRpo723ZgKpizglley4gtcxG0hg"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAQIX0i-LjZs1mRakp1Ee0wf7XcQmdhFQvrfOd7pjFiuw"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RA95PFSIiN6-B5qh-a89s78Rmna22y2Yy7rGHEI9R6Vws"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAwzk1ZZxsvDWQhCrAGMxtftJ6umMIbDYD2juVqhcPYQA"));
-		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RA580k5zFLCd9N7nPrJgwURUtTgP2mkb2vg-4LBdOetpE"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAqBzkF9Ynpngp16zOX7NdDpWiNpsJdtPlt946tSmwgiA"));
-		getStartedTemplates.add(td.getTemplate("http://purl.org/np/RAvMcjsLaMI-sGheG6Fa2yAfUyKYRSJqbIOgmK2lblWGg"));
-		getStartedTemplates.add(td.getTemplate("https://w3id.org/np/RAX_4tWTyjFpO6nz63s14ucuejd64t2mK3IBlkwZ7jjLo"));
-	}
-
 	public TemplateList(String id) {
 		super(id);
 
-		final Map<String,String> params = new HashMap<>();
-		final String queryName = "get-most-used-templates-last30d";
-		List<ApiResponseEntry> response = ApiCache.retrieveNanopubList(queryName, params);
-		if (response != null) {
-			add(TemplateResults.fromApiResponse("populartemplates", response));
+		final Map<String,String> ptParams = new HashMap<>();
+		final String ptQueryName = "get-most-used-templates-last30d";
+		List<ApiResponseEntry> ptResponse = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
+		if (ptResponse != null) {
+			add(TemplateResults.fromApiResponse("populartemplates", ptResponse));
 		} else {
 			add(new AjaxLazyLoadPanel<Component>("populartemplates") {
 	
@@ -65,8 +49,8 @@ public class TemplateList extends Panel {
 						} catch (InterruptedException ex) {
 							ex.printStackTrace();
 						}
-						if (!ApiCache.isRunning(queryName, params)) {
-							l = ApiCache.retrieveNanopubList(queryName, params);
+						if (!ApiCache.isRunning(ptQueryName, ptParams)) {
+							l = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
 							if (l != null) break;
 						}
 					}
@@ -76,7 +60,35 @@ public class TemplateList extends Panel {
 			});
 		}
 
-		add(TemplateResults.fromList("getstartedtemplates", getStartedTemplates));
+		final Map<String,String> stParams = new HashMap<>();
+		final String stQueryName = "get-suggested-templates-to-get-started";
+		List<ApiResponseEntry> stResponse = ApiCache.retrieveNanopubList(stQueryName, stParams);
+		if (stResponse != null) {
+			add(TemplateResults.fromApiResponse("getstartedtemplates", stResponse));
+		} else {
+			add(new AjaxLazyLoadPanel<Component>("getstartedtemplates") {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public Component getLazyLoadComponent(String markupId) {
+					List<ApiResponseEntry> l = null;
+					while (true) {
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException ex) {
+							ex.printStackTrace();
+						}
+						if (!ApiCache.isRunning(stQueryName, stParams)) {
+							l = ApiCache.retrieveNanopubList(stQueryName, stParams);
+							if (l != null) break;
+						}
+					}
+					return TemplateResults.fromApiResponse(markupId, l);
+				}
+	
+			});
+		}
 
 		ArrayList<Template> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
 		Collections.sort(templateList, new Comparator<Template>() {
