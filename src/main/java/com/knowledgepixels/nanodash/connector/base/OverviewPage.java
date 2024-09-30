@@ -22,6 +22,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
@@ -190,7 +191,7 @@ public abstract class OverviewPage extends ConnectorPage {
 						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", getConfig().getNanopubPage().getClass(), params);
 						l.add(new Label("acceptedlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
-						String username = User.getShortDisplayName(null, e.get("pubkey"));
+						String username = User.getShortDisplayName(Utils.vf.createIRI(e.get("firstAuthor")));
 						item.add(new Label("acceptednote", "by " + username + " on " + e.get("date").substring(0, 10)));
 					}
 

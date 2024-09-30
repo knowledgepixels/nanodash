@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -113,6 +115,27 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public String getTargetNamespace() {
 		return "https://w3id.org/kpxl/pensoft/bdj/np/";
+	}
+
+
+	private static Map<String,String> queryIds = new HashMap<>();
+
+	static {
+		load("RA8-a2MIcIkBZDFQEQfVc9e7Lg0_Q9L2Qg_cXF2A3R3y4/get-latest-accepted-bdj");
+	}
+
+	private static void load(String queryId) {
+		queryIds.put(queryId.substring(46), queryId);
+	}
+
+	@Override
+	public String get2ndGenerationQueryId(String queryName) {
+		return queryIds.get(queryName);
+	}
+
+	@Override
+	public String getAcceptedNanopubsApiCall() {
+		return "get-latest-accepted-bdj";
 	}
 
 }

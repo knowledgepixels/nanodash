@@ -44,6 +44,10 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getApiUrl(String operation);
 
+	public String get2ndGenerationQueryId(String queryName) {
+		return null;
+	}
+
 	public abstract String getJournalName();
 
 	public abstract String getJournalAbbrev();
