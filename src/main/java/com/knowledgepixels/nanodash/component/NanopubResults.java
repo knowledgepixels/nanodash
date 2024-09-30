@@ -6,6 +6,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanopubElement;
@@ -29,9 +30,17 @@ public class NanopubResults extends Panel {
 		return r;
 	}
 
-	public static NanopubResults fromApiResponse(String id, List<ApiResponseEntry> apiResponse) {
+	public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse) {
+		return fromApiResponse(id, apiResponse, -1);
+	}
+
+	public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, int limit) {
+		List<ApiResponseEntry> list = apiResponse.getData();
+		if (limit >= 0) {
+			list = list.subList(0, limit);
+		}
 		NanopubResults r = new NanopubResults(id);
-		r.add(new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(apiResponse)) {
+		r.add(new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {
 
 			private static final long serialVersionUID = 1L;
 

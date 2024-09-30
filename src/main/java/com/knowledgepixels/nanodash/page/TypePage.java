@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -12,7 +11,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.Utils;
@@ -62,7 +61,7 @@ public class TypePage extends NanodashPage {
 		final Map<String,String> params = new HashMap<>();
 		params.put("type", typeIri.stringValue());
 		final String queryName = "get-latest-nanopubs-by-type";
-		List<ApiResponseEntry> cachedResponse = ApiCache.retrieveNanopubList(queryName, params);
+		ApiResponse cachedResponse = ApiCache.retrieveNanopubList(queryName, params);
 		if (cachedResponse != null) {
 			add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
 		} else {
@@ -72,7 +71,7 @@ public class TypePage extends NanodashPage {
 	
 				@Override
 				public NanopubResults getLazyLoadComponent(String markupId) {
-					List<ApiResponseEntry> l = null;
+					ApiResponse r = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -80,11 +79,11 @@ public class TypePage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(queryName, params)) {
-							l = ApiCache.retrieveNanopubList(queryName, params);
-							if (l != null) break;
+							r = ApiCache.retrieveNanopubList(queryName, params);
+							if (r != null) break;
 						}
 					}
-					return NanopubResults.fromApiResponse(markupId, l);
+					return NanopubResults.fromApiResponse(markupId, r);
 				}
 	
 				@Override

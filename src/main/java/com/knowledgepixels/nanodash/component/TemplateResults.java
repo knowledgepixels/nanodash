@@ -6,6 +6,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.template.Template;
@@ -32,10 +33,10 @@ public class TemplateResults extends Panel {
 		return r;
 	}
 
-	public static TemplateResults fromApiResponse(String id, List<ApiResponseEntry> apiResponse) {
+	public static TemplateResults fromApiResponse(String id, ApiResponse apiResponse) {
 		TemplateResults r = new TemplateResults(id);
 
-		r.add(new DataView<ApiResponseEntry>("template", new ListDataProvider<ApiResponseEntry>(apiResponse)) {
+		r.add(new DataView<ApiResponseEntry>("template", new ListDataProvider<ApiResponseEntry>(apiResponse.getData())) {
 
 			private static final long serialVersionUID = 1L;
 

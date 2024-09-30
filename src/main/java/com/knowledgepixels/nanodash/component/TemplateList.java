@@ -6,7 +6,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.Component;
@@ -17,7 +16,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.SimpleTimestampPattern;
-import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.template.Template;
@@ -32,7 +31,7 @@ public class TemplateList extends Panel {
 
 		final Map<String,String> ptParams = new HashMap<>();
 		final String ptQueryName = "get-most-used-templates-last30d";
-		List<ApiResponseEntry> ptResponse = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
+		ApiResponse ptResponse = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
 		if (ptResponse != null) {
 			add(TemplateResults.fromApiResponse("populartemplates", ptResponse));
 		} else {
@@ -42,7 +41,7 @@ public class TemplateList extends Panel {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<ApiResponseEntry> l = null;
+					ApiResponse r = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -50,11 +49,11 @@ public class TemplateList extends Panel {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(ptQueryName, ptParams)) {
-							l = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
-							if (l != null) break;
+							r = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
+							if (r != null) break;
 						}
 					}
-					return TemplateResults.fromApiResponse(markupId, l);
+					return TemplateResults.fromApiResponse(markupId, r);
 				}
 	
 			});
@@ -62,7 +61,7 @@ public class TemplateList extends Panel {
 
 		final Map<String,String> stParams = new HashMap<>();
 		final String stQueryName = "get-suggested-templates-to-get-started";
-		List<ApiResponseEntry> stResponse = ApiCache.retrieveNanopubList(stQueryName, stParams);
+		ApiResponse stResponse = ApiCache.retrieveNanopubList(stQueryName, stParams);
 		if (stResponse != null) {
 			add(TemplateResults.fromApiResponse("getstartedtemplates", stResponse));
 		} else {
@@ -72,7 +71,7 @@ public class TemplateList extends Panel {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<ApiResponseEntry> l = null;
+					ApiResponse r = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -80,11 +79,11 @@ public class TemplateList extends Panel {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(stQueryName, stParams)) {
-							l = ApiCache.retrieveNanopubList(stQueryName, stParams);
-							if (l != null) break;
+							r = ApiCache.retrieveNanopubList(stQueryName, stParams);
+							if (r != null) break;
 						}
 					}
-					return TemplateResults.fromApiResponse(markupId, l);
+					return TemplateResults.fromApiResponse(markupId, r);
 				}
 	
 			});

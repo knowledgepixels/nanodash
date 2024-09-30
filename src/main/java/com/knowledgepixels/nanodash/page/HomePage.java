@@ -27,8 +27,8 @@ public class HomePage extends NanodashPage {
 	// TODO Use ApiCache for these too:
 	static List<IRI> topUsers;
 	static List<IRI> topAuthors;
-	private static List<ApiResponseEntry> recentNanopubs;
-	private static List<ApiResponseEntry> latestAccepted;
+	private static ApiResponse recentNanopubs;
+	private static ApiResponse latestAccepted;
 
 	@Override
 	public String getMountPath() {
@@ -138,20 +138,12 @@ public class HomePage extends NanodashPage {
 	
 			resp = QueryApiAccess.get("get-most-recent-nanopubs", null);
 			if (resp != null) {
-				recentNanopubs = new ArrayList<>();
-				for (ApiResponseEntry e : resp.getData()) {
-					recentNanopubs.add(e);
-					if (recentNanopubs.size() == 5) break;
-				}
+				recentNanopubs = resp;
 			}
 	
 			resp = QueryApiAccess.get("get-latest-accepted", null);
 			if (resp != null) {
-				latestAccepted = new ArrayList<>();
-				for (ApiResponseEntry e : resp.getData()) {
-					latestAccepted.add(e);
-					if (latestAccepted.size() == 5) break;
-				}
+				latestAccepted = resp;
 			}
 
 		} finally {

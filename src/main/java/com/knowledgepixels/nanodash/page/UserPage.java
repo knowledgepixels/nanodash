@@ -1,8 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.Component;
@@ -13,7 +11,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
@@ -116,7 +114,7 @@ public class UserPage extends NanodashPage {
 			params.put("pubkeyhashes", pubkeyHashes);
 			params.put("userid", userIri.stringValue());
 		} 
-		List<ApiResponseEntry> response = ApiCache.retrieveNanopubList(queryName, params);
+		ApiResponse response = ApiCache.retrieveNanopubList(queryName, params);
 		if (response != null) {
 			add(makeNanopubResultComponent("latestnanopubs", response));
 		} else {
@@ -126,7 +124,7 @@ public class UserPage extends NanodashPage {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<ApiResponseEntry> l = null;
+					ApiResponse r = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -134,11 +132,11 @@ public class UserPage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(queryName, params)) {
-							l = ApiCache.retrieveNanopubList(queryName, params);
-							if (l != null) break;
+							r = ApiCache.retrieveNanopubList(queryName, params);
+							if (r != null) break;
 						}
 					}
-					return makeNanopubResultComponent(markupId, l);
+					return makeNanopubResultComponent(markupId, r);
 				}
 	
 //				@Override
@@ -150,7 +148,7 @@ public class UserPage extends NanodashPage {
 			});
 		}
 
-		List<ApiResponseEntry> acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
+		ApiResponse acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
 		if (acceptedNanopubList != null) {
 			add(makeNanopubResultComponent("latestaccepted", acceptedNanopubList));
 		} else {
@@ -160,7 +158,7 @@ public class UserPage extends NanodashPage {
 	
 				@Override
 				public Component getLazyLoadComponent(String markupId) {
-					List<ApiResponseEntry> l = null;
+					ApiResponse r = null;
 					while (true) {
 						try {
 							Thread.sleep(500);
@@ -168,11 +166,11 @@ public class UserPage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
-							l = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
-							if (l != null) break;
+							r = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
+							if (r != null) break;
 						}
 					}
-					return makeNanopubResultComponent(markupId, l);
+					return makeNanopubResultComponent(markupId, r);
 				}
 	
 //				@Override
@@ -185,21 +183,12 @@ public class UserPage extends NanodashPage {
 		}
 	}
 
-	private static Component makeNanopubResultComponent(String markupId, List<ApiResponseEntry> response) {
-		if (response.isEmpty()) {
+	private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {
+		if (response.getData().isEmpty()) {
 			return new Label(markupId, "(none)");
 		} else {
-			return NanopubResults.fromApiResponse(markupId, makeShortList(response));
+			return NanopubResults.fromApiResponse(markupId, response, 5);
 		}
-	}
-
-	private static List<ApiResponseEntry> makeShortList(List<ApiResponseEntry> list) {
-		List<ApiResponseEntry> shortList = new ArrayList<>();
-		for (ApiResponseEntry e : list) {
-			shortList.add(e);
-			if (shortList.size() == 5) break;
-		}
-		return shortList;
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

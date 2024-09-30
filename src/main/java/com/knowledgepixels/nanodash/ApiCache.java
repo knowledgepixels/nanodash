@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 public class ApiCache {
 
 	private ApiCache() {}  // no instances allowed
 
-	private transient static Map<String,List<ApiResponseEntry>> cachedResponses = new HashMap<>();
+	private transient static Map<String,ApiResponse> cachedResponses = new HashMap<>();
 	private transient static Map<String,Map<String,String>> cachedMaps = new HashMap<>();
 	private transient static Map<String,Long> lastRefresh = new HashMap<>();
 	private transient static Map<String,Long> refreshStart = new HashMap<>();
@@ -36,19 +37,19 @@ public class ApiCache {
 	private static void updateNanopubList(String queryName, Map<String,String> params) {
 		Map<String,String> nanopubParams = new HashMap<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-		List<ApiResponseEntry> nanopubResults = QueryApiAccess.get(queryName, nanopubParams).getData();
+		ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
 		String cacheId = getCacheId(queryName, params);
-		cachedResponses.put(cacheId, nanopubResults);
+		cachedResponses.put(cacheId, response);
 		lastRefresh.put(cacheId, System.currentTimeMillis());
 	}
 
-	public static List<ApiResponseEntry> retrieveNanopubList(String queryName, String paramName, String paramValue) {
+	public static ApiResponse retrieveNanopubList(String queryName, String paramName, String paramValue) {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramName, paramValue);
 		return retrieveNanopubList(queryName, params);
 	}
 
-	public static synchronized List<ApiResponseEntry> retrieveNanopubList(String queryName, Map<String,String> params) {
+	public static synchronized ApiResponse retrieveNanopubList(String queryName, Map<String,String> params) {
 		long timeNow = System.currentTimeMillis();
 		String cacheId = getCacheId(queryName, params);
 		boolean isCached = false;
@@ -88,11 +89,10 @@ public class ApiCache {
 	private static void updateMap(String queryName, Map<String,String> params) {
 		Map<String,String> map = new HashMap<>();
 		Map<String,String> nanopubParams = new HashMap<>();
-		List<ApiResponseEntry> result = new ArrayList<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-		result = QueryApiAccess.get(queryName, nanopubParams).getData();
-		while (result != null && !result.isEmpty()) {
-			ApiResponseEntry resultEntry = result.remove(0);
+		List<ApiResponseEntry> respList = QueryApiAccess.get(queryName, nanopubParams).getData();
+		while (respList != null && !respList.isEmpty()) {
+			ApiResponseEntry resultEntry = respList.remove(0);
 			map.put(resultEntry.get("key"), resultEntry.get("value"));
 		}
 		String cacheId = getCacheId(queryName, params);
