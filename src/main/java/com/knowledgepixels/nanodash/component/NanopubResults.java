@@ -36,7 +36,7 @@ public class NanopubResults extends Panel {
 
 	public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, int limit) {
 		List<ApiResponseEntry> list = apiResponse.getData();
-		if (limit >= 0) {
+		if (limit >= 0 && list.size() > limit) {
 			list = list.subList(0, limit);
 		}
 		NanopubResults r = new NanopubResults(id);
