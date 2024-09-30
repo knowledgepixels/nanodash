@@ -45,11 +45,16 @@ public class QueryApiAccess {
 	}
 
 	public static ApiResponse get(String queryName, Map<String,String> params) {
-		if (!queryIds.containsKey(queryName)) {
+		String queryId;
+		if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
+			queryId = queryName;
+		} else if (queryIds.containsKey(queryName)) {
+			queryId = queryIds.get(queryName);
+		} else {
 			throw new IllegalArgumentException("Query name not known: " + queryName);
 		}
 		try {
-			return QueryAccess.get(queryIds.get(queryName), params);
+			return QueryAccess.get(queryId, params);
 		} catch (CsvValidationException | IOException ex) {
 			ex.printStackTrace();
 		}

@@ -34,7 +34,7 @@ public class ApiCache {
 		return isRunning(getCacheId(queryName, params));
 	}
 
-	private static void updateNanopubList(String queryName, Map<String,String> params) {
+	private static void updateResponse(String queryName, Map<String,String> params) {
 		Map<String,String> nanopubParams = new HashMap<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
 		ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
@@ -43,13 +43,13 @@ public class ApiCache {
 		lastRefresh.put(cacheId, System.currentTimeMillis());
 	}
 
-	public static ApiResponse retrieveNanopubList(String queryName, String paramName, String paramValue) {
+	public static ApiResponse retrieveResponse(String queryName, String paramName, String paramValue) {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramName, paramValue);
-		return retrieveNanopubList(queryName, params);
+		return retrieveResponse(queryName, params);
 	}
 
-	public static synchronized ApiResponse retrieveNanopubList(String queryName, Map<String,String> params) {
+	public static synchronized ApiResponse retrieveResponse(String queryName, Map<String,String> params) {
 		long timeNow = System.currentTimeMillis();
 		String cacheId = getCacheId(queryName, params);
 		boolean isCached = false;
@@ -71,7 +71,7 @@ public class ApiCache {
 						ex.printStackTrace();
 					}
 					try {
-						ApiCache.updateNanopubList(queryName, params);
+						ApiCache.updateResponse(queryName, params);
 					} finally {
 						refreshStart.remove(cacheId);
 					}

@@ -31,7 +31,7 @@ public class TemplateList extends Panel {
 
 		final Map<String,String> ptParams = new HashMap<>();
 		final String ptQueryName = "get-most-used-templates-last30d";
-		ApiResponse ptResponse = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
+		ApiResponse ptResponse = ApiCache.retrieveResponse(ptQueryName, ptParams);
 		if (ptResponse != null) {
 			add(TemplateResults.fromApiResponse("populartemplates", ptResponse));
 		} else {
@@ -49,7 +49,7 @@ public class TemplateList extends Panel {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(ptQueryName, ptParams)) {
-							r = ApiCache.retrieveNanopubList(ptQueryName, ptParams);
+							r = ApiCache.retrieveResponse(ptQueryName, ptParams);
 							if (r != null) break;
 						}
 					}
@@ -61,7 +61,7 @@ public class TemplateList extends Panel {
 
 		final Map<String,String> stParams = new HashMap<>();
 		final String stQueryName = "get-suggested-templates-to-get-started";
-		ApiResponse stResponse = ApiCache.retrieveNanopubList(stQueryName, stParams);
+		ApiResponse stResponse = ApiCache.retrieveResponse(stQueryName, stParams);
 		if (stResponse != null) {
 			add(TemplateResults.fromApiResponse("getstartedtemplates", stResponse));
 		} else {
@@ -79,7 +79,7 @@ public class TemplateList extends Panel {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(stQueryName, stParams)) {
-							r = ApiCache.retrieveNanopubList(stQueryName, stParams);
+							r = ApiCache.retrieveResponse(stQueryName, stParams);
 							if (r != null) break;
 						}
 					}

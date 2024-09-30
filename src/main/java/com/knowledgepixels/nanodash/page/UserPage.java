@@ -114,7 +114,7 @@ public class UserPage extends NanodashPage {
 			params.put("pubkeyhashes", pubkeyHashes);
 			params.put("userid", userIri.stringValue());
 		} 
-		ApiResponse response = ApiCache.retrieveNanopubList(queryName, params);
+		ApiResponse response = ApiCache.retrieveResponse(queryName, params);
 		if (response != null) {
 			add(makeNanopubResultComponent("latestnanopubs", response));
 		} else {
@@ -132,7 +132,7 @@ public class UserPage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(queryName, params)) {
-							r = ApiCache.retrieveNanopubList(queryName, params);
+							r = ApiCache.retrieveResponse(queryName, params);
 							if (r != null) break;
 						}
 					}
@@ -148,7 +148,7 @@ public class UserPage extends NanodashPage {
 			});
 		}
 
-		ApiResponse acceptedNanopubList = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
+		ApiResponse acceptedNanopubList = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);
 		if (acceptedNanopubList != null) {
 			add(makeNanopubResultComponent("latestaccepted", acceptedNanopubList));
 		} else {
@@ -166,7 +166,7 @@ public class UserPage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
-							r = ApiCache.retrieveNanopubList("get-accepted-nanopubs-by-author", "author", userIriString);
+							r = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);
 							if (r != null) break;
 						}
 					}

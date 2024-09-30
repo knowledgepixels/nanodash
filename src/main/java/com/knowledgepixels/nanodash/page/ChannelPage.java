@@ -118,7 +118,7 @@ public class ChannelPage extends NanodashPage {
 			params.put("pubkeyhashes", pubkeyHashes);
 			params.put("userid", userIri.stringValue());
 		} 
-		ApiResponse cachedResponse = ApiCache.retrieveNanopubList(queryName, params);
+		ApiResponse cachedResponse = ApiCache.retrieveResponse(queryName, params);
 		if (cachedResponse != null) {
 			add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
 		} else {
@@ -136,7 +136,7 @@ public class ChannelPage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(queryName, params)) {
-							r = ApiCache.retrieveNanopubList(queryName, params);
+							r = ApiCache.retrieveResponse(queryName, params);
 							if (r != null) break;
 						}
 					}

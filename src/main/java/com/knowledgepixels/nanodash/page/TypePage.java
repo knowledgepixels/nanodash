@@ -61,7 +61,7 @@ public class TypePage extends NanodashPage {
 		final Map<String,String> params = new HashMap<>();
 		params.put("type", typeIri.stringValue());
 		final String queryName = "get-latest-nanopubs-by-type";
-		ApiResponse cachedResponse = ApiCache.retrieveNanopubList(queryName, params);
+		ApiResponse cachedResponse = ApiCache.retrieveResponse(queryName, params);
 		if (cachedResponse != null) {
 			add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
 		} else {
@@ -79,7 +79,7 @@ public class TypePage extends NanodashPage {
 							ex.printStackTrace();
 						}
 						if (!ApiCache.isRunning(queryName, params)) {
-							r = ApiCache.retrieveNanopubList(queryName, params);
+							r = ApiCache.retrieveResponse(queryName, params);
 							if (r != null) break;
 						}
 					}
