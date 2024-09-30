@@ -48,7 +48,15 @@ public abstract class OverviewPage extends ConnectorPage {
 
 				HashMap<String,String> apiParam = new HashMap<>();
 				apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
-				ApiResponse resp = callApi(getConfig().getGeneralApiCall(), apiParam);
+				ApiResponse resp = callApi(getConfig().getCandidateNanopubsApiCall(), apiParam);
+				while (resp == null) {
+					// we only get here in case of second-generation API calls
+					// TODO Do this in an AJAX way:
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException ex) {}
+					resp = callApi(getConfig().getCandidateNanopubsApiCall(), apiParam);
+				}
 
 				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
 				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
@@ -114,7 +122,15 @@ public abstract class OverviewPage extends ConnectorPage {
 			c.setOutputMarkupId(true);
 			add(c);
 
-			ApiResponse resp = callApi(getConfig().getGeneralApiCall(), new HashMap<>());
+			ApiResponse resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
+			while (resp == null) {
+				// we only get here in case of second-generation API calls
+				// TODO Do this in an AJAX way:
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException ex) {}
+				resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
+			}
 
 			final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
 			final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
@@ -171,6 +187,14 @@ public abstract class OverviewPage extends ConnectorPage {
 				add(c);
 
 				ApiResponse resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
+				while (resp == null) {
+					// we only get here in case of second-generation API calls
+					// TODO Do this in an AJAX way:
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException ex) {}
+					resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
+				}
 
 				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
 				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();

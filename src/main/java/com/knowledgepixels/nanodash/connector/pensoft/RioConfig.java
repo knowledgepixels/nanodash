@@ -90,7 +90,7 @@ public class RioConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getGeneralApiCall() {
+	public String getCandidateNanopubsApiCall() {
 		return "get-rio-nanopubs";
 	}
 

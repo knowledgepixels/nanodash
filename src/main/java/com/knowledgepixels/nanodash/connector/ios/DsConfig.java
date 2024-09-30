@@ -75,7 +75,7 @@ public class DsConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getGeneralApiCall() {
+	public String getCandidateNanopubsApiCall() {
 		return "get-ds-nanopubs";
 	}
 

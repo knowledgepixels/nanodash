@@ -54,7 +54,7 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getReviewUrlPrefix();
 
-	public abstract String getGeneralApiCall();
+	public abstract String getCandidateNanopubsApiCall();
 
 	public String getGeneralReactionsApiCall() {
 		return null;

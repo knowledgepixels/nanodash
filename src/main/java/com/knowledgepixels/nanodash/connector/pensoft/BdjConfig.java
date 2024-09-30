@@ -92,8 +92,8 @@ public class BdjConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getGeneralApiCall() {
-		return "get-biodiv-nanopubs";
+	public String getCandidateNanopubsApiCall() {
+		return "get-latest-biodiv-candidates";
 	}
 
 	private Set<IRI> technicalEditorIds;
@@ -122,6 +122,7 @@ public class BdjConfig extends ConnectorConfig {
 
 	static {
 		load("RA8-a2MIcIkBZDFQEQfVc9e7Lg0_Q9L2Qg_cXF2A3R3y4/get-latest-accepted-bdj");
+		load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");
 	}
 
 	private static void load(String queryId) {
