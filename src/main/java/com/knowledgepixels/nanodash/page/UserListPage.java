@@ -1,8 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.util.HashMap;
 import java.util.List;
 
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -11,8 +12,11 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponse;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.UserList;
 
@@ -49,36 +53,39 @@ public class UserListPage extends NanodashPage {
 //
 //		});
 
-		if (HomePage.topUsers != null) {
-			add(new UserList("topcreators", HomePage.topUsers));
-		} else {
-			add(new AjaxLazyLoadPanel<UserList>("topcreators") {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public UserList getLazyLoadComponent(String markupId) {
-					HomePage.refreshLists(false);
-					return new UserList(markupId, HomePage.topUsers);
-				}
-	
-			});
-		}
+		final HashMap<String,String> noParams = new HashMap<>();
 
-		if (HomePage.topAuthors != null) {
-			add(new UserList("topauthors", HomePage.topAuthors));
+		final String uQueryName = "get-top-creators-last30d";
+		ApiResponse rResponse = ApiCache.retrieveResponse(uQueryName, noParams);
+		if (rResponse != null) {
+			add(new UserList("topcreators", rResponse, "userid"));
 		} else {
-			add(new AjaxLazyLoadPanel<UserList>("topauthors") {
-	
+			add(new ApiResultComponent("topcreators", uQueryName, noParams) {
+
 				private static final long serialVersionUID = 1L;
-	
+
 				@Override
-				public UserList getLazyLoadComponent(String markupId) {
-					HomePage.refreshLists(false);
-					return new UserList(markupId, HomePage.topAuthors);
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return new UserList(markupId, response, "userid");
 				}
-	
 			});
+
+		}
+		final String aQueryName = "get-top-authors";
+		ApiResponse aResponse = ApiCache.retrieveResponse(aQueryName, noParams);
+		if (aResponse != null) {
+			add(new UserList("topauthors", aResponse, "author"));
+		} else {
+			add(new ApiResultComponent("topauthors", aQueryName, noParams) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return new UserList(markupId, response, "author");
+				}
+			});
+
 		}
 
 		final List<IRI> userList = User.getUsers(true);

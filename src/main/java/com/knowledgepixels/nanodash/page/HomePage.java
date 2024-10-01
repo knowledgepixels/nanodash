@@ -1,20 +1,17 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
@@ -23,12 +20,6 @@ public class HomePage extends NanodashPage {
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/";
-
-	// TODO Use ApiCache for these too:
-	static List<IRI> topUsers;
-	static List<IRI> topAuthors;
-	private static ApiResponse recentNanopubs;
-	private static ApiResponse latestAccepted;
 
 	@Override
 	public String getMountPath() {
@@ -66,89 +57,42 @@ public class HomePage extends NanodashPage {
 
 		setOutputMarkupId(true);
 
-		if (recentNanopubs != null) {
-			add(NanopubResults.fromApiResponse("mostrecent", recentNanopubs));
+		final HashMap<String,String> noParams = new HashMap<>();
+
+		final String rQueryName = "get-most-recent-nanopubs";
+		ApiResponse rResponse = ApiCache.retrieveResponse(rQueryName, noParams);
+		if (rResponse != null) {
+			add(NanopubResults.fromApiResponse("mostrecent", rResponse));
 		} else {
-			add(new AjaxLazyLoadPanel<NanopubResults>("mostrecent") {
-	
+			add(new ApiResultComponent("mostrecent", rQueryName, noParams) {
+
 				private static final long serialVersionUID = 1L;
-	
+
 				@Override
-				public NanopubResults getLazyLoadComponent(String markupId) {
-					refreshLists(false);
-					return NanopubResults.fromApiResponse(markupId, recentNanopubs);
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return NanopubResults.fromApiResponse(markupId, response);
 				}
-	
 			});
+
 		}
 
-		if (latestAccepted != null) {
-			add(NanopubResults.fromApiResponse("latestaccepted", latestAccepted));
+		final String aQueryName = "get-latest-accepted";
+		ApiResponse aResponse = ApiCache.retrieveResponse(aQueryName, noParams);
+		if (aResponse != null) {
+			add(NanopubResults.fromApiResponse("latestaccepted", aResponse));
 		} else {
-			add(new AjaxLazyLoadPanel<NanopubResults>("latestaccepted") {
-	
+			add(new ApiResultComponent("latestaccepted", aQueryName, noParams) {
+
 				private static final long serialVersionUID = 1L;
-	
+
 				@Override
-				public NanopubResults getLazyLoadComponent(String markupId) {
-					refreshLists(false);
-					return NanopubResults.fromApiResponse(markupId, latestAccepted);
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return NanopubResults.fromApiResponse(markupId, response);
 				}
-	
 			});
+
 		}
 
-	}
-
-	private static boolean refreshingLists = false;
-
-	public static void refreshLists(boolean force) {
-		if (!force && topUsers != null) return;
-		if (refreshingLists) {
-			while (true) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException ex) {
-					ex.printStackTrace();
-				}
-				if (!refreshingLists) return;
-			}
-		}
-
-		refreshingLists = true;
-		ApiResponse resp;
-
-		try {
-
-			resp = QueryApiAccess.get("get-top-creators-last30d", null);
-			if (resp != null) {
-				topUsers = new ArrayList<>();
-				for (ApiResponseEntry e : resp.getData()) {
-					topUsers.add(Utils.vf.createIRI(e.get("userid")));
-				}
-			}
-	
-			resp = QueryApiAccess.get("get-top-authors", null);
-			if (resp != null) {
-				topAuthors = new ArrayList<>();
-				for (ApiResponseEntry e : resp.getData()) {
-					topAuthors.add(Utils.vf.createIRI(e.get("author")));
-				}
-			}
-	
-			resp = QueryApiAccess.get("get-most-recent-nanopubs", null);
-			if (resp != null) {
-				recentNanopubs = resp;
-			}
-	
-			resp = QueryApiAccess.get("get-latest-accepted", null);
-			if (resp != null) {
-				latestAccepted = resp;
-			}
-
-		} finally {
-			refreshingLists = false;
-		}
 	}
 
 }

@@ -8,7 +8,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
-import com.knowledgepixels.nanodash.Group;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -45,9 +44,7 @@ public abstract class NanodashPage extends WebPage {
 					try {
 						System.err.println("Refreshing...");
 						User.refreshUsers();
-						Group.refreshGroups();
 						TemplateData.refreshTemplates();
-						HomePage.refreshLists(true);
 						System.err.println("Refreshing done.");
 						lastRefresh = System.currentTimeMillis();
 					} finally {
