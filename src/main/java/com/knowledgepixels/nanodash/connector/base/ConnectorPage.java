@@ -30,4 +30,8 @@ public abstract class ConnectorPage extends NanodashPage {
 		}
 	}
 
+	protected boolean hasAutoRefreshEnabled() {
+		return true;
+	}
+
 }

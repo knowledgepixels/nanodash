@@ -159,8 +159,6 @@ public abstract class NanopubPage extends ConnectorPage {
 
 			}
 
-			add(new BookmarkablePageLink<Void>("refresh-link", this.getClass(), getPageParameters()));
-
 			add(new BookmarkablePageLink<Void>("create-new-reaction", PublishPage.class,
 					new PageParameters()
 						.add("template", "http://purl.org/np/RAaRGtbno5qhDnHdw0Pae1CEyVmeqE5tuwAJ9bZTc4jaU")
