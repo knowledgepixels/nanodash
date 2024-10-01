@@ -9,8 +9,6 @@ import org.nanopub.extra.services.ApiResponse;
 import com.knowledgepixels.nanodash.ApiCache;
 
 
-// TODO This class is not yet used.
-
 public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 
 	private static final long serialVersionUID = 1L;
@@ -41,6 +39,7 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 		return getApiResultComponent(markupId, r);
 	}
 
+	// TODO Use lambda instead of abstract method?
 	public abstract Component getApiResultComponent(String markupId, ApiResponse response);
 
 }
