@@ -3,32 +3,29 @@ package com.knowledgepixels.nanodash.connector.base;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -140,32 +137,27 @@ public abstract class NanopubPage extends ConnectorPage {
 				add(new Label("template-description", description).setEscapeModelStrings(false));
 			}
 
-			Map<String,String> params = new HashMap<>();
+			String queryName = "get-reactions";
+			final HashMap<String,String> params = new HashMap<>();
 			params.put("pub", uri);
-			ApiResponse resp = callApi("get-reactions", params);
-	
-			add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				protected void populateItem(Item<ApiResponseEntry> item) {
-					ApiResponseEntry e = item.getModelObject();
-					PageParameters params = new PageParameters();
-					if (e.get("pub").equals(np.getUri().stringValue())) {
-						item.add(new Label("reactionnote"));
-					} else {
-						item.add(new Label("reactionnote", "On earlier version:"));
+			ApiResponse resp = callApi(queryName, params);
+			String secondGenQueryId = getConfig().get2ndGenerationQueryId(queryName);
+			if (secondGenQueryId != null) queryName = secondGenQueryId;
+			if (resp != null) {
+				add(new ReactionList("reactions", resp, np));
+			} else {
+				add(new ApiResultComponent("reactions", queryName, params) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public Component getApiResultComponent(String markupId, ApiResponse response) {
+						return new ReactionList(markupId, response, np);
 					}
-					item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
-					params.add("id", e.get("np"));
-					BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", ExplorePage.class, params);
-					String username = User.getShortDisplayName(null, e.get("pubkey"));
-					l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
-					item.add(l);
-				}
-	
-			});
+
+				});
+
+			}
 
 			add(new BookmarkablePageLink<Void>("refresh-link", this.getClass(), getPageParameters()));
 

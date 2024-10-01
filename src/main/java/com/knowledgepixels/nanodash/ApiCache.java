@@ -49,7 +49,7 @@ public class ApiCache {
 		return retrieveResponse(queryName, params);
 	}
 
-	public static synchronized ApiResponse retrieveResponse(String queryName, Map<String,String> params) {
+	public static synchronized ApiResponse retrieveResponse(final String queryName, final Map<String,String> params) {
 		long timeNow = System.currentTimeMillis();
 		String cacheId = getCacheId(queryName, params);
 		boolean isCached = false;

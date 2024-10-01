@@ -276,7 +276,7 @@ ul.box {
   padding: 25px 25px 25px 40px;
 }
 
-ul.box.odd {
+.box.odd {
   background: white;
 }
 
