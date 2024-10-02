@@ -243,6 +243,22 @@ tbody tr:nth-child(even) {
 	background-color: #efefef;
 }
 
+table.activitypanel td {
+	background: white;
+}
+
+table.activitypanel td.low {
+	background: #0B73DA40;
+}
+
+table.activitypanel td.med {
+	background: #0B73DA80;
+}
+
+table.activitypanel td.high {
+	background: #0B73DAc0;
+}
+
 .box {
   background: #F3F6F9;
   padding: 25px;

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -104,10 +105,22 @@ public class ActivityPanel extends Panel {
 
 		@Override
 		public void populateItem(Item<ICellPopulator<Entity>> cellItem, String componentId, IModel<Entity> rowModel) {
+			Entity e = rowModel.getObject();
 			if (title.equals("type")) {
-				cellItem.add(new NanodashLink(componentId, rowModel.getObject().type));
+				cellItem.add(new NanodashLink(componentId, e.type));
 			} else {
-				cellItem.add(new Label(componentId, rowModel.getObject().getValue(title)));
+				String v = e.getValue(title);
+				cellItem.add(new Label(componentId, v));
+				try {
+					int i = Integer.parseInt(v);
+					if (i >= 100) {
+						cellItem.add(new AttributeAppender("class", " high"));
+					} else if (i >= 10) {
+						cellItem.add(new AttributeAppender("class", " med"));
+					} else if (i >= 1) {
+						cellItem.add(new AttributeAppender("class", " low"));
+					}
+				} catch (NumberFormatException ex) {}
 			}
 		}
 
