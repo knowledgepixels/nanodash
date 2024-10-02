@@ -133,7 +133,7 @@ public class ExploreDataTable extends Panel {
 			List<ApiResponseEntry> copy = new ArrayList<>(data);
 			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
 			Collections.sort(copy, comparator);
-			return copy.subList((int)first, (int)(first + count)).iterator();
+			return Utils.subList(copy, first, first + count).iterator();
 		}
 
 		@Override

@@ -10,6 +10,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.Utils;
 
 public class NanopubResults extends Panel {
 	
@@ -37,7 +38,7 @@ public class NanopubResults extends Panel {
 	public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, int limit) {
 		List<ApiResponseEntry> list = apiResponse.getData();
 		if (limit >= 0 && list.size() > limit) {
-			list = list.subList(0, limit);
+			list = Utils.subList(list, 0, limit);
 		}
 		NanopubResults r = new NanopubResults(id);
 		r.add(new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {

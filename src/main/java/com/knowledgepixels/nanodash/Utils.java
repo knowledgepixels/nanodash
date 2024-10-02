@@ -5,6 +5,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -323,4 +324,12 @@ public class Utils {
 		
 	}
 
+	public static <E> ArrayList<E> subList(List<E> list, long fromIndex, long toIndex) {
+		// So the resulting list is serializable:
+		return new ArrayList<E>(list.subList((int) fromIndex, (int) toIndex));
+	}
+
+	public static <E> ArrayList<E> subList(E[] array, long fromIndex, long toIndex) {
+		return subList(Arrays.asList(array), fromIndex, toIndex);
+	}
 }

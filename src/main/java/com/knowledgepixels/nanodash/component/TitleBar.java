@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -13,6 +12,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ConnectorListPage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 
@@ -38,7 +38,7 @@ public class TitleBar extends Panel {
 		if (pathRefs.length > 0) {
 			breadcrumbPath.add(pathRefs[0].createComponent("firstpathelement"));
 			// Getting serialization exception if not using 'new ArrayList<...>(...)' here:
-			List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Arrays.asList(pathRefs).subList(1, pathRefs.length));
+			List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Utils.subList(pathRefs, 1, pathRefs.length));
 			breadcrumbPath.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
 
 				private static final long serialVersionUID = 1L;
