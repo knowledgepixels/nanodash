@@ -30,12 +30,10 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.FetchIndex;
 import org.nanopub.extra.server.GetNanopub;
-import org.nanopub.extra.services.ApiAccess;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.NanopubSetting;
-
-import com.opencsv.exceptions.CsvValidationException;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -94,24 +92,30 @@ public class UserData implements Serializable {
 
 		if (setting.getTrustRangeAlgorithm().stringValue().equals("http://purl.org/nanopub/x/TransitiveTrust")) {
 			// Get users that are approved by somebody who is already approved, and consider them approved too:
-			try {
-				Map<String,String> params = new HashMap<>();
-				params.put("pred", "http://purl.org/nanopub/x/approvesOf");
-				List<ApiResponseEntry> results = ApiAccess.getAll("find_signed_nanopubs_with_pattern", params).getData();
-				while (true) {
-					boolean keepLooping = false;
-					for (ApiResponseEntry entry : new ArrayList<>(results)) {
-						if (!entry.get("superseded").equals("0") || !entry.get("retracted").equals("0")) continue;
-						if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("subj")))) {
-							register(entry.get("obj"), true);
-							results.remove(entry);
-							keepLooping = true;
-						}
+			ApiResponse resp = null;
+			while (true) {
+				resp = QueryApiAccess.get("get-approved-nanopubs");
+				if (resp == null) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
 					}
-					if (!keepLooping) break;
+				} else {
+					break;
 				}
-			} catch (IOException|CsvValidationException ex) {
-				ex.printStackTrace();
+			}
+			List<ApiResponseEntry> results = new ArrayList<>(resp.getData());
+			while (true) {
+				boolean keepLooping = false;
+				for (ApiResponseEntry entry : new ArrayList<>(results)) {
+					if (hasValue(approvedPubkeyIdMap, entry.get("pubkey"), Utils.vf.createIRI(entry.get("approver")))) {
+						register(entry.get("approved_np"), true);
+						results.remove(entry);
+						keepLooping = true;
+					}
+				}
+				if (!keepLooping) break;
 			}
 		}
 
