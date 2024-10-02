@@ -713,6 +713,15 @@ select {
 	white-space: nowrap;
 }
 
+.positivetag {
+	font-size: 14px;
+	padding: 4px 10px;
+	margin-left: 10px;
+	background-color: #c2f2cc;
+	border-radius: 3px;
+	white-space: nowrap;
+}
+
 .meta-action {
 	margin: 15px 3px 0 3px;
 }
