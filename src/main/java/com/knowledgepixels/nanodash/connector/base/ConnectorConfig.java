@@ -77,8 +77,10 @@ public abstract class ConnectorConfig implements Serializable {
 	private static Map<String,String> queryIds = new HashMap<>();
 
 	static {
-		load("RA8-a2MIcIkBZDFQEQfVc9e7Lg0_Q9L2Qg_cXF2A3R3y4/get-latest-accepted-bdj");
+		load("RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj");
 		load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");
+		load("RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds");
+		load("RAAXmnJdXHO86GqJs8VTdqapUWqCrHKRgRT2b4NfjAfgk/get-latest-accepted-rio");
 		load("RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions");
 	}
 

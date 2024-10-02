@@ -115,4 +115,9 @@ public class RioConfig extends ConnectorConfig {
 		return "https://w3id.org/kpxl/pensoft/rio/np/";
 	}
 
+	@Override
+	public String getAcceptedNanopubsApiCall() {
+		return "get-latest-accepted-rio";
+	}
+
 }
