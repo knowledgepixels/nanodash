@@ -41,7 +41,6 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.FdoForwarder;
 import com.knowledgepixels.nanodash.page.GetNamePage;
 import com.knowledgepixels.nanodash.page.GetViewPage;
-import com.knowledgepixels.nanodash.page.GrlcSpecPage;
 import com.knowledgepixels.nanodash.page.GroupDemoPage;
 import com.knowledgepixels.nanodash.page.GroupDemoPageSoc;
 import com.knowledgepixels.nanodash.page.GroupListPage;
@@ -147,8 +146,6 @@ public class WicketApplication extends WebApplication {
 		mountPage(GetNamePage.MOUNT_PATH, GetNamePage.class);
 		mountPage(TypePage.MOUNT_PATH, TypePage.class);
 		mountPage(TestPage.MOUNT_PATH, TestPage.class);
-
-		mountPage(GrlcSpecPage.MOUNT_PATH, GrlcSpecPage.class);
 
 		getCspSettings().blocking().disabled();
 	}
