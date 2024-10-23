@@ -26,10 +26,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 
@@ -46,7 +46,7 @@ public class ExploreDataTable extends Panel {
 		DataProvider dp;
 		ApiResponse dataResponse = null;
 		try {
-			dataResponse = ApiAccess.getAll("find_signed_nanopubs_with_uri", params);
+			dataResponse = QueryApiAccess.get("find-uri-references", params);
 			columns.add(new Column("Nanopublication", "np", ref));
 			columns.add(new Column("Part", "graphpred", ref));
 			columns.add(new Column("Subject", "subj", ref));
@@ -122,10 +122,7 @@ public class ExploreDataTable extends Panel {
 
 		public DataProvider(List<ApiResponseEntry> data) {
 			this();
-			for (ApiResponseEntry r : data) {
-				if (r.getAsBoolean("retracted") || r.getAsBoolean("superseded")) continue;
-				this.data.add(r);
-			}
+			this.data = data;
 		}
 
 		@Override

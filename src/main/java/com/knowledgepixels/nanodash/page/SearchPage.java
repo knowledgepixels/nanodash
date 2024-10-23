@@ -24,6 +24,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
@@ -132,7 +133,7 @@ public class SearchPage extends NanodashPage {
 							}
 							try {
 								// nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
-								nanopubResults = ApiAccess.getAll("find_valid_signed_nanopubs_with_uri", nanopubParams).getData();
+								nanopubResults = QueryApiAccess.get("find-uri-references", nanopubParams).getData();
 							} catch (Exception ex) {
 								ex.printStackTrace();
 							}

@@ -36,6 +36,7 @@ public class QueryApiAccess {
 		load("RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started");
 		load("RAtIndAeo8zYnEvTjFRaHD2AlenvkJHlw6P52JWR_l5dQ/get-type-overview-last-12-months");
 		load("RAmbWGfXZiHA1S2RsuVnoEmg54oFYzGARBQXlvb_K5QqQ/get-approved-nanopubs");
+		load("RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references");
 	}
 
 	private static void load(String queryId) {
