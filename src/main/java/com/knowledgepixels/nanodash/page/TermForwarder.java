@@ -15,7 +15,6 @@ import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.Group;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.opencsv.exceptions.CsvValidationException;
@@ -41,9 +40,6 @@ public class TermForwarder extends NanodashPage {
 		IRI authority = null;
 		if (!parameters.get("authority").isEmpty()) {
 			authority = vf.createIRI(parameters.get("authority").toString());
-		}
-		if (Group.get(id.stringValue()) != null) {
-			throw new RedirectToUrlException(Utils.getUrlWithParameters(GroupPage.MOUNT_PATH, new PageParameters().add("id", id)));
 		}
 		Map<String,String> params = new HashMap<>();
 		params.put("graphpred", "http://www.nanopub.org/nschema#hasPublicationInfo");

@@ -43,8 +43,6 @@ import com.knowledgepixels.nanodash.page.GetNamePage;
 import com.knowledgepixels.nanodash.page.GetViewPage;
 import com.knowledgepixels.nanodash.page.GroupDemoPage;
 import com.knowledgepixels.nanodash.page.GroupDemoPageSoc;
-import com.knowledgepixels.nanodash.page.GroupListPage;
-import com.knowledgepixels.nanodash.page.GroupPage;
 import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.MyChannelPage;
 import com.knowledgepixels.nanodash.page.OrcidLinkingPage;
@@ -116,8 +114,6 @@ public class WicketApplication extends WebApplication {
 		mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
 		mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
 		mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
-		mountPage(GroupListPage.MOUNT_PATH, GroupListPage.class);
-		mountPage(GroupPage.MOUNT_PATH, GroupPage.class);
 		mountPage(GroupDemoPage.MOUNT_PATH, GroupDemoPage.class);
 		mountPage(GroupDemoPageSoc.MOUNT_PATH, GroupDemoPageSoc.class);
 		mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
