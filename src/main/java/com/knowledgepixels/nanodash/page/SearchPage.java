@@ -142,7 +142,7 @@ public class SearchPage extends NanodashPage {
 							String freeTextQuery = getFreeTextQuery(s);
 							if (!freeTextQuery.isEmpty()) {
 								System.err.println("FREE TEXT QUERY: " + freeTextQuery);
-								nanopubParams.put("text", freeTextQuery);
+								nanopubParams.put("query", freeTextQuery);
 								if (filterCheck != null && Boolean.TRUE.equals(filterCheck)) {
 									String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
 									System.err.println("Filter for PUBKEY: " + pubkey);
@@ -150,7 +150,7 @@ public class SearchPage extends NanodashPage {
 								}
 								try {
 									// nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-									nanopubResults = ApiAccess.getAll("find_valid_signed_nanopubs_with_text", nanopubParams).getData();
+									nanopubResults = QueryApiAccess.get("fulltext-search-on-labels", nanopubParams).getData();
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}
