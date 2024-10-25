@@ -69,7 +69,6 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getApiUrl(String operation) {
-		if (isBaseApiOperation(operation)) return baseApi;
 		return specificApi;
 	}
 
