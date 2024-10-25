@@ -24,8 +24,6 @@ public class RioConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/rio-nanopub-api/";
-
 	private static final RioOverviewPage overviewPageInstance = new RioOverviewPage(null);
 	private static final RioSelectPage selectPageInstance = new RioSelectPage(null);
 	private static final RioPublishPage publishPageInstance = new RioPublishPage(null);
@@ -69,7 +67,7 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getApiUrl(String operation) {
-		return specificApi;
+		return null;
 	}
 
 	@Override
@@ -90,7 +88,7 @@ public class RioConfig extends ConnectorConfig {
 
 	@Override
 	public String getCandidateNanopubsApiCall() {
-		return "get-rio-nanopubs";
+		return "get-latest-rio-candidates";
 	}
 
 	private Set<IRI> technicalEditorIds;
