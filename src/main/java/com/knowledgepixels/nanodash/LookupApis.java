@@ -17,7 +17,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
@@ -52,11 +51,10 @@ public class LookupApis {
 				for (NameValuePair p : urlParams) {
 					params.put(p.getName(), p.getValue());
 				}
-				params.put("searchterm", " " + searchterm);
-				ApiResponse result = ApiAccess.getAll("find_signed_things", params);
+				params.put("query", searchterm.trim());
+				ApiResponse result = QueryApiAccess.get("find-things", params);
 				int count = 0;
 				for (ApiResponseEntry r : result.getData()) {
-					if (r.get("superseded").equals("1") || r.get("retracted").equals("1")) continue;
 					String uri = r.get("thing");
 					values.add(uri);
 					String desc = r.get("description");
