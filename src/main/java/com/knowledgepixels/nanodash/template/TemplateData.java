@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.template;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +10,11 @@ import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.opencsv.exceptions.CsvValidationException;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -26,7 +23,6 @@ public class TemplateData implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private static TemplateData instance;
-
 	public static void refreshTemplates() {
 		instance = new TemplateData();
 	}
@@ -55,24 +51,17 @@ public class TemplateData implements Serializable {
 
 	private void refreshTemplates(List<Template> templates, IRI type) {
 		Map<String,String> params = new HashMap<>();
-		params.put("pred", RDF.TYPE.toString());
-		params.put("obj", type.toString());
-		params.put("graphpred", Nanopub.HAS_ASSERTION_URI.toString());
+		params.put("type", type.toString());
 		ApiResponse templateEntries;
-		try {
-			templateEntries = ApiAccess.getAll("find_valid_signed_nanopubs_with_pattern", params);
-			for (ApiResponseEntry entry : templateEntries.getData()) {
-				try {
-					Template t = new Template(entry.get("np"));
-					if (!t.isUnlisted()) templates.add(t);
-					templateMap.put(t.getId(), t);
-				} catch (Exception ex) {
-					System.err.println("Exception: " + ex.getMessage());
-				}
+		templateEntries = QueryApiAccess.get("get-nanopubs-by-type", params);
+		for (ApiResponseEntry entry : templateEntries.getData()) {
+			try {
+				Template t = new Template(entry.get("np"));
+				if (!t.isUnlisted()) templates.add(t);
+				templateMap.put(t.getId(), t);
+			} catch (Exception ex) {
+				System.err.println("Exception: " + ex.getMessage());
 			}
-		} catch (IOException|CsvValidationException ex) {
-			// TODO Better handle this (re-try to get templates)
-			ex.printStackTrace();
 		}
 	}
 
