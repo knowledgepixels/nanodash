@@ -124,7 +124,6 @@ public abstract class OverviewPage extends ConnectorPage {
 
 			ApiResponse resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
 			while (resp == null) {
-				// we only get here in case of second-generation API calls
 				// TODO Do this in an AJAX way:
 				try {
 					Thread.sleep(200);
@@ -188,7 +187,6 @@ public abstract class OverviewPage extends ConnectorPage {
 
 				ApiResponse resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
 				while (resp == null) {
-					// we only get here in case of second-generation API calls
 					// TODO Do this in an AJAX way:
 					try {
 						Thread.sleep(200);
@@ -252,6 +250,13 @@ public abstract class OverviewPage extends ConnectorPage {
 				add(c);
 
 				ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+				while (resp == null) {
+					// TODO Do this in an AJAX way:
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException ex) {}
+					resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+				}
 
 				final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
 				final ArrayList<ApiResponseEntry> fullList = new ArrayList<>();
