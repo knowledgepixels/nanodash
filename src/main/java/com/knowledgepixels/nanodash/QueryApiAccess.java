@@ -38,6 +38,7 @@ public class QueryApiAccess {
 		load("RAmbWGfXZiHA1S2RsuVnoEmg54oFYzGARBQXlvb_K5QqQ/get-approved-nanopubs");
 		load("RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references");
 		load("RAE35dYJQlpnqim7VeKuu07E9I1LQUZpkdYQR4RvU3KMU/get-nanopubs-by-type");
+		load("RALZXWg5lZoJoQ0VHL5mpDgNxYpqU6FoDLWGp4rs8A6b8/get-introducing-nanopub");
 	}
 
 	private static void load(String queryId) {
