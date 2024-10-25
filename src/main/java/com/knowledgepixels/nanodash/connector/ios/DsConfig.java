@@ -24,8 +24,6 @@ public class DsConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/ds-nanopub-api/";
-
 	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
 	private static final DsSelectPage selectPageInstance = new DsSelectPage(null);
 	private static final DsPublishPage publishPageInstance = new DsPublishPage(null);
@@ -54,7 +52,7 @@ public class DsConfig extends ConnectorConfig {
 
 	@Override
 	public String getApiUrl(String operation) {
-		return specificApi;
+		return null;
 	}
 
 	@Override
@@ -75,7 +73,7 @@ public class DsConfig extends ConnectorConfig {
 
 	@Override
 	public String getCandidateNanopubsApiCall() {
-		return "get-ds-nanopubs";
+		return "get-latest-ds-candidates";
 	}
 
 	@Override
