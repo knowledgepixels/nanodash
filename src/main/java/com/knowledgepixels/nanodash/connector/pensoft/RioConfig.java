@@ -66,11 +66,6 @@ public class RioConfig extends ConnectorConfig {
 	}
 
 	@Override
-	public String getApiUrl(String operation) {
-		return null;
-	}
-
-	@Override
 	public String getJournalName() {
 		return "RIO Journal";
 	}

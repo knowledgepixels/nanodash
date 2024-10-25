@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.ApiAccess;
 import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
@@ -22,12 +21,7 @@ public abstract class ConnectorPage extends NanodashPage {
 	protected abstract ConnectorConfig getConfig();
 
 	public ApiResponse callApi(String operation, Map<String,String> params) throws CsvValidationException, IOException {
-		String secondGenQueryId = getConfig().get2ndGenerationQueryId(operation);
-		if (secondGenQueryId != null) {
-			return ApiCache.retrieveResponse(secondGenQueryId, params);
-		} else {
-			return ApiAccess.getAll(getConfig().getApiUrl(operation), operation, params);
-		}
+		return ApiCache.retrieveResponse(ConnectorConfig.getQueryId(operation), params);
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

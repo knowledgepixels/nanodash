@@ -137,16 +137,13 @@ public abstract class NanopubPage extends ConnectorPage {
 				add(new Label("template-description", description).setEscapeModelStrings(false));
 			}
 
-			String queryName = "get-reactions";
 			final HashMap<String,String> params = new HashMap<>();
 			params.put("pub", uri);
-			ApiResponse resp = callApi(queryName, params);
-			String secondGenQueryId = getConfig().get2ndGenerationQueryId(queryName);
-			if (secondGenQueryId != null) queryName = secondGenQueryId;
+			ApiResponse resp = callApi("get-reactions", params);
 			if (resp != null) {
 				add(new ReactionList("reactions", resp, np));
 			} else {
-				add(new ApiResultComponent("reactions", queryName, params) {
+				add(new ApiResultComponent("reactions", ConnectorConfig.getQueryId("get-reactions"), params) {
 
 					private static final long serialVersionUID = 1L;
 

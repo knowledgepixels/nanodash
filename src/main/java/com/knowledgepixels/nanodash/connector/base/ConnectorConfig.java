@@ -26,8 +26,6 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getSubmitImageFileName();
 
-	public abstract String getApiUrl(String operation);
-
 	public abstract String getJournalName();
 
 	public abstract String getJournalAbbrev();
@@ -74,7 +72,7 @@ public abstract class ConnectorConfig implements Serializable {
 		queryIds.put(queryId.substring(46), queryId);
 	}
 
-	public String get2ndGenerationQueryId(String queryName) {
+	public static String getQueryId(String queryName) {
 		return queryIds.get(queryName);
 	}
 
