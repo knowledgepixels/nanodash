@@ -24,8 +24,6 @@ public class BdjConfig extends ConnectorConfig {
 		return instance;
 	}
 
-	public static final String specificApi = "https://grlc.knowledgepixels.com/api-git/knowledgepixels/bdj-nanopub-api/";
-
 	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
 	private static final BdjSelectPage selectPageInstance = new BdjSelectPage(null);
 	private static final BdjPublishPage publishPageInstance = new BdjPublishPage(null);
@@ -69,7 +67,7 @@ public class BdjConfig extends ConnectorConfig {
 
 	@Override
 	public String getApiUrl(String operation) {
-		return specificApi;
+		return null;
 	}
 
 	@Override
