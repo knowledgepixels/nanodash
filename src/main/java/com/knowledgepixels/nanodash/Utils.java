@@ -290,6 +290,7 @@ public class Utils {
 	}
 
 	public static String getUriLabel(String uri) {
+		if (uri == null) return "";
 		String uriLabel = uri;
 		if (uriLabel.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}([^A-Za-z0-9-_].*)?")) {
 			String newUriLabel = uriLabel.replaceFirst("(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{8})[A-Za-z0-9-_]{35}([^A-Za-z0-9-_].*)?", "$1...$2");
