@@ -136,6 +136,11 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 					response.addAll(possibleValues);
 					return;
 				}
+				if (term.startsWith("https://") || term.startsWith("http://")) {
+					if (prefix == null || term.startsWith(prefix)) {
+						response.add(term);
+					}
+				}
 				Map<String,Boolean> alreadyAddedMap = new HashMap<>();
 				term = term.toLowerCase();
 				for (String s : possibleValues) {
@@ -158,7 +163,6 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 		textfield = new Select2Choice<String>("textfield", model, choiceProvider);
 		textfield.getSettings().getAjax(true).setDelay(500);
 		textfield.getSettings().setCloseOnSelect(true);
-		textfield.getSettings().setTags(true);
 		String placeholder = template.getLabel(iri);
 		if (placeholder == null) placeholder = "";
 		textfield.getSettings().setPlaceholder(placeholder);
