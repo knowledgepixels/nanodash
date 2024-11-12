@@ -3,6 +3,7 @@ services:
 #   volumes:
 #     - ./local-data:/root/.nanopub  # to store local data (config and user keys) in same directory
     environment:
+      - CATALINA_OPTS=-Xms1G -Xmx6G
       - NANODASH_WEBSITE_URL=https://your.domain.org/
       - NANODASH_ORCID_LOGIN_MODE=true
       - NANOPUB_ORCID_CLIENT_ID=your-orcid-client-id
