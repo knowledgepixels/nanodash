@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -48,13 +47,15 @@ public class LookupApis {
 		try {
 			if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/") || apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
 				String queryName = "find-things";
-				if (apiString.startsWith("https://w3id.org/np/l/nanopub-query/api/")) {
-					queryName = apiString.replace("https://w3id.org/np/l/nanopub-query/api/", "");
+				if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
+					queryName = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
 				}
-				List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
 				Map<String,String> params = new HashMap<>();
-				for (NameValuePair p : urlParams) {
-					params.put(p.getName(), p.getValue());
+				if (apiString.contains("?")) {
+					List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
+					for (NameValuePair p : urlParams) {
+						params.put(p.getName(), p.getValue());
+					}
 				}
 				params.put("query", searchterm.trim());
 				ApiResponse result = QueryApiAccess.get(queryName, params);
