@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -45,14 +46,18 @@ public class LookupApis {
 	public static void getPossibleValues(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
 		// TODO This method is a mess and needs some serious clean-up and structuring...
 		try {
-			if (apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
+			if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/") || apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
+				String queryName = "find-things";
+				if (apiString.startsWith("https://w3id.org/np/l/nanopub-query/api/")) {
+					queryName = apiString.replace("https://w3id.org/np/l/nanopub-query/api/", "");
+				}
 				List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
 				Map<String,String> params = new HashMap<>();
 				for (NameValuePair p : urlParams) {
 					params.put(p.getName(), p.getValue());
 				}
 				params.put("query", searchterm.trim());
-				ApiResponse result = QueryApiAccess.get("find-things", params);
+				ApiResponse result = QueryApiAccess.get(queryName, params);
 				int count = 0;
 				for (ApiResponseEntry r : result.getData()) {
 					String uri = r.get("thing");
@@ -78,20 +83,19 @@ public class LookupApis {
 			}
 			HttpGet get = new HttpGet(callUrl);
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpResponse resp;
+			String respString;
 			try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-				resp = client.execute(get);
+				HttpResponse resp = client.execute(get);
 				if (resp.getStatusLine().getStatusCode() == 405) {
 					// Method not allowed, trying POST
 					HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
 					resp = client.execute(post);
 				}
-			}
-			// TODO: support other content types (CSV, XML, ...)
-			// System.err.println(resp.getHeaders("Content-Type")[0]);
-			String respString;
-			try (InputStream in = resp.getEntity().getContent()) {
-				respString = IOUtils.toString(in, StandardCharsets.UTF_8);
+				// TODO: support other content types (CSV, XML, ...)
+				// System.err.println(resp.getHeaders("Content-Type")[0]);
+				try (InputStream in = resp.getEntity().getContent()) {
+					respString = IOUtils.toString(in, StandardCharsets.UTF_8);
+				}
 			}
 			// System.out.println(respString);
 	
