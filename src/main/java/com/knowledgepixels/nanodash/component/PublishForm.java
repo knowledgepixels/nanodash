@@ -520,6 +520,7 @@ public class PublishForm extends Panel {
 				provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
 				provenanceContext.initStatements();
 				refreshProvenance(target);
+				provenanceContext.finalizeStatements();
 			}
 
 		});
@@ -590,6 +591,7 @@ public class PublishForm extends Panel {
 				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
 				refreshPubInfo(target);
+				c.finalizeStatements();
 			}
 
 		});
