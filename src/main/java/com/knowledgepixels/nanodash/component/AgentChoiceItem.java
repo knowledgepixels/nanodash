@@ -247,6 +247,9 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 	@Override
 	public void finalizeValues() {
 		Value defaultValue = context.getTemplate().getDefault(iri);
+		if (Template.CREATOR_PLACEHOLDER.equals(defaultValue)) {
+			defaultValue = NanodashSession.get().getUserIri();
+		}
 		if (isUnifiableWith(defaultValue)) {
 			try {
 				unifyWith(defaultValue);
