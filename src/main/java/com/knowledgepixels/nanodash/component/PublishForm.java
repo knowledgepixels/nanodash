@@ -73,7 +73,7 @@ public class PublishForm extends Panel {
 
 	private static String creatorPubinfoTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
 	private static String licensePubinfoTempalteId = "http://purl.org/np/RAh1gm83JiG5M6kDxXhaYT1l49nCzyrckMvTzcPn-iv90";
-	private static String defaultProvTemplateId = "http://purl.org/np/RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM";
+	private static String defaultProvTemplateId = "https://w3id.org/np/RAXB27PAPqR3E8bOwgPJxkCSxGN-cLIr_m9IhOua8lCoI";
 	private static String supersedesPubinfoTemplateId = "http://purl.org/np/RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI";
 	private static String derivesFromPubinfoTemplateId = "http://purl.org/np/RABngHbKpoJ3U9Nebc8mX_KUdv_vXw28EejqAyQya5zVA";
 
@@ -759,6 +759,9 @@ public class PublishForm extends Panel {
 						l = labelMap.get(placeholderValueIri);
 					}
 					if (l == null) l = GuidedChoiceItem.getLabel(placeholderValue);
+					if (assertionContext.getTemplate().isAgentPlaceholder(placeholderIri) && !placeholderValue.isEmpty()) {
+						l = User.getName(vf.createIRI(placeholderValue));
+					}
 					if (l != null && !l.isEmpty()) {
 						placeholderLabel = l.replaceFirst(" - .*$", "");
 					} else {
