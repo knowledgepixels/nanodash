@@ -324,6 +324,12 @@ img.thirdparty {
   height: 15px;
 }
 
+.textfield-icon {
+  margin-left: 7px;
+  margin-top: 7px;
+  margin-bottom: 7px;
+}
+
 ul.users {
 	list-style-image: url('images/user-icon.svg');
 }

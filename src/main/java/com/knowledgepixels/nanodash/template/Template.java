@@ -45,6 +45,7 @@ public class Template implements Serializable {
 	public static final IRI LONG_LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LongLiteralPlaceholder");
 	public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
 	public static final IRI GUIDED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GuidedChoicePlaceholder");
+	public static final IRI AGENT_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AgentPlaceholder");
 	public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
 	public static final IRI ASSERTION_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/ASSERTION");
 	public static final IRI NANOPUB_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NANOPUB");
@@ -214,6 +215,7 @@ public class Template implements Serializable {
 			if (t.equals(AUTO_ESCAPE_URI_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(AGENT_PLACEHOLDER_CLASS)) return true;
 		}
 		return false;
 	}
@@ -258,6 +260,11 @@ public class Template implements Serializable {
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
 	}
 
+	public boolean isAgentPlaceholder(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(AGENT_PLACEHOLDER_CLASS);
+	}
+
 	public boolean isSequenceElementPlaceholder(IRI iri) {
 		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(SEQUENCE_ELEMENT_PLACEHOLDER);
@@ -274,6 +281,7 @@ public class Template implements Serializable {
 			if (t.equals(AUTO_ESCAPE_URI_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(RESTRICTED_CHOICE_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(GUIDED_CHOICE_PLACEHOLDER_CLASS)) return true;
+			if (t.equals(AGENT_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(LITERAL_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(LONG_LITERAL_PLACEHOLDER_CLASS)) return true;
 			if (t.equals(SEQUENCE_ELEMENT_PLACEHOLDER)) return true;

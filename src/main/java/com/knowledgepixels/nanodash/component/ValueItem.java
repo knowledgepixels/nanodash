@@ -38,6 +38,8 @@ public class ValueItem extends Panel implements ContextComponent {
 				}
 			} else if (template.isRestrictedChoicePlaceholder(iri)) {
 				component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
+			} else if (template.isAgentPlaceholder(iri)) {
+				component = new AgentChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isGuidedChoicePlaceholder(iri)) {
 				component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isUriPlaceholder(iri)) {
