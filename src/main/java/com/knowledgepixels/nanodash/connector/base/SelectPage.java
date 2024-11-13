@@ -41,6 +41,7 @@ public abstract class SelectPage extends ConnectorPage {
 				params.add("type", type.getId());
 				params.add("template", type.getTemplate().getId());
 				params.add("prtemplate", type.getPrTemplateId());
+				params.add("pitemplate1", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");  // Author list
 				throw new RestartResponseException(getConfig().getPublishPage().getClass(), params);
 			}
 

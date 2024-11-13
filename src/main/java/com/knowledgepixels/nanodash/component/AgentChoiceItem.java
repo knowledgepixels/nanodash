@@ -146,7 +146,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 		textfield.getSettings().getAjax(true).setDelay(500);
 		textfield.getSettings().setCloseOnSelect(true);
 		String placeholder = template.getLabel(iri);
-		if (placeholder == null) placeholder = "choose agent";
+		if (placeholder == null) placeholder = "select user or paste ORCID/URL";
 		textfield.getSettings().setPlaceholder(placeholder);
 		Utils.setSelect2ChoiceMinimalEscapeMarkup(textfield);
 		textfield.getSettings().setAllowClear(true);
