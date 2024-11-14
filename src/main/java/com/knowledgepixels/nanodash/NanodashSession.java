@@ -29,9 +29,13 @@ import org.nanopub.extra.setting.IntroNanopub;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 public class NanodashSession extends WebSession {
 
 	private static final long serialVersionUID = -7920814788717089213L;
+	private HttpSession httpSession;
 
 	public static NanodashSession get() {
 		return (NanodashSession) Session.get();
@@ -39,6 +43,7 @@ public class NanodashSession extends WebSession {
 
 	public NanodashSession(Request request) {
 		super(request);
+		httpSession = ((HttpServletRequest) request.getContainerRequest()).getSession();
 		bind();
 		loadProfileInfo();
 	}
@@ -75,6 +80,7 @@ public class NanodashSession extends WebSession {
 					//String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ProfilePage.ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
+						httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
 					}
 				} catch (IOException ex) {
 					ex.printStackTrace();
@@ -146,11 +152,6 @@ public class NanodashSession extends WebSession {
 		return userIri;
 	}
 
-	public void logout() {
-		userIri = null;
-		invalidateNow();
-	}
-
 	public List<IntroNanopub> getUserIntroNanopubs() {
 		return User.getIntroNanopubs(userIri);
 	}
@@ -208,6 +209,12 @@ public class NanodashSession extends WebSession {
 		}
 		userIri = vf.createIRI("https://orcid.org/" + orcid);
 		loadProfileInfo();
+		httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
+	}
+
+	public void logout() {
+		userIri = null;
+		invalidateNow();
 	}
 
 	public Map<IRI,IntroNanopub> getIntroNanopubs() {
