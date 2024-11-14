@@ -107,7 +107,7 @@ public abstract class NanopubPage extends ConnectorPage {
 						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
 						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
 						.add("pitemplate2", "https://w3id.org/np/RA_JdI7pfDcyvEXLr_gper3h8egmNggeTqkJbyHrlMEdo")
-						.add("pitemplate3", "https://w3id.org/np/RAIabr2sRVJ-YOIwZRD__BVMJKnq3QtQw_mjLIGSACPAI")
+						.add("pitemplate3", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
 						.add("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
 				));
 			add(technicalEditorActions);

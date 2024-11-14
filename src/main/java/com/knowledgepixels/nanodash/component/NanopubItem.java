@@ -248,7 +248,7 @@ public class NanopubItem extends Panel {
 			List<String> pubinfoAuthorTemplateIds = new ArrayList<>();
 			List<String> pubinfoTemplateIds = new ArrayList<>();
 			for (IRI iri : td.getPubinfoTemplateIds(n.getNanopub())) {
-				if (iri.stringValue().equals("https://w3id.org/np/RAIabr2sRVJ-YOIwZRD__BVMJKnq3QtQw_mjLIGSACPAI")) { // author list
+				if (iri.stringValue().equals("https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")) { // author list
 					pubinfoAuthorTemplateIds.add(iri.stringValue());
 				} else if (iri.stringValue().equals("http://purl.org/np/RA4vTctL3Luaj8oI_sPiN7I_8xEnR_hkdz5gN7bCvZpNY")) { // authors
 					pubinfoAuthorTemplateIds.add(iri.stringValue());
