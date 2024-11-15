@@ -457,13 +457,36 @@ public class PublishForm extends Panel {
 
 		});
 
-		final List<Template> provTemplateOptions;
-		if (pageParams.get("prtemplate-options").isNull()) {
-			provTemplateOptions = td.getProvenanceTemplates();
+		final Map<String,Boolean> handledTemplates = new HashMap<>();
+		final String defaultProvTemplateId;
+		if (assertionContext.getTemplate().getDefaultProvenance() != null) {
+			defaultProvTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
+			handledTemplates.put(defaultProvTemplateId, true);
 		} else {
-			provTemplateOptions = new ArrayList<>();
-			for (String tid : pageParams.get("prtemplate-options").toString().split(" ")) {
-				provTemplateOptions.add(td.getTemplate(tid));
+			defaultProvTemplateId = null;
+		}
+		final List<String> recommendedProvTemplateOptionIds = new ArrayList<>();
+		final List<String> provTemplateOptionIds = new ArrayList<>();
+		if (pageParams.get("prtemplate-options").isNull()) {
+			// TODO Make this dynamic and consider updated templates:
+			recommendedProvTemplateOptionIds.add("https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
+			for (String s : recommendedProvTemplateOptionIds) {
+				handledTemplates.put(s, true);
+			}
+
+			for (Template t : td.getProvenanceTemplates()) {
+				if (handledTemplates.containsKey(t.getId())) continue;
+				provTemplateOptionIds.add(t.getId());
+				handledTemplates.put(t.getId(), true);
+			}
+		} else {
+			for (String s : pageParams.get("prtemplate-options").toString().split(" ")) {
+				if (handledTemplates.containsKey(s)) continue;
+				recommendedProvTemplateOptionIds.add(s);
+				handledTemplates.put(s, true);
 			}
 		}
 
@@ -476,7 +499,7 @@ public class PublishForm extends Panel {
 				if (object == null || object.isEmpty()) return "";
 				Template t = td.getTemplate(object);
 				if (t != null) return t.getLabel();
-				return "";
+				return object;
 			}
 
 			@Override
@@ -493,10 +516,25 @@ public class PublishForm extends Panel {
 			public void query(String term, int page, Response<String> response) {
 				if (term == null) term = "";
 				term = term.toLowerCase();
-				for (Template t : provTemplateOptions) {
-					String s = t.getLabel();
-					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
-						response.add(t.getId());
+				if (defaultProvTemplateId != null) {
+					// Using this work-around with "——" because 'optgroup' is not available through Wicket's Select2 classes
+					response.add("—— default for this template ——");
+					response.add(defaultProvTemplateId);
+				}
+				if (!recommendedProvTemplateOptionIds.isEmpty()) {
+					response.add("—— recommended ——");
+					for (String s : recommendedProvTemplateOptionIds) {
+						if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+							response.add(s);
+						}
+					}
+				}
+				if (!provTemplateOptionIds.isEmpty()) {
+					response.add("—— others ——");
+					for (String s : provTemplateOptionIds) {
+						if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+							response.add(s);
+						}
 					}
 				}
 			}
@@ -517,6 +555,11 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+				String o = prTemplateModel.getObject();
+				if (o.startsWith("——")) {
+					o = provenanceContext.getTemplate().getId();
+					prTemplateModel.setObject(o);
+				}
 				provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
 				provenanceContext.initStatements();
 				refreshProvenance(target);
