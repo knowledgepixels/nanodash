@@ -35,7 +35,7 @@ import jakarta.servlet.http.HttpSession;
 public class NanodashSession extends WebSession {
 
 	private static final long serialVersionUID = -7920814788717089213L;
-	private HttpSession httpSession;
+	private transient HttpSession httpSession;
 
 	public static NanodashSession get() {
 		return (NanodashSession) Session.get();
@@ -80,7 +80,7 @@ public class NanodashSession extends WebSession {
 					//String orcid = Files.readString(orcidFile.toPath(), StandardCharsets.UTF_8).trim();
 					if (orcid.matches(ProfilePage.ORCID_PATTERN)) {
 						userIri = vf.createIRI("https://orcid.org/" + orcid);
-						httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
+						if (httpSession != null) httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
 					}
 				} catch (IOException ex) {
 					ex.printStackTrace();
@@ -209,7 +209,7 @@ public class NanodashSession extends WebSession {
 		}
 		userIri = vf.createIRI("https://orcid.org/" + orcid);
 		loadProfileInfo();
-		httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
+		if (httpSession != null) httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
 	}
 
 	public void logout() {
