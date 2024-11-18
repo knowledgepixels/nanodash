@@ -71,11 +71,11 @@ public class PublishForm extends Panel {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	private static String creatorPubinfoTemplateId = "http://purl.org/np/RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM";
-	private static String licensePubinfoTempalteId = "http://purl.org/np/RAfvIvxTx8LRS2646kVkqvcrSf8fbIyxVjMe_vewrqQHM";
+	private static String creatorPubinfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
+	private static String licensePubinfoTempalteId = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
 	private static String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
-	private static String supersedesPubinfoTemplateId = "http://purl.org/np/RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI";
-	private static String derivesFromPubinfoTemplateId = "http://purl.org/np/RABngHbKpoJ3U9Nebc8mX_KUdv_vXw28EejqAyQya5zVA";
+	private static String supersedesPubinfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
+	private static String derivesFromPubinfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
 
 	private static String[] fixedPubInfoTemplates = new String[] {creatorPubinfoTemplateId, licensePubinfoTempalteId};
 
@@ -215,7 +215,9 @@ public class PublishForm extends Panel {
 		}
 		if (fillNp != null && !fillOnlyAssertion) {
 			for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
-				if (piTemplateId.stringValue().equals(supersedesPubinfoTemplateId)) continue;
+				String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(piTemplateId.stringValue());
+				if (piTempalteIdLatest.equals(supersedesPubinfoTemplateId)) continue;
+				// TODO Allow for automatically using latest template version
 				TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
 				if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
 			}
@@ -292,7 +294,7 @@ public class PublishForm extends Panel {
 				}
 				piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
 				if (piFiller.hasUnusedStatements()) {
-					TemplateContext c = getPubinfoContext("http://purl.org/np/RA2vCBXZf-icEcVRGhulJXugTGxpsV5yVr9yqCI1bQh4A");
+					TemplateContext c = getPubinfoContext("https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI");
 					if (!pubInfoContexts.contains(c)) {
 						pubInfoContexts.add(c);
 						c.initStatements();
@@ -457,11 +459,11 @@ public class PublishForm extends Panel {
 
 		});
 
-		final Map<String,Boolean> handledTemplates = new HashMap<>();
+		final Map<String,Boolean> handledProvTemplates = new HashMap<>();
 		final String defaultProvTemplateId;
 		if (assertionContext.getTemplate().getDefaultProvenance() != null) {
 			defaultProvTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
-			handledTemplates.put(defaultProvTemplateId, true);
+			handledProvTemplates.put(defaultProvTemplateId, true);
 		} else {
 			defaultProvTemplateId = null;
 		}
@@ -473,20 +475,21 @@ public class PublishForm extends Panel {
 			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
 			recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
 			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
+			recommendedProvTemplateOptionIds.add("https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU");
 			for (String s : recommendedProvTemplateOptionIds) {
-				handledTemplates.put(s, true);
+				handledProvTemplates.put(s, true);
 			}
 
 			for (Template t : td.getProvenanceTemplates()) {
-				if (handledTemplates.containsKey(t.getId())) continue;
+				if (handledProvTemplates.containsKey(t.getId())) continue;
 				provTemplateOptionIds.add(t.getId());
-				handledTemplates.put(t.getId(), true);
+				handledProvTemplates.put(t.getId(), true);
 			}
 		} else {
 			for (String s : pageParams.get("prtemplate-options").toString().split(" ")) {
-				if (handledTemplates.containsKey(s)) continue;
+				if (handledProvTemplates.containsKey(s)) continue;
 				recommendedProvTemplateOptionIds.add(s);
-				handledTemplates.put(s, true);
+				handledProvTemplates.put(s, true);
 			}
 		}
 
@@ -570,6 +573,28 @@ public class PublishForm extends Panel {
 		form.add(prTemplateChoice);
 		refreshProvenance(null);
 
+		final Map<String,Boolean> handledPiTemplates = new HashMap<>();
+		final List<String> recommendedPiTemplateOptionIds = new ArrayList<>();
+		final List<String> piTemplateOptionIds = new ArrayList<>();
+		// TODO Make this dynamic and consider updated templates:
+		recommendedPiTemplateOptionIds.add("http://purl.org/np/RAXflINqt3smqxV5Aq7E9lzje4uLdkKIOefa6Bp8oJ8CY");
+		recommendedPiTemplateOptionIds.add("https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ");
+		recommendedPiTemplateOptionIds.add("https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");
+		recommendedPiTemplateOptionIds.add("http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4");
+		for (TemplateContext c : pubInfoContexts) {
+			String s = c.getTemplate().getId();
+			handledPiTemplates.put(s, true);
+		}
+		for (String s : recommendedPiTemplateOptionIds) {
+			handledPiTemplates.put(s, true);
+		}
+
+		for (Template t : td.getPubInfoTemplates()) {
+			if (handledPiTemplates.containsKey(t.getId())) continue;
+			piTemplateOptionIds.add(t.getId());
+			handledPiTemplates.put(t.getId(), true);
+		}
+
 		ChoiceProvider<String> piTemplateChoiceProvider = new ChoiceProvider<String>() {
 
 			private static final long serialVersionUID = 1L;
@@ -579,7 +604,7 @@ public class PublishForm extends Panel {
 				if (object == null || object.isEmpty()) return "";
 				Template t = td.getTemplate(object);
 				if (t != null) return t.getLabel();
-				return "";
+				return object;
 			}
 
 			@Override
@@ -596,19 +621,38 @@ public class PublishForm extends Panel {
 			public void query(String term, int page, Response<String> response) {
 				if (term == null) term = "";
 				term = term.toLowerCase();
-				for (Template t : td.getPubInfoTemplates()) {
-					String s = t.getLabel();
-					boolean isAlreadyUsed = false;
-					for (TemplateContext c : pubInfoContexts) {
-						// TODO: make this more efficient/nicer
-						if (c.getTemplate().getId().equals(t.getId())) {
-							isAlreadyUsed = true;
-							break;
+				if (!recommendedPiTemplateOptionIds.isEmpty()) {
+					response.add("—— recommended ——");
+					for (String s : recommendedPiTemplateOptionIds) {
+						boolean isAlreadyUsed = false;
+						for (TemplateContext c : pubInfoContexts) {
+							// TODO: make this more efficient/nicer
+							if (c.getTemplate().getId().equals(s)) {
+								isAlreadyUsed = true;
+								break;
+							}
+						}
+						if (isAlreadyUsed) continue;
+						if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+							response.add(s);
 						}
 					}
-					if (isAlreadyUsed) continue;
-					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
-						response.add(t.getId());
+				}
+				if (!piTemplateOptionIds.isEmpty()) {
+					response.add("—— others ——");
+					for (String s : piTemplateOptionIds) {
+						boolean isAlreadyUsed = false;
+						for (TemplateContext c : pubInfoContexts) {
+							// TODO: make this more efficient/nicer
+							if (c.getTemplate().getId().equals(s)) {
+								isAlreadyUsed = true;
+								break;
+							}
+						}
+						if (isAlreadyUsed) continue;
+						if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
+							response.add(s);
+						}
 					}
 				}
 			}
@@ -629,7 +673,13 @@ public class PublishForm extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				TemplateContext c = new TemplateContext(ContextType.PUBINFO, newPiTemplateModel.getObject(), "pi-statement", targetNamespace);
+				if (newPiTemplateModel.getObject().startsWith("——")) {
+					newPiTemplateModel.setObject(null);
+					refreshPubInfo(target);
+					return;
+				}
+				String id = newPiTemplateModel.getObject();
+				TemplateContext c = new TemplateContext(ContextType.PUBINFO, id, "pi-statement", targetNamespace);
 				c.initStatements();
 				pubInfoContexts.add(c);
 				newPiTemplateModel.setObject(null);
