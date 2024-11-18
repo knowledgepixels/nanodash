@@ -18,9 +18,9 @@ public class ConnectorNanopubType implements Serializable {
 	}
 
 	static {
-		String biodivPrTemplateOptions = "http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU " +
-				"http://purl.org/np/RALfxe37qzq5rEk6tLLcsSeKtKQZ1FcoHZdf2nYVfU66w " +
-				"http://purl.org/np/RAYfEAP8KAu9qhBkCtyq_hshOvTAJOcdfIvGhiGwUqB-M ";
+		String biodivPrTemplateOptions = "http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8 " +
+				"http://purl.org/np/RAdWRjsWVzTY3c65A5cnMZZxEeGjLzlyrSpyoALTCj8z0 " +
+				"http://purl.org/np/RA5bvGiV9W8MYiHxUtkki0U2Zi8j1FBQ8d5ElwJXJoYrY ";
 				//"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k"
 
 		new ConnectorNanopubType("superpattern",
@@ -59,53 +59,53 @@ public class ConnectorNanopubType implements Serializable {
 			"Association between taxa",
 			"http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0",
 			"http://purl.org/np/RALX2suiPKea3pm65RjS97EL6k9iY1Jew_mb30hO5Zjv0",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("taxonenv",
 			"Association between taxa and environments",
 			"http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k",
 			"http://purl.org/np/RATlLG_xH-woxWfvHYC-7LyV5F0V6Sq4EbDWS86h6CrUI",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("taxongene",
 			"Association between taxa and genes",
 			"http://purl.org/np/RAQcn-NHXcqWvEsguTCnFspUqCBBbzQis2KafZf3IDMpk",
 			"http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("orgorg",
 			"Association between organisms",
 			"http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI",
 			"http://purl.org/np/RAafGz8UV6Nz4m8wyCLV4eJ_bdNfXKpGie0FH6TQZFa84",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("orgenv",
 			"Association between organisms and environments",
 			"http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc",
 			"http://purl.org/np/RAWxvypUU6OabNGlBz9jDGLnftqRXdokzI2oemf9vQRGY",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU");
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8");
 		new ConnectorNanopubType("taxonnames",
 			"Association between taxon names (nomenclature)",
 			"http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8",
 			"http://purl.org/np/RAIz2ACUDvk3OAcXc-OjYSuLglUZu-fsJXrC4UtoAF7k4",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("orgns",
 			"Association between organisms and nucleotide sequences",
 			"http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE",
 			"http://purl.org/np/RAyOMh3jJ2PWrgis-My3-QbN9yoBXVBulweANHdvJPhak",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("taxonns",
 			"Association between taxa and nucleotide sequences",
 			"http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM",
 			"http://purl.org/np/RA5lyV7V98AAm6BM_s8gv17eRRFZsJqvp2TqCGV6QD3gk",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU");
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8");
 		new ConnectorNanopubType("biolinkrel",
 			"Expressing a biological relation between two entities",
 			"http://purl.org/np/RAjvwGtEUz07hIGUZ_kHpW8R1TSeUhbWH8NdpC0MIvv_A",
 			"http://purl.org/np/RAPeBcr6fuTot6fU5bKyspkFD_5RX9tLXcCIs1UkEEUUo",
-			"http://purl.org/np/RAo6MkgozE1DB-3XwjvEO-sgaN02SmsAIEPbiE8xEdHGU",
+			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
 		new ConnectorNanopubType("eqrel",
 			"Mapping two equivalent or related resource identifiers",

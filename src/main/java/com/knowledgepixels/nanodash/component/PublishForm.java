@@ -160,8 +160,10 @@ public class PublishForm extends Panel {
 		targetNamespace = targetNamespace + "ARTIFACTCODE-PLACEHOLDER/";
 
 		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
-		String prTemplateId = pageParams.get("prtemplate").toString();
-		if (prTemplateId == null) {
+		final String prTemplateId;
+		if (pageParams.get("prtemplate").toString() != null) {
+			prTemplateId = pageParams.get("prtemplate").toString();
+		} else {
 			if (fillNp != null && !fillOnlyAssertion) {
 				if (td.getProvenanceTemplateId(fillNp) != null) {
 					prTemplateId = td.getProvenanceTemplateId(fillNp).stringValue();
@@ -519,13 +521,19 @@ public class PublishForm extends Panel {
 			public void query(String term, int page, Response<String> response) {
 				if (term == null) term = "";
 				term = term.toLowerCase();
-				if (defaultProvTemplateId != null) {
+				if (pageParams.get("prtemplate").toString() != null) {
 					// Using this work-around with "——" because 'optgroup' is not available through Wicket's Select2 classes
+					response.add("—— default for this link ——");
+					response.add(prTemplateId);
+				}
+				if (defaultProvTemplateId != null) {
 					response.add("—— default for this template ——");
 					response.add(defaultProvTemplateId);
 				}
 				if (!recommendedProvTemplateOptionIds.isEmpty()) {
-					response.add("—— recommended ——");
+					if (pageParams.get("prtemplate-options").isNull()) {
+						response.add("—— recommended ——");
+					}
 					for (String s : recommendedProvTemplateOptionIds) {
 						if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
 							response.add(s);
@@ -581,6 +589,8 @@ public class PublishForm extends Panel {
 		recommendedPiTemplateOptionIds.add("https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ");
 		recommendedPiTemplateOptionIds.add("https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");
 		recommendedPiTemplateOptionIds.add("http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4");
+		recommendedPiTemplateOptionIds.add("https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w");
+		recommendedPiTemplateOptionIds.add("http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI");
 		for (TemplateContext c : pubInfoContexts) {
 			String s = c.getTemplate().getId();
 			handledPiTemplates.put(s, true);
