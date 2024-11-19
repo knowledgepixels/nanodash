@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.template;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +65,7 @@ public class TemplateData implements Serializable {
 				System.err.println("Exception: " + ex.getMessage());
 			}
 		}
+		Collections.sort(templates, templateComparator);
 	}
 
 	public List<Template> getAssertionTemplates() {
@@ -142,6 +145,20 @@ public class TemplateData implements Serializable {
 			iriSet.add((IRI) st.getObject());
 		}
 		return iriSet;
+	}
+
+
+	private static final TemplateComparator templateComparator = new TemplateComparator();
+
+	private static class TemplateComparator implements Comparator<Template>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public int compare(Template o1, Template o2) {
+			return o1.getLabel().compareTo(o2.getLabel());
+		}
+
 	}
 
 }
