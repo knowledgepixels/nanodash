@@ -178,6 +178,7 @@ public class PublishForm extends Panel {
 		}
 		provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
 		for (String t : fixedPubInfoTemplates) {
+			// TODO consistently check for latest versions of templates here and below:
 			TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
 			pubInfoContextMap.put(c.getTemplate().getId(), c);
@@ -200,28 +201,37 @@ public class PublishForm extends Panel {
 			if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
 			TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
 			pubInfoContexts.add(c);
-			pubInfoContextMap.put(c.getTemplate().getId(), c);
+			pubInfoContextMap.put(c.getTemplateId(), c);
 			requiredPubInfoContexts.add(c);
 		}
 		Map<Integer,TemplateContext> piParamIdMap = new HashMap<>();
 		for (String k : pageParams.getNamedKeys()) {
 			if (!k.matches("pitemplate[1-9][0-9]*")) continue;
 			Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
-			TemplateContext c = getPubinfoContext(pageParams.get(k).toString());
+			String tid = pageParams.get(k).toString();
+			String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
+			TemplateContext c = getPubinfoContext(tid);
 			if (piParamIdMap.containsKey(i)) {
 				// TODO: handle this error better
 				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
 			}
 			piParamIdMap.put(i, c);
-			if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
+			if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
+				// TODO Allow for automatically using latest template version
+				pubInfoContexts.add(c);
+				pubInfoContextMap.put(c.getTemplateId(), c);
+			}
 		}
 		if (fillNp != null && !fillOnlyAssertion) {
 			for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
 				String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(piTemplateId.stringValue());
 				if (piTempalteIdLatest.equals(supersedesPubinfoTemplateId)) continue;
-				// TODO Allow for automatically using latest template version
-				TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
-				if (!pubInfoContexts.contains(c)) pubInfoContexts.add(c);
+				if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
+					// TODO Allow for automatically using latest template version
+					TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
+					pubInfoContexts.add(c);
+					pubInfoContextMap.put(c.getTemplateId(), c);
+				}
 			}
 		}
 		for (String k : pageParams.getNamedKeys()) {
@@ -478,6 +488,11 @@ public class PublishForm extends Panel {
 			recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
 			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
 			recommendedProvTemplateOptionIds.add("https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAjkBbM5yQm7hKH1l_Jk3HAUqWi3Bd57TPmAOZCsZmi_M");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAGXx_k9eQMnXaCbsXMsJbGClwZtQEGNg0GVJu6amdAVw");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RA1fnITI3Pu1UQ0CHghNpys3JwQrM32LBnjmDLoayp9-4");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RAJgbsGeGdTG-zq_gU0TLw4s3raMgoRk-mPlc2DSLXvE0");
+			recommendedProvTemplateOptionIds.add("http://purl.org/np/RA6SXfhUY-xeblZU8HhPddw6tsu-C5NXevG6C_zv4bMxU");
 			for (String s : recommendedProvTemplateOptionIds) {
 				handledProvTemplates.put(s, true);
 			}
