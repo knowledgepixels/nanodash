@@ -4,6 +4,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -14,8 +16,8 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ClassPanel;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -39,26 +41,26 @@ public class ExplorePage extends NanodashPage {
 
 		add(new TitleBar("titlebar", this, null));
 
-		String ref = parameters.get("id").toString();
+		String tempRef = parameters.get("id").toString();
 
 		WebMarkupContainer npStatusLine = new WebMarkupContainer("npstatusline");
 		add(npStatusLine);
 
 		Map<String,String> nanopubParams = new HashMap<>();
-		nanopubParams.put("ref", ref);
+		nanopubParams.put("ref", tempRef);
 		Nanopub np = null;
 		try {
-			np = Utils.getAsNanopub(ref);
+			np = Utils.getAsNanopub(tempRef);
 			if (np == null) {
 				npStatusLine.setVisible(false);
 				add(new Label("name", "Term"));
 				add(new Label("nanopub", ""));
 				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 			} else {
-				ref = np.getUri().stringValue();
+				tempRef = np.getUri().stringValue();
 				add(new Label("name", "Nanopublication"));
 				add(new NanopubItem("nanopub", NanopubElement.get(np)));
-				String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(ref);
+				String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
 				npStatusLine.add(new ExternalLink("trig-html", url + ".html"));
 				npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
 				npStatusLine.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
@@ -82,31 +84,34 @@ public class ExplorePage extends NanodashPage {
 				}
 			}
 
-			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(ref, Charsets.UTF_8), "show references"));
+			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(tempRef, Charsets.UTF_8), "show references"));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		final String ref = tempRef;
 		final String shortName = IriItem.getShortNameFromURI(ref);
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
-		WebMarkupContainer classSection = new WebMarkupContainer("class-section");
 		if (np != null) {
-			classSection.setVisible(false);
+			add(new Label("class-panel").setVisible(false));
 		} else {
-			Integer instanceCount = null;
-			try {
-				instanceCount = Integer.parseInt(QueryApiAccess.get("get-instance-count", "class", ref).getData().iterator().next().get("count"));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-			if (instanceCount == null || instanceCount == 0) {
-				classSection.setVisible(false);
+			if (ClassPanel.isReady(ref)) {
+				add(new ClassPanel("class-panel", ref));
 			} else {
-				classSection.add(new Label("instance-count", instanceCount.toString()));
+				add(new AjaxLazyLoadPanel<Component>("class-panel") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public Component getLazyLoadComponent(String markupId) {
+						return new ClassPanel(markupId, ref);
+					}
+
+				});
 			}
 		}
-		add(classSection);
 	}
 
 }
