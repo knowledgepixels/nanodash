@@ -16,13 +16,14 @@ public class InstanceResults extends Panel {
 	public static InstanceResults fromApiResponse(String id, ApiResponse apiResponse) {
 		List<ApiResponseEntry> list = apiResponse.getData();
 		InstanceResults r = new InstanceResults(id);
-		r.add(new DataView<ApiResponseEntry>("instances", new ListDataProvider<ApiResponseEntry>(list)) {
+		r.add(new DataView<ApiResponseEntry>("instances", new ListDataProvider<ApiResponseEntry>(list)) {	
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(Item<ApiResponseEntry> item) {
 				item.add(new NanodashLink("instance-link", item.getModelObject().get("instance")));
+				item.add(new NanodashLink("nanopub-link", item.getModelObject().get("np")));
 			}
 
 		});
