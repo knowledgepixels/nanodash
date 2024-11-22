@@ -41,6 +41,7 @@ public class QueryApiAccess {
 		load("RALZXWg5lZoJoQ0VHL5mpDgNxYpqU6FoDLWGp4rs8A6b8/get-introducing-nanopub");
 		load("RAWruhiSmyzgZhVRs8QY8YQPAgHzTfl7anxII1de-yaCs/fulltext-search-on-labels");
 		load("RAVEmFh3d6qonTFQ5S9SVqXZh0prrH1YLhSSs0dJvyvpM/find-things");
+		load("RAzWRujvw65FF4MpUj9HPTdYL5G72udjy5-iRYCSXzLFs/get-instance-count");
 	}
 
 	private static void load(String queryId) {
@@ -49,6 +50,12 @@ public class QueryApiAccess {
 
 	public static ApiResponse get(String queryName) {
 		return get(queryName, new HashMap<>());
+	}
+
+	public static ApiResponse get(String queryName, String paramKey, String paramValue) {
+		Map<String,String> params = new HashMap<>();
+		params.put(paramKey, paramValue);
+		return get(queryName, params);
 	}
 
 	public static ApiResponse get(String queryName, Map<String,String> params) {

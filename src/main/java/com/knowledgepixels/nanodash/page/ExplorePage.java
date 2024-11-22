@@ -14,6 +14,7 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
@@ -45,8 +46,9 @@ public class ExplorePage extends NanodashPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", ref);
+		Nanopub np = null;
 		try {
-			Nanopub np = Utils.getAsNanopub(ref);
+			np = Utils.getAsNanopub(ref);
 			if (np == null) {
 				npStatusLine.setVisible(false);
 				add(new Label("name", "Term"));
@@ -88,6 +90,23 @@ public class ExplorePage extends NanodashPage {
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
+		WebMarkupContainer classSection = new WebMarkupContainer("class-section");
+		if (np != null) {
+			classSection.setVisible(false);
+		} else {
+			Integer instanceCount = null;
+			try {
+				instanceCount = Integer.parseInt(QueryApiAccess.get("get-instance-count", "class", ref).getData().iterator().next().get("count"));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			if (instanceCount == null || instanceCount == 0) {
+				classSection.setVisible(false);
+			} else {
+				classSection.add(new Label("instance-count", instanceCount.toString()));
+			}
+		}
+		add(classSection);
 	}
 
 }
