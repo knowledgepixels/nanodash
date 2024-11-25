@@ -80,7 +80,7 @@ public class NanopubItem extends Panel {
 			if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
 				NanodashSession session = NanodashSession.get();
 				final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIri(pubkey, false))) ||
-						pubkey.equals(session.getPubkeyString());
+						((pubkey != null) && pubkey.equals(session.getPubkeyString()));
 				final boolean hasLocalPubkey = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 				final List<NanopubAction> actionList = new ArrayList<>();
 				final Map<String,NanopubAction> actionMap = new HashMap<>();
