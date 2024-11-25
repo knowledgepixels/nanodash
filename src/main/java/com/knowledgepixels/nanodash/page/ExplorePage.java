@@ -61,7 +61,6 @@ public class ExplorePage extends NanodashPage {
 				add(new Label("name", "Nanopublication"));
 				add(new NanopubItem("nanopub", NanopubElement.get(np)));
 				String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
-				npStatusLine.add(new ExternalLink("trig-html", url + ".html"));
 				npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
 				npStatusLine.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
 				npStatusLine.add(new ExternalLink("nq-txt", url + ".nq.txt"));
