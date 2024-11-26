@@ -3,9 +3,13 @@ package com.knowledgepixels.nanodash.component;
 import java.util.HashMap;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
@@ -65,7 +69,7 @@ public class InstancesPanel extends Panel {
 		}
 	}
 
-	public static Component createComponent(final String markupId, final String classRef, final boolean showWaitIcon) {
+	public static Component createComponent(final String markupId, final String classRef, final String waitMessage) {
 		if (ApiCache.retrieveResponse(instanceNpQueryName, getParams(classRef)) != null) {
 			return new InstancesPanel(markupId, classRef);
 		} else {
@@ -80,8 +84,8 @@ public class InstancesPanel extends Panel {
 
 				@Override
 				public Component getLoadingComponent(final String id) {
-					if (showWaitIcon) return super.getLoadingComponent(id);
-					return new Label(id);
+					IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
+					return new Label(id, "<p class=\"waiting\">" + waitMessage + " <img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/></p>").setEscapeModelStrings(false);
 				}
 
 			};

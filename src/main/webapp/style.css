@@ -1449,3 +1449,8 @@ div.success-message p {
 .gap-above {
 	margin-top: 3em;
 }
+
+p.waiting {
+  color: #ccc;
+}
+
