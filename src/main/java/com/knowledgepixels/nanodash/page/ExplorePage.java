@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,10 +11,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.SignatureUtils;
 
-import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ClassesPanel;
+import com.knowledgepixels.nanodash.component.ExploreDataTable;
 import com.knowledgepixels.nanodash.component.InstancesPanel;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
@@ -47,44 +46,37 @@ public class ExplorePage extends NanodashPage {
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", tempRef);
-		Nanopub np = null;
-		try {
-			np = Utils.getAsNanopub(tempRef);
-			if (np == null) {
-				npStatusLine.setVisible(false);
-				add(new Label("name", "Term"));
-				add(new Label("nanopub", ""));
-				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+		Nanopub np = Utils.getAsNanopub(tempRef);
+		if (np == null) {
+			npStatusLine.setVisible(false);
+			add(new Label("name", "Term"));
+			add(new Label("nanopub", ""));
+			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+		} else {
+			tempRef = np.getUri().stringValue();
+			add(new Label("name", "Nanopublication"));
+			add(new NanopubItem("nanopub", NanopubElement.get(np)));
+			String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
+			npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
+			npStatusLine.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
+			npStatusLine.add(new ExternalLink("nq-txt", url + ".nq.txt"));
+			npStatusLine.add(new ExternalLink("xml-txt", url + ".xml.txt"));
+			npStatusLine.add(new ExternalLink("trig", url + ".trig"));
+			npStatusLine.add(new ExternalLink("jsonld", url + ".jsonld"));
+			npStatusLine.add(new ExternalLink("nq", url + ".nq"));
+			npStatusLine.add(new ExternalLink("xml", url + ".xml"));
+			if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
+				add(new WebMarkupContainer("use-template").add(
+						new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
+					);
 			} else {
-				tempRef = np.getUri().stringValue();
-				add(new Label("name", "Nanopublication"));
-				add(new NanopubItem("nanopub", NanopubElement.get(np)));
-				String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
-				npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
-				npStatusLine.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
-				npStatusLine.add(new ExternalLink("nq-txt", url + ".nq.txt"));
-				npStatusLine.add(new ExternalLink("xml-txt", url + ".xml.txt"));
-				npStatusLine.add(new ExternalLink("trig", url + ".trig"));
-				npStatusLine.add(new ExternalLink("jsonld", url + ".jsonld"));
-				npStatusLine.add(new ExternalLink("nq", url + ".nq"));
-				npStatusLine.add(new ExternalLink("xml", url + ".xml"));
-				if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
-					add(new WebMarkupContainer("use-template").add(
-							new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
-						);
-				} else {
-					add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
-				}
-				if (SignatureUtils.seemsToHaveSignature(np)) {
-					npStatusLine.add(new WebMarkupContainer("updateline"));
-				} else {
-					npStatusLine.add(new WebMarkupContainer("updateline").setVisible(false));
-				}
+				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 			}
-
-			add(new ExternalLink("show-references", ReferenceTablePage.MOUNT_PATH + "?id=" + URLEncoder.encode(tempRef, Charsets.UTF_8), "show references"));
-		} catch (Exception ex) {
-			ex.printStackTrace();
+			if (SignatureUtils.seemsToHaveSignature(np)) {
+				npStatusLine.add(new WebMarkupContainer("updateline"));
+			} else {
+				npStatusLine.add(new WebMarkupContainer("updateline").setVisible(false));
+			}
 		}
 
 		final String ref = tempRef;
@@ -102,6 +94,7 @@ public class ExplorePage extends NanodashPage {
 		} else {
 			add(InstancesPanel.createComponent("instances-panel", ref, true));
 		}
+		add(ExploreDataTable.createComponent("reftable", ref, 10));
 	}
 
 }

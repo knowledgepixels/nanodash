@@ -7,8 +7,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -21,32 +21,32 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToo
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ReferenceTablePage;
 
 public class ExploreDataTable extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ExploreDataTable(String id, String ref) {
+	private static final String refQueryName = "find-uri-references";
+
+	private ExploreDataTable(String id, String ref, ApiResponse response, int limit) {
 		super(id);
-		Map<String,String> params = new HashMap<>();
-//		params.put("graphpred", Nanopub.HAS_ASSERTION_URI.stringValue());
-		params.put("ref", ref);
 		List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
 		DataProvider dp;
-		ApiResponse dataResponse = null;
 		try {
-			dataResponse = QueryApiAccess.get("find-uri-references", params);
 			columns.add(new Column("Nanopublication", "np", ref));
 			columns.add(new Column("Part", "graphpred", ref));
 			columns.add(new Column("Subject", "subj", ref));
@@ -54,27 +54,34 @@ public class ExploreDataTable extends Panel {
 			columns.add(new Column("Object", "obj", ref));
 			columns.add(new Column("Published By", "pubkey", ref));
 			columns.add(new Column("Published On", "date", ref));
-			dp = new DataProvider(filterData(dataResponse.getData(), ref));
+			dp = new DataProvider(filterData(response.getData(), ref, limit));
 			DataTable<ApiResponseEntry,String> table = new DataTable<>("datatable", columns, dp, 100);
 			table.addBottomToolbar(new NavigationToolbar(table));
 			table.addBottomToolbar(new NoRecordsToolbar(table));
 			table.addTopToolbar(new HeadersToolbar<String>(table, dp));
 			add(table);
 			add(new Label("message", "").setVisible(false));
+			BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", ReferenceTablePage.class, new PageParameters().add("id", ref));
+			showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
+			add(showAllLink);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			add(new Label("datatable", "").setVisible(false));
 			add(new Label("message", "Could not load data table."));
+			add(new Label("show-all").setVisible(false));
 		}
 	}
 
 	
-	private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, String nanopubUri) {
+	private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, String nanopubUri, int limit) {
+		List<ApiResponseEntry> filteredList = new ArrayList<>();
 		Nanopub np = Utils.getAsNanopub(nanopubUri);
-		if (np == null) return data;
-		List<ApiResponseEntry> filteredList = new ArrayList<>(data);
+		if (np == null && limit == 0) return data;
 		for (ApiResponseEntry e : data) {
-			if (nanopubUri.equals(e.get("np"))) filteredList.remove(e);
+			if (np == null || !nanopubUri.equals(e.get("np"))) {
+				filteredList.add(e);
+			}
+			if (limit > 0 && limit == filteredList.size()) break;
 		}
 		return filteredList;
 	}
@@ -171,6 +178,30 @@ public class ExploreDataTable extends Panel {
 			return result;
 		}
 
+	}
+
+	public static Component createComponent(final String markupId, final String ref, int limit) {
+		ApiResponse response = ApiCache.retrieveResponse(refQueryName, getParams(ref));
+		if (response != null) {
+			return new ExploreDataTable(markupId, ref, response, limit);
+		} else {
+			return new ApiResultComponent(markupId, refQueryName, getParams(ref)) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return new ExploreDataTable(markupId, ref, response, limit);
+				}
+
+			};
+		}
+	}
+
+	private static HashMap<String,String> getParams(String ref) {
+		final HashMap<String,String> params = new HashMap<>();
+		params.put("ref", ref);
+		return params;
 	}
 
 }

@@ -32,7 +32,7 @@ public class ReferenceTablePage extends NanodashPage {
 		add(new ExternalLink("urilink", ref, ref));
 		add(new Label("pagetitle", shortName + " (references) | nanodash"));
 
-		add(new ExploreDataTable("table", ref));
+		add(ExploreDataTable.createComponent("table", ref, 0));
 	}
 
 }
