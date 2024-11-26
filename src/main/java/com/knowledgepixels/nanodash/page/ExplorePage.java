@@ -4,8 +4,6 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -17,7 +15,8 @@ import org.nanopub.extra.security.SignatureUtils;
 import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ClassPanel;
+import com.knowledgepixels.nanodash.component.ClassesPanel;
+import com.knowledgepixels.nanodash.component.InstancesPanel;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -94,22 +93,14 @@ public class ExplorePage extends NanodashPage {
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
 		if (np != null) {
-			add(new Label("class-panel").setVisible(false));
+			add(new Label("classes-panel").setVisible(false));
 		} else {
-			if (ClassPanel.isReady(ref)) {
-				add(new ClassPanel("class-panel", ref));
-			} else {
-				add(new AjaxLazyLoadPanel<Component>("class-panel") {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public Component getLazyLoadComponent(String markupId) {
-						return new ClassPanel(markupId, ref);
-					}
-
-				});
-			}
+			add(ClassesPanel.createComponent("classes-panel", ref, false));
+		}
+		if (np != null) {
+			add(new Label("instances-panel").setVisible(false));
+		} else {
+			add(InstancesPanel.createComponent("instances-panel", ref, true));
 		}
 	}
 

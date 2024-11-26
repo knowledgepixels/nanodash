@@ -3,13 +3,14 @@ package com.knowledgepixels.nanodash.component;
 import java.util.HashMap;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 
-public class ClassPanel extends Panel {
+public class InstancesPanel extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
@@ -18,7 +19,7 @@ public class ClassPanel extends Panel {
 	private Integer instanceCount = null;
 	private String classRef;
 
-	public ClassPanel(String markupId, final String classRef) {
+	public InstancesPanel(String markupId, final String classRef) {
 		super(markupId);
 		this.classRef = classRef;
 
@@ -32,7 +33,7 @@ public class ClassPanel extends Panel {
 			final HashMap<String,String> params = getParams(classRef);
 			ApiResponse response = ApiCache.retrieveResponse(instanceNpQueryName, params);
 			if (response != null) {
-				add(InstanceResults.fromApiResponse("instance-nanopubs", response));
+				add(ThingResults.fromApiResponse("instance-nanopubs", "instance", response));
 			} else {
 				add(new ApiResultComponent("instance-nanopubs", instanceNpQueryName, params) {
 
@@ -40,7 +41,7 @@ public class ClassPanel extends Panel {
 
 					@Override
 					public Component getApiResultComponent(String markupId, ApiResponse response) {
-						return InstanceResults.fromApiResponse(markupId, response);
+						return ThingResults.fromApiResponse(markupId, "instance", response);
 					}
 				});
 
@@ -64,8 +65,27 @@ public class ClassPanel extends Panel {
 		}
 	}
 
-	public static boolean isReady(String classRef) {
-		return ApiCache.retrieveResponse(instanceNpQueryName, getParams(classRef)) != null;
+	public static Component createComponent(final String markupId, final String classRef, final boolean showWaitIcon) {
+		if (ApiCache.retrieveResponse(instanceNpQueryName, getParams(classRef)) != null) {
+			return new InstancesPanel(markupId, classRef);
+		} else {
+			return new AjaxLazyLoadPanel<Component>(markupId) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public Component getLazyLoadComponent(String markupId) {
+					return new InstancesPanel(markupId, classRef);
+				}
+
+				@Override
+				public Component getLoadingComponent(final String id) {
+					if (showWaitIcon) return super.getLoadingComponent(id);
+					return new Label(id);
+				}
+
+			};
+		}
 	}
 
 	private static HashMap<String,String> getParams(String classRef) {

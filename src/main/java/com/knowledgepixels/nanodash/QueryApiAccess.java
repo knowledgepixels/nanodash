@@ -43,6 +43,7 @@ public class QueryApiAccess {
 		load("RAVEmFh3d6qonTFQ5S9SVqXZh0prrH1YLhSSs0dJvyvpM/find-things");
 		load("RAzWRujvw65FF4MpUj9HPTdYL5G72udjy5-iRYCSXzLFs/get-instance-count");
 		load("RA4GfMzFgb1ZjSKlUA_aKgmRvf_knCkN-3o5oGca4AGyw/get-latest-instance-nps");
+		load("RAhWK15S--cGM4Hy7oiO5RA0zLpRAAGEnxGvgWbCGvikY/get-classes-for-thing");
 	}
 
 	private static void load(String queryId) {

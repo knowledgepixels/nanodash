@@ -9,20 +9,20 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-public class InstanceResults extends Panel {
+public class ThingResults extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public static InstanceResults fromApiResponse(String id, ApiResponse apiResponse) {
+	public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse) {
 		List<ApiResponseEntry> list = apiResponse.getData();
-		InstanceResults r = new InstanceResults(id);
-		r.add(new DataView<ApiResponseEntry>("instances", new ListDataProvider<ApiResponseEntry>(list)) {	
+		ThingResults r = new ThingResults(id);
+		r.add(new DataView<ApiResponseEntry>("things", new ListDataProvider<ApiResponseEntry>(list)) {	
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(Item<ApiResponseEntry> item) {
-				item.add(new NanodashLink("instance-link", item.getModelObject().get("instance")));
+				item.add(new NanodashLink("thing-link", item.getModelObject().get(thingField)));
 				item.add(new NanodashLink("nanopub-link", item.getModelObject().get("np")));
 			}
 
@@ -30,7 +30,7 @@ public class InstanceResults extends Panel {
 		return r;
 	}
 
-	private InstanceResults(String id) {
+	private ThingResults(String id) {
 		super(id);
 	}
 
