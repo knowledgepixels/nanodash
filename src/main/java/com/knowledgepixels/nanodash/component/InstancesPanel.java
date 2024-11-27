@@ -11,7 +11,7 @@ import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.InstancesPage;
+import com.knowledgepixels.nanodash.page.ThingListPage;
 
 public class InstancesPanel extends Panel {
 	
@@ -26,17 +26,17 @@ public class InstancesPanel extends Panel {
 		if (response.getData().isEmpty()) {
 			setVisible(false);
 		} else if (response.getData().size() == 1) {
-			add(new Label("instance-count", "1 instance:"));
+			add(new Label("instance-count", "1 instance"));
 		} else if (response.getData().size() <= limit) {
-			add(new Label("instance-count", response.getData().size() + " instances:"));
+			add(new Label("instance-count", response.getData().size() + " instances"));
 		} else if (response.getData().size() == 1000) {
-			add(new Label("instance-count", "has more instances (>999) than what can be shown here:"));
+			add(new Label("instance-count", "has more instances (>999) than what can be shown here"));
 		} else {
-			add(new Label("instance-count", response.getData().size() + " instances:"));
+			add(new Label("instance-count", response.getData().size() + " instances"));
 		}
 		add(ThingResults.fromApiResponse("instances", "instance", response, limit));
 
-		BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", InstancesPage.class, new PageParameters().add("class", classRef));
+		BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", ThingListPage.class, new PageParameters().add("ref", classRef).add("mode", "instances"));
 		showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
 		add(showAllLink);
 	}

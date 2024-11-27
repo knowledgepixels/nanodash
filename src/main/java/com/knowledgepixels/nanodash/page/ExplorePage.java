@@ -87,7 +87,7 @@ public class ExplorePage extends NanodashPage {
 		if (np != null) {
 			add(new Label("classes-panel").setVisible(false));
 		} else {
-			add(ClassesPanel.createComponent("classes-panel", ref, "<em>Searching for classes...</em>"));
+			add(ClassesPanel.createComponent("classes-panel", ref, "<em>Searching for classes...</em>", 10));
 		}
 		if (np != null) {
 			add(new Label("instances-panel").setVisible(false));
