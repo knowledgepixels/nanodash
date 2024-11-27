@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -13,8 +14,16 @@ public class ThingResults extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse) {
+	public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse, int limit) {
 		List<ApiResponseEntry> list = apiResponse.getData();
+		if (limit > 0 && list.size() > limit) {
+			List<ApiResponseEntry> shortList = new ArrayList<>();
+			for (ApiResponseEntry e : list) {
+				shortList.add(e);
+				if (shortList.size() == limit) break;
+			}
+			list = shortList;
+		}
 		ThingResults r = new ThingResults(id);
 		r.add(new DataView<ApiResponseEntry>("things", new ListDataProvider<ApiResponseEntry>(list)) {	
 

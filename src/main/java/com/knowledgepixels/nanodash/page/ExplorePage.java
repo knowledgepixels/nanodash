@@ -92,7 +92,7 @@ public class ExplorePage extends NanodashPage {
 		if (np != null) {
 			add(new Label("instances-panel").setVisible(false));
 		} else {
-			add(InstancesPanel.createComponent("instances-panel", ref, "<em>Searching for instances...</em>"));
+			add(InstancesPanel.createComponent("instances-panel", ref, "<em>Searching for instances...</em>", 10));
 		}
 		add(ExploreDataTable.createComponent("reftable", ref, 10));
 	}

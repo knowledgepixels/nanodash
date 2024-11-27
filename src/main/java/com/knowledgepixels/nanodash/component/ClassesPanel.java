@@ -1,7 +1,5 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.HashMap;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
@@ -18,15 +16,15 @@ public class ClassesPanel extends Panel {
 		super(markupId);
 
 		if (response.getData().isEmpty()) setVisible(false);
-		add(ThingResults.fromApiResponse("classes", "class", response));
+		add(ThingResults.fromApiResponse("classes", "class", response, 0));
 	}
 
 	public static Component createComponent(final String markupId, final String thingRef, final String waitMessage) {
-		ApiResponse response = ApiCache.retrieveResponse(classesQueryName, getParams(thingRef));
+		ApiResponse response = ApiCache.retrieveResponse(classesQueryName, "thing", thingRef);
 		if (response != null) {
 			return new ClassesPanel(markupId, thingRef, response);
 		} else {
-			ApiResultComponent c = new ApiResultComponent(markupId, classesQueryName, getParams(thingRef)) {
+			ApiResultComponent c = new ApiResultComponent(markupId, classesQueryName, "thing", thingRef) {
 
 				private static final long serialVersionUID = 1L;
 
@@ -39,12 +37,6 @@ public class ClassesPanel extends Panel {
 			c.setWaitMessage(waitMessage);
 			return c;
 		}
-	}
-
-	private static HashMap<String,String> getParams(String thingRef) {
-		final HashMap<String,String> params = new HashMap<>();
-		params.put("thing", thingRef);
-		return params;
 	}
 
 }

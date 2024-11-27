@@ -29,6 +29,16 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 		this.params = params;
 	}
 
+	public ApiResultComponent(String id, String queryName, String paramKey, String paramValue) {
+		this(id, queryName, getParams(paramKey, paramValue));
+	}
+
+	private static HashMap<String,String> getParams(String paramKey, String paramValue) {
+		final HashMap<String,String> params = new HashMap<>();
+		params.put(paramKey, paramValue);
+		return params;
+	}
+
 	public void setWaitIconEnabled(boolean waitIconEnabled) {
 		this.waitIconEnabled = waitIconEnabled;
 	}

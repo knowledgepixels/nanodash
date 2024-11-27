@@ -1,11 +1,13 @@
 package com.knowledgepixels.nanodash;
 
+import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
+import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
@@ -333,4 +336,29 @@ public class Utils {
 	public static <E> ArrayList<E> subList(E[] array, long fromIndex, long toIndex) {
 		return subList(Arrays.asList(array), fromIndex, toIndex);
 	}
+
+	// TODO Move this to ApiResponseEntry class?
+	public static class ApiResponseEntrySorter implements Comparator<ApiResponseEntry>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		private String field;
+		private boolean descending;
+
+		public ApiResponseEntrySorter(String field, boolean descending) {
+			this.field = field;
+			this.descending = descending;
+		}
+
+		@Override
+		public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
+			if (descending) {
+				return o2.get(field).compareTo(o1.get(field));
+			} else {
+				return o1.get(field).compareTo(o2.get(field));
+			}
+		}
+		
+	}
+
 }
