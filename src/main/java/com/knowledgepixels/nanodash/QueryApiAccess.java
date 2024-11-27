@@ -43,6 +43,7 @@ public class QueryApiAccess {
 		load("RAVEmFh3d6qonTFQ5S9SVqXZh0prrH1YLhSSs0dJvyvpM/find-things");
 		load("RADHgOKKUGkgJCfEAWbNbyoNQ-qCWwxuLTBGh4-imhuvg/get-instances");
 		load("RAhWK15S--cGM4Hy7oiO5RA0zLpRAAGEnxGvgWbCGvikY/get-classes-for-thing");
+		load("RAJStXEm1wZcg34ZLPqe00VPSzIVCwC2rrxdj_JR8v5DY/find-referencing-nanopubs");  // not yet used...
 	}
 
 	private static void load(String queryId) {
