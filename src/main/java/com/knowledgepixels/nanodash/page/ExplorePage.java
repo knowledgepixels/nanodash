@@ -49,12 +49,12 @@ public class ExplorePage extends NanodashPage {
 		Nanopub np = Utils.getAsNanopub(tempRef);
 		if (np == null) {
 			npStatusLine.setVisible(false);
-			add(new Label("name", "Term"));
+			add(new Label("name", ""));
 			add(new Label("nanopub", ""));
 			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 		} else {
 			tempRef = np.getUri().stringValue();
-			add(new Label("name", "Nanopublication"));
+			add(new Label("name", "Nanopublication:"));
 			add(new NanopubItem("nanopub", NanopubElement.get(np)));
 			String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
 			npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
@@ -80,7 +80,12 @@ public class ExplorePage extends NanodashPage {
 		}
 
 		final String ref = tempRef;
-		final String shortName = IriItem.getShortNameFromURI(ref);
+		final String shortName;
+		if (parameters.get("label").isEmpty()) {
+			shortName = IriItem.getShortNameFromURI(ref);
+		} else {
+			shortName = parameters.get("label").toString();
+		}
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
