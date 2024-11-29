@@ -22,6 +22,7 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 	private boolean waitIconEnabled = true;
 	private ApiResponse response = null;
 	private String waitMessage = null;
+	private String waitComponentHtml = null;
 
 	public ApiResultComponent(String id, String queryName, HashMap<String,String> params) {
 		super(id);
@@ -47,6 +48,10 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 		this.waitMessage = waitMessage;
 	}
 
+	public void setWaitComponentHtml(String waitComponentHtml) {
+		this.waitComponentHtml = waitComponentHtml;
+	}
+
 	@Override
 	public Component getLazyLoadComponent(String markupId) {
 		while (true) {
@@ -67,9 +72,10 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 	public Component getLoadingComponent(String id) {
 		if (!waitIconEnabled) {
 			return new Label(id);
+		} else if (waitComponentHtml != null) {
+			return new Label(id, waitComponentHtml).setEscapeModelStrings(false);
 		} else if (waitMessage != null) {
-			IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
-			return new Label(id, "<p class=\"waiting\">" + waitMessage + " <img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/></p>").setEscapeModelStrings(false);
+			return new Label(id, getWaitComponentHtml(waitMessage)).setEscapeModelStrings(false);
 		} else {
 			return super.getLoadingComponent(id);
 		}
@@ -82,5 +88,14 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 
 	// TODO Use lambda instead of abstract method?
 	public abstract Component getApiResultComponent(String markupId, ApiResponse response);
+
+	public static String getWaitIconHtml() {
+		IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
+		return "<img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/>";
+	}
+
+	public static String getWaitComponentHtml(String waitMessage) {
+		return "<p class=\"waiting\">" + waitMessage + " " + getWaitIconHtml() + "</p>";
+	}
 
 }

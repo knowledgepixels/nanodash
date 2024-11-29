@@ -30,7 +30,7 @@ public class InstancesPanel extends Panel {
 		} else if (response.getData().size() <= limit) {
 			add(new Label("instance-count", response.getData().size() + " instances"));
 		} else if (response.getData().size() == 1000) {
-			add(new Label("instance-count", "has more instances (>999) than what can be shown here"));
+			add(new Label("instance-count", "More instances (>999) than what can be shown here"));
 		} else {
 			add(new Label("instance-count", response.getData().size() + " instances"));
 		}
