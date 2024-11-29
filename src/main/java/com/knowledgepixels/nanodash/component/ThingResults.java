@@ -3,12 +3,16 @@ package com.knowledgepixels.nanodash.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+
+import com.knowledgepixels.nanodash.page.ExplorePage;
 
 public class ThingResults extends Panel {
 	
@@ -31,8 +35,11 @@ public class ThingResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<ApiResponseEntry> item) {
-				item.add(new NanodashLink("thing-link", item.getModelObject().get(thingField)));
-				item.add(new NanodashLink("nanopub-link", item.getModelObject().get("np")));
+				String thingId = item.getModelObject().get(thingField);
+				String thingLabel = item.getModelObject().get(thingField + "Label");
+				item.add(new NanodashLink("thing-link", thingId, null, null, false, thingLabel));
+				String npId = item.getModelObject().get("np");
+				item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().add("id", npId)));
 			}
 
 		});

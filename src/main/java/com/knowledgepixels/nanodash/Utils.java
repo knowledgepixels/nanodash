@@ -49,7 +49,10 @@ public class Utils {
 	public static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 	public static String getShortNameFromURI(IRI uri) {
-		String u = uri.stringValue();
+		return getShortNameFromURI(uri.stringValue());
+	}
+
+	public static String getShortNameFromURI(String u) {
 		u = u.replaceFirst("[/#]$", "");
 		u = u.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
 		u = u.replaceFirst("^.*[/#]([^/#]*[^0-9][^/#]*)$", "$1");

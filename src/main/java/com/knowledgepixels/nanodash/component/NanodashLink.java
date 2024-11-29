@@ -41,7 +41,7 @@ public class NanodashLink extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
+	public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition, String label) {
 		super(id);
 
 		final List<Template> templates = new ArrayList<>();
@@ -49,8 +49,7 @@ public class NanodashLink extends Panel {
 		if (np != null) {
 			for (Statement st : np.getPubinfo()) {
 				if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
-					String label = st.getObject().stringValue();
-					labels.put((IRI) st.getSubject(), label);
+					labels.put((IRI) st.getSubject(),  st.getObject().stringValue());
 				}
 			}
 		}
@@ -100,33 +99,29 @@ public class NanodashLink extends Panel {
 			add(link);
 			add(new Label("description", "links a nanopublication to its pubinfo"));
 		} else {
-			String label = IriItem.getShortNameFromURI(uri);
-//			Set<IRI> creators = null;
-//			if (!templates.isEmpty()) {
-//				// TODO Calling this for every link separately is very inefficient:
-//				creators = SimpleCreatorPattern.getCreators(np);
-//			}
-//			if (creators.contains(iriObj)) {
-			if (iriObj.equals(User.getSignatureOwnerIri(np))) {
-				if (objectPosition) {
-					label = "me (" + User.getShortDisplayName(iriObj) + ")";
-				} else {
-					label = "I (" + User.getShortDisplayName(iriObj) + ")";
-				}
-			} else if (User.getName(iriObj) != null) {
-				label = User.getShortDisplayName(iriObj);
-			} else {
-				for (Template template : templates) {
-					// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):
-					String l = template.getLabel(iriObj);
-					if (l != null) {
-						label = l;
-						break;
+			if (label == null || label.isBlank()) {
+				label = IriItem.getShortNameFromURI(uri);
+				if (iriObj.equals(User.getSignatureOwnerIri(np))) {
+					if (objectPosition) {
+						label = "me (" + User.getShortDisplayName(iriObj) + ")";
+					} else {
+						label = "I (" + User.getShortDisplayName(iriObj) + ")";
 					}
-					l = labels.get(iriObj);
-					if (l != null) {
-						label = l;
-						break;
+				} else if (User.getName(iriObj) != null) {
+					label = User.getShortDisplayName(iriObj);
+				} else {
+					for (Template template : templates) {
+						// TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):
+						String l = template.getLabel(iriObj);
+						if (l != null) {
+							label = l;
+							break;
+						}
+						l = labels.get(iriObj);
+						if (l != null) {
+							label = l;
+							break;
+						}
 					}
 				}
 			}
@@ -154,6 +149,10 @@ public class NanodashLink extends Panel {
 		} else {
 			return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, new PageParameters().add("id", uri)).setBody(Model.of(label));
 		}
+	}
+
+	public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
+		this(id, uri, np, templateClass, objectPosition, null);
 	}
 
 	public NanodashLink(String id, String uri, Nanopub np) {
