@@ -30,7 +30,7 @@ public class ClassesPanel extends Panel {
 		} else if (response.getData().size() <= limit) {
 			add(new Label("class-count", response.getData().size() + " classes"));
 		} else if (response.getData().size() == 1000) {
-			add(new Label("class-count", "has more classes (>999) than what can be shown here"));
+			add(new Label("class-count", "more classes (>999) than what can be shown here"));
 		} else {
 			add(new Label("class-count", response.getData().size() + " classes"));
 		}
