@@ -32,7 +32,11 @@ public class ThingListPanel extends Panel {
 		} else {
 			add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl));
 		}
-		add(ThingResults.fromApiResponse("things", mode.returnField, response, limit));
+		if (mode == Mode.TEMPLATES) {
+			add(TemplateResults.fromApiResponse("things", response, limit));
+		} else {
+			add(ThingResults.fromApiResponse("things", mode.returnField, response, limit));
+		}
 
 		BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", ThingListPage.class, new PageParameters().add("ref", thingRef).add("mode", mode.modeId));
 		showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
@@ -61,7 +65,8 @@ public class ThingListPanel extends Panel {
 
 	public enum Mode {
 		CLASSES("get-classes-for-thing", "thing", "class", "class", "classes", "Assigned to"),
-		INSTANCES("get-instances", "class", "instance", "instance", "instances", "");
+		INSTANCES("get-instances", "class", "instance", "instance", "instances", ""),
+		TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in");
 
 		public final String queryName;
 		public final String queryParam;
@@ -79,7 +84,7 @@ public class ThingListPanel extends Panel {
 			this.messageStart = messageStart;
 			this.modeId = name().toLowerCase();
 		}
-	
+
 	}
 
 }
