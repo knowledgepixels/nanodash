@@ -48,12 +48,10 @@ public class ExplorePage extends NanodashPage {
 		Nanopub np = Utils.getAsNanopub(tempRef);
 		if (np == null) {
 			npStatusLine.setVisible(false);
-			add(new Label("name", ""));
 			add(new Label("nanopub", ""));
 			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 		} else {
 			tempRef = np.getUri().stringValue();
-			add(new Label("name", "Nanopublication:"));
 			add(new NanopubItem("nanopub", NanopubElement.get(np)));
 			String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
 			npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
@@ -88,12 +86,11 @@ public class ExplorePage extends NanodashPage {
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
+		add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
 		if (np != null) {
-			add(new Label("classes-panel").setVisible(false));
 			add(new Label("instances-panel").setVisible(false));
 			add(new Label("templates-panel").setVisible(false));
 		} else {
-			add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
 			add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>", 10));
 			add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>", 10));
 		}
