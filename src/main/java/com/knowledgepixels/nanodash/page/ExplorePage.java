@@ -13,11 +13,10 @@ import org.nanopub.extra.security.SignatureUtils;
 
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ClassesPanel;
 import com.knowledgepixels.nanodash.component.ExploreDataTable;
-import com.knowledgepixels.nanodash.component.InstancesPanel;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.ThingListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.Template;
 
@@ -92,12 +91,12 @@ public class ExplorePage extends NanodashPage {
 		if (np != null) {
 			add(new Label("classes-panel").setVisible(false));
 		} else {
-			add(ClassesPanel.createComponent("classes-panel", ref, "<em>Searching for classes...</em>", 10));
+			add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
 		}
 		if (np != null) {
 			add(new Label("instances-panel").setVisible(false));
 		} else {
-			add(InstancesPanel.createComponent("instances-panel", ref, "<em>Searching for instances...</em>", 10));
+			add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>", 10));
 		}
 		add(ExploreDataTable.createComponent("reftable", ref, 10));
 	}

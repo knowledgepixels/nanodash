@@ -4,9 +4,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.component.ClassesPanel;
-import com.knowledgepixels.nanodash.component.InstancesPanel;
 import com.knowledgepixels.nanodash.component.IriItem;
+import com.knowledgepixels.nanodash.component.ThingListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 public class ThingListPage extends NanodashPage {
@@ -34,11 +33,7 @@ public class ThingListPage extends NanodashPage {
 
 		add(new ExternalLink("urilink", ref, ref));
 
-		if (mode.equals("instances")) {
-			add(InstancesPanel.createComponent("list", ref, null, 0));
-		} else if (mode.equals("classes")) {
-			add(ClassesPanel.createComponent("list", ref, null, 0));
-		}
+		add(ThingListPanel.createComponent("list", ThingListPanel.Mode.valueOf(mode.toUpperCase()), ref, null, 0));
 	}
 
 }
