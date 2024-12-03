@@ -259,6 +259,10 @@ table.activitypanel td.high {
 	background: #0B73DAc0;
 }
 
+div.large-table table {
+  max-width: 100%;
+}
+
 .box {
   background: #F3F6F9;
   padding: 25px;
@@ -695,6 +699,12 @@ select {
 	margin-left: auto;
 	margin-right: auto;
 	margin-bottom: 60px;
+}
+
+#content.full {
+	width: auto;
+	margin-left: 20px;
+	margin-right: 20px;
 }
 
 #content-pane {  /* content-pane: new element to supersede content */
