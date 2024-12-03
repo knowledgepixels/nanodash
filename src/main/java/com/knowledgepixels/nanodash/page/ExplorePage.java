@@ -40,28 +40,40 @@ public class ExplorePage extends NanodashPage {
 
 		String tempRef = parameters.get("id").toString();
 
-		WebMarkupContainer npStatusLine = new WebMarkupContainer("npstatusline");
-		add(npStatusLine);
+		WebMarkupContainer raw = new WebMarkupContainer("raw");
+		add(raw);
 
 		Map<String,String> nanopubParams = new HashMap<>();
 		nanopubParams.put("ref", tempRef);
 		Nanopub np = Utils.getAsNanopub(tempRef);
+		boolean isNanopubId = (np != null);
+		if (isNanopubId) {
+			tempRef = np.getUri().stringValue();
+		}
+		if (!isNanopubId && tempRef.matches("^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*$")) {
+			np = Utils.getAsNanopub(tempRef.replaceFirst("(^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1"));
+		}
 		if (np == null) {
-			npStatusLine.setVisible(false);
+			raw.setVisible(false);
+			add(new Label("nanopub-header", ""));
 			add(new Label("nanopub", ""));
 			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 		} else {
-			tempRef = np.getUri().stringValue();
+			if (isNanopubId) {
+				add(new Label("nanopub-header", "<h4>Nanopublication</h4>").setEscapeModelStrings(false));
+			} else {
+				add(new Label("nanopub-header", "<h4>Minted in Nanopublication</h4>").setEscapeModelStrings(false));
+			}
 			add(new NanopubItem("nanopub", NanopubElement.get(np)));
 			String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(tempRef);
-			npStatusLine.add(new ExternalLink("trig-txt", url + ".trig.txt"));
-			npStatusLine.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
-			npStatusLine.add(new ExternalLink("nq-txt", url + ".nq.txt"));
-			npStatusLine.add(new ExternalLink("xml-txt", url + ".xml.txt"));
-			npStatusLine.add(new ExternalLink("trig", url + ".trig"));
-			npStatusLine.add(new ExternalLink("jsonld", url + ".jsonld"));
-			npStatusLine.add(new ExternalLink("nq", url + ".nq"));
-			npStatusLine.add(new ExternalLink("xml", url + ".xml"));
+			raw.add(new ExternalLink("trig-txt", url + ".trig.txt"));
+			raw.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
+			raw.add(new ExternalLink("nq-txt", url + ".nq.txt"));
+			raw.add(new ExternalLink("xml-txt", url + ".xml.txt"));
+			raw.add(new ExternalLink("trig", url + ".trig"));
+			raw.add(new ExternalLink("jsonld", url + ".jsonld"));
+			raw.add(new ExternalLink("nq", url + ".nq"));
+			raw.add(new ExternalLink("xml", url + ".xml"));
 			if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
 				add(new WebMarkupContainer("use-template").add(
 						new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
@@ -69,11 +81,11 @@ public class ExplorePage extends NanodashPage {
 			} else {
 				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 			}
-			if (SignatureUtils.seemsToHaveSignature(np)) {
-				npStatusLine.add(new WebMarkupContainer("updateline"));
-			} else {
-				npStatusLine.add(new WebMarkupContainer("updateline").setVisible(false));
-			}
+		}
+		if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
+			add(new WebMarkupContainer("status"));
+		} else {
+			add(new WebMarkupContainer("status").setVisible(false));
 		}
 
 		final String ref = tempRef;
@@ -87,7 +99,7 @@ public class ExplorePage extends NanodashPage {
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
 		add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
-		if (np != null) {
+		if (isNanopubId) {
 			add(new Label("instances-panel").setVisible(false));
 			add(new Label("templates-panel").setVisible(false));
 		} else {

@@ -17,38 +17,43 @@
 
 <div id="content">
 
-<h3><span wicket:id="termname"></span></h3>
+<h2><span wicket:id="termname"></span></h2>
 
 <p>Full identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
 
 <div wicket:id="classes-panel"></div>
 
-<div wicket:id="npstatusline">
-<p>
-Raw formats:
-<a href="#" target="_blank" wicket:id="trig">TriG</a>(<a href="#" target="_blank" wicket:id="trig-txt">txt</a>),
-<a href="#" target="_blank" wicket:id="jsonld">JSON-LD</a>(<a href="#" target="_blank" wicket:id="jsonld-txt">txt</a>),
-<a href="#" target="_blank" wicket:id="nq">N-Quads</a>(<a href="#" target="_blank" wicket:id="nq-txt">txt</a>),
-<a href="#" target="_blank" wicket:id="xml">XML</a>(<a href="#" target="_blank" wicket:id="xml-txt">txt</a>)
-</p>
-
-<p><span id="status" wicket:id="updateline"><em>Checking for updates...</em></span></p>
+<div wicket:id="status">
+<h4>Status</h4>
+<p><span id="status"><em>Checking for updates...</em></span></p>
 <script>getStatus("status", document.getElementById('ref').innerHTML);</script>
 </div>
-
-<p wicket:id="use-template">
-<a class="button" href="." wicket:id="template-link">use this template</a>
-</p>
 
 <div wicket:id="instances-panel"></div>
 
 <div wicket:id="templates-panel"></div>
 
+<div wicket:id="nanopub-header"></div>
+
 <span wicket:id="nanopub"></span>
+
+<div wicket:id="use-template">
+<a class="button" href="." wicket:id="template-link">use this template</a>
+</div>
 
 <h4>References</h4>
 
 <div wicket:id="reftable"></div>
+
+<div wicket:id="raw">
+<h4>Raw</h4>
+<p>
+<a href="#" target="_blank" wicket:id="trig">TriG</a>(<a href="#" target="_blank" wicket:id="trig-txt">txt</a>),
+<a href="#" target="_blank" wicket:id="jsonld">JSON-LD</a>(<a href="#" target="_blank" wicket:id="jsonld-txt">txt</a>),
+<a href="#" target="_blank" wicket:id="nq">N-Quads</a>(<a href="#" target="_blank" wicket:id="nq-txt">txt</a>),
+<a href="#" target="_blank" wicket:id="xml">XML</a>(<a href="#" target="_blank" wicket:id="xml-txt">txt</a>)
+</p>
+</div>
 
 </div>
 
