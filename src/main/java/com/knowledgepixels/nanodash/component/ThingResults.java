@@ -12,7 +12,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+
+import net.trustyuri.TrustyUriUtils;
 
 public class ThingResults extends Panel {
 	
@@ -35,8 +38,13 @@ public class ThingResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<ApiResponseEntry> item) {
+				// TODO Improve label determination and move this code to a more general place?
 				String thingId = item.getModelObject().get(thingField);
 				String thingLabel = item.getModelObject().get(thingField + "Label");
+				String npLabel = item.getModelObject().get("npLabel");
+				if (thingId.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*") && (thingLabel == null || thingLabel.isBlank()) && npLabel != null) {
+					thingLabel = Utils.getShortNameFromURI(thingId) + " in '" + npLabel.replaceFirst(" - [\\s\\S]*$", "") + "'";
+				}
 				item.add(new NanodashLink("thing-link", thingId, null, null, false, thingLabel));
 				String npId = item.getModelObject().get("np");
 				item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().add("id", npId)));
