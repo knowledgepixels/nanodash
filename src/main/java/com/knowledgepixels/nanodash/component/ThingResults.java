@@ -15,8 +15,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 
-import net.trustyuri.TrustyUriUtils;
-
 public class ThingResults extends Panel {
 	
 	private static final long serialVersionUID = 1L;
