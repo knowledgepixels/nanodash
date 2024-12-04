@@ -35,4 +35,8 @@ public class ReferenceTablePage extends NanodashPage {
 		add(ExploreDataTable.createComponent("table", ref, 0));
 	}
 
+	protected boolean hasAutoRefreshEnabled() {
+		return true;
+	}
+
 }

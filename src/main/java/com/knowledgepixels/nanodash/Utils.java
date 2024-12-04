@@ -48,11 +48,13 @@ public class Utils {
 
 	public static final ValueFactory vf = SimpleValueFactory.getInstance();
 
+	// TODO Merge with IriItem.getShortNameFromURI
 	public static String getShortNameFromURI(IRI uri) {
 		return getShortNameFromURI(uri.stringValue());
 	}
 
 	public static String getShortNameFromURI(String u) {
+		u = u.replaceFirst("\\?.*$", "");
 		u = u.replaceFirst("[/#]$", "");
 		u = u.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
 		u = u.replaceFirst("^.*[/#]([^/#]*[^0-9][^/#]*)$", "$1");

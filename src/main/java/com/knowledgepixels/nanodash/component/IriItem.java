@@ -112,9 +112,11 @@ public class IriItem extends Panel implements ContextComponent {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+	// TODO Merge with Utils.getShortNameFromURI
 	public static String getShortNameFromURI(String uri) {
 		if (uri.startsWith("https://doi.org/")) return uri.replace("https://doi.org/", "doi:");
 		if (uri.startsWith("http://dx.doi.org/")) return uri.replace("http://dx.doi.org/", "doi:");
+		uri = uri.replaceFirst("\\?.*$", "");
 		uri = uri.replaceFirst("[/#]$", "");
 		uri = uri.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
 		if (uri.contains("#")) {

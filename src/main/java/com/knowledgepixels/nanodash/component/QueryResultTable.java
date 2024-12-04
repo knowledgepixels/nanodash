@@ -42,7 +42,8 @@ public class QueryResultTable extends Panel {
 		DataProvider dp;
 		try {
 			for (String h : response.getHeader()) {
-				columns.add(new Column(h, h));
+				if (h.endsWith("_label")) continue;
+				columns.add(new Column(h.replaceAll("_", " "), h));
 			}
 			dp = new DataProvider(filterData(response.getData(), limit));
 			DataTable<ApiResponseEntry,String> table = new DataTable<>("table", columns, dp, 100);
@@ -84,8 +85,15 @@ public class QueryResultTable extends Panel {
 			String value = rowModel.getObject().get(key);
 			if (key.equals("pubkey")) {
 				cellItem.add(new Label(componentId, User.getShortDisplayName(null, value)));
+			} else if (value.matches("https?://.+ .+")) {
+				List<Component> links = new ArrayList<>();
+				for (String v : value.split(" ")) {
+					links.add(new NanodashLink("component", v));
+				}
+				cellItem.add(new ComponentSequence(componentId, ", ", links));
 			} else if (value.matches("https?://.+")) {
-				cellItem.add(new NanodashLink(componentId, value));
+				String label = rowModel.getObject().get(key + "_label");
+				cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
 			} else {
 				cellItem.add(new Label(componentId, value));
 			}
