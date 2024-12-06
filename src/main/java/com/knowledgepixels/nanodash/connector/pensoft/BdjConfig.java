@@ -76,6 +76,11 @@ public class BdjConfig extends ConnectorConfig {
 	}
 
 	@Override
+	public String getJournalUrl() {
+		return "https://bdj.pensoft.net/";
+	}
+
+	@Override
 	public String getReviewUrlPrefix() {
 		return "http://bdj.kpxl.org/";
 		//return "https://w3id.org/kpxl/pensoft/bdj/np/reviewer/";
@@ -110,6 +115,12 @@ public class BdjConfig extends ConnectorConfig {
 	@Override
 	public String getAcceptedNanopubsApiCall() {
 		return "get-latest-accepted-bdj";
+	}
+
+	@Override
+	public String getExtraInstructions() {
+		return "<br><br>Nanopublications can be linked in your manuscript via the <a href=\"https://arpha.pensoft.net/\" target=\"_blank\">ARPHA Writing Tool</a>.\n"
+				+ "See the \"Nanopublications\" guidelines in the <a href=\"https://bdj.pensoft.net/about\" target=\"_blank\">About</a> info pages of the journal.";
 	}
 
 }

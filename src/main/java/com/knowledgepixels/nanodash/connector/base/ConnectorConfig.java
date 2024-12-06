@@ -30,6 +30,8 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getJournalAbbrev();
 
+	public abstract String getJournalUrl();
+
 	public abstract String getReviewUrlPrefix();
 
 	public abstract String getCandidateNanopubsApiCall();
@@ -52,6 +54,10 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public String getTargetNamespace() {
 		return null;
+	}
+
+	public String getExtraInstructions() {
+		return "";
 	}
 
 

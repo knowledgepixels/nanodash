@@ -32,11 +32,19 @@ public abstract class OverviewPage extends ConnectorPage {
 	private static final long serialVersionUID = 1L;
 
 	public OverviewPage(PageParameters parameters) {
+		this(parameters, true);
+	}
+
+	public OverviewPage(PageParameters parameters, boolean doInit) {
 		super(parameters);
 		if (parameters == null) return;
-
+		if (!doInit) return;
+		init(parameters);
+	}
+		
+	protected void init(PageParameters parameters) {
 		add(new TitleBar("titlebar", this, "connectors"));
-		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
+		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
 
 		try {
 
@@ -243,7 +251,7 @@ public abstract class OverviewPage extends ConnectorPage {
 			}
 		}
 
-		if (getConfig().getGeneralReactionsApiCall() != null ) {
+		if (getConfig().getGeneralReactionsApiCall() != null) {
 			try {
 				final WebMarkupContainer c = new WebMarkupContainer("reactions-component");
 				c.setOutputMarkupId(true);
