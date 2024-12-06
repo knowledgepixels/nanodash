@@ -559,6 +559,11 @@ input[type=radio] {
   cursor: pointer;
 }
 
+input[type=radio] + strong {
+  color: #0b73da;
+  cursor: pointer;
+}
+
 input[type=radio] + label strong {
   color: #0b73da;
   cursor: pointer;
@@ -1019,6 +1024,10 @@ a[href=""] {
   font-size: 12pt;
   position: relative;
   display: inline-block;
+}
+
+.expltooltip.info-icon:empty {
+  display: none;
 }
 
 .expltooltip .expltooltiptext {

@@ -12,6 +12,8 @@ import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 
 public class GenOverviewPage extends OverviewPage {
 
+	// TODO This page isn't linked yet, and only for testing so far.
+
 	private static final long serialVersionUID = 1L;
 
 	public static final String MOUNT_PATH = "/connector/gen";

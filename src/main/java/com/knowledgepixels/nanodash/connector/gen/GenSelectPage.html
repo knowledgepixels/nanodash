@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title wicket:id="pagetitle">(journal): Create Nanopublication | nanodash</title>
+<link rel="stylesheet" href="style.css?v=3.16" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content-pane">
+
+<div class="row-section">
+
+<div class="col-8">
+
+<h1>Create Nanopublication</h1>
+
+<div class="progress">
+
+<div class="progress-item active">
+<div class="step"></div><div class="step-name">Select Template</div>
+</div>
+
+<div class="progress-item">
+<div class="step"></div><div class="step-name">Fill in and Publish</div>
+</div>
+
+<div class="progress-item">
+<div class="step"></div>
+<div class="step-name">Connect to Submission</div>
+</div>
+
+</div>
+
+
+<form wicket:id="form">
+
+<div wicket:id="radio-group">
+
+<div wicket:id="option-group">
+
+<h3><span wicket:id="option-group-title">Option Group</span></h3>
+
+<div class="box">
+
+<div wicket:id="option-container" class="option">
+<div wicket:id="option">
+<label>
+<input type="radio" wicket:id="option-input">
+<strong wicket:id="option-title">Option Title</strong>
+<span class="expltooltip info-icon"><span wicket:id="option-explanation" class="expltooltiptext">
+option explanation
+</span></span>
+</label>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<p class="center">
+<input type="submit" class="button" value="Select" />
+</p>
+
+</form>
+
+
+</div>
+
+<div class="col-4">
+
+<div class="sidelogo">
+<img class="thirdparty" alt="journal logo" wicket:id="logo" style="width: 400px" src="logo-file">
+</div>
+
+<h4>Author Instruction</h4>
+
+<p class="instruction">
+Explore the different templates to find out which one fits for your findings.
+<br><br>
+If you can't find a type that works for your claims, tell us by opening a
+<a href="mailto:..." wicket:id="type-support-link">support ticket</a>.
+</p>
+
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-12">
+
+<h3>Help</h3>
+
+<p>
+Don't hesitate to open a
+<a href="mailto:..." wicket:id="support-link">support ticket</a>
+if you have any questions or problems, no matter how trivial or how complex.
+</p>
+
+</div>
+
+</div></div>
+
+</div>
+
+</body>
+
+</html>

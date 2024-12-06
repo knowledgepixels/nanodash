@@ -21,9 +21,17 @@ public abstract class SelectPage extends ConnectorPage {
 	private RadioGroup<String> radioGroup;
 
 	public SelectPage(PageParameters parameters) {
+		this(parameters, true);
+	}
+
+	public SelectPage(PageParameters parameters, boolean doInit) {
 		super(parameters);
 		if (parameters == null) return;
-
+		if (!doInit) return;
+		init(parameters);
+	}
+		
+	protected void init(PageParameters parameters) {
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
 				new NanodashPageRef("Create Nanopublication")
