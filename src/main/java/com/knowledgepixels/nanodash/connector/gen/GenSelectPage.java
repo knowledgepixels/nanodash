@@ -139,9 +139,12 @@ public class GenSelectPage extends SelectPage {
 	static {
 		options = new ArrayList<>();
 		options.add(new ConnectorSelectOption.Group("Biodiversity Associations",
+				// covered in ConnectorOption:
 				new ConnectorSelectOption("spectaxon", "Identification of a specimen with a taxon"),
-				new ConnectorSelectOption("orgorg-select", "Association between organisms",
+				// covered in ConnectorOption:
+				new ConnectorSelectOption("orgorg", "Association between organisms",
 						"e.g. an observation that <em>a particular individual grass snake (Natrix natrix Linnaeus, 1758) ate a particular individual of a tree frog (Hyla arborea (Linnaeus, 1758)</em>"),
+				// covered in ConnectorOption:
 				new ConnectorSelectOption("taxontaxon", "Association between taxa",
 						"e.g. <em>The wolf (Canis lupus Linnaeus, 1758) preys on white-tailed deer (Odocoileus virginianus (Zimmermann, 1780))</em>"),
 				new ConnectorSelectOption("taxonenv", "Association between taxa and environments",

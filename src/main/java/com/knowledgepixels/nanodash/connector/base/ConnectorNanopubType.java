@@ -55,6 +55,7 @@ public class ConnectorNanopubType implements Serializable {
 			"Simple Biological Relation",
 			"http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs",
 			"http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM");
+		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxontaxon",
 			"Association between taxa",
 			"http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0",
@@ -73,6 +74,7 @@ public class ConnectorNanopubType implements Serializable {
 			"http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
+		// covered in ConnectorOption:
 		new ConnectorNanopubType("orgorg",
 			"Association between organisms",
 			"http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI",
@@ -111,6 +113,7 @@ public class ConnectorNanopubType implements Serializable {
 			"Mapping two equivalent or related resource identifiers",
 			"http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk",
 			"http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI");
+		// covered in ConnectorOption:
 		new ConnectorNanopubType("spectaxon",
 			"Identifying a specimn with a taxon name",
 			"https://w3id.org/np/RAzUQLB8nr99kcm5Av4KXFYOfjPamrBFRAsO7WNu7Gg2c",
