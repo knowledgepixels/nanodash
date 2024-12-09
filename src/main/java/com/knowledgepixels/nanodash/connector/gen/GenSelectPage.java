@@ -21,9 +21,8 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorNanopubType;
-import com.knowledgepixels.nanodash.connector.base.ConnectorSelectOption;
-import com.knowledgepixels.nanodash.connector.base.ConnectorSelectOption.Group;
+import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
+import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
 import com.knowledgepixels.nanodash.connector.base.SelectPage;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
@@ -66,11 +65,11 @@ public class GenSelectPage extends SelectPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void onSubmit() {
-				ConnectorNanopubType type = ConnectorNanopubType.get(radioGroup.getModelObject());
+				ConnectorOption option = ConnectorOption.valueOf(radioGroup.getModelObject());
 				PageParameters params = new PageParameters();
-				params.add("type", type.getId());
-				params.add("template", type.getTemplate().getId());
-				params.add("prtemplate", type.getPrTemplateId());
+				params.add("type", option.name().toLowerCase());
+				params.add("template", option.getTemplateId());
+				params.add("prtemplate", option.getPrTemplateId());
 				params.add("pitemplate1", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");  // Author list
 				throw new RestartResponseException(getConfig().getPublishPage().getClass(), params);
 			}
@@ -78,25 +77,25 @@ public class GenSelectPage extends SelectPage {
 		};
 		form.setOutputMarkupId(true);
 
-		radioGroup = new RadioGroup<>("radio-group", new Model<String>(options.get(0).getOptions()[0].getTypeId()));
+		radioGroup = new RadioGroup<>("radio-group", new Model<String>(options.get(0).getOptions()[0].name()));
 		radioGroup.setOutputMarkupId(true);
-		radioGroup.add(new ListView<Group>("option-group", options) {
+		radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", options) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<Group> item) {
-				Group g = item.getModelObject();
+			protected void populateItem(ListItem<ConnectorOptionGroup> item) {
+				ConnectorOptionGroup g = item.getModelObject();
 				item.add(new Label("option-group-title", g.getTitle()));
 				item.add(new ListView<>("option-container", Arrays.asList(g.getOptions())) {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected void populateItem(ListItem<ConnectorSelectOption> item) {
-						ConnectorSelectOption o = item.getModelObject();
+					protected void populateItem(ListItem<ConnectorOption> item) {
+						ConnectorOption o = item.getModelObject();
 						WebMarkupContainer c = new WebMarkupContainer("option");
-						Radio<String> radio = new Radio<String>("option-input", new Model<String>(o.getTypeId()), radioGroup);
+						Radio<String> radio = new Radio<String>("option-input", new Model<String>(o.name()), radioGroup);
 						radio.setOutputMarkupId(true);
 						radioGroup.add(radio);
 						c.add(radio);
@@ -132,43 +131,30 @@ public class GenSelectPage extends SelectPage {
 
 
 	// TODO This is just for testing so far. This page uses always the BDJ options.
-	// TODO This should probably be merged into ConnectorNanopubType.
 
-	private static List<ConnectorSelectOption.Group> options;
+	private static List<ConnectorOptionGroup> options;
 
 	static {
 		options = new ArrayList<>();
-		options.add(new ConnectorSelectOption.Group("Biodiversity Associations",
-				// covered in ConnectorOption:
-				new ConnectorSelectOption("spectaxon", "Identification of a specimen with a taxon"),
-				// covered in ConnectorOption:
-				new ConnectorSelectOption("orgorg", "Association between organisms",
-						"e.g. an observation that <em>a particular individual grass snake (Natrix natrix Linnaeus, 1758) ate a particular individual of a tree frog (Hyla arborea (Linnaeus, 1758)</em>"),
-				// covered in ConnectorOption:
-				new ConnectorSelectOption("taxontaxon", "Association between taxa",
-						"e.g. <em>The wolf (Canis lupus Linnaeus, 1758) preys on white-tailed deer (Odocoileus virginianus (Zimmermann, 1780))</em>"),
-				new ConnectorSelectOption("taxonenv", "Association between taxa and environments",
-						"e.g. <em>The wolf (Canis lupus Linnaeus, 1758) occurs in forest habitats</em>"),
-				new ConnectorSelectOption("orgenv", "Association between organisms and environments",
-						"e.g. <em>A particular badger (Meles meles (Linnaeus, 1758)) was observed to inhabit a city</em>"),
-				new ConnectorSelectOption("taxonnames", "Association between taxon names",
-						"e.g. <em>Ursus meles Linnaeus, 1758 is a synonym of Meles meles (Linnaeus, 1758)</em>"),
-				new ConnectorSelectOption("orgns", "Association between organisms and nucleotide sequences",
-						"e.g. <em>The nucleotide sequence MT149719 was found in an organism of the species Doryrhina camerunensis (Eisentraut, 1956)</em>"),
-				new ConnectorSelectOption("taxonns", "Association between taxa and nucleotide sequences",
-						"e.g. <em>The nucleotide sequence GU682758 can be used to identify the species Araneus diadematus Clerck, 1757</em>")
+		options.add(new ConnectorOptionGroup("Biodiversity Associations",
+				ConnectorOption.SPECTAXON,
+				ConnectorOption.ORGORG,
+				ConnectorOption.TAXONTAXON,
+				ConnectorOption.TAXONENV,
+				ConnectorOption.ORGENV,
+				ConnectorOption.TAXONNAMES,
+				ConnectorOption.ORGNS,
+				ConnectorOption.TAXONNS
 			));
-		options.add(new ConnectorSelectOption.Group("General Links",
-				new ConnectorSelectOption("specpub", "Declaring a specimen being discussed in a publication"),
-				new ConnectorSelectOption("biolinkrel", "Expressing a biological relation between two entities"),
-				new ConnectorSelectOption("eqrel", "Mapping two equivalent or related resource identifiers")
+		options.add(new ConnectorOptionGroup("General Links",
+				ConnectorOption.SPECPUB,
+				ConnectorOption.BIOLINKREL,
+				ConnectorOption.EQREL
 			));
-		options.add(new ConnectorSelectOption.Group("Definitions",
-				new ConnectorSelectOption("taxondef", "Taxon Definition"),
-				new ConnectorSelectOption("classdef", "Class Definition",
-						"e.g. <em>operant research</em> as a subclass of <em>research</em>"),
-				new ConnectorSelectOption("inddef", "Definition of Individual",
-						"e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>")
+		options.add(new ConnectorOptionGroup("Definitions",
+				ConnectorOption.TAXONDEF,
+				ConnectorOption.CLASSDEF,
+				ConnectorOption.INDDEF
 			));
 	}
 
