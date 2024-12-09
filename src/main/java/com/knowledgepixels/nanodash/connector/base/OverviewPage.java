@@ -41,7 +41,9 @@ public abstract class OverviewPage extends ConnectorPage {
 		if (!doInit) return;
 		init(parameters);
 	}
-		
+
+	// TODO The code of this method is copied at GenOverviewPage, where it will continue. This code here will be
+	//      decommissioned soon.
 	protected void init(PageParameters parameters) {
 		add(new TitleBar("titlebar", this, "connectors"));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));

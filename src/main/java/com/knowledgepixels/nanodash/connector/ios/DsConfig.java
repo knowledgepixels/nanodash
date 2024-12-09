@@ -122,4 +122,9 @@ public class DsConfig extends ConnectorConfig {
 		return "https://w3id.org/kpxl/ios/ds/np/";
 	}
 
+	@Override
+	public String getConnectInstruction() {
+		return "Paste it in one of the textfields under \"Nanopublication URLs\":";
+	}
+
 }

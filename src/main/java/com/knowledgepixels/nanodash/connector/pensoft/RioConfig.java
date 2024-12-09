@@ -123,4 +123,9 @@ public class RioConfig extends ConnectorConfig {
 				+ "See the \"Nanopublications\" guidelines in the <a href=\"https://bdj.pensoft.net/about\" target=\"_blank\">About</a> info pages of the journal.";
 	}
 
+	@Override
+	public String getConnectInstruction() {
+		return "Paste it in the ARPHA Writing Tool as a \"Nanopublications\" element:";
+	}
+
 }

@@ -36,6 +36,8 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getCandidateNanopubsApiCall();
 
+	public abstract String getConnectInstruction();
+
 	public String getGeneralReactionsApiCall() {
 		return null;
 	}

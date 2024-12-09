@@ -21,9 +21,17 @@ public abstract class ConnectPage extends ConnectorPage {
 	private static final long serialVersionUID = 1L;
 
 	public ConnectPage(Nanopub np, PageParameters parameters) {
+		this(np, parameters, true);
+	}
+
+	public ConnectPage(Nanopub np, PageParameters parameters, boolean doInit) {
 		super(parameters);
 		if (parameters == null) return;
+		if (!doInit) return;
+		init(np, parameters);
+	}
 
+	protected void init(Nanopub np, PageParameters parameters) {
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
 				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),
