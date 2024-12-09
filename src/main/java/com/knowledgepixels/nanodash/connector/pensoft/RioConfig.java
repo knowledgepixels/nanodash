@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -8,6 +10,8 @@ import org.eclipse.rdf4j.model.IRI;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
+import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
@@ -126,6 +130,33 @@ public class RioConfig extends ConnectorConfig {
 	@Override
 	public String getConnectInstruction() {
 		return "Paste it in the ARPHA Writing Tool as a \"Nanopublications\" element:";
+	}
+
+	private static final List<ConnectorOptionGroup> options;
+
+	static {
+		options = new ArrayList<>();
+		options.add(new ConnectorOptionGroup("Simple Scientific Statements",
+				ConnectorOption.LINKFLOWSREL,
+				ConnectorOption.CREL
+			));
+		options.add(new ConnectorOptionGroup("Complex Scientific Statements",
+				ConnectorOption.SUPERPATTERN,
+				ConnectorOption.AIDA
+			));
+		options.add(new ConnectorOptionGroup("Specific Types of Statements",
+				ConnectorOption.BIOREL,
+				ConnectorOption.EQREL
+			));
+		options.add(new ConnectorOptionGroup("Definitions",
+				ConnectorOption.CLASSDEF,
+				ConnectorOption.INDDEF
+			));
+	}
+
+	@Override
+	public List<ConnectorOptionGroup> getOptions() {
+		return options;
 	}
 
 }

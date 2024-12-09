@@ -1,8 +1,6 @@
 package com.knowledgepixels.nanodash.connector.gen;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -78,9 +76,9 @@ public class GenSelectPage extends SelectPage {
 		};
 		form.setOutputMarkupId(true);
 
-		radioGroup = new RadioGroup<>("radio-group", new Model<String>(options.get(0).getOptions()[0].name()));
+		radioGroup = new RadioGroup<>("radio-group", new Model<String>(config.getOptions().get(0).getOptions()[0].name()));
 		radioGroup.setOutputMarkupId(true);
-		radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", options) {
+		radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", config.getOptions()) {
 
 			private static final long serialVersionUID = 1L;
 
