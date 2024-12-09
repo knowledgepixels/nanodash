@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.gen;
+package com.knowledgepixels.nanodash.connector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,8 +24,6 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 
@@ -33,7 +31,7 @@ public class GenOverviewPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/gen";
+	public static final String MOUNT_PATH = "/connector";
 
 	private ConnectorConfig config;
 

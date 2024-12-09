@@ -19,11 +19,11 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
 
-import com.knowledgepixels.nanodash.connector.gen.GenConnectPage;
-import com.knowledgepixels.nanodash.connector.gen.GenNanopubPage;
-import com.knowledgepixels.nanodash.connector.gen.GenOverviewPage;
-import com.knowledgepixels.nanodash.connector.gen.GenPublishPage;
-import com.knowledgepixels.nanodash.connector.gen.GenSelectPage;
+import com.knowledgepixels.nanodash.connector.GenConnectPage;
+import com.knowledgepixels.nanodash.connector.GenNanopubPage;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import com.knowledgepixels.nanodash.connector.GenPublishPage;
+import com.knowledgepixels.nanodash.connector.GenSelectPage;
 import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
 import com.knowledgepixels.nanodash.connector.ios.DsOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;

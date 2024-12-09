@@ -12,8 +12,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.gen.GenOverviewPage;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 
 public class ConnectorListPage extends NanodashPage {
 

@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.gen;
+package com.knowledgepixels.nanodash.connector;
 
 import java.util.Arrays;
 
@@ -18,9 +18,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
-import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
 public class GenSelectPage extends ConnectorPage {
 
@@ -28,7 +25,7 @@ public class GenSelectPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/gen/select";
+	public static final String MOUNT_PATH = "/connector/select";
 
 	private Form<?> form;
 	private RadioGroup<String> radioGroup;

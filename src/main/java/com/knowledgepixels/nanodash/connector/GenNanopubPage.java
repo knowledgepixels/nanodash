@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.gen;
+package com.knowledgepixels.nanodash.connector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,8 +26,6 @@ import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -38,7 +36,7 @@ public class GenNanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/gen/np";
+	public static final String MOUNT_PATH = "/connector/np";
 
 	public GenNanopubPage(final PageParameters parameters) {
 		super(parameters);

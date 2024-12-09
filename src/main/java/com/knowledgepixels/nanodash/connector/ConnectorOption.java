@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.base;
+package com.knowledgepixels.nanodash.connector;
 
 public enum ConnectorOption {
 

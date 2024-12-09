@@ -8,9 +8,9 @@ import java.util.Set;
 import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
-import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.ConnectorOption;
+import com.knowledgepixels.nanodash.connector.ConnectorOptionGroup;
 
 public class BdjConfig extends ConnectorConfig {
 

@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.gen;
+package com.knowledgepixels.nanodash.connector;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -13,7 +13,6 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -21,7 +20,7 @@ public class GenConnectPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/connector/gen/connect";
+	public static final String MOUNT_PATH = "/connector/connect";
 
 	public GenConnectPage(Nanopub np, PageParameters params) {
 		super(params);

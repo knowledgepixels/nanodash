@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.base;
+package com.knowledgepixels.nanodash.connector;
 
 import java.io.IOException;
 import java.util.Map;
