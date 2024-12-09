@@ -25,11 +25,11 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.OverviewPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 
-public class GenOverviewPage extends OverviewPage {
+public class GenOverviewPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 

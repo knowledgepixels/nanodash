@@ -13,12 +13,12 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class GenConnectPage extends ConnectPage {
+public class GenConnectPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -27,7 +27,7 @@ public class GenConnectPage extends ConnectPage {
 	private ConnectorConfig config;
 
 	public GenConnectPage(Nanopub np, PageParameters params) {
-		super(np, params);
+		super(params);
 		final String journalId = params.get("journal").toString();
 		config = ConnectorConfig.get(journalId);
 		add(new Label("pagetitle", config.getJournalName() + ": Connect Nanopublication | nanodash"));

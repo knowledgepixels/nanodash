@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.connector.gen;
 
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -12,9 +14,9 @@ import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
-public class GenPublishPage extends ConnectorPublishPage {
+public class GenPublishPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 
@@ -57,6 +59,17 @@ public class GenPublishPage extends ConnectorPublishPage {
 	@Override
 	protected ConnectorConfig getConfig() {
 		return config;
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response) {
+		super.renderHead(response);
+		// TODO: There is probably a better place to define this function:
+		response.render(JavaScriptHeaderItem.forScript(
+				"function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }\n" +
+				//"$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
+				"",
+				"custom-functions"));
 	}
 
 }

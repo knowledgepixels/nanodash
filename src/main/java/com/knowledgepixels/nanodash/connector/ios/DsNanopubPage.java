@@ -3,10 +3,10 @@ package com.knowledgepixels.nanodash.connector.ios;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.connector.gen.GenNanopubPage;
 
-public class DsNanopubPage extends NanopubPage {
+public class DsNanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 

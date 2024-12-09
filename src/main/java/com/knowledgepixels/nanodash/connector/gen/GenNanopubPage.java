@@ -27,14 +27,14 @@ import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
 import net.trustyuri.TrustyUriUtils;
 
-public class GenNanopubPage extends NanopubPage {
+public class GenNanopubPage extends ConnectorPage {
 
 	private static final long serialVersionUID = 1L;
 

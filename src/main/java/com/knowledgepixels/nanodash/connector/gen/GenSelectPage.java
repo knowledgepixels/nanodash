@@ -21,9 +21,9 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
-import com.knowledgepixels.nanodash.connector.base.SelectPage;
+import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
-public class GenSelectPage extends SelectPage {
+public class GenSelectPage extends ConnectorPage {
 
 	// TODO This page isn't linked yet, and only for testing so far.
 
