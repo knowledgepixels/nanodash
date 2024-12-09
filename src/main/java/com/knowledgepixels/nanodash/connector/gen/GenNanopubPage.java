@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.connector.base;
+package com.knowledgepixels.nanodash.connector.gen;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,34 +26,45 @@ import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.ios.DsConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
 import net.trustyuri.TrustyUriUtils;
 
-public abstract class NanopubPage extends ConnectorPage {
+public class GenNanopubPage extends NanopubPage {
 
 	private static final long serialVersionUID = 1L;
 
-	public NanopubPage(PageParameters parameters) {
-		this(parameters, true);
-	}
+	public static final String MOUNT_PATH = "/connector/gen/np";
 
-	public NanopubPage(PageParameters parameters, boolean doInit) {
-		super(parameters);
-		if (parameters == null) return;
-		if (!doInit) return;
-		init(parameters);
-	}
+	private ConnectorConfig config;
 
-	private void init(PageParameters parameters) {
+	public GenNanopubPage(final PageParameters parameters) {
+		super(parameters, false);
+		String journalId = parameters.get("journal").toString();
+		if (journalId.equals("ios/ds")) {
+			config = DsConfig.get();
+		} else if (journalId.equals("pensoft/bdj")) {
+			config = BdjConfig.get();
+		} else if (journalId.equals("pensoft/rio")) {
+			config = RioConfig.get();
+		} else {
+			throw new IllegalArgumentException("'journal' parameter not recognized");
+		}
+		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
+
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
 				new NanodashPageRef("Nanopublication")
 			));
 
-		add(new Image("logo", new PackageResourceReference(this.getClass(), getConfig().getLogoFileName())));
+		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
 
 		String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
 		if (requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}(\\?.*)?")) {
@@ -176,7 +187,7 @@ public abstract class NanopubPage extends ConnectorPage {
 				);
 
 			WebMarkupContainer inclusionPart = new WebMarkupContainer("includeinstruction");
-			inclusionPart.add(new Image("form-submit", new PackageResourceReference(this.getClass(), getConfig().getSubmitImageFileName())));
+			inclusionPart.add(new Image("form-submit", new PackageResourceReference(getConfig().getClass(), getConfig().getSubmitImageFileName())));
 			inclusionPart.add(new ExternalLink("np-link", reviewUri, reviewUri));
 			inclusionPart.add(new ExternalLink("word-np-link", reviewUri, shortId));
 			inclusionPart.add(new Label("latex-np-uri", reviewUri));
@@ -185,6 +196,18 @@ public abstract class NanopubPage extends ConnectorPage {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20nanopublication]%20my%20problem/question&body=type%20your%20problem/question%20here"));
+	}
+
+	@Override
+	public String getMountPath() {
+		return MOUNT_PATH;
+	}
+
+	@Override
+	protected ConnectorConfig getConfig() {
+		return config;
 	}
 
 }

@@ -31,7 +31,7 @@ public abstract class ConnectPage extends ConnectorPage {
 		init(np, parameters);
 	}
 
-	protected void init(Nanopub np, PageParameters parameters) {
+	private void init(Nanopub np, PageParameters parameters) {
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
 				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),

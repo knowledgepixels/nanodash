@@ -20,6 +20,7 @@ import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
 
 import com.knowledgepixels.nanodash.connector.gen.GenConnectPage;
+import com.knowledgepixels.nanodash.connector.gen.GenNanopubPage;
 import com.knowledgepixels.nanodash.connector.gen.GenOverviewPage;
 import com.knowledgepixels.nanodash.connector.gen.GenPublishPage;
 import com.knowledgepixels.nanodash.connector.gen.GenSelectPage;
@@ -154,6 +155,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(GenSelectPage.MOUNT_PATH, GenSelectPage.class);
 		mountPage(GenPublishPage.MOUNT_PATH, GenPublishPage.class);
 		mountPage(GenConnectPage.MOUNT_PATH, GenConnectPage.class);
+		mountPage(GenNanopubPage.MOUNT_PATH, GenNanopubPage.class);
 
 		getCspSettings().blocking().disabled();
 	}

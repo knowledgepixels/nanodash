@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.connector.base;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +38,8 @@ public abstract class ConnectorConfig implements Serializable {
 	public abstract String getCandidateNanopubsApiCall();
 
 	public abstract String getConnectInstruction();
+
+	public abstract List<ConnectorOptionGroup> getOptions();
 
 	public String getGeneralReactionsApiCall() {
 		return null;

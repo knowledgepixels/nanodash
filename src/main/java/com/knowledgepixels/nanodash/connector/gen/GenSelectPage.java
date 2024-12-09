@@ -130,33 +130,4 @@ public class GenSelectPage extends SelectPage {
 		return new String[] {};
 	}
 
-
-	// TODO This is just for testing so far. This page uses always the BDJ options.
-
-	private static List<ConnectorOptionGroup> options;
-
-	static {
-		options = new ArrayList<>();
-		options.add(new ConnectorOptionGroup("Biodiversity Associations",
-				ConnectorOption.SPECTAXON,
-				ConnectorOption.ORGORG,
-				ConnectorOption.TAXONTAXON,
-				ConnectorOption.TAXONENV,
-				ConnectorOption.ORGENV,
-				ConnectorOption.TAXONNAMES,
-				ConnectorOption.ORGNS,
-				ConnectorOption.TAXONNS
-			));
-		options.add(new ConnectorOptionGroup("General Links",
-				ConnectorOption.SPECPUB,
-				ConnectorOption.BIOLINKREL,
-				ConnectorOption.EQREL
-			));
-		options.add(new ConnectorOptionGroup("Definitions",
-				ConnectorOption.TAXONDEF,
-				ConnectorOption.CLASSDEF,
-				ConnectorOption.INDDEF
-			));
-	}
-
 }

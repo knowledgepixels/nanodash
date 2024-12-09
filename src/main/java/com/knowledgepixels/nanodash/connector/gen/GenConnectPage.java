@@ -41,7 +41,7 @@ public class GenConnectPage extends ConnectPage {
 		} else {
 			throw new IllegalArgumentException("'journal' parameter not recognized");
 		}
-		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
+		add(new Label("pagetitle", config.getJournalName() + ": Connect Nanopublication | nanodash"));
 
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
