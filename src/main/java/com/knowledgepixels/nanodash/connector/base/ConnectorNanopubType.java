@@ -39,12 +39,10 @@ public class ConnectorNanopubType implements Serializable {
 			"Semi-formal Statements Based on English Sentences (AIDA)",
 			"http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY",
 			"http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("classdef",
 			"Class Definitions",
 			"http://purl.org/np/RAcWWF8kSXfwZ77XdC59IyH1MJ24wFp-dDeXkPjKHAXM0",
 			"http://purl.org/np/RAj26TjulpgBHXJGe0OwZZZ-cZCJ9WE7ICug5EW2tGH7s");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("inddef",
 			"Definitions of Individuals",
 			"http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c",
@@ -57,14 +55,12 @@ public class ConnectorNanopubType implements Serializable {
 			"Simple Biological Relation",
 			"http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs",
 			"http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxontaxon",
 			"Association between taxa",
 			"http://purl.org/np/RAh16oLqLJKo8I8R2CebR1n8Dwv95KL_H-azFfGt2FGW0",
 			"http://purl.org/np/RALX2suiPKea3pm65RjS97EL6k9iY1Jew_mb30hO5Zjv0",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxonenv",
 			"Association between taxa and environments",
 			"http://purl.org/np/RAwy5ZloUugunk3gafYppW6MfZGQXD554XgHfCAFHH08k",
@@ -77,34 +73,29 @@ public class ConnectorNanopubType implements Serializable {
 			"http://purl.org/np/RArCW84nAUo14Z3GSoIppZKxoIpdJ0V12_ytDMsDTsVmk",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("orgorg",
 			"Association between organisms",
 			"http://purl.org/np/RAMUbJ6gvqXzVP5-7VzaSW6CAu15OwJR5FtnC1ENqkZDI",
 			"http://purl.org/np/RAafGz8UV6Nz4m8wyCLV4eJ_bdNfXKpGie0FH6TQZFa84",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("orgenv",
 			"Association between organisms and environments",
 			"http://purl.org/np/RA3eSKxteBFrsGXdQhllmJa71Od71rPd4wJ8ik7fIMWsc",
 			"http://purl.org/np/RAWxvypUU6OabNGlBz9jDGLnftqRXdokzI2oemf9vQRGY",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxonnames",
 			"Association between taxon names (nomenclature)",
 			"http://purl.org/np/RAf9CyiP5zzCWN-J0Ts5k7IrZY52CagaIwM-zRSBmhrC8",
 			"http://purl.org/np/RAIz2ACUDvk3OAcXc-OjYSuLglUZu-fsJXrC4UtoAF7k4",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("orgns",
 			"Association between organisms and nucleotide sequences",
 			"http://purl.org/np/RACPgaoRptG1W-IZpNk6r-MBSMgcdZlaMrAtli9GkmKaE",
 			"http://purl.org/np/RAyOMh3jJ2PWrgis-My3-QbN9yoBXVBulweANHdvJPhak",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxonns",
 			"Association between taxa and nucleotide sequences",
 			"http://purl.org/np/RA1ooazhkXacK_3jibfpfdwqJWNO0yLoN1nrlpuHHi_uM",
@@ -117,22 +108,18 @@ public class ConnectorNanopubType implements Serializable {
 			"http://purl.org/np/RAPeBcr6fuTot6fU5bKyspkFD_5RX9tLXcCIs1UkEEUUo",
 			"http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8",
 			biodivPrTemplateOptions);
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("eqrel",
 			"Mapping two equivalent or related resource identifiers",
 			"http://purl.org/np/RAiBrF-il77MccafOpqR5pZgdlBFOreh9TAeKBga-Gxsk",
 			"http://purl.org/np/RAEdHUFvCt1jOsW14rU12X2n42iQS0IshN-j4syY2-IuI");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("spectaxon",
 			"Identifying a specimn with a taxon name",
 			"https://w3id.org/np/RAzUQLB8nr99kcm5Av4KXFYOfjPamrBFRAsO7WNu7Gg2c",
 			"https://w3id.org/np/RAvHuSAQNPeo-kzp3krcSiXQyyTusDoDmcOv9yI4G30_4");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("specpub",
 				"Identifying a specimn with a taxon name",
 				"https://w3id.org/np/RA_rnly1RAPPSMqgy0qTlEhDCRqt6Fx3NOQECCUBt5mQQ",
 				"https://w3id.org/np/RAA7G5E1wwYCaQsu092uJOYqiBaSRM__6ltpJ6nzwR5vE");
-		// covered in ConnectorOption:
 		new ConnectorNanopubType("taxondef",
 				"Defining a new biological taxon",
 				"https://w3id.org/np/RAa7sIgQ77jJL4HYYGVH8sNu1YEKCH3F-CHqHrgbWWGS4",

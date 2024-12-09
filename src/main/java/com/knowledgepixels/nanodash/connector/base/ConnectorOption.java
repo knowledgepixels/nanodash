@@ -86,7 +86,37 @@ public enum ConnectorOption {
 	INDDEF("Definition of Individual",
 			"e.g. <em>Pluto</em> as an instance of the class <em>dwarf planet</em>",
 			"http://purl.org/np/RAL9L_HSXsRpyC9KcxUGejL3qDiWF6Jeoihh09NYdCR7c",
-			"http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0");
+			"http://purl.org/np/RAJRFjNqKKBlxOhij8XnuqOYfjyjruF2jGZgLO2myu9O0"),
+
+	SUPERPATTERN("Fully-formal Advanced Statements (Super-Pattern)",
+			"e.g. <em>whenever a person has a headache then this is mostly caused by a dehydration of that person</em>",
+			"http://purl.org/np/RAy3tITXPlULFLXxAxek39GLqLdqKkNM5hIzUOZxxjMmI",
+			"http://purl.org/np/RAu49Eu8w-jwQw6hZ2ZgYOYqmF9HpqxZgItA4oy4N8M-4"),
+
+	LINKFLOWSREL("Simple Scientific Relations between Individuals",
+			"e.g. <em>the invention of the telephone was necessary for the Internet</em>",
+			"http://purl.org/np/RAsz-9JwiOPQufQ5AGSNepkPG0hkWWYutBDWtsMRgKaaU",
+			"http://purl.org/np/RAQjB6Dc9lrIxjnFNCXYa6rfDHo5e1WiPSu33WdCEWTNY"),
+
+	CREL("Simple Scientific Relations based on Classes",
+			"e.g. <em>instances of smoking tend to cause instances of lung cancer</em>",
+			"http://purl.org/np/RAQ9wpGlnll9o034hWI9tGZw6oTBvcN9azFS7hzdESY0I",
+			"http://purl.org/np/RAkX1V_9VIscbvJ6Nz4BKUdgywO0UWgBQlzJUEvdMYG-M"),
+
+	AIDA("Semi-formal Statements Based on English Sentences (AIDA)",
+			"e.g. <em>\"Teenagers reply on average faster to emails than adults.\" is about: teenager, email, adult</em>",
+			"http://purl.org/np/RAdc8fxS-WgxHFUtTFWOKYJc1ICkDwBH11_f1sBZeQwBY",
+			"http://purl.org/np/RAa5RbYolIrUNlBoAUY5HUmGr-ci6G1pX6lWiNMkZMcYs"),
+
+	ML("Evaluation results of a Machine Learning experiment",
+			"e.g. <em>we ran a Random Forest classifier to detect texts about animals and achieved an F-Score of 86%</em>",
+			"http://purl.org/np/RAGEv4a9uT48mgnIlWqAvL-XnupfNYojIUmszJDa50xoc",
+			"http://purl.org/np/RAQV0grGVX22NUdKxBijorX0vy06-hdDY3BpScIeQzhx0"),
+
+	BIOREL("Simple Biological Relation",
+			"e.g. <em>we ran a Random Forest classifier to detect texts about animals and achieved an F-Score of 86%</em>",
+			"http://purl.org/np/RAEbbFIMF_kwp2rY1NqhhKHBiIXXL4_UgTC1hyd6l-cJs",
+			"http://purl.org/np/RASe3c2pjmN9TvAoxD_CZ-qBVhVMUk9dSMRHOOVxdXbqM");
 
 
 	private static final String BIODIV_PR_TEMPLATE_OPTIONS =
