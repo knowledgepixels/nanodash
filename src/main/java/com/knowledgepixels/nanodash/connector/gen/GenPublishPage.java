@@ -44,9 +44,10 @@ public class GenPublishPage extends ConnectorPublishPage {
 		}
 		add(new Label("pagetitle", config.getJournalName() + ": Publish Nanopublication | nanodash"));
 
+		PageParameters journalParam = new PageParameters().add("journal", journalId);
 		add(new TitleBar("titlebar", this, "connectors",
-				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
-				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),
+				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
+				new NanodashPageRef(GenSelectPage.class, journalParam, "Create Nanopublication"),
 				new NanodashPageRef("Publish")
 			));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));

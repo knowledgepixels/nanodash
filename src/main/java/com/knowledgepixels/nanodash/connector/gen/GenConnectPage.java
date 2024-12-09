@@ -44,8 +44,8 @@ public class GenConnectPage extends ConnectPage {
 		add(new Label("pagetitle", config.getJournalName() + ": Connect Nanopublication | nanodash"));
 
 		add(new TitleBar("titlebar", this, "connectors",
-				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
-				new NanodashPageRef(getConfig().getSelectPage().getClass(), "Create Nanopublication"),
+				new NanodashPageRef(GenOverviewPage.class, params, getConfig().getJournalName()),
+				new NanodashPageRef(GenSelectPage.class, params, "Create Nanopublication"),
 				new NanodashPageRef("Connect")
 			));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));

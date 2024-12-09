@@ -59,8 +59,9 @@ public class GenNanopubPage extends NanopubPage {
 		}
 		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
 
+		PageParameters journalParam = new PageParameters().add("journal", journalId);
 		add(new TitleBar("titlebar", this, "connectors",
-				new NanodashPageRef(getConfig().getOverviewPage().getClass(), getConfig().getJournalName()),
+				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
 				new NanodashPageRef("Nanopublication")
 			));
 
