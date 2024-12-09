@@ -28,9 +28,6 @@ import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
-import com.knowledgepixels.nanodash.connector.ios.DsConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -46,17 +43,9 @@ public class GenNanopubPage extends NanopubPage {
 	private ConnectorConfig config;
 
 	public GenNanopubPage(final PageParameters parameters) {
-		super(parameters, false);
-		String journalId = parameters.get("journal").toString();
-		if (journalId.equals("ios/ds")) {
-			config = DsConfig.get();
-		} else if (journalId.equals("pensoft/bdj")) {
-			config = BdjConfig.get();
-		} else if (journalId.equals("pensoft/rio")) {
-			config = RioConfig.get();
-		} else {
-			throw new IllegalArgumentException("'journal' parameter not recognized");
-		}
+		super(parameters);
+		final String journalId = parameters.get("journal").toString();
+		config = ConnectorConfig.get(journalId);
 		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
 
 		PageParameters journalParam = new PageParameters().add("journal", journalId);
@@ -98,12 +87,12 @@ public class GenNanopubPage extends NanopubPage {
 
 		add(new BookmarkablePageLink<Void>(
 				"switch-to-reviewer-view",
-				getConfig().getNanopubPage().getClass(),
+				GenNanopubPage.class,
 				new PageParameters(getPageParameters()).set("mode", "reviewer")
 			).setVisible(mode.equals("author")));
 		add(new BookmarkablePageLink<Void>(
 				"switch-to-author-view",
-				getConfig().getNanopubPage().getClass(),
+				GenNanopubPage.class,
 				new PageParameters(getPageParameters()).set("mode", "author")
 			).setVisible(mode.equals("reviewer")));
 

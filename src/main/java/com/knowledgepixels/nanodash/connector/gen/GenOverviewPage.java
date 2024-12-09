@@ -26,15 +26,10 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.ios.DsConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 
 public class GenOverviewPage extends OverviewPage {
-
-	// TODO This page isn't linked yet, and only for testing so far.
 
 	private static final long serialVersionUID = 1L;
 
@@ -43,17 +38,9 @@ public class GenOverviewPage extends OverviewPage {
 	private ConnectorConfig config;
 
 	public GenOverviewPage(PageParameters params) {
-		super(params, false);
-		String journalId = params.get("journal").toString();
-		if (journalId.equals("ios/ds")) {
-			config = DsConfig.get();
-		} else if (journalId.equals("pensoft/bdj")) {
-			config = BdjConfig.get();
-		} else if (journalId.equals("pensoft/rio")) {
-			config = RioConfig.get();
-		} else {
-			throw new IllegalArgumentException("'journal' parameter not recognized");
-		}
+		super(params);
+		final String journalId = params.get("journal").toString();
+		config = ConnectorConfig.get(journalId);
 
 		add(new TitleBar("titlebar", this, "connectors"));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
@@ -93,8 +80,8 @@ public class GenOverviewPage extends OverviewPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "author");
-						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownlink", getConfig().getNanopubPage().getClass(), params);
+						PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "author");
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownlink", GenNanopubPage.class, params);
 						l.add(new Label("ownlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));
@@ -166,8 +153,8 @@ public class GenOverviewPage extends OverviewPage {
 				@Override
 				protected void populateItem(Item<ApiResponseEntry> item) {
 					ApiResponseEntry e = item.getModelObject();
-					PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "candidate");
-					BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("candidatelink", getConfig().getNanopubPage().getClass(), params);
+					PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "candidate");
+					BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("candidatelink", GenNanopubPage.class, params);
 					l.add(new Label("candidatelinktext", "\"" +  e.get("label") + "\""));
 					item.add(l);
 					String username = User.getShortDisplayName(null, e.get("pubkey"));
@@ -229,8 +216,8 @@ public class GenOverviewPage extends OverviewPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters().add("id", e.get("np")).add("mode", "final");
-						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", getConfig().getNanopubPage().getClass(), params);
+						PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "final");
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", GenNanopubPage.class, params);
 						l.add(new Label("acceptedlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(Utils.vf.createIRI(e.get("firstAuthor")));
@@ -293,8 +280,8 @@ public class GenOverviewPage extends OverviewPage {
 					@Override
 					protected void populateItem(Item<ApiResponseEntry> item) {
 						ApiResponseEntry e = item.getModelObject();
-						PageParameters params = new PageParameters().add("id", e.get("ref_np")).add("mode", "candidate");
-						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", getConfig().getNanopubPage().getClass(), params);
+						PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("ref_np")).add("mode", "candidate");
+						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", GenNanopubPage.class, params);
 						l.add(new Label("reactionlinktext", "\"" +  e.get("comment") + "\""));
 						item.add(l);
 						String username = User.getShortDisplayName(null, e.get("pubkey"));

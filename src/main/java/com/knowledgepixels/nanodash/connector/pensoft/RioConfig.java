@@ -8,14 +8,9 @@ import java.util.Set;
 import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
-import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.base.SelectPage;
 
 public class RioConfig extends ConnectorConfig {
 
@@ -26,37 +21,6 @@ public class RioConfig extends ConnectorConfig {
 	public static RioConfig get() {
 		if (instance == null) instance = new RioConfig();
 		return instance;
-	}
-
-	private static final RioOverviewPage overviewPageInstance = new RioOverviewPage(null);
-	private static final RioSelectPage selectPageInstance = new RioSelectPage(null);
-	private static final RioPublishPage publishPageInstance = new RioPublishPage(null);
-	private static final RioConnectPage connectPageInstance = new RioConnectPage(null, null);
-	private static final RioNanopubPage nanopubPageInstance = new RioNanopubPage(null);
-
-	@Override
-	public OverviewPage getOverviewPage() {
-		return overviewPageInstance;
-	}
-
-	@Override
-	public SelectPage getSelectPage() {
-		return selectPageInstance;
-	}
-
-	@Override
-	public ConnectorPublishPage getPublishPage() {
-		return publishPageInstance;
-	}
-
-	@Override
-	public ConnectPage getConnectPage() {
-		return connectPageInstance;
-	}
-
-	@Override
-	public NanopubPage getNanopubPage() {
-		return nanopubPageInstance;
 	}
 
 	@Override

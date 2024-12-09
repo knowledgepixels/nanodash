@@ -4,6 +4,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.NanopubPage;
+import com.knowledgepixels.nanodash.connector.gen.GenNanopubPage;
 
 public class DsNanopubPage extends NanopubPage {
 
@@ -11,8 +12,9 @@ public class DsNanopubPage extends NanopubPage {
 
 	public static final String MOUNT_PATH = "/connector/ios/ds/np";
 
-	public DsNanopubPage(final PageParameters parameters) {
-		super(parameters);
+	public DsNanopubPage(final PageParameters params) {
+		super(params);
+		setResponsePage(GenNanopubPage.class, params.add("journal", "ios/ds"));
 	}
 
 	@Override

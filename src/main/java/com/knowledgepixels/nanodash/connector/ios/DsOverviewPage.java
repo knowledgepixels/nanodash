@@ -4,6 +4,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.OverviewPage;
+import com.knowledgepixels.nanodash.connector.gen.GenOverviewPage;
 
 public class DsOverviewPage extends OverviewPage {
 
@@ -13,6 +14,7 @@ public class DsOverviewPage extends OverviewPage {
 
 	public DsOverviewPage(PageParameters params) {
 		super(params);
+		setResponsePage(GenOverviewPage.class, params.add("journal", "ios/ds"));
 	}
 
 	@Override

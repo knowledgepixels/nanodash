@@ -9,19 +9,25 @@ import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
 
+import com.knowledgepixels.nanodash.connector.ios.DsConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
+import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
+
 public abstract class ConnectorConfig implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public abstract OverviewPage getOverviewPage();
-
-	public abstract SelectPage getSelectPage();
-
-	public abstract ConnectorPublishPage getPublishPage();
-
-	public abstract ConnectPage getConnectPage();
-
-	public abstract NanopubPage getNanopubPage();
+	public static ConnectorConfig get(String connectorId) {
+		if (connectorId.equals("ios/ds")) {
+			return DsConfig.get();
+		} else if (connectorId.equals("pensoft/bdj")) {
+			return BdjConfig.get();
+		} else if (connectorId.equals("pensoft/rio")) {
+			return RioConfig.get();
+		} else {
+			throw new IllegalArgumentException("'journal' parameter not recognized");
+		}
+	}
 
 	public abstract String getLogoFileName();
 

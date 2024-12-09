@@ -15,9 +15,6 @@ import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.ios.DsConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -30,22 +27,15 @@ public class GenConnectPage extends ConnectPage {
 	private ConnectorConfig config;
 
 	public GenConnectPage(Nanopub np, PageParameters params) {
-		super(np, params, false);
-		String journalId = params.get("journal").toString();
-		if (journalId.equals("ios/ds")) {
-			config = DsConfig.get();
-		} else if (journalId.equals("pensoft/bdj")) {
-			config = BdjConfig.get();
-		} else if (journalId.equals("pensoft/rio")) {
-			config = RioConfig.get();
-		} else {
-			throw new IllegalArgumentException("'journal' parameter not recognized");
-		}
+		super(np, params);
+		final String journalId = params.get("journal").toString();
+		config = ConnectorConfig.get(journalId);
 		add(new Label("pagetitle", config.getJournalName() + ": Connect Nanopublication | nanodash"));
 
+		PageParameters journalParam = new PageParameters().add("journal", journalId);
 		add(new TitleBar("titlebar", this, "connectors",
-				new NanodashPageRef(GenOverviewPage.class, params, getConfig().getJournalName()),
-				new NanodashPageRef(GenSelectPage.class, params, "Create Nanopublication"),
+				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
+				new NanodashPageRef(GenSelectPage.class, journalParam, "Create Nanopublication"),
 				new NanodashPageRef("Connect")
 			));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));

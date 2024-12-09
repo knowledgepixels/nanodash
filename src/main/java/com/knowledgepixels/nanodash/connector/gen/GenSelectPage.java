@@ -22,9 +22,6 @@ import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
 import com.knowledgepixels.nanodash.connector.base.SelectPage;
-import com.knowledgepixels.nanodash.connector.ios.DsConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 
 public class GenSelectPage extends SelectPage {
 
@@ -39,17 +36,9 @@ public class GenSelectPage extends SelectPage {
 	private RadioGroup<String> radioGroup;
 
 	public GenSelectPage(PageParameters params) {
-		super(params, false);
-		String journalId = params.get("journal").toString();
-		if (journalId.equals("ios/ds")) {
-			config = DsConfig.get();
-		} else if (journalId.equals("pensoft/bdj")) {
-			config = BdjConfig.get();
-		} else if (journalId.equals("pensoft/rio")) {
-			config = RioConfig.get();
-		} else {
-			throw new IllegalArgumentException("'journal' parameter not recognized");
-		}
+		super(params);
+		final String journalId = params.get("journal").toString();
+		config = ConnectorConfig.get(journalId);
 		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
 		PageParameters journalParam = new PageParameters().add("journal", journalId);
 		add(new TitleBar("titlebar", this, "connectors",
@@ -122,11 +111,6 @@ public class GenSelectPage extends SelectPage {
 	@Override
 	protected ConnectorConfig getConfig() {
 		return config;
-	}
-
-	@Override
-	protected String[] getOptions() {
-		return new String[] {};
 	}
 
 }

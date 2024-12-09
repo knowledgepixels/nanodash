@@ -8,14 +8,9 @@ import java.util.Set;
 import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
-import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.base.SelectPage;
 
 public class BdjConfig extends ConnectorConfig {
 
@@ -26,37 +21,6 @@ public class BdjConfig extends ConnectorConfig {
 	public static BdjConfig get() {
 		if (instance == null) instance = new BdjConfig();
 		return instance;
-	}
-
-	private static final BdjOverviewPage overviewPageInstance = new BdjOverviewPage(null);
-	private static final BdjSelectPage selectPageInstance = new BdjSelectPage(null);
-	private static final BdjPublishPage publishPageInstance = new BdjPublishPage(null);
-	private static final BdjConnectPage connectPageInstance = new BdjConnectPage(null, null);
-	private static final BdjNanopubPage nanopubPageInstance = new BdjNanopubPage(null);
-
-	@Override
-	public OverviewPage getOverviewPage() {
-		return overviewPageInstance;
-	}
-
-	@Override
-	public SelectPage getSelectPage() {
-		return selectPageInstance;
-	}
-
-	@Override
-	public ConnectorPublishPage getPublishPage() {
-		return publishPageInstance;
-	}
-
-	@Override
-	public ConnectPage getConnectPage() {
-		return connectPageInstance;
-	}
-
-	@Override
-	public NanopubPage getNanopubPage() {
-		return nanopubPageInstance;
 	}
 
 	@Override

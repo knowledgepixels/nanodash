@@ -13,9 +13,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
-import com.knowledgepixels.nanodash.connector.ios.DsConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
-import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 
 public class GenPublishPage extends ConnectorPublishPage {
 
@@ -31,17 +28,9 @@ public class GenPublishPage extends ConnectorPublishPage {
 	}
 
 	public GenPublishPage(final PageParameters parameters) {
-		super(parameters, false);
-		String journalId = parameters.get("journal").toString();
-		if (journalId.equals("ios/ds")) {
-			config = DsConfig.get();
-		} else if (journalId.equals("pensoft/bdj")) {
-			config = BdjConfig.get();
-		} else if (journalId.equals("pensoft/rio")) {
-			config = RioConfig.get();
-		} else {
-			throw new IllegalArgumentException("'journal' parameter not recognized");
-		}
+		super(parameters);
+		final String journalId = parameters.get("journal").toString();
+		config = ConnectorConfig.get(journalId);
 		add(new Label("pagetitle", config.getJournalName() + ": Publish Nanopublication | nanodash"));
 
 		PageParameters journalParam = new PageParameters().add("journal", journalId);
@@ -59,11 +48,9 @@ public class GenPublishPage extends ConnectorPublishPage {
 			throw new RuntimeException("no template parameter");
 		}
 
-		PageParameters pageParams = new PageParameters();
 		ConnectorOption option = ConnectorOption.valueOf(parameters.get("type").toString().toUpperCase());
-		pageParams.add("id", option.getExampleId());
-		pageParams.add("mode", "final");
-		add(new BookmarkablePageLink<Void>("show-example", getConfig().getNanopubPage().getClass(), pageParams));
+		PageParameters pageParams = new PageParameters().add("journal", journalId).add("id", option.getExampleId()).add("mode", "final");
+		add(new BookmarkablePageLink<Void>("show-example", GenNanopubPage.class, pageParams));
 		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
 	}
 

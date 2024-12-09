@@ -8,14 +8,9 @@ import java.util.Set;
 import org.eclipse.rdf4j.model.IRI;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.connector.base.ConnectPage;
 import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
-import com.knowledgepixels.nanodash.connector.base.ConnectorPublishPage;
-import com.knowledgepixels.nanodash.connector.base.NanopubPage;
-import com.knowledgepixels.nanodash.connector.base.OverviewPage;
-import com.knowledgepixels.nanodash.connector.base.SelectPage;
 
 public class DsConfig extends ConnectorConfig {
 
@@ -26,22 +21,6 @@ public class DsConfig extends ConnectorConfig {
 	public static DsConfig get() {
 		if (instance == null) instance = new DsConfig();
 		return instance;
-	}
-
-	private static final DsOverviewPage overviewPageInstance = new DsOverviewPage(null);
-	private static final DsSelectPage selectPageInstance = new DsSelectPage(null);
-	private static final DsPublishPage publishPageInstance = new DsPublishPage(null);
-	private static final DsConnectPage connectPageInstance = new DsConnectPage(null, null);
-	private static final DsNanopubPage nanopubPageInstance = new DsNanopubPage(null);
-
-	@Override
-	public OverviewPage getOverviewPage() {
-		return overviewPageInstance;
-	}
-
-	@Override
-	public NanopubPage getNanopubPage() {
-		return nanopubPageInstance;
 	}
 
 	@Override
@@ -88,21 +67,6 @@ public class DsConfig extends ConnectorConfig {
 	@Override
 	public String getAcceptedNanopubsApiCall() {
 		return "get-latest-accepted-ds";
-	}
-
-	@Override
-	public SelectPage getSelectPage() {
-		return selectPageInstance;
-	}
-
-	@Override
-	public ConnectorPublishPage getPublishPage() {
-		return publishPageInstance;
-	}
-
-	@Override
-	public ConnectPage getConnectPage() {
-		return connectPageInstance;
 	}
 
 	private Set<IRI> technicalEditorIds;
