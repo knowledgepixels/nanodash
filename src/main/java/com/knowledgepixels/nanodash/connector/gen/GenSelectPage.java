@@ -18,7 +18,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOption;
 import com.knowledgepixels.nanodash.connector.base.ConnectorOptionGroup;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
@@ -31,16 +30,13 @@ public class GenSelectPage extends ConnectorPage {
 
 	public static final String MOUNT_PATH = "/connector/gen/select";
 
-	private ConnectorConfig config;
 	private Form<?> form;
 	private RadioGroup<String> radioGroup;
 
 	public GenSelectPage(PageParameters params) {
 		super(params);
-		final String journalId = params.get("journal").toString();
-		config = ConnectorConfig.get(journalId);
-		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
-		PageParameters journalParam = new PageParameters().add("journal", journalId);
+		add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
+		PageParameters journalParam = new PageParameters().add("journal", getConnectorId());
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
 				new NanodashPageRef("Create Nanopublication")
@@ -55,7 +51,7 @@ public class GenSelectPage extends ConnectorPage {
 			protected void onSubmit() {
 				ConnectorOption option = ConnectorOption.valueOf(radioGroup.getModelObject());
 				PageParameters params = new PageParameters();
-				params.add("journal", journalId);
+				params.add("journal", getConnectorId());
 				params.add("type", option.name().toLowerCase());
 				params.add("template", option.getTemplateId());
 				params.add("prtemplate", option.getPrTemplateId());
@@ -66,9 +62,9 @@ public class GenSelectPage extends ConnectorPage {
 		};
 		form.setOutputMarkupId(true);
 
-		radioGroup = new RadioGroup<>("radio-group", new Model<String>(config.getOptions().get(0).getOptions()[0].name()));
+		radioGroup = new RadioGroup<>("radio-group", new Model<String>(getConfig().getOptions().get(0).getOptions()[0].name()));
 		radioGroup.setOutputMarkupId(true);
-		radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", config.getOptions()) {
+		radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", getConfig().getOptions()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -99,18 +95,13 @@ public class GenSelectPage extends ConnectorPage {
 		});
 		form.add(radioGroup);
 		add(form);
-		add(new ExternalLink("type-support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20type]%20my%20problem/question&body=type%20your%20problem/question%20here"));
-		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
+		add(new ExternalLink("type-support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20type]%20my%20problem/question&body=type%20your%20problem/question%20here"));
+		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
 	}
 
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
-	}
-
-	@Override
-	protected ConnectorConfig getConfig() {
-		return config;
 	}
 
 }

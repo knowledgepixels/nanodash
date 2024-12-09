@@ -14,11 +14,27 @@ public abstract class ConnectorPage extends NanodashPage {
 
 	private static final long serialVersionUID = 1L;
 
+	private String connectorId;
+	private ConnectorConfig config;
+
 	public ConnectorPage(PageParameters parameters) {
 		super(parameters);
+
+		if (parameters.get("journal") != null) {
+			connectorId = parameters.get("journal").toString();
+		}
+		if (connectorId != null) {
+			config = ConnectorConfig.get(connectorId);
+		}
 	}
 
-	protected abstract ConnectorConfig getConfig();
+	public final ConnectorConfig getConfig() {
+		return config;
+	}
+
+	public String getConnectorId() {
+		return connectorId;
+	}
 
 	public ApiResponse callApi(String operation, Map<String,String> params) throws CsvValidationException, IOException {
 		return ApiCache.retrieveResponse(ConnectorConfig.getQueryId(operation), params);

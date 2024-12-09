@@ -331,9 +331,4 @@ public class GenOverviewPage extends ConnectorPage {
 		return MOUNT_PATH;
 	}
 
-	@Override
-	protected ConnectorConfig getConfig() {
-		return config;
-	}
-
 }

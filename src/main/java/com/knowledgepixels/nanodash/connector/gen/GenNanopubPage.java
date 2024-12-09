@@ -40,15 +40,11 @@ public class GenNanopubPage extends ConnectorPage {
 
 	public static final String MOUNT_PATH = "/connector/gen/np";
 
-	private ConnectorConfig config;
-
 	public GenNanopubPage(final PageParameters parameters) {
 		super(parameters);
-		final String journalId = parameters.get("journal").toString();
-		config = ConnectorConfig.get(journalId);
-		add(new Label("pagetitle", config.getJournalName() + ": Create Nanopublication | nanodash"));
+		add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
 
-		PageParameters journalParam = new PageParameters().add("journal", journalId);
+		PageParameters journalParam = new PageParameters().add("journal", getConnectorId());
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
 				new NanodashPageRef("Nanopublication")
@@ -187,17 +183,12 @@ public class GenNanopubPage extends ConnectorPage {
 			ex.printStackTrace();
 		}
 
-		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20nanopublication]%20my%20problem/question&body=type%20your%20problem/question%20here"));
+		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20nanopublication]%20my%20problem/question&body=type%20your%20problem/question%20here"));
 	}
 
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
-	}
-
-	@Override
-	protected ConnectorConfig getConfig() {
-		return config;
 	}
 
 }

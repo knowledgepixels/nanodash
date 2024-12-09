@@ -13,7 +13,6 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.base.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.base.ConnectorPage;
 
 import net.trustyuri.TrustyUriUtils;
@@ -24,15 +23,11 @@ public class GenConnectPage extends ConnectorPage {
 
 	public static final String MOUNT_PATH = "/connector/gen/connect";
 
-	private ConnectorConfig config;
-
 	public GenConnectPage(Nanopub np, PageParameters params) {
 		super(params);
-		final String journalId = params.get("journal").toString();
-		config = ConnectorConfig.get(journalId);
-		add(new Label("pagetitle", config.getJournalName() + ": Connect Nanopublication | nanodash"));
+		add(new Label("pagetitle", getConfig().getJournalName() + ": Connect Nanopublication | nanodash"));
 
-		PageParameters journalParam = new PageParameters().add("journal", journalId);
+		PageParameters journalParam = new PageParameters().add("journal", getConnectorId());
 		add(new TitleBar("titlebar", this, "connectors",
 				new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
 				new NanodashPageRef(GenSelectPage.class, journalParam, "Create Nanopublication"),
@@ -57,17 +52,12 @@ public class GenConnectPage extends ConnectorPage {
 		inclusionPart.add(new Label("latex-np-label", shortId.replace("_", "\\_")));
 		add(inclusionPart);
 
-		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
+		add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
 	}
 
 	@Override
 	public String getMountPath() {
 		return MOUNT_PATH;
-	}
-
-	@Override
-	protected ConnectorConfig getConfig() {
-		return config;
 	}
 
 }
