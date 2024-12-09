@@ -67,11 +67,12 @@ public class GenSelectPage extends SelectPage {
 			protected void onSubmit() {
 				ConnectorOption option = ConnectorOption.valueOf(radioGroup.getModelObject());
 				PageParameters params = new PageParameters();
+				params.add("journal", journalId);
 				params.add("type", option.name().toLowerCase());
 				params.add("template", option.getTemplateId());
 				params.add("prtemplate", option.getPrTemplateId());
 				params.add("pitemplate1", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");  // Author list
-				throw new RestartResponseException(getConfig().getPublishPage().getClass(), params);
+				throw new RestartResponseException(GenPublishPage.class, params);
 			}
 
 		};

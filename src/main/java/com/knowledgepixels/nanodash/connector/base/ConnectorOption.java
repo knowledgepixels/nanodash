@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.connector.base;
 
 public enum ConnectorOption {
 
+	// TODO Publish/retrieve all this info also via nanopubs at some point:
+
 	SPECTAXON("Identification of a specimen with a taxon",
 			null,
 			"https://w3id.org/np/RAzUQLB8nr99kcm5Av4KXFYOfjPamrBFRAsO7WNu7Gg2c",

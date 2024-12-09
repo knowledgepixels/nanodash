@@ -16,9 +16,17 @@ public abstract class ConnectorPublishPage extends ConnectorPage {
 	private static final long serialVersionUID = 1L;
 
 	public ConnectorPublishPage(PageParameters parameters) {
+		this(parameters, true);
+	}
+
+	public ConnectorPublishPage(PageParameters parameters, boolean doInit) {
 		super(parameters);
 		if (parameters == null) return;
+		if (!doInit) return;
+		init(parameters);
+	}
 
+	protected void init(PageParameters parameters) {
 		final ConnectorNanopubType type = ConnectorNanopubType.get(parameters.get("type").toString());
 
 		add(new TitleBar("titlebar", this, "connectors",
