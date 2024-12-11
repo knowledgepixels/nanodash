@@ -124,17 +124,23 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 					// Collect approved users
 					if (response.size() > 9) break;
 					if (response.getResults().contains(iri.stringValue())) continue;
-					if (iri.stringValue().contains(term)) response.add(iri.stringValue());
 					String name = User.getName(iri);
-					if (name != null && name.toLowerCase().contains(term)) response.add(iri.stringValue());
+					if (iri.stringValue().contains(term)) {
+						response.add(iri.stringValue());
+					} else if (name != null && name.toLowerCase().contains(term)) {
+						response.add(iri.stringValue());
+					}
 				}
 				for (IRI iri : User.getUsers(false)) {
 					// Collect non-approved users
 					if (response.size() > 9) break;
 					if (response.getResults().contains(iri.stringValue())) continue;
-					if (iri.stringValue().contains(term)) response.add(iri.stringValue());
 					String name = User.getName(iri);
-					if (name != null && name.toLowerCase().contains(term)) response.add(iri.stringValue());
+					if (iri.stringValue().contains(term)) {
+						response.add(iri.stringValue());
+					} else if (name != null && name.toLowerCase().contains(term)) {
+						response.add(iri.stringValue());
+					}
 				}
 			}
 
