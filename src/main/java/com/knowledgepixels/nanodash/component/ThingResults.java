@@ -40,7 +40,7 @@ public class ThingResults extends Panel {
 				String thingId = item.getModelObject().get(thingField);
 				String thingLabel = item.getModelObject().get(thingField + "Label");
 				String npLabel = item.getModelObject().get("npLabel");
-				if (thingId.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*") && (thingLabel == null || thingLabel.isBlank()) && npLabel != null) {
+				if (thingId.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*") && (thingLabel == null || thingLabel.isBlank()) && npLabel != null && !npLabel.isBlank()) {
 					thingLabel = Utils.getShortNameFromURI(thingId) + " in '" + npLabel.replaceFirst(" - [\\s\\S]*$", "") + "'";
 				}
 				item.add(new NanodashLink("thing-link", thingId, null, null, false, thingLabel));
