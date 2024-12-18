@@ -49,6 +49,8 @@ public class LookupApis {
 				String queryName = "find-things";
 				if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
 					queryName = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
+					if (queryName.contains("?")) queryName = queryName.substring(0, queryName.indexOf("?"));
+					searchterm = "( " + Strings.join(" AND ", searchterm.trim().split(" ")) + "* )";
 				}
 				Map<String,String> params = new HashMap<>();
 				if (apiString.contains("?")) {
@@ -57,7 +59,7 @@ public class LookupApis {
 						params.put(p.getName(), p.getValue());
 					}
 				}
-				params.put("query", searchterm.trim());
+				params.put("query", searchterm);
 				ApiResponse result = QueryApiAccess.get(queryName, params);
 				int count = 0;
 				for (ApiResponseEntry r : result.getData()) {
