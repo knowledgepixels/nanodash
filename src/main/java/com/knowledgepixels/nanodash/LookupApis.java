@@ -50,7 +50,6 @@ public class LookupApis {
 				if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
 					queryName = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
 					if (queryName.contains("?")) queryName = queryName.substring(0, queryName.indexOf("?"));
-					searchterm = "( " + Strings.join(" AND ", searchterm.trim().split(" ")) + "* )";
 				}
 				Map<String,String> params = new HashMap<>();
 				if (apiString.contains("?")) {
@@ -59,7 +58,7 @@ public class LookupApis {
 						params.put(p.getName(), p.getValue());
 					}
 				}
-				params.put("query", searchterm);
+				params.put("query", expandSearchTerm(searchterm));
 				ApiResponse result = QueryApiAccess.get(queryName, params);
 				int count = 0;
 				for (ApiResponseEntry r : result.getData()) {
@@ -76,7 +75,7 @@ public class LookupApis {
 			}
 
 			if (apiString.startsWith("https://vodex.")) {
-				searchterm = "( " + Strings.join(" AND ", searchterm.split(" ")) + "* )";
+				searchterm = expandSearchTerm(searchterm);
 			}
 			String callUrl;
 			if (apiString.contains(" ")) {
@@ -244,4 +243,35 @@ public class LookupApis {
 		}
 	}
 
+	private static String expandSearchTerm(String searchTerm) {
+		String expanded = "";
+		boolean insideQuotes = false;
+		searchTerm = searchTerm.replaceAll("\\s+", " ").trim();
+		for (char c : searchTerm.toCharArray()) {
+			if (c == '\n') {
+				continue;
+			} else if (c == '"') {
+				expanded += '"';
+				insideQuotes = !insideQuotes;
+			} else if (c == ' ') {
+				if (insideQuotes) {
+					expanded += ' ';
+				} else {
+					expanded += '\n';
+				}
+			} else if ((""+c).matches("\\w") || c == '-' || c == '_') {
+				expanded += c;
+			} else {
+				if (insideQuotes) {
+					expanded += ' ';
+				} else {
+					expanded += '\n';
+				}
+			}
+		}
+		String extra = "*";
+		expanded = expanded.replaceAll("\\n+", "\n").replaceAll("\"", "\\\\\\\"").trim();
+		if (expanded.endsWith("\"") || insideQuotes) extra = "";
+		return "( " + Strings.join(" AND ", expanded.split("\n")) + extra + " )";
+	}
 }
