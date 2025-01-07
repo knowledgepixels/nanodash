@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>33.3.1-jre</version>
+      <version>33.4.0-jre</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -74,7 +74,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20240303</version>
+      <version>20241224</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.66</version>
+      <version>1.67</version>
     </dependency>
 
     <dependency>
@@ -163,7 +163,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>10.2.0</wicket.version>
+    <wicket.version>10.3.0</wicket.version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
