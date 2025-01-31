@@ -44,6 +44,7 @@ import com.knowledgepixels.nanodash.page.MyChannelPage;
 import com.knowledgepixels.nanodash.page.OrcidLinkingPage;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
+import com.knowledgepixels.nanodash.page.ProjectPage;
 import com.knowledgepixels.nanodash.page.PublishConfirmPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.ReferenceTablePage;
@@ -138,6 +139,7 @@ public class WicketApplication extends WebApplication {
 		mountPage(GenPublishPage.MOUNT_PATH, GenPublishPage.class);
 		mountPage(GenConnectPage.MOUNT_PATH, GenConnectPage.class);
 		mountPage(GenNanopubPage.MOUNT_PATH, GenNanopubPage.class);
+		mountPage(ProjectPage.MOUNT_PATH, ProjectPage.class);
 
 		getCspSettings().blocking().disabled();
 	}
