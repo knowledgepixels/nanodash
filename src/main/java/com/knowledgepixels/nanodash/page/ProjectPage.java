@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -16,6 +19,7 @@ import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.QueryResultTable;
 import com.knowledgepixels.nanodash.component.TemplateResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.UserList;
@@ -35,6 +39,7 @@ public class ProjectPage extends NanodashPage {
 
 	public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
 	public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
+	public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
 	public ProjectPage(final PageParameters parameters) {
 		super(parameters);
@@ -50,6 +55,7 @@ public class ProjectPage extends NanodashPage {
 		String description = null;
 		List<IRI> owners = new ArrayList<>();
 		List<Template> templates = new ArrayList<>();
+		List<IRI> queryIds = new ArrayList<>();
 
 		for (Statement st : np.getAssertion()) {
 			if (!st.getSubject().stringValue().equals(id)) continue;
@@ -59,8 +65,10 @@ public class ProjectPage extends NanodashPage {
 				label = st.getObject().stringValue();
 			} else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
 				owners.add(obj);
-			} else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI) {
-				templates.add(TemplateData.get().getTemplate(st.getObject().stringValue()));
+			} else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
+				templates.add(TemplateData.get().getTemplate(obj.stringValue()));
+			} else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
+				queryIds.add(obj);
 			}
 		}
 
@@ -69,6 +77,19 @@ public class ProjectPage extends NanodashPage {
 		add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(description) + "</span>").setEscapeModelStrings(false));
 		add(TemplateResults.fromList("templates", templates));
 		add(new UserList("owners", owners));
+
+		add(new DataView<IRI>("queries", new ListDataProvider<IRI>(queryIds)) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(Item<IRI> item) {
+				String queryId = QueryApiAccess.getQueryId(item.getModelObject());
+				item.add(new Label("label", QueryApiAccess.getQueryName(item.getModelObject())));
+				item.add(QueryResultTable.createComponent("query", queryId, 0));
+			}
+
+		});
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryAccess;
 
@@ -99,6 +100,20 @@ public class QueryApiAccess {
 			}
 		}
 		return latestVersionMap.get(nanopubId).getRight();
+	}
+
+	private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
+
+	public static String getQueryId(IRI queryIri) {
+		if (queryIri == null) return null;
+		if (!queryIri.stringValue().matches(queryIriPattern)) return null;
+		return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
+	}
+
+	public static String getQueryName(IRI queryIri) {
+		if (queryIri == null) return null;
+		if (!queryIri.stringValue().matches(queryIriPattern)) return null;
+		return queryIri.stringValue().replaceFirst(queryIriPattern, "$3");
 	}
 
 }
