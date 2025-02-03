@@ -21,11 +21,16 @@ public class TemplateItem extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	public TemplateItem(String id, Template template) {
+		this(id, template, null);
+	}
+
+	public TemplateItem(String id, Template template, PageParameters additionalParams) {
 		super(id);
 
 		PageParameters params = new PageParameters();
 		params.add("template", template.getId());
 		params.add("template-version", "latest");
+		if (additionalParams != null) params.mergeWith(additionalParams);
 		BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
 		l.add(new Label("name", template.getLabel()));
 		add(l);

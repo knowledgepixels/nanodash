@@ -7,6 +7,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
@@ -18,6 +19,10 @@ public class TemplateResults extends Panel {
 	private static final long serialVersionUID = -5109507637942030910L;
 
 	public static TemplateResults fromList(String id, List<Template> templateList) {
+		return fromList(id, templateList, null);
+	}
+
+	public static TemplateResults fromList(String id, List<Template> templateList, final PageParameters additionalParams) {
 		TemplateResults r = new TemplateResults(id);
 
 		r.add(new DataView<Template>("templates", new ListDataProvider<Template>(templateList)) {
@@ -26,7 +31,7 @@ public class TemplateResults extends Panel {
 
 			@Override
 			protected void populateItem(Item<Template> item) {
-				item.add(new TemplateItem("template", item.getModelObject()));
+				item.add(new TemplateItem("template", item.getModelObject(), additionalParams));
 			}
 
 		});
@@ -35,10 +40,14 @@ public class TemplateResults extends Panel {
 	}
 
 	public static TemplateResults fromApiResponse(String id, ApiResponse apiResponse) {
-		return fromApiResponse(id, apiResponse, 0);
+		return fromApiResponse(id, apiResponse, 0, null);
 	}
 
-	public static TemplateResults fromApiResponse(final String id, ApiResponse apiResponse, int limit) {
+	public static TemplateResults fromApiResponse(String id, ApiResponse apiResponse, int limit) {
+		return fromApiResponse(id, apiResponse, limit, null);
+	}
+
+	public static TemplateResults fromApiResponse(final String id, ApiResponse apiResponse, int limit, final PageParameters additionalParams) {
 		List<ApiResponseEntry> list = apiResponse.getData();
 		if (limit > 0 && list.size() > limit) {
 			List<ApiResponseEntry> shortList = new ArrayList<>();
