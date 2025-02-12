@@ -36,7 +36,7 @@ public class QueryApiAccess {
 		load("RA5i5-o05hg5KlZocCvKlQAV_CcJn3ToW3AGK7TbrCkVM/get-all-user-intros");
 		load("RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started");
 		load("RAtIndAeo8zYnEvTjFRaHD2AlenvkJHlw6P52JWR_l5dQ/get-type-overview-last-12-months");
-		load("RAmbWGfXZiHA1S2RsuVnoEmg54oFYzGARBQXlvb_K5QqQ/get-approved-nanopubs");
+		load("RAn3agwsH2yk-8132RJApGYxdPSHHCXDAIYiCaSBBo6tg/get-approved-nanopubs");
 		load("RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references");
 		load("RAE35dYJQlpnqim7VeKuu07E9I1LQUZpkdYQR4RvU3KMU/get-nanopubs-by-type");
 		load("RALZXWg5lZoJoQ0VHL5mpDgNxYpqU6FoDLWGp4rs8A6b8/get-introducing-nanopub");
