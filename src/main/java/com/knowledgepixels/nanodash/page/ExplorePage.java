@@ -16,6 +16,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ExploreDataTable;
 import com.knowledgepixels.nanodash.component.IriItem;
 import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.StatusLine;
 import com.knowledgepixels.nanodash.component.ThingListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.Template;
@@ -82,11 +83,6 @@ public class ExplorePage extends NanodashPage {
 				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
 			}
 		}
-		if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
-			add(new WebMarkupContainer("status"));
-		} else {
-			add(new WebMarkupContainer("status").setVisible(false));
-		}
 
 		final String ref = tempRef;
 		final String shortName;
@@ -98,6 +94,11 @@ public class ExplorePage extends NanodashPage {
 		add(new Label("pagetitle", shortName + " (explore) | nanodash"));
 		add(new Label("termname", shortName));
 		add(new ExternalLink("urilink", ref, ref));
+		if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
+			add(StatusLine.createComponent("statusline", ref));
+		} else {
+			add(new Label("statusline").setVisible(false));
+		}
 		add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
 		if (isNanopubId) {
 			add(new Label("instances-panel").setVisible(false));

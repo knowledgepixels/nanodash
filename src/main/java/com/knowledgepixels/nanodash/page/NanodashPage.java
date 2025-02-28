@@ -75,7 +75,6 @@ public abstract class NanodashPage extends WebPage {
 		super.renderHead(response);
 		response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
 		response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
-		response.render(JavaScriptHeaderItem.forUrl("/scripts/nanopub.js"));
 	}
 
 }
