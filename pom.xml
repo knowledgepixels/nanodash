@@ -54,7 +54,7 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.11.0</version>
+      <version>2.12.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -69,22 +69,22 @@
     <dependency>
       <groupId>com.opencsv</groupId>
       <artifactId>opencsv</artifactId>
-      <version>5.9</version>
+      <version>5.10</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20241224</version>
+      <version>20250107</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>2.18.2</version>
+      <version>2.18.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-project-info-reports-plugin</artifactId>
-      <version>3.8.0</version>
+      <version>3.9.0</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.67</version>
+      <version>1.69</version>
     </dependency>
 
     <dependency>
@@ -163,7 +163,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>10.3.0</wicket.version>
+    <wicket.version>10.4.0</wicket.version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
