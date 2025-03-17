@@ -44,10 +44,8 @@ public class StatusLine extends Panel {
 			String supersededBy = e.get("supersededBy");
 			if (retractedBy.isEmpty() && supersededBy.isEmpty()) {
 				latest.add(newerVersion);
-			} else if (retractedBy != null) {
-				if (supersededBy.isEmpty()) {
-					retractions.add(retractedBy);
-				}
+			} else if (!retractedBy.isEmpty() && supersededBy.isEmpty()) {
+				retractions.add(retractedBy);
 			}
 		}
 		String text = null;

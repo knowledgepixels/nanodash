@@ -5,8 +5,10 @@ import static com.knowledgepixels.nanodash.Utils.vf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.basic.Label;
@@ -62,7 +64,7 @@ public class ProjectPage extends NanodashPage {
 		String description = null;
 		List<IRI> owners = new ArrayList<>();
 		List<Template> templates = new ArrayList<>();
-		List<String> templateTags = new ArrayList<>();
+		Set<String> templateTags = new HashSet<>();
 		Map<String,List<Template>> templatesPerTag = new HashMap<>();
 		List<IRI> queryIds = new ArrayList<>();
 		IRI defaultProvenance = null;
@@ -104,8 +106,9 @@ public class ProjectPage extends NanodashPage {
 			params.add("prtemplate", defaultProvenance.stringValue());
 		}
 		List<Pair<String,List<Template>>> templateLists = new ArrayList<>();
-		Collections.sort(templateTags);
-		for (String tag : templateTags) {
+		List<String> templateTagList = new ArrayList<>(templateTags);
+		Collections.sort(templateTagList);
+		for (String tag : templateTagList) {
 			for (Template t : templatesPerTag.get(tag)) {
 				if (templates.contains(t)) templates.remove(t);
 			}
