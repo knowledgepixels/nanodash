@@ -13,6 +13,14 @@
       <url>http://www.opensource.org/licenses/mit-license</url>
     </license>
   </licenses>
+
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <!--  WICKET DEPENDENCIES -->
@@ -59,7 +67,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>33.4.0-jre</version>
+      <version>33.4.6-jre</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -93,11 +101,16 @@
       <version>20240325.1</version>
     </dependency>
 
-    <!--  NANOPUB DEPENDENCIES  -->
+    <!--    <dependency>-->
+    <!--      <groupId>org.nanopub</groupId>-->
+    <!--      <artifactId>nanopub</artifactId>-->
+    <!--      <version>1.70-snapshot</version>-->
+    <!--    </dependency>-->
+    <!-- Temporary: dependency on Jitpack for snapshot builds -->
     <dependency>
-      <groupId>org.nanopub</groupId>
-      <artifactId>nanopub</artifactId>
-      <version>1.69</version>
+      <groupId>com.github.Nanopublication</groupId>
+      <artifactId>nanopub-java</artifactId>
+      <version>40a757163ca02beeddc80b66b95eda8b93f19d08</version>
     </dependency>
 
     <dependency>
