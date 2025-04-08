@@ -44,7 +44,7 @@ public class ProfileIntroItem extends Panel {
 		super(id);
 
 		String publishIntroLinkString = PublishPage.MOUNT_PATH +
-				"?template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
+				"?template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
 				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
 //				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
 				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
@@ -161,7 +161,7 @@ public class ProfileIntroItem extends Panel {
 				item.add(new Label("date", (creationDate == null ? "unknown date" : NanopubItem.simpleDateFormat.format(creationDate.getTime()))));
 
 				ExternalLink retractLink = new ExternalLink("retract-link", PublishPage.MOUNT_PATH + "?" +
-							"template=http://purl.org/np/RAWHrBJRZgzpNQo0_vW9yXyw_k5vkS6YHOSjx-b52ATiU&" +
+							"template=http://purl.org/np/RA0QOsYNphQCityVcDIJEuldhhuJOX3GlBLw6QylRBhEI&" +
 							"param_nanopubToBeRetracted=" + urlEncode(inp.getNanopub().getUri()) + "&" +
 							"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to retract the " +
 									"given introduction."),
@@ -170,7 +170,7 @@ public class ProfileIntroItem extends Panel {
 				retractLink.setVisible(session.getLocalIntroCount() > 1 && session.isIntroWithLocalKey(inp));
 
 				ExternalLink deriveLink = new ExternalLink("derive-link", PublishPage.MOUNT_PATH + "?" +
-							"template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
+							"template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
 							"derive-a=" + urlEncode(inp.getNanopub().getUri()) + "&" +
 							"param_public-key__.1=" + urlEncode(session.getPubkeyString()) + "&" +
 							"param_key-declaration__.1=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
@@ -184,7 +184,7 @@ public class ProfileIntroItem extends Panel {
 
 				if (includeKeysParamMap.containsKey(inp)) {
 					item.add(new ExternalLink("include-keys-link", PublishPage.MOUNT_PATH + "?" +
-								"template=http://purl.org/np/RABMVRQW1kq9BZ2mQAMSxSQS6Q3AR4ypH2agpT-xKbxOE&" +
+								"template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
 								"supersede=" + urlEncode(session.getLocalIntro().getNanopub().getUri()) +
 								includeKeysParamMap.get(inp) + "&" +
 								"link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
