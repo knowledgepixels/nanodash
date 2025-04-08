@@ -45,7 +45,7 @@ public class ProfileIntroItem extends Panel {
 
 		String publishIntroLinkString = PublishPage.MOUNT_PATH +
 				"?template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
-				"param_user=" + urlEncode(Utils.getShortOrcidId(session.getUserIri())) + "&" +
+				"param_user=" + urlEncode(session.getUserIri()) + "&" +
 //				"param_name=" + urlEncode(session.getOrcidName()) + "&" +
 				"param_public-key=" + urlEncode(session.getPubkeyString()) + "&" +
 				"param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
