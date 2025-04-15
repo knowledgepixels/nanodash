@@ -110,7 +110,7 @@
     <dependency>
       <groupId>com.github.Nanopublication</groupId>
       <artifactId>nanopub-java</artifactId>
-      <version>40a757163ca02beeddc80b66b95eda8b93f19d08</version>
+      <version>f53210a05a66c8f662f069b40bab13db65894ba0</version>
     </dependency>
 
     <dependency>
