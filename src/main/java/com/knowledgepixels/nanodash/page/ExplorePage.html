@@ -7,6 +7,12 @@
 <link rel="stylesheet" href="style.css?v=3.17" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+<script>
+if (window.location.hash) {
+  // Redirect to page that encodes the hash into the URL, which is otherwise only available on the client:
+  window.location.replace(location.href.replace(location.hash,"") + encodeURIComponent(window.location.hash));
+}
+</script>
 </head>
 
 <body>
