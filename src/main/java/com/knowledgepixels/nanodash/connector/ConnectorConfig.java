@@ -39,6 +39,8 @@ public abstract class ConnectorConfig implements Serializable {
 
 	public abstract String getJournalUrl();
 
+	public abstract String getJournalIssn();
+
 	public abstract String getReviewUrlPrefix();
 
 	public abstract String getCandidateNanopubsApiCall();

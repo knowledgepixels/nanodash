@@ -26,6 +26,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 
 public class GenOverviewPage extends ConnectorPage {
 
@@ -42,6 +43,24 @@ public class GenOverviewPage extends ConnectorPage {
 
 		add(new TitleBar("titlebar", this, "connectors"));
 		add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
+
+		if (getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {
+			WebMarkupContainer technicalEditorActions = new WebMarkupContainer("technical-editor-actions");
+
+			technicalEditorActions.add(new BookmarkablePageLink<Void>("publish-article-metadata", PublishPage.class,
+					new PageParameters().add("template", "https://w3id.org/np/RA48p4Ct8tWL--rIc1Dcr2BcYpW_7X1pfuv_2LK3anolY")
+						.add("template-version", "latest")
+						.add("param_journal", getConfig().getJournalIssn())
+						.add("param_journal-title", getConfig().getJournalName())
+						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
+						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
+						.add("pitemplate2", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
+						.add("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
+				));
+			add(technicalEditorActions);
+		} else {
+			add(new WebMarkupContainer("publish-article-metadata").setVisible(false));
+		}
 
 		try {
 
