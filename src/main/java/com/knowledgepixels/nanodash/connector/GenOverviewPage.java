@@ -25,7 +25,6 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
-import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 
 public class GenOverviewPage extends ConnectorPage {
@@ -131,10 +130,10 @@ public class GenOverviewPage extends ConnectorPage {
 				c.add(new Label("allowncandidates", "").setVisible(false));
 				c.add(new Label("own", "").setVisible(false));
 				if (NanodashPreferences.get().isOrcidLoginMode()) {
-					String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath());
+					String loginUrl = OrcidLoginPage.getOrcidLoginUrl(getMountPath(), getPageParameters());
 					add(new ExternalLink("create-new", loginUrl, "Login to See More"));
 				} else {
-					add(new ExternalLink("create-new", ProfilePage.MOUNT_PATH, "Complete Your Profile to See More"));
+					add(new ExternalLink("create-new", Utils.getUrlWithParameters(getMountPath(), getPageParameters()), "Complete Your Profile to See More"));
 				}
 			}
 		} catch (Exception ex) {
