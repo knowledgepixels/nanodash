@@ -58,7 +58,7 @@ public class GenOverviewPage extends ConnectorPage {
 				));
 			add(technicalEditorActions);
 		} else {
-			add(new WebMarkupContainer("publish-article-metadata").setVisible(false));
+			add(new WebMarkupContainer("technical-editor-actions").setVisible(false));
 		}
 
 		try {
