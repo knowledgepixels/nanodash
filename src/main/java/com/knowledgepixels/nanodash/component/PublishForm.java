@@ -817,7 +817,7 @@ public class PublishForm extends Panel {
 			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
 		}
 		npCreator.addNamespace("this", targetNamespace);
-		npCreator.addNamespace("sub", targetNamespace + "#");
+		npCreator.addNamespace("sub", targetNamespace + "/");
 		npCreator.addTimestampNow();
 		IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
 		npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
@@ -859,8 +859,15 @@ public class PublishForm extends Panel {
 		String nanopubLabel = assertionContext.getTemplate().getNanopubLabelPattern();
 		while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
 			String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
-			IRI placeholderIri = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
+			IRI placeholderIriHash = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
+			IRI placeholderIriSlash = vf.createIRI(assertionContext.getTemplateId() + "/" + placeholderPostfix);
+			IRI placeholderIri = null;
 			String placeholderValue = "";
+			if (assertionContext.getComponentModels().get(placeholderIriSlash) != null) {
+				placeholderIri = placeholderIriSlash;
+			} else {
+				placeholderIri = placeholderIriHash;
+			}
 			IModel<String> m = assertionContext.getComponentModels().get(placeholderIri);
 			if (m != null) placeholderValue = m.orElse("").getObject();
 			if (placeholderValue == null) placeholderValue = "";
