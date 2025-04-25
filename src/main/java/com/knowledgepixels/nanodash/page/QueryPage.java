@@ -36,11 +36,7 @@ public class QueryPage extends NanodashPage {
 
 		String npId = parameters.get("id").toString();
 		GrlcQuery q = new GrlcQuery(npId);
-		String placeholdersString = "";
-		for (String p : q.getPlaceholdersList()) {
-			placeholdersString += p + " ";
-		}
-		add(new Label("placeholders", placeholdersString));
+
 		// TODO Replace hard-coded Nanopub Query URL with dynamic solution:
 		String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
 		add(new ExternalLink("editlink", editLink));

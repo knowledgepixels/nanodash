@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
 
 public class QueryParamField extends Panel {
 
@@ -13,7 +14,7 @@ public class QueryParamField extends Panel {
 	public QueryParamField(String id, String paramName) {
 		super(id);
 		add(new Label("paramname", paramName));
-		textfield = new TextField<>("textfield");
+		textfield = new TextField<>("textfield", Model.of(""));
 		add(textfield);
 	}
 
