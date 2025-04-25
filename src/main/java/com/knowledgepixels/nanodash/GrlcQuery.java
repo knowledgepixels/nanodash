@@ -19,6 +19,8 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.nanopub.Nanopub;
 
+import com.knowledgepixels.nanodash.component.QueryParamField;
+
 import net.trustyuri.TrustyUriUtils;
 
 
@@ -142,6 +144,14 @@ public class GrlcQuery implements Serializable {
 
 	public List<String> getPlaceholdersList() {
 		return placeholdersList;
+	}
+
+	public List<QueryParamField> createParamFields(String markupId) {
+		List<QueryParamField> l = new ArrayList<>();
+		for (String s : placeholdersList) {
+			l.add(new QueryParamField(markupId, s));
+		}
+		return l;
 	}
 
 }

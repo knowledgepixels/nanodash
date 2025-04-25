@@ -259,6 +259,14 @@ table.activitypanel td.high {
 	background: #0B73DAc0;
 }
 
+table.paramtable {
+	width: unset;
+}
+
+table.paramtable td {
+	background: white;
+}
+
 div.large-table table {
   max-width: 100%;
 }
