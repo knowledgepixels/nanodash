@@ -28,7 +28,7 @@ public class ResultTablePage extends NanodashPage {
 		add(new Label("queryname", shortName));
 		add(new Label("pagetitle", shortName + " (result table) | nanodash"));
 
-		add(QueryResultTable.createComponent("table", query, 0));
+		add(QueryResultTable.createComponent("table", query));
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

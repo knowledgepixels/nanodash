@@ -1,13 +1,16 @@
 package com.knowledgepixels.nanodash.page;
 
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
@@ -23,6 +26,7 @@ public class QueryPage extends NanodashPage {
 
 	private final Form<Void> paramForm;
 	private final List<QueryParamField> paramFields;
+	private final Model<String> resultLabelModel;
 
 	@Override
 	public String getMountPath() {
@@ -51,11 +55,15 @@ public class QueryPage extends NanodashPage {
 				//paramform.getFeedbackMessages().clear();
 			}
 
+			@Override
 			protected void onSubmit() {
-				System.err.println("Params submitted");
+				Map<String,String> params = new HashMap<>();
 				for (QueryParamField f : paramFields) {
-					System.err.println(f.getValue());
+					if (f.getValue() == null) continue;
+					System.err.println(f.getParamName() + ": " + f.getValue());
+					params.put(f.getParamName(), f.getValue());
 				}
+				resultLabelModel.setObject("Submitting query...");
 				// TODO
 			}
 
@@ -79,6 +87,9 @@ public class QueryPage extends NanodashPage {
 
 		});
 		add(paramForm);
+
+		resultLabelModel = Model.of("Click Run to execute the query.");
+		add(new Label("result", resultLabelModel));
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

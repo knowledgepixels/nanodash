@@ -175,18 +175,22 @@ public class QueryResultTable extends Panel {
 
 	}
 
-	public static Component createComponent(final String markupId, final String queryName, int limit) {
-		ApiResponse response = ApiCache.retrieveResponse(queryName, getParams());
+	public static Component createComponent(final String markupId, final String queryName) {
+		return createComponent(markupId, queryName, getParams());
+	}
+
+	public static Component createComponent(final String markupId, final String queryName, HashMap<String,String> params) {
+		ApiResponse response = ApiCache.retrieveResponse(queryName, params);
 		if (response != null) {
-			return new QueryResultTable(markupId, response, limit);
+			return new QueryResultTable(markupId, response, 0);
 		} else {
-			return new ApiResultComponent(markupId, queryName, getParams()) {
+			return new ApiResultComponent(markupId, queryName, params) {
 
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public Component getApiResultComponent(String markupId, ApiResponse response) {
-					return new QueryResultTable(markupId, response, limit);
+					return new QueryResultTable(markupId, response, 0);
 				}
 
 			};

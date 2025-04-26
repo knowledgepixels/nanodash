@@ -9,17 +9,27 @@ public class QueryParamField extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	private TextField<String> textfield;
+	private final TextField<String> textfield;
+	private final String paramId;
 
-	public QueryParamField(String id, String paramName) {
+	public QueryParamField(String id, String paramId) {
 		super(id);
-		add(new Label("paramname", paramName));
+		this.paramId = paramId;
+		add(new Label("paramname", paramId));
 		textfield = new TextField<>("textfield", Model.of(""));
 		add(textfield);
 	}
 
 	public String getValue() {
 		return textfield.getModelObject();
+	}
+
+	public String getParamId() {
+		return paramId;
+	}
+
+	public String getParamName() {
+		return paramId.replaceFirst("^_+", "").replaceFirst("_iri$", "");
 	}
 
 }
