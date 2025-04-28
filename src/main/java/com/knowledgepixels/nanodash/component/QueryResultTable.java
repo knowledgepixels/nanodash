@@ -36,7 +36,7 @@ public class QueryResultTable extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	private QueryResultTable(String id, ApiResponse response, int limit) {
+	private QueryResultTable(String id, ApiResponse response) {
 		super(id);
 		List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
 		DataProvider dp;
@@ -45,7 +45,7 @@ public class QueryResultTable extends Panel {
 				if (h.endsWith("_label")) continue;
 				columns.add(new Column(h.replaceAll("_", " "), h));
 			}
-			dp = new DataProvider(filterData(response.getData(), limit));
+			dp = new DataProvider(response.getData());
 			DataTable<ApiResponseEntry,String> table = new DataTable<>("table", columns, dp, 100);
 			table.addBottomToolbar(new NavigationToolbar(table));
 			table.addBottomToolbar(new NoRecordsToolbar(table));
@@ -55,17 +55,6 @@ public class QueryResultTable extends Panel {
 			ex.printStackTrace();
 			add(new Label("table", "").setVisible(false));
 		}
-	}
-
-	
-	private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, int limit) {
-		List<ApiResponseEntry> filteredList = new ArrayList<>();
-		if (limit == 0) return data;
-		for (ApiResponseEntry e : data) {
-			filteredList.add(e);
-			if (limit > 0 && limit == filteredList.size()) break;
-		}
-		return filteredList;
 	}
 
 
@@ -182,7 +171,7 @@ public class QueryResultTable extends Panel {
 	public static Component createComponent(final String markupId, final String queryName, HashMap<String,String> params) {
 		ApiResponse response = ApiCache.retrieveResponse(queryName, params);
 		if (response != null) {
-			return new QueryResultTable(markupId, response, 0);
+			return new QueryResultTable(markupId, response);
 		} else {
 			return new ApiResultComponent(markupId, queryName, params) {
 
@@ -190,7 +179,7 @@ public class QueryResultTable extends Panel {
 
 				@Override
 				public Component getApiResultComponent(String markupId, ApiResponse response) {
-					return new QueryResultTable(markupId, response, 0);
+					return new QueryResultTable(markupId, response);
 				}
 
 			};
