@@ -92,6 +92,8 @@ public class QueryPage extends NanodashPage {
 			private static final long serialVersionUID = 1L;
 
 			protected void populateItem(ListItem<QueryParamField> item) {
+				QueryParamField f = item.getModelObject();
+				f.getModel().setObject(parameters.get("queryparam_" + f.getParamName()).toString());
 				item.add(item.getModelObject());
 			}
 
