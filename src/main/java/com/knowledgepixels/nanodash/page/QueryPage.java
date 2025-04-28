@@ -4,8 +4,10 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -23,7 +25,7 @@ public class QueryPage extends NanodashPage {
 
 	public static final String MOUNT_PATH = "/query";
 
-	private final Form<Void> paramForm;
+	private final Form<Void> form;
 	private final List<QueryParamField> paramFields;
 
 	@Override
@@ -36,7 +38,7 @@ public class QueryPage extends NanodashPage {
 		add(new TitleBar("titlebar", this, null));
 		add(new Label("pagetitle", "Query Info | nanodash"));
 
-		final String npId = parameters.get("id").toString();
+		final String id = parameters.get("id").toString();
 		final String queryId = parameters.get("runquery").toString();
 		final HashMap<String,String> queryParams = new HashMap<>();
 		for (String paramKey : parameters.getNamedKeys()) {
@@ -45,17 +47,17 @@ public class QueryPage extends NanodashPage {
 		}
 
 		GrlcQuery q;
-		if (npId != null) {
-			q = new GrlcQuery(npId);
+		if (id != null) {
+			q = new GrlcQuery(id);
 		} else {
 			q = new GrlcQuery(queryId);
 		}
 
-		// TODO Replace hard-coded Nanopub Query URL with dynamic solution:
-		String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
-		add(new ExternalLink("editlink", editLink));
+		add(new Label("querylabel", q.getLabel()));
+		add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));
+		add(new Label("querydesc", q.getDescription()));
 
-		paramForm = new Form<Void>("paramform") {
+		form = new Form<Void>("form") {
 
 			private static final long serialVersionUID = 1L;
 
@@ -84,10 +86,12 @@ public class QueryPage extends NanodashPage {
 			}
 
 		};
-		paramForm.setOutputMarkupId(true);
+		form.setOutputMarkupId(true);
 
+		WebMarkupContainer paramContainer = new WebMarkupContainer("params");
+		
 		paramFields = q.createParamFields("paramfield");
-		paramForm.add(new ListView<QueryParamField>("paramfields", paramFields) {
+		paramContainer.add(new ListView<QueryParamField>("paramfields", paramFields) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -98,7 +102,14 @@ public class QueryPage extends NanodashPage {
 			}
 
 		});
-		add(paramForm);
+		paramContainer.setVisible(!paramFields.isEmpty());
+		form.add(paramContainer);
+
+		// TODO Replace hard-coded Nanopub Query URL with dynamic solution:
+		String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
+		form.add(new ExternalLink("yasgui", editLink));
+
+		add(form);
 
 		if (queryId == null) {
 			add(new Label("resulttable").setVisible(false));

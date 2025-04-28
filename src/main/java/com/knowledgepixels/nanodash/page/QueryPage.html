@@ -17,11 +17,19 @@
 
 <div id="content" class="full">
 
-<h3>Query Info</h3>
+<h3>Query: <span wicket:id="querylabel">query name</span></h3>
 
-<p><a wicket:id="editlink" href="." class="smallbutton" target="_blank">Edit in Yasgui</a></p>
+<p>Definition: <a wicket:id="np" href="."> <span class="nanopub-icon"></span> </a></p>
 
-<form wicket:id="paramform">
+<h4>Description</h4>
+
+<p wicket:id="querydesc">Query description...</p>
+
+<form wicket:id="form">
+
+<div wicket:id="params">
+
+<h4>Parameters</h4>
 
 <table class="paramtable">
 <tbody>
@@ -31,8 +39,11 @@
 </tbody>
 </table>
 
+</div>
+
 <p>
 <input type="submit" class="button" value="Run" />
+<a wicket:id="yasgui" href="." class="button light" target="_blank">Open in Yasgui</a>
 </p>
 </form>
 
