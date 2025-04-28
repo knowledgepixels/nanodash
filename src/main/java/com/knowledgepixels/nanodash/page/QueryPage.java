@@ -3,19 +3,18 @@ package com.knowledgepixels.nanodash.page;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.component.QueryResultTable;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 public class QueryPage extends NanodashPage {
@@ -26,7 +25,6 @@ public class QueryPage extends NanodashPage {
 
 	private final Form<Void> paramForm;
 	private final List<QueryParamField> paramFields;
-	private final Model<String> resultLabelModel;
 
 	@Override
 	public String getMountPath() {
@@ -38,8 +36,20 @@ public class QueryPage extends NanodashPage {
 		add(new TitleBar("titlebar", this, null));
 		add(new Label("pagetitle", "Query Info | nanodash"));
 
-		String npId = parameters.get("id").toString();
-		GrlcQuery q = new GrlcQuery(npId);
+		final String npId = parameters.get("id").toString();
+		final String queryId = parameters.get("runquery").toString();
+		final HashMap<String,String> queryParams = new HashMap<>();
+		for (String paramKey : parameters.getNamedKeys()) {
+			if (!paramKey.startsWith("queryparam_")) continue;
+			queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
+		}
+
+		GrlcQuery q;
+		if (npId != null) {
+			q = new GrlcQuery(npId);
+		} else {
+			q = new GrlcQuery(queryId);
+		}
 
 		// TODO Replace hard-coded Nanopub Query URL with dynamic solution:
 		String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
@@ -57,14 +67,14 @@ public class QueryPage extends NanodashPage {
 
 			@Override
 			protected void onSubmit() {
-				Map<String,String> params = new HashMap<>();
+				PageParameters params = new PageParameters();
+				params.add("runquery", q.getQueryId());
 				for (QueryParamField f : paramFields) {
 					if (f.getValue() == null) continue;
 					System.err.println(f.getParamName() + ": " + f.getValue());
-					params.put(f.getParamName(), f.getValue());
+					params.add("queryparam_" + f.getParamName(), f.getValue());
 				}
-				resultLabelModel.setObject("Submitting query...");
-				// TODO
+				setResponsePage(QueryPage.class, params);
 			}
 
 			@Override
@@ -88,8 +98,11 @@ public class QueryPage extends NanodashPage {
 		});
 		add(paramForm);
 
-		resultLabelModel = Model.of("Click Run to execute the query.");
-		add(new Label("result", resultLabelModel));
+		if (queryId == null) {
+			add(new Label("resulttable").setVisible(false));
+		} else {
+			add(QueryResultTable.createComponent("resulttable", queryId, queryParams));
+		}
 	}
 
 	protected boolean hasAutoRefreshEnabled() {

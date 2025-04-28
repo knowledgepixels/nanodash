@@ -61,10 +61,10 @@ public class GrlcQuery implements Serializable {
 			if (queryUri == null) {
 				throw new IllegalArgumentException("No query found in nanopublication: " + id);
 			}
-			queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[^A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
+			queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
 		} else {
 			if (id.matches("https?://.*[^A-Za-z0-9-_]RA[^A-Za-z0-9-_]{43}[/#][^/#]+")) {
-				queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[^A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
+				queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
 			} else if (id.matches(id)) {
 				queryId = id.replace("#", "/");
 			} else {
@@ -75,7 +75,7 @@ public class GrlcQuery implements Serializable {
 		}
 		querySuffix = queryId.replaceFirst("^.*[/#]", "");
 		for (Statement st : nanopub.getAssertion()) {
-			if (!st.getSubject().stringValue().replace("#", "/").equals(queryId)) continue;
+			if (!st.getSubject().stringValue().replace("#", "/").endsWith(queryId)) continue;
 			queryUri = (IRI) st.getSubject();
 			if (st.getPredicate().equals(GRLC_HAS_SPARQL) && st.getObject() instanceof Literal objLiteral) {
 				sparql = objLiteral.stringValue();
