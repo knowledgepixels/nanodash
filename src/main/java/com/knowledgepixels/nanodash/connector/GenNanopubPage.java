@@ -15,6 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashSession;
@@ -38,7 +39,7 @@ public class GenNanopubPage extends ConnectorPage {
 
 	public static final String MOUNT_PATH = "/connector/np";
 
-	public GenNanopubPage(final PageParameters parameters) {
+	public GenNanopubPage(final PageParameters parameters) throws FailedApiCallException {
 		super(parameters);
 		add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
 

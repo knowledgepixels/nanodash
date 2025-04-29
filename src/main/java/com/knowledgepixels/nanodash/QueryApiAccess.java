@@ -1,16 +1,13 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryAccess;
-
-import com.opencsv.exceptions.CsvValidationException;
-
 
 public class QueryApiAccess {
 
@@ -55,17 +52,38 @@ public class QueryApiAccess {
 		queryIds.put(queryId.substring(46), queryId);
 	}
 
-	public static ApiResponse get(String queryName) {
+	public static ApiResponse forcedGet(String queryName) {
+		return forcedGet(queryName, new HashMap<>());
+	}
+
+	public static ApiResponse forcedGet(String queryName, Map<String,String> params) {
+		while (true) {
+			ApiResponse resp = null;
+			try {
+				resp = QueryApiAccess.get(queryName, params);
+			} catch (FailedApiCallException ex) {
+				ex.printStackTrace();
+			}
+			if (resp != null) return resp;
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
+	public static ApiResponse get(String queryName) throws FailedApiCallException {
 		return get(queryName, new HashMap<>());
 	}
 
-	public static ApiResponse get(String queryName, String paramKey, String paramValue) {
+	public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramKey, paramValue);
 		return get(queryName, params);
 	}
 
-	public static ApiResponse get(String queryName, Map<String,String> params) {
+	public static ApiResponse get(String queryName, Map<String,String> params) throws FailedApiCallException {
 		String queryId;
 		if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
 			queryId = queryName;
@@ -74,12 +92,7 @@ public class QueryApiAccess {
 		} else {
 			throw new IllegalArgumentException("Query name not known: " + queryName);
 		}
-		try {
-			return QueryAccess.get(queryId, params);
-		} catch (CsvValidationException | IOException ex) {
-			ex.printStackTrace();
-		}
-		return null;
+		return QueryAccess.get(queryId, params);
 	}
 
 	private static Map<String,Pair<Long,String>> latestVersionMap = new HashMap<>();

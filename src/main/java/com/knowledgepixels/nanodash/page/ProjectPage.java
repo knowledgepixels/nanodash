@@ -25,6 +25,7 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
@@ -50,7 +51,7 @@ public class ProjectPage extends NanodashPage {
 	public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
 	public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
-	public ProjectPage(final PageParameters parameters) {
+	public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
 		super(parameters);
 
 		String id = parameters.get("id").toString();

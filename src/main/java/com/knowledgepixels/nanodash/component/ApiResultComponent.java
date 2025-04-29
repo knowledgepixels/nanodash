@@ -56,8 +56,12 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
 	public Component getLazyLoadComponent(String markupId) {
 		while (true) {
 			if (!ApiCache.isRunning(queryName, params)) {
-				response = ApiCache.retrieveResponse(queryName, params);
-				if (response != null) break;
+				try {
+					response = ApiCache.retrieveResponse(queryName, params);
+					if (response != null) break;
+				} catch (Exception ex) {
+					return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
+				}
 			}
 			try {
 				Thread.sleep(100);

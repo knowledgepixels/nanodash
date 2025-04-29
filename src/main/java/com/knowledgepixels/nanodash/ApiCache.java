@@ -9,6 +9,7 @@ import java.util.Random;
 
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.FailedApiCallException;
 
 public class ApiCache {
 
@@ -34,7 +35,7 @@ public class ApiCache {
 		return isRunning(getCacheId(queryName, params));
 	}
 
-	private static void updateResponse(String queryName, Map<String,String> params) {
+	private static void updateResponse(String queryName, Map<String,String> params) throws FailedApiCallException {
 		Map<String,String> nanopubParams = new HashMap<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
 		ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
@@ -72,6 +73,11 @@ public class ApiCache {
 					}
 					try {
 						ApiCache.updateResponse(queryName, params);
+					} catch (Exception ex) {
+						System.err.println("xxx");
+						ex.printStackTrace();
+						cachedResponses.put(cacheId, null);
+						lastRefresh.put(cacheId, System.currentTimeMillis());
 					} finally {
 						refreshStart.remove(cacheId);
 					}
@@ -80,13 +86,17 @@ public class ApiCache {
 			}.start();
 		}
 		if (isCached) {
+			if (cachedResponses.get(cacheId) == null) {
+				cachedResponses.remove(cacheId);
+				throw new RuntimeException("Query failed: " + cacheId);
+			}
 			return cachedResponses.get(cacheId);
 		} else {
 			return null;
 		}
 	}
 
-	private static void updateMap(String queryName, Map<String,String> params) {
+	private static void updateMap(String queryName, Map<String,String> params) throws FailedApiCallException {
 		Map<String,String> map = new HashMap<>();
 		Map<String,String> nanopubParams = new HashMap<>();
 		for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
@@ -123,6 +133,11 @@ public class ApiCache {
 					}
 					try {
 						ApiCache.updateMap(queryName, params);
+					} catch (Exception ex) {
+						System.err.println("xxx");
+						ex.printStackTrace();
+						cachedResponses.put(cacheId, null);
+						lastRefresh.put(cacheId, System.currentTimeMillis());
 					} finally {
 						refreshStart.remove(cacheId);
 					}
@@ -131,6 +146,10 @@ public class ApiCache {
 			}.start();
 		}
 		if (isCached) {
+			if (cachedResponses.get(cacheId) == null) {
+				cachedResponses.remove(cacheId);
+				throw new RuntimeException("Query failed: " + cacheId);
+			}
 			return cachedMaps.get(cacheId);
 		} else {
 			return null;

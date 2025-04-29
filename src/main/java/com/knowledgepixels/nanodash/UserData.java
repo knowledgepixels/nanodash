@@ -91,20 +91,7 @@ public class UserData implements Serializable {
 		}
 
 		if (setting.getTrustRangeAlgorithm().stringValue().equals("http://purl.org/nanopub/x/TransitiveTrust")) {
-			// Get users that are approved by somebody who is already approved, and consider them approved too:
-			ApiResponse resp = null;
-			while (true) {
-				resp = QueryApiAccess.get("get-approved-nanopubs");
-				if (resp == null) {
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException ex) {
-						ex.printStackTrace();
-					}
-				} else {
-					break;
-				}
-			}
+			ApiResponse resp = QueryApiAccess.forcedGet("get-approved-nanopubs");
 			List<ApiResponseEntry> results = new ArrayList<>(resp.getData());
 			while (true) {
 				boolean keepLooping = false;
@@ -120,7 +107,7 @@ public class UserData implements Serializable {
 		}
 
 		// Get latest introductions for all users, including unapproved ones:
-		for (ApiResponseEntry entry : QueryApiAccess.get("get-all-user-intros").getData()) {
+		for (ApiResponseEntry entry : QueryApiAccess.forcedGet("get-all-user-intros").getData()) {
 			register(entry.get("intronp"), false);
 		}
 	}

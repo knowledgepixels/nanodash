@@ -55,7 +55,7 @@ public class TemplateData implements Serializable {
 		Map<String,String> params = new HashMap<>();
 		params.put("type", type.toString());
 		ApiResponse templateEntries;
-		templateEntries = QueryApiAccess.get("get-nanopubs-by-type", params);
+		templateEntries = QueryApiAccess.forcedGet("get-nanopubs-by-type", params);
 		for (ApiResponseEntry entry : templateEntries.getData()) {
 			try {
 				Template t = new Template(entry.get("np"));
