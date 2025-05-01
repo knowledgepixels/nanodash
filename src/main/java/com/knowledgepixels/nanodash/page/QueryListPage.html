@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title>Search | nanodash</title>
+<title>Query | nanodash</title>
 <link rel="stylesheet" href="style.css?v=3.33" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
@@ -23,22 +23,11 @@
 <input wicket:id="search" type="text" class="textfield" size="100" required />
 <input type="submit" class="button" value="Search">
 <br>
-<div class="filter" wicket:id="own-filter">
-<input id="owncb" type="checkbox" wicket:id="filter" />
-<label for="owncb">Only show my nanopubs</label>
-<span>
-keys:
-<span class="pubkeyselect" wicket:id="pubkeygroup"></span>
-</span>
-</div>
 </form>
 
-<h2>Results</h2>
+<h2>Other Queries</h2>
 
-<div wicket:id="nanopubs">
-</div>
-
-<div class="status" wicket:id="progress"></div>
+<div wicket:id="queries"></div>
 
 </div>
 

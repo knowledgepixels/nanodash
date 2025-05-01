@@ -290,7 +290,6 @@ public class Utils {
 		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource")) return "FSR";
 		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile")) return "FIP";
 		if (l.equals("http://purl.org/nanopub/x/declaredBy")) return "user intro";
-		if (l.equals("https://w3id.org/kpxl/grlc/grlc-query")) return "API";
 		l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
 		l = l.replaceFirst("Nanopub$", "");
 		if (l.length() > 25) l = l.substring(0, 20) + "...";

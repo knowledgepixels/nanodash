@@ -31,7 +31,7 @@ public class TitleBar extends Panel {
 		createContainer("users");
 		createContainer("connectors").setVisible(ConnectorListPage.getConnectorCount() > 0);
 		createContainer("publish").setVisible(!NanodashPreferences.get().isReadOnlyMode());
-		createContainer("search");
+		createContainer("query");
 		
 		WebMarkupContainer breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
 		breadcrumbPath.setVisible(pathRefs.length > 0);
