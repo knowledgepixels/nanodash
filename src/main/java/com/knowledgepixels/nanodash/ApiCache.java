@@ -74,7 +74,6 @@ public class ApiCache {
 					try {
 						ApiCache.updateResponse(queryName, params);
 					} catch (Exception ex) {
-						System.err.println("xxx");
 						ex.printStackTrace();
 						cachedResponses.put(cacheId, null);
 						lastRefresh.put(cacheId, System.currentTimeMillis());
@@ -134,7 +133,6 @@ public class ApiCache {
 					try {
 						ApiCache.updateMap(queryName, params);
 					} catch (Exception ex) {
-						System.err.println("xxx");
 						ex.printStackTrace();
 						cachedResponses.put(cacheId, null);
 						lastRefresh.put(cacheId, System.currentTimeMillis());
