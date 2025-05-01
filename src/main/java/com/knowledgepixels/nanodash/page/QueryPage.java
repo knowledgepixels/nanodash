@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -11,6 +12,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
@@ -27,6 +29,7 @@ public class QueryPage extends NanodashPage {
 
 	private final Form<Void> form;
 	private final List<QueryParamField> paramFields;
+	private final FeedbackPanel feedbackPanel;
 
 	@Override
 	public String getMountPath() {
@@ -64,25 +67,35 @@ public class QueryPage extends NanodashPage {
 			@Override
 			protected void onConfigure() {
 				super.onConfigure();
-				//paramform.getFeedbackMessages().clear();
+				form.getFeedbackMessages().clear();
 			}
 
 			@Override
 			protected void onSubmit() {
-				PageParameters params = new PageParameters();
-				params.add("runquery", q.getQueryId());
-				for (QueryParamField f : paramFields) {
-					if (f.getValue() == null) continue;
-					System.err.println(f.getParamName() + ": " + f.getValue());
-					params.add("queryparam_" + f.getParamName(), f.getValue());
+				try {
+					PageParameters params = new PageParameters();
+					params.add("runquery", q.getQueryId());
+					for (QueryParamField f : paramFields) {
+						if (f.getValue() == null) continue;
+						params.add("queryparam_" + f.getParamName(), f.getValue());
+					}
+					setResponsePage(QueryPage.class, params);
+				} catch (Exception ex) {
+					String message = ex.getClass().getName();
+					if (ex.getMessage() != null) message = ex.getMessage();
+					feedbackPanel.error(message);
 				}
-				setResponsePage(QueryPage.class, params);
 			}
 
 			@Override
 		    protected void onValidate() {
 				super.onValidate();
-				// ...
+				for (QueryParamField f : paramFields) {
+					f.getTextField().processInput();
+					for (FeedbackMessage fm : f.getTextField().getFeedbackMessages()) {
+						form.getFeedbackMessages().add(fm);
+					}
+				}
 			}
 
 		};
@@ -110,6 +123,10 @@ public class QueryPage extends NanodashPage {
 		form.add(new ExternalLink("yasgui", editLink));
 
 		add(form);
+
+		feedbackPanel = new FeedbackPanel("feedback");
+		feedbackPanel.setOutputMarkupId(true);
+		add(feedbackPanel);
 
 		if (queryId == null) {
 			add(new Label("resulttable").setVisible(false));
