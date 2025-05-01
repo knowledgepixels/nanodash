@@ -51,6 +51,7 @@ public class GenOverviewPage extends ConnectorPage {
 						.add("template-version", "latest")
 						.add("param_journal", getConfig().getJournalIssn())
 						.add("param_journal-title", getConfig().getJournalName())
+						.add("prtemplate", "https://w3id.org/np/RAekcN47h13fk6ZK4XiObgGgk-qB01sLOjyGyhMCq_jT4")
 						.add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
 						.add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
 						.add("pitemplate2", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")

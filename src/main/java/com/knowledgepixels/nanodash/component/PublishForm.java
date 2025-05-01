@@ -209,18 +209,14 @@ public class PublishForm extends Panel {
 			if (!k.matches("pitemplate[1-9][0-9]*")) continue;
 			Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
 			String tid = pageParams.get(k).toString();
-			String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
+			// TODO Allow for automatically using latest template version:
+			//String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
 			TemplateContext c = getPubinfoContext(tid);
 			if (piParamIdMap.containsKey(i)) {
 				// TODO: handle this error better
 				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
 			}
 			piParamIdMap.put(i, c);
-			if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
-				// TODO Allow for automatically using latest template version
-				pubInfoContexts.add(c);
-				pubInfoContextMap.put(c.getTemplateId(), c);
-			}
 		}
 		if (fillNp != null && !fillOnlyAssertion) {
 			for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
@@ -796,6 +792,7 @@ public class PublishForm extends Panel {
 		} else {
 			c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
 			pubInfoContextMap.put(piTemplateId, c);
+			pubInfoContexts.add(c);
 		}
 		return c;
 	}
