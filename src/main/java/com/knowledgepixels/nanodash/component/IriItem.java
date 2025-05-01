@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
@@ -13,7 +15,6 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.SimpleCreatorPattern;
 
-import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -97,7 +98,7 @@ public class IriItem extends Panel implements ContextComponent {
 		if (iriString.startsWith("local:")) {
 			href = "";
 		} else {
-			href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, Charsets.UTF_8);
+			href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, UTF_8);
 		}
 		ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
 		if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
@@ -126,7 +127,7 @@ public class IriItem extends Panel implements ContextComponent {
 		}
 		uri = uri.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
 		uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
-		uri = URLDecoder.decode(uri, Charsets.UTF_8);
+		uri = URLDecoder.decode(uri, UTF_8);
 		return uri;
 	}
 

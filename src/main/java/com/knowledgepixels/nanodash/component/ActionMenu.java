@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -10,7 +12,6 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.IRI;
 
-import com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.User;
@@ -51,7 +52,7 @@ public class ActionMenu extends Panel {
 							location = keyLocation.stringValue().replaceFirst("/$", "");
 							extraLabel = " at " + Utils.getPubkeyLocationName(pubkey, "localhost");
 						}
-						sigkeyParam = "&sigkey=" + URLEncoder.encode(pubkey, Charsets.UTF_8);
+						sigkeyParam = "&sigkey=" + URLEncoder.encode(pubkey, UTF_8);
 					}
 				}
 				String url = location + PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
