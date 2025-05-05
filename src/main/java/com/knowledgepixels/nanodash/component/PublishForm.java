@@ -225,8 +225,6 @@ public class PublishForm extends Panel {
 				if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
 					// TODO Allow for automatically using latest template version
 					TemplateContext c = createPubinfoContext(piTemplateId.stringValue());
-					pubInfoContexts.add(c);
-					pubInfoContextMap.put(c.getTemplateId(), c);
 				}
 			}
 		}
