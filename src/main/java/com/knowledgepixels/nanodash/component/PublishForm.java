@@ -211,7 +211,7 @@ public class PublishForm extends Panel {
 			String tid = pageParams.get(k).toString();
 			// TODO Allow for automatically using latest template version:
 			//String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
-			TemplateContext c = getPubinfoContext(tid);
+			TemplateContext c = createPubinfoContext(tid);
 			if (piParamIdMap.containsKey(i)) {
 				// TODO: handle this error better
 				System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
@@ -224,7 +224,7 @@ public class PublishForm extends Panel {
 				if (piTempalteIdLatest.equals(supersedesPubinfoTemplateId)) continue;
 				if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
 					// TODO Allow for automatically using latest template version
-					TemplateContext c = getPubinfoContext(piTemplateId.stringValue());
+					TemplateContext c = createPubinfoContext(piTemplateId.stringValue());
 					pubInfoContexts.add(c);
 					pubInfoContextMap.put(c.getTemplateId(), c);
 				}
@@ -304,7 +304,7 @@ public class PublishForm extends Panel {
 				if (piFiller.hasUnusedStatements()) {
 					final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
 					if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
-						TemplateContext c = getPubinfoContext(handcodedStatementsTemplateId);
+						TemplateContext c = createPubinfoContext(handcodedStatementsTemplateId);
 						c.initStatements();
 						piFiller.fill(c);
 					}
@@ -785,7 +785,7 @@ public class PublishForm extends Panel {
 		}
 	}
 
-	private TemplateContext getPubinfoContext(String piTemplateId) {
+	private TemplateContext createPubinfoContext(String piTemplateId) {
 		TemplateContext c;
 		if (pubInfoContextMap.containsKey(piTemplateId)) {
 			c = pubInfoContextMap.get(piTemplateId);
