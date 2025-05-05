@@ -302,9 +302,9 @@ public class PublishForm extends Panel {
 				}
 				piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
 				if (piFiller.hasUnusedStatements()) {
-					TemplateContext c = getPubinfoContext("https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI");
-					if (!pubInfoContexts.contains(c)) {
-						pubInfoContexts.add(c);
+					final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
+					if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
+						TemplateContext c = getPubinfoContext(handcodedStatementsTemplateId);
 						c.initStatements();
 						piFiller.fill(c);
 					}
