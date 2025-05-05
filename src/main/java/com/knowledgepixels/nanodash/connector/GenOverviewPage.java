@@ -16,6 +16,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
@@ -237,7 +239,22 @@ public class GenOverviewPage extends ConnectorPage {
 						BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", GenNanopubPage.class, params);
 						l.add(new Label("acceptedlinktext", "\"" +  e.get("label") + "\""));
 						item.add(l);
-						String username = User.getShortDisplayName(Utils.vf.createIRI(e.get("firstAuthor")));
+						IRI firstAuthorIri = Utils.vf.createIRI(e.get("firstAuthor"));
+
+						// TODO Move this user name extraction to a helper method:
+						String username;
+						if (User.getName(firstAuthorIri) != null) {
+							username = User.getShortDisplayName(firstAuthorIri);
+						} else {
+							try {
+								Nanopub np = Utils.getAsNanopub(e.get("np"));
+								username = Utils.getFoafNameMap(np).get(e.get("firstAuthor"));
+							} catch (Exception ex) {
+								ex.printStackTrace();
+								username = User.getShortDisplayName(firstAuthorIri);
+							}
+						}
+
 						item.add(new Label("acceptednote", "by " + username + " on " + e.get("date").substring(0, 10)));
 					}
 
