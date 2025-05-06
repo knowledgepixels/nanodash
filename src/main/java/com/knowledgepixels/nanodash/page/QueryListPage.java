@@ -30,7 +30,7 @@ public class QueryListPage extends NanodashPage {
 	public QueryListPage(final PageParameters parameters) {
 		super(parameters);
 
-		add(new TitleBar("titlebar", this, "search"));
+		add(new TitleBar("titlebar", this, "query"));
 
 		final String searchText = parameters.get("query").toString();
 		
