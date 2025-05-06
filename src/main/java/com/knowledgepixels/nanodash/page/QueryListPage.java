@@ -49,23 +49,23 @@ public class QueryListPage extends NanodashPage {
 
 		form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
-//		final HashMap<String,String> noParams = new HashMap<>();
-//		final String queryName = "get-queries";
-//		ApiResponse qResponse = ApiCache.retrieveResponse(queryName, noParams);
-//		if (qResponse != null) {
-//			add(new QueryList("queries", qResponse));
-//		} else {
-//			add(new ApiResultComponent("queries", queryName, noParams) {
-//
-//				private static final long serialVersionUID = 1L;
-//
-//				@Override
-//				public Component getApiResultComponent(String markupId, ApiResponse response) {
-//					return new QueryList(markupId, response);
-//				}
-//			});
-//
-//		}
+		final HashMap<String,String> noParams = new HashMap<>();
+		final String queryName = "get-queries";
+		ApiResponse qResponse = ApiCache.retrieveResponse(queryName, noParams);
+		if (qResponse != null) {
+			add(new QueryList("queries", qResponse));
+		} else {
+			add(new ApiResultComponent("queries", queryName, noParams) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public Component getApiResultComponent(String markupId, ApiResponse response) {
+					return new QueryList(markupId, response);
+				}
+			});
+
+		}
 	}
 
 }
