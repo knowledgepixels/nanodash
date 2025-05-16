@@ -6,3 +6,5 @@
 /target
 /package/.extract
 /scratch
+/*.tar.gz
+/*.tar.gz.enc
