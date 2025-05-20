@@ -52,6 +52,7 @@ public class ExplorePage extends NanodashPage {
 			tempRef = np.getUri().stringValue();
 		}
 		if (!isNanopubId && tempRef.matches("^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*$")) {
+			// TODO retrieve latest version of nanopub here
 			np = Utils.getAsNanopub(tempRef.replaceFirst("(^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1"));
 		}
 		if (np == null) {
