@@ -120,7 +120,9 @@ public class QueryPage extends NanodashPage {
 
 		// TODO Replace hard-coded Nanopub Query URL with dynamic solution:
 		String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
-		form.add(new ExternalLink("yasgui", editLink));
+		// TODO We also need to replace the nanopub-query placeholder service URLs in the query above.
+		// Deactivated for now:
+		form.add(new ExternalLink("yasgui", editLink).setVisible(false));
 
 		add(form);
 
