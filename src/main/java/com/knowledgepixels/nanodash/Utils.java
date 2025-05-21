@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
@@ -364,5 +365,22 @@ public class Utils {
 		}
 		
 	}
+
+	public static final String TYPE_TRIG = "application/trig";
+	public static final String TYPE_JELLY = "application/x-jelly-rdf";
+	public static final String TYPE_JSONLD = "application/ld+json";
+	public static final String TYPE_NQUADS = "application/n-quads";
+	public static final String TYPE_TRIX = "application/trix";
+	public static final String TYPE_HTML = "text/html";
+
+	public static final String SUPPORTED_TYPES =
+			TYPE_TRIG + "," +
+			TYPE_JELLY + "," +
+			TYPE_JSONLD + "," +
+			TYPE_NQUADS + "," +
+			TYPE_TRIX + "," +
+			TYPE_HTML;
+
+	public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
 
 }
