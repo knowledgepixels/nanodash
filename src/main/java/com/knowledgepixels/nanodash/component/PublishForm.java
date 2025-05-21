@@ -79,7 +79,7 @@ public class PublishForm extends Panel {
 
 	private static String[] fixedPubInfoTemplates = new String[] {creatorPubinfoTemplateId, licensePubinfoTempalteId};
 
-	private enum FillMode { USE, SUPERSEDE, DERIVE }
+	public enum FillMode { USE, SUPERSEDE, DERIVE }
 
 	protected Form<?> form;
 	protected FeedbackPanel feedbackPanel;
@@ -160,6 +160,7 @@ public class PublishForm extends Panel {
 		targetNamespace = targetNamespace + "ARTIFACTCODE-PLACEHOLDER/";
 
 		assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
+		assertionContext.setFillMode(fillMode);
 		final String prTemplateId;
 		if (pageParams.get("prtemplate").toString() != null) {
 			prTemplateId = pageParams.get("prtemplate").toString();
@@ -224,7 +225,7 @@ public class PublishForm extends Panel {
 				if (piTempalteIdLatest.equals(supersedesPubinfoTemplateId)) continue;
 				if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
 					// TODO Allow for automatically using latest template version
-					TemplateContext c = createPubinfoContext(piTemplateId.stringValue());
+					createPubinfoContext(piTemplateId.stringValue());
 				}
 			}
 		}
@@ -276,7 +277,7 @@ public class PublishForm extends Panel {
 		final List<Statement> unusedPrStatementList = new ArrayList<>();
 		final List<Statement> unusedPiStatementList = new ArrayList<>();
 		if (fillNp != null) {
-			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION, true);
+			ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION, true, fillMode);
 			filler.fill(assertionContext);
 			unusedStatementList.addAll(filler.getUnusedStatements());
 

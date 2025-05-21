@@ -21,19 +21,26 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 
 public class ValueFiller {
 
 	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 	private Nanopub fillNp;
+	private FillMode fillMode;
 	private List<Statement> unusedStatements = new ArrayList<>();
 	private int initialSize;
 	private boolean formMode;
 
 	public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode) {
+		this(fillNp, contextType, formMode, null);
+	}
+
+	public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode, FillMode fillMode) {
 		this.fillNp = fillNp;
 		this.formMode = formMode;
+		this.fillMode = fillMode;
 		Set<Statement> statements;
 		if (contextType == ContextType.ASSERTION) {
 			statements = fillNp.getAssertion();
@@ -135,12 +142,27 @@ public class ValueFiller {
 		} else if (fillNp.getAssertionUri().equals(v)) {
 			return vf.createIRI("local:assertion");
 //			return Template.ASSERTION_PLACEHOLDER;
-		} else if (v instanceof IRI && formMode) {
-			if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
-				return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
+		} else if (v instanceof IRI iri && formMode) {
+			IRI introducedIri = getIntroducedIri(fillNp);
+			if (!iri.equals(introducedIri) || fillMode != FillMode.SUPERSEDE) {
+				if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
+					return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
+				}
 			}
 		}
 		return v;
+	}
+
+	private static final IRI INTRODUCES = vf.createIRI("http://purl.org/nanopub/x/introduces");
+	private static final IRI DESCRIBES = vf.createIRI("http://purl.org/nanopub/x/describes");
+
+	private static IRI getIntroducedIri(Nanopub np) {
+		for (Statement st : np.getPubinfo()) {
+			if (!st.getSubject().equals(np.getUri())) continue;
+			if (!st.getPredicate().equals(INTRODUCES) && !st.getPredicate().equals(DESCRIBES)) continue;
+			if (st.getObject() instanceof IRI obj) return obj;
+		}
+		return null;
 	}
 
 }

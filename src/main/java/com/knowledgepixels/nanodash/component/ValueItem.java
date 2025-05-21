@@ -8,6 +8,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
+import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -42,6 +43,8 @@ public class ValueItem extends Panel implements ContextComponent {
 				component = new AgentChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isGuidedChoicePlaceholder(iri)) {
 				component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
+			} else if (template.isIntroducedResource(iri) && rg.getContext().getFillMode() == FillMode.SUPERSEDE) {
+				component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
 			} else if (template.isUriPlaceholder(iri)) {
 				component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
 			} else if (template.isLongLiteralPlaceholder(iri)) {

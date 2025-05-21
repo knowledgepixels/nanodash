@@ -577,6 +577,12 @@ input[type=radio] + label strong {
   cursor: pointer;
 }
 
+.introduced {
+  border-style: solid;
+  border-color: #ffbb00;
+  border-width: 2px;
+}
+
 .select2 {
 	font-family: Inter, Verdana, Helvetica, sans-serif;
 	font-size: 11pt;

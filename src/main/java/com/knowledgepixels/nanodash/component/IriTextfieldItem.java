@@ -107,6 +107,9 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			}
 
 		});
+		if (template.isIntroducedResource(iri)) {
+			textfield.add(AttributeAppender.append("class", "introduced"));
+		}
 		add(textfield);
 	}
 
@@ -158,7 +161,6 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 		}
 		textfield.setModelObject(vs);
 	}
-
 
 	protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
 

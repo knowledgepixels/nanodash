@@ -25,6 +25,7 @@ import org.nanopub.NanopubWithNs;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem;
+import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 
 public class TemplateContext implements Serializable {
 
@@ -45,6 +46,7 @@ public class TemplateContext implements Serializable {
 	private String targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
 	private Nanopub existingNanopub;
 	private Map<IRI,String> labels;
+	private FillMode fillMode = null;
 
 	// For PublishForm when nanopub doesn't exist yet:
 	public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
@@ -128,6 +130,14 @@ public class TemplateContext implements Serializable {
 		for (StatementItem si : statementItems) {
 			si.finalizeValues();
 		}
+	}
+
+	public void setFillMode(FillMode fillMode) {
+		this.fillMode = fillMode;
+	}
+
+	public FillMode getFillMode() {
+		return fillMode;
 	}
 
 	public ContextType getType() {

@@ -166,6 +166,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			}
 			
 		});
+		if (template.isIntroducedResource(iri)) {
+			linkComp.add(AttributeAppender.append("class", "introduced"));
+		}
 		add(linkComp);
 		add(new Label("description", new Model<String>() {
 
