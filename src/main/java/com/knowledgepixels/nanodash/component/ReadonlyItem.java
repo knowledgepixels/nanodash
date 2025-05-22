@@ -22,6 +22,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
 import com.knowledgepixels.nanodash.RestrictedChoice;
@@ -166,7 +167,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			}
 			
 		});
-		if (template.isIntroducedResource(iri)) {
+		if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
 			linkComp.add(AttributeAppender.append("class", "introduced"));
 		}
 		add(linkComp);
@@ -226,9 +227,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 		String obj = getFullValue();
 		if (obj != null) {
 			if (isAssertionValue(obj)) {
-				linkComp.add(new AttributeAppender("class", " this-assertion "));
+				linkComp.add(new AttributeAppender("class", "this-assertion"));
 			} else if (isNanopubValue(obj)) {
-				linkComp.add(new AttributeAppender("class", " this-nanopub "));
+				linkComp.add(new AttributeAppender("class", "this-nanopub"));
+			} else if (context.getExistingNanopub() != null) {
+				Nanopub np = context.getExistingNanopub();
+				if (Utils.getIntroducedIriIds(np).contains(obj) || Utils.getEmbeddedIriIds(np).contains(obj)) {
+					linkComp.add(AttributeAppender.append("class", "introduced"));
+				}
 			}
 		}
 	}

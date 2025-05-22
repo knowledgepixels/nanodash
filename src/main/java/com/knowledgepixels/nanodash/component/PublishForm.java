@@ -44,6 +44,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
@@ -289,7 +290,7 @@ public class PublishForm extends Panel {
 				ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
 				if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
 					for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-						if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(PublishForm.NANOPUB_TYPE_PREDICATE)) {
+						if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NanopubUtils.HAS_NANOPUB_TYPE)) {
 							if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
 								piFiller.removeUnusedStatement(st);
 							}
@@ -796,8 +797,6 @@ public class PublishForm extends Panel {
 		return c;
 	}
 
-	public static final IRI INTRODUCES_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/introduces");
-	public static final IRI NANOPUB_TYPE_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/hasNanopubType");
 	public static final IRI WAS_CREATED_AT_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt");
 
 	private synchronized Nanopub createNanopub() throws MalformedNanopubException {
@@ -810,7 +809,10 @@ public class PublishForm extends Panel {
 			c.propagateStatements(npCreator);
 		}
 		for (IRI introducedIri : assertionContext.getIntroducedIris()) {
-			npCreator.addPubinfoStatement(INTRODUCES_PREDICATE, introducedIri);
+			npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, introducedIri);
+		}
+		for (IRI embeddedIri : assertionContext.getEmbeddedIris()) {
+			npCreator.addPubinfoStatement(NanopubUtils.EMBEDS, embeddedIri);
 		}
 		npCreator.addNamespace("this", targetNamespace);
 		npCreator.addNamespace("sub", targetNamespace + "/");
@@ -828,7 +830,7 @@ public class PublishForm extends Panel {
 			npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
 		}
 		for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
-			npCreator.addPubinfoStatement(NANOPUB_TYPE_PREDICATE, type);
+			npCreator.addPubinfoStatement(NanopubUtils.HAS_NANOPUB_TYPE, type);
 		}
 		IRI userIri = NanodashSession.get().getUserIri();
 		if (User.getName(userIri) != null) {

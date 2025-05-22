@@ -107,7 +107,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 			}
 
 		});
-		if (template.isIntroducedResource(iri)) {
+		if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
 			textfield.add(AttributeAppender.append("class", "introduced"));
 		}
 		add(textfield);

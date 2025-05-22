@@ -40,6 +40,7 @@ public class TemplateContext implements Serializable {
 	private List<Component> components = new ArrayList<>();
 	private Map<IRI,IModel<String>> componentModels = new HashMap<>();
 	private Set<IRI> introducedIris = new HashSet<>();
+	private Set<IRI> embeddedIris = new HashSet<>();
 	private List<StatementItem> statementItems;
 	private Set<IRI> iriSet = new HashSet<>();
 	private Map<IRI,StatementItem> narrowScopeMap = new HashMap<>();
@@ -176,6 +177,10 @@ public class TemplateContext implements Serializable {
 		return introducedIris;
 	}
 
+	public Set<IRI> getEmbeddedIris() {
+		return embeddedIris;
+	}
+
 	public IRI processIri(IRI iri) {
 		Value v = processValue(iri);
 		if (v == null) return null;
@@ -250,8 +255,11 @@ public class TemplateContext implements Serializable {
 		} else {
 			processedValue = iri;
 		}
-		if (processedValue instanceof IRI && template.isIntroducedResource(iri)) {
-			introducedIris.add((IRI) processedValue);
+		if (processedValue instanceof IRI pvIri && template.isIntroducedResource(iri)) {
+			introducedIris.add(pvIri);
+		}
+		if (processedValue instanceof IRI pvIri && template.isEmbeddedResource(iri)) {
+			embeddedIris.add(pvIri);
 		}
 		return processedValue;
 	}

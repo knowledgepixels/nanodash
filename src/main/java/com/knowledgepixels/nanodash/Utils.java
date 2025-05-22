@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
@@ -382,5 +384,26 @@ public class Utils {
 			TYPE_HTML;
 
 	public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
+
+	// TODO Move these to nanopub-java library:
+	public static Set<String> getIntroducedIriIds(Nanopub np) {
+		Set<String> introducedIriIds = new HashSet<>();
+		for (Statement st : np.getPubinfo()) {
+			if (!st.getSubject().equals(np.getUri())) continue;
+			if (!st.getPredicate().equals(NanopubUtils.INTRODUCES)) continue;
+			if (st.getObject() instanceof IRI obj) introducedIriIds.add(obj.stringValue());
+		}
+		return introducedIriIds;
+	}
+
+	public static Set<String> getEmbeddedIriIds(Nanopub np) {
+		Set<String> embeddedIriIds = new HashSet<>();
+		for (Statement st : np.getPubinfo()) {
+			if (!st.getSubject().equals(np.getUri())) continue;
+			if (!st.getPredicate().equals(NanopubUtils.EMBEDS)) continue;
+			if (st.getObject() instanceof IRI obj) embeddedIriIds.add(obj.stringValue());
+		}
+		return embeddedIriIds;
+	}
 
 }

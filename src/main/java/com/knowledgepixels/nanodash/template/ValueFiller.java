@@ -15,6 +15,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.CryptoElement;
 import org.nanopub.extra.security.NanopubSignatureElement;
 
@@ -109,7 +110,8 @@ public class ValueFiller {
 				if (pred.equals(DCTERMS.CREATED)) return null;
 				if (pred.equals(Nanopub.SUPERSEDES)) return null;
 				if (pred.equals(RDFS.LABEL)) return null;
-				if (pred.equals(PublishForm.INTRODUCES_PREDICATE)) return null;
+				if (pred.equals(NanopubUtils.INTRODUCES)) return null;
+				if (pred.equals(NanopubUtils.EMBEDS)) return null;
 				if (pred.equals(PublishForm.WAS_CREATED_AT_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
 				if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
@@ -143,26 +145,13 @@ public class ValueFiller {
 			return vf.createIRI("local:assertion");
 //			return Template.ASSERTION_PLACEHOLDER;
 		} else if (v instanceof IRI iri && formMode) {
-			IRI introducedIri = getIntroducedIri(fillNp);
-			if (!iri.equals(introducedIri) || fillMode != FillMode.SUPERSEDE) {
+			if (!Utils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
 				if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
 					return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
 				}
 			}
 		}
 		return v;
-	}
-
-	private static final IRI INTRODUCES = vf.createIRI("http://purl.org/nanopub/x/introduces");
-	private static final IRI DESCRIBES = vf.createIRI("http://purl.org/nanopub/x/describes");
-
-	private static IRI getIntroducedIri(Nanopub np) {
-		for (Statement st : np.getPubinfo()) {
-			if (!st.getSubject().equals(np.getUri())) continue;
-			if (!st.getPredicate().equals(INTRODUCES) && !st.getPredicate().equals(DESCRIBES)) continue;
-			if (st.getObject() instanceof IRI obj) return obj;
-		}
-		return null;
 	}
 
 }

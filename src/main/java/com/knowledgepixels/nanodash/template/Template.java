@@ -36,6 +36,7 @@ public class Template implements Serializable {
 	public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
 	public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
 	public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
+	public static final IRI EMBEDDED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/EmbeddedResource");
 	public static final IRI VALUE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ValuePlaceholder");
 	public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
 	public static final IRI AUTO_ESCAPE_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AutoEscapeUriPlaceholder");
@@ -198,6 +199,11 @@ public class Template implements Serializable {
 	public boolean isIntroducedResource(IRI iri) {
 		iri = transform(iri);
 		return typeMap.containsKey(iri) && typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS);
+	}
+
+	public boolean isEmbeddedResource(IRI iri) {
+		iri = transform(iri);
+		return typeMap.containsKey(iri) && typeMap.get(iri).contains(EMBEDDED_RESOURCE_CLASS);
 	}
 
 	public boolean isValuePlaceholder(IRI iri) {
