@@ -21,23 +21,36 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToo
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.QueryPage;
 
 public class QueryResultTable extends Panel {
 	
 	private static final long serialVersionUID = 1L;
 
-	private QueryResultTable(String id, ApiResponse response) {
+	private QueryResultTable(String id, GrlcQuery q,  ApiResponse response, boolean plain) {
 		super(id);
+
+		if (plain) {
+			add(new Label("label").setVisible(false));
+			add(new Label("morelink").setVisible(false));
+		} else {
+			add(new Label("label", q.getLabel()));
+			add(new BookmarkablePageLink<Void>("morelink", QueryPage.class, new PageParameters().add("id", q.getNanopub().getUri())));
+		}
+
 		List<IColumn<ApiResponseEntry,String>> columns = new ArrayList<>();
 		DataProvider dp;
 		try {
@@ -164,22 +177,23 @@ public class QueryResultTable extends Panel {
 
 	}
 
-	public static Component createComponent(final String markupId, final String queryName) {
-		return createComponent(markupId, queryName, getParams());
+	public static Component createComponent(final String markupId, final String queryId, boolean plain) {
+		return createComponent(markupId, queryId, getParams(), plain);
 	}
 
-	public static Component createComponent(final String markupId, final String queryName, HashMap<String,String> params) {
-		ApiResponse response = ApiCache.retrieveResponse(queryName, params);
+	public static Component createComponent(final String markupId, final String queryId, HashMap<String,String> params, boolean plain) {
+		final GrlcQuery q = new GrlcQuery(queryId);
+		ApiResponse response = ApiCache.retrieveResponse(queryId, params);
 		if (response != null) {
-			return new QueryResultTable(markupId, response);
+			return new QueryResultTable(markupId, q, response, plain);
 		} else {
-			return new ApiResultComponent(markupId, queryName, params) {
+			return new ApiResultComponent(markupId, queryId, params) {
 
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public Component getApiResultComponent(String markupId, ApiResponse response) {
-					return new QueryResultTable(markupId, response);
+					return new QueryResultTable(markupId, q, response, plain);
 				}
 
 			};
