@@ -702,6 +702,10 @@ select {
   padding: 10px 0;
 }
 
+.breadcrumbpath .row-section {
+  padding-bottom: 0;
+}
+
 .breadcrumbpath .nextlevel {
   font-size: 24px;
   margin: -10px 0;
