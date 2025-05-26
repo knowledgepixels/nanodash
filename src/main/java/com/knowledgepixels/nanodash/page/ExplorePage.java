@@ -14,6 +14,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
@@ -72,7 +73,8 @@ public class ExplorePage extends NanodashPage {
 			raw.setVisible(false);
 			add(new Label("nanopub-header", ""));
 			add(new Label("nanopub", ""));
-			add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+			add(new WebMarkupContainer("use-template").setVisible(false));
+			add(new WebMarkupContainer("run-query").setVisible(false));
 		} else {
 
 			// Check whether we should redirect to Nanopub Registry for machine-friendly formats:
@@ -109,7 +111,14 @@ public class ExplorePage extends NanodashPage {
 						new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
 					);
 			} else {
-				add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+				add(new WebMarkupContainer("use-template").setVisible(false));
+			}
+			if (Utils.isNanopubOfClass(np, GrlcQuery.GRLC_QUERY_CLASS)) {
+				add(new WebMarkupContainer("run-query").add(
+						new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().add("id", np.getUri())))
+					);
+			} else {
+				add(new WebMarkupContainer("run-query").setVisible(false));
 			}
 		}
 

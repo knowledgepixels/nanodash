@@ -244,12 +244,7 @@ public class Utils {
 	}
 
 	public static boolean isNanopubOfClass(Nanopub np, IRI classIri) {
-		for (Statement st : np.getAssertion()) {
-			if (np.getAssertionUri().equals(st.getSubject()) && RDF.TYPE.equals(st.getPredicate()) && classIri.equals(st.getObject())) {
-				return true;
-			}
-		}
-		return false;
+		return NanopubUtils.getTypes(np).contains(classIri);
 	}
 
 	public static boolean usesPredicateInAssertion(Nanopub np, IRI predicateIri) {
