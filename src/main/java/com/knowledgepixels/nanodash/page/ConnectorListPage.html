@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title>Journals | nanodash</title>
+<title>Places | nanodash</title>
 <link rel="stylesheet" href="style.css?v=3.38" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
@@ -13,13 +13,15 @@
 
 <div wicket:id="titlebar"></div>
 
-<div id="content">
+<div id="content-pane">
+
+<div class="row-section">
+
+<div class="col-12 header">
 
 <h2>Journals</h2>
 
-<p>Nanodash connects to these journals:</p>
-
-<div class="row">
+</div>
 
 <div class="col-4 item" wicket:id="connectors">
 <a href="." wicket:id="connectorlink">
@@ -28,6 +30,30 @@
 </a>
 </div>
 
+<div class="col-12">
+</div>
+
+</div>
+
+<div class="odd"><div class="row-section">
+
+<div class="col-12 header">
+<h2>Projects</h2>
+</div>
+
+<div class="col-12">
+
+<p>Project pages are still experimental:</p>
+
+<div wicket:id="projects">
+<ul>
+<li>Project X...</li>
+</ul>
+</div>
+
+</div>
+
+</div>
 </div>
 
 </div>

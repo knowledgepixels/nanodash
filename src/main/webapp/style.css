@@ -47,6 +47,7 @@
 	max-width: 1400px;
 	margin-left: auto;
 	margin-right: auto;
+	padding-bottom: 20px;
 }
 .row-section::after {
   content: "";
@@ -81,6 +82,14 @@
   float: left;
   padding: 15px;
   /* border: 1px solid red; */
+}
+
+[class*="col-"].header {
+  padding-bottom: 0px;
+}
+
+[class*="col-"].header h1, [class*="col-"].header h2, [class*="col-"].header h3 {
+  margin-bottom: 0px;
 }
 
 .columncontainer {

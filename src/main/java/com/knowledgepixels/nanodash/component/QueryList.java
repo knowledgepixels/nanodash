@@ -27,11 +27,6 @@ public class QueryList extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	public QueryList(String id, List<GrlcQuery> queries) {
-		super(id);
-		init(queries);
-	}
-
 	public QueryList(String id, ApiResponse resp) {
 		super(id);
 		List<GrlcQuery> queries = new ArrayList<>();
@@ -42,11 +37,8 @@ public class QueryList extends Panel {
 				ex.printStackTrace();
 			}
 		}
-		init(queries);
-	}
 
-	private void init(List<GrlcQuery> queryIds) {
-		add(new DataView<GrlcQuery>("querylist", new ListDataProvider<GrlcQuery>(queryIds)) {
+		add(new DataView<GrlcQuery>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
 
 			private static final long serialVersionUID = 1L;
 
