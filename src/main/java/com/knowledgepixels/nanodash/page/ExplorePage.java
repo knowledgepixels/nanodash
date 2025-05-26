@@ -57,17 +57,21 @@ public class ExplorePage extends NanodashPage {
 		if (isNanopubId) {
 			tempRef = np.getUri().stringValue();
 		}
-		if (!isNanopubId && tempRef.matches("^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*$")) {
-			String npId = tempRef.replaceFirst("(^.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-			Map<String,String> params = new HashMap<>();
-			params.put("thing", tempRef);
-			params.put("np", npId);
-			ApiResponse resp = QueryApiAccess.forcedGet("get-latest-thing-nanopub", params);
-			if (!resp.getData().isEmpty()) {
-				// TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
-				npId = resp.getData().get(0).get("latestVersion");
+		if (!isNanopubId && tempRef.matches("^(.*[^A-Za-z0-9-_])?RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*$")) {
+			np = Utils.getAsNanopub(tempRef.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
+			if (np != null) {
+				String npId = np.getUri().stringValue();
+				tempRef = npId + tempRef.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})([^A-Za-z0-9-_].*)$", "$3");
+				Map<String,String> params = new HashMap<>();
+				params.put("thing", tempRef);
+				params.put("np", npId);
+				ApiResponse resp = QueryApiAccess.forcedGet("get-latest-thing-nanopub", params);
+				if (!resp.getData().isEmpty()) {
+					// TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
+					npId = resp.getData().get(0).get("latestVersion");
+				}
+				np = Utils.getAsNanopub(npId);
 			}
-			np = Utils.getAsNanopub(npId);
 		}
 		if (np == null) {
 			raw.setVisible(false);
