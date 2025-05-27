@@ -20,6 +20,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.SignatureUtils;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
@@ -152,11 +154,23 @@ public class NanopubItem extends Panel {
 			footer.add(authorsSpan);
 
 			PageParameters params = new PageParameters();
+
+			// ----------
+			// TODO Clean this up and move to helper method:
 			IRI uIri = User.findSingleIdForPubkey(pubkey);
 			if (uIri == null) {
-				Set<IRI> creators = SimpleCreatorPattern.getCreators(n.getNanopub());
-				if (creators.size() == 1) uIri = creators.iterator().next();
+				try {
+					Set<IRI> signers = SignatureUtils.getSignatureElement(n.getNanopub()).getSigners();
+					if (signers.size() == 1) {
+						uIri = signers.iterator().next();
+					} else {
+						Set<IRI> creators = SimpleCreatorPattern.getCreators(n.getNanopub());
+						if (creators.size() == 1) uIri = creators.iterator().next();
+					}
+				} catch (MalformedCryptoElementException ex) {}
 			}
+			// ----------
+
 			if (uIri != null) params.add("id", uIri);
 			BookmarkablePageLink<Void> userLink = new BookmarkablePageLink<Void>("creator-link", UserPage.class, params);
 			String userString;
