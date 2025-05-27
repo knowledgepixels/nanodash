@@ -364,7 +364,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 			model.setObject(vs);
 		} else if (v instanceof Literal) {
 			model.setObject("\"" + vs + "\"");
-			if (vs.startsWith("<")) {
+			// TODO Didn't manage to encode this into a working regex:
+			if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
 				linkComp.setVisible(false);
 				extraModel.setObject("<span class=\"internal\">" + Utils.sanitizeHtml(vs) + "</span>");
 				extraComp.setEscapeModelStrings(false);
