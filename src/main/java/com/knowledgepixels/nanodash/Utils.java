@@ -27,7 +27,6 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -289,7 +288,7 @@ public class Utils {
 		if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile")) return "FIP";
 		if (l.equals("http://purl.org/nanopub/x/declaredBy")) return "user intro";
 		l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
-		l = l.replaceFirst("Nanopub$", "");
+		l = l.replaceFirst("^(.+)Nanopub$", "$1");
 		if (l.length() > 25) l = l.substring(0, 20) + "...";
 		return l;
 	}
