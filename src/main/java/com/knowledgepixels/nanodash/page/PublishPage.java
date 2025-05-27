@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.NanodashSession;
@@ -35,9 +36,11 @@ public class PublishPage extends NanodashPage {
 			} else {
 				add(new PublishForm("form", parameters, PublishPage.class, PublishConfirmPage.class));
 			}
+			add(new Label("templatelist").setVisible(false));
 		} else {
 			autoRefresh = true;
-			add(new TemplateList("form"));
+			add(new Label("form").setVisible(false));
+			add(new TemplateList("templatelist"));
 		}
 	}
 
