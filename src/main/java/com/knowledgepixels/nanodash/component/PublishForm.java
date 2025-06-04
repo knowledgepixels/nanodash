@@ -910,6 +910,8 @@ public class PublishForm extends Panel {
 		return null;
 	}
 
+	// This is supposed to solve the problem that sometimes (but only sometimes) form content is reset
+	// if the user browses other pages in parallel:
 	protected boolean getStatelessHint() {
 		return false;
 	}
