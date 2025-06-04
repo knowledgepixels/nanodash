@@ -910,4 +910,8 @@ public class PublishForm extends Panel {
 		return null;
 	}
 
+	protected boolean getStatelessHint() {
+		return false;
+	}
+	
 }
