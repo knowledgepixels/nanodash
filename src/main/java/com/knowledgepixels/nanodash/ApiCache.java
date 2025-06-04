@@ -55,7 +55,7 @@ public class ApiCache {
 		String cacheId = getCacheId(queryName, params);
 		boolean isCached = false;
 		boolean needsRefresh = true;
-		if (cachedResponses.containsKey(cacheId)) {
+		if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
 			long cacheAge = timeNow - lastRefresh.get(cacheId);
 			isCached = cacheAge < 24 * 60 * 60 * 1000;
 			needsRefresh = cacheAge > 60 * 1000;
