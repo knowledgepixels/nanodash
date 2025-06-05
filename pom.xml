@@ -77,12 +77,12 @@
     <dependency>
       <groupId>com.opencsv</groupId>
       <artifactId>opencsv</artifactId>
-      <version>5.10</version>
+      <version>5.11.1</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20250107</version>
+      <version>20250517</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -110,7 +110,7 @@
     <dependency>
       <groupId>com.github.Nanopublication</groupId>
       <artifactId>nanopub-java</artifactId>
-      <version>c2effde016e61856073e4952c77e8c6d8a228146</version>
+      <version>nanopub-1.77</version>
     </dependency>
 
     <dependency>
