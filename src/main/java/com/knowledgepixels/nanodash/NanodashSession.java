@@ -5,10 +5,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Session;
@@ -26,11 +25,13 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.setting.IntroNanopub;
 
+import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.xml.bind.DatatypeConverter;
 
 public class NanodashSession extends WebSession {
 
@@ -64,6 +65,22 @@ public class NanodashSession extends WebSession {
 	private IntroNanopub localIntro = null;
 
 	private Date lastTimeIntroPublished = null;
+
+	// We should store here some sort of form model and not the forms themselves, but I couldn't figure
+	// how to do it, so doing it like this for the moment...
+	private Map<String,PublishForm> formMap = new HashMap<>();
+
+	public void setForm(String formObjId, PublishForm formObj) {
+		formMap.put(formObjId, formObj);
+	}
+
+	public boolean hasForm(String formObjId) {
+		return formMap.containsKey(formObjId);
+	}
+
+	public PublishForm getForm(String formObjId) {
+		return formMap.get(formObjId);
+	}
 
 	public void loadProfileInfo() {
 		localIntroCount = null;

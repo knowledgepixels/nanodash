@@ -257,7 +257,7 @@ public class PublishForm extends Panel {
 		if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
 			add(new Label("newversion", "There is a new version of this assertion template:"));
 			PageParameters params = new PageParameters(pageParams);
-			params.set("template", latestAssertionId);
+			params.set("template", latestAssertionId).remove("formobj");
 			add(new BookmarkablePageLink<Void>("newversionlink", publishPageClass, params));
 			if ("latest".equals(pageParams.get("template-version").toString())) {
 				throw new RestartResponseException(publishPageClass, params);

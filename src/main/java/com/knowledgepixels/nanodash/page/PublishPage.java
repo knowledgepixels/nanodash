@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.util.Random;
+
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,7 +37,15 @@ public class PublishPage extends NanodashPage {
 			if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
 				add(new DifferentKeyErrorItem("form", parameters));
 			} else {
-				add(new PublishForm("form", parameters, PublishPage.class, PublishConfirmPage.class));
+				if (!parameters.contains("formobj")) {
+					throw new RestartResponseException(getClass(), parameters.add("formobj", Math.abs(new Random().nextLong()) + ""));
+				}
+				String formObjId = parameters.get("formobj").toString();
+				if (!session.hasForm(formObjId)) {
+					PublishForm publishForm = new PublishForm("form", parameters, getClass(), PublishConfirmPage.class);
+					session.setForm(formObjId, publishForm);
+				}
+				add(session.getForm(formObjId));
 			}
 			add(new Label("templatelist").setVisible(false));
 		} else {
