@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
@@ -20,6 +21,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 
 import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.Utils;
@@ -80,7 +82,7 @@ public class Template implements Serializable {
 	private String description;
 
 	// TODO: Make all these maps more generic and the code simpler:
-	private IRI assertionIri;
+	private IRI templateIri;
 	private Map<IRI,List<IRI>> typeMap = new HashMap<>();
 	private Map<IRI,List<Value>> possibleValueMap = new HashMap<>();
 	private Map<IRI,List<IRI>> possibleValuesToLoadMap = new HashMap<>();
@@ -172,7 +174,7 @@ public class Template implements Serializable {
 	}
 
 	public List<IRI> getStatementIris() {
-		return statementMap.get(assertionIri);
+		return statementMap.get(templateIri);
 	}
 
 	public List<IRI> getStatementIris(IRI groupIri) {
@@ -370,14 +372,24 @@ public class Template implements Serializable {
 	}
 
 	private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
-		assertionIri = templateNp.getAssertionUri();
+		Set<IRI> npTypes = NanopubUtils.getTypes(templateNp);
+		if (npTypes.contains(ASSERTION_TEMPLATE_CLASS) || npTypes.contains(PROVENANCE_TEMPLATE_CLASS) || npTypes.contains(PUBINFO_TEMPLATE_CLASS)) {
+			processNpTemplate(templateNp);
+		} else {
+			// Experimental SHACL-based template:
+			processShaclTemplate(templateNp);
+		}
+	}
+
+	private void processNpTemplate(Nanopub templateNp) throws MalformedTemplateException {
+		templateIri = templateNp.getAssertionUri();
 		for (Statement st : templateNp.getAssertion()) {
 			final IRI subj = (IRI) st.getSubject();
 			final IRI pred = st.getPredicate();
 			final Value obj = st.getObject();
 			final String objS = obj.stringValue();
 
-			if (subj.equals(assertionIri)) {
+			if (subj.equals(templateIri)) {
 				if (pred.equals(RDFS.LABEL)) {
 					label = objS;
 				} else if (pred.equals(DCTERMS.DESCRIPTION)) {
@@ -403,12 +415,7 @@ public class Template implements Serializable {
 				}
 			}
 			if (pred.equals(RDF.TYPE) && obj instanceof IRI objIri) {
-				List<IRI> l = typeMap.get(subj);
-				if (l == null) {
-					l = new ArrayList<>();
-					typeMap.put(subj, l);
-				}
-				l.add(objIri);
+				addType(subj, objIri);
 			} else if (pred.equals(HAS_STATEMENT_PREDICATE) && obj instanceof IRI objIri) {
 				List<IRI> l = statementMap.get(subj);
 				if (l == null) {
@@ -469,16 +476,150 @@ public class Template implements Serializable {
 				}
 			}
 		}
-		List<IRI> assertionTypes = typeMap.get(assertionIri);
-		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) &&
-				!assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS) && !assertionTypes.contains(PUBINFO_TEMPLATE_CLASS))) {
-			throw new MalformedTemplateException("Unknown template type");
-		}
+//		List<IRI> assertionTypes = typeMap.get(templateIri);
+//		if (assertionTypes == null || (!assertionTypes.contains(ASSERTION_TEMPLATE_CLASS) &&
+//				!assertionTypes.contains(PROVENANCE_TEMPLATE_CLASS) && !assertionTypes.contains(PUBINFO_TEMPLATE_CLASS))) {
+//			throw new MalformedTemplateException("Unknown template type");
+//		}
 		for (List<IRI> l : statementMap.values()) {
 			l.sort(statementComparator);
 		}
 	}
 
+	private void processShaclTemplate(Nanopub templateNp) throws MalformedTemplateException {
+		templateIri = null;
+		for (Statement st : templateNp.getAssertion()) {
+			if (st.getPredicate().stringValue().equals("http://www.w3.org/ns/shacl#targetClass")) {
+				templateIri = (IRI) st.getSubject();
+				break;
+			}
+		}
+		if (templateIri == null) {
+			throw new MalformedTemplateException("Base node shape not found");
+		}
+
+		IRI baseSubj = vf.createIRI(templateIri.stringValue() + "+subj");
+		addType(baseSubj, INTRODUCED_RESOURCE_CLASS);
+
+		for (Statement st : templateNp.getAssertion()) {
+			final IRI subj = (IRI) st.getSubject();
+			final IRI pred = st.getPredicate();
+			final Value obj = st.getObject();
+			final String objS = obj.stringValue();
+
+			if (subj.equals(templateIri)) {
+				if (pred.equals(RDFS.LABEL)) {
+					label = objS;
+				} else if (pred.equals(DCTERMS.DESCRIPTION)) {
+					description = Utils.sanitizeHtml(objS);
+				} else if (obj instanceof IRI objIri) {
+					if (pred.equals(HAS_DEFAULT_PROVENANCE_PREDICATE)) {
+						defaultProvenance = objIri;
+					} else if (pred.equals(HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE)) {
+						requiredPubinfoElements.add(objIri);
+					} else if (pred.equals(HAS_TARGET_NAMESPACE)) {
+						targetNamespace = objS;
+					} else if (pred.equals(HAS_TARGET_NANOPUB_TYPE)) {
+						targetNanopubTypes.add(objIri);
+					}
+				} else if (obj instanceof Literal) {
+					if (pred.equals(HAS_TAG)) {
+						// TODO This should be replaced at some point with a more sophisticated mechanism based on classes.
+						// We are assuming that there is at most one tag.
+						this.tag = objS;
+					} else if (pred.equals(HAS_NANOPUB_LABEL_PATTERN)) {
+						nanopubLabelPattern = objS;
+					}	
+				}
+			}
+			if (pred.equals(RDF.TYPE) && obj instanceof IRI objIri) {
+				addType(subj, objIri);
+			} else if (pred.stringValue().equals("http://www.w3.org/ns/shacl#property") && obj instanceof IRI objIri) {
+				List<IRI> l = statementMap.get(subj);
+				if (l == null) {
+					l = new ArrayList<>();
+					statementMap.put(subj, l);
+				}
+				l.add((IRI) objIri);
+				IRI stSubjIri = vf.createIRI(subj.stringValue() + "+subj");
+				statementSubjects.put(objIri, stSubjIri);
+				addType(stSubjIri, LOCAL_RESOURCE_CLASS);
+				addType(stSubjIri, URI_PLACEHOLDER_CLASS);
+			} else if (pred.stringValue().equals("http://www.w3.org/ns/shacl#path") && obj instanceof IRI objIri) {
+				statementPredicates.put(subj, objIri);
+				IRI stObjIri = vf.createIRI(subj.stringValue() + "+obj");
+				statementObjects.put(subj, stObjIri);
+				addType(stObjIri, VALUE_PLACEHOLDER_CLASS);
+			} else if (pred.equals(POSSIBLE_VALUE_PREDICATE)) {
+				List<Value> l = possibleValueMap.get(subj);
+				if (l == null) {
+					l = new ArrayList<>();
+					possibleValueMap.put(subj, l);
+				}
+				l.add(obj);
+			} else if (pred.equals(POSSIBLE_VALUES_FROM_PREDICATE)) {
+				List<IRI> l = possibleValuesToLoadMap.get(subj);
+				if (l == null) {
+					l = new ArrayList<>();
+					possibleValuesToLoadMap.put(subj, l);
+				}
+				if (obj instanceof IRI objIri) {
+					l.add(objIri);
+					Nanopub valuesNanopub = Utils.getNanopub(objS);
+					for (Statement s : valuesNanopub.getAssertion()) {
+						if (s.getPredicate().equals(RDFS.LABEL)) {
+							labelMap.put((IRI) s.getSubject(), s.getObject().stringValue());
+						}
+					}
+				}
+			} else if (pred.equals(POSSIBLE_VALUES_FROM_API_PREDICATE)) {
+				List<String> l = apiMap.get(subj);
+				if (l == null) {
+					l = new ArrayList<>();
+					apiMap.put(subj, l);
+				}
+				if (obj instanceof Literal) {
+					l.add(objS);
+				}
+			} else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
+				labelMap.put(subj, objS);
+			} else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
+				prefixMap.put(subj, objS);
+			} else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
+				prefixLabelMap.put(subj, objS);
+			} else if (pred.equals(HAS_REGEX_PREDICATE) && obj instanceof Literal) {
+				regexMap.put(subj, objS);
+//			} else if (pred.equals(RDF.SUBJECT) && obj instanceof IRI objIri) {
+//				statementSubjects.put(subj, objIri);
+//			} else if (pred.equals(RDF.PREDICATE) && obj instanceof IRI objIri) {
+//				statementPredicates.put(subj, objIri);
+//			} else if (pred.equals(RDF.OBJECT)) {
+//				statementObjects.put(subj, obj);
+			} else if (pred.equals(HAS_DEFAULT_VALUE)) {
+				defaultValues.put(subj, obj);
+			} else if (pred.equals(STATEMENT_ORDER_PREDICATE)) {
+				if (obj instanceof Literal && objS.matches("[0-9]+")) {
+					statementOrder.put(subj, Integer.valueOf(objS));
+				}
+			}
+		}
+		for (List<IRI> l : statementMap.values()) {
+			l.sort(statementComparator);
+		}
+
+		if (label == null) {
+			label = NanopubUtils.getLabel(templateNp);
+		}
+	}
+
+	private void addType(IRI thing, IRI type) {
+		List<IRI> l = typeMap.get(thing);
+		if (l == null) {
+			l = new ArrayList<>();
+			typeMap.put(thing, l);
+		}
+		l.add(type);
+	}
 
 	private IRI transform(IRI iri) {
 		if (iri.stringValue().matches(".*__[0-9]+")) {
