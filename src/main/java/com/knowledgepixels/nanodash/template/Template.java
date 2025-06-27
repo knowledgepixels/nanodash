@@ -26,6 +26,8 @@ import org.nanopub.NanopubUtils;
 import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.Utils;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -122,6 +124,9 @@ public class Template implements Serializable {
 	}
 
 	public String getLabel() {
+		if (label == null) {
+			return "Template " + TrustyUriUtils.getArtifactCode(nanopub.getUri().stringValue()).substring(0, 10);
+		}
 		return label;
 	}
 
