@@ -85,6 +85,7 @@ public class StatementItem extends Panel {
 	protected void onBeforeRender() {
 		if (repetitionGroupsChanged) {
 			updateViewElements();
+			finalizeValues();
 		}
 		repetitionGroupsChanged = false;
 		super.onBeforeRender();

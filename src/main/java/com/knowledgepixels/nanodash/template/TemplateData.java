@@ -62,7 +62,7 @@ public class TemplateData implements Serializable {
 				if (!t.isUnlisted()) templates.add(t);
 				templateMap.put(t.getId(), t);
 			} catch (Exception ex) {
-				System.err.println("Exception: " + ex.getMessage());
+				ex.printStackTrace();
 			}
 		}
 		Collections.sort(templates, templateComparator);

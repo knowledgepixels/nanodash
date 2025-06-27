@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
@@ -111,7 +110,7 @@ public class Template implements Serializable {
 	}
 
 	public boolean isUnlisted() {
-		return typeMap.get(nanopub.getAssertionUri()).contains(UNLISTED_TEMPLATE_CLASS);
+		return typeMap.get(templateIri).contains(UNLISTED_TEMPLATE_CLASS);
 	}
 
 	public Nanopub getNanopub() {
@@ -170,6 +169,14 @@ public class Template implements Serializable {
 	}
 
 	public Value getDefault(IRI iri) {
+		if (iri.stringValue().matches(".*__[0-9]+")) {
+			String baseIri = iri.stringValue().replaceFirst("__[0-9]+$", "");
+			Value v = defaultValues.get(vf.createIRI(baseIri));
+			if (v instanceof IRI vIri) {
+				int repeatSuffix = Integer.parseInt(iri.stringValue().replaceFirst("^.*__([0-9]+)$", "$1"));
+				return vf.createIRI(vIri.stringValue() + (repeatSuffix+1));
+			}
+		}
 		iri = transform(iri);
 		return defaultValues.get(iri);
 	}
@@ -373,8 +380,17 @@ public class Template implements Serializable {
 	}
 
 	private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
-		Set<IRI> npTypes = NanopubUtils.getTypes(templateNp);
-		if (npTypes.contains(ASSERTION_TEMPLATE_CLASS) || npTypes.contains(PROVENANCE_TEMPLATE_CLASS) || npTypes.contains(PUBINFO_TEMPLATE_CLASS)) {
+		boolean isNpTemplate = false;
+		for (Statement st : templateNp.getAssertion()) {
+			if (st.getSubject().equals(templateNp.getAssertionUri()) && st.getPredicate().equals(RDF.TYPE)) {
+				if (st.getObject().equals(ASSERTION_TEMPLATE_CLASS) || st.getObject().equals(PROVENANCE_TEMPLATE_CLASS) || st.getObject().equals(PUBINFO_TEMPLATE_CLASS)) {
+					isNpTemplate = true;
+					break;
+				}
+			}
+		}
+
+		if (isNpTemplate) {
 			processNpTemplate(templateNp);
 		} else {
 			// Experimental SHACL-based template:
