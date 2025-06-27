@@ -19,6 +19,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -489,7 +490,7 @@ public class Template implements Serializable {
 	private void processShaclTemplate(Nanopub templateNp) throws MalformedTemplateException {
 		templateIri = null;
 		for (Statement st : templateNp.getAssertion()) {
-			if (st.getPredicate().stringValue().equals("http://www.w3.org/ns/shacl#targetClass")) {
+			if (st.getPredicate().equals(SHACL.TARGET_CLASS)) {
 				templateIri = (IRI) st.getSubject();
 				break;
 			}
@@ -500,6 +501,10 @@ public class Template implements Serializable {
 
 		IRI baseSubj = vf.createIRI(templateIri.stringValue() + "+subj");
 		addType(baseSubj, INTRODUCED_RESOURCE_CLASS);
+
+		List<IRI> statementList = new ArrayList<>();
+		Map<IRI,Integer> minCounts = new HashMap<>();
+		Map<IRI,Integer> maxCounts = new HashMap<>();
 
 		for (Statement st : templateNp.getAssertion()) {
 			final IRI subj = (IRI) st.getSubject();
@@ -534,7 +539,8 @@ public class Template implements Serializable {
 			}
 			if (pred.equals(RDF.TYPE) && obj instanceof IRI objIri) {
 				addType(subj, objIri);
-			} else if (pred.stringValue().equals("http://www.w3.org/ns/shacl#property") && obj instanceof IRI objIri) {
+			} else if (pred.equals(SHACL.PROPERTY) && obj instanceof IRI objIri) {
+				statementList.add(objIri);
 				List<IRI> l = statementMap.get(subj);
 				if (l == null) {
 					l = new ArrayList<>();
@@ -545,7 +551,7 @@ public class Template implements Serializable {
 				statementSubjects.put(objIri, stSubjIri);
 				addType(stSubjIri, LOCAL_RESOURCE_CLASS);
 				addType(stSubjIri, URI_PLACEHOLDER_CLASS);
-			} else if (pred.stringValue().equals("http://www.w3.org/ns/shacl#path") && obj instanceof IRI objIri) {
+			} else if (pred.equals(SHACL.PATH) && obj instanceof IRI objIri) {
 				statementPredicates.put(subj, objIri);
 				IRI stObjIri = vf.createIRI(subj.stringValue() + "+obj");
 				statementObjects.put(subj, stObjIri);
@@ -601,10 +607,30 @@ public class Template implements Serializable {
 				if (obj instanceof Literal && objS.matches("[0-9]+")) {
 					statementOrder.put(subj, Integer.valueOf(objS));
 				}
+			} else if (pred.equals(SHACL.MIN_COUNT)) {
+				try {
+					minCounts.put(subj, Integer.parseInt(obj.stringValue()));
+				} catch (NumberFormatException ex) {
+					ex.printStackTrace();
+				}
+			} else if (pred.equals(SHACL.MAX_COUNT)) {
+				try {
+					maxCounts.put(subj, Integer.parseInt(obj.stringValue()));
+				} catch (NumberFormatException ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 		for (List<IRI> l : statementMap.values()) {
 			l.sort(statementComparator);
+		}
+		for (IRI iri : statementList) {
+			if (!minCounts.containsKey(iri) || minCounts.get(iri) <= 0) {
+				addType(iri, OPTIONAL_STATEMENT_CLASS);
+			}
+			if (!maxCounts.containsKey(iri) || maxCounts.get(iri) > 1) {
+				addType(iri, REPEATABLE_STATEMENT_CLASS);
+			}
 		}
 
 		if (label == null) {
