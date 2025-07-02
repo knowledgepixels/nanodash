@@ -41,23 +41,22 @@ public class QueryPage extends NanodashPage {
 		add(new TitleBar("titlebar", this, null));
 		add(new Label("pagetitle", "Query Info | nanodash"));
 
-		final String id = parameters.get("id").toString();
+		String id = parameters.get("id").toString();
 		final String queryId = parameters.get("runquery").toString();
+		if (id == null) id = queryId;
+
 		final HashMap<String,String> queryParams = new HashMap<>();
 		for (String paramKey : parameters.getNamedKeys()) {
 			if (!paramKey.startsWith("queryparam_")) continue;
 			queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
 		}
 
-		GrlcQuery q;
-		if (id != null) {
-			q = new GrlcQuery(id);
-		} else {
-			q = new GrlcQuery(queryId);
-		}
+		GrlcQuery q = new GrlcQuery(id);
 
 		add(new Label("querylabel", q.getLabel()));
 		add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));
+		// TODO Replace hard-coded domain with dynamic solution:
+		add(new ExternalLink("openapi", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
 		add(new Label("querydesc", q.getDescription()));
 
 		form = new Form<Void>("form") {

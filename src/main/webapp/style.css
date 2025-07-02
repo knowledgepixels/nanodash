@@ -332,17 +332,28 @@ img.thirdparty {
 .nanopub-icon {
   display: inline-block;
   background-image: url("nanopub-icon.svg");
-  vertical-align: middle;
-  width: 15px;
-  height: 15px;
+  vertical-align: top;
+  margin-top: 6px;
+  width: 12px;
+  height: 12px;
 }
 
 .user-icon {
   display: inline-block;
   background-image: url("images/user-icon.svg");
-  vertical-align: middle;
-  width: 15px;
-  height: 15px;
+  vertical-align: top;
+  margin-top: 6px;
+  width: 12px;
+  height: 12px;
+}
+
+.api-icon {
+  display: inline-block;
+  background-image: url("images/api-icon.svg");
+  vertical-align: top;
+  margin-top: 6px;
+  width: 12px;
+  height: 12px;
 }
 
 .textfield-icon {
@@ -358,9 +369,10 @@ ul.users {
 .form-icon {
   display: inline-block;
   background-image: url("images/form-icon.svg");
-  vertical-align: middle;
-  width: 15px;
-  height: 15px;
+  vertical-align: top;
+  margin-top: 6px;
+  width: 12px;
+  height: 12px;
 }
 
 ul.forms {
