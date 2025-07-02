@@ -56,7 +56,8 @@ public class QueryPage extends NanodashPage {
 		add(new Label("querylabel", q.getLabel()));
 		add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));
 		// TODO Replace hard-coded domain with dynamic solution:
-		add(new ExternalLink("openapi", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
+		add(new ExternalLink("openapi-this", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
+		add(new ExternalLink("openapi-latest", "https://query.knowledgepixels.com/openapi/?url=spec/" + id + "%3Fapi-version=latest"));
 		add(new Label("querydesc", q.getDescription()));
 
 		form = new Form<Void>("form") {
