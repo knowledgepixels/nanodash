@@ -112,7 +112,7 @@ public class QueryResultTable extends Panel {
 		private SingleSortState<String> sortState = new SingleSortState<>();
 
 		public DataProvider() {
-			sortState.setSort(new SortParam<String>("date", false));
+//			sortState.setSort(new SortParam<String>("date", false));
 		}
 
 		public DataProvider(List<ApiResponseEntry> data) {
@@ -122,10 +122,11 @@ public class QueryResultTable extends Panel {
 
 		@Override
 		public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
-			List<ApiResponseEntry> copy = new ArrayList<>(data);
-			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
-			Collections.sort(copy, comparator);
-			return Utils.subList(copy, first, first + count).iterator();
+//			List<ApiResponseEntry> copy = new ArrayList<>(data);
+//			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
+//			Collections.sort(copy, comparator);
+//			return Utils.subList(copy, first, first + count).iterator();
+			return Utils.subList(data, first, first + count).iterator();
 		}
 
 		@Override
