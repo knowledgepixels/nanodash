@@ -574,9 +574,8 @@ public class Template implements Serializable {
 				addType(stSubjIri, URI_PLACEHOLDER_CLASS);
 			} else if (pred.equals(SHACL.PATH) && obj instanceof IRI objIri) {
 				statementPredicates.put(subj, objIri);
-				IRI stObjIri = vf.createIRI(subj.stringValue() + "+obj");
-				statementObjects.put(subj, stObjIri);
-				addType(stObjIri, VALUE_PLACEHOLDER_CLASS);
+			} else if (pred.equals(SHACL.HAS_VALUE) && obj instanceof IRI objIri) {
+				statementObjects.put(subj, objIri);
 			} else if (pred.equals(POSSIBLE_VALUE_PREDICATE)) {
 				List<Value> l = possibleValueMap.get(subj);
 				if (l == null) {
@@ -646,12 +645,20 @@ public class Template implements Serializable {
 			l.sort(statementComparator);
 		}
 		for (IRI iri : statementList) {
-			if (!minCounts.containsKey(iri) || minCounts.get(iri) <= 0) {
-				addType(iri, OPTIONAL_STATEMENT_CLASS);
+			if (!statementObjects.containsKey(iri)) {
+				IRI stObjIri = vf.createIRI(iri.stringValue() + "+obj");
+				statementObjects.put(iri, stObjIri);
+				addType(stObjIri, VALUE_PLACEHOLDER_CLASS);
+				if (!minCounts.containsKey(iri) || minCounts.get(iri) <= 0) {
+					addType(iri, OPTIONAL_STATEMENT_CLASS);
+				}
+				if (!maxCounts.containsKey(iri) || maxCounts.get(iri) > 1) {
+					addType(iri, REPEATABLE_STATEMENT_CLASS);
+				}
 			}
-			if (!maxCounts.containsKey(iri) || maxCounts.get(iri) > 1) {
-				addType(iri, REPEATABLE_STATEMENT_CLASS);
-			}
+		}
+		if (!labelMap.containsKey(baseSubj) && typeMap.get(baseSubj).contains(URI_PLACEHOLDER_CLASS) && typeMap.get(baseSubj).contains(LOCAL_RESOURCE_CLASS)) {
+			labelMap.put(baseSubj, "short ID as URI suffix");
 		}
 
 		if (label == null) {
