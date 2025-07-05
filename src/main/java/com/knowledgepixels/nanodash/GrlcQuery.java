@@ -3,8 +3,10 @@ package com.knowledgepixels.nanodash;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -28,6 +30,15 @@ public class GrlcQuery implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private static Map<String,GrlcQuery> instanceMap = new HashMap<>();
+
+	public static GrlcQuery get(String id) {
+		if (!instanceMap.containsKey(id)) {
+			instanceMap.put(id, new GrlcQuery(id));
+		}
+		return instanceMap.get(id);
+	}
+
 	public final static IRI GRLC_QUERY_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/grlc-query");
 	public final static IRI GRLC_HAS_SPARQL = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
 	public final static IRI GRLC_HAS_ENDPOINT = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
@@ -43,7 +54,7 @@ public class GrlcQuery implements Serializable {
 	private String description;
 	private final List<String> placeholdersList;
 
-	public GrlcQuery(String id) {
+	private GrlcQuery(String id) {
 		if (id == null) {
 			throw new IllegalArgumentException("Null value for query ID");
 		}

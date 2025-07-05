@@ -183,7 +183,7 @@ public class QueryResultTable extends Panel {
 	}
 
 	public static Component createComponent(final String markupId, final String queryId, HashMap<String,String> params, boolean plain) {
-		final GrlcQuery q = new GrlcQuery(queryId);
+		final GrlcQuery q = GrlcQuery.get(queryId);
 		ApiResponse response = ApiCache.retrieveResponse(queryId, params);
 		if (response != null) {
 			return new QueryResultTable(markupId, q, response, plain);

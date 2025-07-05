@@ -51,7 +51,7 @@ public class QueryPage extends NanodashPage {
 			queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
 		}
 
-		GrlcQuery q = new GrlcQuery(id);
+		GrlcQuery q = GrlcQuery.get(id);
 
 		add(new Label("querylabel", q.getLabel()));
 		add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));

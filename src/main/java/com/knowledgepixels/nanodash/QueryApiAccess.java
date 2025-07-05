@@ -127,6 +127,10 @@ public class QueryApiAccess {
 		return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
 	}
 
+	public static String getQueryId(String queryName) {
+		return queryIds.get(queryName);
+	}
+
 	public static String getQueryName(IRI queryIri) {
 		if (queryIri == null) return null;
 		if (!queryIri.stringValue().matches(queryIriPattern)) return null;

@@ -42,7 +42,7 @@ public class QueryParamField extends Panel {
 	}
 
 	public String getParamName() {
-		return paramId.replaceFirst("^_+", "").replaceFirst("_iri$", "");
+		return getParamName(paramId);
 	}
 
 	public IModel<String> getModel() {
@@ -93,6 +93,10 @@ public class QueryParamField extends Panel {
 			return s != null && !s.isBlank();
 		}
 
+	}
+
+	public static String getParamName(String placeholderId) {
+		return placeholderId.replaceFirst("^_+", "").replaceFirst("_iri$", "");
 	}
 
 }

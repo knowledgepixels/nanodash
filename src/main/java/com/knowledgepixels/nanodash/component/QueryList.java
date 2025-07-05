@@ -32,7 +32,7 @@ public class QueryList extends Panel {
 		List<GrlcQuery> queries = new ArrayList<>();
 		for (ApiResponseEntry e : resp.getData()) {
 			try {
-				queries.add(new GrlcQuery(e.get("np")));
+				queries.add(GrlcQuery.get(e.get("np")));
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}

@@ -23,6 +23,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.beust.jcommander.Strings;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import com.knowledgepixels.nanodash.component.QueryParamField;
 
 public class LookupApis {
 
@@ -58,16 +59,29 @@ public class LookupApis {
 						params.put(p.getName(), p.getValue());
 					}
 				}
-				params.put("query", expandSearchTerm(searchterm));
+				String queryId = queryName;
+				if (!queryName.contains("/")) {
+					queryId = QueryApiAccess.getQueryId(queryName);
+				}
+				GrlcQuery q = GrlcQuery.get(queryId);
+				if (q.getEndpoint().stringValue().endsWith("/text")) {
+					searchterm = expandSearchTerm(searchterm);
+				}
+				String queryParamName = "query";
+				if (q.getPlaceholdersList().size() == 1) {
+					queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
+				}
+				params.put(queryParamName, searchterm);
 				ApiResponse result = QueryApiAccess.get(queryName, params);
 				int count = 0;
 				for (ApiResponseEntry r : result.getData()) {
 					String uri = r.get("thing");
 					values.add(uri);
 					String desc = r.get("description");
+					if (desc == null) desc = "";
 					if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
 					if (!desc.isEmpty()) desc = " - " + desc;
-					labelMap.put(uri, r.get("label") + " - by " + User.getShortDisplayName(null, r.get("pubkey")));
+					labelMap.put(uri, r.get("label") + desc);
 					count++;
 					if (count > 9) return;
 				}
