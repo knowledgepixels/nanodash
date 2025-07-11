@@ -1512,7 +1512,8 @@ p.waiting {
   color: #ccc;
 }
 
-span.message {
+span.usertext {
   background: #ffb;
   padding: 3px;
 }
+
