@@ -1512,3 +1512,7 @@ p.waiting {
   color: #ccc;
 }
 
+span.message {
+  background: #ffb;
+  padding: 3px;
+}
