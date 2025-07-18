@@ -49,6 +49,7 @@ public class QueryApiAccess {
 		load("RAQqjXQYlxYQeI4Y3UQy9OrD5Jx1E3PJ8KwKKQlWbiYSw/get-queries");
 		load("RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub");
 		load("RAnkM-_WqYU_dch4YqbL90lNJlXJOFV17R14Ntt1WGaNM/get-projects");
+		load("RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts");
 	}
 
 	private static void load(String queryId) {

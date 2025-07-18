@@ -66,6 +66,7 @@ public class ThingListPanel extends Panel {
 	public enum Mode {
 		CLASSES("get-classes-for-thing", "thing", "class", "class", "classes", "Assigned to"),
 		INSTANCES("get-instances", "class", "instance", "instance", "instances", "Has"),
+		PARTS("get-parts", "thing", "part", "part", "parts", "Has"),
 		TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in");
 
 		public final String queryName;

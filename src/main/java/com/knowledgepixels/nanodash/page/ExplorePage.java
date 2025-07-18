@@ -144,9 +144,11 @@ public class ExplorePage extends NanodashPage {
 		add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>", 10));
 		if (isNanopubId) {
 			add(new Label("instances-panel").setVisible(false));
+			add(new Label("parts-panel").setVisible(false));
 			add(new Label("templates-panel").setVisible(false));
 		} else {
 			add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>", 10));
+			add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>", 10));
 			add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>", 10));
 		}
 		add(ExploreDataTable.createComponent("reftable", ref, 10));
