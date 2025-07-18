@@ -176,7 +176,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>10.5.0</wicket.version>
+    <wicket.version>10.6.0</wicket.version>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
