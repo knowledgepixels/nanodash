@@ -26,8 +26,9 @@ import org.nanopub.NanopubUtils;
 import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.Utils;
 
-import net.trustyuri.TrustyUriUtils;
-
+/**
+ * Represents a template for creating nanopublications.
+ */
 public class Template implements Serializable {
 
 	private static final long serialVersionUID = 1L;
