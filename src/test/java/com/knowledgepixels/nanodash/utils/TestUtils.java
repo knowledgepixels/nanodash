@@ -10,7 +10,7 @@ import org.nanopub.NanopubCreator;
 
 public class TestUtils {
 
-    public final static String NANOPUB_URI = "http://knowledgepixels.com/nanopubIri#title";
+    public final static String NANOPUB_URI = "https://w3id.org/np/RAFl3dEaZocvP1BAyakcX_cXhFiRQ6uO8K6qMA_3p3j_test";
     public final static ValueFactory vf = SimpleValueFactory.getInstance();
     public final static IRI anyIri = vf.createIRI("http://knowledgepixels.com/nanopubIri#any");
 
