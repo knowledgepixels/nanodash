@@ -9,11 +9,23 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryAccess;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Utility class for accessing and managing API queries.
+ * Provides methods to retrieve query results, manage query IDs, and fetch the latest versions of nanopublications.
+ */
 public class QueryApiAccess {
 
 	private QueryApiAccess() {}  // no instances allowed
 
 	private static Map<String,String> queryIds = new HashMap<>();
+
+    private static Map<String, Pair<Long, String>> latestVersionMap = new HashMap<>();
+
+    private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
+
 
 	static {
 		// TODO Load this dynamically somehow at some point:
@@ -52,14 +64,34 @@ public class QueryApiAccess {
 		load("RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts");
 	}
 
+    /**
+     * Loads a query ID into the queryIds map.
+     *
+     * @param queryId The query ID to load.
+     */
 	private static void load(String queryId) {
 		queryIds.put(queryId.substring(46), queryId);
 	}
 
+    /**
+     * Forces the retrieval of an API response for a given query name and parameters.
+     * Retries until a valid response is received.
+     *
+     * @param queryName The name of the query.
+     * @return The API response.
+     */
 	public static ApiResponse forcedGet(String queryName) {
 		return forcedGet(queryName, new HashMap<>());
 	}
 
+    /**
+     * Forces the retrieval of an API response for a given query name and parameters.
+     * Retries until a valid response is received.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return The API response.
+     */
 	public static ApiResponse forcedGet(String queryName, Map<String,String> params) {
 		while (true) {
 			ApiResponse resp = null;
@@ -77,16 +109,40 @@ public class QueryApiAccess {
 		}
 	}
 
+    /**
+     * Retrieves an API response for a given query name.
+     *
+     * @param queryName The name of the query.
+     * @return The API response.
+     * @throws FailedApiCallException If the API call fails.
+     */
 	public static ApiResponse get(String queryName) throws FailedApiCallException {
 		return get(queryName, new HashMap<>());
 	}
 
+    /**
+     * Retrieves an API response for a given query name and a single parameter.
+     *
+     * @param queryName  The name of the query.
+     * @param paramKey   The key of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return The API response.
+     * @throws FailedApiCallException If the API call fails.
+     */
 	public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
 		Map<String,String> params = new HashMap<>();
 		params.put(paramKey, paramValue);
 		return get(queryName, params);
 	}
 
+    /**
+     * Retrieves an API response for a given query name and parameters.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return The API response.
+     * @throws FailedApiCallException If the API call fails.
+     */
 	public static ApiResponse get(String queryName, Map<String,String> params) throws FailedApiCallException {
 		String queryId;
 		if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
@@ -99,8 +155,12 @@ public class QueryApiAccess {
 		return QueryAccess.get(queryId, params);
 	}
 
-	private static Map<String,Pair<Long,String>> latestVersionMap = new HashMap<>();
-
+    /**
+     * Retrieves the latest version ID of a given nanopublication.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     * @return The latest version ID.
+     */
 	public static String getLatestVersionId(String nanopubId) {
 		long currentTime = System.currentTimeMillis();
 		if (!latestVersionMap.containsKey(nanopubId) || currentTime - latestVersionMap.get(nanopubId).getLeft() > 1000*60) {
@@ -120,18 +180,28 @@ public class QueryApiAccess {
 		return latestVersionMap.get(nanopubId).getRight();
 	}
 
-	private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
-
-	public static String getQueryId(IRI queryIri) {
-		if (queryIri == null) return null;
-		if (!queryIri.stringValue().matches(queryIriPattern)) return null;
-		return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
-	}
+    /**
+     * Extracts the query ID from a given query IRI.
+     *
+     * @param queryIri The query IRI.
+     * @return The query ID, or null if the IRI is invalid.
+     */
+    public static String getQueryId(IRI queryIri) {
+        if (queryIri == null) return null;
+        if (!queryIri.stringValue().matches(queryIriPattern)) return null;
+        return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
+    }
 
 	public static String getQueryId(String queryName) {
 		return queryIds.get(queryName);
 	}
 
+    /**
+     * Extracts the query name from a given query IRI.
+     *
+     * @param queryIri The query IRI.
+     * @return The query name, or null if the IRI is invalid.
+     */
 	public static String getQueryName(IRI queryIri) {
 		if (queryIri == null) return null;
 		if (!queryIri.stringValue().matches(queryIriPattern)) return null;

@@ -23,12 +23,22 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import com.beust.jcommander.Strings;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
-import com.knowledgepixels.nanodash.component.QueryParamField;
 
+/**
+ * Utility class for APIs look up and parsing.
+ */
 public class LookupApis {
 
 	private LookupApis() {}  // no instances allowed
 
+    /**
+     * Parses a JSON response from a grlc API for nanopublications and extracts URIs and labels.
+     *
+     * @param grlcJsonObject the JSON object containing the grlc API response
+     * @param labelMap       a map to store URIs and their corresponding labels
+     * @param values         a list to store the extracted URIs
+     * @throws IOException if an I/O error occurs while processing the JSON
+     */
 	public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String,String> labelMap, List<String> values) throws IOException {
 		// Aimed to resolve Nanopub grlc API: http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_signed_nanopubs_with_text?text=covid
 		JSONArray resultsArray = grlcJsonObject.getJSONObject("results").getJSONArray("bindings");
@@ -43,6 +53,14 @@ public class LookupApis {
 		}
 	}
 
+    /**
+     * Fetches possible values from an API based on the provided search term.
+     *
+     * @param apiString  the API endpoint URL to query
+     * @param searchterm the search term to use for querying the API
+     * @param labelMap   a map to store URIs and their corresponding labels
+     * @param values     a list to store the extracted URIs
+     */
 	public static void getPossibleValues(String apiString, String searchterm, Map<String,String> labelMap, List<String> values) {
 		// TODO This method is a mess and needs some serious clean-up and structuring...
 		try {
@@ -288,4 +306,5 @@ public class LookupApis {
 		if (expanded.endsWith("\"") || insideQuotes) extra = "";
 		return "( " + Strings.join(" AND ", expanded.split("\n")) + extra + " )";
 	}
+
 }
