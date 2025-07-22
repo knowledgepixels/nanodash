@@ -1,12 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -19,9 +14,8 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.component.QueryParamField;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Represents a GRLC query extracted from a nanopublication.
@@ -40,20 +34,31 @@ public class GrlcQuery implements Serializable {
 		return instanceMap.get(id);
 	}
 
-	public final static IRI GRLC_QUERY_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/grlc-query");
-	public final static IRI GRLC_HAS_SPARQL = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
-	public final static IRI GRLC_HAS_ENDPOINT = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
+    /**
+     * The IRI for the GRLC query class and properties.
+     */
+    public final static IRI GRLC_QUERY_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/grlc-query");
 
-	private final String queryId;
-	private final String artifactCode;
-	private final String querySuffix;
-	private final Nanopub nanopub;
-	private IRI queryUri;
-	private String sparql;
-	private IRI endpoint;
-	private String label;
-	private String description;
-	private final List<String> placeholdersList;
+    /**
+     * The IRI for the SPARQL property and endpoint property in GRLC queries.
+     */
+    public final static IRI GRLC_HAS_SPARQL = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
+
+    /**
+     * The IRI for the endpoint property in GRLC queries.
+     */
+    public final static IRI GRLC_HAS_ENDPOINT = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
+
+    private final String queryId;
+    private final String artifactCode;
+    private final String querySuffix;
+    private final Nanopub nanopub;
+    private IRI queryUri;
+    private String sparql;
+    private IRI endpoint;
+    private String label;
+    private String description;
+    private final List<String> placeholdersList;
 
     /**
      * Constructs a GrlcQuery object by parsing the provided query ID or URI.
@@ -138,81 +143,81 @@ public class GrlcQuery implements Serializable {
      *
      * @return The artifact code.
      */
-	public String getArtifactCode() {
-		return artifactCode;
-	}
+    public String getArtifactCode() {
+        return artifactCode;
+    }
 
     /**
      * Returns the suffix of the query.
      *
      * @return The query suffix.
      */
-	public String getQuerySuffix() {
-		return querySuffix;
-	}
+    public String getQuerySuffix() {
+        return querySuffix;
+    }
 
     /**
      * Returns the nanopublication containing the query.
      *
      * @return The nanopublication.
      */
-	public Nanopub getNanopub() {
-		return nanopub;
-	}
+    public Nanopub getNanopub() {
+        return nanopub;
+    }
 
     /**
      * Returns the URI of the query.
      *
      * @return The query URI.
      */
-	public IRI getQueryUri() {
-		return queryUri;
-	}
+    public IRI getQueryUri() {
+        return queryUri;
+    }
 
     /**
      * Returns the SPARQL query string.
      *
      * @return The SPARQL query.
      */
-	public String getSparql() {
-		return sparql;
-	}
+    public String getSparql() {
+        return sparql;
+    }
 
     /**
      * Returns the endpoint URI for the query.
      *
      * @return The endpoint URI.
      */
-	public IRI getEndpoint() {
-		return endpoint;
-	}
+    public IRI getEndpoint() {
+        return endpoint;
+    }
 
     /**
      * Returns the label of the query.
      *
      * @return The query label.
      */
-	public String getLabel() {
-		return label;
-	}
+    public String getLabel() {
+        return label;
+    }
 
     /**
      * Returns the description of the query.
      *
      * @return The query description.
      */
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
     /**
      * Returns a list of placeholders in the query.
      *
      * @return The list of placeholders.
      */
-	public List<String> getPlaceholdersList() {
-		return placeholdersList;
-	}
+    public List<String> getPlaceholdersList() {
+        return placeholdersList;
+    }
 
     /**
      * Creates a list of query parameter fields for the placeholders in the query.

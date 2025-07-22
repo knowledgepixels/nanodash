@@ -46,7 +46,8 @@ public class Utils {
     private static Map<String, Nanopub> nanopubs = new HashMap<>();
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
 
-    private Utils() {}  // no instances allowed
+    private Utils() {
+    }  // no instances allowed
 
 
     // TODO Merge with IriItem.getShortNameFromURI
@@ -522,15 +523,36 @@ public class Utils {
 
     }
 
+    /**
+     * Creates a sublist from a list based on the specified indices.
+     *
+     * @param list      the list from which to create the sublist
+     * @param fromIndex the starting index (inclusive) for the sublist
+     * @param toIndex   the ending index (exclusive) for the sublist
+     * @param <E>       the type of elements in the list
+     * @return an ArrayList containing the elements from the specified range
+     */
     public static <E> ArrayList<E> subList(List<E> list, long fromIndex, long toIndex) {
         // So the resulting list is serializable:
         return new ArrayList<E>(list.subList((int) fromIndex, (int) toIndex));
     }
 
+    /**
+     * Creates a sublist from an array based on the specified indices.
+     *
+     * @param array     the array from which to create the sublist
+     * @param fromIndex the starting index (inclusive) for the sublist
+     * @param toIndex   the ending index (exclusive) for the sublist
+     * @param <E>       the type of elements in the array
+     * @return an ArrayList containing the elements from the specified range
+     */
     public static <E> ArrayList<E> subList(E[] array, long fromIndex, long toIndex) {
         return subList(Arrays.asList(array), fromIndex, toIndex);
     }
 
+    /**
+     * Comparator for sorting ApiResponseEntry objects based on a specified field.
+     */
     // TODO Move this to ApiResponseEntry class?
     public static class ApiResponseEntrySorter implements Comparator<ApiResponseEntry>, Serializable {
 
@@ -539,11 +561,24 @@ public class Utils {
         private String field;
         private boolean descending;
 
+        /**
+         * Constructor for ApiResponseEntrySorter.
+         *
+         * @param field      the field to sort by
+         * @param descending if true, sorts in descending order; if false, sorts in ascending order
+         */
         public ApiResponseEntrySorter(String field, boolean descending) {
             this.field = field;
             this.descending = descending;
         }
 
+        /**
+         * Compares two ApiResponseEntry objects based on the specified field.
+         *
+         * @param o1 the first object to be compared.
+         * @param o2 the second object to be compared.
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+         */
         @Override
         public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
             if (descending) {
@@ -555,15 +590,44 @@ public class Utils {
 
     }
 
+    /**
+     * MIME type for TriG RDF format.
+     */
     public static final String TYPE_TRIG = "application/trig";
+
+    /**
+     * MIME type for Jelly RDF format.
+     */
     public static final String TYPE_JELLY = "application/x-jelly-rdf";
+
+    /**
+     * MIME type for JSON-LD format.
+     */
     public static final String TYPE_JSONLD = "application/ld+json";
+
+    /**
+     * MIME type for N-Quads format.
+     */
     public static final String TYPE_NQUADS = "application/n-quads";
+
+    /**
+     * MIME type for Trix format.
+     */
     public static final String TYPE_TRIX = "application/trix";
+
+    /**
+     * MIME type for HTML format.
+     */
     public static final String TYPE_HTML = "text/html";
 
+    /**
+     * Supported MIME types for nanopublications.
+     */
     public static final String SUPPORTED_TYPES = TYPE_TRIG + "," + TYPE_JELLY + "," + TYPE_JSONLD + "," + TYPE_NQUADS + "," + TYPE_TRIX + "," + TYPE_HTML;
 
+    /**
+     * List of supported MIME types for nanopublications.
+     */
     public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
 
     // TODO Move these to nanopub-java library:
