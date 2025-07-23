@@ -23,16 +23,16 @@ import java.util.*;
  */
 public class GrlcQuery implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static Map<String,GrlcQuery> instanceMap = new HashMap<>();
+    private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
 
-	public static GrlcQuery get(String id) {
-		if (!instanceMap.containsKey(id)) {
-			instanceMap.put(id, new GrlcQuery(id));
-		}
-		return instanceMap.get(id);
-	}
+    public static GrlcQuery get(String id) {
+        if (!instanceMap.containsKey(id)) {
+            instanceMap.put(id, new GrlcQuery(id));
+        }
+        return instanceMap.get(id);
+    }
 
     /**
      * The IRI for the GRLC query class and properties.
@@ -66,77 +66,77 @@ public class GrlcQuery implements Serializable {
      * @param id The query ID or URI.
      * @throws IllegalArgumentException If the ID is null, invalid, or the nanopublication defines multiple queries.
      */
-	private GrlcQuery(String id) {
-		if (id == null) {
-			throw new IllegalArgumentException("Null value for query ID");
-		}
-		if (TrustyUriUtils.isPotentialTrustyUri(id)) {
-			artifactCode = TrustyUriUtils.getArtifactCode(id);
-			nanopub = Utils.getNanopub(artifactCode);
-			for (Statement st : nanopub.getAssertion()) {
-				if (st.getPredicate().equals(RDF.TYPE) && st.getObject().equals(GRLC_QUERY_CLASS)) {
-					if (queryUri != null) {
-						throw new IllegalArgumentException("Nanopublication defines more than one query: " + id);
-					}
-					queryUri = (IRI) st.getSubject();
-				}
-			}
-			if (queryUri == null) {
-				throw new IllegalArgumentException("No query found in nanopublication: " + id);
-			}
-			queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
-		} else {
-			if (id.matches("https?://.*[^A-Za-z0-9-_]RA[^A-Za-z0-9-_]{43}[/#][^/#]+")) {
-				queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
-			} else if (id.matches(id)) {
-				queryId = id.replace("#", "/");
-			} else {
-				throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
-			}
-			artifactCode = queryId.replaceFirst("[/#].*$", "");
-			nanopub = Utils.getNanopub(artifactCode);
-		}
-		querySuffix = queryId.replaceFirst("^.*[/#]", "");
-		for (Statement st : nanopub.getAssertion()) {
-			if (!st.getSubject().stringValue().replace("#", "/").endsWith(queryId)) continue;
-			queryUri = (IRI) st.getSubject();
-			if (st.getPredicate().equals(GRLC_HAS_SPARQL) && st.getObject() instanceof Literal objLiteral) {
-				sparql = objLiteral.stringValue();
-			} else if (st.getPredicate().equals(GRLC_HAS_ENDPOINT) && st.getObject() instanceof IRI objIri) {
-				endpoint = objIri;
-			} else if (st.getPredicate().equals(RDFS.LABEL)) {
-				label = st.getObject().stringValue();
-			} else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-				description = st.getObject().stringValue();
-			}
-		}
+    private GrlcQuery(String id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Null value for query ID");
+        }
+        if (TrustyUriUtils.isPotentialTrustyUri(id)) {
+            artifactCode = TrustyUriUtils.getArtifactCode(id);
+            nanopub = Utils.getNanopub(artifactCode);
+            for (Statement st : nanopub.getAssertion()) {
+                if (st.getPredicate().equals(RDF.TYPE) && st.getObject().equals(GRLC_QUERY_CLASS)) {
+                    if (queryUri != null) {
+                        throw new IllegalArgumentException("Nanopublication defines more than one query: " + id);
+                    }
+                    queryUri = (IRI) st.getSubject();
+                }
+            }
+            if (queryUri == null) {
+                throw new IllegalArgumentException("No query found in nanopublication: " + id);
+            }
+            queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
+        } else {
+            if (id.matches("https?://.*[^A-Za-z0-9-_]RA[^A-Za-z0-9-_]{43}[/#][^/#]+")) {
+                queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
+            } else if (id.matches(id)) {
+                queryId = id.replace("#", "/");
+            } else {
+                throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
+            }
+            artifactCode = queryId.replaceFirst("[/#].*$", "");
+            nanopub = Utils.getNanopub(artifactCode);
+        }
+        querySuffix = queryId.replaceFirst("^.*[/#]", "");
+        for (Statement st : nanopub.getAssertion()) {
+            if (!st.getSubject().stringValue().replace("#", "/").endsWith(queryId)) continue;
+            queryUri = (IRI) st.getSubject();
+            if (st.getPredicate().equals(GRLC_HAS_SPARQL) && st.getObject() instanceof Literal objLiteral) {
+                sparql = objLiteral.stringValue();
+            } else if (st.getPredicate().equals(GRLC_HAS_ENDPOINT) && st.getObject() instanceof IRI objIri) {
+                endpoint = objIri;
+            } else if (st.getPredicate().equals(RDFS.LABEL)) {
+                label = st.getObject().stringValue();
+            } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                description = st.getObject().stringValue();
+            }
+        }
 
-		final Set<String> placeholders = new HashSet<>();
-		ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
-		query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<>() {
+        final Set<String> placeholders = new HashSet<>();
+        ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
+        query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<>() {
 
-			@Override
-			public void meet(Var node) throws RuntimeException {
-				super.meet(node);
-				if (!node.isConstant() && !node.isAnonymous() && node.getName().startsWith("_")) {
-					placeholders.add(node.getName());
-				}
-			}
+            @Override
+            public void meet(Var node) throws RuntimeException {
+                super.meet(node);
+                if (!node.isConstant() && !node.isAnonymous() && node.getName().startsWith("_")) {
+                    placeholders.add(node.getName());
+                }
+            }
 
-		});
-		List<String> placeholdersListPre = new ArrayList<>(placeholders);
-		Collections.sort(placeholdersListPre);
-		placeholdersList = Collections.unmodifiableList(placeholdersListPre);
-	}
+        });
+        List<String> placeholdersListPre = new ArrayList<>(placeholders);
+        Collections.sort(placeholdersListPre);
+        placeholdersList = Collections.unmodifiableList(placeholdersListPre);
+    }
 
     /**
      * Returns the unique query ID.
      *
      * @return The query ID.
      */
-	public String getQueryId() {
-		return queryId;
-	}
+    public String getQueryId() {
+        return queryId;
+    }
 
     /**
      * Returns the artifact code extracted from the nanopublication.
@@ -225,12 +225,12 @@ public class GrlcQuery implements Serializable {
      * @param markupId The markup ID for the fields.
      * @return A list of query parameter fields.
      */
-	public List<QueryParamField> createParamFields(String markupId) {
-		List<QueryParamField> l = new ArrayList<>();
-		for (String s : placeholdersList) {
-			l.add(new QueryParamField(markupId, s));
-		}
-		return l;
-	}
+    public List<QueryParamField> createParamFields(String markupId) {
+        List<QueryParamField> l = new ArrayList<>();
+        for (String s : placeholdersList) {
+            l.add(new QueryParamField(markupId, s));
+        }
+        return l;
+    }
 
 }

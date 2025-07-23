@@ -990,18 +990,18 @@ public class Template implements Serializable {
                 statementPredicates.put(subj, objIri);
             } else if (pred.equals(SHACL.HAS_VALUE) && obj instanceof IRI objIri) {
                 statementObjects.put(subj, objIri);
-			} else if (pred.equals(SHACL.TARGET_CLASS) && obj instanceof IRI objIri) {
-				IRI stIri = vf.createIRI(templateNp.getUri() + "/$type");
-				statementList.add(stIri);
-				List<IRI> l = statementMap.get(subj);
-				if (l == null) {
-					l = new ArrayList<>();
-					statementMap.put(subj, l);
-				}
-				l.add((IRI) stIri);
-				statementSubjects.put(stIri, baseSubj);
-				statementPredicates.put(stIri, RDF.TYPE);
-				statementObjects.put(stIri, objIri);
+            } else if (pred.equals(SHACL.TARGET_CLASS) && obj instanceof IRI objIri) {
+                IRI stIri = vf.createIRI(templateNp.getUri() + "/$type");
+                statementList.add(stIri);
+                List<IRI> l = statementMap.get(subj);
+                if (l == null) {
+                    l = new ArrayList<>();
+                    statementMap.put(subj, l);
+                }
+                l.add((IRI) stIri);
+                statementSubjects.put(stIri, baseSubj);
+                statementPredicates.put(stIri, RDF.TYPE);
+                statementObjects.put(stIri, objIri);
             } else if (pred.equals(POSSIBLE_VALUE_PREDICATE)) {
                 List<Value> l = possibleValueMap.get(subj);
                 if (l == null) {
@@ -1101,14 +1101,14 @@ public class Template implements Serializable {
         l.add(type);
     }
 
-	private void addStatement(IRI thing, IRI type) {
-		List<IRI> l = typeMap.get(thing);
-		if (l == null) {
-			l = new ArrayList<>();
-			typeMap.put(thing, l);
-		}
-		l.add(type);
-	}
+    private void addStatement(IRI thing, IRI type) {
+        List<IRI> l = typeMap.get(thing);
+        if (l == null) {
+            l = new ArrayList<>();
+            typeMap.put(thing, l);
+        }
+        l.add(type);
+    }
 
     private IRI transform(IRI iri) {
         if (iri.stringValue().matches(".*__[0-9]+")) {
