@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
+/**
+ * Represents an action to retract a nanopublication.
+ */
 public class RetractionAction extends NanopubAction {
 
     private static final long serialVersionUID = 7802391790148929067L;

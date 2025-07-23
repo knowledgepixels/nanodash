@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
+/**
+ * Represents an action that can be performed on a Nanopub to add a comment.
+ */
 public class CommentAction extends NanopubAction {
 
     private static final long serialVersionUID = 7995012295240119652L;

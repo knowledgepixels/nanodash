@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash.action;
 
 import org.nanopub.Nanopub;
 
+/**
+ * Represents an action that can be performed on a Nanopub to approve or disapprove it.
+ */
 public class ApprovalAction extends NanopubAction {
 
     private static final long serialVersionUID = 1789820405326599889L;
