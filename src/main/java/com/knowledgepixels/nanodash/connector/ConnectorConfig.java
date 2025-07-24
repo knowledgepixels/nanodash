@@ -106,7 +106,7 @@ public abstract class ConnectorConfig implements Serializable {
     /**
      * Returns the general reactions API call.
      *
-     * @return
+     * @return the general reactions API call, or {@code null} if not applicable
      */
     public String getGeneralReactionsApiCall() {
         return null;

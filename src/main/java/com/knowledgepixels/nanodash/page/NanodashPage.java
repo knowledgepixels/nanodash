@@ -12,6 +12,10 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
+/**
+ * Base class for all Nanodash pages.
+ * This class handles auto-refresh functionality and provides a method to get the mount path.
+ */
 public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
@@ -22,6 +26,8 @@ public abstract class NanodashPage extends WebPage {
 
     private long state = 0l;
 
+    private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
+
     /**
      * Returns the mount path for this page.
      *
@@ -29,7 +35,11 @@ public abstract class NanodashPage extends WebPage {
      */
     public abstract String getMountPath();
 
-
+    /**
+     * Constructor for NanodashPage.
+     *
+     * @param parameters the page parameters
+     */
     protected NanodashPage(PageParameters parameters) {
         super(parameters);
         state = lastRefresh;
@@ -60,6 +70,12 @@ public abstract class NanodashPage extends WebPage {
         }
     }
 
+    /**
+     * Checks if auto-refresh is enabled for this page.
+     * Override this method in subclasses to enable auto-refresh.
+     *
+     * @return true if auto-refresh is enabled, false otherwise
+     */
     protected boolean hasAutoRefreshEnabled() {
         return false;
     }
@@ -72,8 +88,11 @@ public abstract class NanodashPage extends WebPage {
         super.onRender();
     }
 
-    private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
-
+    /**
+     * Renders the head section of the page, including JavaScript references.
+     *
+     * @param response the header response
+     */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);

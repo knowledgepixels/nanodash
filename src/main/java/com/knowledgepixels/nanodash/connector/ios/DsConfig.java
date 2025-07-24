@@ -21,7 +21,7 @@ public class DsConfig extends ConnectorConfig {
     private static DsConfig instance;
 
     /**
-     * Singleton constructor.
+     * Gets the singleton instance of the DsConfig class.
      *
      * @return the singleton instance of DsConfig
      */
