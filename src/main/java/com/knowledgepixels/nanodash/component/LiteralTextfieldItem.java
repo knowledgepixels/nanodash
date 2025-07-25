@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -13,114 +17,121 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
-
+/**
+ * A component that represents a text field for entering literal values.
+ */
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
-	
-	private static final long serialVersionUID = 1L;
-	private TemplateContext context;
-	private AbstractTextComponent<String> textfield;
-	private final String regex;
-	private final IRI iri;
 
-	public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
-		super(id);
-		this.context = context;
-		final Template template = context.getTemplate();
-		this.iri = iri;
-		regex = template.getRegex(iri);
-		IModel<String> model = context.getComponentModels().get(iri);
-		if (model == null) {
-			model = Model.of("");
-			context.getComponentModels().put(iri, model);
-		}
-		String postfix = Utils.getUriPostfix(iri);
-		if (context.hasParam(postfix)) {
-			model.setObject(context.getParam(postfix));
-		}
-		AbstractTextComponent<String> tc = initTextComponent(model);
-		if (!optional) tc.setRequired(true);
-		if (context.getTemplate().getLabel(iri) != null) {
-			tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
-		}
-		tc.add(new IValidator<String>() {
+    private static final long serialVersionUID = 1L;
+    private TemplateContext context;
+    private AbstractTextComponent<String> textfield;
+    private final String regex;
+    private final IRI iri;
 
-			private static final long serialVersionUID = 1L;
+    /**
+     * Constructs a LiteralTextfieldItem with the specified ID, IRI, optional flag, and template context.
+     *
+     * @param id       the component ID
+     * @param iri      the IRI associated with this text field
+     * @param optional whether this field is optional
+     * @param context  the template context containing models and parameters
+     */
+    public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
+        super(id);
+        this.context = context;
+        final Template template = context.getTemplate();
+        this.iri = iri;
+        regex = template.getRegex(iri);
+        IModel<String> model = context.getComponentModels().get(iri);
+        if (model == null) {
+            model = Model.of("");
+            context.getComponentModels().put(iri, model);
+        }
+        String postfix = Utils.getUriPostfix(iri);
+        if (context.hasParam(postfix)) {
+            model.setObject(context.getParam(postfix));
+        }
+        AbstractTextComponent<String> tc = initTextComponent(model);
+        if (!optional) tc.setRequired(true);
+        if (context.getTemplate().getLabel(iri) != null) {
+            tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
+        }
+        tc.add(new IValidator<String>() {
 
-			@Override
-			public void validate(IValidatable<String> s) {
-				if (regex != null) {
-					if (!s.getValue().matches(regex)) {
-						s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
-					}
-				}
-			}
+            private static final long serialVersionUID = 1L;
 
-		});
-		context.getComponentModels().put(iri, tc.getModel());
-		context.getComponents().add(tc);
-		tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
-		tc.add(new InvalidityHighlighting());
-		add(tc);
-	}
+            @Override
+            public void validate(IValidatable<String> s) {
+                if (regex != null) {
+                    if (!s.getValue().matches(regex)) {
+                        s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+                    }
+                }
+            }
 
-	protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
-		textfield = new TextField<>("textfield", model);
-		return textfield;
-	}
+        });
+        context.getComponentModels().put(iri, tc.getModel());
+        context.getComponents().add(tc);
+        tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
+        tc.add(new InvalidityHighlighting());
+        add(tc);
+    }
 
-	protected AbstractTextComponent<String> getTextComponent() {
-		return textfield;
-	}
+    protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
+        textfield = new TextField<>("textfield", model);
+        return textfield;
+    }
 
-	@Override
-	public void removeFromContext() {
-		context.getComponents().remove(getTextComponent());
-	}
+    protected AbstractTextComponent<String> getTextComponent() {
+        return textfield;
+    }
 
-	@Override
-	public boolean isUnifiableWith(Value v) {
-		if (v == null) return true;
-		if (v instanceof Literal) {
-			if (regex != null && !v.stringValue().matches(regex)) {
-				return false;
-			}
-			if (getTextComponent().getModelObject().isEmpty()) {
-				return true;
-			}
-			return v.stringValue().equals(getTextComponent().getModelObject());
-		}
-		return false;
-	}
+    @Override
+    public void removeFromContext() {
+        context.getComponents().remove(getTextComponent());
+    }
 
-	@Override
-	public void unifyWith(Value v) throws UnificationException {
-		if (v == null) return;
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		getTextComponent().setModelObject(v.stringValue());
-	}
+    @Override
+    public boolean isUnifiableWith(Value v) {
+        if (v == null) return true;
+        if (v instanceof Literal) {
+            if (regex != null && !v.stringValue().matches(regex)) {
+                return false;
+            }
+            if (getTextComponent().getModelObject().isEmpty()) {
+                return true;
+            }
+            return v.stringValue().equals(getTextComponent().getModelObject());
+        }
+        return false;
+    }
 
-	@Override
-	public void fillFinished() {
-	}
+    @Override
+    public void unifyWith(Value v) throws UnificationException {
+        if (v == null) return;
+        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+        getTextComponent().setModelObject(v.stringValue());
+    }
 
-	@Override
-	public void finalizeValues() {
-		Value defaultValue = context.getTemplate().getDefault(iri);
-		if (isUnifiableWith(defaultValue)) {
-			try {
-				unifyWith(defaultValue);
-			} catch (UnificationException ex) {
-				ex.printStackTrace();
-			}
-		}
-	}
+    @Override
+    public void fillFinished() {
+    }
 
-	public String toString() {
-		return "[Literal textfield item]";
-	}
+    @Override
+    public void finalizeValues() {
+        Value defaultValue = context.getTemplate().getDefault(iri);
+        if (isUnifiableWith(defaultValue)) {
+            try {
+                unifyWith(defaultValue);
+            } catch (UnificationException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "[Literal textfield item]";
+    }
 
 }

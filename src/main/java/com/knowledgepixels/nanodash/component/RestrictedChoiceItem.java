@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.Collection;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.RestrictedChoice;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -23,235 +25,256 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.RestrictedChoice;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
+import java.util.Collection;
+import java.util.List;
 
+/**
+ * RestrictedChoiceItem is a Wicket component that provides a select2 choice input
+ */
 public class RestrictedChoiceItem extends Panel implements ContextComponent {
-	
-	private static final long serialVersionUID = 1L;
-	private TemplateContext context;
-	private IRI iri;
-	private Select2Choice<String> choice;
-	private ExternalLink tooltipLink;
-	private Label tooltipDescription;
-	private IModel<String> model;
-	private RestrictedChoice restrictedChoice;
 
-	public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
-		super(id);
-		this.context = context;
-		this.iri = iri;
-		Template template = context.getTemplate();
-		model = context.getComponentModels().get(iri);
-		if (model == null) {
-			model = Model.of("");
-			context.getComponentModels().put(iri, model);
-		}
-		String postfix = Utils.getUriPostfix(iri);
-		if (context.hasParam(postfix)) {
-			model.setObject(context.getParam(postfix));
-		}
-		restrictedChoice = new RestrictedChoice(iri, context);
+    private static final long serialVersionUID = 1L;
+    private TemplateContext context;
+    private IRI iri;
+    private Select2Choice<String> choice;
+    private ExternalLink tooltipLink;
+    private Label tooltipDescription;
+    private IModel<String> model;
+    private RestrictedChoice restrictedChoice;
 
-		String prefixLabel = template.getPrefixLabel(iri);
-		Label prefixLabelComp;
-		if (prefixLabel == null) {
-			prefixLabelComp = new Label("prefix", "");
-			prefixLabelComp.setVisible(false);
-		} else {
-			if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
-				// Capitalize first letter of label if at subject position:
-				prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
-			}
-			prefixLabelComp = new Label("prefix", prefixLabel);
-		}
-		add(prefixLabelComp);
+    /**
+     * Constructor for RestrictedChoiceItem.
+     *
+     * @param id       the component id
+     * @param parentId the parent id (e.g., "subj" or "obj")
+     * @param iri      the IRI of the restricted choice
+     * @param optional whether the choice is optional
+     * @param context  the template context
+     */
+    public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
+        super(id);
+        this.context = context;
+        this.iri = iri;
+        Template template = context.getTemplate();
+        model = context.getComponentModels().get(iri);
+        if (model == null) {
+            model = Model.of("");
+            context.getComponentModels().put(iri, model);
+        }
+        String postfix = Utils.getUriPostfix(iri);
+        if (context.hasParam(postfix)) {
+            model.setObject(context.getParam(postfix));
+        }
+        restrictedChoice = new RestrictedChoice(iri, context);
 
-		ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
+        String prefixLabel = template.getPrefixLabel(iri);
+        Label prefixLabelComp;
+        if (prefixLabel == null) {
+            prefixLabelComp = new Label("prefix", "");
+            prefixLabelComp.setVisible(false);
+        } else {
+            if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+                // Capitalize first letter of label if at subject position:
+                prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
+            }
+            prefixLabelComp = new Label("prefix", prefixLabel);
+        }
+        add(prefixLabelComp);
 
-			private static final long serialVersionUID = 1L;
+        ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
 
-			@Override
-			public String getDisplayValue(String choiceId) {
-				if (choiceId == null || choiceId.isEmpty()) return "";
-				if (!choiceId.matches("https?://.+")) {
-					return choiceId;
-				}
-				String label = "";
-				if (restrictedChoice.hasFixedPossibleValue(choiceId)) {
-					label = template.getLabel(vf.createIRI(choiceId));
-				}
-				if (label == null || label.isBlank()) {
-					return choiceId;
-				}
-				return label + " (" + choiceId + ")";
-			}
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getIdValue(String object) {
-				return object;
-			}
+            @Override
+            public String getDisplayValue(String choiceId) {
+                if (choiceId == null || choiceId.isEmpty()) return "";
+                if (!choiceId.matches("https?://.+")) {
+                    return choiceId;
+                }
+                String label = "";
+                if (restrictedChoice.hasFixedPossibleValue(choiceId)) {
+                    label = template.getLabel(vf.createIRI(choiceId));
+                }
+                if (label == null || label.isBlank()) {
+                    return choiceId;
+                }
+                return label + " (" + choiceId + ")";
+            }
 
-			// Getting strange errors with Tomcat if this method is not overridden:
-			@Override
-			public void detach() {
-			}
+            @Override
+            public String getIdValue(String object) {
+                return object;
+            }
 
-			@Override
-			public void query(String term, int page, Response<String> response) {
-				List<String> possibleValues = restrictedChoice.getPossibleValues();
-				
-				if (term == null) {
-					response.addAll(possibleValues);
-					return;
-				}
-				term = term.toLowerCase();
-				for (String s : possibleValues) {
-					if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) response.add(s);
-				}
-			}
+            // Getting strange errors with Tomcat if this method is not overridden:
+            @Override
+            public void detach() {
+            }
 
-			@Override
-			public Collection<String> toChoices(Collection<String> ids) {
-				return ids;
-			}
+            @Override
+            public void query(String term, int page, Response<String> response) {
+                List<String> possibleValues = restrictedChoice.getPossibleValues();
 
-		};
-		choice = new Select2Choice<String>("choice", model, choiceProvider);
-		if (!optional) choice.setRequired(true);
-		if (template.isLocalResource(iri)) {
-			choice.add(new AttributeAppender("class", " local"));
-		}
-		choice.getSettings().setCloseOnSelect(true);
-		String placeholder = template.getLabel(iri);
-		if (placeholder == null) placeholder = "";
-		choice.getSettings().setPlaceholder(placeholder);
-		Utils.setSelect2ChoiceMinimalEscapeMarkup(choice);
-		choice.getSettings().setAllowClear(true);
-		choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
-		choice.add(new Validator());
-		context.getComponents().add(choice);
+                if (term == null) {
+                    response.addAll(possibleValues);
+                    return;
+                }
+                term = term.toLowerCase();
+                for (String s : possibleValues) {
+                    if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term))
+                        response.add(s);
+                }
+            }
 
-		tooltipDescription = new Label("description", new IModel<String>() {
+            @Override
+            public Collection<String> toChoices(Collection<String> ids) {
+                return ids;
+            }
 
-			private static final long serialVersionUID = 1L;
+        };
+        choice = new Select2Choice<String>("choice", model, choiceProvider);
+        if (!optional) choice.setRequired(true);
+        if (template.isLocalResource(iri)) {
+            choice.add(new AttributeAppender("class", " local"));
+        }
+        choice.getSettings().setCloseOnSelect(true);
+        String placeholder = template.getLabel(iri);
+        if (placeholder == null) placeholder = "";
+        choice.getSettings().setPlaceholder(placeholder);
+        Utils.setSelect2ChoiceMinimalEscapeMarkup(choice);
+        choice.getSettings().setAllowClear(true);
+        choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
+        choice.add(new Validator());
+        context.getComponents().add(choice);
 
-			@Override
-			public String getObject() {
-				String obj = RestrictedChoiceItem.this.getModel().getObject();
-				if (obj == null || obj.isEmpty()) return "choose a value";
-				String label = null;
-				if (restrictedChoice.hasFixedPossibleValue(obj)) {
-					label = template.getLabel(vf.createIRI(obj));
-				}
-				if (label == null || !label.contains(" - ")) return "";
-				return label.substring(label.indexOf(" - ") + 3);
-			}
+        tooltipDescription = new Label("description", new IModel<String>() {
 
-		});
-		tooltipDescription.setOutputMarkupId(true);
-		add(tooltipDescription);
+            private static final long serialVersionUID = 1L;
 
-		tooltipLink = Utils.getUriLink("uri", model);
-		tooltipLink.setOutputMarkupId(true);
-		add(tooltipLink);
+            @Override
+            public String getObject() {
+                String obj = RestrictedChoiceItem.this.getModel().getObject();
+                if (obj == null || obj.isEmpty()) return "choose a value";
+                String label = null;
+                if (restrictedChoice.hasFixedPossibleValue(obj)) {
+                    label = template.getLabel(vf.createIRI(obj));
+                }
+                if (label == null || !label.contains(" - ")) return "";
+                return label.substring(label.indexOf(" - ") + 3);
+            }
 
-		choice.add(new OnChangeAjaxBehavior() {
+        });
+        tooltipDescription.setOutputMarkupId(true);
+        add(tooltipDescription);
 
-			private static final long serialVersionUID = 1L;
+        tooltipLink = Utils.getUriLink("uri", model);
+        tooltipLink.setOutputMarkupId(true);
+        add(tooltipLink);
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				for (Component c : context.getComponents()) {
-					if (c == choice) continue;
-					if (c.getDefaultModel() == choice.getModel()) {
-						c.modelChanged();
-						target.add(c);
-					}
-				}
-				target.add(tooltipLink);
-				target.add(tooltipDescription);
-			}
+        choice.add(new OnChangeAjaxBehavior() {
 
-		});
-		add(choice);
-	}
+            private static final long serialVersionUID = 1L;
 
-	public IModel<String> getModel() {
-		return model;
-	}
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == choice) continue;
+                    if (c.getDefaultModel() == choice.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
+                    }
+                }
+                target.add(tooltipLink);
+                target.add(tooltipDescription);
+            }
 
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+        });
+        add(choice);
+    }
 
-	@Override
-	public void removeFromContext() {
-		context.getComponents().remove(choice);
-	}
+    /**
+     * Get the model for this restricted choice item.
+     *
+     * @return the model containing the selected value
+     */
+    public IModel<String> getModel() {
+        return model;
+    }
 
-	@Override
-	public boolean isUnifiableWith(Value v) {
-		if (v == null) return true;
-		if (v instanceof IRI) {
-			String vs = v.stringValue();
-			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-			if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
-				return false;
-			}
-			if (choice.getModelObject().isEmpty()) {
-				return true;
-			}
-			return vs.equals(choice.getModelObject());
-		}
-		return false;
-	}
+    private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	@Override
-	public void unifyWith(Value v) throws UnificationException {
-		if (v == null) return;
-		String vs = v.stringValue();
-		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-		if (!isUnifiableWith(v)) throw new UnificationException(vs);
-		choice.setModelObject(vs);
-	}
+    @Override
+    public void removeFromContext() {
+        context.getComponents().remove(choice);
+    }
 
-	@Override
-	public void fillFinished() {
-	}
+    @Override
+    public boolean isUnifiableWith(Value v) {
+        if (v == null) return true;
+        if (v instanceof IRI) {
+            String vs = v.stringValue();
+            if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+            if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
+                return false;
+            }
+            if (choice.getModelObject().isEmpty()) {
+                return true;
+            }
+            return vs.equals(choice.getModelObject());
+        }
+        return false;
+    }
 
-	@Override
-	public void finalizeValues() {
-		Value defaultValue = context.getTemplate().getDefault(iri);
-		if (isUnifiableWith(defaultValue)) {
-			try {
-				unifyWith(defaultValue);
-			} catch (UnificationException ex) {
-				ex.printStackTrace();
-			}
-		}
-	}
+    @Override
+    public void unifyWith(Value v) throws UnificationException {
+        if (v == null) return;
+        String vs = v.stringValue();
+        if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+        if (!isUnifiableWith(v)) throw new UnificationException(vs);
+        choice.setModelObject(vs);
+    }
 
-	public String toString() {
-		return "[Restricted choice item: " + iri + "]";
-	}
+    @Override
+    public void fillFinished() {
+    }
+
+    @Override
+    public void finalizeValues() {
+        Value defaultValue = context.getTemplate().getDefault(iri);
+        if (isUnifiableWith(defaultValue)) {
+            try {
+                unifyWith(defaultValue);
+            } catch (UnificationException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public String toString() {
+        return "[Restricted choice item: " + iri + "]";
+    }
 
 
-	protected class Validator extends InvalidityHighlighting implements IValidator<String> {
+    /**
+     * Validator for the restricted choice item.
+     */
+    protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
-		private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-		public Validator() {
-		}
+        /**
+         * Default constructor.
+         */
+        public Validator() {
+        }
 
-		@Override
-		public void validate(IValidatable<String> s) {
-			if (!restrictedChoice.getPossibleValues().contains(s.getValue())) {
-				s.error(new ValidationError("Invalid choice"));
-			}
-		}
+        @Override
+        public void validate(IValidatable<String> s) {
+            if (!restrictedChoice.getPossibleValues().contains(s.getValue())) {
+                s.error(new ValidationError("Invalid choice"));
+            }
+        }
 
-	}
+    }
 
 }
