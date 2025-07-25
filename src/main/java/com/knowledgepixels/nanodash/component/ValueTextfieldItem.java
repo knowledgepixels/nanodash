@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.net.URISyntaxException;
-
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,155 +21,173 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
+import java.net.URISyntaxException;
 
+/**
+ * A text field component for entering values in a template.
+ */
 public class ValueTextfieldItem extends Panel implements ContextComponent {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private TemplateContext context;
-	private TextField<String> textfield;
-	private IRI iri;
+    private TemplateContext context;
+    private TextField<String> textfield;
+    private IRI iri;
 
-	public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
-		super(id);
-		this.context = context;
-		this.iri = iriP;
-		final Template template = context.getTemplate();
-		IModel<String> model = context.getComponentModels().get(iri);
-		if (model == null) {
-			model = Model.of("");
-			context.getComponentModels().put(iri, model);
-		}
-		String postfix = Utils.getUriPostfix(iri);
-		if (context.hasParam(postfix)) {
-			model.setObject(context.getParam(postfix));
-		}
-		textfield = new TextField<>("textfield", model);
-		if (!optional) textfield.setRequired(true);
-		textfield.add(new Validator(iri, template));
-		context.getComponents().add(textfield);
-		if (template.getLabel(iri) != null) {
-			textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
-			textfield.setLabel(Model.of(template.getLabel(iri)));
-		}
-		textfield.add(new OnChangeAjaxBehavior() {
+    /**
+     * Constructor for creating a text field item.
+     *
+     * @param id       the component ID
+     * @param parentId the parent component ID
+     * @param iriP     the IRI associated with this text field
+     * @param optional whether the field is optional
+     * @param context  the template context containing models and components
+     */
+    public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
+        super(id);
+        this.context = context;
+        this.iri = iriP;
+        final Template template = context.getTemplate();
+        IModel<String> model = context.getComponentModels().get(iri);
+        if (model == null) {
+            model = Model.of("");
+            context.getComponentModels().put(iri, model);
+        }
+        String postfix = Utils.getUriPostfix(iri);
+        if (context.hasParam(postfix)) {
+            model.setObject(context.getParam(postfix));
+        }
+        textfield = new TextField<>("textfield", model);
+        if (!optional) textfield.setRequired(true);
+        textfield.add(new Validator(iri, template));
+        context.getComponents().add(textfield);
+        if (template.getLabel(iri) != null) {
+            textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
+            textfield.setLabel(Model.of(template.getLabel(iri)));
+        }
+        textfield.add(new OnChangeAjaxBehavior() {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				for (Component c : context.getComponents()) {
-					if (c == textfield) continue;
-					if (c.getDefaultModel() == textfield.getModel()) {
-						c.modelChanged();
-						target.add(c);
-					}
-				}
-			}
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == textfield) continue;
+                    if (c.getDefaultModel() == textfield.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
+                    }
+                }
+            }
 
-		});
-		add(textfield);
-	}
+        });
+        add(textfield);
+    }
 
-	@Override
-	public void removeFromContext() {
-		context.getComponents().remove(textfield);
-	}
+    @Override
+    public void removeFromContext() {
+        context.getComponents().remove(textfield);
+    }
 
-	@Override
-	public boolean isUnifiableWith(Value v) {
-		if (v == null) return true;
-		String vs = v.stringValue();
-		if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
-		if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
-		Validatable<String> validatable = new Validatable<>(vs);
-		if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-			vs = Utils.getUriPostfix(vs);
-		}
-		new Validator(iri, context.getTemplate()).validate(validatable);
-		if (!validatable.isValid()) {
-			return false;
-		}
-		if (textfield.getModelObject().isEmpty()) {
-			return true;
-		}
-		return vs.equals(textfield.getModelObject());
-	}
+    @Override
+    public boolean isUnifiableWith(Value v) {
+        if (v == null) return true;
+        String vs = v.stringValue();
+        if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
+        if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+        Validatable<String> validatable = new Validatable<>(vs);
+        if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
+            vs = Utils.getUriPostfix(vs);
+        }
+        new Validator(iri, context.getTemplate()).validate(validatable);
+        if (!validatable.isValid()) {
+            return false;
+        }
+        if (textfield.getModelObject().isEmpty()) {
+            return true;
+        }
+        return vs.equals(textfield.getModelObject());
+    }
 
-	@Override
-	public void unifyWith(Value v) throws UnificationException {
-		if (v == null) return;
-		if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-		String vs = v.stringValue();
-		if (vs.startsWith("local:")) {
-			textfield.setModelObject(vs.replaceFirst("^local:", ""));
-		} else if (v instanceof IRI) {
-			textfield.setModelObject(vs);
-		} else {
-			textfield.setModelObject("\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"");
-		}
-	}
+    @Override
+    public void unifyWith(Value v) throws UnificationException {
+        if (v == null) return;
+        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+        String vs = v.stringValue();
+        if (vs.startsWith("local:")) {
+            textfield.setModelObject(vs.replaceFirst("^local:", ""));
+        } else if (v instanceof IRI) {
+            textfield.setModelObject(vs);
+        } else {
+            textfield.setModelObject("\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"");
+        }
+    }
 
 
-	protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
+    /**
+     * Validator class for validating the text field input.
+     */
+    protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
 
-		private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
 //		private IRI iri;
 //		private Template template;
 
-		public Validator(IRI iri, Template template) {
+        /**
+         * Constructor for the validator.
+         *
+         * @param iri      the IRI associated with the value
+         * @param template the template containing the context
+         */
+        public Validator(IRI iri, Template template) {
 //			this.iri = iri;
 //			this.template = template;
-		}
+        }
 
-		@Override
-		public void validate(IValidatable<String> s) {
-			if (s.getValue().startsWith("\"")) {
-				if (!s.getValue().matches("\"([^\\\\\\\"]|\\\\\\\\|\\\\\")*\"")) {
-					s.error(new ValidationError("Invalid literal value"));
-				}
-				return;
-			}
-			String p = "";
-			if (s.getValue().matches("[^:# ]+")) p = "local:";
-			try {
-				ParsedIRI piri = new ParsedIRI(p + s.getValue());
-				if (!piri.isAbsolute()) {
-					s.error(new ValidationError("IRI not well-formed"));
-				}
-				if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("https?://.+")) {
-					s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
-				}
-			} catch (URISyntaxException ex) {
-				s.error(new ValidationError("IRI not well-formed"));
-			}
-		}
+        @Override
+        public void validate(IValidatable<String> s) {
+            if (s.getValue().startsWith("\"")) {
+                if (!s.getValue().matches("\"([^\\\\\\\"]|\\\\\\\\|\\\\\")*\"")) {
+                    s.error(new ValidationError("Invalid literal value"));
+                }
+                return;
+            }
+            String p = "";
+            if (s.getValue().matches("[^:# ]+")) p = "local:";
+            try {
+                ParsedIRI piri = new ParsedIRI(p + s.getValue());
+                if (!piri.isAbsolute()) {
+                    s.error(new ValidationError("IRI not well-formed"));
+                }
+                if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("https?://.+")) {
+                    s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
+                }
+            } catch (URISyntaxException ex) {
+                s.error(new ValidationError("IRI not well-formed"));
+            }
+        }
 
-	}
+    }
 
-	@Override
-	public void fillFinished() {
-	}
+    @Override
+    public void fillFinished() {
+    }
 
-	@Override
-	public void finalizeValues() {
-		Value defaultValue = context.getTemplate().getDefault(iri);
-		if (isUnifiableWith(defaultValue)) {
-			try {
-				unifyWith(defaultValue);
-			} catch (UnificationException ex) {
-				ex.printStackTrace();
-			}
-		}
-	}
+    @Override
+    public void finalizeValues() {
+        Value defaultValue = context.getTemplate().getDefault(iri);
+        if (isUnifiableWith(defaultValue)) {
+            try {
+                unifyWith(defaultValue);
+            } catch (UnificationException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
-	public String toString() {
-		return "[value textfield item: " + iri + "]";
-	}
+    public String toString() {
+        return "[value textfield item: " + iri + "]";
+    }
 
 }
