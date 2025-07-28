@@ -12,8 +12,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 
 import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UseSameTemplateActionTest {
@@ -78,7 +77,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void isApplicableTo() throws MalformedNanopubException {
+    void isApplicableToReturnsTrue() throws MalformedNanopubException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -96,6 +95,27 @@ class UseSameTemplateActionTest {
         boolean result = action.isApplicableTo(nanopub);
 
         assertTrue(result);
+    }
+
+    @Test
+    void isApplicableToReturnsFalse() throws MalformedNanopubException {
+        IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
+
+        NanopubCreator creator = TestUtils.getNanopubCreator();
+        creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
+        creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
+        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+
+        Nanopub nanopub = creator.finalizeNanopub();
+
+        TemplateData templateDataMock = mock(TemplateData.class);
+        templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
+        when(templateDataMock.getTemplateId(nanopub)).thenReturn(null);
+
+        UseSameTemplateAction action = new UseSameTemplateAction();
+        boolean result = action.isApplicableTo(nanopub);
+
+        assertFalse(result);
     }
 
 }
