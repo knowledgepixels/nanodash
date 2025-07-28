@@ -24,7 +24,6 @@ public class QueryApiAccess {
 
     private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
 
-
     static {
         // TODO Load this dynamically somehow at some point:
         load("RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-latest-nanopubs-from-pubkeys");
@@ -67,7 +66,7 @@ public class QueryApiAccess {
      *
      * @param queryId The query ID to load.
      */
-    private static void load(String queryId) {
+    static void load(String queryId) {
         queryIds.put(queryId.substring(46), queryId);
     }
 
@@ -190,6 +189,12 @@ public class QueryApiAccess {
         return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
     }
 
+    /**
+     * Retrieves the query ID for a given query name.
+     *
+     * @param queryName The name of the query.
+     * @return The query ID, or null if the query name is unknown.
+     */
     public static String getQueryId(String queryName) {
         return queryIds.get(queryName);
     }
