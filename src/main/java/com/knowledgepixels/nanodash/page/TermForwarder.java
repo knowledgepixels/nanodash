@@ -1,28 +1,38 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.Utils;
-
+/**
+ * A page that forwards requests to the ExplorePage based on the provided parameters.
+ */
 public class TermForwarder extends NanodashPage {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/term";
+    /**
+     * The mount path for this page.
+     */
+    public static final String MOUNT_PATH = "/term";
 
-	@Override
-	public String getMountPath() {
-		return MOUNT_PATH;
-	}
+    @Override
+    public String getMountPath() {
+        return MOUNT_PATH;
+    }
 
-	public TermForwarder(final PageParameters parameters) {
-		super(parameters);
-		// Getting HTTP Accept header:
-		//
-		//System.err.println("P: " + ((HttpServletRequest) getRequest().getContainerRequest()).getHeader("Accept"));
+    /**
+     * Constructor that initializes the page with the given parameters.
+     *
+     * @param parameters The parameters to initialize the page with.
+     */
+    public TermForwarder(final PageParameters parameters) {
+        super(parameters);
+        // Getting HTTP Accept header:
+        //
+        //System.err.println("P: " + ((HttpServletRequest) getRequest().getContainerRequest()).getHeader("Accept"));
 
-		// Earlier code to redirect to nanopub if authority matches:
+        // Earlier code to redirect to nanopub if authority matches:
 
 //		IRI id = vf.createIRI(parameters.get("id").toString());
 //		IRI authority = null;
@@ -47,12 +57,12 @@ public class TermForwarder extends NanodashPage {
 //		String npUri = responses.get(0).get("np");
 //		throw new RedirectToUrlException(Utils.getUrlWithParameters(ExplorePage.MOUNT_PATH, new PageParameters().add("id", npUri)));
 
-		// Currently just redirecting to explore page, where "authority" param is ignored:
+        // Currently just redirecting to explore page, where "authority" param is ignored:
 
-		throw new RedirectToUrlException(Utils.getUrlWithParameters(ExplorePage.MOUNT_PATH, parameters));
+        throw new RedirectToUrlException(Utils.getUrlWithParameters(ExplorePage.MOUNT_PATH, parameters));
 
-		// TODO Consider authority again, and show matching (or non-matching) authority accordingly
-	}
+        // TODO Consider authority again, and show matching (or non-matching) authority accordingly
+    }
 
 //	private static final ValueFactory vf = SimpleValueFactory.getInstance();
 

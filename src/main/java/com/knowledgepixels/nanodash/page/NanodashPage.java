@@ -20,11 +20,11 @@ public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
 
-    private static long lastRefresh = 0l;
+    private static long lastRefresh = 0L;
     private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
     private static boolean refreshRunning = false;
 
-    private long state = 0l;
+    private long state = 0L;
 
     private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
 
