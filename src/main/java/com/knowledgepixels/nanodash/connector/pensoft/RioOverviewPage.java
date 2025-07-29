@@ -26,6 +26,9 @@ public class RioOverviewPage extends ConnectorPage {
         setResponsePage(GenOverviewPage.class, params.add("journal", "pensoft/rio"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

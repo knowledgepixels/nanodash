@@ -14,31 +14,49 @@ public class CommentAction extends NanopubAction {
      */
     public static final String TEMPLATE_URI = "http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLinkLabel(Nanopub np) {
         return "comment";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getTemplateUri(Nanopub np) {
         return TEMPLATE_URI;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getParamString(Nanopub np) {
         return "param_thing=" + getEncodedUri(np);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableToOwnNanopubs() {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableToOthersNanopubs() {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableTo(Nanopub np) {
         return true;

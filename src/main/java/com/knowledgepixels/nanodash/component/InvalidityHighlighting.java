@@ -19,6 +19,9 @@ public class InvalidityHighlighting extends Behavior {
     public InvalidityHighlighting() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onComponentTag(Component c, ComponentTag tag) {
         FormComponent<?> fc = (FormComponent<?>) c;

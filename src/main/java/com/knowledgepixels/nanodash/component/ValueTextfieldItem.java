@@ -84,11 +84,17 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         add(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -109,6 +115,9 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         return vs.equals(textfield.getModelObject());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -170,10 +179,16 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -186,6 +201,11 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[value textfield item: " + iri + "]";
     }

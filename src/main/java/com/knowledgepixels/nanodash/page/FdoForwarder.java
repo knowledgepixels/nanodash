@@ -22,6 +22,9 @@ public class FdoForwarder extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/fdo";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

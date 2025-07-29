@@ -31,6 +31,9 @@ public class UserPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/user";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -201,6 +204,11 @@ public class UserPage extends NanodashPage {
         }
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

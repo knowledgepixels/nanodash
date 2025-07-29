@@ -107,9 +107,9 @@ public class GenSelectPage extends ConnectorPage {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Returns the mount path for this page.
-     *
-     * @return The mount path for this page.
      */
     @Override
     public String getMountPath() {

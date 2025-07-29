@@ -26,6 +26,9 @@ public class BdjOverviewPage extends ConnectorPage {
         setResponsePage(GenOverviewPage.class, params.add("journal", "pensoft/bdj"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

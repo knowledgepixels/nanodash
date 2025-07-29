@@ -26,6 +26,9 @@ public class DsNanopubPage extends ConnectorPage {
         setResponsePage(GenNanopubPage.class, params.add("journal", "ios/ds"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

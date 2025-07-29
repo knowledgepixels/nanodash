@@ -14,6 +14,9 @@ public class GetViewPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/get-view";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

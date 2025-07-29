@@ -126,6 +126,13 @@ public class IriItem extends Panel implements ContextComponent {
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     // TODO Merge with Utils.getShortNameFromURI
+
+    /**
+     * <p>getShortNameFromURI.</p>
+     *
+     * @param uri a {@link java.lang.String} object
+     * @return a {@link java.lang.String} object
+     */
     public static String getShortNameFromURI(String uri) {
         if (uri.startsWith("https://doi.org/")) return uri.replace("https://doi.org/", "doi:");
         if (uri.startsWith("http://dx.doi.org/")) return uri.replace("http://dx.doi.org/", "doi:");
@@ -143,11 +150,17 @@ public class IriItem extends Panel implements ContextComponent {
         return uri;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (!(v instanceof IRI)) return false;
@@ -160,20 +173,32 @@ public class IriItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         // Nothing left to be done here.
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "[IRI item: " + iri + "]";

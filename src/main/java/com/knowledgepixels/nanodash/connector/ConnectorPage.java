@@ -59,8 +59,8 @@ public abstract class ConnectorPage extends NanodashPage {
      * @param operation the operation to perform, typically a query ID.
      * @param params    the parameters to pass to the API call.
      * @return ApiResponse containing the result of the API call.
-     * @throws CsvValidationException if there is an error in CSV validation.
-     * @throws IOException            if there is an error during the API call.
+     * @throws com.opencsv.exceptions.CsvValidationException if there is an error in CSV validation.
+     * @throws java.io.IOException                           if there is an error during the API call.
      */
     public ApiResponse callApi(String operation, Map<String, String> params) throws CsvValidationException, IOException {
         return ApiCache.retrieveResponse(ConnectorConfig.getQueryId(operation), params);

@@ -16,6 +16,9 @@ public class TermForwarder extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/term";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

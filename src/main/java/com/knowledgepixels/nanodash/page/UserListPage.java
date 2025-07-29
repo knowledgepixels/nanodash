@@ -31,6 +31,9 @@ public class UserListPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/userlist";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -135,6 +138,9 @@ public class UserListPage extends NanodashPage {
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean hasAutoRefreshEnabled() {
         return true;

@@ -34,6 +34,9 @@ public class ExplorePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/explore";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

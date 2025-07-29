@@ -28,6 +28,9 @@ public class GenPublishPage extends ConnectorPage {
      */
     public static final String MOUNT_PATH = "/connector/publish";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -73,9 +76,9 @@ public class GenPublishPage extends ConnectorPage {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Renders the head section of the page, including custom JavaScript functions.
-     *
-     * @param response The header response to which the JavaScript will be added.
      */
     @Override
     public void renderHead(IHeaderResponse response) {

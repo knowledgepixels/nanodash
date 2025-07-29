@@ -44,6 +44,9 @@ import java.util.*;
 public class Utils {
 
     private static Map<String, Nanopub> nanopubs = new HashMap<>();
+    /**
+     * Constant <code>vf</code>
+     */
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private Utils() {

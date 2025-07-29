@@ -43,7 +43,7 @@ public class GenNanopubPage extends ConnectorPage {
      * Constructor for the GenNanopubPage.
      *
      * @param parameters Page parameters containing the necessary information to create the nanopublication.
-     * @throws FailedApiCallException if the API call fails while fetching data for the nanopublication.
+     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails while fetching data for the nanopublication.
      */
     public GenNanopubPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
@@ -192,9 +192,9 @@ public class GenNanopubPage extends ConnectorPage {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Returns the mount path for this page.
-     *
-     * @return the mount path as a string.
      */
     @Override
     public String getMountPath() {

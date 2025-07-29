@@ -21,6 +21,9 @@ public class ReferenceTablePage extends NanodashPage {
 
     private final String ref;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -44,6 +47,11 @@ public class ReferenceTablePage extends NanodashPage {
         add(ExploreDataTable.createComponent("table", ref, 0));
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

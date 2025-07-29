@@ -18,6 +18,9 @@ public class MyChannelPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/mychannel";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

@@ -25,6 +25,9 @@ public class QueryListPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/queries";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

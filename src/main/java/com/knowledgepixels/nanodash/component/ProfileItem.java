@@ -21,7 +21,8 @@ public class ProfileItem extends Panel {
     /**
      * Constructor for the ProfileItem panel.
      *
-     * @param id the component id
+     * @param id   the component id
+     * @param page a {@link com.knowledgepixels.nanodash.page.NanodashPage} object
      */
     public ProfileItem(String id, NanodashPage page) {
         super(id);

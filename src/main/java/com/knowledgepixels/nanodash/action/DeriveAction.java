@@ -10,11 +10,17 @@ public class DeriveAction extends NanopubAction {
 
     private static final long serialVersionUID = 4348436856820074305L;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLinkLabel(Nanopub np) {
         return "edit as derived nanopublication";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getTemplateUri(Nanopub np) {
         if (TemplateData.get().getTemplateId(np) != null) {
@@ -24,21 +30,33 @@ public class DeriveAction extends NanopubAction {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getParamString(Nanopub np) {
         return "derive=" + getEncodedUri(np);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableToOwnNanopubs() {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableToOthersNanopubs() {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isApplicableTo(Nanopub np) {
         return true;

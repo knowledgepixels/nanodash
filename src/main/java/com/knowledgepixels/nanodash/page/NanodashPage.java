@@ -80,6 +80,9 @@ public abstract class NanodashPage extends WebPage {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onRender() {
         if (hasAutoRefreshEnabled() && state < lastRefresh) {
@@ -89,9 +92,9 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Renders the head section of the page, including JavaScript references.
-     *
-     * @param response the header response
      */
     @Override
     public void renderHead(IHeaderResponse response) {

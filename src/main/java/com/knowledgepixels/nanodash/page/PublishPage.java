@@ -28,6 +28,9 @@ public class PublishPage extends NanodashPage {
 
     private boolean autoRefresh = false;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -66,6 +69,9 @@ public class PublishPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
@@ -77,6 +83,9 @@ public class PublishPage extends NanodashPage {
                 "custom-functions"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean hasAutoRefreshEnabled() {
         return autoRefresh;

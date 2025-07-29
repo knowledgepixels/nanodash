@@ -17,6 +17,9 @@ public abstract class NanopubAction implements Serializable {
 
     private static final long serialVersionUID = 4086842804225420496L;
 
+    /**
+     * Constant <code>noActions</code>
+     */
     public static final NanopubAction[] noActions = new NanopubAction[0];
 
     /**
@@ -24,6 +27,9 @@ public abstract class NanopubAction implements Serializable {
      */
     public static final NanopubAction[] defaultActions;
 
+    /**
+     * Constant <code>ownActions</code>
+     */
     public static final NanopubAction[] ownActions;
 
     private static Map<String, NanopubAction> defaultClassNameMap = new HashMap<>();
@@ -116,6 +122,12 @@ public abstract class NanopubAction implements Serializable {
      */
     public abstract boolean isApplicableTo(Nanopub np);
 
+    /**
+     * <p>getEncodedUri.</p>
+     *
+     * @param np a {@link org.nanopub.Nanopub} object
+     * @return a {@link java.lang.String} object
+     */
     protected static String getEncodedUri(Nanopub np) {
         return Utils.urlEncode(np.getUri().stringValue());
     }

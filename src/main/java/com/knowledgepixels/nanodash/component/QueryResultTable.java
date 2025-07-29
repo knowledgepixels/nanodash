@@ -169,10 +169,27 @@ public class QueryResultTable extends Panel {
 
     }
 
+    /**
+     * <p>createComponent.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param queryId  a {@link java.lang.String} object
+     * @param plain    a boolean
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createComponent(final String markupId, final String queryId, boolean plain) {
         return createComponent(markupId, queryId, getParams(), plain);
     }
 
+    /**
+     * <p>createComponent.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param queryId  a {@link java.lang.String} object
+     * @param params   a {@link java.util.HashMap} object
+     * @param plain    a boolean
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createComponent(final String markupId, final String queryId, HashMap<String, String> params, boolean plain) {
         final GrlcQuery q = GrlcQuery.get(queryId);
         ApiResponse response = ApiCache.retrieveResponse(queryId, params);

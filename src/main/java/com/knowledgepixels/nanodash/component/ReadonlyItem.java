@@ -233,6 +233,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         add(extraComp);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
         String obj = getFullValue();
@@ -250,6 +253,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
     }
@@ -264,6 +270,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
@@ -311,6 +320,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -350,6 +362,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -462,6 +477,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[read-only IRI item: " + iri + "]";
     }

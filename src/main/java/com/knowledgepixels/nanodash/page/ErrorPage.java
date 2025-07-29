@@ -16,6 +16,9 @@ public class ErrorPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/error";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -29,20 +32,28 @@ public class ErrorPage extends NanodashPage {
      */
     public ErrorPage(final PageParameters parameters) {
         super(parameters);
-
         add(new TitleBar("titlebar", this, null));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void configureResponse(WebResponse response) {
         super.configureResponse(response);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isVersioned() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isErrorPage() {
         return true;

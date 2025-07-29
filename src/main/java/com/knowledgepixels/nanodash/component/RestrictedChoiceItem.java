@@ -203,11 +203,17 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(choice);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -225,6 +231,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -234,10 +243,16 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         choice.setModelObject(vs);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -250,6 +265,11 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[Restricted choice item: " + iri + "]";
     }

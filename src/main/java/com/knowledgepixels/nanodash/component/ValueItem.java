@@ -86,26 +86,41 @@ public class ValueItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         component.removeFromContext();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         return component.isUnifiableWith(v);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         component.unifyWith(v);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
         component.fillFinished();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         component.finalizeValues();
@@ -129,6 +144,11 @@ public class ValueItem extends Panel implements ContextComponent {
         return component;
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return component.toString();
     }

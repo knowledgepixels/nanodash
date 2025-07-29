@@ -18,6 +18,9 @@ public class GetNamePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/get-name";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

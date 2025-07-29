@@ -222,11 +222,17 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         return model;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -249,6 +255,9 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -260,10 +269,16 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         textfield.setModelObject(vs);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -281,6 +296,11 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[Agent choiced item: " + iri + "]";
     }

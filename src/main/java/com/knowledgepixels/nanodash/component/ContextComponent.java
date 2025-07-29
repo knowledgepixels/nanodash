@@ -28,7 +28,7 @@ public interface ContextComponent {
      * If the component cannot be unified with the value, an UnificationException is thrown.
      *
      * @param v the RDF value to unify with
-     * @throws UnificationException if the component cannot be unified with the value
+     * @throws com.knowledgepixels.nanodash.template.UnificationException if the component cannot be unified with the value
      */
     public void unifyWith(Value v) throws UnificationException;
 

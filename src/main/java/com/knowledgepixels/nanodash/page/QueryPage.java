@@ -36,6 +36,9 @@ public class QueryPage extends NanodashPage {
     private final List<QueryParamField> paramFields;
     private final FeedbackPanel feedbackPanel;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -147,6 +150,11 @@ public class QueryPage extends NanodashPage {
         }
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

@@ -26,6 +26,9 @@ public class BdjNanopubPage extends ConnectorPage {
         setResponsePage(GenNanopubPage.class, params.add("journal", "pensoft/bdj"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

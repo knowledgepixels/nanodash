@@ -19,6 +19,9 @@ public class ThingListPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/thinglist";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

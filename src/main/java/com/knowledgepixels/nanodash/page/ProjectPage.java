@@ -41,6 +41,9 @@ public class ProjectPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/project";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -65,7 +68,7 @@ public class ProjectPage extends NanodashPage {
      * Constructor for the ProjectPage.
      *
      * @param parameters the page parameters
-     * @throws FailedApiCallException if the API call fails
+     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails
      */
     public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);

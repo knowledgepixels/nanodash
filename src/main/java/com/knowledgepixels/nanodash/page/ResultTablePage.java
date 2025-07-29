@@ -19,6 +19,9 @@ public class ResultTablePage extends NanodashPage {
 
     private final String query;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -40,6 +43,11 @@ public class ResultTablePage extends NanodashPage {
         add(QueryResultTable.createComponent("table", query, false));
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

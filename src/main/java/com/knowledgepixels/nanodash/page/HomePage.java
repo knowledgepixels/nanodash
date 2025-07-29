@@ -27,6 +27,9 @@ public class HomePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

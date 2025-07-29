@@ -77,20 +77,37 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         add(tc);
     }
 
+    /**
+     * <p>initTextComponent.</p>
+     *
+     * @param model a {@link org.apache.wicket.model.IModel} object
+     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     */
     protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
         textfield = new TextField<>("textfield", model);
         return textfield;
     }
 
+    /**
+     * <p>getTextComponent.</p>
+     *
+     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     */
     protected AbstractTextComponent<String> getTextComponent() {
         return textfield;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(getTextComponent());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -106,6 +123,9 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -113,10 +133,16 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         getTextComponent().setModelObject(v.stringValue());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -129,6 +155,9 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "[Literal textfield item]";

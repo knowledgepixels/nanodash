@@ -29,6 +29,9 @@ public class TypePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/type";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -59,6 +62,11 @@ public class TypePage extends NanodashPage {
         refresh();
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

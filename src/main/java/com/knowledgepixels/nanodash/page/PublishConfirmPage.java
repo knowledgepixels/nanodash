@@ -30,6 +30,9 @@ public class PublishConfirmPage extends NanodashPage {
 
     private final Nanopub np;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -89,6 +92,9 @@ public class PublishConfirmPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         if (!getPageParameters().get("postpub-redirect-url").isNull()) {

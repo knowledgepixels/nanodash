@@ -245,11 +245,17 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         return model;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -273,6 +279,9 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -290,10 +299,16 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -308,6 +323,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String toString() {
         return "[Guided choiced item: " + iri + "]";
     }

@@ -94,6 +94,9 @@ public class StatementItem extends Panel {
         repetitionGroupsChanged = true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         if (repetitionGroupsChanged) {
@@ -137,7 +140,7 @@ public class StatementItem extends Panel {
      * Adds the triples of this statement item to the given NanopubCreator.
      *
      * @param npCreator the NanopubCreator to which the triples will be added
-     * @throws MalformedNanopubException if the statement item is not properly set up
+     * @throws org.nanopub.MalformedNanopubException if the statement item is not properly set up
      */
     public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
         if (hasEmptyElements()) {
@@ -223,7 +226,7 @@ public class StatementItem extends Panel {
      * Fills this statement item with the provided list of statements, matching them against the repetition groups.
      *
      * @param statements the list of statements to match against
-     * @throws UnificationException if the statements cannot be unified with this statement item
+     * @throws com.knowledgepixels.nanodash.template.UnificationException if the statements cannot be unified with this statement item
      */
     public void fill(List<Statement> statements) throws UnificationException {
         if (isMatched) return;

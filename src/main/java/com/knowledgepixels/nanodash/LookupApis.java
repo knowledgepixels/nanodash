@@ -38,7 +38,7 @@ public class LookupApis {
      * @param grlcJsonObject the JSON object containing the grlc API response
      * @param labelMap       a map to store URIs and their corresponding labels
      * @param values         a list to store the extracted URIs
-     * @throws IOException if an I/O error occurs while processing the JSON
+     * @throws java.io.IOException if an I/O error occurs while processing the JSON
      */
     public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String, String> labelMap, List<String> values) throws IOException {
         // Aimed to resolve Nanopub grlc API: http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_signed_nanopubs_with_text?text=covid

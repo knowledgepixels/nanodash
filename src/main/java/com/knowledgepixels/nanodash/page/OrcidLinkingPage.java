@@ -18,6 +18,9 @@ public class OrcidLinkingPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/orcidlinking";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

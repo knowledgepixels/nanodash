@@ -144,6 +144,14 @@ public class NanodashLink extends Panel {
         add(Utils.getUriLink("uri", uri));
     }
 
+    /**
+     * <p>createLink.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param uri      a {@link java.lang.String} object
+     * @param label    a {@link java.lang.String} object
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createLink(String markupId, String uri, String label) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         // TODO Improve this

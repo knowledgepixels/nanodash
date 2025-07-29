@@ -26,15 +26,26 @@ public class LiteralTextareaItem extends LiteralTextfieldItem {
         super(id, iri, optional, context);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
         textarea = new TextArea<>("textarea", model);
         return textarea;
     }
 
+    /**
+     * <p>getTextComponent.</p>
+     *
+     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     */
     protected AbstractTextComponent<String> getTextComponent() {
         return textarea;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "[Long literal textfield item]";

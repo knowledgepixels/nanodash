@@ -85,6 +85,9 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
         this.waitComponentHtml = waitComponentHtml;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Component getLazyLoadComponent(String markupId) {
         while (true) {
@@ -105,6 +108,9 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
         return getApiResultComponent(markupId, response);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Component getLoadingComponent(String id) {
         if (!waitIconEnabled) {
@@ -118,6 +124,9 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean isContentReady() {
         return response != null || !ApiCache.isRunning(queryName, params);

@@ -445,6 +445,7 @@ public class NanopubItem extends Panel {
     /**
      * Adds the given actions to the nanopub item.
      *
+     * @param a a {@link com.knowledgepixels.nanodash.action.NanopubAction} object
      * @return this NanopubItem instance for method chaining
      */
     public NanopubItem addActions(NanopubAction... a) {
@@ -467,6 +468,9 @@ public class NanopubItem extends Panel {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         initialize();

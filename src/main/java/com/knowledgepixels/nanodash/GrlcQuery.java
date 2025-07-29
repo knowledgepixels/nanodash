@@ -27,6 +27,12 @@ public class GrlcQuery implements Serializable {
 
     private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
 
+    /**
+     * Returns a singleton instance of GrlcQuery for the given query ID.
+     *
+     * @param id the unique identifier or URI of the query
+     * @return a GrlcQuery instance
+     */
     public static GrlcQuery get(String id) {
         if (!instanceMap.containsKey(id)) {
             instanceMap.put(id, new GrlcQuery(id));

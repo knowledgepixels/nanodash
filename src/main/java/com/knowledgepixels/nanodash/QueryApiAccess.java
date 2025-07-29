@@ -111,7 +111,7 @@ public class QueryApiAccess {
      *
      * @param queryName The name of the query.
      * @return The API response.
-     * @throws FailedApiCallException If the API call fails.
+     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
     public static ApiResponse get(String queryName) throws FailedApiCallException {
         return get(queryName, new HashMap<>());
@@ -124,7 +124,7 @@ public class QueryApiAccess {
      * @param paramKey   The key of the parameter.
      * @param paramValue The value of the parameter.
      * @return The API response.
-     * @throws FailedApiCallException If the API call fails.
+     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
     public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
         Map<String, String> params = new HashMap<>();
@@ -138,7 +138,7 @@ public class QueryApiAccess {
      * @param queryName The name of the query.
      * @param params    The parameters for the query.
      * @return The API response.
-     * @throws FailedApiCallException If the API call fails.
+     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
     public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException {
         String queryId;

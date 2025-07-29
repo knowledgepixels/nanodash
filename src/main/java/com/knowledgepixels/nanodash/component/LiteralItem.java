@@ -36,27 +36,42 @@ public class LiteralItem extends Panel implements ContextComponent {
         add(new Label(LABEL_ID, literal.stringValue()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (!(v instanceof Literal)) return false;
         return literal.stringValue().equals(v.stringValue());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         // Nothing left to be done here.
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
     }

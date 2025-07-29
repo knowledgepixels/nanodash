@@ -79,6 +79,8 @@ public class WicketApplication extends WebApplication {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Initializes the application settings and mounts pages.
      */
     @Override
@@ -136,9 +138,9 @@ public class WicketApplication extends WebApplication {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
      * Returns the runtime configuration type for the application.
-     *
-     * @return The RuntimeConfigurationType.DEPLOYMENT.
      */
     @Override
     public RuntimeConfigurationType getConfigurationType() {
@@ -198,11 +200,7 @@ public class WicketApplication extends WebApplication {
     }
 
     /**
-     * Creates a new session for the application.
-     *
-     * @param request  The HTTP request.
-     * @param response The HTTP response.
-     * @return A new Session instance.
+     * {@inheritDoc}
      */
     @Override
     public Session newSession(Request request, Response response) {

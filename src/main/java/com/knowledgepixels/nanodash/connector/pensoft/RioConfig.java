@@ -30,42 +30,66 @@ public class RioConfig extends ConnectorConfig {
         return instance;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLogoFileName() {
         return "RioLogo.svg";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getSubmitImageFileName() {
         return "RioFormSubmit.png";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalName() {
         return "RIO Journal";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalAbbrev() {
         return "RIO";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalUrl() {
         return "https://riojournal.com/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalIssn() {
         return "2367-7163";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getReviewUrlPrefix() {
         return "http://rio.kpxl.org/";
         //return "https://w3id.org/kpxl/pensoft/rio/np/reviewer/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getCandidateNanopubsApiCall() {
         return "get-latest-rio-candidates";
@@ -73,6 +97,9 @@ public class RioConfig extends ConnectorConfig {
 
     private Set<IRI> technicalEditorIds;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<IRI> getTechnicalEditorIds() {
         if (technicalEditorIds == null) {
@@ -82,27 +109,42 @@ public class RioConfig extends ConnectorConfig {
         return technicalEditorIds;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IRI getNanopubType() {
         return Utils.vf.createIRI("https://w3id.org/kpxl/pensoft/rio/terms/RIOJournalNanopub");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getTargetNamespace() {
         return "https://w3id.org/kpxl/pensoft/rio/np/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getAcceptedNanopubsApiCall() {
         return "get-latest-accepted-rio";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getExtraInstructions() {
         return "<br><br>Nanopublications can be linked in your manuscript via the <a href=\"https://arpha.pensoft.net/\" target=\"_blank\">ARPHA Writing Tool</a>.\n"
                 + "See the \"Nanopublications\" guidelines in the <a href=\"https://bdj.pensoft.net/about\" target=\"_blank\">About</a> info pages of the journal.";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getConnectInstruction() {
         return "Paste it in the ARPHA Writing Tool as a \"Nanopublications\" element:";
@@ -130,6 +172,9 @@ public class RioConfig extends ConnectorConfig {
         ));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ConnectorOptionGroup> getOptions() {
         return options;

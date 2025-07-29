@@ -53,10 +53,16 @@ public class SequenceElementItem extends Panel implements ContextComponent {
         add(new ExternalLink("text", "", label));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -64,20 +70,34 @@ public class SequenceElementItem extends Panel implements ContextComponent {
         return v.stringValue().equals(SEQUENCE_ELEMENT_PROPERTY_PREFIX + number);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[Sequence element]";
     }
