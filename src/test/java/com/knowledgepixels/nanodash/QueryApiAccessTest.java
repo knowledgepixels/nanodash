@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.utils.TestUtils;
+import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -10,8 +12,7 @@ import org.nanopub.extra.services.QueryAccess;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
 
 class QueryApiAccessTest {
@@ -78,6 +79,25 @@ class QueryApiAccessTest {
         Map<String, String> params = new HashMap<>();
 
         assertThrows(IllegalArgumentException.class, () -> QueryApiAccess.get(queryName, params));
+    }
+
+    @Test
+    void getQueryNameReturnsNullForNullIRI() {
+        String result = QueryApiAccess.getQueryName(null);
+        assertNull(result);
+    }
+
+    @Test
+    void getQueryNameReturnsNullForInvalidIRI() {
+        IRI queryIri = TestUtils.vf.createIRI("https://example.org/invalidIRI");
+        String result = QueryApiAccess.getQueryName(queryIri);
+        assertNull(result);
+    }
+
+    @Test
+    void getQueryNameExtractsQueryNameFromValidIRI() {
+        String result = QueryApiAccess.getQueryName(TestUtils.vf.createIRI("https://w3id.org/np/" + queryId));
+        assertEquals(queryName, result);
     }
 
 }
