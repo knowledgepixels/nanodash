@@ -16,11 +16,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 21
-      - name: Set envirnoment variable
+      - name: Set environment variable
         run: echo "NANODASH_VERSION=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)" >> $GITHUB_ENV
 
       - name: Package
-        run: mvn package
+        run: ./mvnw package
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
