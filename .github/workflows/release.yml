@@ -28,7 +28,7 @@ jobs:
           automatic_release_tag: nanodash-${{ env.NANODASH_VERSION }}
           prerelease: false
       - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           username: tkuhn
           password: ${{ secrets.DOCKER_PASSWORD }}
