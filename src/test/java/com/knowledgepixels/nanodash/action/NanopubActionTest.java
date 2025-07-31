@@ -5,21 +5,20 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class NanopubActionTest {
 
     @Test
-    void getActionsFromPreferences_returnsEmptyListForNullPreferences() {
+    void getActionsFromPreferencesReturnsEmptyListForNullPreferences() {
         List<NanopubAction> result = NanopubAction.getActionsFromPreferences(null);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void getActionsFromPreferences_returnsEmptyListForEmptyPreferences() {
+    void getActionsFromPreferencesReturnsEmptyListForEmptyPreferences() {
         NanodashPreferences pref = mock(NanodashPreferences.class);
         when(pref.getNanopubActions()).thenReturn(List.of());
         List<NanopubAction> result = NanopubAction.getActionsFromPreferences(pref);
@@ -27,17 +26,17 @@ class NanopubActionTest {
     }
 
     @Test
-    void getActionsFromPreferences_returnsDefaultActionsForValidPreferences() {
+    void getActionsFromPreferencesReturnsDefaultActionsForValidPreferences() {
         NanodashPreferences pref = mock(NanodashPreferences.class);
         when(pref.getNanopubActions()).thenReturn(List.of("com.knowledgepixels.nanodash.action.ImproveAction",
                 "com.knowledgepixels.nanodash.action.UpdateAction"));
         List<NanopubAction> result = NanopubAction.getActionsFromPreferences(pref);
         assertEquals(1, result.size());
-        assertTrue(result.get(0) instanceof ImproveAction);
+        assertInstanceOf(ImproveAction.class, result.getFirst());
     }
 
     @Test
-    void getActionsFromPreferences_ignoresInvalidClassNames() {
+    void getActionsFromPreferencesIgnoresInvalidClassNames() {
         NanodashPreferences pref = mock(NanodashPreferences.class);
         when(pref.getNanopubActions()).thenReturn(List.of("com.invalid.ClassName"));
         List<NanopubAction> result = NanopubAction.getActionsFromPreferences(pref);

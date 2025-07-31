@@ -10,22 +10,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ContextTypeTest {
 
     @Test
-    void contextType_containsAssertion() {
+    void contextTypeContainsAssertion() {
         assertTrue(EnumSet.allOf(ContextType.class).contains(ContextType.ASSERTION));
     }
 
     @Test
-    void contextType_containsProvenance() {
+    void contextTypeContainsProvenance() {
         assertTrue(EnumSet.allOf(ContextType.class).contains(ContextType.PROVENANCE));
     }
 
     @Test
-    void contextType_containsPubinfo() {
+    void contextTypeContainsPubinfo() {
         assertTrue(EnumSet.allOf(ContextType.class).contains(ContextType.PUBINFO));
     }
 
     @Test
-    void contextType_doesNotContainInvalidValue() {
+    void contextTypeDoesNotContainInvalidValue() {
         assertFalse(EnumSet.allOf(ContextType.class).contains(null));
     }
 

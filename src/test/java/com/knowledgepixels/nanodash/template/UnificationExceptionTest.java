@@ -8,14 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class UnificationExceptionTest {
 
     @Test
-    void unificationException_returnsCorrectMessage() {
+    void unificationExceptionReturnsCorrectMessage() {
         String message = "Error occurred during unification";
         UnificationException exception = new UnificationException(message);
         assertEquals(message, exception.getMessage());
     }
 
     @Test
-    void unificationException_handlesNullMessage() {
+    void unificationExceptionHandlesNullMessage() {
         UnificationException exception = new UnificationException(null);
         assertNull(exception.getMessage());
     }

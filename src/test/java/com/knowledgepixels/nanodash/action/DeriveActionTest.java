@@ -36,7 +36,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getTemplateUri_NanopubWithValidTemplate() throws MalformedNanopubException {
+    void getTemplateUriNanopubWithValidTemplate() throws MalformedNanopubException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -57,7 +57,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getTemplateUri_NanopubWithInvalidTemplate() throws MalformedNanopubException {
+    void getTemplateUriNanopubWithInvalidTemplate() throws MalformedNanopubException {
         Nanopub nanopub = TestUtils.createNanopub();
         TemplateData templateDataMock = mock(TemplateData.class);
         templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
