@@ -22,6 +22,7 @@ import static com.knowledgepixels.nanodash.utils.TestUtils.randomIri;
 import static org.eclipse.rdf4j.model.util.Values.iri;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 class GrlcQueryTest {
 
@@ -44,7 +45,7 @@ class GrlcQueryTest {
     void constructorThrowsExceptionForMissingQuery() throws MalformedNanopubException {
         Nanopub nanopub = TestUtils.createNanopub();
 
-        try (MockedStatic<Utils> utilsMock = org.mockito.Mockito.mockStatic(Utils.class)) {
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
             utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(nanopub);
 
             assertThrows(IllegalArgumentException.class, () -> GrlcQuery.get(NANOPUB_URI));
@@ -62,7 +63,7 @@ class GrlcQueryTest {
 
         Nanopub nanopub = nanopubCreator.finalizeNanopub();
 
-        try (MockedStatic<Utils> utilsMock = org.mockito.Mockito.mockStatic(Utils.class)) {
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
             utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(nanopub);
             assertThrows(IllegalArgumentException.class, () -> GrlcQuery.get(NANOPUB_URI));
         }
