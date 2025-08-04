@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
+import static org.eclipse.rdf4j.model.util.Values.iri;
+import static org.eclipse.rdf4j.model.util.Values.literal;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +29,7 @@ class UtilsTest {
 
     @Test
     void getShortNameFromURI() {
-        IRI iri = vf.createIRI("http://knowledgepixels.com/resource#any12345");
+        IRI iri = iri("http://knowledgepixels.com/resource#any12345");
         String shortName = "any12345";
         String shortNameRetrieved = Utils.getShortNameFromURI(iri);
         assertEquals(shortName, shortNameRetrieved);
@@ -35,7 +37,7 @@ class UtilsTest {
 
     @Test
     void getShortNameFromURIAsString() {
-        String iriAsString = vf.createIRI("http://knowledgepixels.com/resource#any12345").stringValue();
+        String iriAsString = iri("http://knowledgepixels.com/resource#any12345").stringValue();
         String shortName = "any12345";
         String shortNameRetrieved = Utils.getShortNameFromURI(iriAsString);
         assertEquals(shortName, shortNameRetrieved);
@@ -56,7 +58,7 @@ class UtilsTest {
 
     @Test
     void getShortOrcidId() {
-        IRI orcidId = vf.createIRI("https://orcid.org/0000-0000-0000-0000");
+        IRI orcidId = iri("https://orcid.org/0000-0000-0000-0000");
         String shortOrcidId = Utils.getShortOrcidId(orcidId);
         String expectedShortOrcidId = "0000-0000-0000-0000";
         assertEquals(expectedShortOrcidId, shortOrcidId);
@@ -106,7 +108,7 @@ class UtilsTest {
     @Test
     void testIsNanopubOfClass() throws MalformedNanopubException {
         Nanopub nanopub = TestUtils.createNanopub();
-        IRI classIri = vf.createIRI("http://knowledgepixels.com/nanopubIri#any");
+        IRI classIri = iri("http://knowledgepixels.com/nanopubIri#any");
         boolean isNanopubOfClass = Utils.isNanopubOfClass(nanopub, classIri);
         assertTrue(isNanopubOfClass);
     }
@@ -115,9 +117,9 @@ class UtilsTest {
     void getTypesExcludesSpecificFairTerms() {
         Nanopub nanopub = mock(Nanopub.class);
         MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);
-        IRI excludedType1 = vf.createIRI("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource");
-        IRI excludedType2 = vf.createIRI("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed");
-        IRI includedType = vf.createIRI("http://knowledgepixels.com/nanopubIri#ValidType");
+        IRI excludedType1 = iri("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource");
+        IRI excludedType2 = iri("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed");
+        IRI includedType = iri("http://knowledgepixels.com/nanopubIri#ValidType");
         mockStatic.when(() -> NanopubUtils.getTypes(nanopub)).thenReturn(Set.of(excludedType1, excludedType2, includedType));
 
         List<IRI> result = Utils.getTypes(nanopub);
@@ -189,49 +191,49 @@ class UtilsTest {
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairEnablingResource() {
-        IRI typeIri = vf.createIRI("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource");
+        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("FER", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairSupportingResource() {
-        IRI typeIri = vf.createIRI("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource");
+        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("FSR", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairImplementationProfile() {
-        IRI typeIri = vf.createIRI("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile");
+        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("FIP", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForDeclaredBy() {
-        IRI typeIri = vf.createIRI("http://purl.org/nanopub/x/declaredBy");
+        IRI typeIri = iri("http://purl.org/nanopub/x/declaredBy");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("user intro", result);
     }
 
     @Test
     void getTypeLabelTruncatesLongTypeName() {
-        IRI typeIri = vf.createIRI("http://w3id.org/veryLongTypeNameThatExceedsTwentyFiveCharacters");
+        IRI typeIri = iri("http://w3id.org/veryLongTypeNameThatExceedsTwentyFiveCharacters");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("veryLongTypeNameThat...", result);
     }
 
     @Test
     void getTypeLabelRemovesNanopubSuffixFromTypeName() {
-        IRI typeIri = vf.createIRI("http://w3id.org/ExampleNanopub");
+        IRI typeIri = iri("http://w3id.org/ExampleNanopub");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("Example", result);
     }
 
     @Test
     void getTypeLabelReturnsLastSegmentOfUri() {
-        IRI typeIri = vf.createIRI("http://w3id.org/SomeType");
+        IRI typeIri = iri("http://w3id.org/SomeType");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("SomeType", result);
     }
@@ -271,7 +273,7 @@ class UtilsTest {
     @Test
     void usesPredicateInAssertionReturnsTrueWhenPredicateExists() {
         Nanopub nanopub = mock(Nanopub.class);
-        IRI predicateIri = vf.createIRI("http://knowledgepixels.com/resource#anyPredicate");
+        IRI predicateIri = iri("http://knowledgepixels.com/resource#anyPredicate");
         Statement statement = mock(Statement.class);
 
         when(statement.getPredicate()).thenReturn(predicateIri);
@@ -285,8 +287,8 @@ class UtilsTest {
     @Test
     void usesPredicateInAssertionReturnsFalseWhenPredicateDoesNotExist() {
         Nanopub nanopub = mock(Nanopub.class);
-        IRI predicateIri = vf.createIRI("http://knowledgepixels.com/resource#anyPredicate");
-        IRI otherPredicateIri = vf.createIRI("http://knowledgepixels.com/resource#anotherPredicate");
+        IRI predicateIri = iri("http://knowledgepixels.com/resource#anyPredicate");
+        IRI otherPredicateIri = iri("http://knowledgepixels.com/resource#anotherPredicate");
         Statement statement = mock(Statement.class);
 
         when(statement.getPredicate()).thenReturn(otherPredicateIri);
@@ -310,10 +312,10 @@ class UtilsTest {
         Nanopub nanopub = mock(Nanopub.class);
         Statement statement1 = mock(Statement.class);
         Statement statement2 = mock(Statement.class);
-        IRI subject1 = vf.createIRI("http://knowledgepixels.com/subject1");
-        IRI subject2 = vf.createIRI("http://knowledgepixels.com/subject2");
-        Literal name1 = vf.createLiteral("Name1");
-        Literal name2 = vf.createLiteral("Name2");
+        IRI subject1 = iri("http://knowledgepixels.com/subject1");
+        IRI subject2 = iri("http://knowledgepixels.com/subject2");
+        Literal name1 = literal("Name1");
+        Literal name2 = literal("Name2");
 
         when(statement1.getPredicate()).thenReturn(FOAF.NAME);
         when(statement1.getSubject()).thenReturn(subject1);
@@ -335,7 +337,7 @@ class UtilsTest {
         Nanopub nanopub = mock(Nanopub.class);
         Statement statement = mock(Statement.class);
 
-        when(statement.getPredicate()).thenReturn(vf.createIRI("http://knowledgepixels.com/otherPredicate"));
+        when(statement.getPredicate()).thenReturn(iri("http://knowledgepixels.com/otherPredicate"));
         when(nanopub.getPubinfo()).thenReturn(Set.of(statement));
 
         Map<String, String> result = Utils.getFoafNameMap(nanopub);
@@ -347,8 +349,8 @@ class UtilsTest {
     void getFoafNameMapIgnoresNonLiteralObjects() {
         Nanopub nanopub = mock(Nanopub.class);
         Statement statement = mock(Statement.class);
-        IRI subject = vf.createIRI("http://knowledgepixels.com/subject");
-        IRI nonLiteralObject = vf.createIRI("http://knowledgepixels.com/nonLiteralObject");
+        IRI subject = iri("http://knowledgepixels.com/subject");
+        IRI nonLiteralObject = iri("http://knowledgepixels.com/nonLiteralObject");
 
         when(statement.getPredicate()).thenReturn(FOAF.NAME);
         when(statement.getSubject()).thenReturn(subject);
@@ -450,6 +452,32 @@ class UtilsTest {
         String pubkey = "";
         String result = Utils.getShortPubkeyName(pubkey);
         assertEquals("", result);
+    }
+
+    @Test
+    void getIntroducedIriIds() throws MalformedNanopubException {
+        NanopubCreator npCreator = TestUtils.getNanopubCreator();
+        npCreator.addAssertionStatement(TestUtils.anyIri, TestUtils.anyIri, TestUtils.anyIri);
+        npCreator.addProvenanceStatement(npCreator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
+        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, TestUtils.anyIri);
+
+        IRI randomIri1 = TestUtils.randomIri();
+        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, randomIri1);
+
+        npCreator.addPubinfoStatement(TestUtils.randomIri(), TestUtils.randomIri());
+        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, literal("not an IRI"));
+        npCreator.addPubinfoStatement(TestUtils.randomIri(), NanopubUtils.INTRODUCES, TestUtils.randomIri());
+
+        Nanopub nanopub = npCreator.finalizeNanopub();
+
+        Set<String> expectedIntroducedIriIds = Set.of(
+                TestUtils.anyIri.stringValue(),
+                randomIri1.stringValue()
+        );
+
+        Set<String> actualIriIds = Utils.getIntroducedIriIds(nanopub);
+        assertEquals(expectedIntroducedIriIds, actualIriIds);
+
     }
 
 }
