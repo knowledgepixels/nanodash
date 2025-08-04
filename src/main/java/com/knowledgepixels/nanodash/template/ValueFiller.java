@@ -148,7 +148,7 @@ public class ValueFiller {
         }
     }
 
-    private Statement transform(Statement st) {
+    Statement transform(Statement st) {
         if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
             IRI pred = st.getPredicate();
             // TODO We might want to filter some of these out afterwards in PublishForm, to be more precise:
@@ -183,7 +183,7 @@ public class ValueFiller {
                 (Resource) transform(st.getContext()));
     }
 
-    private Value transform(Value v) {
+    Value transform(Value v) {
         if (fillNp.getUri().equals(v)) {
             return vf.createIRI("local:nanopub");
 //			return Template.NANOPUB_PLACEHOLDER;
