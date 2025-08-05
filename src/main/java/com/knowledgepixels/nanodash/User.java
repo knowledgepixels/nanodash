@@ -1,89 +1,197 @@
 package com.knowledgepixels.nanodash;
 
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.setting.IntroNanopub;
 
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The User class provides utility methods for managing and retrieving user-related data.
+ * This class is designed to be used statically and does not allow instantiation.
+ */
 public class User {
 
-	private User() {}  // no instances allowed
+    private User() {
+    } // no instances allowed
 
-	private static transient UserData userData;
+    private static transient UserData userData;
 
-	public static void refreshUsers() {
-		userData = new UserData();
-	}
+    /**
+     * Refreshes the user data by creating a new UserData instance.
+     */
+    public static void refreshUsers() {
+        userData = new UserData();
+    }
 
-	public synchronized static void ensureLoaded() {
-		if (userData == null) refreshUsers();
-	}
+    /**
+     * Ensures that the user data is loaded. If not, it refreshes the user data.
+     */
+    public synchronized static void ensureLoaded() {
+        if (userData == null) refreshUsers();
+    }
 
-	public static UserData getUserData() {
-		ensureLoaded();
-		return userData;
-	}
+    /**
+     * Retrieves the current user data instance.
+     *
+     * @return The UserData instance.
+     */
+    public static UserData getUserData() {
+        ensureLoaded();
+        return userData;
+    }
 
-	public static boolean isApprovedKeyForUser(String key, IRI user) {
-		return getUserData().isApprovedKeyForUser(key, user);
-	}
+    /**
+     * Checks if a given key is approved for a specific user.
+     *
+     * @param key  The key to check.
+     * @param user The IRI of the user.
+     * @return True if the key is approved, false otherwise.
+     */
+    public static boolean isApprovedKeyForUser(String key, IRI user) {
+        return getUserData().isApprovedKeyForUser(key, user);
+    }
 
-	public static IRI getUserIri(String pubkey) {
-		return getUserData().getUserIri(pubkey);
-	}
+    /**
+     * Retrieves the IRI of a user based on their public key.
+     *
+     * @param pubkey The public key of the user.
+     * @return The IRI of the user.
+     */
+    public static IRI getUserIri(String pubkey) {
+        return getUserData().getUserIri(pubkey);
+    }
 
-	public static IRI getSignatureOwnerIri(Nanopub np) {
-		return getUserData().getSignatureOwnerIri(np);
-	}
+    /**
+     * Retrieves the signature owner's IRI from a given nanopublication.
+     *
+     * @param np The nanopublication.
+     * @return The IRI of the signature owner.
+     */
+    public static IRI getSignatureOwnerIri(Nanopub np) {
+        return getUserData().getSignatureOwnerIri(np);
+    }
 
-	public static String getName(IRI userIri) {
-		return getUserData().getName(userIri);
-	}
+    /**
+     * Retrieves the name of a user based on their IRI.
+     *
+     * @param userIri The IRI of the user.
+     * @return The name of the user.
+     */
+    public static String getName(IRI userIri) {
+        return getUserData().getName(userIri);
+    }
 
-	public static String getDisplayName(IRI userIri) {
-		return getUserData().getDisplayName(userIri);
-	}
+    /**
+     * Retrieves the display name of a user based on their IRI.
+     *
+     * @param userIri The IRI of the user.
+     * @return The display name of the user.
+     */
+    public static String getDisplayName(IRI userIri) {
+        return getUserData().getDisplayName(userIri);
+    }
 
-	public static String getShortDisplayName(IRI userIri) {
-		return getUserData().getShortDisplayName(userIri);
-	}
+    /**
+     * Retrieves the short display name of a user based on their IRI.
+     *
+     * @param userIri The IRI of the user.
+     * @return The short display name of the user.
+     */
+    public static String getShortDisplayName(IRI userIri) {
+        return getUserData().getShortDisplayName(userIri);
+    }
 
-	public static String getShortDisplayName(IRI userIri, String pubkey) {
-		return getUserData().getShortDisplayName(userIri, pubkey);
-	}
+    /**
+     * Retrieves the short display name of a user based on their IRI and public key.
+     *
+     * @param userIri The IRI of the user.
+     * @param pubkey  The public key of the user.
+     * @return The short display name of the user.
+     */
+    public static String getShortDisplayName(IRI userIri, String pubkey) {
+        return getUserData().getShortDisplayName(userIri, pubkey);
+    }
 
-	public static IRI findSingleIdForPubkey(String pubkey) {
-		return getUserData().findSingleIdForPubkey(pubkey);
-	}
+    /**
+     * Finds a single user ID for a given public key.
+     *
+     * @param pubkey The public key.
+     * @return The IRI of the user.
+     */
+    public static IRI findSingleIdForPubkey(String pubkey) {
+        return getUserData().findSingleIdForPubkey(pubkey);
+    }
 
-	public static List<IRI> getUsers(boolean approved) {
-		return getUserData().getUsers(approved);
-	}
+    /**
+     * Retrieves a list of users, optionally filtering by approval status.
+     *
+     * @param approved True to retrieve only approved users, false otherwise.
+     * @return A list of user IRIs.
+     */
+    public static List<IRI> getUsers(boolean approved) {
+        return getUserData().getUsers(approved);
+    }
 
-	public static List<String> getPubkeys(IRI user, Boolean approved) {
-		return getUserData().getPubkeys(user, approved);
-	}
+    /**
+     * Retrieves a list of public keys for a user, optionally filtering by approval status.
+     *
+     * @param user     The IRI of the user.
+     * @param approved True to retrieve only approved keys, false otherwise.
+     * @return A list of public keys.
+     */
+    public static List<String> getPubkeys(IRI user, Boolean approved) {
+        return getUserData().getPubkeys(user, approved);
+    }
 
-	public static List<IntroNanopub> getIntroNanopubs(IRI user) {
-		return getUserData().getIntroNanopubs( user);
-	}
+    /**
+     * Retrieves a list of introduction nanopublications for a user.
+     *
+     * @param user The IRI of the user.
+     * @return A list of introduction nanopublications.
+     */
+    public static List<IntroNanopub> getIntroNanopubs(IRI user) {
+        return getUserData().getIntroNanopubs(user);
+    }
 
-	public static Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {
-		return getUserData().getIntroNanopubs(pubkey);
-	}
+    /**
+     * Retrieves a map of introduction nanopublications for a public key.
+     *
+     * @param pubkey The public key.
+     * @return A map of user IRIs to introduction nanopublications.
+     */
+    public static Map<IRI, IntroNanopub> getIntroNanopubs(String pubkey) {
+        return getUserData().getIntroNanopubs(pubkey);
+    }
 
-	public static boolean isApproved(IntroNanopub in) {
-		return getUserData().isApproved(in);
-	}
+    /**
+     * Checks if an introduction nanopublication is approved.
+     *
+     * @param in The introduction nanopublication.
+     * @return True if approved, false otherwise.
+     */
+    public static boolean isApproved(IntroNanopub in) {
+        return getUserData().isApproved(in);
+    }
 
-	public static boolean isUser(IRI userIri) {
-		return getUserData().isUser(userIri);
-	}
+    /**
+     * Checks if a given IRI represents a user.
+     *
+     * @param userIri The IRI to check.
+     * @return True if the IRI represents a user, false otherwise.
+     */
+    public static boolean isUser(IRI userIri) {
+        return getUserData().isUser(userIri);
+    }
 
-	public static boolean isUser(String userId) {
-		return getUserData().isUser(userId);
-	}
-
+    /**
+     * Checks if a given string represents a user ID.
+     *
+     * @param userId The string to check.
+     * @return True if the string represents a user ID, false otherwise.
+     */
+    public static boolean isUser(String userId) {
+        return getUserData().isUser(userId);
+    }
 }
