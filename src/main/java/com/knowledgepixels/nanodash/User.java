@@ -13,8 +13,14 @@ public class User {
 
 	private static transient UserData userData;
 
+	private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
+	private static transient long lastRefresh = 0l;
+
 	public static void refreshUsers() {
-		userData = new UserData();
+		if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+			lastRefresh = System.currentTimeMillis();
+			userData = new UserData();
+		}
 	}
 
 	public synchronized static void ensureLoaded() {
