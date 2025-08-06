@@ -112,45 +112,50 @@ public class Utils {
 		}
 	}
 
-	public static String getShortPubkeyName(String pubkey) {
-		return pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+	public static String getShortPubkeyName(String pubkeyOrPubkeyhash) {
+		if (pubkeyOrPubkeyhash.length() > 45) {
+			return pubkeyOrPubkeyhash.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+		} else {
+			return pubkeyOrPubkeyhash.replaceFirst("^(.{8}).*$", "$1..");
+		}
 	}
 
-	public static String getShortPubkeyLabel(String pubkey, IRI user) {
-		String s = getShortPubkeyName(pubkey);
+	public static String getShortPubkeyhashLabel(String pubkeyOrPubkeyhash, IRI user) {
+		String s = getShortPubkeyName(pubkeyOrPubkeyhash);
 		NanodashSession session = NanodashSession.get();
 		List<String> l = new ArrayList<>();
-		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		if (pubkeyOrPubkeyhash.equals(session.getPubkeyString()) || pubkeyOrPubkeyhash.equals(session.getPubkeyhash())) l.add("local");
 		// TODO: Make this more efficient:
-		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
+		String hashed = Utils.createSha256HexHash(pubkeyOrPubkeyhash);
+		if (User.getPubkeyhashes(user, true).contains(pubkeyOrPubkeyhash) || User.getPubkeyhashes(user, true).contains(hashed)) l.add("approved");
 		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
 		return s;
 	}
 
-	public static String getPubkeyLocationName(String pubkey) {
-		return getPubkeyLocationName(pubkey, pubkey.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2.."));
+	public static String getPubkeyLocationName(String pubkeyhash) {
+		return getPubkeyLocationName(pubkeyhash, pubkeyhash.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2.."));
 	}
 
-	public static String getPubkeyLocationName(String pubkey, String fallback) {
-		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
+	public static String getPubkeyLocationName(String pubkeyhash, String fallback) {
+		IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
 		if (keyLocation == null) return fallback;
 		if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
 		return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
 	}
 
-	public static String getShortPubkeyLocationLabel(String pubkey, IRI user) {
-		String s = getPubkeyLocationName(pubkey);
+	public static String getShortPubkeyLocationLabel(String pubkeyhash, IRI user) {
+		String s = getPubkeyLocationName(pubkeyhash);
 		NanodashSession session = NanodashSession.get();
 		List<String> l = new ArrayList<>();
-		if (pubkey.equals(session.getPubkeyString())) l.add("local");
+		if (pubkeyhash.equals(session.getPubkeyhash())) l.add("local");
 		// TODO: Make this more efficient:
-		if (User.getPubkeys(user, true).contains(pubkey)) l.add("approved");
+		if (User.getPubkeyhashes(user, true).contains(pubkeyhash)) l.add("approved");
 		if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
 		return s;
 	}
 
-	public static boolean hasNanodashLocation(String pubkey) {
-		IRI keyLocation = User.getUserData().getKeyLocation(pubkey);
+	public static boolean hasNanodashLocation(String pubkeyhash) {
+		IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
 		if (keyLocation == null) return true; // potentially a Nanodash location
 		if (keyLocation.stringValue().contains("nanodash")) return true;
 		if (keyLocation.stringValue().contains("nanobench")) return true;

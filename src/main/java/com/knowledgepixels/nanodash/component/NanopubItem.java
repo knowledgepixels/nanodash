@@ -70,6 +70,7 @@ public class NanopubItem extends Panel {
 		if (isInitialized) return;
 
 		String pubkey = n.getPubkey();
+		String pubkeyhash = n.getPubkeyhash();
 		signerId = n.getSignerId();
 
 		if (hideHeader) {
@@ -81,7 +82,7 @@ public class NanopubItem extends Panel {
 			header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString));
 			if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
 				NanodashSession session = NanodashSession.get();
-				final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIri(pubkey, false))) ||
+				final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIriForPubkeyhash(pubkeyhash, false))) ||
 						((pubkey != null) && pubkey.equals(session.getPubkeyString()));
 				final boolean hasLocalPubkey = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
 				final List<NanopubAction> actionList = new ArrayList<>();
@@ -95,7 +96,7 @@ public class NanopubItem extends Panel {
 				}
 				for (NanopubAction action : allActions) {
 					if (isOwnNanopub && !action.isApplicableToOwnNanopubs()) continue;
-					if (isOwnNanopub && !hasLocalPubkey && !action.isApplicableToOthersNanopubs() && !Utils.hasNanodashLocation(pubkey)) continue;
+					if (isOwnNanopub && !hasLocalPubkey && !action.isApplicableToOthersNanopubs() && !Utils.hasNanodashLocation(pubkeyhash)) continue;
 					if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
 					if (!action.isApplicableTo(n.getNanopub())) continue;
 					actionList.add(action);
@@ -157,7 +158,7 @@ public class NanopubItem extends Panel {
 
 			// ----------
 			// TODO Clean this up and move to helper method:
-			IRI uIri = User.findSingleIdForPubkey(pubkey);
+			IRI uIri = User.findSingleIdForPubkeyhash(pubkeyhash);
 			if (uIri == null) {
 				try {
 					Set<IRI> signers = SignatureUtils.getSignatureElement(n.getNanopub()).getSigners();
@@ -175,9 +176,9 @@ public class NanopubItem extends Panel {
 			BookmarkablePageLink<Void> userLink = new BookmarkablePageLink<Void>("creator-link", UserPage.class, params);
 			String userString;
 			if (signerId != null) {
-				userString = User.getShortDisplayName(signerId, pubkey);
+				userString = User.getShortDisplayNameForPubkeyhash(signerId, pubkeyhash);
 			} else {
-				userString = User.getShortDisplayName(uIri, pubkey);
+				userString = User.getShortDisplayNameForPubkeyhash(uIri, pubkeyhash);
 			}
 			userLink.add(new Label("creator-text", userString));
 			footer.add(userLink);

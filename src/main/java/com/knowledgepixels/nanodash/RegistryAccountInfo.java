@@ -6,6 +6,11 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.github.jsonldjava.shaded.com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -25,7 +30,7 @@ public class RegistryAccountInfo {
 	/**
 	 * @param url e.g. "https://registry.knowledgepixels.com/list.json"
 	 */
-	public static ArrayList<RegistryAccountInfo> fromUrl(String url) throws JsonIOException, JsonSyntaxException, MalformedURLException, IOException {
+	public static List<RegistryAccountInfo> fromUrl(String url) throws JsonIOException, JsonSyntaxException, MalformedURLException, IOException {
 		return g.fromJson(new InputStreamReader(new URL(url).openStream()), listType);
 	}
 
@@ -43,6 +48,10 @@ public class RegistryAccountInfo {
 
 	public String getAgent() {
 		return agent;
+	}
+
+	public IRI getAgentIri() {
+		return vf.createIRI(agent);
 	}
 
 	public String getPubkey() {
@@ -68,5 +77,7 @@ public class RegistryAccountInfo {
 	public double getRatio() {
 		return ratio;
 	}
+
+	private static ValueFactory vf = SimpleValueFactory.getInstance();
 
 }

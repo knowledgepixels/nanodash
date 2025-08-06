@@ -13,6 +13,7 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 
@@ -39,7 +40,8 @@ public class TemplateItem extends Panel {
 			NanopubSignatureElement se = SignatureUtils.getSignatureElement(template.getNanopub());
 			if (se != null) {
 				IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-				userString = User.getShortDisplayName(signer, se.getPublicKeyString());
+				String pubkeyHash = Utils.createSha256HexHash(se.getPublicKeyString());
+				userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyHash);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -147,9 +147,15 @@ public class NanodashSession extends WebSession {
 		return DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
 	}
 
+	public String getPubkeyhash() {
+		String pubkey = getPubkeyString();
+		if (pubkey == null) return null;
+		return Utils.createSha256HexHash(pubkey);
+	}
+
 	public boolean isPubkeyApproved() {
 		if (keyPair == null || userIri == null) return false;
-		return User.isApprovedKeyForUser(getPubkeyString(), userIri);
+		return User.isApprovedPubkeyhashForUser(getPubkeyhash(), userIri);
 	}
 
 	public KeyPair getKeyPair() {

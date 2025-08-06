@@ -42,8 +42,8 @@ public class UserPage extends NanodashPage {
 		userIri = Utils.vf.createIRI(userIriString);
 		//NanodashSession session = NanodashSession.get();
 
-		for (String pk : User.getPubkeys(userIri, null)) {
-			pubkeyHashes += " " + Utils.createSha256HexHash(pk);
+		for (String pk : User.getPubkeyhashes(userIri, null)) {
+			pubkeyHashes += " " + pk;
 		}
 		if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
 

@@ -26,12 +26,8 @@ public class User {
 		return userData;
 	}
 
-	public static boolean isApprovedKeyForUser(String key, IRI user) {
-		return getUserData().isApprovedKeyForUser(key, user);
-	}
-
-	public static IRI getUserIri(String pubkey) {
-		return getUserData().getUserIri(pubkey);
+	public static boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
+		return getUserData().isApprovedPubkeyhashForUser(pubkeyhash, user);
 	}
 
 	public static IRI getSignatureOwnerIri(Nanopub np) {
@@ -50,20 +46,20 @@ public class User {
 		return getUserData().getShortDisplayName(userIri);
 	}
 
-	public static String getShortDisplayName(IRI userIri, String pubkey) {
-		return getUserData().getShortDisplayName(userIri, pubkey);
+	public static String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
+		return getUserData().getShortDisplayNameForPubkeyhash(userIri, pubkeyhash);
 	}
 
-	public static IRI findSingleIdForPubkey(String pubkey) {
-		return getUserData().findSingleIdForPubkey(pubkey);
+	public static IRI findSingleIdForPubkeyhash(String pubkeyhash) {
+		return getUserData().findSingleIdForPubkeyhash(pubkeyhash);
 	}
 
 	public static List<IRI> getUsers(boolean approved) {
 		return getUserData().getUsers(approved);
 	}
 
-	public static List<String> getPubkeys(IRI user, Boolean approved) {
-		return getUserData().getPubkeys(user, approved);
+	public static List<String> getPubkeyhashes(IRI user, Boolean approved) {
+		return getUserData().getPubkeyhashes(user, approved);
 	}
 
 	public static List<IntroNanopub> getIntroNanopubs(IRI user) {

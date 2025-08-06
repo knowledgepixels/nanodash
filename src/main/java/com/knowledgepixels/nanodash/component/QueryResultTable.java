@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,7 +31,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.QueryPage;
 
@@ -85,9 +83,7 @@ public class QueryResultTable extends Panel {
 		@Override
 		public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
 			String value = rowModel.getObject().get(key);
-			if (key.equals("pubkey")) {
-				cellItem.add(new Label(componentId, User.getShortDisplayName(null, value)));
-			} else if (value.matches("https?://.+ .+")) {
+			if (value.matches("https?://.+ .+")) {
 				List<Component> links = new ArrayList<>();
 				for (String v : value.split(" ")) {
 					links.add(new NanodashLink("component", v));

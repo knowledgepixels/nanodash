@@ -41,16 +41,17 @@ public class ActionMenu extends Panel {
 				String location = "";
 				String extraLabel = "";
 				final String pubkey = n.getPubkey();
+				final String pubkeyhash = n.getPubkeyhash();
 				String sigkeyParam = "";
 				if (action.isApplicableToOwnNanopubs() && !action.isApplicableToOthersNanopubs()) {
 					if (userIri != null && pubkey != null && !session.getPubkeyString().equals(pubkey)) {
-						IRI keyLocation = userData.getKeyLocation(pubkey);
+						IRI keyLocation = userData.getKeyLocationForPubkeyhash(pubkeyhash);
 						if (keyLocation == null) {
 							location = "http://localhost:37373";
 							extraLabel = " at localhost";
 						} else {
 							location = keyLocation.stringValue().replaceFirst("/$", "");
-							extraLabel = " at " + Utils.getPubkeyLocationName(pubkey, "localhost");
+							extraLabel = " at " + Utils.getPubkeyLocationName(pubkeyhash, "localhost");
 						}
 						sigkeyParam = "&sigkey=" + URLEncoder.encode(pubkey, UTF_8);
 					}

@@ -59,11 +59,11 @@ public class ChannelPage extends NanodashPage {
 		ArrayList<String> pubKeyList = new ArrayList<>();
 		pubKeyMap = new HashMap<>();
 		if (userIri.equals(session.getUserIri())) {
-			String lKeyShort = Utils.getShortPubkeyLocationLabel(session.getPubkeyString(), userIri);
+			String lKeyShort = Utils.getShortPubkeyLocationLabel(session.getPubkeyhash(), userIri);
 			pubKeyList.add(lKeyShort);
 			pubKeyMap.put(lKeyShort, session.getPubkeyString());
 		}
-		for (String pk : User.getPubkeys(userIri, null)) {
+		for (String pk : User.getPubkeyhashes(userIri, null)) {
 			String keyShort = Utils.getShortPubkeyLocationLabel(pk, userIri);
 			if (!pubKeyMap.containsKey(keyShort)) {
 				pubKeyList.add(keyShort);
@@ -81,7 +81,7 @@ public class ChannelPage extends NanodashPage {
 			protected void onUpdate(AjaxRequestTarget target) {
 				System.err.print("PUBKEYS SELECTED:");
 				for (String s : selected.getObject()) {
-					System.err.print(" " + Utils.createSha256HexHash(pubKeyMap.get(s)));
+					System.err.print(" " + pubKeyMap.get(s));
 				}
 				System.err.println();
 				refresh();
@@ -156,7 +156,7 @@ public class ChannelPage extends NanodashPage {
 	private String getPubkeyHashesString() {
 		String pubkeyHashes = "";
 		for (String s : selected.getObject()) {
-			pubkeyHashes += " " + Utils.createSha256HexHash(pubKeyMap.get(s));
+			pubkeyHashes += " " + pubKeyMap.get(s);
 		}
 		if (pubkeyHashes.isEmpty()) return null;
 		return pubkeyHashes.substring(1);
