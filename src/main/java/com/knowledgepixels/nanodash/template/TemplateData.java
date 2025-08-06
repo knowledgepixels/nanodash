@@ -25,6 +25,7 @@ public class TemplateData implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private static TemplateData instance;
+
 	public static void refreshTemplates() {
 		instance = new TemplateData();
 	}
@@ -38,7 +39,7 @@ public class TemplateData implements Serializable {
 		return instance;
 	}
 
-	private List<Template> assertionTemplates, provenanceTemplates, pubInfoTemplates;
+	private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
 	private Map<String,Template> templateMap;
 
 	public TemplateData() {
@@ -46,37 +47,34 @@ public class TemplateData implements Serializable {
 		provenanceTemplates = new ArrayList<>();
 		pubInfoTemplates = new ArrayList<>();
 		templateMap = new HashMap<>();
-		refreshTemplates(assertionTemplates, Template.ASSERTION_TEMPLATE_CLASS);
-		refreshTemplates(provenanceTemplates, Template.PROVENANCE_TEMPLATE_CLASS);
-		refreshTemplates(pubInfoTemplates, Template.PUBINFO_TEMPLATE_CLASS);
+		refreshTemplates(assertionTemplates, "get-assertion-templates");
+		refreshTemplates(provenanceTemplates, "get-provenance-templates");
+		refreshTemplates(pubInfoTemplates, "get-pubinfo-templates");
 	}
 
-	private void refreshTemplates(List<Template> templates, IRI type) {
-		Map<String,String> params = new HashMap<>();
-		params.put("type", type.toString());
-		ApiResponse templateEntries;
-		templateEntries = QueryApiAccess.forcedGet("get-nanopubs-by-type", params);
+	private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {
+		ApiResponse templateEntries = QueryApiAccess.forcedGet(queryId);
+		String previousId = null;
+		System.err.println("Loading templates...");
 		for (ApiResponseEntry entry : templateEntries.getData()) {
-			try {
-				Template t = new Template(entry.get("np"));
-				if (!t.isUnlisted()) templates.add(t);
-				templateMap.put(t.getId(), t);
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			if ("true".equals(entry.get("unlisted"))) continue;
+			if (!entry.get("np").equals(previousId)) {
+				templates.add(entry);
 			}
+			previousId = entry.get("np");
 		}
 		Collections.sort(templates, templateComparator);
 	}
 
-	public List<Template> getAssertionTemplates() {
+	public List<ApiResponseEntry> getAssertionTemplates() {
 		return assertionTemplates;
 	}
 
-	public List<Template> getProvenanceTemplates() {
+	public List<ApiResponseEntry> getProvenanceTemplates() {
 		return provenanceTemplates;
 	}
 
-	public List<Template> getPubInfoTemplates() {
+	public List<ApiResponseEntry> getPubInfoTemplates() {
 		return pubInfoTemplates;
 	}
 
@@ -150,13 +148,13 @@ public class TemplateData implements Serializable {
 
 	private static final TemplateComparator templateComparator = new TemplateComparator();
 
-	private static class TemplateComparator implements Comparator<Template>, Serializable {
+	private static class TemplateComparator implements Comparator<ApiResponseEntry>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public int compare(Template o1, Template o2) {
-			return o1.getLabel().compareTo(o2.getLabel());
+		public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
+			return o1.get("label").compareTo(o2.get("label"));
 		}
 
 	}

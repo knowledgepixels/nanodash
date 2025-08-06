@@ -98,6 +98,7 @@ public class UserData implements Serializable {
 //			}
 //		}
 
+		System.err.println("Loading approved users...");
 		try {
 			for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl("https://registry.knowledgepixels.com/list.json")) {
 				registerApproved(rai);
@@ -106,6 +107,7 @@ public class UserData implements Serializable {
 			throw new RuntimeException(ex);
 		}
 
+		System.err.println("Loading user details...");
 		// Get latest introductions for all users, including unapproved ones:
 		for (ApiResponseEntry entry : QueryApiAccess.forcedGet("get-all-user-intros").getData()) {
 			register(entry);
@@ -124,7 +126,6 @@ public class UserData implements Serializable {
 
 	private void registerApproved(RegistryAccountInfo rai) {
 		if (rai.getAgent().equals("$")) return;
-		System.err.println("Register approved user: " + rai.getAgent());
 		addValue(approvedIdPubkeyhashMap, rai.getAgentIri(), rai.getPubkey());
 		addValue(approvedPubkeyhashIdMap, rai.getPubkey(), rai.getAgentIri());
 	}
@@ -136,7 +137,6 @@ public class UserData implements Serializable {
 		} catch (IllegalArgumentException ex) {
 			return;
 		}
-		System.err.println("Register user details: " + userIri);
 		String pubkeyhash = entry.get("pubkeyHash");
 		boolean approved = approvedIdPubkeyhashMap.containsKey(userIri) && approvedIdPubkeyhashMap.get(userIri).contains(pubkeyhash);
 		boolean authoritative = "true".equals(entry.get("authoritative"));

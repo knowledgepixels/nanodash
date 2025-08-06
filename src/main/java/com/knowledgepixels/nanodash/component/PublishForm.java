@@ -49,6 +49,7 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
+import org.nanopub.extra.services.ApiResponseEntry;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -493,10 +494,11 @@ public class PublishForm extends Panel {
 				handledProvTemplates.put(s, true);
 			}
 
-			for (Template t : td.getProvenanceTemplates()) {
-				if (handledProvTemplates.containsKey(t.getId())) continue;
-				provTemplateOptionIds.add(t.getId());
-				handledProvTemplates.put(t.getId(), true);
+			for (ApiResponseEntry t : td.getProvenanceTemplates()) {
+				String tid = t.get("np");
+				if (handledProvTemplates.containsKey(tid)) continue;
+				provTemplateOptionIds.add(tid);
+				handledProvTemplates.put(tid, true);
 			}
 		} else {
 			for (String s : pageParams.get("prtemplate-options").toString().split(" ")) {
@@ -610,10 +612,11 @@ public class PublishForm extends Panel {
 			handledPiTemplates.put(s, true);
 		}
 
-		for (Template t : td.getPubInfoTemplates()) {
-			if (handledPiTemplates.containsKey(t.getId())) continue;
-			piTemplateOptionIds.add(t.getId());
-			handledPiTemplates.put(t.getId(), true);
+		for (ApiResponseEntry entry : td.getPubInfoTemplates()) {
+			String tid = entry.get("np");
+			if (handledPiTemplates.containsKey(tid)) continue;
+			piTemplateOptionIds.add(tid);
+			handledPiTemplates.put(tid, true);
 		}
 
 		ChoiceProvider<String> piTemplateChoiceProvider = new ChoiceProvider<String>() {

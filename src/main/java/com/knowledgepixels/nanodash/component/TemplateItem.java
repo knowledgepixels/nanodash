@@ -11,6 +11,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -20,6 +21,30 @@ import com.knowledgepixels.nanodash.template.Template;
 public class TemplateItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
+
+	public TemplateItem(String id, ApiResponseEntry entry) {
+		this(id, entry, null);
+	}
+
+	public TemplateItem(String id, ApiResponseEntry entry, PageParameters additionalParams) {
+		super(id);
+
+		PageParameters params = new PageParameters();
+		params.add("template", entry.get("np"));
+		params.add("template-version", "latest");
+		if (additionalParams != null) params.mergeWith(additionalParams);
+		BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
+		l.add(new Label("name", entry.get("label")));
+		add(l);
+		IRI userIri = null;
+		try {
+			userIri = Utils.vf.createIRI(entry.get("signer"));
+		} catch (IllegalArgumentException | NullPointerException ex) {}
+		String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
+		add(new Label("user", userString));
+		add(new Label("timestamp", entry.get("date").substring(0, 10)));
+	}
+
 
 	public TemplateItem(String id, Template template) {
 		this(id, template, null);
@@ -53,7 +78,6 @@ public class TemplateItem extends Panel {
 			timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
 		}
 		add(new Label("timestamp", timeString));
-
 	}
 
 }
