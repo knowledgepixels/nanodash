@@ -113,10 +113,10 @@ public class Utils {
 	}
 
 	public static String getShortPubkeyName(String pubkeyOrPubkeyhash) {
-		if (pubkeyOrPubkeyhash.length() > 45) {
-			return pubkeyOrPubkeyhash.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
+		if (pubkeyOrPubkeyhash.length() == 64) {
+			return pubkeyOrPubkeyhash.replaceFirst("^(.{8}).*$", "$1");
 		} else {
-			return pubkeyOrPubkeyhash.replaceFirst("^(.{8}).*$", "$1..");
+			return pubkeyOrPubkeyhash.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2..");
 		}
 	}
 
@@ -133,7 +133,7 @@ public class Utils {
 	}
 
 	public static String getPubkeyLocationName(String pubkeyhash) {
-		return getPubkeyLocationName(pubkeyhash, pubkeyhash.replaceFirst("^(.).{39}(.{5}).*$", "$1..$2.."));
+		return getPubkeyLocationName(pubkeyhash, getShortPubkeyName(pubkeyhash));
 	}
 
 	public static String getPubkeyLocationName(String pubkeyhash, String fallback) {
