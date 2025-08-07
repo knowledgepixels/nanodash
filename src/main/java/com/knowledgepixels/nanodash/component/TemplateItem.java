@@ -18,6 +18,8 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 
+import net.trustyuri.TrustyUriUtils;
+
 public class TemplateItem extends Panel {
 	
 	private static final long serialVersionUID = 1L;
@@ -34,7 +36,9 @@ public class TemplateItem extends Panel {
 		params.add("template-version", "latest");
 		if (additionalParams != null) params.mergeWith(additionalParams);
 		BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
-		l.add(new Label("name", entry.get("label")));
+		String label = entry.get("label");
+		if (label == null || label.isBlank()) label = TrustyUriUtils.getArtifactCode(entry.get("np")).substring(0, 10);
+		l.add(new Label("name", label));
 		add(l);
 		IRI userIri = null;
 		try {
