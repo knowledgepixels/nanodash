@@ -18,9 +18,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 /**
- * This class is not yet used.
- *
- * It can access registry account lists of Nanopub Registry instances.
+ * This class is used to access registry account lists of Nanopub Registry instances.
  */
 public class RegistryAccountInfo {
 
