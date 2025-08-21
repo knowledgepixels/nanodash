@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ReferenceTablePage;
 import org.apache.wicket.Component;
@@ -102,8 +101,6 @@ public class ExploreDataTable extends Panel {
             String value = rowModel.getObject().get(key);
             if (value.equals(current)) {
                 cellItem.add(new Label(componentId, "<strong>" + IriItem.getShortNameFromURI(value) + "</strong>").setEscapeModelStrings(false));
-            } else if (key.equals("pubkey")) {
-                cellItem.add(new Label(componentId, User.getShortDisplayName(null, value)));
             } else if (value.matches("https?://.+")) {
                 cellItem.add(new NanodashLink(componentId, value));
             } else {

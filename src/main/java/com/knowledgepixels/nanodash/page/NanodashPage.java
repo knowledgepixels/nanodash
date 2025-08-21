@@ -12,10 +12,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
-/**
- * Base class for all Nanodash pages.
- * This class handles auto-refresh functionality and provides a method to get the mount path.
- */
 public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
@@ -42,31 +38,39 @@ public abstract class NanodashPage extends WebPage {
      */
     protected NanodashPage(PageParameters parameters) {
         super(parameters);
-        state = lastRefresh;
-        if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
-            lastRefresh = System.currentTimeMillis();
-            refreshRunning = true;
-            new Thread() {
+        ensureRefreshed();
+    }
 
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                    try {
-                        System.err.println("Refreshing...");
-                        User.refreshUsers();
-                        TemplateData.refreshTemplates();
-                        System.err.println("Refreshing done.");
-                        lastRefresh = System.currentTimeMillis();
-                    } finally {
-                        refreshRunning = false;
-                    }
-                }
+    private void ensureRefreshed() {
+        synchronized (getClass()) {
+            state = lastRefresh;
+            if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+                lastRefresh = System.currentTimeMillis();
+                refreshRunning = true;
+                new Thread() {
 
-            }.start();
+                    @Override
+                    public void run() {
+//						try {
+//							Thread.sleep(2000);
+//						} catch (InterruptedException ex) {
+//							ex.printStackTrace();
+//						}
+                        try {
+                            System.err.println("Refreshing...");
+                            User.refreshUsers();
+                            TemplateData.refreshTemplates();
+                            System.err.println("Refreshing done.");
+                            lastRefresh = System.currentTimeMillis();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        } finally {
+                            refreshRunning = false;
+                        }
+                    }
+
+                }.start();
+            }
         }
     }
 

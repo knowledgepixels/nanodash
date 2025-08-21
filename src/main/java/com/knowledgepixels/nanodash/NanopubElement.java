@@ -162,6 +162,12 @@ public class NanopubElement implements Serializable {
         }
     }
 
+    public String getPubkeyhash() {
+        String pubkey = getPubkey();
+        if (pubkey == null) return null;
+        return Utils.createSha256HexHash(pubkey);
+    }
+
     /**
      * Checks if the Nanopub has a valid signature.
      *

@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -11,6 +13,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -28,6 +31,33 @@ public class TemplateItem extends Panel {
      * @param id       the wicket id of this component
      * @param template the template to display
      */
+    public TemplateItem(String id, ApiResponseEntry entry) {
+        this(id, entry, null);
+    }
+
+    public TemplateItem(String id, ApiResponseEntry entry, PageParameters additionalParams) {
+        super(id);
+
+        PageParameters params = new PageParameters();
+        params.add("template", entry.get("np"));
+        params.add("template-version", "latest");
+        if (additionalParams != null) params.mergeWith(additionalParams);
+        BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
+        String label = entry.get("label");
+        if (label == null || label.isBlank()) label = TrustyUriUtils.getArtifactCode(entry.get("np")).substring(0, 10);
+        l.add(new Label("name", label));
+        add(l);
+        IRI userIri = null;
+        try {
+            userIri = Utils.vf.createIRI(entry.get("creator"));
+        } catch (IllegalArgumentException | NullPointerException ex) {
+        }
+        String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
+        add(new Label("user", userString));
+        add(new Label("timestamp", entry.get("date").substring(0, 10)));
+    }
+
+
     public TemplateItem(String id, Template template) {
         this(id, template, null);
     }
@@ -54,7 +84,8 @@ public class TemplateItem extends Panel {
             NanopubSignatureElement se = SignatureUtils.getSignatureElement(template.getNanopub());
             if (se != null) {
                 IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-                userString = User.getShortDisplayName(signer, se.getPublicKeyString());
+                String pubkeyHash = Utils.createSha256HexHash(se.getPublicKeyString());
+                userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyHash);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -66,7 +97,6 @@ public class TemplateItem extends Panel {
             timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
         }
         add(new Label("timestamp", timeString));
-
     }
 
 }

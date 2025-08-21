@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -46,7 +47,8 @@ public class ReactionList extends Panel {
                 item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
                 params.add("id", e.get("np"));
                 BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", ExplorePage.class, params);
-                String username = User.getShortDisplayName(null, e.get("pubkey"));
+                String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
+                String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);
                 l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
                 item.add(l);
             }

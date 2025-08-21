@@ -1,8 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.page.QueryPage;
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -65,7 +64,8 @@ public class QueryList extends Panel {
                     NanopubSignatureElement se = SignatureUtils.getSignatureElement(q.getNanopub());
                     if (se != null) {
                         IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-                        userString = User.getShortDisplayName(signer, se.getPublicKeyString());
+                        String pubkeyhash = Utils.createSha256HexHash(se.getPublicKeyString());
+                        userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyhash);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();

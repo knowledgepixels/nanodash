@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -10,8 +9,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.io.Serializable;
 import java.util.*;
@@ -91,10 +90,10 @@ public class TemplateList extends Panel {
             });
         }
 
-        ArrayList<Template> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
-        Collections.sort(templateList, new Comparator<Template>() {
+        ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
+        Collections.sort(templateList, new Comparator<ApiResponseEntry>() {
             @Override
-            public int compare(Template t1, Template t2) {
+            public int compare(ApiResponseEntry t1, ApiResponseEntry t2) {
                 Calendar c1 = getTime(t1);
                 Calendar c2 = getTime(t2);
                 if (c1 == null && c2 == null) return 0;
@@ -105,12 +104,13 @@ public class TemplateList extends Panel {
         });
 
         Map<String, Topic> topics = new HashMap<>();
-        for (Template t : templateList) {
-            String tag = t.getTag();
+        for (ApiResponseEntry entry : templateList) {
+            String tag = entry.get("tag");
+            if ("".equals(tag)) tag = null;
             if (!topics.containsKey(tag)) {
                 topics.put(tag, new Topic(tag));
             }
-            topics.get(tag).templates.add(t);
+            topics.get(tag).templates.add(entry);
 
         }
         ArrayList<Topic> topicList = new ArrayList<Topic>(topics.values());
@@ -133,12 +133,12 @@ public class TemplateList extends Panel {
                 String tag = item.getModelObject().tag;
                 if (tag == null) tag = "Other";
                 item.add(new Label("title", tag));
-                item.add(new DataView<Template>("template-list", new ListDataProvider<Template>(item.getModelObject().templates)) {
+                item.add(new DataView<ApiResponseEntry>("template-list", new ListDataProvider<ApiResponseEntry>(item.getModelObject().templates)) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void populateItem(Item<Template> item) {
+                    protected void populateItem(Item<ApiResponseEntry> item) {
                         item.add(new TemplateItem("template", item.getModelObject()));
                     }
 
@@ -148,8 +148,8 @@ public class TemplateList extends Panel {
 
     }
 
-    private static Calendar getTime(Template template) {
-        return SimpleTimestampPattern.getCreationTime(template.getNanopub());
+    private static Calendar getTime(ApiResponseEntry entry) {
+        return DatatypeConverter.parseDateTime(entry.get("date"));
     }
 
 
@@ -158,7 +158,7 @@ public class TemplateList extends Panel {
         private static final long serialVersionUID = 5919614141679468774L;
 
         String tag;
-        ArrayList<Template> templates = new ArrayList<>();
+        ArrayList<ApiResponseEntry> templates = new ArrayList<>();
 
         Topic(String tag) {
             this.tag = tag;

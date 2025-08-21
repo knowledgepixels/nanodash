@@ -1,7 +1,5 @@
 package com.knowledgepixels.nanodash.template;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
@@ -44,7 +42,7 @@ public class TemplateData implements Serializable {
         return instance;
     }
 
-    private List<Template> assertionTemplates, provenanceTemplates, pubInfoTemplates;
+    private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
     private Map<String, Template> templateMap;
 
     /**
@@ -55,24 +53,21 @@ public class TemplateData implements Serializable {
         provenanceTemplates = new ArrayList<>();
         pubInfoTemplates = new ArrayList<>();
         templateMap = new HashMap<>();
-        refreshTemplates(assertionTemplates, Template.ASSERTION_TEMPLATE_CLASS);
-        refreshTemplates(provenanceTemplates, Template.PROVENANCE_TEMPLATE_CLASS);
-        refreshTemplates(pubInfoTemplates, Template.PUBINFO_TEMPLATE_CLASS);
+        refreshTemplates(assertionTemplates, "get-assertion-templates");
+        refreshTemplates(provenanceTemplates, "get-provenance-templates");
+        refreshTemplates(pubInfoTemplates, "get-pubinfo-templates");
     }
 
-    private void refreshTemplates(List<Template> templates, IRI type) {
-        Map<String, String> params = new HashMap<>();
-        params.put("type", type.toString());
-        ApiResponse templateEntries;
-        templateEntries = QueryApiAccess.forcedGet("get-nanopubs-by-type", params);
+    private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {
+        ApiResponse templateEntries = QueryApiAccess.forcedGet(queryId);
+        String previousId = null;
+        System.err.println("Loading templates...");
         for (ApiResponseEntry entry : templateEntries.getData()) {
-            try {
-                Template t = new Template(entry.get("np"));
-                if (!t.isUnlisted()) templates.add(t);
-                templateMap.put(t.getId(), t);
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            if ("true".equals(entry.get("unlisted"))) continue;
+            if (!entry.get("np").equals(previousId)) {
+                templates.add(entry);
             }
+            previousId = entry.get("np");
         }
         Collections.sort(templates, templateComparator);
     }
@@ -82,7 +77,7 @@ public class TemplateData implements Serializable {
      *
      * @return a list of assertion templates
      */
-    public List<Template> getAssertionTemplates() {
+    public List<ApiResponseEntry> getAssertionTemplates() {
         return assertionTemplates;
     }
 
@@ -91,7 +86,7 @@ public class TemplateData implements Serializable {
      *
      * @return a list of provenance templates
      */
-    public List<Template> getProvenanceTemplates() {
+    public List<ApiResponseEntry> getProvenanceTemplates() {
         return provenanceTemplates;
     }
 
@@ -100,7 +95,7 @@ public class TemplateData implements Serializable {
      *
      * @return a list of publication information templates
      */
-    public List<Template> getPubInfoTemplates() {
+    public List<ApiResponseEntry> getPubInfoTemplates() {
         return pubInfoTemplates;
     }
 
@@ -126,12 +121,6 @@ public class TemplateData implements Serializable {
         return null;
     }
 
-    /**
-     * Returns a Template object for the given Nanopub.
-     *
-     * @param np the Nanopub from which to extract the template
-     * @return the Template object if found, or null if not found or invalid
-     */
     public Template getTemplate(Nanopub np) {
         IRI templateId = getTemplateId(np);
         if (templateId == null) return null;
@@ -216,7 +205,7 @@ public class TemplateData implements Serializable {
 
     private static final TemplateComparator templateComparator = new TemplateComparator();
 
-    private static class TemplateComparator implements Comparator<Template>, Serializable {
+    private static class TemplateComparator implements Comparator<ApiResponseEntry>, Serializable {
 
         private static final long serialVersionUID = 1L;
 
@@ -228,8 +217,8 @@ public class TemplateData implements Serializable {
          * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
          */
         @Override
-        public int compare(Template o1, Template o2) {
-            return o1.getLabel().compareTo(o2.getLabel());
+        public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
+            return o1.get("label").compareTo(o2.get("label"));
         }
 
     }

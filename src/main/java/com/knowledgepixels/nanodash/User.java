@@ -14,7 +14,7 @@ import java.util.Map;
 public class User {
 
     private User() {
-    } // no instances allowed
+    }  // no instances allowed
 
     private static transient UserData userData;
 
@@ -22,7 +22,10 @@ public class User {
      * Refreshes the user data by creating a new UserData instance.
      */
     public static void refreshUsers() {
-        userData = new UserData();
+        if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+            lastRefresh = System.currentTimeMillis();
+            userData = new UserData();
+        }
     }
 
     /**
@@ -45,22 +48,12 @@ public class User {
     /**
      * Checks if a given key is approved for a specific user.
      *
-     * @param key  The key to check.
-     * @param user The IRI of the user.
+     * @param pubkeyhash The key to check.
+     * @param user       The IRI of the user.
      * @return True if the key is approved, false otherwise.
      */
-    public static boolean isApprovedKeyForUser(String key, IRI user) {
-        return getUserData().isApprovedKeyForUser(key, user);
-    }
-
-    /**
-     * Retrieves the IRI of a user based on their public key.
-     *
-     * @param pubkey The public key of the user.
-     * @return The IRI of the user.
-     */
-    public static IRI getUserIri(String pubkey) {
-        return getUserData().getUserIri(pubkey);
+    public static boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
+        return getUserData().isApprovedPubkeyhashForUser(pubkeyhash, user);
     }
 
     /**
@@ -106,22 +99,22 @@ public class User {
     /**
      * Retrieves the short display name of a user based on their IRI and public key.
      *
-     * @param userIri The IRI of the user.
-     * @param pubkey  The public key of the user.
+     * @param userIri    The IRI of the user.
+     * @param pubkeyhash The public key of the user.
      * @return The short display name of the user.
      */
-    public static String getShortDisplayName(IRI userIri, String pubkey) {
-        return getUserData().getShortDisplayName(userIri, pubkey);
+    public static String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
+        return getUserData().getShortDisplayNameForPubkeyhash(userIri, pubkeyhash);
     }
 
     /**
-     * Finds a single user ID for a given public key.
+     * Finds a single user ID for a given public key hash.
      *
-     * @param pubkey The public key.
+     * @param pubkeyhash The public key.
      * @return The IRI of the user.
      */
-    public static IRI findSingleIdForPubkey(String pubkey) {
-        return getUserData().findSingleIdForPubkey(pubkey);
+    public static IRI findSingleIdForPubkeyhash(String pubkeyhash) {
+        return getUserData().findSingleIdForPubkeyhash(pubkeyhash);
     }
 
     /**
@@ -141,8 +134,8 @@ public class User {
      * @param approved True to retrieve only approved keys, false otherwise.
      * @return A list of public keys.
      */
-    public static List<String> getPubkeys(IRI user, Boolean approved) {
-        return getUserData().getPubkeys(user, approved);
+    public static List<String> getPubkeyhashes(IRI user, Boolean approved) {
+        return getUserData().getPubkeyhashes(user, approved);
     }
 
     /**
@@ -194,4 +187,5 @@ public class User {
     public static boolean isUser(String userId) {
         return getUserData().isUser(userId);
     }
+
 }
