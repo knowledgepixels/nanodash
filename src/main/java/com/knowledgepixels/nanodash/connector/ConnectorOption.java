@@ -186,8 +186,8 @@ public enum ConnectorOption {
 
     private static final String BIODIV_PR_TEMPLATE_OPTIONS =
             "http://purl.org/np/RAnt6U2Z3hEI2XWgoiAO7gY4WPMYeGhqdxAE-kwbZJhW8 " +
-                    "http://purl.org/np/RAdWRjsWVzTY3c65A5cnMZZxEeGjLzlyrSpyoALTCj8z0 " +
-                    "http://purl.org/np/RA5bvGiV9W8MYiHxUtkki0U2Zi8j1FBQ8d5ElwJXJoYrY ";
+            "http://purl.org/np/RAdWRjsWVzTY3c65A5cnMZZxEeGjLzlyrSpyoALTCj8z0 " +
+            "http://purl.org/np/RA5bvGiV9W8MYiHxUtkki0U2Zi8j1FBQ8d5ElwJXJoYrY ";
     //"http://purl.org/np/RA-4AE_X28pW3dkmCNNP06QSnsxqMiduN7gX3HxSciX5k"
 
     private String name;

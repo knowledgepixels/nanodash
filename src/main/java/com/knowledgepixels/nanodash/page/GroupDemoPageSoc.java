@@ -1,8 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * <p>GroupDemoPageSoc class.</p>

@@ -66,10 +66,10 @@ public class OrcidLoginPage extends WebPage {
         // orcid.org gives errors if redirect URL is too long, so we need to store
         String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + finalRedirectUrlHash;
         return "https://orcid.org/oauth/authorize?" +
-                "client_id=" + prefs.getOrcidClientId() + "&" +
-                "response_type=code&" +
-                "scope=/authenticate&" +
-                "redirect_uri=" + Utils.urlEncode(redirectUrl);
+               "client_id=" + prefs.getOrcidClientId() + "&" +
+               "response_type=code&" +
+               "scope=/authenticate&" +
+               "redirect_uri=" + Utils.urlEncode(redirectUrl);
     }
 
     /**

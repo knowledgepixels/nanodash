@@ -61,8 +61,8 @@ public class ActionMenu extends Panel {
                     }
                 }
                 String url = location + PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
-                        "&" + action.getParamString(n.getNanopub()) +
-                        "&template-version=latest" + sigkeyParam;
+                             "&" + action.getParamString(n.getNanopub()) +
+                             "&template-version=latest" + sigkeyParam;
                 item.add(new ExternalLink("menuitem", url, action.getLinkLabel(n.getNanopub()) + extraLabel));
             }
 

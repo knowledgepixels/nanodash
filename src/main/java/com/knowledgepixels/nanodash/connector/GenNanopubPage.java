@@ -172,7 +172,7 @@ public class GenNanopubPage extends ConnectorPage {
                                     .add("param_paper", np.getUri().stringValue())
                                     .add("template-version", "latest")
                                     .add("link-message", "Here you can publish a reaction to the given nanopublication by typing your text into the text field below and " +
-                                            "choosing the relation that fits best (if unsure, you can choose 'cites as related').")
+                                                         "choosing the relation that fits best (if unsure, you can choose 'cites as related').")
                                     .add("postpub-redirect-url", this.getMountPath() + "?" + Utils.getPageParametersAsString(parameters))
                     )
             );

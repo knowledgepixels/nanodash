@@ -53,8 +53,8 @@ public class HomePage extends NanodashPage {
             add(new Label("warning", "You are running a temporary snapshot version of Nanodash (" + v + "). The latest public version is " + lv + "."));
         } else if (lv != null && !v.equals(lv)) {
             add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
-                    "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
-                    "<a href=\"" + WicketApplication.LATEST_RELEASE_URL + "\">here</a>.").setEscapeModelStrings(false));
+                                     "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
+                                     "<a href=\"" + WicketApplication.LATEST_RELEASE_URL + "\">here</a>.").setEscapeModelStrings(false));
         } else {
             add(new Label("warning", ""));
         }

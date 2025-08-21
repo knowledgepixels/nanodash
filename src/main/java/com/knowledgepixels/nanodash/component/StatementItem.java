@@ -525,8 +525,8 @@ public class StatementItem extends Panel {
                 for (Statement s : st) {
                     if (
                             p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
-                                    p.getSubject().isUnifiableWith(s.getSubject()) &&
-                                    p.getObject().isUnifiableWith(s.getObject())) {
+                            p.getSubject().isUnifiableWith(s.getSubject()) &&
+                            p.getObject().isUnifiableWith(s.getObject())) {
                         matchedStatement = s;
                         break;
                     }
@@ -547,8 +547,8 @@ public class StatementItem extends Panel {
                 for (Statement s : statements) {
                     if (
                             p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
-                                    p.getSubject().isUnifiableWith(s.getSubject()) &&
-                                    p.getObject().isUnifiableWith(s.getObject())) {
+                            p.getSubject().isUnifiableWith(s.getSubject()) &&
+                            p.getObject().isUnifiableWith(s.getObject())) {
                         p.getPredicate().unifyWith(s.getPredicate());
                         p.getSubject().unifyWith(s.getSubject());
                         p.getObject().unifyWith(s.getObject());
