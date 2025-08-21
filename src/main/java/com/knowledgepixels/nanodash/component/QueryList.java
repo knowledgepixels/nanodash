@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.QueryPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;

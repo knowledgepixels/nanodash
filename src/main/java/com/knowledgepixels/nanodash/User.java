@@ -17,6 +17,8 @@ public class User {
     }  // no instances allowed
 
     private static transient UserData userData;
+    private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
+    private static transient long lastRefresh = 0L;
 
     /**
      * Refreshes the user data by creating a new UserData instance.

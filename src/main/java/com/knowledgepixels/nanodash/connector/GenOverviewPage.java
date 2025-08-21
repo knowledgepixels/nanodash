@@ -114,7 +114,8 @@ public class GenOverviewPage extends ConnectorPage {
                         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownlink", GenNanopubPage.class, params);
                         l.add(new Label("ownlinktext", "\"" + e.get("label") + "\""));
                         item.add(l);
-                        String username = User.getShortDisplayName(null, e.get("pubkey"));
+                        String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
+                        String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);
                         item.add(new Label("ownnote", "by " + username + " on " + e.get("date").substring(0, 10)));
                     }
 
@@ -188,7 +189,8 @@ public class GenOverviewPage extends ConnectorPage {
                     BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("candidatelink", GenNanopubPage.class, params);
                     l.add(new Label("candidatelinktext", "\"" + e.get("label") + "\""));
                     item.add(l);
-                    String username = User.getShortDisplayName(null, e.get("pubkey"));
+                    String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
+                    String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);
                     item.add(new Label("candidatenote", "by " + username + " on " + e.get("date").substring(0, 10)));
                 }
 
@@ -332,7 +334,8 @@ public class GenOverviewPage extends ConnectorPage {
                         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", GenNanopubPage.class, params);
                         l.add(new Label("reactionlinktext", "\"" + e.get("comment") + "\""));
                         item.add(l);
-                        String username = User.getShortDisplayName(null, e.get("pubkey"));
+                        String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
+                        String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);
                         item.add(new Label("reactionnote", "by " + username + " on " + e.get("date").substring(0, 10)));
                     }
 

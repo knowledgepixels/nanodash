@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash;
 
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
@@ -359,8 +361,8 @@ public class UserData implements Serializable {
     /**
      * Retrieves a short display name for a user based on their IRI and public key.
      *
-     * @param userIri the IRI of the user
-     * @param pubkeyhash  the public key of the user
+     * @param userIri    the IRI of the user
+     * @param pubkeyhash the public key of the user
      * @return the short display name of the user, which may include a contested identity note if multiple identities are associated with the public key
      */
     public String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {

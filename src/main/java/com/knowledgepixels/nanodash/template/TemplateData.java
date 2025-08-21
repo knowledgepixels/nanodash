@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
