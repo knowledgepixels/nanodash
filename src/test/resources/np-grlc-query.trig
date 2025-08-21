@@ -51,7 +51,7 @@ sub:provenance {
 
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-
+  
   this: dct:created "2025-06-03T10:39:46.322Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
@@ -64,7 +64,7 @@ sub:pubinfo {
       <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>, <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>,
       <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
     nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
-
+  
   sub:sig npx:hasAlgorithm "RSA";
     npx:hasPublicKey "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD4Wj537OijfOWVtsHMznuXKISqBhtGDQZfdO6pbb4hg9EHMcUFGTLbWaPrP783PHv8HMAAPjvEkHLaOHMIknqhaIa5236lfBO3r+ljVdYBElBcLvROmwG+ZGtmPNZf7lMhI15xf5TfoaSa84AFRd5J2EXekK6PhaFQhRm1IpSYtwIDAQAB";
     npx:hasSignature "bmf4gPxGC32ednx00sJ13pB+6dNtwfPR+ev7RzVRtSqr5IHR8I4URq44kS4xTLKY7ZeHsfLLoFavN9PqJIhsMRjeXRoxUVSYLBUPTPY5s1nGKKvgp9ktx1kTU8RJuiBJ5Un0VA612dmNxbrU/G6Ul9gsE0bRjiN6WF7RTfY3izA=";
