@@ -28,8 +28,8 @@ public class TemplateItem extends Panel {
     /**
      * A single template item in a list, showing the template name, user, and timestamp.
      *
-     * @param id       the wicket id of this component
-     * @param template the template to display
+     * @param id    the wicket id of this component
+     * @param entry the API response entry to display
      */
     public TemplateItem(String id, ApiResponseEntry entry) {
         this(id, entry, null);

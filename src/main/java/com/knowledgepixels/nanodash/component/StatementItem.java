@@ -384,19 +384,39 @@ public class StatementItem extends Panel {
             }
         }
 
+        /**
+         * Returns the statement parts.
+         *
+         * @return a list of StatementPartItem objects representing the statement parts
+         */
         public List<StatementPartItem> getStatementParts() {
             return statementParts;
         }
 
+        /**
+         * Returns the index of this repetition group in the list of repetition groups.
+         *
+         * @return the index of this repetition group
+         */
         public int getRepeatIndex() {
             if (!repetitionGroups.contains(this)) return repetitionGroups.size();
             return repetitionGroups.indexOf(this);
         }
 
+        /**
+         * Returns true if the repeat index if the first one.
+         *
+         * @return true if the repeat index is 0, false otherwise
+         */
         public boolean isFirst() {
             return getRepeatIndex() == 0;
         }
 
+        /**
+         * Returns true if the repeat index is the last one.
+         *
+         * @return true if the repeat index is the last one, false otherwise
+         */
         public boolean isLast() {
             return getRepeatIndex() == repetitionGroups.size() - 1;
         }
@@ -436,10 +456,20 @@ public class StatementItem extends Panel {
             return "__" + i;
         }
 
+        /**
+         * Returns the template context associated.
+         *
+         * @return the TemplateContext
+         */
         public TemplateContext getContext() {
             return context;
         }
 
+        /**
+         * Checks if this repetition group is optional.
+         *
+         * @return true if the repetition group is optional, false otherwise
+         */
         public boolean isOptional() {
             if (!getTemplate().isOptionalStatement(statementId)) return false;
             if (repetitionGroups.size() == 0) return true;
@@ -462,6 +492,11 @@ public class StatementItem extends Panel {
             return iri;
         }
 
+        /**
+         * Adds the triples of this repetition group to the given NanopubCreator.
+         *
+         * @param npCreator the NanopubCreator to which the triples will be added
+         */
         public void addTriplesTo(NanopubCreator npCreator) {
             Template t = getTemplate();
             for (IRI s : statementPartIds) {
@@ -501,6 +536,11 @@ public class StatementItem extends Panel {
             return false;
         }
 
+        /**
+         * Checks if this repetition group is empty, meaning it has no filled items.
+         *
+         * @return true if the repetition group is empty, false otherwise
+         */
         public boolean isEmpty() {
             for (IRI s : statementPartIds) {
                 Template t = getTemplate();
@@ -517,6 +557,12 @@ public class StatementItem extends Panel {
             return true;
         }
 
+        /**
+         * Checks if this repetition group matches the provided list of statements.
+         *
+         * @param statements the list of statements to match against
+         * @return true if the repetition group matches, false otherwise
+         */
         public boolean matches(List<Statement> statements) {
             if (filled) return false;
             List<Statement> st = new ArrayList<>(statements);
@@ -540,6 +586,12 @@ public class StatementItem extends Panel {
             return true;
         }
 
+        /**
+         * Fills this repetition group with the provided list of statements, unifying them with the statement parts.
+         *
+         * @param statements the list of statements to match against
+         * @throws UnificationException if the statements cannot be unified with this repetition group
+         */
         public void fill(List<Statement> statements) throws UnificationException {
             if (filled) throw new UnificationException("Already filled");
             for (StatementPartItem p : statementParts) {
@@ -565,12 +617,18 @@ public class StatementItem extends Panel {
             }
         }
 
+        /**
+         * Marks the filling of this repetition group as finished, indicating that all values have been filled.
+         */
         public void fillFinished() {
             for (ValueItem vi : items) {
                 vi.fillFinished();
             }
         }
 
+        /**
+         * Finalizes the values of all ValueItems in this repetition group.
+         */
         public void finalizeValues() {
             for (ValueItem vi : items) {
                 vi.finalizeValues();

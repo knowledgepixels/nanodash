@@ -12,6 +12,10 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
+/**
+ * Abstract base class for Nanodash pages.
+ * Provides functionality for auto-refreshing data and rendering JavaScript resources.
+ */
 public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
