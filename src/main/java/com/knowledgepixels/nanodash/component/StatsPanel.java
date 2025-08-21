@@ -32,7 +32,6 @@ public class StatsPanel extends Panel {
         this.statsMap = statsMap;
         setOutputMarkupId(true);
 
-        add(new Label("latestcount", getLong("validNpCount")));
         add(new Label("latestcount", getLong(VALID_NP_COUNT_KEY)));
         add(new Label("previouscount", getLong(INVALIDATED_NP_COUNT_KEY)));
         add(new Label("acceptedcount", getLong(ACCEPTED_NP_COUNT_KEY)));
