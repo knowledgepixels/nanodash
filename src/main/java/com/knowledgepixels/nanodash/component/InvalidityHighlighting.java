@@ -7,17 +7,17 @@ import org.apache.wicket.markup.html.form.FormComponent;
 
 public class InvalidityHighlighting extends Behavior {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public InvalidityHighlighting() {
-	}
+    public InvalidityHighlighting() {
+    }
 
-	@Override
-	public void onComponentTag(Component c, ComponentTag tag) {
-		FormComponent<?> fc = (FormComponent<?>) c;
-		if (!fc.isValid()) {
-			tag.append("class", "invalid", " ");
-		}
-	}
+    @Override
+    public void onComponentTag(Component c, ComponentTag tag) {
+        FormComponent<?> fc = (FormComponent<?>) c;
+        if (!fc.isValid()) {
+            tag.append("class", "invalid", " ");
+        }
+    }
 
 }

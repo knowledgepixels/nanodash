@@ -1,17 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -27,44 +15,48 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.NanopubSetting;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+
 public class UserData implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-	private Map<IRI,Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
-	private Map<String,Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
-	private Map<String,Set<IRI>> approvedPubkeyhashLocationMap = new HashMap<>();
-	private Map<IRI,Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
-	private Map<String,Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
-	private Map<String,Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
-	private Map<String,Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
-	private Map<IRI,IntroNanopub> introMap = new HashMap<>();
-	private Set<IRI> approvedIntros = new HashSet<>();
-	private Map<IRI,String> idNameMap = new HashMap<>();
-	private Map<IRI,List<IntroNanopub>> introNanopubLists = new HashMap<>();
+    private Map<IRI, Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
+    private Map<String, Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
+    private Map<String, Set<IRI>> approvedPubkeyhashLocationMap = new HashMap<>();
+    private Map<IRI, Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
+    private Map<String, Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
+    private Map<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
+    private Map<String, Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
+    private Map<IRI, IntroNanopub> introMap = new HashMap<>();
+    private Set<IRI> approvedIntros = new HashSet<>();
+    private Map<IRI, String> idNameMap = new HashMap<>();
+    private Map<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
 
-	UserData() {
-		final NanodashPreferences pref = NanodashPreferences.get();
+    UserData() {
+        final NanodashPreferences pref = NanodashPreferences.get();
 
-		// TODO Make nanopublication setting configurable:
-		NanopubSetting setting;
-		if (pref.getSettingUri() != null) {
-			setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri()));
-		} else {
-			try {
-				setting = NanopubSetting.getLocalSetting();
-			} catch (RDF4JException | MalformedNanopubException | IOException ex) {
-				throw new RuntimeException(ex);
-			}
-		}
-		String settingId = setting.getNanopub().getUri().stringValue();
-		if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
-			settingId = QueryApiAccess.getLatestVersionId(settingId);
-			setting = new NanopubSetting(GetNanopub.get(settingId));
-		}
-		System.err.println("Using nanopublication setting: " + settingId);
+        // TODO Make nanopublication setting configurable:
+        NanopubSetting setting;
+        if (pref.getSettingUri() != null) {
+            setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri()));
+        } else {
+            try {
+                setting = NanopubSetting.getLocalSetting();
+            } catch (RDF4JException | MalformedNanopubException | IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        String settingId = setting.getNanopub().getUri().stringValue();
+        if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
+            settingId = QueryApiAccess.getLatestVersionId(settingId);
+            setting = new NanopubSetting(GetNanopub.get(settingId));
+        }
+        System.err.println("Using nanopublication setting: " + settingId);
 
 //		// Get users that are listed directly in the authority index, and consider them approved:
 //		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
@@ -98,74 +90,76 @@ public class UserData implements Serializable {
 //			}
 //		}
 
-		System.err.println("Loading approved users...");
-		try {
-			for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl("https://registry.knowledgepixels.com/list.json")) {
-				registerApproved(rai);
-			}
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
-		}
+        System.err.println("Loading approved users...");
+        try {
+            for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl("https://registry.knowledgepixels.com/list.json")) {
+                registerApproved(rai);
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
 
-		System.err.println("Loading user details...");
-		// Get latest introductions for all users, including unapproved ones:
-		for (ApiResponseEntry entry : QueryApiAccess.forcedGet("get-all-user-intros").getData()) {
-			register(entry);
-		}
-	}
+        System.err.println("Loading user details...");
+        // Get latest introductions for all users, including unapproved ones:
+        for (ApiResponseEntry entry : QueryApiAccess.forcedGet("get-all-user-intros").getData()) {
+            register(entry);
+        }
+    }
 
-	private IntroNanopub toIntroNanopub(IRI iri) {
-		if (iri == null) return null;
-		if (introMap.containsKey(iri)) return introMap.get(iri);
-		Nanopub np = Utils.getNanopub(iri.stringValue());
-		if (np == null) return null;
-		IntroNanopub introNp = new IntroNanopub(np);
-		introMap.put(np.getUri(), introNp);
-		return introNp;
-	}
+    private IntroNanopub toIntroNanopub(IRI iri) {
+        if (iri == null) return null;
+        if (introMap.containsKey(iri)) return introMap.get(iri);
+        Nanopub np = Utils.getNanopub(iri.stringValue());
+        if (np == null) return null;
+        IntroNanopub introNp = new IntroNanopub(np);
+        introMap.put(np.getUri(), introNp);
+        return introNp;
+    }
 
-	private void registerApproved(RegistryAccountInfo rai) {
-		if (rai.getAgent().equals("$")) return;
-		addValue(approvedIdPubkeyhashMap, rai.getAgentIri(), rai.getPubkey());
-		addValue(approvedPubkeyhashIdMap, rai.getPubkey(), rai.getAgentIri());
-	}
+    private void registerApproved(RegistryAccountInfo rai) {
+        if (rai.getAgent().equals("$")) return;
+        addValue(approvedIdPubkeyhashMap, rai.getAgentIri(), rai.getPubkey());
+        addValue(approvedPubkeyhashIdMap, rai.getPubkey(), rai.getAgentIri());
+    }
 
-	private void register(ApiResponseEntry entry) {
-		IRI userIri;
-		try {
-			userIri = vf.createIRI(entry.get("user"));
-		} catch (IllegalArgumentException ex) {
-			return;
-		}
-		String pubkeyhash = entry.get("pubkeyHash");
-		boolean approved = approvedIdPubkeyhashMap.containsKey(userIri) && approvedIdPubkeyhashMap.get(userIri).contains(pubkeyhash);
-		boolean authoritative = "true".equals(entry.get("authoritative"));
-		IRI introNpIri = null;
-		try {
-			introNpIri = vf.createIRI(entry.get("intronp"));
-		} catch (IllegalArgumentException ex) {}
-		IRI keyLocation = null;
-		try {
-			keyLocation = vf.createIRI(entry.get("keyLocation"));
-		} catch (IllegalArgumentException ex) {}
-		if (approved) {
-			if (authoritative) {
-				if (introNpIri != null)	approvedIntros.add(introNpIri);
-				if (keyLocation != null) addValue(approvedPubkeyhashLocationMap, pubkeyhash, keyLocation);
-			}
-		} else {
-			addValue(unapprovedIdPubkeyhashMap, userIri, entry.get("pubkeyHash"));
-			addValue(unapprovedPubkeyhashIdMap, entry.get("pubkeyHash"), userIri);
-			if (keyLocation != null) addValue(unapprovedPubkeyhashLocationMap, pubkeyhash, keyLocation);
-		}
-		if (introNpIri != null) {
-			addValue(pubkeyhashIntroMap, entry.get("pubkeyHash"), introNpIri);
-		}
-		String name = entry.get("name");
-		if (!"".equals(name) && !idNameMap.containsKey(userIri)) {
-			idNameMap.put(userIri, name);
-		}
-	}
+    private void register(ApiResponseEntry entry) {
+        IRI userIri;
+        try {
+            userIri = vf.createIRI(entry.get("user"));
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
+        String pubkeyhash = entry.get("pubkeyHash");
+        boolean approved = approvedIdPubkeyhashMap.containsKey(userIri) && approvedIdPubkeyhashMap.get(userIri).contains(pubkeyhash);
+        boolean authoritative = "true".equals(entry.get("authoritative"));
+        IRI introNpIri = null;
+        try {
+            introNpIri = vf.createIRI(entry.get("intronp"));
+        } catch (IllegalArgumentException ex) {
+        }
+        IRI keyLocation = null;
+        try {
+            keyLocation = vf.createIRI(entry.get("keyLocation"));
+        } catch (IllegalArgumentException ex) {
+        }
+        if (approved) {
+            if (authoritative) {
+                if (introNpIri != null) approvedIntros.add(introNpIri);
+                if (keyLocation != null) addValue(approvedPubkeyhashLocationMap, pubkeyhash, keyLocation);
+            }
+        } else {
+            addValue(unapprovedIdPubkeyhashMap, userIri, entry.get("pubkeyHash"));
+            addValue(unapprovedPubkeyhashIdMap, entry.get("pubkeyHash"), userIri);
+            if (keyLocation != null) addValue(unapprovedPubkeyhashLocationMap, pubkeyhash, keyLocation);
+        }
+        if (introNpIri != null) {
+            addValue(pubkeyhashIntroMap, entry.get("pubkeyHash"), introNpIri);
+        }
+        String name = entry.get("name");
+        if (!"".equals(name) && !idNameMap.containsKey(userIri)) {
+            idNameMap.put(userIri, name);
+        }
+    }
 
 //	private void register(String npId, boolean approved) {
 //		if (!TrustyUriUtils.isPotentialTrustyUri(npId)) return;
@@ -212,29 +206,29 @@ public class UserData implements Serializable {
 //		}
 //	}
 
-	private void addValue(Map<IRI,Set<String>> map, IRI key, String value) {
-		Set<String> values = map.get(key);
-		if (values == null) {
-			values = new HashSet<>();
-			map.put(key, values);
-		}
-		values.add(value);
-	}
+    private void addValue(Map<IRI, Set<String>> map, IRI key, String value) {
+        Set<String> values = map.get(key);
+        if (values == null) {
+            values = new HashSet<>();
+            map.put(key, values);
+        }
+        values.add(value);
+    }
 
-	private void addValue(Map<String,Set<IRI>> map, String key, IRI value) {
-		Set<IRI> values = map.get(key);
-		if (values == null) {
-			values = new HashSet<>();
-			map.put(key, values);
-		}
-		values.add(value);
-	}
+    private void addValue(Map<String, Set<IRI>> map, String key, IRI value) {
+        Set<IRI> values = map.get(key);
+        if (values == null) {
+            values = new HashSet<>();
+            map.put(key, values);
+        }
+        values.add(value);
+    }
 
-	private boolean hasValue(Map<IRI,Set<String>> map, IRI key, String value) {
-		Set<String> values = map.get(key);
-		if (values == null) return false;
-		return values.contains(value);
-	}
+    private boolean hasValue(Map<IRI, Set<String>> map, IRI key, String value) {
+        Set<String> values = map.get(key);
+        if (values == null) return false;
+        return values.contains(value);
+    }
 
 //	private static boolean hasValue(Map<String,Set<IRI>> map, String key, IRI value) {
 //		Set<IRI> values = map.get(key);
@@ -242,210 +236,211 @@ public class UserData implements Serializable {
 //		return values.contains(value);
 //	}
 
-	public boolean isUser(IRI userIri) {
-		return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
-	}
+    public boolean isUser(IRI userIri) {
+        return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
+    }
 
-	public boolean isUser(String userId) {
-		if (!userId.startsWith("https://") && !userId.startsWith("http://")) return false;
-		try {
-			IRI userIri = Utils.vf.createIRI(userId);
-			return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
-		} catch (IllegalArgumentException ex) {
-			return false;
-		}
-	}
+    public boolean isUser(String userId) {
+        if (!userId.startsWith("https://") && !userId.startsWith("http://")) return false;
+        try {
+            IRI userIri = Utils.vf.createIRI(userId);
+            return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
 
-	public boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
-		return hasValue(approvedIdPubkeyhashMap, user, pubkeyhash);
-	}
+    public boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
+        return hasValue(approvedIdPubkeyhashMap, user, pubkeyhash);
+    }
 
-	private String getShortName(IRI userIri) {
-		if (userIri == null) return "(unknown)";
-		String n = userIri.stringValue();
-		n = n.replaceFirst("^https://orcid.org/", "");
-		if (n.length() > 40) return n.substring(0,30) + "...";
-		return n;
-	}
+    private String getShortName(IRI userIri) {
+        if (userIri == null) return "(unknown)";
+        String n = userIri.stringValue();
+        n = n.replaceFirst("^https://orcid.org/", "");
+        if (n.length() > 40) return n.substring(0, 30) + "...";
+        return n;
+    }
 
-	public IRI getUserIriForPubkeyhash(String pubkeyHash, boolean approvedOnly) {
-		Set<IRI> userIris = approvedPubkeyhashIdMap.get(pubkeyHash);
-		if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
-		if (!approvedOnly) {
-			userIris = unapprovedPubkeyhashIdMap.get(pubkeyHash);
-			if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
-		}
-		return null;
-	}
+    public IRI getUserIriForPubkeyhash(String pubkeyHash, boolean approvedOnly) {
+        Set<IRI> userIris = approvedPubkeyhashIdMap.get(pubkeyHash);
+        if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
+        if (!approvedOnly) {
+            userIris = unapprovedPubkeyhashIdMap.get(pubkeyHash);
+            if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
+        }
+        return null;
+    }
 
-	public IRI getSignatureOwnerIri(Nanopub np) {
-		try {
-			if (np != null) {
-				NanopubSignatureElement se = SignatureUtils.getSignatureElement(np);
-				if (se != null) {
-					String pubkeyhash = Utils.createSha256HexHash(se.getPublicKeyString());
-					return getUserIriForPubkeyhash(pubkeyhash, true);
-				}
-			}
-		} catch (MalformedCryptoElementException ex) {
-			ex.printStackTrace();
-		}
-		return null;
-	}
+    public IRI getSignatureOwnerIri(Nanopub np) {
+        try {
+            if (np != null) {
+                NanopubSignatureElement se = SignatureUtils.getSignatureElement(np);
+                if (se != null) {
+                    String pubkeyhash = Utils.createSha256HexHash(se.getPublicKeyString());
+                    return getUserIriForPubkeyhash(pubkeyhash, true);
+                }
+            }
+        } catch (MalformedCryptoElementException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
-	public String getName(IRI userIri) {
-		return idNameMap.get(userIri);
-	}
+    public String getName(IRI userIri) {
+        return idNameMap.get(userIri);
+    }
 
-	public String getDisplayName(IRI userIri) {
-		String name = getName(userIri);
-		if (name != null && !name.isEmpty()) {
-			return name + " (" + getShortName(userIri) + ")";
-		}
-		return getShortName(userIri);
-	}
+    public String getDisplayName(IRI userIri) {
+        String name = getName(userIri);
+        if (name != null && !name.isEmpty()) {
+            return name + " (" + getShortName(userIri) + ")";
+        }
+        return getShortName(userIri);
+    }
 
-	public String getShortDisplayName(IRI userIri) {
-		String name = getName(userIri);
-		if (name != null && !name.isEmpty()) {
-			return name;
-		}
-		return getShortName(userIri);
-	}
+    public String getShortDisplayName(IRI userIri) {
+        String name = getName(userIri);
+        if (name != null && !name.isEmpty()) {
+            return name;
+        }
+        return getShortName(userIri);
+    }
 
-	public String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
-		Set<IRI> ids = approvedPubkeyhashIdMap.get(pubkeyhash);
-		if (ids == null || ids.isEmpty()) {
-			ids = unapprovedPubkeyhashIdMap.get(pubkeyhash);
-			if (ids == null || ids.isEmpty()) {
-				return getShortName(userIri);
-			} else if (ids.size() == 1) {
-				return getShortDisplayName(ids.iterator().next());
-			} else {
-				return getShortName(userIri) + " (contested identity)";
-			}
-		} else if (ids.size() == 1) {
-			return getShortDisplayName(ids.iterator().next());
-		} else {
-			return "(contested identity)";
-		}
-	}
+    public String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
+        Set<IRI> ids = approvedPubkeyhashIdMap.get(pubkeyhash);
+        if (ids == null || ids.isEmpty()) {
+            ids = unapprovedPubkeyhashIdMap.get(pubkeyhash);
+            if (ids == null || ids.isEmpty()) {
+                return getShortName(userIri);
+            } else if (ids.size() == 1) {
+                return getShortDisplayName(ids.iterator().next());
+            } else {
+                return getShortName(userIri) + " (contested identity)";
+            }
+        } else if (ids.size() == 1) {
+            return getShortDisplayName(ids.iterator().next());
+        } else {
+            return "(contested identity)";
+        }
+    }
 
-	public IRI findSingleIdForPubkeyhash(String pubkeyhash) {
-		if (approvedPubkeyhashIdMap.containsKey(pubkeyhash) && !approvedPubkeyhashIdMap.get(pubkeyhash).isEmpty()) {
-			if (approvedPubkeyhashIdMap.get(pubkeyhash).size() == 1) {
-				return approvedPubkeyhashIdMap.get(pubkeyhash).iterator().next();
-			} else {
-				return null;
-			}
-		}
-		if (unapprovedPubkeyhashIdMap.containsKey(pubkeyhash) && !unapprovedPubkeyhashIdMap.get(pubkeyhash).isEmpty()) {
-			if (unapprovedPubkeyhashIdMap.get(pubkeyhash).size() == 1) {
-				return unapprovedPubkeyhashIdMap.get(pubkeyhash).iterator().next();
-			} else {
-				return null;
-			}
-		}
-		return null;
-	}
+    public IRI findSingleIdForPubkeyhash(String pubkeyhash) {
+        if (approvedPubkeyhashIdMap.containsKey(pubkeyhash) && !approvedPubkeyhashIdMap.get(pubkeyhash).isEmpty()) {
+            if (approvedPubkeyhashIdMap.get(pubkeyhash).size() == 1) {
+                return approvedPubkeyhashIdMap.get(pubkeyhash).iterator().next();
+            } else {
+                return null;
+            }
+        }
+        if (unapprovedPubkeyhashIdMap.containsKey(pubkeyhash) && !unapprovedPubkeyhashIdMap.get(pubkeyhash).isEmpty()) {
+            if (unapprovedPubkeyhashIdMap.get(pubkeyhash).size() == 1) {
+                return unapprovedPubkeyhashIdMap.get(pubkeyhash).iterator().next();
+            } else {
+                return null;
+            }
+        }
+        return null;
+    }
 
-	private transient Comparator<IRI> comparator = new Comparator<IRI>() {
+    private transient Comparator<IRI> comparator = new Comparator<IRI>() {
 
-		@Override
-		public int compare(IRI iri1, IRI iri2) {
-			return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
-		}
+        @Override
+        public int compare(IRI iri1, IRI iri2) {
+            return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
+        }
 
-	};
+    };
 
-	public List<IRI> getUsers(boolean approved) {
-		List<IRI> list;
-		if (approved) {
-			list = new ArrayList<IRI>(approvedIdPubkeyhashMap.keySet());
-		} else {
-			list = new ArrayList<IRI>();
-			for (IRI u : unapprovedIdPubkeyhashMap.keySet()) {
-				if (!approvedIdPubkeyhashMap.containsKey(u)) list.add(u);
-			}
-		}
-		// TODO Cache the sorted list to not sort from scratch each time:
-		list.sort(comparator);
-		return list;
-	}
+    public List<IRI> getUsers(boolean approved) {
+        List<IRI> list;
+        if (approved) {
+            list = new ArrayList<IRI>(approvedIdPubkeyhashMap.keySet());
+        } else {
+            list = new ArrayList<IRI>();
+            for (IRI u : unapprovedIdPubkeyhashMap.keySet()) {
+                if (!approvedIdPubkeyhashMap.containsKey(u)) list.add(u);
+            }
+        }
+        // TODO Cache the sorted list to not sort from scratch each time:
+        list.sort(comparator);
+        return list;
+    }
 
-	public List<String> getPubkeyhashes(IRI user, Boolean approved) {
-		List<String> pubkeys = new ArrayList<>();
-		if (user != null) {
-			if (approved == null || approved) {
-				if (approvedIdPubkeyhashMap.containsKey(user)) pubkeys.addAll(approvedIdPubkeyhashMap.get(user));
-			}
-			if (approved == null || !approved) {
-				if (unapprovedIdPubkeyhashMap.containsKey(user)) pubkeys.addAll(unapprovedIdPubkeyhashMap.get(user));
-			}
-		}
-		return pubkeys;
-	}
+    public List<String> getPubkeyhashes(IRI user, Boolean approved) {
+        List<String> pubkeys = new ArrayList<>();
+        if (user != null) {
+            if (approved == null || approved) {
+                if (approvedIdPubkeyhashMap.containsKey(user)) pubkeys.addAll(approvedIdPubkeyhashMap.get(user));
+            }
+            if (approved == null || !approved) {
+                if (unapprovedIdPubkeyhashMap.containsKey(user)) pubkeys.addAll(unapprovedIdPubkeyhashMap.get(user));
+            }
+        }
+        return pubkeys;
+    }
 
-	public List<IntroNanopub> getIntroNanopubs(IRI user) {
-		if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
+    public List<IntroNanopub> getIntroNanopubs(IRI user) {
+        if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
 
-		Map<IRI,IntroNanopub> introNps = new HashMap<>();
-		if (approvedIdPubkeyhashMap.containsKey(user)) {
-			for (String pk : approvedIdPubkeyhashMap.get(user)) {
-				getIntroNanopubs(pk, introNps);
-			}
-		}
-		if (unapprovedIdPubkeyhashMap.containsKey(user)) {
-			for (String pk : unapprovedIdPubkeyhashMap.get(user)) {
-				getIntroNanopubs(pk, introNps);
-			}
-		}
-		List<IntroNanopub> list = new ArrayList<>(introNps.values());
-		Collections.sort(list, new Comparator<IntroNanopub>() {
-			@Override
-			public int compare(IntroNanopub i0, IntroNanopub i1) {
-				Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
-				Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
-				if (c0 == null && c1 == null) return 0;
-				if (c0 == null) return 1;
-				if (c1 == null) return -1;
-				return -c0.compareTo(c1);
-			}
-		});
-		introNanopubLists.put(user, list);
-		return list;
-	}
+        Map<IRI, IntroNanopub> introNps = new HashMap<>();
+        if (approvedIdPubkeyhashMap.containsKey(user)) {
+            for (String pk : approvedIdPubkeyhashMap.get(user)) {
+                getIntroNanopubs(pk, introNps);
+            }
+        }
+        if (unapprovedIdPubkeyhashMap.containsKey(user)) {
+            for (String pk : unapprovedIdPubkeyhashMap.get(user)) {
+                getIntroNanopubs(pk, introNps);
+            }
+        }
+        List<IntroNanopub> list = new ArrayList<>(introNps.values());
+        Collections.sort(list, new Comparator<IntroNanopub>() {
+            @Override
+            public int compare(IntroNanopub i0, IntroNanopub i1) {
+                Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
+                Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
+                if (c0 == null && c1 == null) return 0;
+                if (c0 == null) return 1;
+                if (c1 == null) return -1;
+                return -c0.compareTo(c1);
+            }
+        });
+        introNanopubLists.put(user, list);
+        return list;
+    }
 
-	public Map<IRI,IntroNanopub> getIntroNanopubs(String pubkey) {
-		Map<IRI,IntroNanopub> introNps = new HashMap<>();
-		getIntroNanopubs(pubkey, introNps);
-		return introNps;
-	}
+    public Map<IRI, IntroNanopub> getIntroNanopubs(String pubkey) {
+        Map<IRI, IntroNanopub> introNps = new HashMap<>();
+        getIntroNanopubs(pubkey, introNps);
+        return introNps;
+    }
 
-	private void getIntroNanopubs(String pubkeyhash, Map<IRI,IntroNanopub> introNps) {
-		if (pubkeyhashIntroMap.containsKey(pubkeyhash)) {
-			for (IRI iri : pubkeyhashIntroMap.get(pubkeyhash)) {
-				IntroNanopub introNp = toIntroNanopub(iri);
-				if (introNp != null) {
-					introNps.put(iri, introNp);
-				}
-			}
-		}
-	}
+    private void getIntroNanopubs(String pubkeyhash, Map<IRI, IntroNanopub> introNps) {
+        if (pubkeyhashIntroMap.containsKey(pubkeyhash)) {
+            for (IRI iri : pubkeyhashIntroMap.get(pubkeyhash)) {
+                IntroNanopub introNp = toIntroNanopub(iri);
+                if (introNp != null) {
+                    introNps.put(iri, introNp);
+                }
+            }
+        }
+    }
 
-	public boolean isApproved(IntroNanopub in) {
-		return approvedIntros.contains(in.getNanopub().getUri());
-	}
+    public boolean isApproved(IntroNanopub in) {
+        return approvedIntros.contains(in.getNanopub().getUri());
+    }
 
-	public IRI getKeyLocationForPubkeyhash(String pubkeyhash) {
-		if (approvedPubkeyhashLocationMap.containsKey(pubkeyhash) && !approvedPubkeyhashLocationMap.get(pubkeyhash).isEmpty()) {
-			if (approvedPubkeyhashLocationMap.get(pubkeyhash).size() == 1) return approvedPubkeyhashLocationMap.get(pubkeyhash).iterator().next();
-			return null;
-		}
-		if (unapprovedPubkeyhashLocationMap.containsKey(pubkeyhash) && unapprovedPubkeyhashLocationMap.get(pubkeyhash).size() == 1) {
-			return unapprovedPubkeyhashLocationMap.get(pubkeyhash).iterator().next();
-		}
-		return null;
-	}
+    public IRI getKeyLocationForPubkeyhash(String pubkeyhash) {
+        if (approvedPubkeyhashLocationMap.containsKey(pubkeyhash) && !approvedPubkeyhashLocationMap.get(pubkeyhash).isEmpty()) {
+            if (approvedPubkeyhashLocationMap.get(pubkeyhash).size() == 1)
+                return approvedPubkeyhashLocationMap.get(pubkeyhash).iterator().next();
+            return null;
+        }
+        if (unapprovedPubkeyhashLocationMap.containsKey(pubkeyhash) && unapprovedPubkeyhashLocationMap.get(pubkeyhash).size() == 1) {
+            return unapprovedPubkeyhashLocationMap.get(pubkeyhash).iterator().next();
+        }
+        return null;
+    }
 
 }

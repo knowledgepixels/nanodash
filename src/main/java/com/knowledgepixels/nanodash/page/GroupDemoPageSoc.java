@@ -1,24 +1,23 @@
 package com.knowledgepixels.nanodash.page;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class GroupDemoPageSoc extends NanodashPage {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String MOUNT_PATH = "/groupdemo-soc";
+    public static final String MOUNT_PATH = "/groupdemo-soc";
 
-	@Override
-	public String getMountPath() {
-		return MOUNT_PATH;
-	}
+    @Override
+    public String getMountPath() {
+        return MOUNT_PATH;
+    }
 
-	public GroupDemoPageSoc(final PageParameters parameters) {
-		super(parameters);
+    public GroupDemoPageSoc(final PageParameters parameters) {
+        super(parameters);
 
-		add(new TitleBar("titlebar", this, null));
-	}
+        add(new TitleBar("titlebar", this, null));
+    }
 
 }
