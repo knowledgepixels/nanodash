@@ -100,6 +100,11 @@
       <artifactId>owasp-java-html-sanitizer</artifactId>
       <version>20240325.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-exec</artifactId>
+      <version>1.4.0</version>
+    </dependency>
 
     <!--    <dependency>-->
     <!--      <groupId>org.nanopub</groupId>-->

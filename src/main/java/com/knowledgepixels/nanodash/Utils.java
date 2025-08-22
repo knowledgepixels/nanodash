@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.google.common.hash.Hashing;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
+import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -28,6 +29,7 @@ import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.wicketstuff.select2.Select2Choice;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -622,6 +624,20 @@ public class Utils {
             if (st.getObject() instanceof IRI obj) embeddedIriIds.add(obj.stringValue());
         }
         return embeddedIriIds;
+    }
+
+    /**
+     * Returns the URL of the default Nanopub Registry as configured by the given instance.
+     *
+     * @return Nanopub Registry URL
+     */
+    public static String getMainRegistryUrl() {
+    	try {
+			return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			return "https://registry.knowledgepixels.com/";
+		}
     }
 
 }

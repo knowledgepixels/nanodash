@@ -1,11 +1,13 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -99,7 +101,7 @@ public class UserData implements Serializable {
 
         System.err.println("Loading approved users...");
         try {
-            for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl("https://registry.knowledgepixels.com/list.json")) {
+            for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl(Utils.getMainRegistryUrl() + "list.json")) {
                 registerApproved(rai);
             }
         } catch (Exception ex) {

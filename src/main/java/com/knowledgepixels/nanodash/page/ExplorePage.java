@@ -98,7 +98,7 @@ public class ExplorePage extends NanodashPage {
             if (!mimeType.equals(Utils.TYPE_HTML)) {
                 System.err.println("Non-HTML content type: " + mimeType);
                 // TODO Make this registry URL configurable/dynamic:
-                String redirectUrl = "https://registry.knowledgepixels.com/np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
+                String redirectUrl = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
                 System.err.println("Redirecting to: " + redirectUrl);
                 throw new RedirectToUrlException(redirectUrl, 302);
             }
