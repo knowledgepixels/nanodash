@@ -23,6 +23,9 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * A table component that displays the results of a query.
+ */
 public class QueryResultTable extends Panel {
 
     private static final long serialVersionUID = 1L;
@@ -163,10 +166,27 @@ public class QueryResultTable extends Panel {
 
     }
 
+    /**
+     * <p>createComponent.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param queryId  a {@link java.lang.String} object
+     * @param plain    a boolean
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createComponent(final String markupId, final String queryId, boolean plain) {
         return createComponent(markupId, queryId, getParams(), plain);
     }
 
+    /**
+     * <p>createComponent.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param queryId  a {@link java.lang.String} object
+     * @param params   a {@link java.util.HashMap} object
+     * @param plain    a boolean
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createComponent(final String markupId, final String queryId, HashMap<String, String> params, boolean plain) {
         final GrlcQuery q = GrlcQuery.get(queryId);
         ApiResponse response = ApiCache.retrieveResponse(queryId, params);

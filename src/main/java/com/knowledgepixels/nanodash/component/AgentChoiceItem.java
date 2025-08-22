@@ -28,6 +28,9 @@ import org.wicketstuff.select2.Select2Choice;
 
 import java.util.*;
 
+/**
+ * A component that allows users to select an agent (user) from a list or enter an ORCID or URL.
+ */
 public class AgentChoiceItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
@@ -45,6 +48,15 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         return choiceId;
     }
 
+    /**
+     * Constructor for AgentChoiceItem.
+     *
+     * @param id       the component ID
+     * @param parentId the parent component ID
+     * @param iriP     the IRI of the agent choice item
+     * @param optional whether the choice is optional
+     * @param context  the template context
+     */
     public AgentChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
         super(id);
         this.context = context;
@@ -201,15 +213,26 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         add(textfield);
     }
 
+    /**
+     * Returns the IRI of the agent choice item.
+     *
+     * @return the IRI of the agent choice item
+     */
     public IModel<String> getModel() {
         return model;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -232,6 +255,9 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -243,10 +269,16 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         textfield.setModelObject(vs);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -264,6 +296,11 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[Agent choiced item: " + iri + "]";
     }

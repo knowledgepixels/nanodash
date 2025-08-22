@@ -25,6 +25,9 @@ import org.nanopub.NanopubCreator;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Represents a single item in a statement, which can be a subject, predicate, or object.
+ */
 public class StatementItem extends Panel {
 
     private static final long serialVersionUID = 1L;
@@ -38,6 +41,13 @@ public class StatementItem extends Panel {
     private Set<IRI> iriSet = new HashSet<>();
     private boolean isMatched = false;
 
+    /**
+     * Constructor for creating a StatementItem with a specific ID and statement ID.
+     *
+     * @param id          the Wicket component ID
+     * @param statementId the IRI of the statement this item represents
+     * @param context     the template context containing information about the template and its items
+     */
     public StatementItem(String id, IRI statementId, TemplateContext context) {
         super(id);
 
@@ -67,15 +77,26 @@ public class StatementItem extends Panel {
         add(v);
     }
 
+    /**
+     * Adds a new repetition group to this StatementItem with a default RepetitionGroup.
+     */
     public void addRepetitionGroup() {
         addRepetitionGroup(new RepetitionGroup());
     }
 
+    /**
+     * Adds a new repetition group to this StatementItem.
+     *
+     * @param rg the RepetitionGroup to add
+     */
     public void addRepetitionGroup(RepetitionGroup rg) {
         repetitionGroups.add(rg);
         repetitionGroupsChanged = true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         if (repetitionGroupsChanged) {
@@ -115,6 +136,12 @@ public class StatementItem extends Panel {
         }
     }
 
+    /**
+     * Adds the triples of this statement item to the given NanopubCreator.
+     *
+     * @param npCreator the NanopubCreator to which the triples will be added
+     * @throws org.nanopub.MalformedNanopubException if the statement item is not properly set up
+     */
     public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
         if (hasEmptyElements()) {
             if (isOptional()) {
@@ -132,34 +159,75 @@ public class StatementItem extends Panel {
         return context.getTemplate();
     }
 
+    /**
+     * Returns the number of the repetition groups for this statement item.
+     *
+     * @return the number of repetition groups
+     */
     public int getRepetitionCount() {
         return repetitionGroups.size();
     }
 
+    /**
+     * Returns the IRI of the statement this item represents.
+     *
+     * @return the statement ID
+     */
     public boolean isOptional() {
         return repetitionGroups.size() == 1 && getTemplate().isOptionalStatement(statementId);
     }
 
+    /**
+     * Checks if this statement item is grouped.
+     *
+     * @return true if the statement item is grouped, false otherwise
+     */
     public boolean isGrouped() {
         return getTemplate().isGroupedStatement(statementId);
     }
 
+    /**
+     * Checks if this statement item is repeatable.
+     *
+     * @return true if the statement item is repeatable, false otherwise
+     */
     public boolean isRepeatable() {
         return getTemplate().isRepeatableStatement(statementId);
     }
 
+    /**
+     * Checks if this statement item has empty elements.
+     *
+     * @return true if any of the repetition groups has empty elements, false otherwise
+     */
     public boolean hasEmptyElements() {
         return repetitionGroups.get(0).hasEmptyElements();
     }
 
+    /**
+     * Returns the set of IRIs associated with this statement item.
+     *
+     * @return a set of IRIs
+     */
     public Set<IRI> getIriSet() {
         return iriSet;
     }
 
+    /**
+     * Checks if this statement item will match any triple.
+     *
+     * @return true if it will match any triple, false otherwise
+     */
     public boolean willMatchAnyTriple() {
         return repetitionGroups.get(0).matches(dummyStatementList);
     }
 
+    /**
+     * Fills this statement item with the provided list of statements, matching them against the repetition groups.
+     *
+     * @param statements the list of statements to match against
+     * @throws com.knowledgepixels.nanodash.template.UnificationException if the statements cannot be unified with this statement item
+     */
     public void fill(List<Statement> statements) throws UnificationException {
         if (isMatched) return;
         if (repetitionGroups.size() == 1) {
@@ -186,22 +254,38 @@ public class StatementItem extends Panel {
         }
     }
 
+    /**
+     * Marks the filling of this statement item as finished, indicating that all values have been filled.
+     */
     public void fillFinished() {
         for (RepetitionGroup rg : repetitionGroups) {
             rg.fillFinished();
         }
     }
 
+    /**
+     * Finalizes the values of all ValueItems in this statement item.
+     */
     public void finalizeValues() {
         for (RepetitionGroup rg : repetitionGroups) {
             rg.finalizeValues();
         }
     }
 
+    /**
+     * Returns true if the statement item has been matched with a set of statements.
+     *
+     * @return true if matched, false otherwise
+     */
     public boolean isMatched() {
         return isMatched;
     }
 
+    /**
+     * Checks if this statement item is empty, meaning it has no filled repetition groups.
+     *
+     * @return true if the statement item is empty, false otherwise
+     */
     public boolean isEmpty() {
         return repetitionGroups.size() == 1 && repetitionGroups.get(0).isEmpty();
     }
@@ -300,19 +384,39 @@ public class StatementItem extends Panel {
             }
         }
 
+        /**
+         * Returns the statement parts.
+         *
+         * @return a list of StatementPartItem objects representing the statement parts
+         */
         public List<StatementPartItem> getStatementParts() {
             return statementParts;
         }
 
+        /**
+         * Returns the index of this repetition group in the list of repetition groups.
+         *
+         * @return the index of this repetition group
+         */
         public int getRepeatIndex() {
             if (!repetitionGroups.contains(this)) return repetitionGroups.size();
             return repetitionGroups.indexOf(this);
         }
 
+        /**
+         * Returns true if the repeat index if the first one.
+         *
+         * @return true if the repeat index is 0, false otherwise
+         */
         public boolean isFirst() {
             return getRepeatIndex() == 0;
         }
 
+        /**
+         * Returns true if the repeat index is the last one.
+         *
+         * @return true if the repeat index is the last one, false otherwise
+         */
         public boolean isLast() {
             return getRepeatIndex() == repetitionGroups.size() - 1;
         }
@@ -352,10 +456,20 @@ public class StatementItem extends Panel {
             return "__" + i;
         }
 
+        /**
+         * Returns the template context associated.
+         *
+         * @return the TemplateContext
+         */
         public TemplateContext getContext() {
             return context;
         }
 
+        /**
+         * Checks if this repetition group is optional.
+         *
+         * @return true if the repetition group is optional, false otherwise
+         */
         public boolean isOptional() {
             if (!getTemplate().isOptionalStatement(statementId)) return false;
             if (repetitionGroups.size() == 0) return true;
@@ -378,6 +492,11 @@ public class StatementItem extends Panel {
             return iri;
         }
 
+        /**
+         * Adds the triples of this repetition group to the given NanopubCreator.
+         *
+         * @param npCreator the NanopubCreator to which the triples will be added
+         */
         public void addTriplesTo(NanopubCreator npCreator) {
             Template t = getTemplate();
             for (IRI s : statementPartIds) {
@@ -417,6 +536,11 @@ public class StatementItem extends Panel {
             return false;
         }
 
+        /**
+         * Checks if this repetition group is empty, meaning it has no filled items.
+         *
+         * @return true if the repetition group is empty, false otherwise
+         */
         public boolean isEmpty() {
             for (IRI s : statementPartIds) {
                 Template t = getTemplate();
@@ -433,6 +557,12 @@ public class StatementItem extends Panel {
             return true;
         }
 
+        /**
+         * Checks if this repetition group matches the provided list of statements.
+         *
+         * @param statements the list of statements to match against
+         * @return true if the repetition group matches, false otherwise
+         */
         public boolean matches(List<Statement> statements) {
             if (filled) return false;
             List<Statement> st = new ArrayList<>(statements);
@@ -456,6 +586,12 @@ public class StatementItem extends Panel {
             return true;
         }
 
+        /**
+         * Fills this repetition group with the provided list of statements, unifying them with the statement parts.
+         *
+         * @param statements the list of statements to match against
+         * @throws UnificationException if the statements cannot be unified with this repetition group
+         */
         public void fill(List<Statement> statements) throws UnificationException {
             if (filled) throw new UnificationException("Already filled");
             for (StatementPartItem p : statementParts) {
@@ -481,12 +617,18 @@ public class StatementItem extends Panel {
             }
         }
 
+        /**
+         * Marks the filling of this repetition group as finished, indicating that all values have been filled.
+         */
         public void fillFinished() {
             for (ValueItem vi : items) {
                 vi.fillFinished();
             }
         }
 
+        /**
+         * Finalizes the values of all ValueItems in this repetition group.
+         */
         public void finalizeValues() {
             for (ValueItem vi : items) {
                 vi.finalizeValues();

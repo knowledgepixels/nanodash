@@ -14,17 +14,32 @@ import org.nanopub.extra.services.ApiResponse;
 
 import java.util.HashMap;
 
+/**
+ * The home page of Nanodash, which shows the most recent nanopublications
+ * and the latest accepted nanopublications.
+ */
 public class HomePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the home page.
+     *
+     * @param parameters the page parameters
+     */
     public HomePage(final PageParameters parameters) {
         super(parameters);
 

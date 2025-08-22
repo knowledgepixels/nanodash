@@ -21,6 +21,9 @@ import org.nanopub.NanopubWithNs;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Context for a template, containing all necessary information to fill.
+ */
 public class TemplateContext implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -43,12 +46,26 @@ public class TemplateContext implements Serializable {
     private Map<IRI, String> labels;
     private FillMode fillMode = null;
 
-    // For PublishForm when nanopub doesn't exist yet:
+    /**
+     * Constructor for creating a new template context for filling a template.
+     *
+     * @param contextType     the type of context
+     * @param templateId      the ID of the template to fill
+     * @param componentId     the ID of the component that will use this context
+     * @param targetNamespace the target namespace for the template, can be null to use the default namespace
+     */
     public TemplateContext(ContextType contextType, String templateId, String componentId, String targetNamespace) {
         this(contextType, templateId, componentId, targetNamespace, null);
     }
 
-    // For NanopubItem to show existing nanopub in read-only mode:
+    /**
+     * Constructor for creating a new template context for filling a template.
+     *
+     * @param contextType     the type of context
+     * @param templateId      the ID of the template to fill
+     * @param componentId     the ID of the component that will use this context
+     * @param existingNanopub an existing nanopub to fill, can be null if creating a new nanopub
+     */
     public TemplateContext(ContextType contextType, String templateId, String componentId, Nanopub existingNanopub) {
         this(contextType, templateId, componentId, null, existingNanopub);
     }
@@ -67,6 +84,9 @@ public class TemplateContext implements Serializable {
         }
     }
 
+    /**
+     * Initializes the statements for this context.
+     */
     public void initStatements() {
         if (statementItems != null) return;
         statementItems = new ArrayList<>();
@@ -84,6 +104,9 @@ public class TemplateContext implements Serializable {
         }
     }
 
+    /**
+     * Finalizes the statements by processing all parameters and setting the repetition counts.
+     */
     public void finalizeStatements() {
         Map<StatementItem, Integer> finalRepetitionCount = new HashMap<>();
         for (IRI ni : narrowScopeMap.keySet()) {
@@ -127,54 +150,123 @@ public class TemplateContext implements Serializable {
         }
     }
 
+    /**
+     * Sets the fill mode for this context.
+     *
+     * @param fillMode the fill mode to set
+     */
     public void setFillMode(FillMode fillMode) {
         this.fillMode = fillMode;
     }
 
+    /**
+     * Gets the fill mode for this context.
+     *
+     * @return the fill mode, or null if not set
+     */
     public FillMode getFillMode() {
         return fillMode;
     }
 
+    /**
+     * Returns the type of context.
+     *
+     * @return the context type
+     */
     public ContextType getType() {
         return contextType;
     }
 
+    /**
+     * Returns the template associated with this context.
+     *
+     * @return the template
+     */
     public Template getTemplate() {
         return template;
     }
 
+    /**
+     * Returns the ID of the template associated with this context.
+     *
+     * @return the template ID
+     */
     public String getTemplateId() {
         return template.getId();
     }
 
+    /**
+     * Sets a parameter for this context.
+     *
+     * @param name  the name of the parameter
+     * @param value the value of the parameter
+     */
     public void setParam(String name, String value) {
         params.put(name, value);
     }
 
+    /**
+     * Gets a parameter value by its name.
+     *
+     * @param name the name of the parameter
+     * @return the value of the parameter, or null if not set
+     */
     public String getParam(String name) {
         return params.get(name);
     }
 
+    /**
+     * Checks if a parameter with the given name exists.
+     *
+     * @param name the name of the parameter
+     * @return true if the parameter exists, false otherwise
+     */
     public boolean hasParam(String name) {
         return params.containsKey(name);
     }
 
+    /**
+     * Returns the components associated with this context.
+     *
+     * @return a list of components
+     */
     public List<Component> getComponents() {
         return components;
     }
 
+    /**
+     * Returns the component models associated with this context.
+     *
+     * @return a map of IRI to model of strings
+     */
     public Map<IRI, IModel<String>> getComponentModels() {
         return componentModels;
     }
 
+    /**
+     * Returns the introduced IRIs in this context.
+     *
+     * @return a set of introduced IRIs
+     */
     public Set<IRI> getIntroducedIris() {
         return introducedIris;
     }
 
+    /**
+     * Returns the embedded IRIs in this context.
+     *
+     * @return a set of embedded IRIs
+     */
     public Set<IRI> getEmbeddedIris() {
         return embeddedIris;
     }
 
+    /**
+     * Processes an IRI by applying the template's processing rules.
+     *
+     * @param iri the IRI to process
+     * @return the processed IRI, or null if the processing results in no value
+     */
     public IRI processIri(IRI iri) {
         Value v = processValue(iri);
         if (v == null) return null;
@@ -182,6 +274,12 @@ public class TemplateContext implements Serializable {
         return iri;
     }
 
+    /**
+     * Processes a Value according to the template's rules.
+     *
+     * @param value the Value to process
+     * @return the processed Value, or the original Value if no processing is applicable
+     */
     public Value processValue(Value value) {
         if (!(value instanceof IRI)) return value;
         IRI iri = (IRI) value;
@@ -258,10 +356,21 @@ public class TemplateContext implements Serializable {
         return processedValue;
     }
 
+    /**
+     * Returns the statement items associated with this context.
+     *
+     * @return a list of StatementItem objects
+     */
     public List<StatementItem> getStatementItems() {
         return statementItems;
     }
 
+    /**
+     * Propagates the statements from this context to a NanopubCreator.
+     *
+     * @param npCreator the NanopubCreator to which the statements will be added
+     * @throws org.nanopub.MalformedNanopubException if there is an error in the nanopub structure
+     */
     public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException {
         if (template.getNanopub() instanceof NanopubWithNs) {
             NanopubWithNs np = (NanopubWithNs) template.getNanopub();
@@ -274,10 +383,21 @@ public class TemplateContext implements Serializable {
         }
     }
 
+    /**
+     * Checks if the context has a narrow scope for the given IRI.
+     *
+     * @param iri the IRI to check
+     * @return true if there is a narrow scope for the IRI, false otherwise
+     */
     public boolean hasNarrowScope(IRI iri) {
         return narrowScopeMap.containsKey(iri);
     }
 
+    /**
+     * Checks if any of the statement items in this context will match any triple.
+     *
+     * @return true if any statement item will match any triple, false otherwise
+     */
     public boolean willMatchAnyTriple() {
         initStatements();
         for (StatementItem si : statementItems) {
@@ -286,6 +406,12 @@ public class TemplateContext implements Serializable {
         return false;
     }
 
+    /**
+     * Fills the context with statements, processing each StatementItem.
+     *
+     * @param statements the list of statements to fill
+     * @throws com.knowledgepixels.nanodash.template.UnificationException if there is an error during unification of statements
+     */
     public void fill(List<Statement> statements) throws UnificationException {
         for (StatementItem si : statementItems) {
             si.fill(statements);
@@ -295,14 +421,30 @@ public class TemplateContext implements Serializable {
         }
     }
 
+    /**
+     * Returns the existing Nanopub associated with this context, if any.
+     *
+     * @return the existing Nanopub, or null if this context is for a new Nanopub
+     */
     public Nanopub getExistingNanopub() {
         return existingNanopub;
     }
 
+    /**
+     * Checks if this context is read-only.
+     *
+     * @return true if the context is read-only, false otherwise
+     */
     public boolean isReadOnly() {
         return existingNanopub != null;
     }
 
+    /**
+     * Returns the label for a given IRI, if available.
+     *
+     * @param iri the IRI for which to get the label
+     * @return the label as a String, or null if no label is found
+     */
     public String getLabel(IRI iri) {
         if (existingNanopub == null) return null;
         if (labels == null) {

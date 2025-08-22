@@ -6,10 +6,18 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 
+/**
+ * A panel that displays the public key and local key file information for the user's profile.
+ */
 public class ProfileSigItem extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a ProfileSigItem panel.
+     *
+     * @param id the Wicket component ID
+     */
     public ProfileSigItem(String id) {
         super(id);
         boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();

@@ -13,12 +13,21 @@ import org.nanopub.extra.services.ApiResponse;
 
 import java.util.HashMap;
 
+/**
+ * Page that lists queries and allows searching through them.
+ */
 public class QueryListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/queries";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -26,6 +35,11 @@ public class QueryListPage extends NanodashPage {
 
     private TextField<String> searchField;
 
+    /**
+     * Constructor for the QueryListPage.
+     *
+     * @param parameters Page parameters containing the search query.
+     */
     public QueryListPage(final PageParameters parameters) {
         super(parameters);
 

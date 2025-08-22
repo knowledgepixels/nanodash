@@ -10,14 +10,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Abstract class representing an action that can be performed on a Nanopub.
+ */
 public abstract class NanopubAction implements Serializable {
 
     private static final long serialVersionUID = 4086842804225420496L;
 
+    /**
+     * Constant <code>noActions</code>
+     */
     public static final NanopubAction[] noActions = new NanopubAction[0];
 
+    /**
+     * Default actions that are available for all Nanopubs.
+     */
     public static final NanopubAction[] defaultActions;
 
+    /**
+     * Constant <code>ownActions</code>
+     */
     public static final NanopubAction[] ownActions;
 
     private static Map<String, NanopubAction> defaultClassNameMap = new HashMap<>();
@@ -43,6 +55,12 @@ public abstract class NanopubAction implements Serializable {
         }
     }
 
+    /**
+     * Returns a list of NanopubAction instances based on the preferences.
+     *
+     * @param pref the NanodashPreferences containing the action class names
+     * @return a list of NanopubAction instances
+     */
     public static List<NanopubAction> getActionsFromPreferences(NanodashPreferences pref) {
         List<NanopubAction> actions = new ArrayList<>();
         if (pref == null) return actions;
@@ -58,18 +76,58 @@ public abstract class NanopubAction implements Serializable {
         return actions;
     }
 
+    /**
+     * Returns the label for the action link.
+     *
+     * @param np the Nanopub to which the action applies
+     * @return the label for the action link
+     */
     public abstract String getLinkLabel(Nanopub np);
 
+    /**
+     * Returns the URI of the template associated with the action.
+     *
+     * @param np the Nanopub to which the action applies
+     * @return the URI of the template
+     */
     public abstract String getTemplateUri(Nanopub np);
 
+    /**
+     * Returns a string representation of the parameters for the action.
+     *
+     * @param np the Nanopub to which the action applies
+     * @return a string representation of the parameters
+     */
     public abstract String getParamString(Nanopub np);
 
+    /**
+     * Checks if the action is applicable to own Nanopubs.
+     *
+     * @return true if the action is applicable to own Nanopubs, false otherwise
+     */
     public abstract boolean isApplicableToOwnNanopubs();
 
+    /**
+     * Checks if the action is applicable to others' Nanopubs.
+     *
+     * @return true if the action is applicable to others' Nanopubs, false otherwise
+     */
     public abstract boolean isApplicableToOthersNanopubs();
 
+    /**
+     * Checks if the action is applicable to the given Nanopub.
+     *
+     * @param np the Nanopub to check
+     * @return true if the action is applicable, false otherwise
+     */
     public abstract boolean isApplicableTo(Nanopub np);
 
+    /**
+     * <p>getEncodedUri.</p>
+     *
+     * @param np a {@link org.nanopub.Nanopub} object
+     * @return a {@link java.lang.String} object
+     */
     protected static String getEncodedUri(Nanopub np) {
         return Utils.urlEncode(np.getUri().stringValue());
     }

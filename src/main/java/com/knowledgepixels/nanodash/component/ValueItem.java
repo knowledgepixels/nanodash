@@ -12,6 +12,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 
+/**
+ * ValueItem is a panel that represents a single value in a statement.
+ */
 public class ValueItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
@@ -19,6 +22,14 @@ public class ValueItem extends Panel implements ContextComponent {
     private ContextComponent component;
     private Value value;
 
+    /**
+     * Constructor for ValueItem.
+     *
+     * @param id              the component id
+     * @param value           the value to be represented
+     * @param statementPartId the IRI of the statement part this value belongs to
+     * @param rg              the repetition group this value is part of
+     */
     public ValueItem(String id, Value value, IRI statementPartId, RepetitionGroup rg) {
         super(id);
         this.value = value;
@@ -61,6 +72,9 @@ public class ValueItem extends Panel implements ContextComponent {
         add((Component) component);
     }
 
+    /**
+     * OnChangeAjaxBehavior that keeps the value after a refresh.
+     */
     public static class KeepValueAfterRefreshBehavior extends OnChangeAjaxBehavior {
 
         private static final long serialVersionUID = 1L;
@@ -72,39 +86,69 @@ public class ValueItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         component.removeFromContext();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         return component.isUnifiableWith(v);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         component.unifyWith(v);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
         component.fillFinished();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         component.finalizeValues();
     }
 
+    /**
+     * Get the value represented by this ValueItem.
+     *
+     * @return the value
+     */
     public Value getValue() {
         return value;
     }
 
+    /**
+     * Get the component that represents this ValueItem.
+     *
+     * @return the ContextComponent that represents this ValueItem
+     */
     public ContextComponent getComponent() {
         return component;
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return component.toString();
     }

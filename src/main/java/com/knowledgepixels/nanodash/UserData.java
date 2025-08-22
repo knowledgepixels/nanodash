@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * UserData class manages user-related data.
+ */
 public class UserData implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -37,6 +40,10 @@ public class UserData implements Serializable {
     private Map<IRI, String> idNameMap = new HashMap<>();
     private Map<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
 
+    /**
+     * Default constructor for UserData.
+     * Initializes the user data by fetching nanopublications settings.
+     */
     UserData() {
         final NanodashPreferences pref = NanodashPreferences.get();
 
@@ -236,10 +243,22 @@ public class UserData implements Serializable {
 //		return values.contains(value);
 //	}
 
+    /**
+     * Checks if the given IRI is a user identifier.
+     *
+     * @param userIri the IRI to check
+     * @return true if the IRI is a user identifier, false otherwise
+     */
     public boolean isUser(IRI userIri) {
         return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
     }
 
+    /**
+     * Checks if the given userId is a valid user identifier.
+     *
+     * @param userId the user identifier to check, must start with "https://" or "http://"
+     * @return true if the userId is a valid user identifier, false otherwise
+     */
     public boolean isUser(String userId) {
         if (!userId.startsWith("https://") && !userId.startsWith("http://")) return false;
         try {
@@ -250,6 +269,13 @@ public class UserData implements Serializable {
         }
     }
 
+    /**
+     * Checks if the given public key is approved for the specified user.
+     *
+     * @param pubkeyhash the public key to check
+     * @param user       the IRI of the user to check against
+     * @return true if the key is approved for the user, false otherwise
+     */
     public boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
         return hasValue(approvedIdPubkeyhashMap, user, pubkeyhash);
     }
@@ -262,6 +288,13 @@ public class UserData implements Serializable {
         return n;
     }
 
+    /**
+     * Retrieves the IRI of a user based on their public key.
+     *
+     * @param pubkeyHash   the public key of the user
+     * @param approvedOnly if true, only approved users are considered; if false, unapproved users are also considered
+     * @return the IRI of the user if found, or null if not found
+     */
     public IRI getUserIriForPubkeyhash(String pubkeyHash, boolean approvedOnly) {
         Set<IRI> userIris = approvedPubkeyhashIdMap.get(pubkeyHash);
         if (userIris != null && userIris.size() == 1) return userIris.iterator().next();
@@ -287,10 +320,22 @@ public class UserData implements Serializable {
         return null;
     }
 
+    /**
+     * Retrieves the name of a user based on their IRI.
+     *
+     * @param userIri the IRI of the user
+     * @return the name of the user if found, or null if not found
+     */
     public String getName(IRI userIri) {
         return idNameMap.get(userIri);
     }
 
+    /**
+     * Retrieves the display name of a user based on their IRI.
+     *
+     * @param userIri the IRI of the user
+     * @return the display name of the user, which includes their name and short name
+     */
     public String getDisplayName(IRI userIri) {
         String name = getName(userIri);
         if (name != null && !name.isEmpty()) {
@@ -299,6 +344,12 @@ public class UserData implements Serializable {
         return getShortName(userIri);
     }
 
+    /**
+     * Retrieves a short display name for a user based on their IRI.
+     *
+     * @param userIri the IRI of the user
+     * @return the short display name of the user, which is either their name or their short name
+     */
     public String getShortDisplayName(IRI userIri) {
         String name = getName(userIri);
         if (name != null && !name.isEmpty()) {
@@ -307,6 +358,13 @@ public class UserData implements Serializable {
         return getShortName(userIri);
     }
 
+    /**
+     * Retrieves a short display name for a user based on their IRI and public key.
+     *
+     * @param userIri    the IRI of the user
+     * @param pubkeyhash the public key of the user
+     * @return the short display name of the user, which may include a contested identity note if multiple identities are associated with the public key
+     */
     public String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
         Set<IRI> ids = approvedPubkeyhashIdMap.get(pubkeyhash);
         if (ids == null || ids.isEmpty()) {
@@ -325,6 +383,12 @@ public class UserData implements Serializable {
         }
     }
 
+    /**
+     * Finds a single user ID for a given public key.
+     *
+     * @param pubkeyhash the public key to search for
+     * @return the IRI of the user if exactly one ID is found for the public key, or null if no ID or multiple IDs are found
+     */
     public IRI findSingleIdForPubkeyhash(String pubkeyhash) {
         if (approvedPubkeyhashIdMap.containsKey(pubkeyhash) && !approvedPubkeyhashIdMap.get(pubkeyhash).isEmpty()) {
             if (approvedPubkeyhashIdMap.get(pubkeyhash).size() == 1) {
@@ -352,6 +416,12 @@ public class UserData implements Serializable {
 
     };
 
+    /**
+     * Retrieves a list of users, either approved or unapproved.
+     *
+     * @param approved if true, retrieves approved users; if false, retrieves unapproved users
+     * @return a sorted list of user IRIs
+     */
     public List<IRI> getUsers(boolean approved) {
         List<IRI> list;
         if (approved) {
@@ -367,6 +437,13 @@ public class UserData implements Serializable {
         return list;
     }
 
+    /**
+     * Retrieves a list of public keys for a given user.
+     *
+     * @param user     the IRI of the user whose public keys are to be retrieved
+     * @param approved if true, retrieves approved public keys; if false, retrieves unapproved public keys
+     * @return a list of public keys associated with the user, either approved or unapproved
+     */
     public List<String> getPubkeyhashes(IRI user, Boolean approved) {
         List<String> pubkeys = new ArrayList<>();
         if (user != null) {
@@ -380,6 +457,12 @@ public class UserData implements Serializable {
         return pubkeys;
     }
 
+    /**
+     * Retrieves a list of introduction nanopublications for a given user.
+     *
+     * @param user the IRI of the user whose introduction nanopublications are to be retrieved
+     * @return a list of introduction nanopublications associated with the user, sorted by creation time
+     */
     public List<IntroNanopub> getIntroNanopubs(IRI user) {
         if (introNanopubLists.containsKey(user)) return introNanopubLists.get(user);
 
@@ -410,6 +493,12 @@ public class UserData implements Serializable {
         return list;
     }
 
+    /**
+     * Retrieves a map of introduction nanopublications for a given public key.
+     *
+     * @param pubkey the public key for which introduction nanopublications are to be retrieved
+     * @return a map where the keys are IRI identifiers of introduction nanopublications and the values are the corresponding IntroNanopub objects
+     */
     public Map<IRI, IntroNanopub> getIntroNanopubs(String pubkey) {
         Map<IRI, IntroNanopub> introNps = new HashMap<>();
         getIntroNanopubs(pubkey, introNps);
@@ -427,10 +516,22 @@ public class UserData implements Serializable {
         }
     }
 
+    /**
+     * Checks if the given introduction nanopublication is approved.
+     *
+     * @param in the introduction nanopublication to check
+     * @return true if the introduction nanopublication is approved, false otherwise
+     */
     public boolean isApproved(IntroNanopub in) {
         return approvedIntros.contains(in.getNanopub().getUri());
     }
 
+    /**
+     * Retrieves the location of a public key.
+     *
+     * @param pubkeyhash the public key for which the location is to be retrieved
+     * @return the IRI of the key location if found, or null if not found or if multiple locations are associated with the key
+     */
     public IRI getKeyLocationForPubkeyhash(String pubkeyhash) {
         if (approvedPubkeyhashLocationMap.containsKey(pubkeyhash) && !approvedPubkeyhashLocationMap.get(pubkeyhash).isEmpty()) {
             if (approvedPubkeyhashLocationMap.get(pubkeyhash).size() == 1)

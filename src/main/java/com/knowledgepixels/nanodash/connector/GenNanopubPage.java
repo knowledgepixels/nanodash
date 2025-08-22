@@ -27,12 +27,24 @@ import org.nanopub.extra.services.FailedApiCallException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Page for creating a new nanopublication.
+ */
 public class GenNanopubPage extends ConnectorPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Mount path for this page.
+     */
     public static final String MOUNT_PATH = "/connector/np";
 
+    /**
+     * Constructor for the GenNanopubPage.
+     *
+     * @param parameters Page parameters containing the necessary information to create the nanopublication.
+     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails while fetching data for the nanopublication.
+     */
     public GenNanopubPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
@@ -179,6 +191,11 @@ public class GenNanopubPage extends ConnectorPage {
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20nanopublication]%20my%20problem/question&body=type%20your%20problem/question%20here"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the mount path for this page.
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

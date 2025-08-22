@@ -15,12 +15,22 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * A panel that displays activity data in a table format.
+ * It shows the number of nanopublications per type and month.
+ */
 public class ActivityPanel extends Panel {
 
     private static final long serialVersionUID = 1L;
 
     private Map<String, Map<String, String>> typeMonthValueMap = new HashMap<>();
 
+    /**
+     * Constructor for ActivityPanel.
+     *
+     * @param markupId the Wicket markup ID for this panel
+     * @param response the ApiResponse containing activity data
+     */
     public ActivityPanel(String markupId, ApiResponse response) {
         super(markupId);
 
@@ -123,6 +133,11 @@ public class ActivityPanel extends Panel {
 
         private List<Entity> list;
 
+        /**
+         * Constructor for EntityProvider.
+         *
+         * @param list the list of Entity objects to provide
+         */
         public EntityProvider(List<Entity> list) {
             this.list = list;
         }

@@ -18,10 +18,19 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+/**
+ * A single template item in a list, showing the template name, user, and timestamp.
+ */
 public class TemplateItem extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * A single template item in a list, showing the template name, user, and timestamp.
+     *
+     * @param id    the wicket id of this component
+     * @param entry the API response entry to display
+     */
     public TemplateItem(String id, ApiResponseEntry entry) {
         this(id, entry, null);
     }
@@ -53,6 +62,13 @@ public class TemplateItem extends Panel {
         this(id, template, null);
     }
 
+    /**
+     * A single template item in a list, showing the template name, user, and timestamp.
+     *
+     * @param id               the wicket id of this component
+     * @param template         the template to display
+     * @param additionalParams additional parameters to add to the link
+     */
     public TemplateItem(String id, Template template, PageParameters additionalParams) {
         super(id);
 

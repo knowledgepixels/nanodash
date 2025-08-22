@@ -23,12 +23,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Page for displaying a channel of nanopublications associated with a user.
+ */
 public class ChannelPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/channel";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -40,6 +49,11 @@ public class ChannelPage extends NanodashPage {
     private Map<String, String> pubKeyMap;
     private CheckBoxMultipleChoice<String> pubkeySelection;
 
+    /**
+     * Constructor for the ChannelPage.
+     *
+     * @param parameters Page parameters containing the user ID.
+     */
     public ChannelPage(final PageParameters parameters) {
         super(parameters);
 
@@ -58,7 +72,7 @@ public class ChannelPage extends NanodashPage {
         ArrayList<String> pubKeyList = new ArrayList<>();
         pubKeyMap = new HashMap<>();
         if (userIri.equals(session.getUserIri())) {
-            String lKeyShort = Utils.getShortPubkeyLocationLabel(session.getPubkeyhash(), userIri);
+            String lKeyShort = Utils.getShortPubkeyLocationLabel(session.getPubkeyString(), userIri);
             pubKeyList.add(lKeyShort);
             pubKeyMap.put(lKeyShort, session.getPubkeyString());
         }
@@ -97,6 +111,11 @@ public class ChannelPage extends NanodashPage {
         refresh();
     }
 
+    /**
+     * Checks if auto-refresh is enabled for this page.
+     *
+     * @return true if auto-refresh is enabled, false otherwise.
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

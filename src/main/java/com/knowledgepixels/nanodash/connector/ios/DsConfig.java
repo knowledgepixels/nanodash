@@ -11,63 +11,101 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Configuration class for the Data Science (DS) connector.
+ */
 public class DsConfig extends ConnectorConfig {
 
     private static final long serialVersionUID = 1L;
 
     private static DsConfig instance;
 
+    /**
+     * Gets the singleton instance of the DsConfig class.
+     *
+     * @return the singleton instance of DsConfig
+     */
     public static DsConfig get() {
         if (instance == null) instance = new DsConfig();
         return instance;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLogoFileName() {
         return "DsLogo.png";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getSubmitImageFileName() {
         return "DsFormSubmit.png";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalName() {
         return "Data Science";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalAbbrev() {
         return "DS";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalUrl() {
         return "https://datasciencehub.net/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getJournalIssn() {
         return "2451-8492";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getReviewUrlPrefix() {
         return "http://ds.kpxl.org/";
         //return "https://w3id.org/kpxl/ios/ds/np/reviewer/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getCandidateNanopubsApiCall() {
         return "get-latest-ds-candidates";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getGeneralReactionsApiCall() {
         return "get-ds-reactions";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getAcceptedNanopubsApiCall() {
         return "get-latest-accepted-ds";
@@ -75,6 +113,9 @@ public class DsConfig extends ConnectorConfig {
 
     private Set<IRI> technicalEditorIds;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<IRI> getTechnicalEditorIds() {
         if (technicalEditorIds == null) {
@@ -84,16 +125,25 @@ public class DsConfig extends ConnectorConfig {
         return technicalEditorIds;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IRI getNanopubType() {
         return Utils.vf.createIRI("https://w3id.org/kpxl/ios/ds/terms/DataScienceNanopub");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getTargetNamespace() {
         return "https://w3id.org/kpxl/ios/ds/np/";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getConnectInstruction() {
         return "Paste it in one of the textfields under \"Nanopublication URLs\":";
@@ -117,6 +167,9 @@ public class DsConfig extends ConnectorConfig {
         ));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ConnectorOptionGroup> getOptions() {
         return options;

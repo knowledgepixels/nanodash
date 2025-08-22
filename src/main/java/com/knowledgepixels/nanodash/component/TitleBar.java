@@ -15,12 +15,26 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TitleBar is the top bar of the Nanodash application, which contains
+ * navigation elements such as profile, my channel, users, connectors,
+ * publish, query, and breadcrumb navigation.
+ */
 public class TitleBar extends Panel {
 
     private static final long serialVersionUID = 1L;
 
     private String highlight;
 
+    /**
+     * Constructs a TitleBar with the specified id, page, highlight element,
+     * and an array of path references for breadcrumb navigation.
+     *
+     * @param id        the component id
+     * @param page      the current Nanodash page
+     * @param highlight the id of the element to highlight
+     * @param pathRefs  an array of NanodashPageRef for breadcrumb navigation
+     */
     public TitleBar(String id, NanodashPage page, String highlight, NanodashPageRef... pathRefs) {
         super(id);
         this.highlight = highlight;

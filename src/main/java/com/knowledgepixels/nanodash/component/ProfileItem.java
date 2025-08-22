@@ -11,10 +11,19 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 
+/**
+ * A panel that displays a link to the user's profile.
+ */
 public class ProfileItem extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for the ProfileItem panel.
+     *
+     * @param id   the component id
+     * @param page a {@link com.knowledgepixels.nanodash.page.NanodashPage} object
+     */
     public ProfileItem(String id, NanodashPage page) {
         super(id);
         NanodashSession session = NanodashSession.get();

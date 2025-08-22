@@ -23,6 +23,9 @@ import org.eclipse.rdf4j.model.Value;
 
 import java.net.URISyntaxException;
 
+/**
+ * A text field component for entering values in a template.
+ */
 public class ValueTextfieldItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
@@ -31,6 +34,15 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
     private TextField<String> textfield;
     private IRI iri;
 
+    /**
+     * Constructor for creating a text field item.
+     *
+     * @param id       the component ID
+     * @param parentId the parent component ID
+     * @param iriP     the IRI associated with this text field
+     * @param optional whether the field is optional
+     * @param context  the template context containing models and components
+     */
     public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
         super(id);
         this.context = context;
@@ -72,11 +84,17 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         add(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -97,6 +115,9 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         return vs.equals(textfield.getModelObject());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -112,6 +133,9 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
     }
 
 
+    /**
+     * Validator class for validating the text field input.
+     */
     protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
 
         private static final long serialVersionUID = 1L;
@@ -119,6 +143,12 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 //		private IRI iri;
 //		private Template template;
 
+        /**
+         * Constructor for the validator.
+         *
+         * @param iri      the IRI associated with the value
+         * @param template the template containing the context
+         */
         public Validator(IRI iri, Template template) {
 //			this.iri = iri;
 //			this.template = template;
@@ -149,10 +179,16 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -165,6 +201,11 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[value textfield item: " + iri + "]";
     }

@@ -20,21 +20,35 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Page for displaying a query and its parameters, allowing users to run the query with specified parameters.
+ */
 public class QueryPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/query";
 
     private final Form<Void> form;
     private final List<QueryParamField> paramFields;
     private final FeedbackPanel feedbackPanel;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the QueryPage.
+     *
+     * @param parameters The page parameters, which should include the query ID and any query parameters.
+     */
     public QueryPage(final PageParameters parameters) {
         super(parameters);
         add(new TitleBar("titlebar", this, null));
@@ -55,8 +69,8 @@ public class QueryPage extends NanodashPage {
         add(new Label("querylabel", q.getLabel()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));
         // TODO Replace hard-coded domain with dynamic solution:
-        add(new ExternalLink("openapi-this", "https://query.knowledgepixels.com/openapi/?url=spec/" + q.getQueryId()));
-        add(new ExternalLink("openapi-latest", "https://query.knowledgepixels.com/openapi/?url=spec/" + q.getQueryId() + "%3Fapi-version=latest"));
+        add(new ExternalLink("openapi-this", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
+        add(new ExternalLink("openapi-latest", "https://query.knowledgepixels.com/openapi/?url=spec/" + id + "%3Fapi-version=latest"));
         add(new Label("querydesc", q.getDescription()));
 
         form = new Form<Void>("form") {
@@ -136,6 +150,11 @@ public class QueryPage extends NanodashPage {
         }
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

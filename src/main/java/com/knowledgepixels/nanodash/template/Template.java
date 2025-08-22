@@ -10,63 +10,238 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
-import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Represents a template for creating nanopublications.
+ */
 public class Template implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
+    /**
+     * Represents the class for assertion templates.
+     */
     public static final IRI ASSERTION_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AssertionTemplate");
+
+    /**
+     * Represents the class for provenance templates.
+     */
     public static final IRI PROVENANCE_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ProvenanceTemplate");
+
+    /**
+     * Represents the class for publication information templates.
+     */
     public static final IRI PUBINFO_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/PubinfoTemplate");
+
+    /**
+     * Represents the class for unlisted templates.
+     */
     public static final IRI UNLISTED_TEMPLATE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UnlistedTemplate");
+
+    /**
+     * Predicate indicating a statement in the template.
+     */
     public static final IRI HAS_STATEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasStatement");
+
+    /**
+     * Represents the class for local resources.
+     */
     public static final IRI LOCAL_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LocalResource");
+
+    /**
+     * Represents the class for introduced resources.
+     */
     public static final IRI INTRODUCED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/IntroducedResource");
+
+    /**
+     * Represents the class for embedded resources.
+     */
     public static final IRI EMBEDDED_RESOURCE_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/EmbeddedResource");
+
+    /**
+     * Represents the class for value placeholders.
+     */
     public static final IRI VALUE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ValuePlaceholder");
+
+    /**
+     * Represents the class for URI placeholders.
+     */
     public static final IRI URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/UriPlaceholder");
+
+    /**
+     * Represents the class for auto-escaped URI placeholders.
+     */
     public static final IRI AUTO_ESCAPE_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AutoEscapeUriPlaceholder");
+
+    /**
+     * Represents the class for external URI placeholders.
+     */
     public static final IRI EXTERNAL_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/ExternalUriPlaceholder");
+
+    /**
+     * Represents the class for trusty URI placeholders.
+     */
     public static final IRI TRUSTY_URI_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/TrustyUriPlaceholder");
+
+    /**
+     * Represents the class for literal placeholders.
+     */
     public static final IRI LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LiteralPlaceholder");
+
+    /**
+     * Represents the class for long literal placeholders.
+     */
     public static final IRI LONG_LITERAL_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/LongLiteralPlaceholder");
+
+    /**
+     * Represents the class for restricted choice placeholders.
+     */
     public static final IRI RESTRICTED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RestrictedChoicePlaceholder");
+
+    /**
+     * Represents the class for guided choice placeholders.
+     */
     public static final IRI GUIDED_CHOICE_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GuidedChoicePlaceholder");
+
+    /**
+     * Represents the class for agent placeholders.
+     */
     public static final IRI AGENT_PLACEHOLDER_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/AgentPlaceholder");
+
+    /**
+     * Represents the placeholder for the creator.
+     */
     public static final IRI CREATOR_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/CREATOR");
+
+    /**
+     * Represents the placeholder for assertions.
+     */
     public static final IRI ASSERTION_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/ASSERTION");
+
+    /**
+     * Represents the placeholder for nanopublications.
+     */
     public static final IRI NANOPUB_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NANOPUB");
+
+    /**
+     * Predicate indicating creation from a template.
+     */
     public static final IRI WAS_CREATED_FROM_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate");
+
+    /**
+     * Predicate indicating creation from a provenance template.
+     */
     public static final IRI WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromProvenanceTemplate");
+
+    /**
+     * Predicate indicating creation from a pubinfo template.
+     */
     public static final IRI WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/wasCreatedFromPubinfoTemplate");
+
+    /**
+     * Predicate indicating the order of statements.
+     */
     public static final IRI STATEMENT_ORDER_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/statementOrder");
+
+    /**
+     * Predicate indicating possible values.
+     */
     public static final IRI POSSIBLE_VALUE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValue");
+
+    /**
+     * Predicate indicating the source of possible values.
+     */
     public static final IRI POSSIBLE_VALUES_FROM_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFrom");
+
+    /**
+     * Predicate indicating possible values from an API.
+     */
     public static final IRI POSSIBLE_VALUES_FROM_API_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFromApi");
+
+    /**
+     * Predicate indicating a prefix.
+     */
     public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
+
+    /**
+     * Predicate indicating a regular expression.
+     */
     public static final IRI HAS_REGEX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRegex");
+
+    /**
+     * Predicate indicating a prefix label.
+     */
     public static final IRI HAS_PREFIX_LABEL_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefixLabel");
+
+    /**
+     * Represents the class for optional statements.
+     */
     public static final IRI OPTIONAL_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/OptionalStatement");
+
+    /**
+     * Represents the class for grouped statements.
+     */
     public static final IRI GROUPED_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/GroupedStatement");
+
+    /**
+     * Represents the class for repeatable statements.
+     */
     public static final IRI REPEATABLE_STATEMENT_CLASS = vf.createIRI("https://w3id.org/np/o/ntemplate/RepeatableStatement");
+
+    /**
+     * Predicate indicating default provenance.
+     */
     public static final IRI HAS_DEFAULT_PROVENANCE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultProvenance");
+
+    /**
+     * Predicate indicating required pubinfo elements.
+     */
     public static final IRI HAS_REQUIRED_PUBINFO_ELEMENT_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasRequiredPubinfoElement");
+
+    /**
+     * Predicate indicating a tag.
+     */
     public static final IRI HAS_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTag");
+
+    /**
+     * Predicate indicating a label from an API.
+     */
     public static final IRI HAS_LABEL_FROM_API = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLabelFromApi");
+
+    /**
+     * Predicate indicating a default value.
+     */
     public static final IRI HAS_DEFAULT_VALUE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDefaultValue");
+
+    /**
+     * Predicate indicating a target namespace.
+     */
     public static final IRI HAS_TARGET_NAMESPACE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNamespace");
+
+    /**
+     * Predicate indicating a nanopublication label pattern.
+     */
     public static final IRI HAS_NANOPUB_LABEL_PATTERN = vf.createIRI("https://w3id.org/np/o/ntemplate/hasNanopubLabelPattern");
+
+    /**
+     * Predicate indicating a target nanopublication type.
+     */
     public static final IRI HAS_TARGET_NANOPUB_TYPE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasTargetNanopubType");
+
+    /**
+     * Represents the placeholder for sequence elements.
+     */
     public static final IRI SEQUENCE_ELEMENT_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/SequenceElementPlaceholder");
 
+    /**
+     * Default target namespace for templates.
+     */
     public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
     private Nanopub nanopub;
@@ -96,23 +271,50 @@ public class Template implements Serializable {
     private String nanopubLabelPattern;
     private List<IRI> targetNanopubTypes = new ArrayList<>();
 
-    Template(String templateId) throws RDF4JException, MalformedNanopubException, IOException, MalformedTemplateException {
+    /**
+     * Creates a Template object from a template id.
+     *
+     * @param templateId the id of the template, which is the URI of a nanopublication that contains the template definition.
+     * @throws RDF4JException             if there is an error retrieving the nanopublication.
+     * @throws MalformedTemplateException if the template is malformed or not a valid nanopub template.
+     */
+    Template(String templateId) throws RDF4JException, MalformedTemplateException {
         nanopub = Utils.getNanopub(templateId);
         processTemplate(nanopub);
     }
 
+    /**
+     * Checks if the template is unlisted.
+     *
+     * @return true if the template is unlisted, false otherwise.
+     */
     public boolean isUnlisted() {
         return typeMap.get(templateIri).contains(UNLISTED_TEMPLATE_CLASS);
     }
 
+    /**
+     * Returns the Nanopub object representing the template.
+     *
+     * @return the Nanopub object of the template.
+     */
     public Nanopub getNanopub() {
         return nanopub;
     }
 
+    /**
+     * Returns the ID of the template, which is the URI of the nanopublication.
+     *
+     * @return the ID of the template as a string.
+     */
     public String getId() {
         return nanopub.getUri().toString();
     }
 
+    /**
+     * Returns the label of the template.
+     *
+     * @return the label of the template, or a default label if not set.
+     */
     public String getLabel() {
         if (label == null) {
             return "Template " + TrustyUriUtils.getArtifactCode(nanopub.getUri().stringValue()).substring(0, 10);
@@ -120,15 +322,32 @@ public class Template implements Serializable {
         return label;
     }
 
+    /**
+     * Returns the description of the template.
+     *
+     * @return the description of the template, or an empty string if not set.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Returns the IRI of the template.
+     *
+     * @param iri the IRI to transform.
+     * @return the transformed IRI, or the original IRI if no transformation is needed.
+     */
     public String getLabel(IRI iri) {
         iri = transform(iri);
         return labelMap.get(iri);
     }
 
+    /**
+     * Returns the IRI of the template, transforming it if necessary.
+     *
+     * @param iri the IRI to transform.
+     * @return the transformed IRI, or the original IRI if no transformation is needed.
+     */
     public IRI getFirstOccurence(IRI iri) {
         for (IRI i : getStatementIris()) {
             if (statementMap.containsKey(i)) {
@@ -148,21 +367,45 @@ public class Template implements Serializable {
         return null;
     }
 
+    /**
+     * Transforms an IRI by removing the artifact code if it is present.
+     *
+     * @param iri the IRI to transform.
+     * @return the transformed IRI, or the original IRI if no transformation is needed.
+     */
     public String getPrefix(IRI iri) {
         iri = transform(iri);
         return prefixMap.get(iri);
     }
 
+    /**
+     * Returns the prefix label for a given IRI.
+     *
+     * @param iri the IRI to get the prefix label for.
+     * @return the prefix label for the IRI, or null if not found.
+     */
     public String getPrefixLabel(IRI iri) {
         iri = transform(iri);
         return prefixLabelMap.get(iri);
     }
 
+    /**
+     * Returns the regex pattern for a given IRI.
+     *
+     * @param iri the IRI to get the regex for.
+     * @return the regex pattern for the IRI, or null if not found.
+     */
     public String getRegex(IRI iri) {
         iri = transform(iri);
         return regexMap.get(iri);
     }
 
+    /**
+     * Transforms an IRI by removing the artifact code if it is present.
+     *
+     * @param iri the IRI to transform.
+     * @return the transformed IRI, or the original IRI if no transformation is needed.
+     */
     public Value getDefault(IRI iri) {
         if (iri.stringValue().matches(".*__[0-9]+")) {
             String baseIri = iri.stringValue().replaceFirst("__[0-9]+$", "");
@@ -176,46 +419,105 @@ public class Template implements Serializable {
         return defaultValues.get(iri);
     }
 
+    /**
+     * Returns the statement IRIs associated with the template.
+     *
+     * @return the list of statement IRIs for the template.
+     */
     public List<IRI> getStatementIris() {
         return statementMap.get(templateIri);
     }
 
+    /**
+     * Returns the statement IRIs associated with a specific group IRI.
+     *
+     * @param groupIri the IRI of the group for which to retrieve statement IRIs.
+     * @return the list of statement IRIs for the specified group IRI, or null if no statements are associated with that group.
+     */
     public List<IRI> getStatementIris(IRI groupIri) {
         return statementMap.get(groupIri);
     }
 
+    /**
+     * Returns the subject, predicate, and object of a statement given its IRI.
+     *
+     * @param statementIri the IRI of the statement to retrieve.
+     * @return the subject, predicate, and object of the statement as a triple.
+     */
     public IRI getSubject(IRI statementIri) {
         return statementSubjects.get(statementIri);
     }
 
+    /**
+     * Returns the predicate of a statement given its IRI.
+     *
+     * @param statementIri the IRI of the statement to retrieve.
+     * @return the predicate of the statement, or null if not found.
+     */
     public IRI getPredicate(IRI statementIri) {
         return statementPredicates.get(statementIri);
     }
 
+    /**
+     * Returns the object of a statement given its IRI.
+     *
+     * @param statementIri the IRI of the statement to retrieve.
+     * @return the object of the statement, or null if not found.
+     */
     public Value getObject(IRI statementIri) {
         return statementObjects.get(statementIri);
     }
 
+    /**
+     * Checks if the template is a local resource.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a local resource, false otherwise.
+     */
     public boolean isLocalResource(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(LOCAL_RESOURCE_CLASS);
     }
 
+    /**
+     * Checks if the template is an introduced resource.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an introduced resource, false otherwise.
+     */
     public boolean isIntroducedResource(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(INTRODUCED_RESOURCE_CLASS);
     }
 
+    /**
+     * Checks if the template is an embedded resource.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an embedded resource, false otherwise.
+     */
     public boolean isEmbeddedResource(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(EMBEDDED_RESOURCE_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a value placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a value placeholder, false otherwise.
+     */
     public boolean isValuePlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(VALUE_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a URI placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a URI placeholder, false otherwise.
+     */
     public boolean isUriPlaceholder(IRI iri) {
         iri = transform(iri);
         if (!typeMap.containsKey(iri)) return false;
@@ -231,6 +533,12 @@ public class Template implements Serializable {
         return false;
     }
 
+    /**
+     * Checks if the IRI is an external URI placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an external URI placeholder, false otherwise.
+     */
     public boolean isExternalUriPlaceholder(IRI iri) {
         iri = transform(iri);
         if (!typeMap.containsKey(iri)) return false;
@@ -241,46 +549,100 @@ public class Template implements Serializable {
         return false;
     }
 
+    /**
+     * Checks if the IRI is a trusty URI placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a trusty URI placeholder, false otherwise.
+     */
     public boolean isTrustyUriPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(TRUSTY_URI_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is an auto-escape URI placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an auto-escape URI placeholder, false otherwise.
+     */
     public boolean isAutoEscapePlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(AUTO_ESCAPE_URI_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a literal placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a literal placeholder, false otherwise.
+     */
     public boolean isLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && (typeMap.get(iri).contains(LITERAL_PLACEHOLDER_CLASS) || typeMap.get(iri).contains(LONG_LITERAL_PLACEHOLDER_CLASS));
     }
 
+    /**
+     * Checks if the IRI is a long literal placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a long literal placeholder, false otherwise.
+     */
     public boolean isLongLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(LONG_LITERAL_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a restricted choice placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a restricted choice placeholder, false otherwise.
+     */
     public boolean isRestrictedChoicePlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(RESTRICTED_CHOICE_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a guided choice placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a guided choice placeholder, false otherwise.
+     */
     public boolean isGuidedChoicePlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(GUIDED_CHOICE_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is an agent placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an agent placeholder, false otherwise.
+     */
     public boolean isAgentPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(AGENT_PLACEHOLDER_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a sequence element placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a sequence element placeholder, false otherwise.
+     */
     public boolean isSequenceElementPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(SEQUENCE_ELEMENT_PLACEHOLDER);
     }
 
+    /**
+     * Checks if the IRI is a placeholder of any type.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a placeholder, false otherwise.
+     */
     public boolean isPlaceholder(IRI iri) {
         iri = transform(iri);
         if (!typeMap.containsKey(iri)) return false;
@@ -300,18 +662,42 @@ public class Template implements Serializable {
         return false;
     }
 
+    /**
+     * Checks if the IRI is an optional statement.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an optional statement, false otherwise.
+     */
     public boolean isOptionalStatement(IRI iri) {
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(OPTIONAL_STATEMENT_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a grouped statement.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a grouped statement, false otherwise.
+     */
     public boolean isGroupedStatement(IRI iri) {
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(GROUPED_STATEMENT_CLASS);
     }
 
+    /**
+     * Checks if the IRI is a repeatable statement.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a repeatable statement, false otherwise.
+     */
     public boolean isRepeatableStatement(IRI iri) {
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(REPEATABLE_STATEMENT_CLASS);
     }
 
+    /**
+     * Returns the possible values for a given IRI.
+     *
+     * @param iri the IRI for which to get possible values.
+     * @return a list of possible values for the IRI. If no values are found, an empty list is returned.
+     */
     public List<Value> getPossibleValues(IRI iri) {
         iri = transform(iri);
         List<Value> l = possibleValueMap.get(iri);
@@ -338,26 +724,59 @@ public class Template implements Serializable {
         return l;
     }
 
+    /**
+     * Returns the IRI of the default provenance for the template.
+     *
+     * @return the IRI of the default provenance, or null if not set.
+     */
     public IRI getDefaultProvenance() {
         return defaultProvenance;
     }
 
+    /**
+     * Returns the target namespace for the template.
+     *
+     * @return the target namespace as a string, or null if not set.
+     */
     public String getTargetNamespace() {
         return targetNamespace;
     }
 
+    /**
+     * Returns the nanopub label pattern.
+     *
+     * @return the nanopub label pattern as a string, or null if not set.
+     */
     public String getNanopubLabelPattern() {
         return nanopubLabelPattern;
     }
 
+    /**
+     * Returns the list of target nanopub types.
+     *
+     * @return a list of IRI objects representing the target nanopub types.
+     */
     public List<IRI> getTargetNanopubTypes() {
         return targetNanopubTypes;
     }
 
+    /**
+     * Returns the list of the required pubinfo elements for the template.
+     *
+     * @return a list of IRI objects representing the required pubinfo elements.
+     */
     public List<IRI> getRequiredPubinfoElements() {
         return requiredPubinfoElements;
     }
 
+    /**
+     * Returns the possible values from an API for a given IRI and search term.
+     *
+     * @param iri        the IRI for which to get possible values from the API.
+     * @param searchterm the search term to filter the possible values.
+     * @param labelMap   a map to store labels for the possible values.
+     * @return a list of possible values from the API, filtered by the search term.
+     */
     public List<String> getPossibleValuesFromApi(IRI iri, String searchterm, Map<String, String> labelMap) {
         iri = transform(iri);
         List<String> values = new ArrayList<>();
@@ -370,6 +789,11 @@ public class Template implements Serializable {
         return values;
     }
 
+    /**
+     * Returns the tag associated with the template.
+     *
+     * @return the tag as a string, or null if not set.
+     */
     public String getTag() {
         return tag;
     }
@@ -701,6 +1125,13 @@ public class Template implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Compares two IRIs based on their order in the template.
+         *
+         * @param arg0 the first object to be compared.
+         * @param arg1 the second object to be compared.
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+         */
         @Override
         public int compare(IRI arg0, IRI arg1) {
             Integer i0 = statementOrder.get(arg0);

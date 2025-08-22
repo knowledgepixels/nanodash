@@ -17,19 +17,36 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
 
+/**
+ * The ProfilePage class represents a user profile page in the Nanodash application.
+ */
 public class ProfilePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/profile";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * The pattern for ORCID identifiers.
+     */
     public static final String ORCID_PATTERN = "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]";
 
+    /**
+     * Constructor for the ProfilePage.
+     *
+     * @param parameters the page parameters
+     */
     public ProfilePage(final PageParameters parameters) {
         super(parameters);
 

@@ -23,10 +23,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+/**
+ * A component that displays a list of queries.
+ * Each query is linked to its corresponding QueryPage.
+ */
 public class QueryList extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for QueryList.
+     *
+     * @param id   the component ID
+     * @param resp the API response containing query data
+     */
     public QueryList(String id, ApiResponse resp) {
         super(id);
         List<GrlcQuery> queries = new ArrayList<>();

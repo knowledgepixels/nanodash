@@ -4,17 +4,31 @@ import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+/**
+ * A page that forwards requests to the ExplorePage based on the provided parameters.
+ */
 public class TermForwarder extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/term";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor that initializes the page with the given parameters.
+     *
+     * @param parameters The parameters to initialize the page with.
+     */
     public TermForwarder(final PageParameters parameters) {
         super(parameters);
         // Getting HTTP Accept header:

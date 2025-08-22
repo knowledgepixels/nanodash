@@ -17,12 +17,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Page that displays all nanopublications of a specific type.
+ */
 public class TypePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/type";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -31,6 +40,11 @@ public class TypePage extends NanodashPage {
     private IRI typeIri;
     private boolean added = false;
 
+    /**
+     * Constructor for the TypePage.
+     *
+     * @param parameters Page parameters containing the type IRI.
+     */
     public TypePage(final PageParameters parameters) {
         super(parameters);
 
@@ -48,6 +62,11 @@ public class TypePage extends NanodashPage {
         refresh();
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

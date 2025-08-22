@@ -35,6 +35,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * Utility class providing various helper methods for handling nanopublications, URIs, and other related functionalities.
+ */
 public class Utils {
 
     private Utils() {
@@ -126,10 +129,24 @@ public class Utils {
         return s;
     }
 
+    /**
+     * Retrieves the name of the public key location based on the public key.
+     *
+     * @param pubkeyhash the public key string
+     * @return the name of the public key location
+     */
     public static String getPubkeyLocationName(String pubkeyhash) {
         return getPubkeyLocationName(pubkeyhash, getShortPubkeyName(pubkeyhash));
     }
 
+    /**
+     * Retrieves the name of the public key location, or returns a fallback name if not found.
+     * If the key location is localhost, it returns "localhost".
+     *
+     * @param pubkeyhash the public key string
+     * @param fallback   the fallback name to return if the key location is not found
+     * @return the name of the public key location or the fallback name
+     */
     public static String getPubkeyLocationName(String pubkeyhash, String fallback) {
         IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
         if (keyLocation == null) return fallback;
@@ -137,6 +154,13 @@ public class Utils {
         return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
     }
 
+    /**
+     * Generates a short label for a public key location, including its status (local or approved).
+     *
+     * @param pubkeyhash the public key string
+     * @param user       the IRI of the user associated with the public key
+     * @return a short label indicating the public key location and its status
+     */
     public static String getShortPubkeyLocationLabel(String pubkeyhash, IRI user) {
         String s = getPubkeyLocationName(pubkeyhash);
         NanodashSession session = NanodashSession.get();
@@ -148,6 +172,13 @@ public class Utils {
         return s;
     }
 
+    /**
+     * Checks if a given public key has a Nanodash location.
+     * A Nanodash location is identified by specific keywords in the key location.
+     *
+     * @param pubkeyhash the public key to check
+     * @return true if the public key has a Nanodash location, false otherwise
+     */
     public static boolean hasNanodashLocation(String pubkeyhash) {
         IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
         if (keyLocation == null) return true; // potentially a Nanodash location
@@ -157,26 +188,57 @@ public class Utils {
         return false;
     }
 
+    /**
+     * Retrieves the short ORCID ID from an IRI object.
+     *
+     * @param orcidIri the IRI object representing the ORCID ID
+     * @return the short ORCID ID as a string
+     */
     public static String getShortOrcidId(IRI orcidIri) {
         return orcidIri.stringValue().replaceFirst("^https://orcid.org/", "");
     }
 
+    /**
+     * Retrieves the URI postfix from a given URI object.
+     *
+     * @param uri the URI object from which to extract the postfix
+     * @return the URI postfix as a string
+     */
     public static String getUriPostfix(Object uri) {
         String s = uri.toString();
         if (s.contains("#")) return s.replaceFirst("^.*#(.*)$", "$1");
         return s.replaceFirst("^.*/(.*)$", "$1");
     }
 
+    /**
+     * Retrieves the URI prefix from a given URI object.
+     *
+     * @param uri the URI object from which to extract the prefix
+     * @return the URI prefix as a string
+     */
     public static String getUriPrefix(Object uri) {
         String s = uri.toString();
         if (s.contains("#")) return s.replaceFirst("^(.*#).*$", "$1");
         return s.replaceFirst("^(.*/).*$", "$1");
     }
 
+    /**
+     * Checks if a given string is a valid URI postfix.
+     * A valid URI postfix does not contain a colon (":").
+     *
+     * @param s the string to check
+     * @return true if the string is a valid URI postfix, false otherwise
+     */
     public static boolean isUriPostfix(String s) {
         return !s.contains(":");
     }
 
+    /**
+     * Retrieves the location of a given IntroNanopub.
+     *
+     * @param inp the IntroNanopub from which to extract the location
+     * @return the IRI location of the nanopublication, or null if not found
+     */
     public static IRI getLocation(IntroNanopub inp) {
         NanopubSignatureElement el = getNanopubSignatureElement(inp);
         for (KeyDeclaration kd : inp.getKeyDeclarations()) {
@@ -187,6 +249,12 @@ public class Utils {
         return null;
     }
 
+    /**
+     * Retrieves the NanopubSignatureElement from a given IntroNanopub.
+     *
+     * @param inp the IntroNanopub from which to extract the signature element
+     * @return the NanopubSignatureElement associated with the nanopublication
+     */
     public static NanopubSignatureElement getNanopubSignatureElement(IntroNanopub inp) {
         try {
             return SignatureUtils.getSignatureElement(inp.getNanopub());
@@ -195,6 +263,12 @@ public class Utils {
         }
     }
 
+    /**
+     * Retrieves a Nanopub object from a given URI if it is a potential Trusty URI.
+     *
+     * @param uri the URI to check and retrieve the Nanopub from
+     * @return the Nanopub object if found, or null if not a known nanopublication
+     */
     public static Nanopub getAsNanopub(String uri) {
         if (TrustyUriUtils.isPotentialTrustyUri(uri)) {
             try {
@@ -217,10 +291,22 @@ public class Utils {
             .requireRelNofollowOnLinks()
             .toFactory();
 
+    /**
+     * Sanitizes raw HTML input to ensure safe rendering.
+     *
+     * @param rawHtml the raw HTML input to sanitize
+     * @return sanitized HTML string
+     */
     public static String sanitizeHtml(String rawHtml) {
         return htmlSanitizePolicy.sanitize(rawHtml);
     }
 
+    /**
+     * Converts PageParameters to a URL-encoded string representation.
+     *
+     * @param params the PageParameters to convert
+     * @return a string representation of the parameters in URL-encoded format
+     */
     public static String getPageParametersAsString(PageParameters params) {
         String s = "";
         for (String n : params.getNamedKeys()) {
@@ -230,6 +316,12 @@ public class Utils {
         return s;
     }
 
+    /**
+     * Sets a minimal escape markup function for a Select2Choice component.
+     * This function replaces certain characters and formats the display of choices.
+     *
+     * @param selectItem the Select2Choice component to set the escape markup for
+     */
     public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
         selectItem.getSettings().setEscapeMarkup("function(markup) {" +
                                                  "return markup" +
@@ -241,10 +333,24 @@ public class Utils {
         );
     }
 
+    /**
+     * Checks if a nanopublication is of a specific class.
+     *
+     * @param np       the nanopublication to check
+     * @param classIri the IRI of the class to check against
+     * @return true if the nanopublication is of the specified class, false otherwise
+     */
     public static boolean isNanopubOfClass(Nanopub np, IRI classIri) {
         return NanopubUtils.getTypes(np).contains(classIri);
     }
 
+    /**
+     * Checks if a nanopublication uses a specific predicate in its assertion.
+     *
+     * @param np           the nanopublication to check
+     * @param predicateIri the IRI of the predicate to look for
+     * @return true if the predicate is used in the assertion, false otherwise
+     */
     public static boolean usesPredicateInAssertion(Nanopub np, IRI predicateIri) {
         for (Statement st : np.getAssertion()) {
             if (predicateIri.equals(st.getPredicate())) {
@@ -254,6 +360,12 @@ public class Utils {
         return false;
     }
 
+    /**
+     * Retrieves a map of FOAF names from the nanopublication's pubinfo.
+     *
+     * @param np the nanopublication from which to extract FOAF names
+     * @return a map where keys are subjects and values are FOAF names
+     */
     public static Map<String, String> getFoafNameMap(Nanopub np) {
         Map<String, String> foafNameMap = new HashMap<>();
         for (Statement st : np.getPubinfo()) {
@@ -264,10 +376,22 @@ public class Utils {
         return foafNameMap;
     }
 
+    /**
+     * Creates a SHA-256 hash of the string representation of an object and returns it as a hexadecimal string.
+     *
+     * @param obj the object to hash
+     * @return the SHA-256 hash of the object's string representation in hexadecimal format
+     */
     public static String createSha256HexHash(Object obj) {
         return Hashing.sha256().hashString(obj.toString(), StandardCharsets.UTF_8).toString();
     }
 
+    /**
+     * Gets the types of a nanopublication.
+     *
+     * @param np the nanopublication from which to extract types
+     * @return a list of IRI types associated with the nanopublication
+     */
     public static List<IRI> getTypes(Nanopub np) {
         List<IRI> l = new ArrayList<IRI>();
         for (IRI t : NanopubUtils.getTypes(np)) {
@@ -282,6 +406,12 @@ public class Utils {
         return l;
     }
 
+    /**
+     * Gets a label for a type IRI.
+     *
+     * @param typeIri the IRI of the type
+     * @return a label for the type, potentially truncated
+     */
     public static String getTypeLabel(IRI typeIri) {
         String l = typeIri.stringValue();
         if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource")) return "FER";
@@ -294,6 +424,12 @@ public class Utils {
         return l;
     }
 
+    /**
+     * Gets a label for a URI.
+     *
+     * @param uri the URI to get the label from
+     * @return a label for the URI, potentially truncated
+     */
     public static String getUriLabel(String uri) {
         if (uri == null) return "";
         String uriLabel = uri;
@@ -305,10 +441,24 @@ public class Utils {
         return uriLabel;
     }
 
+    /**
+     * Gets an ExternalLink with a URI label.
+     *
+     * @param markupId the markup ID for the link
+     * @param uri      the URI to link to
+     * @return an ExternalLink with the URI label
+     */
     public static ExternalLink getUriLink(String markupId, String uri) {
         return new ExternalLink(markupId, (uri.startsWith("local:") ? "" : uri), getUriLabel(uri));
     }
 
+    /**
+     * Gets an ExternalLink with a model for the URI label.
+     *
+     * @param markupId the markup ID for the link
+     * @param model    the model containing the URI
+     * @return an ExternalLink with the URI label
+     */
     public static ExternalLink getUriLink(String markupId, IModel<String> model) {
         return new ExternalLink(markupId, model, new UriLabelModel(model));
     }
@@ -330,15 +480,36 @@ public class Utils {
 
     }
 
+    /**
+     * Creates a sublist from a list based on the specified indices.
+     *
+     * @param list      the list from which to create the sublist
+     * @param fromIndex the starting index (inclusive) for the sublist
+     * @param toIndex   the ending index (exclusive) for the sublist
+     * @param <E>       the type of elements in the list
+     * @return an ArrayList containing the elements from the specified range
+     */
     public static <E> ArrayList<E> subList(List<E> list, long fromIndex, long toIndex) {
         // So the resulting list is serializable:
         return new ArrayList<E>(list.subList((int) fromIndex, (int) toIndex));
     }
 
+    /**
+     * Creates a sublist from an array based on the specified indices.
+     *
+     * @param array     the array from which to create the sublist
+     * @param fromIndex the starting index (inclusive) for the sublist
+     * @param toIndex   the ending index (exclusive) for the sublist
+     * @param <E>       the type of elements in the array
+     * @return an ArrayList containing the elements from the specified range
+     */
     public static <E> ArrayList<E> subList(E[] array, long fromIndex, long toIndex) {
         return subList(Arrays.asList(array), fromIndex, toIndex);
     }
 
+    /**
+     * Comparator for sorting ApiResponseEntry objects based on a specified field.
+     */
     // TODO Move this to ApiResponseEntry class?
     public static class ApiResponseEntrySorter implements Comparator<ApiResponseEntry>, Serializable {
 
@@ -347,11 +518,24 @@ public class Utils {
         private String field;
         private boolean descending;
 
+        /**
+         * Constructor for ApiResponseEntrySorter.
+         *
+         * @param field      the field to sort by
+         * @param descending if true, sorts in descending order; if false, sorts in ascending order
+         */
         public ApiResponseEntrySorter(String field, boolean descending) {
             this.field = field;
             this.descending = descending;
         }
 
+        /**
+         * Compares two ApiResponseEntry objects based on the specified field.
+         *
+         * @param o1 the first object to be compared.
+         * @param o2 the second object to be compared.
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+         */
         @Override
         public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
             if (descending) {
@@ -363,11 +547,34 @@ public class Utils {
 
     }
 
+    /**
+     * MIME type for TriG RDF format.
+     */
     public static final String TYPE_TRIG = "application/trig";
+
+    /**
+     * MIME type for Jelly RDF format.
+     */
     public static final String TYPE_JELLY = "application/x-jelly-rdf";
+
+    /**
+     * MIME type for JSON-LD format.
+     */
     public static final String TYPE_JSONLD = "application/ld+json";
+
+    /**
+     * MIME type for N-Quads format.
+     */
     public static final String TYPE_NQUADS = "application/n-quads";
+
+    /**
+     * MIME type for Trix format.
+     */
     public static final String TYPE_TRIX = "application/trix";
+
+    /**
+     * MIME type for HTML format.
+     */
     public static final String TYPE_HTML = "text/html";
 
     public static final String SUPPORTED_TYPES =
@@ -378,9 +585,19 @@ public class Utils {
             TYPE_TRIX + "," +
             TYPE_HTML;
 
+    /**
+     * List of supported MIME types for nanopublications.
+     */
     public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
 
     // TODO Move these to nanopub-java library:
+
+    /**
+     * Retrieves a set of introduced IRI IDs from the nanopublication.
+     *
+     * @param np the nanopublication from which to extract introduced IRI IDs
+     * @return a set of introduced IRI IDs
+     */
     public static Set<String> getIntroducedIriIds(Nanopub np) {
         Set<String> introducedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
@@ -391,6 +608,12 @@ public class Utils {
         return introducedIriIds;
     }
 
+    /**
+     * Retrieves a set of embedded IRI IDs from the nanopublication.
+     *
+     * @param np the nanopublication from which to extract embedded IRI IDs
+     * @return a set of embedded IRI IDs
+     */
     public static Set<String> getEmbeddedIriIds(Nanopub np) {
         Set<String> embeddedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {

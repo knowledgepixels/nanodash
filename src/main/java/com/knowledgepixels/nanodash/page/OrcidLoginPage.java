@@ -23,20 +23,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * This page handles the login process with ORCID.
+ */
 public class OrcidLoginPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/orcidlogin";
 
+    /**
+     * Returns the ORCID login URL with the given base URL and parameters.
+     *
+     * @param base   the base URL to which the ORCID login parameters will be appended
+     * @param params the parameters to be included in the ORCID login URL
+     * @return the complete ORCID login URL
+     */
     public static String getOrcidLoginUrl(String base, PageParameters params) {
         return getOrcidLoginUrl(Utils.getUrlWithParameters(base, params));
     }
 
+    /**
+     * A map to store redirect URLs temporarily.
+     */
     // TODO Make sure the entries of this map get removed again at some point:
     public static Map<String, String> redirectHashMap = new HashMap<>();
 
+    /**
+     * Generates the ORCID login URL with a final redirect URL.
+     * The final redirect URL is hashed and stored in a map to avoid long URLs.
+     *
+     * @param finalRedirectUrl the URL to redirect to after successful ORCID login
+     * @return the complete ORCID login URL
+     */
     public static String getOrcidLoginUrl(String finalRedirectUrl) {
         NanodashPreferences prefs = NanodashPreferences.get();
         String finalRedirectUrlHash = Utils.createSha256HexHash(finalRedirectUrl);
@@ -50,6 +72,12 @@ public class OrcidLoginPage extends WebPage {
                "redirect_uri=" + Utils.urlEncode(redirectUrl);
     }
 
+    /**
+     * Constructor that handles the ORCID login process.
+     * It exchanges the authorization code for an access token and redirects to the final URL.
+     *
+     * @param parameters The page parameters, which should include the authorization code and redirect hash.
+     */
     public OrcidLoginPage(PageParameters parameters) {
         CloseableHttpClient client = HttpClientBuilder.create().build();
         try (client) {
@@ -103,30 +131,65 @@ public class OrcidLoginPage extends WebPage {
         private String name;
         private String orcid;
 
+        /**
+         * Returns the access token.
+         *
+         * @return the access token string
+         */
         public String getAccessToken() {
             return access_token;
         }
 
+        /**
+         * Returns the type of the token.
+         *
+         * @return the token type string
+         */
         public String getTokenType() {
             return token_type;
         }
 
+        /**
+         * Returns the refresh token.
+         *
+         * @return the refresh token string
+         */
         public String getRefreshToken() {
             return refresh_token;
         }
 
+        /**
+         * Returns the expiration time of the token in seconds.
+         *
+         * @return the expiration time in seconds
+         */
         public long getExpiresIn() {
             return expires_in;
         }
 
+        /**
+         * Returns the scope of the access token.
+         *
+         * @return the scope string
+         */
         public String getScope() {
             return scope;
         }
 
+        /**
+         * Returns the name associated with the ORCID account.
+         *
+         * @return the name string
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Returns the ORCID identifier.
+         *
+         * @return the ORCID string
+         */
         public String getOrcid() {
             return orcid;
         }

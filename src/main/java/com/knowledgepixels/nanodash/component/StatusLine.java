@@ -12,10 +12,20 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A component that displays the status of a nanopublication.
+ */
 public class StatusLine extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new StatusLine component.
+     *
+     * @param markupId the Wicket markup ID for this component
+     * @param npId     the nanopublication ID to check for newer versions
+     * @return a new StatusLine component
+     */
     public static Component createComponent(String markupId, String npId) {
         // TODO Use the query cache here but with quicker refresh interval?
         ApiResultComponent c = new ApiResultComponent("statusline", "get-newer-versions-of-np", "np", npId) {
@@ -32,6 +42,13 @@ public class StatusLine extends Panel {
         return c;
     }
 
+    /**
+     * Constructs a StatusLine component with the given markup ID, nanopublication ID, and API response.
+     *
+     * @param markupId the Wicket markup ID for this component
+     * @param npId     the nanopublication ID to check for newer versions
+     * @param response the API response containing data about newer versions or retractions
+     */
     public StatusLine(String markupId, String npId, ApiResponse response) {
         super(markupId);
         List<String> latest = new ArrayList<>();

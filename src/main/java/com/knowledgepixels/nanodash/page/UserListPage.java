@@ -19,17 +19,31 @@ import org.nanopub.extra.services.ApiResponse;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Page that lists all users and groups.
+ */
 public class UserListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/userlist";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the user list page.
+     *
+     * @param parameters the page parameters
+     */
     public UserListPage(final PageParameters parameters) {
         super(parameters);
 
@@ -124,6 +138,9 @@ public class UserListPage extends NanodashPage {
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean hasAutoRefreshEnabled() {
         return true;

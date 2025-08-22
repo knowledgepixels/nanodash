@@ -27,6 +27,9 @@ import java.util.Map;
 
 import static com.knowledgepixels.nanodash.Utils.urlEncode;
 
+/**
+ * A panel that shows the user's introduction nanopubs.
+ */
 public class ProfileIntroItem extends Panel {
 
     private static final long serialVersionUID = 1L;
@@ -37,6 +40,11 @@ public class ProfileIntroItem extends Panel {
     private Map<IntroNanopub, String> includeKeysParamMap = new HashMap<>();
     private int approvedIntrosCount = 0;
 
+    /**
+     * Constructor.
+     *
+     * @param id the component id
+     */
     public ProfileIntroItem(String id) {
         super(id);
 

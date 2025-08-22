@@ -23,11 +23,20 @@ import org.nanopub.extra.security.SignatureUtils;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * A panel that displays a nanopublication with its header, footer, assertion, provenance, and pubinfo.
+ */
 public class NanopubItem extends Panel {
 
     private static final long serialVersionUID = -5109507637942030910L;
 
+    /**
+     * Date format for displaying the creation date and time of the nanopub.
+     */
     public static SimpleDateFormat simpleDateTimeFormat = new SimpleDateFormat("d MMM yyyy, HH:mm:ss zzz");
+    /**
+     * Date format for displaying the creation time of the nanopub without time.
+     */
     public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM yyyy");
 
     private boolean isInitialized = false;
@@ -42,12 +51,25 @@ public class NanopubItem extends Panel {
     private IRI signerId;
     private String tempalteId;
 
+    /**
+     * Creates a NanopubItem panel.
+     *
+     * @param id         the Wicket component ID
+     * @param n          the NanopubElement to display
+     * @param tempalteId the ID of the template to use for rendering the assertion.
+     */
     public NanopubItem(String id, NanopubElement n, String tempalteId) {
         super(id);
         this.n = n;
         this.tempalteId = tempalteId;
     }
 
+    /**
+     * Creates a NanopubItem panel with a default template ID.
+     *
+     * @param id the Wicket component ID
+     * @param n  the NanopubElement to display
+     */
     public NanopubItem(String id, NanopubElement n) {
         this(id, n, null);
     }
@@ -316,54 +338,103 @@ public class NanopubItem extends Panel {
         isInitialized = true;
     }
 
+    /**
+     * Hides the provenance part of the nanopub item.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem hideProvenance() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         hideProvenance = true;
         return this;
     }
 
+    /**
+     * Sets whether the provenance part of the nanopub item should be hidden.
+     *
+     * @param hideProvenance true to hide provenance, false to show it
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem setProvenanceHidden(boolean hideProvenance) {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         this.hideProvenance = hideProvenance;
         return this;
     }
 
+    /**
+     * Hides the pubinfo part of the nanopub item.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem hidePubinfo() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         hidePubinfo = true;
         return this;
     }
 
+    /**
+     * Sets whether the pubinfo part of the nanopub item should be hidden.
+     *
+     * @param hidePubinfo true to hide pubinfo, false to show it
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem setPubinfoHidden(boolean hidePubinfo) {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         this.hidePubinfo = hidePubinfo;
         return this;
     }
 
+    /**
+     * Hides the header part of the nanopub item.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem hideHeader() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         hideHeader = true;
         return this;
     }
 
+    /**
+     * Sets whether the header part of the nanopub item should be hidden.
+     *
+     * @param hideHeader true to hide header, false to show it
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem setHeaderHidden(boolean hideHeader) {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         this.hideHeader = hideHeader;
         return this;
     }
 
+    /**
+     * Hides the footer part of the nanopub item.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem hideFooter() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         hideFooter = true;
         return this;
     }
 
+    /**
+     * Sets whether the footer part of the nanopub item should be hidden.
+     *
+     * @param hideFooter true to hide footer, false to show it
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem setFooterHidden(boolean hideFooter) {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         this.hideFooter = hideFooter;
         return this;
     }
 
+    /**
+     * Sets the nanopub item to a minimal state, hiding assertion, action menu, provenance, and pubinfo.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem setMinimal() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         this.hideAssertion = true;
@@ -372,6 +443,12 @@ public class NanopubItem extends Panel {
         return this;
     }
 
+    /**
+     * Adds the given actions to the nanopub item.
+     *
+     * @param a a {@link com.knowledgepixels.nanodash.action.NanopubAction} object
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem addActions(NanopubAction... a) {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         if (actions == null) actions = new ArrayList<>();
@@ -381,12 +458,20 @@ public class NanopubItem extends Panel {
         return this;
     }
 
+    /**
+     * Sets the nanopub item to have no actions.
+     *
+     * @return this NanopubItem instance for method chaining
+     */
     public NanopubItem noActions() {
         if (isInitialized) throw new RuntimeException("Nanopub item is already initialized");
         actions = new ArrayList<>();
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         initialize();

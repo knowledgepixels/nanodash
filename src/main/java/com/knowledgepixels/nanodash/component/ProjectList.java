@@ -11,10 +11,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+/**
+ * A component that displays a list of projects.
+ * Each project is represented as a link to its corresponding page.
+ */
 public class ProjectList extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for ProjectList.
+     *
+     * @param id   the Wicket component ID
+     * @param resp the ApiResponse containing project data
+     */
     public ProjectList(String id, ApiResponse resp) {
         super(id);
         add(new DataView<ApiResponseEntry>("projectlist", new ListDataProvider<ApiResponseEntry>(resp.getData())) {

@@ -28,14 +28,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Overview page for a connector journal.
+ */
 public class GenOverviewPage extends ConnectorPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/connector";
 
     private ConnectorConfig config;
 
+    /**
+     * Constructor for the overview page.
+     *
+     * @param params the page parameters, which should contain the journal ID
+     */
     public GenOverviewPage(PageParameters params) {
         super(params);
         final String journalId = params.get("journal").toString();
@@ -366,6 +377,9 @@ public class GenOverviewPage extends ConnectorPage {
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + config.getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

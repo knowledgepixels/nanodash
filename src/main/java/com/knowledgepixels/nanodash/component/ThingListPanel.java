@@ -12,10 +12,22 @@ import org.nanopub.extra.services.ApiResponse;
 
 import java.util.Collections;
 
+/**
+ * Panel to show a list of things.
+ */
 public class ThingListPanel extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for the ThingListPanel.
+     *
+     * @param markupId the Wicket markup ID for this panel
+     * @param mode     the mode of the panel, determining what kind of things to show
+     * @param thingRef the reference of the thing to show the list for
+     * @param response the API response containing the data to display
+     * @param limit    the maximum number of items to display; if 0, all items are shown
+     */
     private ThingListPanel(String markupId, final Mode mode, final String thingRef, ApiResponse response, int limit) {
         super(markupId);
         // TODO Not copying the table here, which can lead to problems if at some point the same result list is sorted differently at different places:
@@ -42,6 +54,16 @@ public class ThingListPanel extends Panel {
         add(showAllLink);
     }
 
+    /**
+     * Factory method to create a ThingListPanel component.
+     *
+     * @param markupId    the Wicket markup ID for the panel
+     * @param mode        the mode of the panel, determining what kind of things to show
+     * @param thingRef    the reference of the thing to show the list for
+     * @param waitMessage the message to display while waiting for the API response
+     * @param limit       the maximum number of items to display; if 0, all items are shown
+     * @return a new ThingListPanel component
+     */
     public static Component createComponent(final String markupId, final Mode mode, final String thingRef, final String waitMessage, final int limit) {
         ApiResponse response = ApiCache.retrieveResponse(mode.queryName, mode.queryParam, thingRef);
         if (response != null) {
@@ -62,17 +84,43 @@ public class ThingListPanel extends Panel {
         }
     }
 
+    /**
+     * Enum representing the different modes of the ThingListPanel.
+     * Each mode corresponds to a specific type of thing and defines how to query and display them.
+     */
     public enum Mode {
         CLASSES("get-classes-for-thing", "thing", "class", "class", "classes", "Assigned to"),
         INSTANCES("get-instances", "class", "instance", "instance", "instances", "Has"),
         PARTS("get-parts", "thing", "part", "part", "parts", "Has"),
         TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in");
 
+        /**
+         * The name of the query to be used for this mode.
+         */
         public final String queryName;
+        /**
+         * The parameter to be used in the query for this mode.
+         */
         public final String queryParam;
+        /**
+         * The field in the API response that contains the relevant data for this mode.
+         */
         public final String returnField;
-        public final String wordSg, wordPl;
+        /**
+         * The singular word used in messages for this mode.
+         */
+        public final String wordSg;
+        /**
+         * The plural word used in messages for this mode.
+         */
+        public final String wordPl;
+        /**
+         * The start of the message displayed in the panel for this mode.
+         */
         public final String messageStart;
+        /**
+         * The identifier for this mode, used in URLs and other references.
+         */
         public final String modeId;
 
         private Mode(String queryName, String queryParam, String returnField, String wordSg, String wordPl, String messageStart) {

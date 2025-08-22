@@ -25,6 +25,9 @@ import org.wicketstuff.select2.Select2Choice;
 
 import java.util.*;
 
+/**
+ * A guided choice item that allows users to select from a list of predefined values.
+ */
 public class GuidedChoiceItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
@@ -41,10 +44,23 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
     // TODO: This should maybe go into a different class?
     private static Map<String, String> labelMap = new HashMap<>();
 
+    /**
+     * Get the label for a given value.
+     *
+     * @param value The value for which to get the label.
+     * @return The label associated with the value, or null if not found.
+     */
     public static String getLabel(String value) {
         return labelMap.get(value);
     }
 
+    /**
+     * Set a label for a given value.
+     *
+     * @param value The value for which to set the label.
+     * @param label The label to associate with the value.
+     * @return The previous label associated with the value, or null if there was none.
+     */
     public static String setLabel(String value, String label) {
         return labelMap.put(value, label);
     }
@@ -61,6 +77,15 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         return label;
     }
 
+    /**
+     * Constructor for the GuidedChoiceItem.
+     *
+     * @param id       The Wicket component ID.
+     * @param parentId The parent ID, used for context.
+     * @param iriP     The IRI associated with this choice item.
+     * @param optional Whether the choice is optional or required.
+     * @param context  The template context containing the template and models.
+     */
     public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
         super(id);
         this.context = context;
@@ -211,15 +236,26 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         add(textfield);
     }
 
+    /**
+     * Get the model associated with this choice item.
+     *
+     * @return The model containing the selected value.
+     */
     public IModel<String> getModel() {
         return model;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -243,6 +279,9 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -260,10 +299,16 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -278,6 +323,10 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String toString() {
         return "[Guided choiced item: " + iri + "]";
     }
