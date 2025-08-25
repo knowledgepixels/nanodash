@@ -182,6 +182,16 @@
     </testResources>
     <plugins>
       <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>${jetty.version}</version>
+        <configuration>
+          <jettyXmls>
+            ${project.basedir}/src/test/jetty/jetty.xml,${project.basedir}/src/test/jetty/jetty-http.xml
+          </jettyXmls>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.11.3</version>
@@ -245,6 +255,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+    <jetty.version>11.0.26</jetty.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
   </properties>
 </project>
