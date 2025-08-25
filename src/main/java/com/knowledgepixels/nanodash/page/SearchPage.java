@@ -15,6 +15,8 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -25,6 +27,7 @@ import java.util.*;
 public class SearchPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(SearchPage.class);
 
     /**
      * The mount path for this page.
@@ -127,11 +130,11 @@ public class SearchPage extends NanodashPage {
                     if (s != null) {
                         s = s.trim();
                         if (s.matches("https?://[^\\s]+")) {
-                            System.err.println("URI QUERY: " + s);
+                            logger.info("URI QUERY: " + s);
                             nanopubParams.put("ref", s);
                             if (Boolean.TRUE.equals(filterCheck)) {
                                 String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
-                                System.err.println("Filter for PUBKEY: " + pubkey);
+                                logger.info("Filter for PUBKEY: " + pubkey);
                                 nanopubParams.put("pubkey", pubkey);
                             }
                             try {
@@ -144,11 +147,11 @@ public class SearchPage extends NanodashPage {
                         } else {
                             String freeTextQuery = getFreeTextQuery(s);
                             if (!freeTextQuery.isEmpty()) {
-                                System.err.println("FREE TEXT QUERY: " + freeTextQuery);
+                                logger.info("FREE TEXT QUERY: " + freeTextQuery);
                                 nanopubParams.put("query", freeTextQuery);
                                 if (filterCheck != null && Boolean.TRUE.equals(filterCheck)) {
                                     String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
-                                    System.err.println("Filter for PUBKEY: " + pubkey);
+                                    logger.info("Filter for PUBKEY: " + pubkey);
                                     nanopubParams.put("pubkey", pubkey);
                                 }
                                 try {

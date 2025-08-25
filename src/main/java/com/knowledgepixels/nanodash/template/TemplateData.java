@@ -7,6 +7,8 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,6 +19,7 @@ import java.util.*;
 public class TemplateData implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(TemplateData.class);
 
     private static TemplateData instance;
 
@@ -63,7 +66,7 @@ public class TemplateData implements Serializable {
     private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {
         ApiResponse templateEntries = QueryApiAccess.forcedGet(queryId);
         String previousId = null;
-        System.err.println("Loading templates...");
+        logger.info("Loading templates...");
         for (ApiResponseEntry entry : templateEntries.getData()) {
             if ("true".equals(entry.get("unlisted"))) continue;
             if (!entry.get("np").equals(previousId)) {
@@ -116,7 +119,7 @@ public class TemplateData implements Serializable {
                 templateMap.put(id, t);
                 return t;
             } catch (Exception ex) {
-                System.err.println("Exception: " + ex.getMessage());
+                logger.error("Exception: {}", ex.getMessage());
                 return null;
             }
         }

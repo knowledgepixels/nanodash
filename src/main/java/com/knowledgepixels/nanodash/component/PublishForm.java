@@ -47,6 +47,8 @@ import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -60,6 +62,7 @@ import java.util.*;
 public class PublishForm extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(PublishForm.class);
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
@@ -218,7 +221,7 @@ public class PublishForm extends Panel {
             TemplateContext c = createPubinfoContext(tid);
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
-                System.err.println("ERROR: pitemplate param identifier assigned multiple times: " + i);
+                logger.error("ERROR: pitemplate param identifier assigned multiple times: " + i);
             }
             piParamIdMap.put(i, c);
         }
@@ -239,11 +242,11 @@ public class PublishForm extends Panel {
                 Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
                 if (!piParamIdMap.containsKey(i)) {
                     // TODO: handle this error better
-                    System.err.println("ERROR: pitemplate param identifier not found: " + i);
+                    logger.error("ERROR: pitemplate param identifier not found: " + i);
                     continue;
                 }
                 String n = k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1");
-                System.err.println(n);
+                logger.info(n);
                 piParamIdMap.get(i).setParam(n, pageParams.get(k).toString());
             }
         }
@@ -399,16 +402,16 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
-                System.err.println("Publish form submitted");
+                logger.info("Publish form submitted");
                 Nanopub signedNp = null;
                 try {
                     Nanopub np = createNanopub();
-                    System.err.println("Nanopublication created: " + np.getUri());
+                    logger.info("Nanopublication created: " + np.getUri());
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
-                    System.err.println("Nanopublication signed: " + signedNp.getUri());
+                    logger.info("Nanopublication signed: " + signedNp.getUri());
                     String npUrl = PublishNanopub.publish(signedNp);
-                    System.err.println("Nanopublication published: " + npUrl);
+                    logger.info("Nanopublication published: " + npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
                     ex.printStackTrace();
@@ -419,7 +422,7 @@ public class PublishForm extends Panel {
                 if (signedNp != null) {
                     throw new RestartResponseException(getConfirmPage(signedNp, pageParams));
                 } else {
-                    System.err.println("Nanopublication publishing failed");
+                    logger.error("Nanopublication publishing failed");
                 }
             }
 

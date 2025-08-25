@@ -17,6 +17,8 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import java.util.Optional;
 public class ChannelPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(ChannelPage.class);
 
     /**
      * The mount path for this page.
@@ -92,11 +95,11 @@ public class ChannelPage extends NanodashPage {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                System.err.print("PUBKEYS SELECTED:");
+                logger.info("PUBKEYS SELECTED:");
                 for (String s : selected.getObject()) {
-                    System.err.print(" " + pubKeyMap.get(s));
+                    logger.info(" " + pubKeyMap.get(s));
                 }
-                System.err.println();
+                logger.info("\n");
                 refresh();
                 setResponsePage(target.getPage());
                 target.appendJavaScript("updateElements();");

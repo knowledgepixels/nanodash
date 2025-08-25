@@ -1,13 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -16,6 +14,8 @@ import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.NanopubSetting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -29,6 +29,7 @@ public class UserData implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(UserData.class);
 
     private Map<IRI, Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
     private Map<String, Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
@@ -65,7 +66,7 @@ public class UserData implements Serializable {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
             setting = new NanopubSetting(GetNanopub.get(settingId));
         }
-        System.err.println("Using nanopublication setting: " + settingId);
+        logger.info("Using nanopublication setting: " + settingId);
 
 //		// Get users that are listed directly in the authority index, and consider them approved:
 //		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
@@ -99,7 +100,7 @@ public class UserData implements Serializable {
 //			}
 //		}
 
-        System.err.println("Loading approved users...");
+        logger.info("Loading approved users...");
         try {
             for (RegistryAccountInfo rai : RegistryAccountInfo.fromUrl(Utils.getMainRegistryUrl() + "list.json")) {
                 registerApproved(rai);
@@ -108,7 +109,7 @@ public class UserData implements Serializable {
             throw new RuntimeException(ex);
         }
 
-        System.err.println("Loading user details...");
+        logger.info("Loading user details...");
         // Get latest introductions for all users, including unapproved ones:
         for (ApiResponseEntry entry : QueryApiAccess.forcedGet("get-all-user-intros").getData()) {
             register(entry);
@@ -170,50 +171,52 @@ public class UserData implements Serializable {
         }
     }
 
-//	private void register(String npId, boolean approved) {
-//		if (!TrustyUriUtils.isPotentialTrustyUri(npId)) return;
-//		IntroNanopub introNp = toIntroNanopub(npId);
-//		if (introNp == null) {
-//			//System.err.println("No latest version of introduction found");
-//			return;
-//		}
-//		if (introNp.getUser() == null) {
-//			//System.err.println("No identifier found in introduction");
-//			return;
-//		}
-//		if (introNp.getKeyDeclarations().isEmpty()) {
-//			//System.err.println("No key declarations found in introduction");
-//			return;
-//		}
-//		if (approved) {
-//			approvedIntroMap.put(introNp.getNanopub().getUri(), introNp);
-//		}
-//		String userId = introNp.getUser().stringValue();
-//		IRI userIri = Utils.vf.createIRI(userId);
-//		if (userId.startsWith("https://orcid.org/")) {
-//			// Some simple ORCID ID wellformedness check:
-//			if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
-//		}
-//		for (KeyDeclaration kd : introNp.getKeyDeclarations()) {
-//			String pubkey = kd.getPublicKeyString();
-//			IRI keyLocation = kd.getKeyLocation();
-//			if (approved) {
-//				addValue(approvedIdPubkeyMap, userIri, pubkey);
-//				addValue(approvedPubkeyIdMap, pubkey, userIri);
-//				if (keyLocation != null) addValue(approvedPubkeyLocationMap, pubkey, keyLocation);
-//			} else {
-//				if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
-//					addValue(unapprovedIdPubkeyMap, userIri, pubkey);
-//					addValue(unapprovedPubkeyIdMap, pubkey, userIri);
-//					if (keyLocation != null) addValue(unapprovedPubkeyLocationMap, pubkey, keyLocation);
-//				}
-//				addValue(pubkeyIntroMap, pubkey, introNp.getNanopub().getUri());
-//			}
-//		}
-//		if (!idNameMap.containsKey(userIri)) {
-//			idNameMap.put(userIri, introNp.getName());
-//		}
-//	}
+/*
+    private void register(String npId, boolean approved) {
+        if (!TrustyUriUtils.isPotentialTrustyUri(npId)) return;
+        IntroNanopub introNp = toIntroNanopub(npId);
+        if (introNp == null) {
+            //logger.error("No latest version of introduction found");
+            return;
+        }
+        if (introNp.getUser() == null) {
+            //logger.error("No identifier found in introduction");
+            return;
+        }
+        if (introNp.getKeyDeclarations().isEmpty()) {
+            //logger.error("No key declarations found in introduction");
+            return;
+        }
+        if (approved) {
+            approvedIntroMap.put(introNp.getNanopub().getUri(), introNp);
+        }
+        String userId = introNp.getUser().stringValue();
+        IRI userIri = Utils.vf.createIRI(userId);
+        if (userId.startsWith("https://orcid.org/")) {
+            // Some simple ORCID ID wellformedness check:
+            if (!userId.matches("https://orcid.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]")) return;
+        }
+        for (KeyDeclaration kd : introNp.getKeyDeclarations()) {
+            String pubkey = kd.getPublicKeyString();
+            IRI keyLocation = kd.getKeyLocation();
+            if (approved) {
+                addValue(approvedIdPubkeyMap, userIri, pubkey);
+                addValue(approvedPubkeyIdMap, pubkey, userIri);
+                if (keyLocation != null) addValue(approvedPubkeyLocationMap, pubkey, keyLocation);
+            } else {
+                if (!hasValue(approvedIdPubkeyMap, userIri, pubkey)) {
+                    addValue(unapprovedIdPubkeyMap, userIri, pubkey);
+                    addValue(unapprovedPubkeyIdMap, pubkey, userIri);
+                    if (keyLocation != null) addValue(unapprovedPubkeyLocationMap, pubkey, keyLocation);
+                }
+                addValue(pubkeyIntroMap, pubkey, introNp.getNanopub().getUri());
+            }
+        }
+        if (!idNameMap.containsKey(userIri)) {
+            idNameMap.put(userIri, introNp.getName());
+        }
+    }
+    */
 
     private void addValue(Map<IRI, Set<String>> map, IRI key, String value) {
         Set<String> values = map.get(key);

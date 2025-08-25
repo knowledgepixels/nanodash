@@ -11,6 +11,8 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract base class for Nanodash pages.
@@ -19,6 +21,7 @@ import org.apache.wicket.request.resource.JavaScriptResourceReference;
 public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(NanodashPage.class);
 
     private static long lastRefresh = 0L;
     private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
@@ -61,10 +64,10 @@ public abstract class NanodashPage extends WebPage {
 //							ex.printStackTrace();
 //						}
                         try {
-                            System.err.println("Refreshing...");
+                            logger.info("Refreshing...");
                             User.refreshUsers();
                             TemplateData.refreshTemplates();
-                            System.err.println("Refreshing done.");
+                            logger.info("Refreshing done.");
                             lastRefresh = System.currentTimeMillis();
                         } catch (Exception ex) {
                             ex.printStackTrace();

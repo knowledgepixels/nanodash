@@ -18,6 +18,8 @@ import org.commonjava.mimeparse.MIMEParse;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class ExplorePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(ExplorePage.class);
 
     /**
      * The mount path for this page.
@@ -96,10 +99,10 @@ public class ExplorePage extends NanodashPage {
             } catch (Exception ex) {
             }
             if (!mimeType.equals(Utils.TYPE_HTML)) {
-                System.err.println("Non-HTML content type: " + mimeType);
+                logger.info("Non-HTML content type: " + mimeType);
                 // TODO Make this registry URL configurable/dynamic:
                 String redirectUrl = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
-                System.err.println("Redirecting to: " + redirectUrl);
+                logger.info("Redirecting to: " + redirectUrl);
                 throw new RedirectToUrlException(redirectUrl, 302);
             }
 

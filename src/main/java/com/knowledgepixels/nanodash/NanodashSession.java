@@ -17,6 +17,8 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.extra.security.*;
 import org.nanopub.extra.setting.IntroNanopub;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +36,7 @@ public class NanodashSession extends WebSession {
 
     private static final long serialVersionUID = -7920814788717089213L;
     private transient HttpSession httpSession;
+    private static final Logger logger = LoggerFactory.getLogger(NanodashSession.class);
 
     /**
      * Retrieves the current Nanodash session.
@@ -140,7 +143,7 @@ public class NanodashSession extends WebSession {
                 try {
                     keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
                 } catch (Exception ex) {
-                    System.err.println("Couldn't load key pair");
+                    logger.error("Couldn't load key pair");
                 }
             } else {
                 // Automatically generate new keys
@@ -374,7 +377,7 @@ public class NanodashSession extends WebSession {
 //					}
 //				}
 //			} catch (Exception ex) {
-//				System.err.println("ORCID check failed");
+//				logger.error("ORCID check failed");
 //				orcidLinkError = "ORCID check failed.";
 //			}
 //		}

@@ -16,6 +16,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import java.util.Map;
 public class OrcidLoginPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(OrcidLoginPage.class);
 
     /**
      * The mount path for this page.
@@ -101,12 +104,12 @@ public class OrcidLoginPage extends WebPage {
                 OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
 //				rs.cookie("orcid", r.getOrcid());
 //				rs.cookie("orcid-access-token", r.getAccessToken());
-                System.err.println("User logged in: " + r.getOrcid());
+                logger.info("User logged in: " + r.getOrcid());
                 NanodashSession.get().setOrcid(r.getOrcid());
             } else {
                 // Something went wrong
-                System.err.println(statusCode + " " + response.getStatusLine().getReasonPhrase());
-                System.err.println(IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8));
+                logger.error(statusCode + " " + response.getStatusLine().getReasonPhrase());
+                logger.error(IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8));
             }
         } catch (UnsupportedOperationException | IOException ex) {
             ex.printStackTrace();
