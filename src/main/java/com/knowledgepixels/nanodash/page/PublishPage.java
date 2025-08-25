@@ -13,19 +13,34 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Random;
 
+/**
+ * The PublishPage class is responsible for rendering the application's publish page.
+ * It allows users to publish content based on templates and manage forms.
+ */
 public class PublishPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for the PublishPage.
+     */
     public static final String MOUNT_PATH = "/publish";
 
     private boolean autoRefresh = false;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructs a new PublishPage with the given parameters.
+     *
+     * @param parameters The parameters for the page, which may include template and form object identifiers.
+     */
     public PublishPage(final PageParameters parameters) {
         super(parameters);
 
@@ -54,6 +69,9 @@ public class PublishPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
@@ -65,6 +83,9 @@ public class PublishPage extends NanodashPage {
                 "custom-functions"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean hasAutoRefreshEnabled() {
         return autoRefresh;

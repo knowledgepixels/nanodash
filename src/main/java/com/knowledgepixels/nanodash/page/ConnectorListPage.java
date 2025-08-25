@@ -20,12 +20,21 @@ import org.nanopub.extra.services.ApiResponse;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * A page that lists all available connectors.
+ */
 public class ConnectorListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/connectorlist";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -33,10 +42,20 @@ public class ConnectorListPage extends NanodashPage {
 
     private static final String[] journals = new String[]{"ios/ds", "pensoft/bdj", "pensoft/rio"};
 
+    /**
+     * Returns the number of available connectors.
+     *
+     * @return the number of connectors
+     */
     public static int getConnectorCount() {
         return journals.length;
     }
 
+    /**
+     * Constructor for the ConnectorListPage.
+     *
+     * @param parameters the page parameters
+     */
     public ConnectorListPage(final PageParameters parameters) {
         super(parameters);
 

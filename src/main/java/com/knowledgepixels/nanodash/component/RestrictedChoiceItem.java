@@ -28,6 +28,9 @@ import org.wicketstuff.select2.Select2Choice;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * RestrictedChoiceItem is a Wicket component that provides a select2 choice input
+ */
 public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
@@ -39,6 +42,15 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
     private IModel<String> model;
     private RestrictedChoice restrictedChoice;
 
+    /**
+     * Constructor for RestrictedChoiceItem.
+     *
+     * @param id       the component id
+     * @param parentId the parent id (e.g., "subj" or "obj")
+     * @param iri      the IRI of the restricted choice
+     * @param optional whether the choice is optional
+     * @param context  the template context
+     */
     public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
         super(id);
         this.context = context;
@@ -180,17 +192,28 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         add(choice);
     }
 
+    /**
+     * Get the model for this restricted choice item.
+     *
+     * @return the model containing the selected value
+     */
     public IModel<String> getModel() {
         return model;
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(choice);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -208,6 +231,9 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -217,10 +243,16 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         choice.setModelObject(vs);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -233,15 +265,26 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[Restricted choice item: " + iri + "]";
     }
 
 
+    /**
+     * Validator for the restricted choice item.
+     */
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Default constructor.
+         */
         public Validator() {
         }
 

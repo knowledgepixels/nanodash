@@ -27,15 +27,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a session in the Nanodash application.
+ */
 public class NanodashSession extends WebSession {
 
     private static final long serialVersionUID = -7920814788717089213L;
     private transient HttpSession httpSession;
 
+    /**
+     * Retrieves the current Nanodash session.
+     *
+     * @return The current NanodashSession instance.
+     */
     public static NanodashSession get() {
         return (NanodashSession) Session.get();
     }
 
+    /**
+     * Constructs a new NanodashSession for the given request.
+     * Initializes the HTTP session and loads profile information.
+     *
+     * @param request The HTTP request.
+     */
     public NanodashSession(Request request) {
         super(request);
         httpSession = ((HttpServletRequest) request.getContainerRequest()).getSession();
@@ -64,18 +78,40 @@ public class NanodashSession extends WebSession {
     // how to do it, so doing it like this for the moment...
     private Map<String, PublishForm> formMap = new HashMap<>();
 
+    /**
+     * Associates a form object with a specific ID.
+     *
+     * @param formObjId The ID of the form object.
+     * @param formObj   The form object to associate.
+     */
     public void setForm(String formObjId, PublishForm formObj) {
         formMap.put(formObjId, formObj);
     }
 
+    /**
+     * Checks if a form object with the given ID exists.
+     *
+     * @param formObjId The ID of the form object.
+     * @return True if the form object exists, false otherwise.
+     */
     public boolean hasForm(String formObjId) {
         return formMap.containsKey(formObjId);
     }
 
+    /**
+     * Retrieves the form object associated with the given ID.
+     *
+     * @param formObjId The ID of the form object.
+     * @return The associated form object, or null if not found.
+     */
     public PublishForm getForm(String formObjId) {
         return formMap.get(formObjId);
     }
 
+    /**
+     * Loads profile information for the user.
+     * Initializes user-related data such as keys and introductions.
+     */
     public void loadProfileInfo() {
         localIntroCount = null;
         localIntro = null;
@@ -117,16 +153,34 @@ public class NanodashSession extends WebSession {
 //		checkOrcidLink();
     }
 
+    /**
+     * Checks if the user's profile is complete.
+     *
+     * @return True if the profile is complete, false otherwise.
+     */
     public boolean isProfileComplete() {
         return userIri != null && keyPair != null && introNps != null;
     }
 
+    /**
+     * Redirects the user to the login page if their profile is incomplete.
+     *
+     * @param path       The path to redirect to after login.
+     * @param parameters The page parameters for the redirect.
+     */
     public void redirectToLoginIfNeeded(String path, PageParameters parameters) {
         String loginUrl = getLoginUrl(path, parameters);
         if (loginUrl == null) return;
         throw new RedirectToUrlException(loginUrl);
     }
 
+    /**
+     * Retrieves the login URL for the user.
+     *
+     * @param path       The path to redirect to after login.
+     * @param parameters The page parameters for the redirect.
+     * @return The login URL, or null if the user is already logged in.
+     */
     public String getLoginUrl(String path, PageParameters parameters) {
         if (isProfileComplete()) return null;
         if (NanodashPreferences.get().isOrcidLoginMode()) {
@@ -136,26 +190,49 @@ public class NanodashSession extends WebSession {
         }
     }
 
+    /**
+     * Retrieves the public key as a Base64-encoded string.
+     *
+     * @return The public key string, or null if the key pair is not set.
+     */
     public String getPubkeyString() {
         if (keyPair == null) return null;
         return DatatypeConverter.printBase64Binary(keyPair.getPublic().getEncoded()).replaceAll("\\s", "");
     }
 
+    /**
+     * Retrieves the public key hash for the user.
+     *
+     * @return The SHA-256 hash of the public key, or null if the public key is not set.
+     */
     public String getPubkeyhash() {
         String pubkey = getPubkeyString();
         if (pubkey == null) return null;
         return Utils.createSha256HexHash(pubkey);
     }
 
+    /**
+     * Checks if the user's public key is approved.
+     *
+     * @return True if the public key is approved, false otherwise.
+     */
     public boolean isPubkeyApproved() {
         if (keyPair == null || userIri == null) return false;
         return User.isApprovedPubkeyhashForUser(getPubkeyhash(), userIri);
     }
 
+    /**
+     * Retrieves the user's key pair.
+     *
+     * @return The key pair.
+     */
     public KeyPair getKeyPair() {
         return keyPair;
     }
 
+    /**
+     * Generates a new key pair for the user.
+     */
     public void makeKeys() {
         try {
             MakeKeys.make(getKeyFile().getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
@@ -165,14 +242,29 @@ public class NanodashSession extends WebSession {
         }
     }
 
+    /**
+     * Retrieves the user's IRI.
+     *
+     * @return The user's IRI, or null if not set.
+     */
     public IRI getUserIri() {
         return userIri;
     }
 
+    /**
+     * Retrieves the user's introduction nanopublications.
+     *
+     * @return A list of user's introduction nanopublications.
+     */
     public List<IntroNanopub> getUserIntroNanopubs() {
         return User.getIntroNanopubs(userIri);
     }
 
+    /**
+     * Counts the number of local introduction nanopublications.
+     *
+     * @return The count of local introduction nanopublications.
+     */
     public int getLocalIntroCount() {
         if (localIntroCount == null) {
             localIntroCount = 0;
@@ -187,11 +279,22 @@ public class NanodashSession extends WebSession {
         return localIntroCount;
     }
 
+    /**
+     * Retrieves the local introduction nanopublication.
+     *
+     * @return The local introduction nanopublication, or null if not found.
+     */
     public IntroNanopub getLocalIntro() {
         getLocalIntroCount();
         return localIntro;
     }
 
+    /**
+     * Checks if the given introduction nanopublication is associated with the local key.
+     *
+     * @param inp The introduction nanopublication.
+     * @return True if associated with the local key, false otherwise.
+     */
     public boolean isIntroWithLocalKey(IntroNanopub inp) {
         IRI location = Utils.getLocation(inp);
         NanopubSignatureElement el = Utils.getNanopubSignatureElement(inp);
@@ -208,6 +311,11 @@ public class NanodashSession extends WebSession {
         return false;
     }
 
+    /**
+     * Sets the user's ORCID identifier.
+     *
+     * @param orcid The ORCID identifier.
+     */
     public void setOrcid(String orcid) {
         if (!orcid.matches(ProfilePage.ORCID_PATTERN)) {
             throw new RuntimeException("Illegal ORCID identifier: " + orcid);
@@ -229,11 +337,19 @@ public class NanodashSession extends WebSession {
         if (httpSession != null) httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
     }
 
+    /**
+     * Logs out the user and invalidates the session.
+     */
     public void logout() {
         userIri = null;
         invalidateNow();
     }
 
+    /**
+     * Retrieves the user's introduction nanopublications as a map.
+     *
+     * @return A map of introduction nanopublications.
+     */
     public Map<IRI, IntroNanopub> getIntroNanopubs() {
         return introNps;
     }
@@ -283,22 +399,45 @@ public class NanodashSession extends WebSession {
 //		return introExtractor.getName();
 //	}
 
+    /**
+     * Retrieves the file for storing the user's ORCID identifier.
+     *
+     * @return The ORCID file.
+     */
     private File getOrcidFile() {
         return new File(userDir + "orcid");
     }
 
+    /**
+     * Retrieves the file for storing the user's private key.
+     *
+     * @return The key file.
+     */
     public File getKeyFile() {
         return new File(userDir + "id_rsa");
     }
 
+    /**
+     * Sets the time when the introduction was last published.
+     */
     public void setIntroPublishedNow() {
         lastTimeIntroPublished = new Date();
     }
 
+    /**
+     * Checks if the introduction has been published.
+     *
+     * @return True if the introduction has been published, false otherwise.
+     */
     public boolean hasIntroPublished() {
         return lastTimeIntroPublished != null;
     }
 
+    /**
+     * Calculates the time since the last introduction was published.
+     *
+     * @return The time in milliseconds since the last introduction was published, or Long.MAX_VALUE if it has never been published.
+     */
     public long getTimeSinceLastIntroPublished() {
         if (lastTimeIntroPublished == null) return Long.MAX_VALUE;
         return new Date().getTime() - lastTimeIntroPublished.getTime();

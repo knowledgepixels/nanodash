@@ -27,6 +27,9 @@ import org.nanopub.SimpleCreatorPattern;
 
 import java.net.URISyntaxException;
 
+/**
+ * A text field for entering IRIs, with a prefix label and validation.
+ */
 public class IriTextfieldItem extends Panel implements ContextComponent {
 
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
@@ -38,6 +41,15 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
     private TextField<String> textfield;
     private IRI iri;
 
+    /**
+     * Constructor for creating an IRI text field item.
+     *
+     * @param id       the component ID
+     * @param parentId the parent ID (e.g., "subj", "pred", "obj")
+     * @param iriP     the IRI placeholder for this item
+     * @param optional whether the field is optional
+     * @param context  the template context containing models and components
+     */
     public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
         super(id);
         this.context = context;
@@ -111,11 +123,17 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         add(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         context.getComponents().remove(textfield);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -142,6 +160,9 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -160,6 +181,9 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         textfield.setModelObject(vs);
     }
 
+    /**
+     * Validator class for validating IRI text fields.
+     */
     protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
 
         private static final long serialVersionUID = 1L;
@@ -169,6 +193,14 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         private String prefix;
         private TemplateContext context;
 
+        /**
+         * Constructor for creating a validator for an IRI text field.
+         *
+         * @param iri      the IRI placeholder for this item
+         * @param template the template containing validation rules
+         * @param prefix   the prefix to be used in validation
+         * @param context  the template context containing models and components
+         */
         public Validator(IRI iri, Template template, String prefix, TemplateContext context) {
             this.iri = iri;
             this.template = template;
@@ -236,10 +268,16 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
@@ -252,6 +290,11 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[IRI textfield item: " + iri + "]";
     }

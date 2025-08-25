@@ -31,10 +31,23 @@ import org.nanopub.Nanopub;
 import java.net.URLEncoder;
 import java.util.*;
 
+/**
+ * A Wicket component that creates a link to a nanopublication or an IRI.
+ */
 public class NanodashLink extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a link to a nanopublication or an IRI.
+     *
+     * @param id             the Wicket component ID
+     * @param uri            the URI of the nanopublication or IRI
+     * @param np             the nanopublication, or null if the link is not to a nanopublication
+     * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
+     * @param objectPosition if true, the link is to an object position in a template, otherwise it is to a subject position
+     * @param label          the label to display for the link, or null to derive it from the nanopublication or IRI
+     */
     public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition, String label) {
         super(id);
 
@@ -131,6 +144,14 @@ public class NanodashLink extends Panel {
         add(Utils.getUriLink("uri", uri));
     }
 
+    /**
+     * <p>createLink.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param uri      a {@link java.lang.String} object
+     * @param label    a {@link java.lang.String} object
+     * @return a {@link org.apache.wicket.Component} object
+     */
     public static Component createLink(String markupId, String uri, String label) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         // TODO Improve this
@@ -145,14 +166,36 @@ public class NanodashLink extends Panel {
         }
     }
 
+    /**
+     * Creates a link to a nanopublication or an IRI.
+     *
+     * @param id             the Wicket component ID
+     * @param uri            the URI of the nanopublication or IRI
+     * @param np             the nanopublication, or null if the link is not to a nanopublication
+     * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
+     * @param objectPosition if true, the link is to an object position in a template, otherwise it is to a subject position
+     */
     public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
         this(id, uri, np, templateClass, objectPosition, null);
     }
 
+    /**
+     * Creates a link to a nanopublication or an IRI.
+     *
+     * @param id  the Wicket component ID
+     * @param uri the URI of the nanopublication or IRI
+     * @param np  the nanopublication, or null if the link is not to a nanopublication
+     */
     public NanodashLink(String id, String uri, Nanopub np) {
         this(id, uri, np, null, false);
     }
 
+    /**
+     * Creates a link to a nanopublication or an IRI.
+     *
+     * @param id  the Wicket component ID
+     * @param uri the URI of the nanopublication or IRI
+     */
     public NanodashLink(String id, String uri) {
         this(id, uri, null, null, false);
     }

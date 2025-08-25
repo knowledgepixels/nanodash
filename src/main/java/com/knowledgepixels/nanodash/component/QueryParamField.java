@@ -12,6 +12,9 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 
 import java.net.URISyntaxException;
 
+/**
+ * A field for entering query parameters, with validation for required fields and IRIs.
+ */
 public class QueryParamField extends Panel {
 
     private static final long serialVersionUID = 1L;
@@ -19,6 +22,12 @@ public class QueryParamField extends Panel {
     private final TextField<String> textfield;
     private final String paramId;
 
+    /**
+     * Constructs a QueryParamField with the given ID and parameter ID.
+     *
+     * @param id      the Wicket component ID
+     * @param paramId the parameter ID, which may start with underscores and end with "_iri"
+     */
     public QueryParamField(String id, String paramId) {
         super(id);
         this.paramId = paramId;
@@ -29,30 +38,65 @@ public class QueryParamField extends Panel {
         add(new Label("marker", isOptional() ? "" : "*"));
     }
 
+    /**
+     * Returns the text field for entering the parameter value.
+     *
+     * @return the text field component
+     */
     public TextField<String> getTextField() {
         return textfield;
     }
 
+    /**
+     * Returns the value entered in the text field.
+     *
+     * @return the value of the text field
+     */
     public String getValue() {
         return textfield.getModelObject();
     }
 
+    /**
+     * Returns the parameter ID.
+     *
+     * @return the parameter ID
+     */
     public String getParamId() {
         return paramId;
     }
 
+    /**
+     * Returns the parameter name derived from the parameter ID.
+     *
+     * @return the parameter name
+     */
     public String getParamName() {
         return getParamName(paramId);
     }
 
+    /**
+     * Returns the model of the text field.
+     *
+     * @return the model of the text field
+     */
     public IModel<String> getModel() {
         return textfield.getModel();
     }
 
+    /**
+     * Checks if the parameter is optional (starts with "__").
+     *
+     * @return true if the parameter is optional, false otherwise
+     */
     public boolean isOptional() {
         return paramId.startsWith("__");
     }
 
+    /**
+     * Checks if the parameter is an IRI (ends with "_iri").
+     *
+     * @return true if the parameter is an IRI, false otherwise
+     */
     public boolean isIri() {
         return paramId.endsWith("_iri");
     }
@@ -95,6 +139,12 @@ public class QueryParamField extends Panel {
 
     }
 
+    /**
+     * Extracts the parameter name from the placeholder ID.
+     *
+     * @param placeholderId the placeholder ID, which may start with underscores and end with "_iri"
+     * @return the parameter name, stripped of leading underscores and "_iri" suffix
+     */
     public static String getParamName(String placeholderId) {
         return placeholderId.replaceFirst("^_+", "").replaceFirst("_iri$", "");
     }

@@ -1,6 +1,6 @@
 *~
 *.bak
-/.*
+.idea/
 /docker-compose.override.yml
 /local-data
 /target
@@ -8,3 +8,4 @@
 /scratch
 /*.tar.gz
 /*.tar.gz.enc
+.run/

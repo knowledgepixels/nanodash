@@ -22,17 +22,31 @@ import org.nanopub.extra.services.ApiResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * ExplorePage is a page that allows users to explore a specific Nanopublication or Thing.
+ */
 public class ExplorePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/explore";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for ExplorePage.
+     *
+     * @param parameters Page parameters containing the ID of the Nanopublication or Thing to explore.
+     */
     public ExplorePage(final PageParameters parameters) {
         super(parameters);
 
@@ -84,7 +98,7 @@ public class ExplorePage extends NanodashPage {
             if (!mimeType.equals(Utils.TYPE_HTML)) {
                 System.err.println("Non-HTML content type: " + mimeType);
                 // TODO Make this registry URL configurable/dynamic:
-                String redirectUrl = "https://registry.knowledgepixels.com/np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
+                String redirectUrl = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
                 System.err.println("Redirecting to: " + redirectUrl);
                 throw new RedirectToUrlException(redirectUrl, 302);
             }

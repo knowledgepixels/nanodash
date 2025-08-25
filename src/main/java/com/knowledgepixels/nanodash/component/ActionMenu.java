@@ -15,10 +15,20 @@ import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * A panel that displays a menu of actions that can be performed on a nanopub.
+ */
 public class ActionMenu extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs an ActionMenu with the given ID, list of actions, and nanopub element.
+     *
+     * @param id        the Wicket component ID
+     * @param menuItems the list of actions to display in the menu
+     * @param n         the nanopub element associated with the actions
+     */
     public ActionMenu(String id, final List<NanopubAction> menuItems, final NanopubElement n) {
         super(id);
 

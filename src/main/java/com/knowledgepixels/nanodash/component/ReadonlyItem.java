@@ -36,6 +36,9 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * ReadonlyItem is a component that displays a read-only item in the form.
+ */
 public class ReadonlyItem extends Panel implements ContextComponent {
 
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
@@ -52,6 +55,16 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private RestrictedChoice restrictedChoice;
     private final Template template;
 
+    /**
+     * Constructor for ReadonlyItem.
+     *
+     * @param id              the component id
+     * @param parentId        the parent id (e.g., "subj", "obj")
+     * @param iriP            the IRI of the item
+     * @param objectPosition  whether this is an object position
+     * @param statementPartId the statement part ID
+     * @param rg              the repetition group
+     */
     public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, final RepetitionGroup rg) {
         super(id);
         context = rg.getContext();
@@ -220,6 +233,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         add(extraComp);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void fillFinished() {
         String obj = getFullValue();
@@ -237,6 +253,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void finalizeValues() {
     }
@@ -251,6 +270,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
@@ -298,6 +320,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
@@ -337,6 +362,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
@@ -377,6 +405,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Default constructor for Validator.
+         */
         public Validator() {
         }
 
@@ -446,6 +477,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     }
 
+    /**
+     * <p>toString.</p>
+     *
+     * @return a {@link java.lang.String} object
+     */
     public String toString() {
         return "[read-only IRI item: " + iri + "]";
     }

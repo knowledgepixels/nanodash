@@ -7,10 +7,21 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 
+/**
+ * A panel that displays a single RDF triple as a subject-predicate-object format.
+ */
 public class TripleItem extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for TripleItem.
+     *
+     * @param id            the component id
+     * @param st            the RDF statement to display
+     * @param np            the Nanopub containing the statement
+     * @param templateClass the IRI of the template class for links
+     */
     public TripleItem(String id, Statement st, Nanopub np, IRI templateClass) {
         super(id);
 

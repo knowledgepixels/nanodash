@@ -16,19 +16,34 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.KeyDeclaration;
 
+/**
+ * Page to confirm the publication of a nanopublication.
+ */
 public class PublishConfirmPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/publishconfirm";
 
     private final Nanopub np;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the PublishConfirmPage.
+     *
+     * @param np     The nanopublication that has been published.
+     * @param params The page parameters, which may include a template or other parameters.
+     */
     public PublishConfirmPage(Nanopub np, PageParameters params) {
         super(params);
         this.np = np;
@@ -77,6 +92,9 @@ public class PublishConfirmPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onBeforeRender() {
         if (!getPageParameters().get("postpub-redirect-url").isNull()) {

@@ -19,12 +19,21 @@ import org.nanopub.extra.services.ApiResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Page that shows a user profile, including their nanopubs and stats.
+ */
 public class UserPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/user";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -190,6 +199,11 @@ public class UserPage extends NanodashPage {
         }
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

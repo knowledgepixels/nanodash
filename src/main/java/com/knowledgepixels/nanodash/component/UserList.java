@@ -18,20 +18,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A panel that displays a list of users with links to their user pages.
+ * Optionally, it can also display notes associated with each user.
+ */
 public class UserList extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for UserList.
+     *
+     * @param id    the component id
+     * @param users a list of user IRI objects
+     * @param notes a map of user IRI to notes (optional)
+     */
     public UserList(String id, List<IRI> users, Map<IRI, String> notes) {
         super(id);
         init(users, notes);
     }
 
+    /**
+     * Constructor for UserList with a list of user IRI objects.
+     *
+     * @param id    the component id
+     * @param users a list of user IRI objects
+     */
     public UserList(String id, List<IRI> users) {
         super(id);
         init(users, null);
     }
 
+    /**
+     * Constructor for UserList that initializes from an ApiResponse.
+     *
+     * @param id        the component id
+     * @param resp      the ApiResponse containing user data
+     * @param userIdKey the key in the ApiResponse entries that contains the user IRI
+     */
     public UserList(String id, ApiResponse resp, String userIdKey) {
         super(id);
         List<IRI> users = new ArrayList<>();

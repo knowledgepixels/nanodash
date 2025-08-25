@@ -5,10 +5,21 @@ import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 
+/**
+ * A component that displays a public key item with its label and notes.
+ * If the public key is null or empty, it shows a placeholder label.
+ * If the public key exists, it shows a short name and notes about its approval status.
+ */
 public class PubkeyItem extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructor for PubkeyItem.
+     *
+     * @param id     the Wicket component ID
+     * @param pubkey the public key string, can be null or empty
+     */
     public PubkeyItem(String id, String pubkey) {
         super(id);
 

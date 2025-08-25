@@ -10,17 +10,31 @@ import org.nanopub.Nanopub;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This page is used to forward requests for FDO.
+ */
 public class FdoForwarder extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for the FdoForwarder page.
+     */
     public static final String MOUNT_PATH = "/fdo";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the FdoForwarder page.
+     *
+     * @param parameters Page parameters containing the request details.
+     */
     public FdoForwarder(final PageParameters parameters) {
         super(parameters);
 

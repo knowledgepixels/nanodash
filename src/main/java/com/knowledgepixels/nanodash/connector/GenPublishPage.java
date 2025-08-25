@@ -16,17 +16,31 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.Random;
 
+/**
+ * Page for publishing a nanopublication.
+ */
 public class GenPublishPage extends ConnectorPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Mount path for this page.
+     */
     public static final String MOUNT_PATH = "/connector/publish";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the GenPublishPage.
+     *
+     * @param parameters Page parameters containing the necessary information to render the page.
+     */
     public GenPublishPage(final PageParameters parameters) {
         super(parameters);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Publish Nanopublication | nanodash"));
@@ -61,6 +75,11 @@ public class GenPublishPage extends ConnectorPage {
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Renders the head section of the page, including custom JavaScript functions.
+     */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);

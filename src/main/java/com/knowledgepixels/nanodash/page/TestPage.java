@@ -10,17 +10,33 @@ import org.nanopub.extra.services.ApiResponse;
 
 import java.util.HashMap;
 
+/**
+ * TestPage is a simple page to test the API response.
+ */
 public class TestPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     * This is used to access he page via URL.
+     */
     public static final String MOUNT_PATH = "/test";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for TestPage.
+     * Initializes the page with a title bar and an activity panel.
+     *
+     * @param parameters Page parameters
+     */
     public TestPage(final PageParameters parameters) {
         super(parameters);
 

@@ -6,17 +6,31 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+/**
+ * This page displays the ORCID linking status and provides information about the user's local introduction.
+ */
 public class OrcidLinkingPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/orcidlinking";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor that initializes the page with the user's ORCID linking status.
+     *
+     * @param parameters The page parameters, which may include user ID or other relevant data.
+     */
     public OrcidLinkingPage(final PageParameters parameters) {
         super(parameters);
 

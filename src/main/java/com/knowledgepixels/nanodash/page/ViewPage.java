@@ -6,17 +6,31 @@ import com.knowledgepixels.nanodash.component.NanopubItem;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 
+/**
+ * ViewPage is the page that displays a single nanopublication.
+ */
 public class ViewPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/view";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the ViewPage.
+     *
+     * @param parameters The page parameters containing the nanopub ID and display options.
+     */
     public ViewPage(final PageParameters parameters) {
         super(parameters);
         addNanopubItem(this, parameters);

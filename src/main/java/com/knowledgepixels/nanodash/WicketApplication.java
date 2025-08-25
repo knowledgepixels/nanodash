@@ -27,10 +27,22 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
+/**
+ * WicketApplication is the main application class for the Nanodash web application.
+ * It initializes the application, mounts pages, and provides version information.
+ */
 public class WicketApplication extends WebApplication {
 
+    /**
+     * URL to fetch the latest release information from GitHub.
+     * This URL points to the releases of the Nanodash repository.
+     */
     public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
 
+    /**
+     * Constructor for the WicketApplication.
+     * Displays version information and provides instructions for accessing the application.
+     */
     public WicketApplication() {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             try {
@@ -57,10 +69,20 @@ public class WicketApplication extends WebApplication {
         System.err.println("");
     }
 
+    /**
+     * Returns the home page class for the application.
+     *
+     * @return The HomePage class.
+     */
     public Class<HomePage> getHomePage() {
         return HomePage.class;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Initializes the application settings and mounts pages.
+     */
     @Override
     protected void init() {
         super.init();
@@ -115,6 +137,11 @@ public class WicketApplication extends WebApplication {
         getCspSettings().blocking().disabled();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the runtime configuration type for the application.
+     */
     @Override
     public RuntimeConfigurationType getConfigurationType() {
         return RuntimeConfigurationType.DEPLOYMENT;
@@ -123,6 +150,11 @@ public class WicketApplication extends WebApplication {
 
     private static String latestVersion = null;
 
+    /**
+     * Retrieves the latest version of the application from the GitHub API.
+     *
+     * @return The latest version as a string.
+     */
     public static String getLatestVersion() {
         if (latestVersion != null) return latestVersion;
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
@@ -130,7 +162,6 @@ public class WicketApplication extends WebApplication {
             int c = resp.getStatusLine().getStatusCode();
             if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()))) {
-                ;
                 while (reader.ready()) {
                     String line = reader.readLine();
                     // TODO: Do proper JSON parsing
@@ -146,6 +177,9 @@ public class WicketApplication extends WebApplication {
         return latestVersion;
     }
 
+    /**
+     * Properties object to hold application properties.
+     */
     public final static Properties properties = new Properties();
 
     static {
@@ -156,10 +190,18 @@ public class WicketApplication extends WebApplication {
         }
     }
 
+    /**
+     * Retrieves the current version of the application.
+     *
+     * @return The current version as a string.
+     */
     public static String getThisVersion() {
         return properties.getProperty("nanodash.version");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Session newSession(Request request, Response response) {
         return new NanodashSession(request);

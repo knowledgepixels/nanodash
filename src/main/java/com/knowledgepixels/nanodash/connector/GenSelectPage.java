@@ -18,17 +18,28 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.Arrays;
 
+/**
+ * Page for selecting the type of nanopublication to create.
+ */
 public class GenSelectPage extends ConnectorPage {
 
     // TODO This page isn't linked yet, and only for testing so far.
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Mount path for this page.
+     */
     public static final String MOUNT_PATH = "/connector/select";
 
     private Form<?> form;
     private RadioGroup<String> radioGroup;
 
+    /**
+     * Constructor for the GenSelectPage.
+     *
+     * @param params Page parameters containing the connector ID.
+     */
     public GenSelectPage(PageParameters params) {
         super(params);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
@@ -95,6 +106,11 @@ public class GenSelectPage extends ConnectorPage {
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the mount path for this page.
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;

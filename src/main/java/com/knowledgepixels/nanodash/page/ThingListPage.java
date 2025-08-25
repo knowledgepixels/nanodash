@@ -7,17 +7,31 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+/**
+ * Page to display a list of things (instances) for a given IRI.
+ */
 public class ThingListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/thinglist";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the ThingListPage.
+     *
+     * @param parameters Page parameters containing the IRI reference and mode.
+     */
     public ThingListPage(final PageParameters parameters) {
         super(parameters);
 

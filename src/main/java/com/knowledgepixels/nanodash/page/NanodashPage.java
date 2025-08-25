@@ -12,19 +12,34 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 
+/**
+ * Abstract base class for Nanodash pages.
+ * Provides functionality for auto-refreshing data and rendering JavaScript resources.
+ */
 public abstract class NanodashPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
 
-    private static long lastRefresh = 0l;
+    private static long lastRefresh = 0L;
     private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
     private static boolean refreshRunning = false;
 
-    private long state = 0l;
+    private long state = 0L;
 
+    private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
+
+    /**
+     * Returns the mount path for this page.
+     *
+     * @return the mount path as a String
+     */
     public abstract String getMountPath();
 
-
+    /**
+     * Constructor for NanodashPage.
+     *
+     * @param parameters the page parameters
+     */
     protected NanodashPage(PageParameters parameters) {
         super(parameters);
         ensureRefreshed();
@@ -63,10 +78,19 @@ public abstract class NanodashPage extends WebPage {
         }
     }
 
+    /**
+     * Checks if auto-refresh is enabled for this page.
+     * Override this method in subclasses to enable auto-refresh.
+     *
+     * @return true if auto-refresh is enabled, false otherwise
+     */
     protected boolean hasAutoRefreshEnabled() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onRender() {
         if (hasAutoRefreshEnabled() && state < lastRefresh) {
@@ -75,8 +99,11 @@ public abstract class NanodashPage extends WebPage {
         super.onRender();
     }
 
-    private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
-
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Renders the head section of the page, including JavaScript references.
+     */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);

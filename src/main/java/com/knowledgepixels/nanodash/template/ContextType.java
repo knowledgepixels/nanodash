@@ -1,5 +1,22 @@
 package com.knowledgepixels.nanodash.template;
 
+/**
+ * Enum representing different types of contexts in the application.
+ */
 public enum ContextType {
-    ASSERTION, PROVENANCE, PUBINFO
+
+    /**
+     * Represents an assertion context.
+     */
+    ASSERTION,
+
+    /**
+     * Represents a provenance context.
+     */
+    PROVENANCE,
+
+    /**
+     * Represents a publication information context.
+     */
+    PUBINFO
 }

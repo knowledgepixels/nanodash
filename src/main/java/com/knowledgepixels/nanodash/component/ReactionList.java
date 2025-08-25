@@ -14,10 +14,20 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+/**
+ * A panel that displays a list of reactions to a nanopublication.
+ */
 public class ReactionList extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a ReactionList panel.
+     *
+     * @param id   the component id
+     * @param resp the API response containing reaction data
+     * @param np   the nanopublication to which reactions are related
+     */
     public ReactionList(String id, ApiResponse resp, Nanopub np) {
         super(id);
 

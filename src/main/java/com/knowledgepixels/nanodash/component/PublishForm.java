@@ -54,6 +54,9 @@ import org.wicketstuff.select2.Select2Choice;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+/**
+ * Form for publishing a nanopublication.
+ */
 public class PublishForm extends Panel {
 
     private static final long serialVersionUID = 1L;
@@ -68,6 +71,9 @@ public class PublishForm extends Panel {
 
     private static String[] fixedPubInfoTemplates = new String[]{creatorPubinfoTemplateId, licensePubinfoTempalteId};
 
+    /**
+     * Fill modes for the nanopublication to be created.
+     */
     public enum FillMode {USE, SUPERSEDE, DERIVE}
 
     protected Form<?> form;
@@ -80,6 +86,14 @@ public class PublishForm extends Panel {
     private String targetNamespace;
     private Class<? extends WebPage> confirmPageClass;
 
+    /**
+     * Constructor for the PublishForm.
+     *
+     * @param id               the Wicket component ID
+     * @param pageParams       the parameters for the page, which may include information on how to fill the form
+     * @param publishPageClass the class of the page to redirect to after successful publication
+     * @param confirmPageClass the class of the confirmation page to show after publication
+     */
     public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass) {
         super(id);
         setOutputMarkupId(true);
@@ -788,6 +802,9 @@ public class PublishForm extends Panel {
         return c;
     }
 
+    /**
+     * Predicate for the nanopublication's assertion creation.
+     */
     public static final IRI WAS_CREATED_AT_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt");
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException {
@@ -902,6 +919,11 @@ public class PublishForm extends Panel {
         return null;
     }
 
+    /**
+     * Returns a hint whether the form is stateless or not.
+     *
+     * @return false if the form is stateful, true if it is stateless.
+     */
     // This is supposed to solve the problem that sometimes (but only sometimes) form content is reset
     // if the user browses other pages in parallel:
     protected boolean getStatelessHint() {

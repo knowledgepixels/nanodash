@@ -29,21 +29,47 @@ import java.util.*;
 
 import static com.knowledgepixels.nanodash.Utils.vf;
 
+/**
+ * The ProjectPage class represents a project page in the Nanodash application.
+ */
 public class ProjectPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/project";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * The predicate for the owner of the project.
+     */
     public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
+
+    /**
+     * The predicate for pinned templates in the project.
+     */
     public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
+
+    /**
+     * The predicate for pinned queries in the project.
+     */
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
+    /**
+     * Constructor for the ProjectPage.
+     *
+     * @param parameters the page parameters
+     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails
+     */
     public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
 
@@ -139,6 +165,11 @@ public class ProjectPage extends NanodashPage {
         });
     }
 
+    /**
+     * Checks if auto-refresh is enabled for this page.
+     *
+     * @return true if auto-refresh is enabled, false otherwise
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

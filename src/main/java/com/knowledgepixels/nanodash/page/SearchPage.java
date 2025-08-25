@@ -19,12 +19,21 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.time.Duration;
 import java.util.*;
 
+/**
+ * SearchPage allows users to search for nanopublications by URI or free text.
+ */
 public class SearchPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/search";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
@@ -37,6 +46,11 @@ public class SearchPage extends NanodashPage {
     private Map<String, String> pubKeyMap;
     private RadioChoice<String> pubkeySelection;
 
+    /**
+     * Constructor for SearchPage.
+     *
+     * @param parameters Page parameters containing the search query, filter option, and public key.
+     */
     public SearchPage(final PageParameters parameters) {
         super(parameters);
 
@@ -71,7 +85,7 @@ public class SearchPage extends NanodashPage {
         ArrayList<String> pubKeyList = new ArrayList<>();
         if (session.getUserIri() != null) {
             pubKeyMap = new HashMap<>();
-            String lKeyShort = Utils.getShortPubkeyhashLabel(session.getPubkeyhash(), session.getUserIri());
+            String lKeyShort = Utils.getShortPubkeyhashLabel(session.getPubkeyString(), session.getUserIri());
             pubKeyList.add(lKeyShort);
             pubKeyMap.put(lKeyShort, session.getPubkeyString());
             for (String pk : User.getPubkeyhashes(session.getUserIri(), null)) {

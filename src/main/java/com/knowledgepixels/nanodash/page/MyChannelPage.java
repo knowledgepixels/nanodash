@@ -6,17 +6,31 @@ import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+/**
+ * This page redirects the user to their channel page if they are logged in,
+ */
 public class MyChannelPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/mychannel";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor that redirects the user to their channel page or profile page.
+     *
+     * @param parameters The page parameters, which may include user ID or other relevant data.
+     */
     public MyChannelPage(final PageParameters parameters) {
         super(parameters);
         if (NanodashSession.get().getUserIri() != null) {

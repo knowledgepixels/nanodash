@@ -7,20 +7,33 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+/**
+ * Page to display a reference table for a given IRI.
+ */
 public class ReferenceTablePage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The mount path for this page.
+     */
     public static final String MOUNT_PATH = "/reftable";
-
 
     private final String ref;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getMountPath() {
         return MOUNT_PATH;
     }
 
+    /**
+     * Constructor for the ReferenceTablePage.
+     *
+     * @param parameters Page parameters containing the IRI reference.
+     */
     public ReferenceTablePage(final PageParameters parameters) {
         super(parameters);
 
@@ -34,6 +47,11 @@ public class ReferenceTablePage extends NanodashPage {
         add(ExploreDataTable.createComponent("table", ref, 0));
     }
 
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
     protected boolean hasAutoRefreshEnabled() {
         return true;
     }

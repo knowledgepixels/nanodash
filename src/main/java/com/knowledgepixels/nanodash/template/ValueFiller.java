@@ -15,6 +15,9 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 
 import java.util.*;
 
+/**
+ * ValueFiller is a utility class that processes a Nanopub and fills a TemplateContext.
+ */
 public class ValueFiller {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
@@ -25,10 +28,25 @@ public class ValueFiller {
     private int initialSize;
     private boolean formMode;
 
+    /**
+     * Constructor for ValueFiller.
+     *
+     * @param fillNp      the Nanopub to fill
+     * @param contextType the type of context to fill
+     * @param formMode    if true, the filler will adapt to form mode, filtering out certain statements
+     */
     public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode) {
         this(fillNp, contextType, formMode, null);
     }
 
+    /**
+     * Constructor for ValueFiller with specified fill mode.
+     *
+     * @param fillNp      the Nanopub to fill
+     * @param contextType the type of context to fill
+     * @param formMode    if true, the filler will adapt to form mode, filtering out certain statements
+     * @param fillMode    the fill mode to use, can be null for default behavior
+     */
     public ValueFiller(Nanopub fillNp, ContextType contextType, boolean formMode, FillMode fillMode) {
         this.fillNp = fillNp;
         this.formMode = formMode;
@@ -56,6 +74,11 @@ public class ValueFiller {
         initialSize = unusedStatements.size();
     }
 
+    /**
+     * Fills the TemplateContext with the unused statements.
+     *
+     * @param context the TemplateContext to fill
+     */
     public void fill(TemplateContext context) {
         try {
             context.fill(unusedStatements);
@@ -64,26 +87,58 @@ public class ValueFiller {
         }
     }
 
+    /**
+     * Checks if the Nanopub has any statements.
+     *
+     * @return true if there are statements, false otherwise
+     */
     public boolean hasStatements() {
         return initialSize > 0;
     }
 
+    /**
+     * Checks if there are any used statements in the Nanopub.
+     *
+     * @return true if there are used statements, false otherwise
+     */
     public boolean hasUsedStatements() {
         return unusedStatements.size() < initialSize;
     }
 
+    /**
+     * Checks if there are any unused statements in the Nanopub.
+     *
+     * @return true if there are unused statements, false otherwise
+     */
     public boolean hasUnusedStatements() {
         return unusedStatements.size() > 0;
     }
 
+    /**
+     * Returns the list of unused statements in the Nanopub.
+     *
+     * @return the list of unused statements
+     */
     public List<Statement> getUnusedStatements() {
         return unusedStatements;
     }
 
+    /**
+     * Removes a specific unused statement from the list.
+     *
+     * @param st the statement to remove
+     */
     public void removeUnusedStatement(Statement st) {
         unusedStatements.remove(st);
     }
 
+    /**
+     * Removes unused statements based on the specified subject, predicate, and object.
+     *
+     * @param subj the subject to match, can be null
+     * @param pred the predicate to match, can be null
+     * @param obj  the object to match, can be null
+     */
     public void removeUnusedStatements(IRI subj, IRI pred, Value obj) {
         for (Statement st : new ArrayList<>(unusedStatements)) {
             if (subj != null && !st.getSubject().equals(subj)) continue;
@@ -93,7 +148,7 @@ public class ValueFiller {
         }
     }
 
-    private Statement transform(Statement st) {
+    Statement transform(Statement st) {
         if (formMode && st.getContext().equals(fillNp.getPubinfoUri())) {
             IRI pred = st.getPredicate();
             // TODO We might want to filter some of these out afterwards in PublishForm, to be more precise:
@@ -128,7 +183,7 @@ public class ValueFiller {
                 (Resource) transform(st.getContext()));
     }
 
-    private Value transform(Value v) {
+    Value transform(Value v) {
         if (fillNp.getUri().equals(v)) {
             return vf.createIRI("local:nanopub");
 //			return Template.NANOPUB_PLACEHOLDER;

@@ -6,31 +6,63 @@ import org.nanopub.extra.services.FailedApiCallException;
 
 import java.util.*;
 
+/**
+ * A utility class for caching API responses and maps to reduce redundant API calls.
+ * This class is thread-safe and ensures that cached data is refreshed periodically.
+ */
 public class ApiCache {
 
     private ApiCache() {
-    }  // no instances allowed
+    } // no instances allowed
 
     private transient static Map<String, ApiResponse> cachedResponses = new HashMap<>();
     private transient static Map<String, Map<String, String>> cachedMaps = new HashMap<>();
     private transient static Map<String, Long> lastRefresh = new HashMap<>();
     private transient static Map<String, Long> refreshStart = new HashMap<>();
 
+    /**
+     * Checks if a cache refresh is currently running for the given cache ID.
+     *
+     * @param cacheId The unique identifier for the cache.
+     * @return True if a refresh is running, false otherwise.
+     */
     private static boolean isRunning(String cacheId) {
         if (!refreshStart.containsKey(cacheId)) return false;
         return System.currentTimeMillis() - refreshStart.get(cacheId) < 60 * 1000;
     }
 
+    /**
+     * Checks if a cache refresh is running for a specific query and parameters.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return True if a refresh is running, false otherwise.
+     */
     public static boolean isRunning(String queryName, Map<String, String> params) {
         return isRunning(getCacheId(queryName, params));
     }
 
+    /**
+     * Checks if a cache refresh is running for a specific query and a single parameter.
+     *
+     * @param queryName  The name of the query.
+     * @param paramName  The name of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return True if a refresh is running, false otherwise.
+     */
     public static boolean isRunning(String queryName, String paramName, String paramValue) {
         Map<String, String> params = new HashMap<>();
         params.put(paramName, paramValue);
         return isRunning(getCacheId(queryName, params));
     }
 
+    /**
+     * Updates the cached API response for a specific query and parameters.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @throws FailedApiCallException If the API call fails.
+     */
     private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException {
         Map<String, String> nanopubParams = new HashMap<>();
         for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
@@ -40,12 +72,28 @@ public class ApiCache {
         lastRefresh.put(cacheId, System.currentTimeMillis());
     }
 
+    /**
+     * Retrieves a cached API response for a specific query and a single parameter.
+     *
+     * @param queryName  The name of the query.
+     * @param paramName  The name of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return The cached API response, or null if not cached.
+     */
     public static ApiResponse retrieveResponse(String queryName, String paramName, String paramValue) {
         Map<String, String> params = new HashMap<>();
         params.put(paramName, paramValue);
         return retrieveResponse(queryName, params);
     }
 
+    /**
+     * Retrieves a cached API response for a specific query and parameters.
+     * If the cache is stale, it triggers a background refresh.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return The cached API response, or null if not cached.
+     */
     public static synchronized ApiResponse retrieveResponse(final String queryName, final Map<String, String> params) {
         long timeNow = System.currentTimeMillis();
         String cacheId = getCacheId(queryName, params);
@@ -59,7 +107,6 @@ public class ApiCache {
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
             new Thread() {
-
                 @Override
                 public void run() {
                     try {
@@ -77,7 +124,6 @@ public class ApiCache {
                         refreshStart.remove(cacheId);
                     }
                 }
-
             }.start();
         }
         if (isCached) {
@@ -91,6 +137,13 @@ public class ApiCache {
         }
     }
 
+    /**
+     * Updates the cached map for a specific query and parameters.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @throws FailedApiCallException If the API call fails.
+     */
     private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException {
         Map<String, String> map = new HashMap<>();
         Map<String, String> nanopubParams = new HashMap<>();
@@ -105,6 +158,14 @@ public class ApiCache {
         lastRefresh.put(cacheId, System.currentTimeMillis());
     }
 
+    /**
+     * Retrieves a cached map for a specific query and parameters.
+     * If the cache is stale, it triggers a background refresh.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return The cached map, or null if not cached.
+     */
     public static synchronized Map<String, String> retrieveMap(String queryName, Map<String, String> params) {
         long timeNow = System.currentTimeMillis();
         String cacheId = getCacheId(queryName, params);
@@ -118,7 +179,6 @@ public class ApiCache {
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
             new Thread() {
-
                 @Override
                 public void run() {
                     try {
@@ -136,7 +196,6 @@ public class ApiCache {
                         refreshStart.remove(cacheId);
                     }
                 }
-
             }.start();
         }
         if (isCached) {
@@ -150,6 +209,12 @@ public class ApiCache {
         }
     }
 
+    /**
+     * Converts a map of parameters to a sorted string representation.
+     *
+     * @param params The map of parameters.
+     * @return A string representation of the parameters.
+     */
     private static String paramsToString(Map<String, String> params) {
         List<String> keys = new ArrayList<>(params.keySet());
         Collections.sort(keys);
@@ -158,8 +223,14 @@ public class ApiCache {
         return s;
     }
 
+    /**
+     * Generates a unique cache ID for a specific query and parameters.
+     *
+     * @param queryName The name of the query.
+     * @param params    The parameters for the query.
+     * @return The unique cache ID.
+     */
     public static String getCacheId(String queryName, Map<String, String> params) {
         return queryName + " " + paramsToString(params);
     }
-
 }

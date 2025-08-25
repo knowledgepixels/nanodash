@@ -11,20 +11,34 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Singleton class that manages templates data.
+ */
 public class TemplateData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private static TemplateData instance;
 
+    /**
+     * Refreshes the templates data by creating a new instance of TemplateData.
+     */
     public static void refreshTemplates() {
         instance = new TemplateData();
     }
 
+    /**
+     * Ensures that the TemplateData instance is loaded.
+     */
     public static synchronized void ensureLoaded() {
         if (instance == null) refreshTemplates();
     }
 
+    /**
+     * Gets the singleton instance of TemplateData.
+     *
+     * @return the TemplateData instance
+     */
     public static TemplateData get() {
         ensureLoaded();
         return instance;
@@ -33,6 +47,9 @@ public class TemplateData implements Serializable {
     private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
     private Map<String, Template> templateMap;
 
+    /**
+     * Constructor to initialize the TemplateData instance.
+     */
     public TemplateData() {
         assertionTemplates = new ArrayList<>();
         provenanceTemplates = new ArrayList<>();
@@ -57,18 +74,39 @@ public class TemplateData implements Serializable {
         Collections.sort(templates, templateComparator);
     }
 
+    /**
+     * Returns the list of assertion templates.
+     *
+     * @return a list of assertion templates
+     */
     public List<ApiResponseEntry> getAssertionTemplates() {
         return assertionTemplates;
     }
 
+    /**
+     * Returns the list of provenance templates.
+     *
+     * @return a list of provenance templates
+     */
     public List<ApiResponseEntry> getProvenanceTemplates() {
         return provenanceTemplates;
     }
 
+    /**
+     * Returns the list of publication information templates.
+     *
+     * @return a list of publication information templates
+     */
     public List<ApiResponseEntry> getPubInfoTemplates() {
         return pubInfoTemplates;
     }
 
+    /**
+     * Returns a Template object for the given template ID.
+     *
+     * @param id the ID of the template
+     * @return the Template object if found, or null if not found or invalid
+     */
     public Template getTemplate(String id) {
         Template template = templateMap.get(id);
         if (template != null) return template;
@@ -91,12 +129,24 @@ public class TemplateData implements Serializable {
         return getTemplate(templateId.stringValue());
     }
 
+    /**
+     * Returns a Template object for the provenance template of the given Nanopub.
+     *
+     * @param np the Nanopub from which to extract the provenance template
+     * @return the Template object if found, or null if not found or invalid
+     */
     public Template getProvenanceTemplate(Nanopub np) {
         IRI templateId = getProvenanceTemplateId(np);
         if (templateId == null) return null;
         return getTemplate(templateId.stringValue());
     }
 
+    /**
+     * Returns a set of Template objects for the publication information templates of the given Nanopub.
+     *
+     * @param np the Nanopub from which to extract the publication information templates
+     * @return a set of Template objects
+     */
     public Set<Template> getPubinfoTemplates(Nanopub np) {
         Set<Template> templates = new HashSet<>();
         for (IRI id : getPubinfoTemplateIds(np)) {
@@ -105,6 +155,12 @@ public class TemplateData implements Serializable {
         return templates;
     }
 
+    /**
+     * Returns the template ID of the given Nanopub.
+     *
+     * @param nanopub the Nanopub from which to extract the template ID
+     * @return the IRI of the template ID, or null if not found
+     */
     public IRI getTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
@@ -115,6 +171,12 @@ public class TemplateData implements Serializable {
         return null;
     }
 
+    /**
+     * Returns the provenance template ID of the given Nanopub.
+     *
+     * @param nanopub the Nanopub from which to extract the provenance template ID
+     * @return the IRI of the provenance template ID, or null if not found
+     */
     public IRI getProvenanceTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
@@ -125,6 +187,12 @@ public class TemplateData implements Serializable {
         return null;
     }
 
+    /**
+     * Returns the set of publication information template IDs for the given Nanopub.
+     *
+     * @param nanopub the Nanopub from which to extract the publication information template IDs
+     * @return a set of IRI objects representing the publication information template IDs
+     */
     public Set<IRI> getPubinfoTemplateIds(Nanopub nanopub) {
         Set<IRI> iriSet = new HashSet<>();
         for (Statement st : nanopub.getPubinfo()) {
@@ -143,6 +211,13 @@ public class TemplateData implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Compares two Template objects based on their labels.
+         *
+         * @param o1 the first object to be compared.
+         * @param o2 the second object to be compared.
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+         */
         @Override
         public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
             return o1.get("label").compareTo(o2.get("label"));

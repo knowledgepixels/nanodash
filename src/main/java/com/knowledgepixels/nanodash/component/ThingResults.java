@@ -14,10 +14,22 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A panel that displays a list of things (e.g., nanopublications, entities) based on an API response.
+ */
 public class ThingResults extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new ThingResults panel.
+     *
+     * @param id          the Wicket component ID
+     * @param thingField  the field in the API response that contains the thing ID
+     * @param apiResponse the API response containing the data
+     * @param limit       the maximum number of items to display; if 0, all items are displayed
+     * @return a ThingResults instance populated with the data from the API response
+     */
     public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse, int limit) {
         List<ApiResponseEntry> list = apiResponse.getData();
         if (limit > 0 && list.size() > limit) {

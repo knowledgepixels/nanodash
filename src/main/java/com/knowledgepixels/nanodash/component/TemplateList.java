@@ -16,10 +16,18 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * A list of templates, grouped by topic.
+ */
 public class TemplateList extends Panel {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * A list of templates, grouped by topic.
+     *
+     * @param id the wicket id of this component
+     */
     public TemplateList(String id) {
         super(id);
 
