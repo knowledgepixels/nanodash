@@ -97,7 +97,7 @@ public class ChannelPage extends NanodashPage {
             protected void onUpdate(AjaxRequestTarget target) {
                 logger.info("PUBKEYS SELECTED:");
                 for (String s : selected.getObject()) {
-                    logger.info(" " + pubKeyMap.get(s));
+                    logger.info(" {}", pubKeyMap.get(s));
                 }
                 logger.info("\n");
                 refresh();

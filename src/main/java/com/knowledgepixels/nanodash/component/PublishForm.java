@@ -221,7 +221,7 @@ public class PublishForm extends Panel {
             TemplateContext c = createPubinfoContext(tid);
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
-                logger.error("ERROR: pitemplate param identifier assigned multiple times: " + i);
+                logger.error("ERROR: pitemplate param identifier assigned multiple times: {}", i);
             }
             piParamIdMap.put(i, c);
         }
@@ -242,7 +242,7 @@ public class PublishForm extends Panel {
                 Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
                 if (!piParamIdMap.containsKey(i)) {
                     // TODO: handle this error better
-                    logger.error("ERROR: pitemplate param identifier not found: " + i);
+                    logger.error("ERROR: pitemplate param identifier not found: {}", i);
                     continue;
                 }
                 String n = k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1");
@@ -406,12 +406,12 @@ public class PublishForm extends Panel {
                 Nanopub signedNp = null;
                 try {
                     Nanopub np = createNanopub();
-                    logger.info("Nanopublication created: " + np.getUri());
+                    logger.info("Nanopublication created: {}", np.getUri());
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
-                    logger.info("Nanopublication signed: " + signedNp.getUri());
+                    logger.info("Nanopublication signed: {}", signedNp.getUri());
                     String npUrl = PublishNanopub.publish(signedNp);
-                    logger.info("Nanopublication published: " + npUrl);
+                    logger.info("Nanopublication published: {}", npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
                     ex.printStackTrace();
