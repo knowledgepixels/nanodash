@@ -199,13 +199,13 @@ public class ProfileIntroItem extends Panel {
                     item.add(new ExternalLink("include-keys-link", ".", "").setVisible(false));
                 }
 
-                item.add(new DataView<KeyDeclaration>("intro-keys", new ListDataProvider<KeyDeclaration>(inp.getKeyDeclarations())) {
+                item.add(new DataView<>("intro-keys", new ListDataProvider<>(inp.getKeyDeclarations())) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(Item<KeyDeclaration> kdi) {
-                        kdi.add(new Label("intro-key", Utils.getShortPubkeyName(kdi.getModelObject().getPublicKeyString())));
+                        kdi.add(new Label("intro-key", Utils.getShortPubkeyName(Utils.createSha256HexHash(kdi.getModelObject().getPublicKeyString()))));
                     }
 
                 });

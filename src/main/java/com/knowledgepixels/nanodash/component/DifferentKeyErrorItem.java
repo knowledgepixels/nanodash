@@ -22,8 +22,8 @@ public class DifferentKeyErrorItem extends Panel {
     public DifferentKeyErrorItem(String id, final PageParameters parameters) {
         super(id);
         final NanodashSession session = NanodashSession.get();
-        add(new Label("linkkey", Utils.getShortPubkeyName(parameters.get("sigkey").toString())));
-        add(new Label("localkey", Utils.getShortPubkeyName(session.getPubkeyString())));
+        add(new Label("linkkey", Utils.getShortPubkeyName(Utils.createSha256HexHash(parameters.get("sigkey").toString()))));
+        add(new Label("localkey", Utils.getShortPubkeyName(session.getPubkeyhash())));
     }
 
 }

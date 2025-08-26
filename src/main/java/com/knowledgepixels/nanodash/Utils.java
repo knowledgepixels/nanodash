@@ -109,6 +109,12 @@ public class Utils {
         }
     }
 
+    /**
+     * Generates a short name for a public key or public key hash.
+     *
+     * @param pubkeyOrPubkeyhash the public key (64 characters) or public key hash (40 characters)
+     * @return a short representation of the public key or public key hash
+     */
     public static String getShortPubkeyName(String pubkeyOrPubkeyhash) {
         if (pubkeyOrPubkeyhash.length() == 64) {
             return pubkeyOrPubkeyhash.replaceFirst("^(.{8}).*$", "$1");
@@ -379,7 +385,7 @@ public class Utils {
     }
 
     /**
-     * Creates a SHA-256 hash of the string representation of an object and returns it as a hexadecimal string.
+     * Creates an SHA-256 hash of the string representation of an object and returns it as a hexadecimal string.
      *
      * @param obj the object to hash
      * @return the SHA-256 hash of the object's string representation in hexadecimal format
@@ -632,12 +638,12 @@ public class Utils {
      * @return Nanopub Registry URL
      */
     public static String getMainRegistryUrl() {
-    	try {
-			return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
-		} catch (IOException ex) {
-			ex.printStackTrace();
-			return "https://registry.knowledgepixels.com/";
-		}
+        try {
+            return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return "https://registry.knowledgepixels.com/";
+        }
     }
 
 }
