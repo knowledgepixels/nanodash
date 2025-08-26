@@ -1,16 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.RestrictedChoice;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
-import net.trustyuri.TrustyUriUtils;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -31,10 +25,18 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
+import com.knowledgepixels.nanodash.RestrictedChoice;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * ReadonlyItem is a component that displays a read-only item in the form.
@@ -49,8 +51,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private TemplateContext context;
     private String prefix;
     private ExternalLink linkComp;
-    private Label extraComp;
-    private IModel<String> extraModel;
+    private Label extraComp, languageComp, datatypeComp;
+    private IModel<String> extraModel, languageModel, datatypeModel;
     private IRI iri;
     private RestrictedChoice restrictedChoice;
     private final Template template;
@@ -231,6 +233,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         extraComp = new Label("extra", extraModel);
         extraComp.setVisible(false);
         add(extraComp);
+        languageModel = Model.of("");
+        languageComp = new Label("language", languageModel);
+        languageComp.setVisible(false);
+        add(languageComp);
+        datatypeModel = Model.of("");
+        datatypeComp = new Label("datatype", datatypeModel);
+        datatypeComp.setVisible(false);
+        add(datatypeComp);
     }
 
     /**
@@ -350,9 +360,20 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 return true;
             }
             return vs.equals(model.getObject());
-        } else if (v instanceof Literal) {
+        } else if (v instanceof Literal vL) {
             if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
                 return false;
+            }
+            String language = template.getLanguageAttribute(iri);
+            IRI datatype = template.getDatatype(iri);
+            if (language != null) {
+                if (!vL.getLanguage().isPresent() || !vL.getLanguage().get().toLowerCase().equals(language)) {
+                    return false;
+                }
+            } else if (datatype != null) {
+                if (!vL.getDatatype().equals(datatype)) {
+                    return false;
+                }
             }
             if (linkComp.getDefaultModelObject() == null || linkComp.getDefaultModelObject().toString().isEmpty()) {
                 return true;
@@ -388,8 +409,18 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 vs = Utils.urlDecode(vs);
             }
             model.setObject(vs);
-        } else if (v instanceof Literal) {
-            model.setObject("\"" + vs + "\"");
+        } else if (v instanceof Literal vL) {
+            if (vL.getLanguage().isPresent()) {
+                model.setObject("\"" + vs + "\"");
+                languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
+                languageComp.setVisible(true);
+            } else if (!vL.getDatatype().stringValue().equals("http://www.w3.org/2001/XMLSchema#string")) {
+                model.setObject("\"" + vs + "\"");
+                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace("http://www.w3.org/2001/XMLSchema#", "xsd:") + ")");
+                datatypeComp.setVisible(true);
+            } else {
+                model.setObject("\"" + vs + "\"");
+            }
             // TODO Didn't manage to encode this into a working regex:
             if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
                 linkComp.setVisible(false);

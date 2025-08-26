@@ -327,9 +327,18 @@ public class TemplateContext implements Serializable {
             String prefix = Utils.getUriPrefix(iri);
             processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
         } else if (template.isLiteralPlaceholder(iri)) {
+            IRI datatype = template.getDatatype(iri);
+            String language = template.getLanguageAttribute(iri);
             if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                processedValue = vf.createLiteral(tf.getObject());
+                if (datatype != null) {
+                    processedValue = vf.createLiteral(tf.getObject(), datatype);
+                } else if (language != null) {
+                    processedValue = vf.createLiteral(tf.getObject(), language);
+                } else {
+                    processedValue = vf.createLiteral(tf.getObject());
+                }
             }
+        
         } else if (template.isValuePlaceholder(iri)) {
             if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
                 if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {

@@ -1,10 +1,18 @@
 package com.knowledgepixels.nanodash.template;
 
-import com.knowledgepixels.nanodash.LookupApis;
-import com.knowledgepixels.nanodash.Utils;
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.rdf4j.common.exception.RDF4JException;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -13,8 +21,10 @@ import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.LookupApis;
+import com.knowledgepixels.nanodash.Utils;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Represents a template for creating nanopublications.
@@ -165,6 +175,16 @@ public class Template implements Serializable {
     public static final IRI POSSIBLE_VALUES_FROM_API_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleValuesFromApi");
 
     /**
+     * Predicate indicating a datatype for a literal placeholder.
+     */
+    public static final IRI HAS_DATATYPE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasDatatype");
+
+    /**
+     * Predicate indicating the language attribute for a literal placeholder.
+     */
+    public static final IRI HAS_LANGUATE_ATTRIBUTE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLanguageAttribute");
+
+    /**
      * Predicate indicating a prefix.
      */
     public static final IRI HAS_PREFIX_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasPrefix");
@@ -255,6 +275,8 @@ public class Template implements Serializable {
     private Map<IRI, List<IRI>> possibleValuesToLoadMap = new HashMap<>();
     private Map<IRI, List<String>> apiMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
+    private Map<IRI, IRI> datatypeMap = new HashMap<>();
+    private Map<IRI, String> languageAttributeMap = new HashMap<>();
     private Map<IRI, String> prefixMap = new HashMap<>();
     private Map<IRI, String> prefixLabelMap = new HashMap<>();
     private Map<IRI, String> regexMap = new HashMap<>();
@@ -368,10 +390,32 @@ public class Template implements Serializable {
     }
 
     /**
-     * Transforms an IRI by removing the artifact code if it is present.
+     * Returns the datatype for the given literal placeholder IRI.
      *
-     * @param iri the IRI to transform.
-     * @return the transformed IRI, or the original IRI if no transformation is needed.
+     * @param iri the literal placeholder IRI.
+     * @return the datatype for the literal.
+     */
+    public IRI getDatatype(IRI iri) {
+        iri = transform(iri);
+        return datatypeMap.get(iri);
+    }
+
+    /**
+     * Returns the language attribute for the given literal placeholder IRI.
+     *
+     * @param iri the literal placeholder IRI.
+     * @return the language attribute for the literal.
+     */
+    public String getLanguageAttribute(IRI iri) {
+        iri = transform(iri);
+        return languageAttributeMap.get(iri);
+    }
+
+    /**
+     * Returns the prefix for the given IRI.
+     *
+     * @param iri the IRI.
+     * @return the prefix for the IRI.
      */
     public String getPrefix(IRI iri) {
         iri = transform(iri);
@@ -892,6 +936,10 @@ public class Template implements Serializable {
                 }
             } else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
                 labelMap.put(subj, objS);
+            } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
+            	datatypeMap.put(subj, objIri);
+            } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
+            	languageAttributeMap.put(subj, objS.toLowerCase());
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
@@ -1035,6 +1083,10 @@ public class Template implements Serializable {
                 }
             } else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
                 labelMap.put(subj, objS);
+            } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
+            	datatypeMap.put(subj, objIri);
+            } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
+            	languageAttributeMap.put(subj, objS.toLowerCase());
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {

@@ -919,6 +919,16 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo { padding:
   white-space: pre-wrap;
 }
 
+.litlang {
+  font-size: 9pt !important;
+  color: #0006 !important;
+}
+
+.litdatatype {
+  font-size: 9pt !important;
+  color: #0006 !important;
+}
+
 /*
 .this-assertion {
   background: #99ccff;
