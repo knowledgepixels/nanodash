@@ -22,6 +22,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
@@ -367,7 +368,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             String language = template.getLanguageAttribute(iri);
             IRI datatype = template.getDatatype(iri);
             if (language != null) {
-                if (!vL.getLanguage().isPresent() || !vL.getLanguage().get().toLowerCase().equals(language)) {
+                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(language)) {
                     return false;
                 }
             } else if (datatype != null) {

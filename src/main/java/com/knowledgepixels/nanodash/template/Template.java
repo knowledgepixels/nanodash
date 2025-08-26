@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -939,7 +940,7 @@ public class Template implements Serializable {
             } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
             	datatypeMap.put(subj, objIri);
             } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
-            	languageAttributeMap.put(subj, objS.toLowerCase());
+            	languageAttributeMap.put(subj, Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
@@ -1086,7 +1087,7 @@ public class Template implements Serializable {
             } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
             	datatypeMap.put(subj, objIri);
             } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
-            	languageAttributeMap.put(subj, objS.toLowerCase());
+            	languageAttributeMap.put(subj,  Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
