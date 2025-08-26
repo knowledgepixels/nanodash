@@ -2,11 +2,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<meta charset="utf-8" />
-<title wicket:id="pagetitle">... (type) | nanodash</title>
-<link rel="stylesheet" href="style.css?v=3.48" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <meta charset="utf-8"/>
+  <title wicket:id="pagetitle">... (type) | nanodash</title>
+  <link rel="stylesheet" href="style.css?v=3.48" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
@@ -15,18 +16,18 @@
 
 <div id="content-pane">
 
-<div class="row-section">
-<div class="col-12">
+  <div class="row-section">
+    <div class="col-12">
 
-<h2>Latest Nanopublications of Type: <span wicket:id="type"></span></h2>
+      <h2>Latest Nanopublications of Type: <span wicket:id="type"></span></h2>
 
-<p>Full type identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
+      <p>Full type identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
 
-<div wicket:id="nanopubs">
-</div>
+      <div class="flex-container" wicket:id="nanopubs">
+      </div>
 
-</div>
-</div>
+    </div>
+  </div>
 
 </div>
 
