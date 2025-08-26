@@ -1,6 +1,9 @@
 *~
 *.bak
 .idea/
+.settings/
+.classpath
+.project
 /docker-compose.override.yml
 /local-data
 /target
