@@ -64,7 +64,7 @@ public abstract class NanodashPage extends WebPage {
 //							ex.printStackTrace();
 //						}
                         try {
-                            logger.info("Refreshing...");
+                            logger.info("Refreshing ...");
                             User.refreshUsers();
                             TemplateData.refreshTemplates();
                             logger.info("Refreshing done.");

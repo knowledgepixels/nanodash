@@ -66,7 +66,7 @@ public class UserData implements Serializable {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
             setting = new NanopubSetting(GetNanopub.get(settingId));
         }
-        logger.info("Using nanopublication setting: " + settingId);
+        logger.info("Using nanopublication setting: {}", settingId);
 
 //		// Get users that are listed directly in the authority index, and consider them approved:
 //		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here

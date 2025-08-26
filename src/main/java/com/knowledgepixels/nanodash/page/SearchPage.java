@@ -130,11 +130,11 @@ public class SearchPage extends NanodashPage {
                     if (s != null) {
                         s = s.trim();
                         if (s.matches("https?://[^\\s]+")) {
-                            logger.info("URI QUERY: " + s);
+                            logger.info("URI QUERY: {}", s);
                             nanopubParams.put("ref", s);
                             if (Boolean.TRUE.equals(filterCheck)) {
                                 String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
-                                logger.info("Filter for PUBKEY: " + pubkey);
+                                logger.info("Filter for PUBKEY: {}", pubkey);
                                 nanopubParams.put("pubkey", pubkey);
                             }
                             try {
@@ -147,11 +147,11 @@ public class SearchPage extends NanodashPage {
                         } else {
                             String freeTextQuery = getFreeTextQuery(s);
                             if (!freeTextQuery.isEmpty()) {
-                                logger.info("FREE TEXT QUERY: " + freeTextQuery);
+                                logger.info("FREE TEXT QUERY: {}", freeTextQuery);
                                 nanopubParams.put("query", freeTextQuery);
                                 if (filterCheck != null && Boolean.TRUE.equals(filterCheck)) {
                                     String pubkey = pubKeyMap.get(pubkeySelection.getModelObject());
-                                    logger.info("Filter for PUBKEY: " + pubkey);
+                                    logger.info("Filter for PUBKEY: {}", pubkey);
                                     nanopubParams.put("pubkey", pubkey);
                                 }
                                 try {

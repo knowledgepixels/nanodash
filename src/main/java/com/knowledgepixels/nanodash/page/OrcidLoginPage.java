@@ -104,11 +104,11 @@ public class OrcidLoginPage extends WebPage {
                 OrcidLoginResponse r = OrcidLoginResponse.fromJson(respString);
 //				rs.cookie("orcid", r.getOrcid());
 //				rs.cookie("orcid-access-token", r.getAccessToken());
-                logger.info("User logged in: " + r.getOrcid());
+                logger.info("User logged in: {}", r.getOrcid());
                 NanodashSession.get().setOrcid(r.getOrcid());
             } else {
                 // Something went wrong
-                logger.error(statusCode + " " + response.getStatusLine().getReasonPhrase());
+                logger.error("{} {}", statusCode, response.getStatusLine().getReasonPhrase());
                 logger.error(IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8));
             }
         } catch (UnsupportedOperationException | IOException ex) {

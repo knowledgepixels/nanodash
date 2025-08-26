@@ -99,10 +99,10 @@ public class ExplorePage extends NanodashPage {
             } catch (Exception ex) {
             }
             if (!mimeType.equals(Utils.TYPE_HTML)) {
-                logger.info("Non-HTML content type: " + mimeType);
+                logger.info("Non-HTML content type: {}", mimeType);
                 // TODO Make this registry URL configurable/dynamic:
                 String redirectUrl = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
-                logger.info("Redirecting to: " + redirectUrl);
+                logger.info("Redirecting to: {}", redirectUrl);
                 throw new RedirectToUrlException(redirectUrl, 302);
             }
 
