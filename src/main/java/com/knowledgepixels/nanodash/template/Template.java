@@ -183,7 +183,7 @@ public class Template implements Serializable {
     /**
      * Predicate indicating the language attribute for a literal placeholder.
      */
-    public static final IRI HAS_LANGUATE_ATTRIBUTE_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLanguageAttribute");
+    public static final IRI HAS_LANGUAGE_TAG_PREDICATE = vf.createIRI("https://w3id.org/np/o/ntemplate/hasLanguageTag");
 
     /**
      * Predicate indicating a prefix.
@@ -277,7 +277,7 @@ public class Template implements Serializable {
     private Map<IRI, List<String>> apiMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private Map<IRI, IRI> datatypeMap = new HashMap<>();
-    private Map<IRI, String> languageAttributeMap = new HashMap<>();
+    private Map<IRI, String> languageTagMap = new HashMap<>();
     private Map<IRI, String> prefixMap = new HashMap<>();
     private Map<IRI, String> prefixLabelMap = new HashMap<>();
     private Map<IRI, String> regexMap = new HashMap<>();
@@ -402,14 +402,14 @@ public class Template implements Serializable {
     }
 
     /**
-     * Returns the language attribute for the given literal placeholder IRI.
+     * Returns the language tag for the given literal placeholder IRI.
      *
      * @param iri the literal placeholder IRI.
-     * @return the language attribute for the literal.
+     * @return the language tag for the literal.
      */
-    public String getLanguageAttribute(IRI iri) {
+    public String getLanguageTag(IRI iri) {
         iri = transform(iri);
-        return languageAttributeMap.get(iri);
+        return languageTagMap.get(iri);
     }
 
     /**
@@ -939,8 +939,8 @@ public class Template implements Serializable {
                 labelMap.put(subj, objS);
             } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
             	datatypeMap.put(subj, objIri);
-            } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
-            	languageAttributeMap.put(subj, Literals.normalizeLanguageTag(objS));
+            } else if (pred.equals(HAS_LANGUAGE_TAG_PREDICATE) && obj instanceof Literal) {
+            	languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {
@@ -1086,8 +1086,8 @@ public class Template implements Serializable {
                 labelMap.put(subj, objS);
             } else if (pred.equals(HAS_DATATYPE_PREDICATE) && obj instanceof IRI objIri) {
             	datatypeMap.put(subj, objIri);
-            } else if (pred.equals(HAS_LANGUATE_ATTRIBUTE_PREDICATE) && obj instanceof Literal) {
-            	languageAttributeMap.put(subj,  Literals.normalizeLanguageTag(objS));
+            } else if (pred.equals(HAS_LANGUAGE_TAG_PREDICATE) && obj instanceof Literal) {
+            	languageTagMap.put(subj,  Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(HAS_PREFIX_PREDICATE) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
             } else if (pred.equals(HAS_PREFIX_LABEL_PREDICATE) && obj instanceof Literal) {

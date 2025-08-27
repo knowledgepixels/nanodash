@@ -328,12 +328,12 @@ public class TemplateContext implements Serializable {
             processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
-            String language = template.getLanguageAttribute(iri);
+            String languagetag = template.getLanguageTag(iri);
             if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
                 if (datatype != null) {
                     processedValue = vf.createLiteral(tf.getObject(), datatype);
-                } else if (language != null) {
-                    processedValue = vf.createLiteral(tf.getObject(), language);
+                } else if (languagetag != null) {
+                    processedValue = vf.createLiteral(tf.getObject(), languagetag);
                 } else {
                     processedValue = vf.createLiteral(tf.getObject());
                 }

@@ -365,10 +365,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
                 return false;
             }
-            String language = template.getLanguageAttribute(iri);
+            String languagetag = template.getLanguageTag(iri);
             IRI datatype = template.getDatatype(iri);
-            if (language != null) {
-                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(language)) {
+            if (languagetag != null) {
+                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
                     return false;
                 }
             } else if (datatype != null) {
