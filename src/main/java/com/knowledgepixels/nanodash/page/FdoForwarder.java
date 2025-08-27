@@ -6,6 +6,7 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
+import org.nanopub.vocabulary.FDOF;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,10 +49,10 @@ public class FdoForwarder extends NanodashPage {
                 String subj = st.getSubject().stringValue();
                 String pred = st.getPredicate().stringValue();
                 String obj = st.getObject().stringValue();
-                if (pred.equals("https://w3id.org/fdof/ontology#hasMetadata") && obj.equals(id)) {
+                if (pred.equals(FDOF.HAS_METADATA.stringValue()) && obj.equals(id)) {
                     // TODO
                 }
-                if (pred.equals("https://w3id.org/fdof/ontology#hasEncodingFormat")) {
+                if (pred.equals(FDOF.HAS_ENCODING_FORMAT.stringValue())) {
                     String format = obj.replace("https://iana.org/assignments/media-types/", "");
                     formatMaterializationMap.put(format, subj);
                 }

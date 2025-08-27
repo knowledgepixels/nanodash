@@ -41,12 +41,13 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.vocabulary.NPX;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -295,7 +296,7 @@ public class PublishForm extends Panel {
                 ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
                 if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
                     for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-                        if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NanopubUtils.HAS_NANOPUB_TYPE)) {
+                        if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
                             if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
                                 piFiller.removeUnusedStatement(st);
                             }
@@ -805,11 +806,6 @@ public class PublishForm extends Panel {
         return c;
     }
 
-    /**
-     * Predicate for the nanopublication's assertion creation.
-     */
-    public static final IRI WAS_CREATED_AT_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt");
-
     private synchronized Nanopub createNanopub() throws MalformedNanopubException {
         assertionContext.getIntroducedIris().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
@@ -820,28 +816,28 @@ public class PublishForm extends Panel {
             c.propagateStatements(npCreator);
         }
         for (IRI introducedIri : assertionContext.getIntroducedIris()) {
-            npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, introducedIri);
+            npCreator.addPubinfoStatement(NPX.INTRODUCES, introducedIri);
         }
         for (IRI embeddedIri : assertionContext.getEmbeddedIris()) {
-            npCreator.addPubinfoStatement(NanopubUtils.EMBEDS, embeddedIri);
+            npCreator.addPubinfoStatement(NPX.EMBEDS, embeddedIri);
         }
         npCreator.addNamespace("this", targetNamespace);
         npCreator.addNamespace("sub", targetNamespace + "/");
         npCreator.addTimestampNow();
         IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
-        npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
+        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, templateUri);
         IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
-        npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
+        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, prTemplateUri);
         for (TemplateContext c : pubInfoContexts) {
             IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
-            npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
+            npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, piTemplateUri);
         }
         String nanopubLabel = getNanopubLabel(npCreator);
         if (nanopubLabel != null) {
             npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
         }
         for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
-            npCreator.addPubinfoStatement(NanopubUtils.HAS_NANOPUB_TYPE, type);
+            npCreator.addPubinfoStatement(NPX.HAS_NANOPUB_TYPE, type);
         }
         IRI userIri = NanodashSession.get().getUserIri();
         if (User.getName(userIri) != null) {
@@ -850,7 +846,7 @@ public class PublishForm extends Panel {
         }
         String websiteUrl = NanodashPreferences.get().getWebsiteUrl();
         if (websiteUrl != null) {
-            npCreator.addPubinfoStatement(WAS_CREATED_AT_PREDICATE, vf.createIRI(websiteUrl));
+            npCreator.addPubinfoStatement(NPX.WAS_CREATED_AT, vf.createIRI(websiteUrl));
         }
         return npCreator.finalizeNanopub();
     }

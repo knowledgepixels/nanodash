@@ -5,7 +5,6 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
-import com.knowledgepixels.nanodash.template.Template;
 import jakarta.servlet.http.HttpServletRequest;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -18,6 +17,7 @@ import org.commonjava.mimeparse.MIMEParse;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +121,7 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("jsonld", url + ".jsonld"));
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
-            if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
+            if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
                 add(new WebMarkupContainer("use-template").add(
                         new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
                 );

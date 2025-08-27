@@ -21,6 +21,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
 import java.util.*;
@@ -518,7 +519,7 @@ public class StatementItem extends Panel {
                         String label = GuidedChoiceItem.getLabel(value);
                         if (label.length() > 1000) label = label.substring(0, 997) + "...";
                         try {
-                            npCreator.addPubinfoStatement(vf.createIRI(value), Template.HAS_LABEL_FROM_API, vf.createLiteral(label));
+                            npCreator.addPubinfoStatement(vf.createIRI(value), NTEMPLATE.HAS_LABEL_FROM_API, vf.createLiteral(label));
                         } catch (IllegalArgumentException ex) {
                             ex.printStackTrace();
                         }

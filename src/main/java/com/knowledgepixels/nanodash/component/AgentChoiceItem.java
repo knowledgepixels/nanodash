@@ -22,6 +22,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -282,7 +283,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
-        if (Template.CREATOR_PLACEHOLDER.equals(defaultValue)) {
+        if (NTEMPLATE.CREATOR_PLACEHOLDER.equals(defaultValue)) {
             defaultValue = NanodashSession.get().getUserIri();
         }
         if (isUnifiableWith(defaultValue)) {

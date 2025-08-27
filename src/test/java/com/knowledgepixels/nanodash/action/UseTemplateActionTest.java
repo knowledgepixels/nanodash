@@ -1,12 +1,12 @@
 package com.knowledgepixels.nanodash.action;
 
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,7 +55,7 @@ class UseTemplateActionTest {
     @Test
     void isApplicableTo() throws MalformedNanopubException {
         NanopubCreator creator = TestUtils.getNanopubCreator();
-        creator.addAssertionStatement(TestUtils.anyIri, RDF.TYPE, Template.ASSERTION_TEMPLATE_CLASS);
+        creator.addAssertionStatement(TestUtils.anyIri, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
         creator.addPubinfoStatement(creator.getNanopubUri(), TestUtils.anyIri, TestUtils.anyIri);
         Nanopub nanopub = creator.finalizeNanopub();

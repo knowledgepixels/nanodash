@@ -17,6 +17,7 @@ import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubWithNs;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
 import java.util.*;
@@ -80,7 +81,7 @@ public class TemplateContext implements Serializable {
         }
         this.existingNanopub = existingNanopub;
         if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
-            componentModels.put(Template.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
+            componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
         }
     }
 
@@ -283,12 +284,12 @@ public class TemplateContext implements Serializable {
     public Value processValue(Value value) {
         if (!(value instanceof IRI)) return value;
         IRI iri = (IRI) value;
-        if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+        if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
             iri = NanodashSession.get().getUserIri();
         }
-        if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+        if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             iri = vf.createIRI(targetNamespace + "assertion");
-        } else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+        } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             iri = vf.createIRI(targetNamespace);
         }
         // TODO: Move this code below to the respective placeholder classes:
@@ -338,7 +339,7 @@ public class TemplateContext implements Serializable {
                     processedValue = vf.createLiteral(tf.getObject());
                 }
             }
-        
+
         } else if (template.isValuePlaceholder(iri)) {
             if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
                 if (Utils.isValidLiteralSerialization(tf.getObject())) {
@@ -459,7 +460,7 @@ public class TemplateContext implements Serializable {
         if (labels == null) {
             labels = new HashMap<>();
             for (Statement st : existingNanopub.getPubinfo()) {
-                if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
+                if (st.getPredicate().equals(NTEMPLATE.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
                     String label = st.getObject().stringValue();
                     labels.put((IRI) st.getSubject(), label);
                 }

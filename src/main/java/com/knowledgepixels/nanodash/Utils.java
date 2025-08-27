@@ -1,20 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.hash.Hashing;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,13 +27,19 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
+import org.nanopub.vocabulary.FIP;
+import org.nanopub.vocabulary.NPX;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.google.common.hash.Hashing;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Utility class providing various helper methods for handling nanopublications, URIs, and other related functionalities.
@@ -414,11 +407,11 @@ public class Utils {
     public static List<IRI> getTypes(Nanopub np) {
         List<IRI> l = new ArrayList<IRI>();
         for (IRI t : NanopubUtils.getTypes(np)) {
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource")) continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed"))
+            if (t.stringValue().equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE.stringValue())) continue;
+            if (t.stringValue().equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED.stringValue()))
                 continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Supporting-Resource")) continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource-to-be-Developed"))
+            if (t.stringValue().equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE.stringValue())) continue;
+            if (t.stringValue().equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED.stringValue()))
                 continue;
             l.add(t);
         }
@@ -433,10 +426,10 @@ public class Utils {
      */
     public static String getTypeLabel(IRI typeIri) {
         String l = typeIri.stringValue();
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource")) return "FER";
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource")) return "FSR";
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile")) return "FIP";
-        if (l.equals("http://purl.org/nanopub/x/declaredBy")) return "user intro";
+        if (l.equals(FIP.FAIR_ENABLING_RESOURCE.stringValue())) return "FER";
+        if (l.equals(FIP.FAIR_SUPPORTING_RESOURCE.stringValue())) return "FSR";
+        if (l.equals(FIP.FAIR_IMPLEMENTATION_PROFILE.stringValue())) return "FIP";
+        if (l.equals(NPX.DECLARED_BY.stringValue())) return "user intro";
         l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
         l = l.replaceFirst("^(.+)Nanopub$", "$1");
         if (l.length() > 25) l = l.substring(0, 20) + "...";
@@ -621,7 +614,7 @@ public class Utils {
         Set<String> introducedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
             if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NanopubUtils.INTRODUCES)) continue;
+            if (!st.getPredicate().equals(NPX.INTRODUCES)) continue;
             if (st.getObject() instanceof IRI obj) introducedIriIds.add(obj.stringValue());
         }
         return introducedIriIds;
@@ -637,7 +630,7 @@ public class Utils {
         Set<String> embeddedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
             if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NanopubUtils.EMBEDS)) continue;
+            if (!st.getPredicate().equals(NPX.EMBEDS)) continue;
             if (st.getObject() instanceof IRI obj) embeddedIriIds.add(obj.stringValue());
         }
         return embeddedIriIds;
