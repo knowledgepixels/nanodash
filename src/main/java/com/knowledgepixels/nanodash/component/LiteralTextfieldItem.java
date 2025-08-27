@@ -1,9 +1,5 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
@@ -17,7 +13,13 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.base.CoreDatatype.XSD;
 import org.eclipse.rdf4j.model.util.Literals;
+
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -87,8 +89,8 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         if (template.getLanguageTag(iri) != null) {
             languageModel.setObject("(" + template.getLanguageTag(iri) + ")");
             datatypeComp.setVisible(false);
-        } else if (template.getDatatype(iri) != null && !template.getDatatype(iri).stringValue().equals("http://www.w3.org/2001/XMLSchema#string")) {
-            datatypeModel.setObject("(" + template.getDatatype(iri).stringValue().replace("http://www.w3.org/2001/XMLSchema#", "xsd:") + ")");
+        } else if (template.getDatatype(iri) != null && !template.getDatatype(iri).equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + template.getDatatype(iri).stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
             languageComp.setVisible(false);
         } else {
             datatypeComp.setVisible(false);
@@ -167,8 +169,8 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         if (vL.getLanguage().isPresent()) {
             languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
             languageComp.setVisible(true);
-        } else if (!vL.getDatatype().stringValue().equals("http://www.w3.org/2001/XMLSchema#string")) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace("http://www.w3.org/2001/XMLSchema#", "xsd:") + ")");
+        } else if (!vL.getDatatype().equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
             datatypeComp.setVisible(true);
         }
 

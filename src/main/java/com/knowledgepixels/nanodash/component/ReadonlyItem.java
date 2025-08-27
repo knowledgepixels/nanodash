@@ -23,6 +23,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 
@@ -413,11 +414,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         } else if (v instanceof Literal vL) {
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
-                languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
+                languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
                 languageComp.setVisible(true);
-            } else if (!vL.getDatatype().stringValue().equals("http://www.w3.org/2001/XMLSchema#string")) {
+            } else if (!vL.getDatatype().equals(XSD.STRING)) {
                 model.setObject("\"" + vs + "\"");
-                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace("http://www.w3.org/2001/XMLSchema#", "xsd:") + ")");
+                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
                 datatypeComp.setVisible(true);
             } else {
                 model.setObject("\"" + vs + "\"");

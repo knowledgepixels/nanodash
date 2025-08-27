@@ -1,7 +1,20 @@
 package com.knowledgepixels.nanodash;
 
-import com.google.common.hash.Hashing;
-import net.trustyuri.TrustyUriUtils;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
@@ -14,7 +27,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.base.CoreDatatype.XSD;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -29,13 +44,9 @@ import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import com.google.common.hash.Hashing;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Utility class providing various helper methods for handling nanopublications, URIs, and other related functionalities.
@@ -646,6 +657,10 @@ public class Utils {
         }
     }
 
+    private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
+    private static final String LANGTAG_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"@([0-9a-zA-Z-]{2,})$";
+    private static final String DATATYPE_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"\\^\\^<([^ ><\"^]+)>";
+
     /**
      * Checks whether string is valid literal serialization.
      *
@@ -653,7 +668,14 @@ public class Utils {
      * @return true if valid
      */
     public static boolean isValidLiteralSerialization(String literalString) {
-        return literalString.matches("\"([^\\\\\\\"]|\\\\\\\\|\\\\\")*\"");
+        if (literalString.matches(PLAIN_LITERAL_PATTERN)) {
+            return true;
+        } else if (literalString.matches(LANGTAG_LITERAL_PATTERN)) {
+            return true;
+        } else if (literalString.matches(DATATYPE_LITERAL_PATTERN)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -663,7 +685,13 @@ public class Utils {
      * @return the String serialization of the literal
      */
     public static String getSerializedLiteral(Literal literal) {
-        return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"";
+        if (literal.getLanguage().isPresent()) {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"@" + Literals.normalizeLanguageTag(literal.getLanguage().get());
+        } else if (literal.getDatatype().equals(XSD.STRING)) {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"";
+        } else {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"^^<" + literal.getDatatype() + ">";
+        }
     }
 
     /**
@@ -673,7 +701,16 @@ public class Utils {
      * @return The parse Literal object
      */
     public static Literal getParsedLiteral(String serializedLiteral) {
-        return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.substring(1, serializedLiteral.length() - 1)));
+        if (serializedLiteral.matches(PLAIN_LITERAL_PATTERN)) {
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(PLAIN_LITERAL_PATTERN, "$1")));
+        } else if (serializedLiteral.matches(LANGTAG_LITERAL_PATTERN)) {
+            String langtag = serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$3");
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$1")), langtag);
+        } else if (serializedLiteral.matches(DATATYPE_LITERAL_PATTERN)) {
+            IRI datatype = vf.createIRI(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$3"));
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$1")), datatype);
+        }
+        throw new IllegalArgumentException("Not a valid literal serialization: " + serializedLiteral);
     }
 
     /**
