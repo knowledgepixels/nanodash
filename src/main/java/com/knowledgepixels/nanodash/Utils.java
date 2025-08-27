@@ -663,8 +663,7 @@ public class Utils {
      * @return the String serialization of the literal
      */
     public static String getSerializedLiteral(Literal literal) {
-        String vs = literal.stringValue();
-        return "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
+        return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"";
     }
 
     /**
@@ -674,7 +673,27 @@ public class Utils {
      * @return The parse Literal object
      */
     public static Literal getParsedLiteral(String serializedLiteral) {
-        return vf.createLiteral(serializedLiteral.substring(1, serializedLiteral.length() - 1).replaceAll("\\\\(\\\\|\\\")", "$1"));
+        return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.substring(1, serializedLiteral.length() - 1)));
+    }
+
+    /**
+     * Escapes quotes (") and slashes (/) of a literal string.
+     *
+     * @param unescapedString un-escaped string
+     * @return escaped string
+     */
+    public static String getEscapedLiteralString(String unescapedString) {
+        return unescapedString.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"");
+    }
+
+    /**
+     * Un-escapes quotes (") and slashes (/) of a literal string.
+     *
+     * @param unescapedString escaped string
+     * @return un-escaped string
+     */
+    public static String getUnescapedLiteralString(String escapedString) {
+        return escapedString.replaceAll("\\\\(\\\\|\\\")", "$1");
     }
 
 }
