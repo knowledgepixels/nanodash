@@ -341,8 +341,8 @@ public class TemplateContext implements Serializable {
         
         } else if (template.isValuePlaceholder(iri)) {
             if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                if (tf.getObject().startsWith("\"") && tf.getObject().endsWith("\"")) {
-                    processedValue = vf.createLiteral(tf.getObject().substring(1, tf.getObject().length() - 1).replaceAll("\\\\(\\\\|\\\")", "$1"));
+                if (Utils.isValidLiteralSerialization(tf.getObject())) {
+                    processedValue = Utils.getParsedLiteral(tf.getObject());
                 } else {
                     String v = tf.getObject();
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;

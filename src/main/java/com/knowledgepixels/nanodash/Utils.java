@@ -646,4 +646,35 @@ public class Utils {
         }
     }
 
+    /**
+     * Checks whether string is valid literal serialization.
+     *
+     * @param literalString the literal string
+     * @return true if valid
+     */
+    public static boolean isValidLiteralSerialization(String literalString) {
+        return literalString.matches("\"([^\\\\\\\"]|\\\\\\\\|\\\\\")*\"");
+    }
+
+    /**
+     * Returns a serialized version of the literal.
+     *
+     * @param literal the literal
+     * @return the String serialization of the literal
+     */
+    public static String getSerializedLiteral(Literal literal) {
+        String vs = literal.stringValue();
+        return "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
+    }
+
+    /**
+     * Parses a serialized literal into a Literal object.
+     *
+     * @param serializedLiteral The serialized String of the literal
+     * @return The parse Literal object
+     */
+    public static Literal getParsedLiteral(String serializedLiteral) {
+        return vf.createLiteral(serializedLiteral.substring(1, serializedLiteral.length() - 1).replaceAll("\\\\(\\\\|\\\")", "$1"));
+    }
+
 }
