@@ -121,6 +121,9 @@ public class IriItem extends Panel implements ContextComponent {
             iri = vf.createIRI("local:nanopub");
         }
         add(linkComp);
+        if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
+            linkComp.add(AttributeAppender.append("class", "introduced"));
+        }
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();

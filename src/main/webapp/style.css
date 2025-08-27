@@ -595,6 +595,7 @@ input[type=radio] + label strong {
 .introduced {
   border-style: solid;
   border-color: #ffbb00;
+  padding: 4px;
   border-width: 2px;
 }
 
