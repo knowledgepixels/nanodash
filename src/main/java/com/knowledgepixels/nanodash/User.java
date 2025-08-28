@@ -24,7 +24,7 @@ public class User {
      * Refreshes the user data by creating a new UserData instance.
      */
     public static void refreshUsers() {
-        if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+        if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
             lastRefresh = System.currentTimeMillis();
             userData = new UserData();
         }
