@@ -105,19 +105,17 @@
       <artifactId>commons-exec</artifactId>
       <version>1.4.0</version>
     </dependency>
-
-    <!--    <dependency>-->
-    <!--      <groupId>org.nanopub</groupId>-->
-    <!--      <artifactId>nanopub</artifactId>-->
-    <!--      <version>1.70-snapshot</version>-->
-    <!--    </dependency>-->
-    <!-- Temporary: dependency on Jitpack for snapshot builds -->
     <dependency>
+      <groupId>org.nanopub</groupId>
+      <artifactId>nanopub</artifactId>
+      <version>1.80</version>
+    </dependency>
+    <!-- Temporary: dependency on Jitpack for snapshot builds -->
+    <!-- <dependency>
       <groupId>com.github.Nanopublication</groupId>
       <artifactId>nanopub-java</artifactId>
       <version>-SNAPSHOT</version>
-    </dependency>
-
+    </dependency> -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
