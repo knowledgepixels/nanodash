@@ -2,16 +2,12 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
-import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
-import org.nanopub.extra.security.CryptoElement;
-import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 

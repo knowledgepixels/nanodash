@@ -16,7 +16,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -38,9 +37,8 @@ public class LookupApis {
      * @param grlcJsonObject the JSON object containing the grlc API response
      * @param labelMap       a map to store URIs and their corresponding labels
      * @param values         a list to store the extracted URIs
-     * @throws java.io.IOException if an I/O error occurs while processing the JSON
      */
-    public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String, String> labelMap, List<String> values) throws IOException {
+    public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String, String> labelMap, List<String> values) {
         // Aimed to resolve Nanopub grlc API: http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_signed_nanopubs_with_text?text=covid
         JSONArray resultsArray = grlcJsonObject.getJSONObject("results").getJSONArray("bindings");
         for (int i = 0; i < resultsArray.length(); i++) {

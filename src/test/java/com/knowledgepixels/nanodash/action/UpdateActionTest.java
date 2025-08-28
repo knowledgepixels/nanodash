@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.action;
 
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
