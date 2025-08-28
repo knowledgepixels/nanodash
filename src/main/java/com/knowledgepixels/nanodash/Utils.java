@@ -407,11 +407,11 @@ public class Utils {
     public static List<IRI> getTypes(Nanopub np) {
         List<IRI> l = new ArrayList<IRI>();
         for (IRI t : NanopubUtils.getTypes(np)) {
-            if (t.stringValue().equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE.stringValue())) continue;
-            if (t.stringValue().equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED.stringValue()))
+            if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) continue;
+            if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED))
                 continue;
-            if (t.stringValue().equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE.stringValue())) continue;
-            if (t.stringValue().equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED.stringValue()))
+            if (t.equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE)) continue;
+            if (t.equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED))
                 continue;
             l.add(t);
         }
@@ -425,11 +425,11 @@ public class Utils {
      * @return a label for the type, potentially truncated
      */
     public static String getTypeLabel(IRI typeIri) {
+        if (typeIri.equals(FIP.FAIR_ENABLING_RESOURCE)) return "FER";
+        if (typeIri.equals(FIP.FAIR_SUPPORTING_RESOURCE)) return "FSR";
+        if (typeIri.equals(FIP.FAIR_IMPLEMENTATION_PROFILE)) return "FIP";
+        if (typeIri.equals(NPX.DECLARED_BY)) return "user intro";
         String l = typeIri.stringValue();
-        if (l.equals(FIP.FAIR_ENABLING_RESOURCE.stringValue())) return "FER";
-        if (l.equals(FIP.FAIR_SUPPORTING_RESOURCE.stringValue())) return "FSR";
-        if (l.equals(FIP.FAIR_IMPLEMENTATION_PROFILE.stringValue())) return "FIP";
-        if (l.equals(NPX.DECLARED_BY.stringValue())) return "user intro";
         l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
         l = l.replaceFirst("^(.+)Nanopub$", "$1");
         if (l.length() > 25) l = l.substring(0, 20) + "...";
@@ -719,7 +719,7 @@ public class Utils {
     /**
      * Un-escapes quotes (") and slashes (/) of a literal string.
      *
-     * @param unescapedString escaped string
+     * @param escapedString escaped string
      * @return un-escaped string
      */
     public static String getUnescapedLiteralString(String escapedString) {

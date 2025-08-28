@@ -63,7 +63,7 @@ public class UserData implements Serializable {
             }
         }
         String settingId = setting.getNanopub().getUri().stringValue();
-        if (setting.getUpdateStrategy().stringValue().equals(NPX.UPDATES_BY_CREATOR.stringValue())) {
+        if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
             setting = new NanopubSetting(GetNanopub.get(settingId));
         }
@@ -85,7 +85,7 @@ public class UserData implements Serializable {
 //			ex.printStackTrace();
 //		}
 ///
-//		if (setting.getTrustRangeAlgorithm().stringValue().equals(NPX.TRANSITIVE_TRUST.stringValue())) {
+//		if (setting.getTrustRangeAlgorithm().equals(NPX.TRANSITIVE_TRUST)) {
 //			ApiResponse resp = QueryApiAccess.forcedGet("get-approved-nanopubs");
 //			List<ApiResponseEntry> results = new ArrayList<>(resp.getData());
 //			while (true) {
