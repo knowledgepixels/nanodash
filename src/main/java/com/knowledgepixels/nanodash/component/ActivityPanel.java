@@ -1,8 +1,23 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.io.Serializable;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -11,9 +26,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * A panel that displays activity data in a table format.
@@ -48,25 +60,32 @@ public class ActivityPanel extends Panel {
             typeMonthValueMap.get(type).put(e.get("month"), e.get("npCount"));
         }
 
+        final Calendar calendar = Calendar.getInstance();
+        int year = Year.now().getValue() - 1;
+        int month = calendar.get(Calendar.MONTH) + 1;
+
         List<IColumn<Entity, String>> columns = new ArrayList<>();
         columns.add(new Column("type"));
-        columns.add(new Column("2023-11"));
-        columns.add(new Column("2023-12"));
-        columns.add(new Column("2024-01"));
-        columns.add(new Column("2024-02"));
-        columns.add(new Column("2024-03"));
-        columns.add(new Column("2024-04"));
-        columns.add(new Column("2024-05"));
-        columns.add(new Column("2024-06"));
-        columns.add(new Column("2024-07"));
-        columns.add(new Column("2024-08"));
-        columns.add(new Column("2024-09"));
-        columns.add(new Column("2024-10"));
+
+        int count = 0;
+        while (count < 12) {
+            month++;
+            if (month == 13) {
+                year++;
+                month = 1;
+            }
+            columns.add(new Column(formatYearMonth(year, month)));
+            count++;
+        }
 
         DataTable<Entity, String> table = new DataTable<Entity, String>("table", columns, new EntityProvider(list), 10);
         table.addBottomToolbar(new NavigationToolbar(table));
         table.addTopToolbar(new HeadersToolbar<String>(table, null));
         add(table);
+    }
+
+    private static String formatYearMonth(int year, int month) {
+        return year + "-" + (month > 9 ? "" + month : "0" + month);
     }
 
     private class Entity implements Serializable {
