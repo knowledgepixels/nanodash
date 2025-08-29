@@ -107,7 +107,9 @@ public class TypePage extends NanodashPage {
                 @Override
                 protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
                     super.onContentLoaded(content, target);
-                    if (target.get() != null) target.get().appendJavaScript("updateElements();");
+                    if (target.isPresent()) {
+                        target.get().appendJavaScript("updateElements();");
+                    }
                 }
 
             });

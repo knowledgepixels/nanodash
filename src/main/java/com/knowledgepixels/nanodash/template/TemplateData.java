@@ -75,7 +75,7 @@ public class TemplateData implements Serializable {
             }
             previousId = entry.get("np");
         }
-        Collections.sort(templates, templateComparator);
+        templates.sort(templateComparator);
     }
 
     /**

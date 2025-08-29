@@ -413,14 +413,7 @@ public class UserData implements Serializable {
         return null;
     }
 
-    private transient Comparator<IRI> comparator = new Comparator<IRI>() {
-
-        @Override
-        public int compare(IRI iri1, IRI iri2) {
-            return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
-        }
-
-    };
+    private transient Comparator<IRI> comparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
 
     /**
      * Retrieves a list of users, either approved or unapproved.
@@ -484,16 +477,13 @@ public class UserData implements Serializable {
             }
         }
         List<IntroNanopub> list = new ArrayList<>(introNps.values());
-        Collections.sort(list, new Comparator<IntroNanopub>() {
-            @Override
-            public int compare(IntroNanopub i0, IntroNanopub i1) {
-                Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
-                Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
-                if (c0 == null && c1 == null) return 0;
-                if (c0 == null) return 1;
-                if (c1 == null) return -1;
-                return -c0.compareTo(c1);
-            }
+        list.sort((i0, i1) -> {
+            Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
+            Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
+            if (c0 == null && c1 == null) return 0;
+            if (c0 == null) return 1;
+            if (c1 == null) return -1;
+            return -c0.compareTo(c1);
         });
         introNanopubLists.put(user, list);
         return list;

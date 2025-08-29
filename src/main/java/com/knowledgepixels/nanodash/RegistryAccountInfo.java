@@ -11,7 +11,8 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class RegistryAccountInfo {
     /**
      * @param url e.g. "<a href="https://registry.knowledgepixels.com/list.json">https://registry.knowledgepixels.com/list.json</a>"
      */
-    public static List<RegistryAccountInfo> fromUrl(String url) throws JsonIOException, JsonSyntaxException, IOException {
-        return g.fromJson(new InputStreamReader(new URL(url).openStream()), listType);
+    public static List<RegistryAccountInfo> fromUrl(String url) throws JsonIOException, JsonSyntaxException, IOException, URISyntaxException {
+        return g.fromJson(new InputStreamReader(new URI(url).toURL().openStream()), listType);
     }
 
     private String agent;

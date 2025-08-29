@@ -31,7 +31,7 @@ public class ThingListPanel extends Panel {
     private ThingListPanel(String markupId, final Mode mode, final String thingRef, ApiResponse response, int limit) {
         super(markupId);
         // TODO Not copying the table here, which can lead to problems if at some point the same result list is sorted differently at different places:
-        Collections.sort(response.getData(), new Utils.ApiResponseEntrySorter("date", true));
+        response.getData().sort(new Utils.ApiResponseEntrySorter("date", true));
         if (response.getData().isEmpty()) {
             setVisible(false);
         } else if (response.getData().size() == 1) {

@@ -54,29 +54,24 @@ public abstract class NanodashPage extends WebPage {
             if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
                 refreshRunning = true;
-                new Thread() {
-
-                    @Override
-                    public void run() {
+                new Thread(() -> {
 //						try {
 //							Thread.sleep(2000);
 //						} catch (InterruptedException ex) {
 //							ex.printStackTrace();
 //						}
-                        try {
-                            logger.info("Refreshing ...");
-                            User.refreshUsers();
-                            TemplateData.refreshTemplates();
-                            logger.info("Refreshing done.");
-                            lastRefresh = System.currentTimeMillis();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        } finally {
-                            refreshRunning = false;
-                        }
+                    try {
+                        logger.info("Refreshing ...");
+                        User.refreshUsers();
+                        TemplateData.refreshTemplates();
+                        logger.info("Refreshing done.");
+                        lastRefresh = System.currentTimeMillis();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    } finally {
+                        refreshRunning = false;
                     }
-
-                }.start();
+                }).start();
             }
         }
     }
