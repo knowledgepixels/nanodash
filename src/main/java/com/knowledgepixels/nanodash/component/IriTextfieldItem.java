@@ -24,6 +24,7 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.net.URISyntaxException;
 
@@ -252,7 +253,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
                     s.error(new ValidationError("Not a trusty URI"));
                 }
             }
-            if (iri.equals(Template.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
+            if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
                 boolean found = false;
                 for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
                     if (creator.stringValue().equals(iriString)) {

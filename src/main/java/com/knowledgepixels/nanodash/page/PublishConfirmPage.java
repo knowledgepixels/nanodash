@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -14,7 +13,8 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.vocabulary.NPX;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 /**
  * Page to confirm the publication of a nanopublication.
@@ -55,13 +55,13 @@ public class PublishConfirmPage extends NanodashPage {
 
         final NanodashSession session = NanodashSession.get();
         boolean hasKnownOwnLocalIntro = session.getLocalIntroCount() > 0;
-        boolean someIntroJustNowPublished = Utils.usesPredicateInAssertion(np, KeyDeclaration.DECLARED_BY);
+        boolean someIntroJustNowPublished = Utils.usesPredicateInAssertion(np, NPX.DECLARED_BY);
         if (someIntroJustNowPublished) NanodashSession.get().setIntroPublishedNow();
         boolean lastIntroPublishedMoreThanFiveMinsAgo = session.getTimeSinceLastIntroPublished() > 5 * 60 * 1000;
         if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
         add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
 
-        if (Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS)) {
+        if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
             add(new WebMarkupContainer("use-template").add(
                     new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
             );

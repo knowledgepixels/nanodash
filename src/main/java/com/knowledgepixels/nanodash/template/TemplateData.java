@@ -7,6 +7,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +168,7 @@ public class TemplateData implements Serializable {
     public IRI getTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             return (IRI) st.getObject();
         }
@@ -183,7 +184,7 @@ public class TemplateData implements Serializable {
     public IRI getProvenanceTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             return (IRI) st.getObject();
         }
@@ -200,7 +201,7 @@ public class TemplateData implements Serializable {
         Set<IRI> iriSet = new HashSet<>();
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             iriSet.add((IRI) st.getObject());
         }

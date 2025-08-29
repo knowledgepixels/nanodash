@@ -19,6 +19,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -481,7 +482,7 @@ public class NanopubItem extends Panel {
     private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
         context.initStatements();
         if (signerId != null) {
-            context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+            context.getComponentModels().put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
         }
         filler.fill(context);
         for (StatementItem si : context.getStatementItems()) {

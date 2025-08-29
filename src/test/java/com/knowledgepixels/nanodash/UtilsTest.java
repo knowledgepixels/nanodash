@@ -12,6 +12,8 @@ import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
+import org.nanopub.vocabulary.FIP;
+import org.nanopub.vocabulary.NPX;
 
 import java.util.List;
 import java.util.Map;
@@ -117,8 +119,8 @@ class UtilsTest {
     void getTypesExcludesSpecificFairTerms() {
         Nanopub nanopub = mock(Nanopub.class);
         MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);
-        IRI excludedType1 = iri("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource");
-        IRI excludedType2 = iri("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed");
+        IRI excludedType1 = FIP.AVAILABLE_FAIR_ENABLING_RESOURCE;
+        IRI excludedType2 = FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED;
         IRI includedType = iri("http://knowledgepixels.com/nanopubIri#ValidType");
         mockStatic.when(() -> NanopubUtils.getTypes(nanopub)).thenReturn(Set.of(excludedType1, excludedType2, includedType));
 
@@ -191,29 +193,25 @@ class UtilsTest {
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairEnablingResource() {
-        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource");
-        String result = Utils.getTypeLabel(typeIri);
+        String result = Utils.getTypeLabel(FIP.FAIR_ENABLING_RESOURCE);
         assertEquals("FER", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairSupportingResource() {
-        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource");
-        String result = Utils.getTypeLabel(typeIri);
+        String result = Utils.getTypeLabel(FIP.FAIR_SUPPORTING_RESOURCE);
         assertEquals("FSR", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForKnownFairImplementationProfile() {
-        IRI typeIri = iri("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile");
-        String result = Utils.getTypeLabel(typeIri);
+        String result = Utils.getTypeLabel(FIP.FAIR_IMPLEMENTATION_PROFILE);
         assertEquals("FIP", result);
     }
 
     @Test
     void getTypeLabelReturnsShortLabelForDeclaredBy() {
-        IRI typeIri = iri("http://purl.org/nanopub/x/declaredBy");
-        String result = Utils.getTypeLabel(typeIri);
+        String result = Utils.getTypeLabel(NPX.DECLARED_BY);
         assertEquals("user intro", result);
     }
 
@@ -459,14 +457,14 @@ class UtilsTest {
         NanopubCreator npCreator = TestUtils.getNanopubCreator();
         npCreator.addAssertionStatement(TestUtils.anyIri, TestUtils.anyIri, TestUtils.anyIri);
         npCreator.addProvenanceStatement(npCreator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, TestUtils.anyIri);
+        npCreator.addPubinfoStatement(NPX.INTRODUCES, TestUtils.anyIri);
 
         IRI randomIri1 = TestUtils.randomIri();
-        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, randomIri1);
+        npCreator.addPubinfoStatement(NPX.INTRODUCES, randomIri1);
 
         npCreator.addPubinfoStatement(TestUtils.randomIri(), TestUtils.randomIri());
-        npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, literal("not an IRI"));
-        npCreator.addPubinfoStatement(TestUtils.randomIri(), NanopubUtils.INTRODUCES, TestUtils.randomIri());
+        npCreator.addPubinfoStatement(NPX.INTRODUCES, literal("not an IRI"));
+        npCreator.addPubinfoStatement(TestUtils.randomIri(), NPX.INTRODUCES, TestUtils.randomIri());
 
         Nanopub nanopub = npCreator.finalizeNanopub();
 

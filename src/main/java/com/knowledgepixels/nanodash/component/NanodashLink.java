@@ -27,6 +27,8 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
+import org.nanopub.vocabulary.NP;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.net.URLEncoder;
 import java.util.*;
@@ -55,7 +57,7 @@ public class NanodashLink extends Panel {
         final Map<IRI, String> labels = new HashMap<>();
         if (np != null) {
             for (Statement st : np.getPubinfo()) {
-                if (st.getPredicate().equals(Template.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
+                if (st.getPredicate().equals(NTEMPLATE.HAS_LABEL_FROM_API) || st.getPredicate().equals(RDFS.LABEL)) {
                     labels.put((IRI) st.getSubject(), st.getObject().stringValue());
                 }
             }
@@ -63,17 +65,17 @@ public class NanodashLink extends Panel {
 
         final TemplateData td = TemplateData.get();
 
-        if (Template.ASSERTION_TEMPLATE_CLASS.equals(templateClass)) {
+        if (NTEMPLATE.ASSERTION_TEMPLATE.equals(templateClass)) {
             IRI templateId = td.getTemplateId(np);
             if (templateId != null) {
                 templates.add(td.getTemplate(templateId.stringValue()));
             }
-        } else if (Template.PROVENANCE_TEMPLATE_CLASS.equals(templateClass)) {
+        } else if (NTEMPLATE.PROVENANCE_TEMPLATE.equals(templateClass)) {
             IRI templateId = td.getProvenanceTemplateId(np);
             if (templateId != null) {
                 templates.add(td.getTemplate(templateId.stringValue()));
             }
-        } else if (Template.PUBINFO_TEMPLATE_CLASS.equals(templateClass)) {
+        } else if (NTEMPLATE.PUBINFO_TEMPLATE.equals(templateClass)) {
             Set<IRI> templateIds = td.getPubinfoTemplateIds(np);
             for (IRI templateId : templateIds) {
                 templates.add(td.getTemplate(templateId.stringValue()));
@@ -90,17 +92,17 @@ public class NanodashLink extends Panel {
             link.add(new AttributeAppender("class", " nanopub-assertion "));
             add(link);
             add(new Label("description", "the assertion of this specific nanopublication"));
-        } else if (uri.equals(Nanopub.HAS_ASSERTION_URI.stringValue())) {
+        } else if (uri.equals(NP.HAS_ASSERTION.stringValue())) {
             ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "assertion");
             link.add(new AttributeAppender("class", " nanopub-assertion "));
             add(link);
             add(new Label("description", "links a nanopublication to its assertion"));
-        } else if (uri.equals(Nanopub.HAS_PROVENANCE_URI.stringValue())) {
+        } else if (uri.equals(NP.HAS_PROVENANCE.stringValue())) {
             ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "provenance");
             link.add(new AttributeAppender("class", " nanopub-provenance "));
             add(link);
             add(new Label("description", "links a nanopublication to its provenance"));
-        } else if (uri.equals(Nanopub.HAS_PUBINFO_URI.stringValue())) {
+        } else if (uri.equals(NP.HAS_PUBINFO.stringValue())) {
             ExternalLink link = new ExternalLink("link", ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, Charsets.UTF_8), "pubinfo");
             link.add(new AttributeAppender("class", " nanopub-pubinfo "));
             add(link);

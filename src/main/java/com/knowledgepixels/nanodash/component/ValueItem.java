@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 /**
  * ValueItem is a panel that represents a single value in a statement.
@@ -38,7 +39,7 @@ public class ValueItem extends Panel implements ContextComponent {
             IRI iri = (IRI) value;
             if (template.isSequenceElementPlaceholder(iri)) {
                 component = new SequenceElementItem("value", iri, rg.getRepeatIndex() + 1, rg.getContext());
-            } else if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+            } else if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
                 // This is a special placeholder that is always read-only
                 component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
             } else if (rg.getContext().isReadOnly()) {

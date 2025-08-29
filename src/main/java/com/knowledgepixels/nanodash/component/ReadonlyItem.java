@@ -1,10 +1,16 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.RestrictedChoice;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -26,19 +32,12 @@ import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.vocabulary.NTEMPLATE;
 
-import com.knowledgepixels.nanodash.RestrictedChoice;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
-
-import net.trustyuri.TrustyUriUtils;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ReadonlyItem is a component that displays a read-only item in the form.
@@ -157,7 +156,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 String obj = getFullValue();
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
-                    if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+                    if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
                         if (objectPosition) {
                             return "me (" + User.getShortDisplayName(objIri) + ")";
                         } else {
@@ -494,7 +493,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                     s.error(new ValidationError("Not a trusty URI"));
                 }
             }
-            if (iri.equals(Template.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
+            if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
                 boolean found = false;
                 for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
                     if (creator.stringValue().equals(iriString)) {

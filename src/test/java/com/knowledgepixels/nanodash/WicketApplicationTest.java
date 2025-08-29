@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WicketApplicationTest {
 
-    private WicketTester tester = new WicketTester(new WicketApplication());
+    private final WicketTester tester = new WicketTester(new WicketApplication());
 
     @Test
     void initSetsDefaultMarkupEncodingToUtf8() {

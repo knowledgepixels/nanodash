@@ -14,6 +14,7 @@ import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.NanopubSetting;
+import org.nanopub.vocabulary.NPX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class UserData implements Serializable {
             }
         }
         String settingId = setting.getNanopub().getUri().stringValue();
-        if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
+        if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
             setting = new NanopubSetting(GetNanopub.get(settingId));
         }
@@ -83,8 +84,8 @@ public class UserData implements Serializable {
 //		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
 //			ex.printStackTrace();
 //		}
-//
-//		if (setting.getTrustRangeAlgorithm().stringValue().equals("http://purl.org/nanopub/x/TransitiveTrust")) {
+///
+//		if (setting.getTrustRangeAlgorithm().equals(NPX.TRANSITIVE_TRUST)) {
 //			ApiResponse resp = QueryApiAccess.forcedGet("get-approved-nanopubs");
 //			List<ApiResponseEntry> results = new ArrayList<>(resp.getData());
 //			while (true) {

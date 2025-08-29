@@ -24,6 +24,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.util.*;
 
@@ -101,10 +102,10 @@ public class ProjectPage extends NanodashPage {
                     templates.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     queryIds.add(obj);
-                } else if (st.getPredicate().equals(Template.HAS_DEFAULT_PROVENANCE_PREDICATE) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
                 }
-            } else if (st.getPredicate().equals(Template.HAS_TAG) && st.getObject() instanceof Literal l) {
+            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
                 templateTags.add(l.stringValue());
                 List<Template> list = templatesPerTag.get(l.stringValue());
                 if (list == null) {

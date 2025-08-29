@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.action;
 
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
@@ -10,6 +9,7 @@ import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,7 +40,7 @@ class UseSameTemplateActionTest {
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 
@@ -83,7 +83,7 @@ class UseSameTemplateActionTest {
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 
@@ -104,7 +104,7 @@ class UseSameTemplateActionTest {
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 
