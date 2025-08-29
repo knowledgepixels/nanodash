@@ -97,7 +97,9 @@ public class QueryApiAccess {
             ApiResponse resp = null;
             try {
                 resp = QueryApiAccess.get(queryName, params);
-            } catch (FailedApiCallException ex) {
+            } catch (Exception ex) {
+                // TODO We should be more specific about which exceptions we catch here
+                //      and generally improve this, as this could hang forever.
                 ex.printStackTrace();
             }
             if (resp != null) return resp;
