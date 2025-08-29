@@ -105,12 +105,17 @@
       <artifactId>commons-exec</artifactId>
       <version>1.4.0</version>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
       <version>1.80</version>
-    </dependency>
+    </dependency> -->
     <!-- Temporary: dependency on Jitpack for snapshot builds -->
+    <dependency>
+      <groupId>com.github.Nanopublication</groupId>
+      <artifactId>nanopub-java</artifactId>
+      <version>6c0336a68c664f84af7e8fd95833a47c61c79294</version>
+    </dependency>
     <!-- <dependency>
       <groupId>com.github.Nanopublication</groupId>
       <artifactId>nanopub-java</artifactId>
