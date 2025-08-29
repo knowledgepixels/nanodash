@@ -27,7 +27,7 @@ public class TemplateData implements Serializable {
     /**
      * Refreshes the templates data by creating a new instance of TemplateData.
      */
-    public static void refreshTemplates() {
+    public static synchronized void refreshTemplates() {
         instance = new TemplateData();
     }
 
