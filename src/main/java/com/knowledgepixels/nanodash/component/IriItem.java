@@ -69,7 +69,7 @@ public class IriItem extends Panel implements ContextComponent {
         if (!statementPartId.equals(template.getFirstOccurence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");
         }
-        if (labelString.length() > 0 && parentId.equals("subj") && !labelString.matches("https?://.*")) {
+        if (!labelString.isEmpty() && parentId.equals("subj") && !labelString.matches("https?://.*")) {
             // Capitalize first letter of label if at subject position:
             labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
         }

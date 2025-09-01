@@ -11,7 +11,9 @@ import org.nanopub.Nanopub;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * ValueFiller is a utility class that processes a Nanopub and fills a TemplateContext.
@@ -61,13 +63,10 @@ public class ValueFiller {
             Statement stT = transform(st);
             if (stT != null) unusedStatements.add(stT);
         }
-        Collections.sort(unusedStatements, new Comparator<Statement>() {
-            @Override
-            public int compare(Statement st1, Statement st2) {
-                String st1s = st1.getSubject() + " " + st1.getPredicate() + " " + st1.getObject();
-                String st2s = st2.getSubject() + " " + st2.getPredicate() + " " + st2.getObject();
-                return st1s.compareTo(st2s);
-            }
+        unusedStatements.sort((st1, st2) -> {
+            String st1s = st1.getSubject() + " " + st1.getPredicate() + " " + st1.getObject();
+            String st2s = st2.getSubject() + " " + st2.getPredicate() + " " + st2.getObject();
+            return st1s.compareTo(st2s);
         });
         initialSize = unusedStatements.size();
     }
@@ -109,7 +108,7 @@ public class ValueFiller {
      * @return true if there are unused statements, false otherwise
      */
     public boolean hasUnusedStatements() {
-        return unusedStatements.size() > 0;
+        return !unusedStatements.isEmpty();
     }
 
     /**

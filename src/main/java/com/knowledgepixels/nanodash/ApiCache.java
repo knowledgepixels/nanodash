@@ -108,25 +108,22 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(100 + new Random().nextLong(400));
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                    try {
-                        ApiCache.updateResponse(queryName, params);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        cachedResponses.put(cacheId, null);
-                        lastRefresh.put(cacheId, System.currentTimeMillis());
-                    } finally {
-                        refreshStart.remove(cacheId);
-                    }
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100 + new Random().nextLong(400));
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
-            }.start();
+                try {
+                    ApiCache.updateResponse(queryName, params);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    cachedResponses.put(cacheId, null);
+                    lastRefresh.put(cacheId, System.currentTimeMillis());
+                } finally {
+                    refreshStart.remove(cacheId);
+                }
+            }).start();
         }
         if (isCached) {
             if (cachedResponses.get(cacheId) == null) {
@@ -180,25 +177,22 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(100 + new Random().nextLong(400));
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                    try {
-                        ApiCache.updateMap(queryName, params);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        cachedResponses.put(cacheId, null);
-                        lastRefresh.put(cacheId, System.currentTimeMillis());
-                    } finally {
-                        refreshStart.remove(cacheId);
-                    }
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100 + new Random().nextLong(400));
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
-            }.start();
+                try {
+                    ApiCache.updateMap(queryName, params);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    cachedResponses.put(cacheId, null);
+                    lastRefresh.put(cacheId, System.currentTimeMillis());
+                } finally {
+                    refreshStart.remove(cacheId);
+                }
+            }).start();
         }
         if (isCached) {
             if (cachedResponses.get(cacheId) == null) {

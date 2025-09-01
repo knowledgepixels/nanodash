@@ -106,7 +106,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 if (prefixLabel == null || User.isUser(v) || foafNameMap.containsKey(v)) {
                     return "";
                 } else {
-                    if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+                    if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
                         // Capitalize first letter of label if at subject position:
                         prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
                     }

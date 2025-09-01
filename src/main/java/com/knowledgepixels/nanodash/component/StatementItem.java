@@ -316,7 +316,7 @@ public class StatementItem extends Panel {
 
                 // Some of the methods of StatementItem and RepetitionGroup don't work properly before this
                 // object is fully instantiated:
-                boolean isFirstGroup = repetitionGroups.size() == 0;
+                boolean isFirstGroup = repetitionGroups.isEmpty();
                 boolean isFirstLine = statementParts.size() == 1;
                 boolean isLastLine = statementParts.size() == statementPartIds.size();
                 boolean isOptional = getTemplate().isOptionalStatement(statementId);

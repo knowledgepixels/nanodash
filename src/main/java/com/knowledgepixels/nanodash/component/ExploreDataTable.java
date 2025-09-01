@@ -156,7 +156,7 @@ public class ExploreDataTable extends Panel {
         public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
             List<ApiResponseEntry> copy = new ArrayList<>(data);
             ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
-            Collections.sort(copy, comparator);
+            copy.sort(comparator);
             return Utils.subList(copy, first, first + count).iterator();
         }
 

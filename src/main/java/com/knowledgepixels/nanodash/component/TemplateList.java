@@ -92,16 +92,13 @@ public class TemplateList extends Panel {
         }
 
         ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
-        Collections.sort(templateList, new Comparator<ApiResponseEntry>() {
-            @Override
-            public int compare(ApiResponseEntry t1, ApiResponseEntry t2) {
-                Calendar c1 = getTime(t1);
-                Calendar c2 = getTime(t2);
-                if (c1 == null && c2 == null) return 0;
-                if (c1 == null) return 1;
-                if (c2 == null) return -1;
-                return c2.compareTo(c1);
-            }
+        templateList.sort((t1, t2) -> {
+            Calendar c1 = getTime(t1);
+            Calendar c2 = getTime(t2);
+            if (c1 == null && c2 == null) return 0;
+            if (c1 == null) return 1;
+            if (c2 == null) return -1;
+            return c2.compareTo(c1);
         });
 
         Map<String, Topic> topics = new HashMap<>();
@@ -115,15 +112,10 @@ public class TemplateList extends Panel {
 
         }
         ArrayList<Topic> topicList = new ArrayList<Topic>(topics.values());
-        topicList.sort(new Comparator<Topic>() {
-
-            @Override
-            public int compare(Topic t0, Topic t1) {
-                if (t0.tag == null) return 1;
-                if (t1.tag == null) return -1;
-                return t1.templates.size() - t0.templates.size();
-            }
-
+        topicList.sort((t0, t1) -> {
+            if (t0.tag == null) return 1;
+            if (t1.tag == null) return -1;
+            return t1.templates.size() - t0.templates.size();
         });
         add(new DataView<Topic>("topics", new ListDataProvider<Topic>(topicList)) {
 
