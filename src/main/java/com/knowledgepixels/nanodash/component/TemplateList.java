@@ -12,9 +12,14 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A list of templates, grouped by topic.
@@ -22,6 +27,7 @@ import java.util.*;
 public class TemplateList extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(TemplateList.class);
 
     /**
      * A list of templates, grouped by topic.
@@ -48,7 +54,7 @@ public class TemplateList extends Panel {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted", ex);
                         }
                         if (!ApiCache.isRunning(ptQueryName, ptParams)) {
                             r = ApiCache.retrieveResponse(ptQueryName, ptParams);
@@ -78,7 +84,7 @@ public class TemplateList extends Panel {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted", ex);
                         }
                         if (!ApiCache.isRunning(stQueryName, stParams)) {
                             r = ApiCache.retrieveResponse(stQueryName, stParams);

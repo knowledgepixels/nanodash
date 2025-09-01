@@ -1,23 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ReferenceTablePage;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
@@ -30,11 +20,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ReferenceTablePage;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A component that displays a data table of nanopublication references.
@@ -44,6 +34,7 @@ public class ExploreDataTable extends Panel {
     private static final long serialVersionUID = 1L;
 
     private static final String refQueryName = "find-uri-references";
+    private static final Logger logger = LoggerFactory.getLogger(ExploreDataTable.class);
 
     private ExploreDataTable(String id, String ref, ApiResponse response, int limit) {
         super(id);
@@ -68,7 +59,7 @@ public class ExploreDataTable extends Panel {
             showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
             add(showAllLink);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Could not create data table for reference: {}", ref, ex);
             add(new Label("datatable", "").setVisible(false));
             add(new Label("message", "Could not load data table."));
             add(new Label("show-all").setVisible(false));
@@ -117,11 +108,11 @@ public class ExploreDataTable extends Panel {
             } else if (value.matches("https?://.+")) {
                 cellItem.add(new NanodashLink(componentId, value));
             } else {
-            	if (key.equals("pubkey")) {
-            		cellItem.add(new Label(componentId, User.getShortDisplayNameForPubkeyhash(null, Utils.createSha256HexHash(value))));
-            	} else {
-            		cellItem.add(new Label(componentId, value));
-            	}
+                if (key.equals("pubkey")) {
+                    cellItem.add(new Label(componentId, User.getShortDisplayNameForPubkeyhash(null, Utils.createSha256HexHash(value))));
+                } else {
+                    cellItem.add(new Label(componentId, value));
+                }
             }
         }
 

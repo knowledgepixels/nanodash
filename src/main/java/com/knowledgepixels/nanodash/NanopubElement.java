@@ -9,6 +9,8 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
@@ -23,6 +25,7 @@ public class NanopubElement implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static Map<String, NanopubElement> nanopubCache = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(NanopubElement.class);
 
     /**
      * Retrieves a NanopubElement instance for the given URI.
@@ -157,7 +160,7 @@ public class NanopubElement implements Serializable {
         try {
             return SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
         } catch (MalformedCryptoElementException ex) {
-            ex.printStackTrace();
+            logger.error("Error in getting the signature element of the nanopub {}", uriString, ex);
             return null;
         }
     }
@@ -186,7 +189,7 @@ public class NanopubElement implements Serializable {
                     hasValidSignature = false;
                 }
             } catch (MalformedCryptoElementException | GeneralSecurityException ex) {
-                ex.printStackTrace();
+                logger.error("Error in checking the signature of the nanopub {}", uriString, ex);
                 return false;
             }
         }

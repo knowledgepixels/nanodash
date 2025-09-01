@@ -23,6 +23,8 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class GenNanopubPage extends ConnectorPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(GenNanopubPage.class);
 
     /**
      * Mount path for this page.
@@ -185,7 +188,7 @@ public class GenNanopubPage extends ConnectorPage {
             inclusionPart.add(new Label("latex-np-label", shortId.replace("_", "\\_")));
             add(inclusionPart.setVisible(mode.equals("author")));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error fetching data for nanopublication: {}", uri, ex);
         }
 
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20nanopublication]%20my%20problem/question&body=type%20your%20problem/question%20here"));

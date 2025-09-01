@@ -58,7 +58,7 @@ public abstract class NanodashPage extends WebPage {
 //						try {
 //							Thread.sleep(2000);
 //						} catch (InterruptedException ex) {
-//							ex.printStackTrace();
+//							logger.error();
 //						}
                     try {
                         logger.info("Refreshing ...");
@@ -67,7 +67,7 @@ public abstract class NanodashPage extends WebPage {
                         logger.info("Refreshing done.");
                         lastRefresh = System.currentTimeMillis();
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        logger.error("Error during refresh", ex);
                     } finally {
                         refreshRunning = false;
                     }

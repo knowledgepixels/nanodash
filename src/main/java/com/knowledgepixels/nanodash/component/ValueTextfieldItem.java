@@ -20,6 +20,8 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 
@@ -33,6 +35,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
     private TemplateContext context;
     private TextField<String> textfield;
     private IRI iri;
+    private static final Logger logger = LoggerFactory.getLogger(ValueTextfieldItem.class);
 
     /**
      * Constructor for creating a text field item.
@@ -196,7 +199,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Unification with default value failed: {}", ex.getMessage());
             }
         }
     }

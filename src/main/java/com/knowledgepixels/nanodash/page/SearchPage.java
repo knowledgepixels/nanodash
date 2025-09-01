@@ -141,7 +141,7 @@ public class SearchPage extends NanodashPage {
                                 // nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
                                 nanopubResults = QueryApiAccess.get("find-uri-references", nanopubParams).getData();
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                logger.error("Error while running the query for URI", ex);
                             }
 //							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
                         } else {
@@ -158,7 +158,7 @@ public class SearchPage extends NanodashPage {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
                                     nanopubResults = QueryApiAccess.get("fulltext-search-on-labels", nanopubParams).getData();
                                 } catch (Exception ex) {
-                                    ex.printStackTrace();
+                                    logger.error("Error during search", ex);
                                 }
 //								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
                             }

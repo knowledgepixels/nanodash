@@ -22,6 +22,8 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -41,6 +43,7 @@ public class StatementItem extends Panel {
     private boolean repetitionGroupsChanged = true;
     private Set<IRI> iriSet = new HashSet<>();
     private boolean isMatched = false;
+    private static final Logger logger = LoggerFactory.getLogger(StatementItem.class);
 
     /**
      * Constructor for creating a StatementItem with a specific ID and statement ID.
@@ -521,7 +524,7 @@ public class StatementItem extends Panel {
                         try {
                             npCreator.addPubinfoStatement(vf.createIRI(value), NTEMPLATE.HAS_LABEL_FROM_API, vf.createLiteral(label));
                         } catch (IllegalArgumentException ex) {
-                            ex.printStackTrace();
+                            logger.error("Could not create IRI from value: {}", value, ex);
                         }
                     }
                 }

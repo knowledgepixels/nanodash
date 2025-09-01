@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
@@ -13,13 +17,10 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.model.util.Literals;
-
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -33,6 +34,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
     private IModel<String> languageModel, datatypeModel;
     private final String regex;
     private final IRI iri;
+    private final static Logger logger = LoggerFactory.getLogger(LiteralTextfieldItem.class);
 
     /**
      * Constructs a LiteralTextfieldItem with the specified ID, IRI, optional flag, and template context.
@@ -194,7 +196,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Could not unify with default value.", ex);
             }
         }
     }

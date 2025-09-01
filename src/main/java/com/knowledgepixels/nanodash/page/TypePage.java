@@ -12,6 +12,8 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +41,7 @@ public class TypePage extends NanodashPage {
 
     private IRI typeIri;
     private boolean added = false;
+    private static final Logger logger = LoggerFactory.getLogger(TypePage.class);
 
     /**
      * Constructor for the TypePage.
@@ -94,7 +97,7 @@ public class TypePage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryName, params)) {
                             r = ApiCache.retrieveResponse(queryName, params);

@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,10 +19,11 @@ public class ApiCache {
     private ApiCache() {
     } // no instances allowed
 
-    private transient static ConcurrentMap<String,ApiResponse> cachedResponses = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String, Map<String,String>> cachedMaps = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String,Long> lastRefresh = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String,Long> refreshStart = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
     /**
      * Checks if a cache refresh is currently running for the given cache ID.
@@ -112,12 +115,12 @@ public class ApiCache {
                 try {
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
                 try {
                     ApiCache.updateResponse(queryName, params);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.put(cacheId, null);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
@@ -181,12 +184,12 @@ public class ApiCache {
                 try {
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
                 try {
                     ApiCache.updateMap(queryName, params);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.put(cacheId, null);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {

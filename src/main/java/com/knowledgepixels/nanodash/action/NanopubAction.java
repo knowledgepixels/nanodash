@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash.action;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.Nanopub;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.Map;
 public abstract class NanopubAction implements Serializable {
 
     private static final long serialVersionUID = 4086842804225420496L;
+    private static final Logger logger = LoggerFactory.getLogger(NanopubAction.class);
 
     /**
      * Constant <code>noActions</code>
@@ -70,7 +73,7 @@ public abstract class NanopubAction implements Serializable {
                 NanopubAction na = (NanopubAction) Class.forName(s).getDeclaredConstructor().newInstance();
                 actions.add(na);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Could not instantiate NanopubAction: {}", s, ex);
             }
         }
         return actions;

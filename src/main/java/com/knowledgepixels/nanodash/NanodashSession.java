@@ -1,15 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.ProfilePage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
@@ -19,22 +15,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.extra.security.KeyDeclaration;
-import org.nanopub.extra.security.MakeKeys;
-import org.nanopub.extra.security.NanopubSignatureElement;
-import org.nanopub.extra.security.SignNanopub;
-import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.security.*;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.component.PublishForm;
-import com.knowledgepixels.nanodash.page.OrcidLoginPage;
-import com.knowledgepixels.nanodash.page.ProfilePage;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents a session in the Nanodash application.
@@ -140,7 +134,7 @@ public class NanodashSession extends WebSession {
                         if (httpSession != null) httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
                     }
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    logger.error("Couldn't read ORCID file", ex);
                 }
             }
         }
@@ -150,7 +144,7 @@ public class NanodashSession extends WebSession {
                 try {
                     keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
                 } catch (Exception ex) {
-                    logger.error("Couldn't load key pair");
+                    logger.error("Couldn't load key pair", ex);
                 }
             } else {
                 // Automatically generate new keys
@@ -248,7 +242,7 @@ public class NanodashSession extends WebSession {
             MakeKeys.make(getKeyFile().getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
             keyPair = SignNanopub.loadKey(getKeyFile().getPath(), SignatureAlgorithm.RSA);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Couldn't create key pair", ex);
         }
     }
 
@@ -339,7 +333,7 @@ public class NanodashSession extends WebSession {
                 FileUtils.writeStringToFile(getOrcidFile(), orcid + "\n", StandardCharsets.UTF_8);
                 //			Files.writeString(orcidFile.toPath(), orcid + "\n");
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("Couldn't write ORCID file", ex);
             }
         }
         userIri = vf.createIRI("https://orcid.org/" + orcid);

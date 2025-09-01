@@ -23,6 +23,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import java.util.List;
 public class GenOverviewPage extends ConnectorPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(GenOverviewPage.class);
 
     /**
      * The mount path for this page.
@@ -134,7 +137,7 @@ public class GenOverviewPage extends ConnectorPage {
                             setVisible(false);
                             target.add(this);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            logger.error("Error showing all candidates", ex);
                         }
                     }
 
@@ -152,7 +155,7 @@ public class GenOverviewPage extends ConnectorPage {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error in own candidates section", ex);
         }
 
         try {
@@ -166,6 +169,7 @@ public class GenOverviewPage extends ConnectorPage {
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException ex) {
+                    logger.error("Thread interrupted", ex);
                 }
                 resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
             }
@@ -209,14 +213,14 @@ public class GenOverviewPage extends ConnectorPage {
                         setVisible(false);
                         target.add(this);
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        logger.error("Error in all candidates click", ex);
                     }
                 }
 
             }.setVisible(fullList.size() > 10));
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error in candidates section", ex);
         }
 
         if (getConfig().getAcceptedNanopubsApiCall() != null) {
@@ -265,7 +269,7 @@ public class GenOverviewPage extends ConnectorPage {
                                 Nanopub np = Utils.getAsNanopub(e.get("np"));
                                 username = Utils.getFoafNameMap(np).get(e.get("firstAuthor"));
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                logger.error("Error getting FOAF name for {} in {}", e.get("firstAuthor"), e.get("np"), ex);
                                 username = User.getShortDisplayName(firstAuthorIri);
                             }
                         }
@@ -288,14 +292,14 @@ public class GenOverviewPage extends ConnectorPage {
                             setVisible(false);
                             target.add(this);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            logger.error("Error showing all accepted", ex);
                         }
                     }
 
                 }.setVisible(fullList.size() > 10));
 
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error in accepted section", ex);
             }
         }
 
@@ -354,14 +358,14 @@ public class GenOverviewPage extends ConnectorPage {
                             setVisible(false);
                             target.add(this);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            logger.error("Error showing all reactions", ex);
                         }
                     }
 
                 }.setVisible(fullList.size() > 10));
 
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error in reactions section", ex);
             }
         }
 

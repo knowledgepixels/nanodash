@@ -5,6 +5,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +22,10 @@ public class QueryApiAccess {
     private QueryApiAccess() {
     }  // no instances allowed
 
-    private static ConcurrentMap<String,String> queryIds = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, String> queryIds = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
-    private static ConcurrentMap<String,Pair<Long,String>> latestVersionMap = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, Pair<Long, String>> latestVersionMap = new ConcurrentHashMap<>();
 
     private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
 
@@ -101,13 +104,13 @@ public class QueryApiAccess {
             } catch (Exception ex) {
                 // TODO We should be more specific about which exceptions we catch here
                 //      and generally improve this, as this could hang forever.
-                ex.printStackTrace();
+                logger.error("Error while forcing API get for query '{}' with params {}", queryName, params, ex);
             }
             if (resp != null) return resp;
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                logger.error("Interrupted while forcing API get for query '{}' with params {}", queryName, params, ex);
             }
         }
     }
@@ -176,7 +179,7 @@ public class QueryApiAccess {
                 String l = r.getData().get(0).get("latest");
                 latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error while getting latest version of nanopub '{}'", nanopubId, ex);
                 return nanopubId;
             }
         }

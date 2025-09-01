@@ -15,6 +15,8 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class UserPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(UserPage.class);
 
     /**
      * The mount path for this page.
@@ -91,7 +94,7 @@ public class UserPage extends NanodashPage {
 //						try {
 //							Thread.sleep(500);
 //						} catch (InterruptedException ex) {
-//							ex.printStackTrace();
+//							logger.error();
 //						}
 //						if (!ApiCache.isRunning(statsQueryName, statsParams)) {
 //							m = ApiCache.retrieveMap(statsQueryName, statsParams);
@@ -137,7 +140,7 @@ public class UserPage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryName, params)) {
                             r = ApiCache.retrieveResponse(queryName, params);
@@ -171,7 +174,7 @@ public class UserPage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
                             r = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);

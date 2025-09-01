@@ -31,6 +31,8 @@ import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2Choice;
 
 import java.io.IOException;
@@ -50,6 +52,7 @@ public class Utils {
     }  // no instances allowed
 
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     // TODO Merge with IriItem.getShortNameFromURI
     public static String getShortNameFromURI(IRI uri) {
@@ -108,7 +111,7 @@ public class Utils {
             }
             return u.build().toString();
         } catch (URISyntaxException ex) {
-            ex.printStackTrace();
+            logger.error("Could not build URL with parameters: {} {}", base, parameters, ex);
             return "/";
         }
     }
@@ -645,7 +648,7 @@ public class Utils {
         try {
             return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Could not get NANODASH_MAIN_REGISTRY environment variable, using default.", ex);
             return "https://registry.knowledgepixels.com/";
         }
     }

@@ -415,7 +415,7 @@ public class PublishForm extends Panel {
                     logger.info("Nanopublication published: {}", npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
-                    ex.printStackTrace();
+                    logger.error("Nanopublication publishing failed: {}", ex.getMessage());
                     String message = ex.getClass().getName();
                     if (ex.getMessage() != null) message = ex.getMessage();
                     feedbackPanel.error(message);
@@ -898,7 +898,7 @@ public class PublishForm extends Panel {
                         placeholderLabel = Utils.getShortNameFromURI(placeholderValueIri);
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Nanopub label placeholder IRI error: {}", ex.getMessage());
                 }
             }
             placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
@@ -913,7 +913,7 @@ public class PublishForm extends Panel {
             return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
                  InvocationTargetException | NoSuchMethodException | SecurityException ex) {
-            ex.printStackTrace();
+            logger.error("Could not create instance of confirmation page: {}", ex.getMessage());
         }
         return null;
     }

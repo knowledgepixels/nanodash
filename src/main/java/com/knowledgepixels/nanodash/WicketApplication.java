@@ -18,6 +18,8 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -38,6 +40,7 @@ public class WicketApplication extends WebApplication {
      * This URL points to the releases of the Nanodash repository.
      */
     public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
+    private static final Logger logger = LoggerFactory.getLogger(WicketApplication.class);
 
     /**
      * Constructor for the WicketApplication.
@@ -48,7 +51,7 @@ public class WicketApplication extends WebApplication {
             try {
                 Desktop.getDesktop().browse(new URI("http://localhost:37373"));
             } catch (IOException | URISyntaxException ex) {
-                ex.printStackTrace();
+                logger.error("Error in opening browser", ex);
             }
         }
         String v = getThisVersion();
@@ -172,7 +175,7 @@ public class WicketApplication extends WebApplication {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error in fetching latest version", ex);
         }
         return latestVersion;
     }
@@ -186,7 +189,7 @@ public class WicketApplication extends WebApplication {
         try {
             properties.load(WicketApplication.class.getClassLoader().getResourceAsStream("nanodash.properties"));
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Error in loading properties", ex);
         }
     }
 

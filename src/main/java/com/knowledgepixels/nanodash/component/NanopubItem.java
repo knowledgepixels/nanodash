@@ -20,6 +20,8 @@ import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -51,6 +53,7 @@ public class NanopubItem extends Panel {
     private List<NanopubAction> actions;
     private IRI signerId;
     private String tempalteId;
+    private static final Logger logger = LoggerFactory.getLogger(NanopubItem.class);
 
     /**
      * Creates a NanopubItem panel.
@@ -202,7 +205,7 @@ public class NanopubItem extends Panel {
                         negativeNotes = "- invalid signature";
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Error checking signature validity for nanopub {}", n.getUri(), ex);
                     negativeNotes = "- malformed or legacy signature";
                 }
             }

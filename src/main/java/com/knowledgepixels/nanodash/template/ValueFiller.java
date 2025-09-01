@@ -10,6 +10,8 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ public class ValueFiller {
     private List<Statement> unusedStatements = new ArrayList<>();
     private int initialSize;
     private boolean formMode;
+    private static final Logger logger = LoggerFactory.getLogger(ValueFiller.class);
 
     /**
      * Constructor for ValueFiller.
@@ -80,7 +83,7 @@ public class ValueFiller {
         try {
             context.fill(unusedStatements);
         } catch (UnificationException ex) {
-            ex.printStackTrace();
+            logger.error("Could not fill template context", ex);
         }
     }
 

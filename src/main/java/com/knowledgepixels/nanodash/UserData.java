@@ -84,7 +84,7 @@ public class UserData implements Serializable {
 //				}
 //			});
 //		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
-//			ex.printStackTrace();
+//			logger.error();
 //		}
 ///
 //		if (setting.getTrustRangeAlgorithm().equals(NPX.TRANSITIVE_TRUST)) {
@@ -323,7 +323,7 @@ public class UserData implements Serializable {
                 }
             }
         } catch (MalformedCryptoElementException ex) {
-            ex.printStackTrace();
+            logger.error("Error getting signature element", ex);
         }
         return null;
     }

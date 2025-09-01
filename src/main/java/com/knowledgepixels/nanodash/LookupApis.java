@@ -15,6 +15,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -27,6 +29,8 @@ import java.util.Map;
  * Utility class for APIs look up and parsing.
  */
 public class LookupApis {
+
+    private static final Logger logger = LoggerFactory.getLogger(LookupApis.class);
 
     private LookupApis() {
     }  // no instances allowed
@@ -271,7 +275,7 @@ public class LookupApis {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error fetching possible values from API: {}", apiString, ex);
         }
     }
 

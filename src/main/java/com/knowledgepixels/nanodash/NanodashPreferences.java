@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +19,7 @@ public class NanodashPreferences implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private static NanodashPreferences obj;
+    private static final Logger logger = LoggerFactory.getLogger(NanodashPreferences.class);
 
     /**
      * Get the singleton instance of NanodashPreferences.
@@ -34,7 +37,7 @@ public class NanodashPreferences implements Serializable {
                 obj = mapper.readValue(prefFile, NanodashPreferences.class);
             } catch (IOException ex) {
                 obj = new NanodashPreferences();
-                ex.printStackTrace();
+                logger.error("Could not read preferences file, using defaults.", ex);
             }
         }
         return obj;

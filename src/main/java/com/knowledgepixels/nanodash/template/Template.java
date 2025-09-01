@@ -14,6 +14,8 @@ import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -26,6 +28,7 @@ public class Template implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(Template.class);
 
     /**
      * Default target namespace for templates.
@@ -529,7 +532,7 @@ public class Template implements Serializable {
                     }
                     nanopubList.remove(npIri);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Could not load possible values from nanopub {}", npIri.stringValue(), ex);
                 }
             }
         }
@@ -877,13 +880,13 @@ public class Template implements Serializable {
                 try {
                     minCounts.put(subj, Integer.parseInt(obj.stringValue()));
                 } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
+                    logger.error("Could not parse <{}> value: {}", SHACL.MIN_COUNT, obj.stringValue());
                 }
             } else if (pred.equals(SHACL.MAX_COUNT)) {
                 try {
                     maxCounts.put(subj, Integer.parseInt(obj.stringValue()));
                 } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
+                    logger.error("Could not parse <{}> value: {}", SHACL.MAX_COUNT, obj.stringValue());
                 }
             }
         }

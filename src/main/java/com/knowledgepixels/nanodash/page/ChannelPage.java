@@ -154,7 +154,7 @@ public class ChannelPage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryName, params)) {
                             r = ApiCache.retrieveResponse(queryName, params);

@@ -14,6 +14,8 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,6 +26,7 @@ import java.util.Calendar;
 public class TemplateItem extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(TemplateItem.class);
 
     /**
      * A single template item in a list, showing the template name, user, and timestamp.
@@ -88,7 +91,7 @@ public class TemplateItem extends Panel {
                 userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyHash);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error getting signature element for template {}", template.getId(), ex);
         }
         add(new Label("user", userString));
         String timeString = "unknown date";

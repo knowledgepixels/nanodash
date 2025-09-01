@@ -9,6 +9,8 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
@@ -26,6 +28,7 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
     private ApiResponse response = null;
     private String waitMessage = null;
     private String waitComponentHtml = null;
+    private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
 
     /**
      * Constructor for ApiResultComponent.
@@ -102,7 +105,7 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                logger.error("Interrupted while waiting for API response", ex);
             }
         }
         return getApiResultComponent(markupId, response);

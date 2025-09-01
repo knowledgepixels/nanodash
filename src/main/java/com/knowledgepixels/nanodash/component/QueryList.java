@@ -17,6 +17,8 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.List;
 public class QueryList extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(QueryList.class);
 
     /**
      * Constructor for QueryList.
@@ -44,7 +47,7 @@ public class QueryList extends Panel {
             try {
                 queries.add(GrlcQuery.get(e.get("np")));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error processing query nanopub: {}", ex.getMessage());
             }
         }
 
@@ -70,7 +73,7 @@ public class QueryList extends Panel {
                         userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyhash);
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Error retrieving signature info: {}", ex.getMessage());
                 }
                 item.add(new Label("user", userString));
                 String timeString = "unknown date";

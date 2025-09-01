@@ -1,23 +1,14 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.QueryPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
@@ -29,11 +20,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.QueryPage;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A table component that displays the results of a query.
@@ -41,6 +32,7 @@ import com.knowledgepixels.nanodash.page.QueryPage;
 public class QueryResultTable extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(QueryResultTable.class);
 
     private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain) {
         super(id);
@@ -67,7 +59,7 @@ public class QueryResultTable extends Panel {
             table.addTopToolbar(new HeadersToolbar<String>(table, dp));
             add(table);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error creating table for query {}", q.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
         }
     }
@@ -97,11 +89,11 @@ public class QueryResultTable extends Panel {
                 String label = rowModel.getObject().get(key + "_label");
                 cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
             } else {
-            	if (key.startsWith("pubkey")) {
+                if (key.startsWith("pubkey")) {
                     cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
-            	} else {
-            		cellItem.add(new Label(componentId, value));
-            	}
+                } else {
+                    cellItem.add(new Label(componentId, value));
+                }
             }
         }
 
