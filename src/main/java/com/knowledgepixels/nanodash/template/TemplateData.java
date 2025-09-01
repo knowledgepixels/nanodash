@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Singleton class that manages templates data.
@@ -49,7 +51,7 @@ public class TemplateData implements Serializable {
     }
 
     private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
-    private Map<String, Template> templateMap;
+    private ConcurrentMap<String, Template> templateMap;
 
     /**
      * Constructor to initialize the TemplateData instance.
@@ -58,7 +60,7 @@ public class TemplateData implements Serializable {
         assertionTemplates = new ArrayList<>();
         provenanceTemplates = new ArrayList<>();
         pubInfoTemplates = new ArrayList<>();
-        templateMap = new HashMap<>();
+        templateMap = new ConcurrentHashMap<>();
         refreshTemplates(assertionTemplates, "get-assertion-templates");
         refreshTemplates(provenanceTemplates, "get-provenance-templates");
         refreshTemplates(pubInfoTemplates, "get-pubinfo-templates");

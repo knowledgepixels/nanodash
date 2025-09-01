@@ -5,6 +5,8 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.FailedApiCallException;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A utility class for caching API responses and maps to reduce redundant API calls.
@@ -15,10 +17,10 @@ public class ApiCache {
     private ApiCache() {
     } // no instances allowed
 
-    private transient static Map<String, ApiResponse> cachedResponses = new HashMap<>();
-    private transient static Map<String, Map<String, String>> cachedMaps = new HashMap<>();
-    private transient static Map<String, Long> lastRefresh = new HashMap<>();
-    private transient static Map<String, Long> refreshStart = new HashMap<>();
+    private transient static ConcurrentMap<String,ApiResponse> cachedResponses = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Map<String,String>> cachedMaps = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String,Long> lastRefresh = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String,Long> refreshStart = new ConcurrentHashMap<>();
 
     /**
      * Checks if a cache refresh is currently running for the given cache ID.

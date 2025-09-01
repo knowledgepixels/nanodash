@@ -8,6 +8,8 @@ import org.nanopub.extra.services.QueryAccess;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Utility class for accessing and managing API queries.
@@ -18,9 +20,9 @@ public class QueryApiAccess {
     private QueryApiAccess() {
     }  // no instances allowed
 
-    private static Map<String, String> queryIds = new HashMap<>();
+    private static ConcurrentMap<String,String> queryIds = new ConcurrentHashMap<>();
 
-    private static Map<String, Pair<Long, String>> latestVersionMap = new HashMap<>();
+    private static ConcurrentMap<String,Pair<Long,String>> latestVersionMap = new ConcurrentHashMap<>();
 
     private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
 

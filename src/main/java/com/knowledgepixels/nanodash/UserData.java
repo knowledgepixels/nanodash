@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * UserData class manages user-related data.
@@ -32,17 +34,17 @@ public class UserData implements Serializable {
     private static ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(UserData.class);
 
-    private Map<IRI, Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
-    private Map<String, Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
-    private Map<String, Set<IRI>> approvedPubkeyhashLocationMap = new HashMap<>();
-    private Map<IRI, Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
-    private Map<String, Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
-    private Map<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
-    private Map<String, Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
-    private Map<IRI, IntroNanopub> introMap = new HashMap<>();
+    private ConcurrentMap<IRI, Set<String>> approvedIdPubkeyhashMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<IRI>> approvedPubkeyhashIdMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<IRI>> approvedPubkeyhashLocationMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<IRI, Set<String>> unapprovedIdPubkeyhashMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<IRI>> unapprovedPubkeyhashIdMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Set<IRI>> pubkeyhashIntroMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<IRI, IntroNanopub> introMap = new ConcurrentHashMap<>();
     private Set<IRI> approvedIntros = new HashSet<>();
-    private Map<IRI, String> idNameMap = new HashMap<>();
-    private Map<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
+    private ConcurrentMap<IRI, String> idNameMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<IRI, List<IntroNanopub>> introNanopubLists = new ConcurrentHashMap<>();
 
     /**
      * Default constructor for UserData.

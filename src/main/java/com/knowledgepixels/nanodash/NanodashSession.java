@@ -1,11 +1,15 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.component.PublishForm;
-import com.knowledgepixels.nanodash.page.OrcidLoginPage;
-import com.knowledgepixels.nanodash.page.ProfilePage;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
@@ -15,19 +19,22 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.extra.security.*;
+import org.nanopub.extra.security.KeyDeclaration;
+import org.nanopub.extra.security.MakeKeys;
+import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.extra.security.SignNanopub;
+import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.ProfilePage;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * Represents a session in the Nanodash application.
@@ -68,7 +75,7 @@ public class NanodashSession extends WebSession {
 
     private KeyPair keyPair;
     private IRI userIri;
-    private Map<IRI, IntroNanopub> introNps;
+    private ConcurrentMap<IRI, IntroNanopub> introNps;
 //	private Boolean isOrcidLinked;
 //	private String orcidLinkError;
 
@@ -79,7 +86,7 @@ public class NanodashSession extends WebSession {
 
     // We should store here some sort of form model and not the forms themselves, but I couldn't figure
     // how to do it, so doing it like this for the moment...
-    private Map<String, PublishForm> formMap = new HashMap<>();
+    private ConcurrentMap<String, PublishForm> formMap = new ConcurrentHashMap<>();
 
     /**
      * Associates a form object with a specific ID.
@@ -151,7 +158,7 @@ public class NanodashSession extends WebSession {
             }
         }
         if (userIri != null && keyPair != null && introNps == null) {
-            introNps = User.getIntroNanopubs(getPubkeyString());
+            introNps = new ConcurrentHashMap<>(User.getIntroNanopubs(getPubkeyString()));
         }
 //		checkOrcidLink();
     }
