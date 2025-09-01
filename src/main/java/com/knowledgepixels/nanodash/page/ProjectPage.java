@@ -1,13 +1,15 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TemplateResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.UserList;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
+import static com.knowledgepixels.nanodash.Utils.vf;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -20,15 +22,19 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.util.*;
-
-import static com.knowledgepixels.nanodash.Utils.vf;
+import com.knowledgepixels.nanodash.Project;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.QueryResultTable;
+import com.knowledgepixels.nanodash.component.TemplateResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.UserList;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 /**
  * The ProjectPage class represents a project page in the Nanodash application.
@@ -66,6 +72,11 @@ public class ProjectPage extends NanodashPage {
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
     /**
+     * Project object with the data shown on this page.
+     */
+    private Project project;
+
+    /**
      * Constructor for the ProjectPage.
      *
      * @param parameters the page parameters
@@ -74,13 +85,10 @@ public class ProjectPage extends NanodashPage {
     public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
 
-        String id = parameters.get("id").toString();
-        ApiResponse resp = QueryApiAccess.get("get-introducing-np", "thing", id);
-        String npId = resp.getData().get(0).get("np");
-        Nanopub np = Utils.getAsNanopub(npId);
+        project = Project.get(parameters.get("id").toString());
+        Nanopub np = project.getRootNanopub();
 
         add(new TitleBar("titlebar", this, null));
-        String label = id.replaceFirst("^.*/", "");
 
         String description = null;
         List<IRI> owners = new ArrayList<>();
@@ -91,11 +99,9 @@ public class ProjectPage extends NanodashPage {
         IRI defaultProvenance = null;
 
         for (Statement st : np.getAssertion()) {
-            if (st.getSubject().stringValue().equals(id)) {
+            if (st.getSubject().stringValue().equals(project.getId())) {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(RDFS.LABEL)) {
-                    label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
                     owners.add(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
@@ -116,9 +122,9 @@ public class ProjectPage extends NanodashPage {
             }
         }
 
-        add(new Label("pagetitle", label + " (project) | nanodash"));
-        add(new Label("projectname", label));
-        add(new ExternalLink("id", id, id));
+        add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
+        add(new Label("projectname", project.getLabel()));
+        add(new ExternalLink("id", project.getId(), project.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
         add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(description) + "</span>").setEscapeModelStrings(false));
 

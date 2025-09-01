@@ -1,12 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.ProjectList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.connector.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.GenOverviewPage;
-import org.apache.wicket.Component;
+import java.util.Arrays;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -15,10 +10,11 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.nanopub.extra.services.ApiResponse;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import com.knowledgepixels.nanodash.component.ProjectList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 
 /**
  * A page that lists all available connectors.
@@ -77,23 +73,7 @@ public class ConnectorListPage extends NanodashPage {
 
         });
 
-        final HashMap<String, String> noParams = new HashMap<>();
-        final String queryName = "get-projects";
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryName, noParams);
-        if (qResponse != null) {
-            add(new ProjectList("projects", qResponse));
-        } else {
-            add(new ApiResultComponent("projects", queryName, noParams) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new ProjectList(markupId, response);
-                }
-            });
-
-        }
+        add(ProjectList.getListContainer("projects"));
     }
 
 }
