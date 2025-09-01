@@ -13,7 +13,7 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.base.CoreDatatype.XSD;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.model.util.Literals;
 
 import com.knowledgepixels.nanodash.Utils;
@@ -166,10 +166,10 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         Literal vL = (Literal) v;
         getTextComponent().setModelObject(vL.stringValue());
-        if (vL.getLanguage().isPresent()) {
+        if (context.getTemplate().getLanguageTag(iri) == null && vL.getLanguage().isPresent()) {
             languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
             languageComp.setVisible(true);
-        } else if (!vL.getDatatype().equals(XSD.STRING)) {
+        } else if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
             datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
             datatypeComp.setVisible(true);
         }
