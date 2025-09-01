@@ -2,9 +2,9 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -16,13 +16,13 @@ import org.nanopub.extra.services.ApiResponseEntry;
 public class Project implements Serializable {
 
     private static List<Project> projectList = new ArrayList<>();
-    private static Map<String,Project> projectsByCoreInfo = new HashMap<>();
-    private static Map<String,Project> projectsById = new HashMap<>();
+    private static ConcurrentMap<String,Project> projectsByCoreInfo = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String,Project> projectsById = new ConcurrentHashMap<>();
 
     public static synchronized void refresh(ApiResponse resp) {
         projectList.clear();
-        Map<String,Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
-        projectsByCoreInfo = new HashMap<>();
+        ConcurrentMap<String,Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
+        projectsByCoreInfo = new ConcurrentHashMap<>();
         projectsById.clear();
         for (ApiResponseEntry entry : resp.getData()) {
             Project project = new Project(entry.get("project"), entry.get("label"), entry.get("np"));
