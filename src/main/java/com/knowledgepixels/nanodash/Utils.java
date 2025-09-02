@@ -290,6 +290,7 @@ public class Utils {
                 return Utils.getNanopub(uri);
             } catch (Exception ex) {
                 // wasn't a known nanopublication
+                logger.error("Could not retrieve nanopublication for URI: {}", uri, ex);
             }
         }
         return null;
