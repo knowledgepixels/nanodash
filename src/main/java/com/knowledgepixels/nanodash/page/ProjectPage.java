@@ -1,14 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,12 +13,8 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.vocabulary.NTEMPLATE;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
@@ -34,7 +24,6 @@ import com.knowledgepixels.nanodash.component.TemplateResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.UserList;
 import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
 
 /**
  * The ProjectPage class represents a project page in the Nanodash application.
@@ -57,21 +46,6 @@ public class ProjectPage extends NanodashPage {
     }
 
     /**
-     * The predicate for the owner of the project.
-     */
-    public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
-
-    /**
-     * The predicate for pinned templates in the project.
-     */
-    public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
-
-    /**
-     * The predicate for pinned queries in the project.
-     */
-    public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
-
-    /**
      * Project object with the data shown on this page.
      */
     private Project project;
@@ -90,56 +64,25 @@ public class ProjectPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
 
-        String description = null;
-        List<IRI> owners = new ArrayList<>();
-        List<Template> templates = new ArrayList<>();
-        Set<String> templateTags = new HashSet<>();
-        Map<String, List<Template>> templatesPerTag = new HashMap<>();
-        List<IRI> queryIds = new ArrayList<>();
-        IRI defaultProvenance = null;
-
-        for (Statement st : np.getAssertion()) {
-            if (st.getSubject().stringValue().equals(project.getId())) {
-                if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
-                    owners.add(obj);
-                } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    templates.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
-                    queryIds.add(obj);
-                } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
-                    defaultProvenance = obj;
-                }
-            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                templateTags.add(l.stringValue());
-                List<Template> list = templatesPerTag.get(l.stringValue());
-                if (list == null) {
-                    list = new ArrayList<>();
-                    templatesPerTag.put(l.stringValue(), list);
-                }
-                list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
-            }
-        }
-
         add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
         add(new Label("projectname", project.getLabel()));
         add(new ExternalLink("id", project.getId(), project.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
-        add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(description) + "</span>").setEscapeModelStrings(false));
+        add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(project.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         final PageParameters params = new PageParameters();
-        if (defaultProvenance != null) {
-            params.add("prtemplate", defaultProvenance.stringValue());
+        if (project.getDefaultProvenance() != null) {
+            params.add("prtemplate", project.getDefaultProvenance().stringValue());
         }
         List<Pair<String, List<Template>>> templateLists = new ArrayList<>();
-        List<String> templateTagList = new ArrayList<>(templateTags);
+        List<String> templateTagList = new ArrayList<>(project.getTemplateTags());
         Collections.sort(templateTagList);
+        List<Template> templates = new ArrayList<>(project.getTemplates());
         for (String tag : templateTagList) {
-            for (Template t : templatesPerTag.get(tag)) {
+            for (Template t : project.getTemplatesPerTag().get(tag)) {
                 if (templates.contains(t)) templates.remove(t);
             }
-            templateLists.add(Pair.of(tag, templatesPerTag.get(tag)));
+            templateLists.add(Pair.of(tag, project.getTemplatesPerTag().get(tag)));
         }
         if (!templates.isEmpty()) {
             String l = templateLists.isEmpty() ? "Templates" : "Other Templates";
@@ -157,9 +100,9 @@ public class ProjectPage extends NanodashPage {
 
         });
         add(TemplateResults.fromList("templates", templates, params));
-        add(new UserList("owners", owners));
+        add(new UserList("owners", project.getOwners()));
 
-        add(new DataView<IRI>("queries", new ListDataProvider<IRI>(queryIds)) {
+        add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 
             private static final long serialVersionUID = 1L;
 
