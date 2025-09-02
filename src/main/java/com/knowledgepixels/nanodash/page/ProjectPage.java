@@ -101,6 +101,7 @@ public class ProjectPage extends NanodashPage {
         });
         add(TemplateResults.fromList("templates", templates, params));
         add(new UserList("owners", project.getOwners()));
+        add(new UserList("members", project.getMembers()));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 

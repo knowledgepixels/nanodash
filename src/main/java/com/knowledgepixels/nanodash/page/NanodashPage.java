@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -64,6 +65,7 @@ public abstract class NanodashPage extends WebPage {
                         logger.info("Refreshing ...");
                         User.refreshUsers();
                         TemplateData.refreshTemplates();
+                        Project.refresh();
                         logger.info("Refreshing done.");
                         lastRefresh = System.currentTimeMillis();
                     } catch (Exception ex) {

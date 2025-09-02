@@ -66,6 +66,8 @@ public class QueryApiAccess {
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
+        load("RAwfurJs7mlYWdW4fSpd6hM1AGjQ_2QMiy3VyOP6vdrlE/get-owners-of-project");
+        load("RAHooeYnQyfu4gXNg5g32PlQRlqsfEblsCNG2DjSYF-y0/get-members-of-project");
     }
 
     /**
@@ -86,6 +88,21 @@ public class QueryApiAccess {
      */
     public static ApiResponse forcedGet(String queryName) {
         return forcedGet(queryName, new HashMap<>());
+    }
+
+    /**
+     * Forces the retrieval of an API response for a given query name and a single parameter.
+     * Retries until a valid response is received.
+     *
+     * @param queryName  The name of the query.
+     * @param paramKey   The key of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return The API response.
+     */
+    public static ApiResponse forcedGet(String queryName, String paramKey, String paramValue) {
+        Map<String, String> params = new HashMap<>();
+        params.put(paramKey, paramValue);
+        return forcedGet(queryName, params);
     }
 
     /**

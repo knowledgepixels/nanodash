@@ -69,16 +69,26 @@ public class Project implements Serializable {
         return projectsById.get(id);
     }
 
+    public static void refresh() {
+        for (Project project : projectList) {
+            project.isDataInitialized = false;
+        }
+    }
+
     private String id, label, rootNanopubId;
     private Nanopub rootNanopub = null;
 
     private String description = null;
     private List<IRI> owners = new ArrayList<>();
+    private List<IRI> members = new ArrayList<>();
+    private ConcurrentMap<String,IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
     private List<Template> templates = new ArrayList<>();
     private Set<String> templateTags = new HashSet<>();
     private ConcurrentMap<String, List<Template>> templatesPerTag = new ConcurrentHashMap<>();
     private List<IRI> queryIds = new ArrayList<>();
     private IRI defaultProvenance = null;
+
+    private boolean isDataInitialized = false;
 
     private Project(String id, String label, String rootNanopubId) {
         this.id = id;
@@ -91,7 +101,7 @@ public class Project implements Serializable {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
-                    owners.add(obj);
+                    addOwner(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     templates.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
@@ -108,6 +118,17 @@ public class Project implements Serializable {
                 }
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
+        }
+
+    }
+
+    private void addOwner(IRI owner) {
+        // TODO This isn't efficient for long owner lists:
+        if (owners.contains(owner)) return;
+        owners.add(owner);
+        UserData ud = User.getUserData();
+        for (String pubkeyhash : ud.getPubkeyhashes(owner, true)) {
+            ownerPubkeyMap.put(pubkeyhash, owner);
         }
     }
 
@@ -136,7 +157,13 @@ public class Project implements Serializable {
     }
 
     public List<IRI> getOwners() {
+        ensureInitialized();
         return owners;
+    }
+
+    public List<IRI> getMembers() {
+        ensureInitialized();
+        return members;
     }
 
     public List<Template> getTemplates() {
@@ -158,4 +185,25 @@ public class Project implements Serializable {
     public IRI getDefaultProvenance() {
         return defaultProvenance;
     }
+
+    private synchronized void ensureInitialized() {
+        if (!isDataInitialized) {
+            for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners-of-project", "project", id).getData()) {
+                String pubkeyhash = r.get("pubkeyhash");
+                if (ownerPubkeyMap.containsKey(pubkeyhash)) {
+                    addOwner(Utils.vf.createIRI(r.get("owner")));
+                }
+            }
+            members = new ArrayList<>();
+            for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members-of-project", "project", id).getData()) {
+                IRI memberId = Utils.vf.createIRI(r.get("member"));
+                // TODO These checks are inefficient for long member lists:
+                if (owners.contains(memberId)) continue;
+                if (members.contains(memberId)) continue;
+                members.add(memberId);
+            }
+            isDataInitialized = true;
+        }
+    }
+
 }
