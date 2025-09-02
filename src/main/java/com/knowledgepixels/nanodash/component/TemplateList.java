@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import jakarta.xml.bind.DatatypeConverter;
 import org.apache.wicket.Component;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
