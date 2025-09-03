@@ -33,6 +33,8 @@ import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -57,6 +59,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private IRI iri;
     private RestrictedChoice restrictedChoice;
     private final Template template;
+    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
+    private Label showMoreLabel;
 
     /**
      * Constructor for ReadonlyItem.
@@ -242,6 +246,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         datatypeComp = new Label("datatype", datatypeModel);
         datatypeComp.setVisible(false);
         add(datatypeComp);
+
+        showMoreLabel = new Label("show-more", "Show more");
+        add(showMoreLabel);
     }
 
     /**
@@ -368,7 +375,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             String languagetag = template.getLanguageTag(iri);
             IRI datatype = template.getDatatype(iri);
             if (languagetag != null) {
-                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
+                if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
                     return false;
                 }
             } else if (datatype != null) {
@@ -389,9 +396,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
      */
     @Override
     public void unifyWith(Value v) throws UnificationException {
+        boolean isLongLiteral = false;
         if (v == null) return;
         String vs = v.stringValue();
-        if (!isUnifiableWith(v)) throw new UnificationException(vs);
+        if (!isUnifiableWith(v)) {
+            logger.error("Cannot unify {}", v);
+            throw new UnificationException(vs);
+        }
         if (v instanceof IRI) {
             if (vs.equals("local:nanopub")) {
                 vs = getNanopubValue();
@@ -411,6 +422,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
             model.setObject(vs);
         } else if (v instanceof Literal vL) {
+            if (vs.length() >= 50) {
+                isLongLiteral = true;
+                linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+            }
+//            LoggerFactory.getLogger(ReadonlyItem.class).info("ReadonlyItem fillFinished: {} -> {}", linkComp.getBody().getObject().toString(), linkComp.getBody().getObject().toString().length());
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
@@ -425,13 +441,15 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             // TODO Didn't manage to encode this into a working regex:
             if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
                 linkComp.setVisible(false);
-                extraModel.setObject("<span class=\"internal\">" + Utils.sanitizeHtml(vs) + "</span>");
+                extraModel.setObject("<span class=\"internal long-literal\">" + Utils.sanitizeHtml(vs) + "</span>");
                 extraComp.setEscapeModelStrings(false);
                 extraComp.setVisible(true);
             }
         }
+        if (!isLongLiteral) {
+            showMoreLabel.setVisible(false);
+        }
     }
-
 
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
