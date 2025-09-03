@@ -1,10 +1,18 @@
 package com.knowledgepixels.nanodash.template;
 
-import com.knowledgepixels.nanodash.LookupApis;
-import com.knowledgepixels.nanodash.Utils;
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.rdf4j.common.exception.RDF4JException;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -17,8 +25,10 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.LookupApis;
+import com.knowledgepixels.nanodash.Utils;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Represents a template for creating nanopublications.
