@@ -82,8 +82,8 @@ public class UserListPage extends NanodashPage {
                     return new UserList(markupId, response, "userid");
                 }
             });
-
         }
+
         final String aQueryName = "get-top-authors";
         ApiResponse aResponse = ApiCache.retrieveResponse(aQueryName, noParams);
         if (aResponse != null) {
@@ -98,7 +98,6 @@ public class UserListPage extends NanodashPage {
                     return new UserList(markupId, response, "author");
                 }
             });
-
         }
 
         final List<IRI> userList = User.getUsers(true);

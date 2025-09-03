@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -19,6 +20,7 @@ import org.nanopub.extra.services.FailedApiCallException;
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.MethodResultComponent;
 import com.knowledgepixels.nanodash.component.QueryResultTable;
 import com.knowledgepixels.nanodash.component.TemplateResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -100,8 +102,28 @@ public class ProjectPage extends NanodashPage {
 
         });
         add(TemplateResults.fromList("templates", templates, params));
-        add(new UserList("owners", project.getOwners()));
-        add(new UserList("members", project.getMembers()));
+
+        if (project.isDataInitialized()) {
+            add(new UserList("owners", project.getOwners()));
+        } else {
+            add(new MethodResultComponent<Project,List<IRI>>("owners", project, Project::isDataInitialized, Project::getOwners) {
+                @Override
+                public Component getResultComponent(String markupId, List<IRI> result) {
+                    return new UserList(markupId, result);
+                }
+            });
+        }
+
+        if (project.isDataInitialized()) {
+            add(new UserList("members", project.getMembers()));
+        } else {
+            add(new MethodResultComponent<Project,List<IRI>>("members", project, Project::isDataInitialized, Project::getMembers) {
+                @Override
+                public Component getResultComponent(String markupId, List<IRI> result) {
+                    return new UserList(markupId, result);
+                }
+            });
+        }
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 
