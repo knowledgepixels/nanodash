@@ -487,14 +487,16 @@ public class StatementItem extends Panel {
                 return value;
             }
             IRI iri = (IRI) value;
+            String iriString = iri.stringValue();
+            iriString = iriString.replaceAll("~~ARTIFACTCODE~~", "~~~ARTIFACTCODE~~~");
             // Only add "__N" to URI from second repetition group on; for the first group, information about
             // narrow scopes is not yet complete.
             if (getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
                 if (context.getTemplate().isPlaceholder(iri) || context.getTemplate().isLocalResource(iri)) {
-                    return vf.createIRI(iri.stringValue() + getRepeatSuffix());
+                    iriString += getRepeatSuffix();
                 }
             }
-            return iri;
+            return vf.createIRI(iriString);
         }
 
         /**

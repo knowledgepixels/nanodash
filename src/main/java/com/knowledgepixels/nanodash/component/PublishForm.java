@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.*;
-import org.apache.commons.lang3.StringUtils;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -55,8 +58,18 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 /**
  * Form for publishing a nanopublication.
@@ -165,7 +178,7 @@ public class PublishForm extends Panel {
             targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
         }
         String targetNamespaceLabel = targetNamespace + "...";
-        targetNamespace = targetNamespace + "ARTIFACTCODE-PLACEHOLDER/";
+        targetNamespace = targetNamespace + "~~~ARTIFACTCODE~~~/";
 
         assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
         assertionContext.setFillMode(fillMode);
@@ -904,7 +917,7 @@ public class PublishForm extends Panel {
             }
             placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
             if (placeholderLabel.length() > 100) placeholderLabel = placeholderLabel.substring(0, 97) + "...";
-            nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
+            nanopubLabel = Strings.CS.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
         }
         return nanopubLabel;
     }
