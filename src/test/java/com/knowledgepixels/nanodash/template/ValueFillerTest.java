@@ -6,6 +6,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ValueFillerTest {
 
     @Test
-    void transformValueNanopub() throws MalformedNanopubException {
+    void transformValueNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
 
@@ -25,7 +26,7 @@ class ValueFillerTest {
     }
 
     @Test
-    void transformValueAssertion() throws MalformedNanopubException {
+    void transformValueAssertion() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
 
@@ -34,7 +35,7 @@ class ValueFillerTest {
     }
 
     @Test
-    void constructValueFiller() throws MalformedNanopubException {
+    void constructValueFiller() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
 
@@ -42,28 +43,28 @@ class ValueFillerTest {
     }
 
     @Test
-    void hasStatements() throws MalformedNanopubException {
+    void hasStatements() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
         assertTrue(valueFiller.hasStatements());
     }
 
     @Test
-    void hasUsedStatements() throws MalformedNanopubException {
+    void hasUsedStatements() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
         assertFalse(valueFiller.hasUsedStatements());
     }
 
     @Test
-    void hasUnusedStatements() throws MalformedNanopubException {
+    void hasUnusedStatements() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
         assertTrue(valueFiller.hasUnusedStatements());
     }
 
     @Test
-    void getUnusedStatements() throws MalformedNanopubException {
+    void getUnusedStatements() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = TestUtils.createNanopub();
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
         List<Statement> unusedStatements = valueFiller.getUnusedStatements();

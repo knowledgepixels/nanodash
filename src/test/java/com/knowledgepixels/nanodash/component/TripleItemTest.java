@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 
 import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
@@ -26,7 +27,7 @@ class TripleItemTest {
     }
 
     @Test
-    void rendersTripleWithIriObject() throws MalformedNanopubException {
+    void rendersTripleWithIriObject() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator creator = TestUtils.getNanopubCreator();
         Statement statement = vf.createStatement(anyIri, anyIri, anyIri);
         creator.addAssertionStatement(statement);
@@ -45,7 +46,7 @@ class TripleItemTest {
     }
 
     @Test
-    void rendersTripleWithLiteralObject() throws MalformedNanopubException {
+    void rendersTripleWithLiteralObject() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator creator = TestUtils.getNanopubCreator();
         Statement statement = vf.createStatement(anyIri, anyIri, vf.createLiteral("literal"));
         creator.addAssertionStatement(statement);

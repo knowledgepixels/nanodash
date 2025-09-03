@@ -20,6 +20,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -146,7 +147,7 @@ public class StatementItem extends Panel {
      * @param npCreator the NanopubCreator to which the triples will be added
      * @throws org.nanopub.MalformedNanopubException if the statement item is not properly set up
      */
-    public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
+    public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         if (hasEmptyElements()) {
             if (isOptional()) {
                 return;
@@ -501,7 +502,7 @@ public class StatementItem extends Panel {
          *
          * @param npCreator the NanopubCreator to which the triples will be added
          */
-        public void addTriplesTo(NanopubCreator npCreator) {
+        public void addTriplesTo(NanopubCreator npCreator) throws NanopubAlreadyFinalizedException {
             Template t = getTemplate();
             for (IRI s : statementPartIds) {
                 IRI subj = context.processIri((IRI) transform(t.getSubject(s)));

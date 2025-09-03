@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -27,7 +28,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "edit as derived nanopublication";
         DeriveAction action = new DeriveAction();
@@ -36,7 +37,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getTemplateUriNanopubWithValidTemplate() throws MalformedNanopubException {
+    void getTemplateUriNanopubWithValidTemplate() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -57,7 +58,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getTemplateUriNanopubWithInvalidTemplate() throws MalformedNanopubException {
+    void getTemplateUriNanopubWithInvalidTemplate() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         TemplateData templateDataMock = mock(TemplateData.class);
         templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
@@ -69,7 +70,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         DeriveAction action = new DeriveAction();
         String result = action.getParamString(nanopub);
@@ -92,7 +93,7 @@ class DeriveActionTest {
     }
 
     @Test
-    void isApplicableTo() throws MalformedNanopubException {
+    void isApplicableTo() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         DeriveAction action = new DeriveAction();
         boolean result = action.isApplicableTo(nanopub);

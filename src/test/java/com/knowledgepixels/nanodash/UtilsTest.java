@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.FIP;
@@ -108,7 +109,7 @@ class UtilsTest {
     }
 
     @Test
-    void testIsNanopubOfClass() throws MalformedNanopubException {
+    void testIsNanopubOfClass() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         IRI classIri = iri("http://knowledgepixels.com/nanopubIri#any");
         boolean isNanopubOfClass = Utils.isNanopubOfClass(nanopub, classIri);
@@ -453,7 +454,7 @@ class UtilsTest {
     }
 
     @Test
-    void getIntroducedIriIds() throws MalformedNanopubException {
+    void getIntroducedIriIds() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator npCreator = TestUtils.getNanopubCreator();
         npCreator.addAssertionStatement(TestUtils.anyIri, TestUtils.anyIri, TestUtils.anyIri);
         npCreator.addProvenanceStatement(npCreator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);

@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash;
 
+import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +70,7 @@ public class ApiCache {
      * @param params    The parameters for the query.
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException {
+    private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> nanopubParams = new HashMap<>();
         for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
         ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
@@ -146,7 +148,7 @@ public class ApiCache {
      * @param params    The parameters for the query.
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException {
+    private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> map = new HashMap<>();
         Map<String, String> nanopubParams = new HashMap<>();
         for (String k : params.keySet()) nanopubParams.put(k, params.get(k));

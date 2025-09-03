@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -26,7 +27,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "improve";
         ImproveAction action = new ImproveAction();
@@ -35,7 +36,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -56,7 +57,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         ImproveAction action = new ImproveAction();
         String result = action.getParamString(nanopub);
@@ -79,7 +80,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void isApplicableToReturnsTrue() throws MalformedNanopubException {
+    void isApplicableToReturnsTrue() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -100,7 +101,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void isApplicableToReturnsFalse() throws MalformedNanopubException {
+    void isApplicableToReturnsFalse() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
