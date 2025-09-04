@@ -52,7 +52,7 @@ public class NanopubItem extends Panel {
     private boolean hideActionMenu = false;
     private List<NanopubAction> actions;
     private IRI signerId;
-    private String tempalteId;
+    private String templateId;
     private static final Logger logger = LoggerFactory.getLogger(NanopubItem.class);
 
     /**
@@ -60,12 +60,12 @@ public class NanopubItem extends Panel {
      *
      * @param id         the Wicket component ID
      * @param n          the NanopubElement to display
-     * @param tempalteId the ID of the template to use for rendering the assertion.
+     * @param templateId the ID of the template to use for rendering the assertion.
      */
-    public NanopubItem(String id, NanopubElement n, String tempalteId) {
+    public NanopubItem(String id, NanopubElement n, String templateId) {
         super(id);
         this.n = n;
-        this.tempalteId = tempalteId;
+        this.templateId = templateId;
     }
 
     /**
@@ -182,6 +182,7 @@ public class NanopubItem extends Panel {
                         if (creators.size() == 1) uIri = creators.iterator().next();
                     }
                 } catch (MalformedCryptoElementException ex) {
+                    logger.error("Error getting signer from nanopub {}", n.getUri(), ex);
                 }
             }
             // ----------
@@ -222,9 +223,10 @@ public class NanopubItem extends Panel {
             assertion.setVisible(false);
         } else {
             Template assertionTemplate = td.getTemplate(n.getNanopub());
-            if (tempalteId != null) assertionTemplate = td.getTemplate(tempalteId);
-            if (assertionTemplate == null)
+            if (templateId != null) assertionTemplate = td.getTemplate(templateId);
+            if (assertionTemplate == null) {
                 assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+            }
             List<StatementItem> assertionStatements = new ArrayList<>();
             ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
             TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());

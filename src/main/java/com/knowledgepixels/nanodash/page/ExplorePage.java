@@ -97,6 +97,7 @@ public class ExplorePage extends NanodashPage {
                 HttpServletRequest httpRequest = (HttpServletRequest) getRequest().getContainerRequest();
                 mimeType = MIMEParse.bestMatch(Utils.SUPPORTED_TYPES_LIST, httpRequest.getHeader("Accept"));
             } catch (Exception ex) {
+                logger.error("Error determining MIME type from Accept header.", ex);
             }
             if (!mimeType.equals(Utils.TYPE_HTML)) {
                 logger.info("Non-HTML content type: {}", mimeType);
@@ -106,11 +107,13 @@ public class ExplorePage extends NanodashPage {
                 throw new RedirectToUrlException(redirectUrl, 302);
             }
 
+            String nanopubHeaderLabel = "<h4>%s</h4>";
             if (isNanopubId) {
-                add(new Label("nanopub-header", "<h4>Nanopublication</h4>").setEscapeModelStrings(false));
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "Nanopublication");
             } else {
-                add(new Label("nanopub-header", "<h4>Minted in Nanopublication</h4>").setEscapeModelStrings(false));
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "Minted in Nanopublication");
             }
+            add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
             add(new NanopubItem("nanopub", NanopubElement.get(np)));
             String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
             raw.add(new ExternalLink("trig-txt", url + ".trig.txt"));
@@ -122,16 +125,12 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
-                add(new WebMarkupContainer("use-template").add(
-                        new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri())))
-                );
+                add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri()))));
             } else {
                 add(new WebMarkupContainer("use-template").setVisible(false));
             }
             if (Utils.isNanopubOfClass(np, GrlcQuery.GRLC_QUERY_CLASS)) {
-                add(new WebMarkupContainer("run-query").add(
-                        new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().add("id", np.getUri())))
-                );
+                add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().add("id", np.getUri()))));
             } else {
                 add(new WebMarkupContainer("run-query").setVisible(false));
             }
