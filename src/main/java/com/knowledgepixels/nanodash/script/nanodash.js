@@ -142,7 +142,7 @@ function collapseNanopubAssertion(el) {
 
 function showMore(el) {
   const $longLiteral = $(el).siblings('.long-literal');
-  let maxHeight = '70px'; // Default max-height defined in the style.css
+  let maxHeight = '80px'; // if you update this also update it in the style.css file
 
   if ($(el).text() === 'Show more') {
     $(el).text('Show less');

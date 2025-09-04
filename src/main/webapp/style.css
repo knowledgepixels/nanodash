@@ -1635,11 +1635,12 @@ span.usertext {
 }
 
 .long-literal {
-  max-height: 70px;
+  max-height: 80px; /* if you change this also update it in the showMore() function of the nanodash.js file */
   overflow-y: hidden;
   position: relative;
   max-width: 50ch;
   display: inline-block;
+  vertical-align: bottom !important;
 }
 
 .collapsed::after {
@@ -1650,14 +1651,14 @@ span.usertext {
   bottom: 0;
   height: 40px;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, white 80%);
+  background: linear-gradient(to bottom, transparent, white 50%);
 }
 
 .expanded::after {
   display: none;
 }
 
-.readonly-container {
+.value-container {
   position: relative;
   display: inline-block;
 }
@@ -1672,4 +1673,5 @@ span.usertext {
   border-radius: 3px;
   border: 1px solid #0b73da;
   text-decoration: underline;
+  vertical-align: bottom !important;
 }

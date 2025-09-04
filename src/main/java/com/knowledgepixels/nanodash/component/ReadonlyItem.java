@@ -49,6 +49,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
     private static final long serialVersionUID = 1L;
+    private static final int LONG_LITERAL_LENGTH = 100;
 
     private IModel<String> model;
     private TemplateContext context;
@@ -60,7 +61,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private RestrictedChoice restrictedChoice;
     private final Template template;
     private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
-    private Label showMoreLabel;
+    private Label showMoreLabelLiteral, showMoreLabelHTML;
 
     /**
      * Constructor for ReadonlyItem.
@@ -247,8 +248,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         datatypeComp.setVisible(false);
         add(datatypeComp);
 
-        showMoreLabel = new Label("show-more", "Show more");
-        add(showMoreLabel);
+        showMoreLabelLiteral = new Label("show-more-literal", "Show more");
+        add(showMoreLabelLiteral);
+        showMoreLabelLiteral.setVisible(false);
+
+        showMoreLabelHTML = new Label("show-more-html", "Show more");
+        add(showMoreLabelHTML);
+        showMoreLabelHTML.setVisible(false);
     }
 
     /**
@@ -396,7 +402,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
      */
     @Override
     public void unifyWith(Value v) throws UnificationException {
-        boolean isLongLiteral = false;
         if (v == null) return;
         String vs = v.stringValue();
         if (!isUnifiableWith(v)) {
@@ -422,11 +427,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
             model.setObject(vs);
         } else if (v instanceof Literal vL) {
-            if (vs.length() >= 50) {
-                isLongLiteral = true;
+            if (vs.length() >= LONG_LITERAL_LENGTH) {
                 linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                showMoreLabelLiteral.setVisible(true);
             }
-//            LoggerFactory.getLogger(ReadonlyItem.class).info("ReadonlyItem fillFinished: {} -> {}", linkComp.getBody().getObject().toString(), linkComp.getBody().getObject().toString().length());
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
@@ -441,13 +445,12 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             // TODO Didn't manage to encode this into a working regex:
             if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
                 linkComp.setVisible(false);
-                extraModel.setObject("<span class=\"internal long-literal\">" + Utils.sanitizeHtml(vs) + "</span>");
+                extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);
                 extraComp.setVisible(true);
+                showMoreLabelLiteral.setVisible(false);
+                showMoreLabelHTML.setVisible(true);
             }
-        }
-        if (!isLongLiteral) {
-            showMoreLabel.setVisible(false);
         }
     }
 
