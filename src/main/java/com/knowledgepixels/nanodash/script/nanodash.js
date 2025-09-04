@@ -144,13 +144,13 @@ function showMore(el) {
   const $longLiteral = $(el).siblings('.long-literal');
   let maxHeight = '80px'; // if you update this also update it in the style.css file
 
-  if ($(el).text() === 'Show more') {
-    $(el).text('Show less');
+  if ($longLiteral.hasClass('collapsed')) {
     $longLiteral.css('max-height', 'none');
     $longLiteral.removeClass('collapsed').addClass('expanded');
+    $(el).css('transform', 'scale(1 ,-1');
   } else {
-    $(el).text('Show more');
     $longLiteral.css('max-height', maxHeight);
     $longLiteral.removeClass('expanded').addClass('collapsed');
+    $(el).css('transform', 'scale(1, 1)');
   }
 }

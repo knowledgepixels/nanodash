@@ -1497,7 +1497,6 @@ span.internal {
   padding: 8px;
   border-radius: 8px;
   margin-top: 8px;
-  margin-bottom: 8px;
   border-style: solid;
   border-width: 1px;
   border-color: rgba(0, 0, 0, 0.15);
@@ -1641,6 +1640,7 @@ span.usertext {
   max-width: 50ch;
   display: inline-block;
   vertical-align: bottom !important;
+  padding-bottom: 30px;
 }
 
 .collapsed::after {
@@ -1666,12 +1666,13 @@ span.usertext {
 .show-more {
   position: absolute;
   right: 8px;
-  bottom: 8px;
+  bottom: 0;
   color: #0b73da;
   cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 3px;
-  border: 1px solid #0b73da;
-  text-decoration: underline;
   vertical-align: bottom !important;
+  width: 30px;
+  height: 30px;
+  background-image: url("images/down-arrow.svg");
+  background-repeat: no-repeat;
+  background-position: center;
 }

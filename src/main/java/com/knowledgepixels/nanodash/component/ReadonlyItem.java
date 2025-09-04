@@ -50,6 +50,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     private static final long serialVersionUID = 1L;
     private static final int LONG_LITERAL_LENGTH = 100;
+    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
     private TemplateContext context;
@@ -59,9 +61,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private IModel<String> extraModel, languageModel, datatypeModel;
     private IRI iri;
     private RestrictedChoice restrictedChoice;
-    private final Template template;
-    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
     private Label showMoreLabelLiteral, showMoreLabelHTML;
+    private final Template template;
 
     /**
      * Constructor for ReadonlyItem.
@@ -248,11 +249,11 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         datatypeComp.setVisible(false);
         add(datatypeComp);
 
-        showMoreLabelLiteral = new Label("show-more-literal", "Show more");
+        showMoreLabelLiteral = new Label("show-more-literal", "");
         add(showMoreLabelLiteral);
         showMoreLabelLiteral.setVisible(false);
 
-        showMoreLabelHTML = new Label("show-more-html", "Show more");
+        showMoreLabelHTML = new Label("show-more-html", "");
         add(showMoreLabelHTML);
         showMoreLabelHTML.setVisible(false);
     }
@@ -538,7 +539,5 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     public String toString() {
         return "[read-only IRI item: " + iri + "]";
     }
-
-    static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 }
