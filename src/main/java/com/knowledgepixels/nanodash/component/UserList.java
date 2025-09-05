@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.UserPage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -14,9 +16,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.UserPage;
 
 /**
  * A panel that displays a list of users with links to their user pages.
@@ -66,7 +68,7 @@ public class UserList extends Panel {
     }
 
     private void init(List<IRI> users, Map<IRI, String> notes) {
-        add(new DataView<IRI>("userlist", new ListDataProvider<IRI>(users)) {
+        DataView<IRI> dataView = new DataView<>("userlist", new ListDataProvider<IRI>(users)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -85,7 +87,14 @@ public class UserList extends Panel {
                 }
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        add(dataView);
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        pagingNavigator.setVisible(dataView.getPageCount() > 1);
+        pagingNavigator.setOutputMarkupId(true);
+        add(pagingNavigator);
     }
 
 }

@@ -1508,3 +1508,19 @@ span.usertext {
   padding: 3px;
 }
 
+div.pagingnav {
+  text-align: center;
+  font-size: 11pt;
+  border-top-style: solid;
+  border-width: 1px;
+  border-color: #888;
+}
+
+div.pagingnav a[disabled] {
+  visibility: hidden;
+}
+
+div.pagingnav .goto a[disabled] {
+  visibility: visible;
+  color: black;
+}
