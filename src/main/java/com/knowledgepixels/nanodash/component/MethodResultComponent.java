@@ -12,6 +12,7 @@ public abstract class MethodResultComponent<T,R> extends ResultComponent {
 
     public MethodResultComponent(String id, T obj, Function<T,Boolean> readyFunction, Function<T,R> resultFunction) {
         super(id);
+        setOutputMarkupId(true);
         this.obj = obj;
         this.readyFunction = readyFunction;
         this.resultFunction = resultFunction;

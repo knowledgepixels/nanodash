@@ -37,6 +37,7 @@ public class UserList extends Panel {
      */
     public UserList(String id, List<IRI> users, Map<IRI, String> notes) {
         super(id);
+        setOutputMarkupId(true);
         init(users, notes);
     }
 
@@ -48,6 +49,7 @@ public class UserList extends Panel {
      */
     public UserList(String id, List<IRI> users) {
         super(id);
+        setOutputMarkupId(true);
         init(users, null);
     }
 
@@ -60,6 +62,7 @@ public class UserList extends Panel {
      */
     public UserList(String id, ApiResponse resp, String userIdKey) {
         super(id);
+        setOutputMarkupId(true);
         List<IRI> users = new ArrayList<>();
         for (ApiResponseEntry e : resp.getData()) {
             users.add(Utils.vf.createIRI(e.get(userIdKey)));
