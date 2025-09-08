@@ -289,13 +289,13 @@ public class Utils {
             try {
                 return Utils.getNanopub(uri);
             } catch (Exception ex) {
-                // wasn't a known nanopublication
+                logger.error("The given URI is not a known nanopublication: {}", uri, ex);
             }
         }
         return null;
     }
 
-    private static PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
+    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
             .allowCommonBlockElements()
             .allowCommonInlineFormattingElements()
             .allowUrlProtocols("https", "http", "mailto")
@@ -408,7 +408,7 @@ public class Utils {
      * @return a list of IRI types associated with the nanopublication
      */
     public static List<IRI> getTypes(Nanopub np) {
-        List<IRI> l = new ArrayList<IRI>();
+        List<IRI> l = new ArrayList<>();
         for (IRI t : NanopubUtils.getTypes(np)) {
             if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) continue;
             if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED))
