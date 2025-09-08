@@ -29,7 +29,6 @@ public class RestrictedChoice implements Serializable {
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
-
     /**
      * Constructs a RestrictedChoice object for a given placeholder and template context.
      *
