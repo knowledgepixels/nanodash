@@ -27,6 +27,8 @@ import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import com.knowledgepixels.nanodash.Utils;
+
 /**
  * A panel that displays activity data in a table format.
  * It shows the number of nanopublications per type and month.
@@ -45,6 +47,7 @@ public class ActivityPanel extends Panel {
      */
     public ActivityPanel(String markupId, ApiResponse response) {
         super(markupId);
+        setOutputMarkupId(true);
 
         List<Entity> list = new ArrayList<>();
         Set<String> types = new HashSet<>();
@@ -81,6 +84,7 @@ public class ActivityPanel extends Panel {
         DataTable<Entity, String> table = new DataTable<Entity, String>("table", columns, new EntityProvider(list), 10);
         table.addBottomToolbar(new NavigationToolbar(table));
         table.addTopToolbar(new HeadersToolbar<String>(table, null));
+        table.setOutputMarkupId(true);
         add(table);
     }
 
@@ -163,7 +167,7 @@ public class ActivityPanel extends Panel {
 
         @Override
         public Iterator<? extends Entity> iterator(long first, long count) {
-            return list.iterator();
+            return Utils.subList(list, first, first + count).iterator();
         }
 
         @Override

@@ -45,7 +45,7 @@ public class TemplateResults extends Panel {
     public static TemplateResults fromList(String id, List<Template> templateList, final PageParameters additionalParams) {
         TemplateResults r = new TemplateResults(id);
 
-        r.add(new DataView<Template>("templates", new ListDataProvider<Template>(templateList)) {
+        DataView<Template> dataView = new DataView<>("templates", new ListDataProvider<Template>(templateList)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -54,7 +54,17 @@ public class TemplateResults extends Panel {
                 item.add(new TemplateItem("template", item.getModelObject(), additionalParams));
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        r.add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        r.add(navigation);
 
         return r;
     }

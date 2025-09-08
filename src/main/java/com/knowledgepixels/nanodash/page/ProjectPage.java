@@ -90,7 +90,7 @@ public class ProjectPage extends NanodashPage {
             String l = templateLists.isEmpty() ? "Templates" : "Other Templates";
             templateLists.add(Pair.of(l, templates));
         }
-        add(new DataView<Pair<String, List<Template>>>("template-lists", new ListDataProvider<Pair<String, List<Template>>>(templateLists)) {
+        add(new DataView<Pair<String, List<Template>>>("template-lists", new ListDataProvider<>(templateLists)) {
 
             private static final long serialVersionUID = 1L;
 
