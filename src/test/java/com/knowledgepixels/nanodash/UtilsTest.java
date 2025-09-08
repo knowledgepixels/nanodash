@@ -1,18 +1,18 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.utils.TestUtils;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubUtils;
+import org.nanopub.*;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
 
@@ -28,11 +28,12 @@ import static org.mockito.Mockito.*;
 class UtilsTest {
 
     private final String ARTIFACT_CODE = "RAAnO3U0Lc56gbYHz5MZD440460c88Qfiz8cTfP58nvvs";
-    private final String NANOPUB_IRI = "https://w3id.org/np/" + ARTIFACT_CODE;
+    private final String BASE_URI = "https://w3id.org/np/";
+    private final String NANOPUB_IRI = BASE_URI + ARTIFACT_CODE;
 
     @Test
     void getShortNameFromURI() {
-        IRI iri = iri("http://knowledgepixels.com/resource#any12345");
+        IRI iri = Values.iri("http://knowledgepixels.com/resource#any12345");
         String shortName = "any12345";
         String shortNameRetrieved = Utils.getShortNameFromURI(iri);
         assertEquals(shortName, shortNameRetrieved);
@@ -40,7 +41,7 @@ class UtilsTest {
 
     @Test
     void getShortNameFromURIAsString() {
-        String iriAsString = iri("http://knowledgepixels.com/resource#any12345").stringValue();
+        String iriAsString = Values.iri("http://knowledgepixels.com/resource#any12345").stringValue();
         String shortName = "any12345";
         String shortNameRetrieved = Utils.getShortNameFromURI(iriAsString);
         assertEquals(shortName, shortNameRetrieved);
@@ -61,7 +62,7 @@ class UtilsTest {
 
     @Test
     void getShortOrcidId() {
-        IRI orcidId = iri("https://orcid.org/0000-0000-0000-0000");
+        IRI orcidId = Values.iri("https://orcid.org/0000-0000-0000-0000");
         String shortOrcidId = Utils.getShortOrcidId(orcidId);
         String expectedShortOrcidId = "0000-0000-0000-0000";
         assertEquals(expectedShortOrcidId, shortOrcidId);
@@ -74,10 +75,23 @@ class UtilsTest {
     }
 
     @Test
+    void getUriPostfixWithHash() {
+        String uri = BASE_URI + "example#" + ARTIFACT_CODE;
+        String postfix = Utils.getUriPostfix(uri);
+        assertEquals(ARTIFACT_CODE, postfix);
+    }
+
+    @Test
     void getUriPrefix() {
         String prefix = Utils.getUriPrefix(NANOPUB_IRI);
-        String expectedPrefix = "https://w3id.org/np/";
-        assertEquals(expectedPrefix, prefix);
+        assertEquals(BASE_URI, prefix);
+    }
+
+    @Test
+    void getUriPrefixWithHash() {
+        String uri = BASE_URI + "example#" + ARTIFACT_CODE;
+        String prefix = Utils.getUriPrefix(uri);
+        assertEquals(BASE_URI + "example#", prefix);
     }
 
     @Test
@@ -109,9 +123,9 @@ class UtilsTest {
     }
 
     @Test
-    void testIsNanopubOfClass() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void isNanopubOfClass() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
-        IRI classIri = iri("http://knowledgepixels.com/nanopubIri#any");
+        IRI classIri = Values.iri("http://knowledgepixels.com/nanopubIri#any");
         boolean isNanopubOfClass = Utils.isNanopubOfClass(nanopub, classIri);
         assertTrue(isNanopubOfClass);
     }
@@ -122,7 +136,7 @@ class UtilsTest {
         MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);
         IRI excludedType1 = FIP.AVAILABLE_FAIR_ENABLING_RESOURCE;
         IRI excludedType2 = FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED;
-        IRI includedType = iri("http://knowledgepixels.com/nanopubIri#ValidType");
+        IRI includedType = Values.iri("http://knowledgepixels.com/nanopubIri#ValidType");
         mockStatic.when(() -> NanopubUtils.getTypes(nanopub)).thenReturn(Set.of(excludedType1, excludedType2, includedType));
 
         List<IRI> result = Utils.getTypes(nanopub);
@@ -156,38 +170,46 @@ class UtilsTest {
 
     @Test
     void getUriLabelTruncatesLongUriWithTrustyUriPattern() {
-        String url = "https://w3id.org/np/RA12345678abcdefghij1234567890123456789012345678901234567890";
-        String expected = "https://w3id.org/np/RA12345678...123456789012345678901234567890";
+        String url = BASE_URI + "RA12345678abcdefghij1234567890123456789012345678901234567890";
+        String expected = BASE_URI + "RA12345678...123456789012345678901234567890";
         String result = Utils.getUriLabel(url);
         assertEquals(expected, result);
     }
 
     @Test
-    void uriLabelWithTrustyUriPattern() {
-        String url = "https://w3id.org/np/RAAnO3U0Lc56gbYHz5MZD440460c88Qfiz8cTfP58nvvs/extra";
+    void getUriLabelWithTrustyUriPattern() {
+        String url = BASE_URI + "RAAnO3U0Lc56gbYHz5MZD440460c88Qfiz8cTfP58nvvs/extra";
         String result = Utils.getUriLabel(url);
-        String expected = "https://w3id.org/np/RAAnO3U0Lc.../extra";
+        String expected = BASE_URI + "RAAnO3U0Lc.../extra";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void getUriLabelWithShortTrustyUriPattern() {
+        String url = BASE_URI + "RAAnO3U0Lc";
+        String result = Utils.getUriLabel(url);
+        String expected = BASE_URI + "RAAnO3U0Lc";
         assertEquals(expected, result);
     }
 
     @Test
     void getUriLabelTruncatesLongUriWithoutTrustyUriPattern() {
-        String uri = "https://w3id.org/np/verylonguriwithmorethan70charactersandadditionaldata";
-        String expected = "https://w3id.org/np/verylongur...n70charactersandadditionaldata";
+        String uri = BASE_URI + "verylonguriwithmorethan70charactersandadditionaldata";
+        String expected = BASE_URI + "verylongur...n70charactersandadditionaldata";
         String result = Utils.getUriLabel(uri);
         assertEquals(expected, result);
     }
 
     @Test
     void getUriLabelReturnsUriAsIsForShortUri() {
-        String uri = "https://w3id.org/np/short";
+        String uri = BASE_URI + "short";
         String result = Utils.getUriLabel(uri);
         assertEquals(uri, result);
     }
 
     @Test
     void getUriLabelHandlesUriWithTrustyUriPatternButShortLength() {
-        String uri = "https://w3id.org/np/RA12345678abcdefghij123456789012345678901234567890";
+        String uri = BASE_URI + "RA12345678abcdefghij123456789012345678901234567890";
         String result = Utils.getUriLabel(uri);
         assertEquals(uri, result);
     }
@@ -218,21 +240,21 @@ class UtilsTest {
 
     @Test
     void getTypeLabelTruncatesLongTypeName() {
-        IRI typeIri = iri("http://w3id.org/veryLongTypeNameThatExceedsTwentyFiveCharacters");
+        IRI typeIri = Values.iri("http://w3id.org/veryLongTypeNameThatExceedsTwentyFiveCharacters");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("veryLongTypeNameThat...", result);
     }
 
     @Test
     void getTypeLabelRemovesNanopubSuffixFromTypeName() {
-        IRI typeIri = iri("http://w3id.org/ExampleNanopub");
+        IRI typeIri = Values.iri("http://w3id.org/ExampleNanopub");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("Example", result);
     }
 
     @Test
     void getTypeLabelReturnsLastSegmentOfUri() {
-        IRI typeIri = iri("http://w3id.org/SomeType");
+        IRI typeIri = Values.iri("http://w3id.org/SomeType");
         String result = Utils.getTypeLabel(typeIri);
         assertEquals("SomeType", result);
     }
@@ -272,7 +294,7 @@ class UtilsTest {
     @Test
     void usesPredicateInAssertionReturnsTrueWhenPredicateExists() {
         Nanopub nanopub = mock(Nanopub.class);
-        IRI predicateIri = iri("http://knowledgepixels.com/resource#anyPredicate");
+        IRI predicateIri = Values.iri("http://knowledgepixels.com/resource#anyPredicate");
         Statement statement = mock(Statement.class);
 
         when(statement.getPredicate()).thenReturn(predicateIri);
@@ -286,8 +308,8 @@ class UtilsTest {
     @Test
     void usesPredicateInAssertionReturnsFalseWhenPredicateDoesNotExist() {
         Nanopub nanopub = mock(Nanopub.class);
-        IRI predicateIri = iri("http://knowledgepixels.com/resource#anyPredicate");
-        IRI otherPredicateIri = iri("http://knowledgepixels.com/resource#anotherPredicate");
+        IRI predicateIri = Values.iri("http://knowledgepixels.com/resource#anyPredicate");
+        IRI otherPredicateIri = Values.iri("http://knowledgepixels.com/resource#anotherPredicate");
         Statement statement = mock(Statement.class);
 
         when(statement.getPredicate()).thenReturn(otherPredicateIri);
@@ -311,8 +333,8 @@ class UtilsTest {
         Nanopub nanopub = mock(Nanopub.class);
         Statement statement1 = mock(Statement.class);
         Statement statement2 = mock(Statement.class);
-        IRI subject1 = iri("http://knowledgepixels.com/subject1");
-        IRI subject2 = iri("http://knowledgepixels.com/subject2");
+        IRI subject1 = Values.iri("http://knowledgepixels.com/subject1");
+        IRI subject2 = Values.iri("http://knowledgepixels.com/subject2");
         Literal name1 = literal("Name1");
         Literal name2 = literal("Name2");
 
@@ -348,8 +370,8 @@ class UtilsTest {
     void getFoafNameMapIgnoresNonLiteralObjects() {
         Nanopub nanopub = mock(Nanopub.class);
         Statement statement = mock(Statement.class);
-        IRI subject = iri("http://knowledgepixels.com/subject");
-        IRI nonLiteralObject = iri("http://knowledgepixels.com/nonLiteralObject");
+        IRI subject = Values.iri("http://knowledgepixels.com/subject");
+        IRI nonLiteralObject = Values.iri("http://knowledgepixels.com/nonLiteralObject");
 
         when(statement.getPredicate()).thenReturn(FOAF.NAME);
         when(statement.getSubject()).thenReturn(subject);
@@ -476,7 +498,236 @@ class UtilsTest {
 
         Set<String> actualIriIds = Utils.getIntroducedIriIds(nanopub);
         assertEquals(expectedIntroducedIriIds, actualIriIds);
+    }
 
+    @Test
+    void getEmbeddedIriIds() throws NanopubAlreadyFinalizedException, MalformedNanopubException {
+        NanopubCreator npCreator = TestUtils.getNanopubCreator();
+        npCreator.addAssertionStatement(TestUtils.anyIri, TestUtils.anyIri, TestUtils.anyIri);
+        npCreator.addProvenanceStatement(npCreator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
+        npCreator.addPubinfoStatement(NPX.EMBEDS, TestUtils.anyIri);
+
+        IRI randomIri1 = TestUtils.randomIri();
+        npCreator.addPubinfoStatement(NPX.EMBEDS, randomIri1);
+
+        npCreator.addPubinfoStatement(TestUtils.randomIri(), TestUtils.randomIri());
+        npCreator.addPubinfoStatement(NPX.EMBEDS, literal("not an IRI"));
+        npCreator.addPubinfoStatement(TestUtils.randomIri(), NPX.EMBEDS, TestUtils.randomIri());
+
+        Nanopub nanopub = npCreator.finalizeNanopub();
+
+        Set<String> expectedEmbeddedIris = Set.of(
+                TestUtils.anyIri.stringValue(),
+                randomIri1.stringValue()
+        );
+
+        Set<String> result = Utils.getEmbeddedIriIds(nanopub);
+
+        assertEquals(expectedEmbeddedIris, result);
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsTrueForPlainLiteral() {
+        String literal = "\"plain literal\"";
+        assertTrue(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsTrueForLangTaggedLiteral() {
+        String literal = "\"literal with lang tag\"@en";
+        assertTrue(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsTrueForDatatypeLiteral() {
+        String literal = "\"literal with datatype\"^^<http://www.w3.org/2001/XMLSchema#string>";
+        assertTrue(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsFalseForInvalidPlainLiteral() {
+        String literal = "plain literal without quotes";
+        assertFalse(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsFalseForInvalidLangTaggedLiteral() {
+        String literal = "\"literal with invalid lang tag\"@e";
+        assertFalse(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsFalseForEmptyString() {
+        String literal = "";
+        assertFalse(Utils.isValidLiteralSerialization(literal));
+    }
+
+    @Test
+    void isValidLiteralSerializationReturnsFalseForNullInput() {
+        assertThrows(NullPointerException.class, () -> Utils.isValidLiteralSerialization(null));
+    }
+
+    @Test
+    void getUnescapedLiteralStringReturnsUnescapedStringForEscapedQuotes() {
+        String escapedString = "\\\"escaped\\\"";
+        String result = Utils.getUnescapedLiteralString(escapedString);
+        assertEquals("\"escaped\"", result);
+    }
+
+    @Test
+    void getUnescapedLiteralStringReturnsUnescapedStringForEscapedBackslashes() {
+        String escapedString = "\\\\escaped\\\\";
+        String result = Utils.getUnescapedLiteralString(escapedString);
+        assertEquals("\\escaped\\", result);
+    }
+
+    @Test
+    void getUnescapedLiteralStringHandlesMixedEscapedCharacters() {
+        String escapedString = "\\\"mixed\\\\escaped\\\"";
+        String result = Utils.getUnescapedLiteralString(escapedString);
+        assertEquals("\"mixed\\escaped\"", result);
+    }
+
+    @Test
+    void getUnescapedLiteralStringReturnsSameStringForNoEscapedCharacters() {
+        String escapedString = "noEscapedCharacters";
+        String result = Utils.getUnescapedLiteralString(escapedString);
+        assertEquals("noEscapedCharacters", result);
+    }
+
+    @Test
+    void getUnescapedLiteralStringHandlesEmptyString() {
+        String escapedString = "";
+        String result = Utils.getUnescapedLiteralString(escapedString);
+        assertEquals("", result);
+    }
+
+    @Test
+    void getUnescapedLiteralStringHandlesNullInput() {
+        assertThrows(NullPointerException.class, () -> Utils.getUnescapedLiteralString(null));
+    }
+
+    @Test
+    void getEscapedLiteralStringEscapesQuotesCorrectly() {
+        String input = "This is a \"quote\"";
+        String result = Utils.getEscapedLiteralString(Utils.getUnescapedLiteralString(input));
+        assertEquals("This is a \"quote\"", result);
+    }
+
+    @Test
+    void getEscapedLiteralStringEscapesBackslashesCorrectly() {
+        String input = "This is a backslash \\";
+        String result = Utils.getEscapedLiteralString(Utils.getUnescapedLiteralString(input));
+        assertEquals("This is a backslash \\\\", result);
+    }
+
+    @Test
+    void getEscapedLiteralStringReturnsSameStringForNoSpecialCharacters() {
+        String input = "No special characters";
+        String result = Utils.getEscapedLiteralString(input);
+        assertEquals("No special characters", result);
+    }
+
+    @Test
+    void getEscapedLiteralStringHandlesEmptyString() {
+        String input = "";
+        String result = Utils.getEscapedLiteralString(input);
+        assertEquals("", result);
+    }
+
+    @Test
+    void getEscapedLiteralStringHandlesNullInput() {
+        assertThrows(NullPointerException.class, () -> Utils.getEscapedLiteralString(null));
+    }
+
+    @Test
+    void getParsedLiteralReturnsPlainLiteral() {
+        String serializedLiteral = "\"plain literal\"";
+        Literal result = Utils.getParsedLiteral(serializedLiteral);
+        assertEquals("plain literal", result.stringValue());
+        assertFalse(result.getLanguage().isPresent());
+        assertEquals(XSD.STRING, result.getDatatype());
+    }
+
+    @Test
+    void getParsedLiteralReturnsLangTaggedLiteral() {
+        String serializedLiteral = "\"literal with lang tag\"@en";
+        Literal result = Utils.getParsedLiteral(serializedLiteral);
+        assertEquals("literal with lang tag", result.stringValue());
+        assertTrue(result.getLanguage().isPresent());
+        assertEquals("en", result.getLanguage().get());
+    }
+
+    @Test
+    void getParsedLiteralReturnsDatatypeLiteral() {
+        String serializedLiteral = "\"literal with datatype\"^^<http://www.w3.org/2001/XMLSchema#string>";
+        Literal result = Utils.getParsedLiteral(serializedLiteral);
+        assertEquals("literal with datatype", result.stringValue());
+        assertEquals(Values.iri("http://www.w3.org/2001/XMLSchema#string"), result.getDatatype());
+    }
+
+    @Test
+    void getParsedLiteralThrowsExceptionForInvalidPlainLiteral() {
+        String serializedLiteral = "plain literal without quotes";
+        assertThrows(IllegalArgumentException.class, () -> Utils.getParsedLiteral(serializedLiteral));
+    }
+
+    @Test
+    void getSerializedLiteralReturnsCorrectSerializationForPlainLiteral() {
+        Literal literal = Values.literal("plain literal");
+        String result = Utils.getSerializedLiteral(literal);
+        assertEquals("\"plain literal\"", result);
+    }
+
+    @Test
+    void getSerializedLiteralReturnsCorrectSerializationForLangTaggedLiteral() {
+        Literal literal = Values.literal("literal with lang tag", "en");
+        String result = Utils.getSerializedLiteral(literal);
+        assertEquals("\"literal with lang tag\"@en", result);
+    }
+
+    @Test
+    void getSerializedLiteralReturnsCorrectSerializationForDatatypeLiteral() {
+        Literal literal = Values.literal("literal with datatype", XSD.STRING);
+        String result = Utils.getSerializedLiteral(literal);
+        assertEquals("\"literal with datatype\"", result);
+    }
+
+    @Test
+    void getSerializedLiteralReturnsCorrectSerializationForCustomDatatypeLiteral() {
+        IRI customDatatype = Values.iri("http://example.org/customDatatype");
+        Literal literal = Values.literal("custom datatype literal", customDatatype);
+        String result = Utils.getSerializedLiteral(literal);
+        assertEquals("\"custom datatype literal\"^^<http://example.org/customDatatype>", result);
+    }
+
+    @Test
+    void getSerializedLiteralHandlesEmptyLiteralString() {
+        Literal literal = Values.literal("");
+        String result = Utils.getSerializedLiteral(literal);
+        assertEquals("\"\"", result);
+    }
+
+    @Test
+    void getUriLinkWithLocalIri() {
+        WicketTester tester = new WicketTester();
+        String markupId = "uri";
+        String uri = "local:label";
+        ExternalLink el = Utils.getUriLink(markupId, uri);
+        assertEquals(markupId, el.getId());
+        assertEquals("", el.getDefaultModel().getObject());
+        assertEquals(Utils.getUriLabel(uri), el.getBody().getObject());
+    }
+
+    @Test
+    void getUriLinkWithoutLocalIri() {
+        WicketTester tester = new WicketTester();
+        String markupId = "uri";
+        String uri = NANOPUB_IRI;
+        ExternalLink el = Utils.getUriLink(markupId, uri);
+        assertEquals(markupId, el.getId());
+        assertEquals(uri, el.getDefaultModel().getObject());
+        assertEquals(Utils.getUriLabel(uri), el.getBody().getObject());
     }
 
 }
