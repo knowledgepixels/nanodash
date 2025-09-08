@@ -1,16 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ThingListPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 
-import java.util.Collections;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.Utils;
 
 /**
  * Panel to show a list of things.
@@ -26,9 +22,8 @@ public class ThingListPanel extends Panel {
      * @param mode     the mode of the panel, determining what kind of things to show
      * @param thingRef the reference of the thing to show the list for
      * @param response the API response containing the data to display
-     * @param limit    the maximum number of items to display; if 0, all items are shown
      */
-    private ThingListPanel(String markupId, final Mode mode, final String thingRef, ApiResponse response, int limit) {
+    private ThingListPanel(String markupId, final Mode mode, final String thingRef, ApiResponse response) {
         super(markupId);
         // TODO Not copying the table here, which can lead to problems if at some point the same result list is sorted differently at different places:
         response.getData().sort(new Utils.ApiResponseEntrySorter("date", true));
@@ -36,22 +31,16 @@ public class ThingListPanel extends Panel {
             setVisible(false);
         } else if (response.getData().size() == 1) {
             add(new Label("message", mode.messageStart + " 1 " + mode.wordSg));
-        } else if (response.getData().size() <= limit) {
-            add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl));
         } else if (response.getData().size() == 1000) {
             add(new Label("message", mode.messageStart + " more " + mode.wordPl + " (>999) than what can be shown here"));
         } else {
             add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl));
         }
         if (mode == Mode.TEMPLATES) {
-            add(TemplateResults.fromApiResponse("things", response, limit));
+            add(TemplateResults.fromApiResponse("things", response));
         } else {
-            add(ThingResults.fromApiResponse("things", mode.returnField, response, limit));
+            add(ThingResults.fromApiResponse("things", mode.returnField, response));
         }
-
-        BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", ThingListPage.class, new PageParameters().add("ref", thingRef).add("mode", mode.modeId));
-        showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
-        add(showAllLink);
     }
 
     /**
@@ -61,13 +50,12 @@ public class ThingListPanel extends Panel {
      * @param mode        the mode of the panel, determining what kind of things to show
      * @param thingRef    the reference of the thing to show the list for
      * @param waitMessage the message to display while waiting for the API response
-     * @param limit       the maximum number of items to display; if 0, all items are shown
      * @return a new ThingListPanel component
      */
-    public static Component createComponent(final String markupId, final Mode mode, final String thingRef, final String waitMessage, final int limit) {
+    public static Component createComponent(final String markupId, final Mode mode, final String thingRef, final String waitMessage) {
         ApiResponse response = ApiCache.retrieveResponse(mode.queryName, mode.queryParam, thingRef);
         if (response != null) {
-            return new ThingListPanel(markupId, mode, thingRef, response, limit);
+            return new ThingListPanel(markupId, mode, thingRef, response);
         } else {
             ApiResultComponent c = new ApiResultComponent(markupId, mode.queryName, mode.queryParam, thingRef) {
 
@@ -75,7 +63,7 @@ public class ThingListPanel extends Panel {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new ThingListPanel(markupId, mode, thingRef, response, limit);
+                    return new ThingListPanel(markupId, mode, thingRef, response);
                 }
 
             };

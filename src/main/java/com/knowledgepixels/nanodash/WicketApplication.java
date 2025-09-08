@@ -102,7 +102,6 @@ public class WicketApplication extends WebApplication {
         mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);
         mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
         mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
-        mountPage(ReferenceTablePage.MOUNT_PATH, ReferenceTablePage.class);
         mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
         mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
         mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
@@ -126,7 +125,6 @@ public class WicketApplication extends WebApplication {
         mountPage(GetNamePage.MOUNT_PATH, GetNamePage.class);
         mountPage(TypePage.MOUNT_PATH, TypePage.class);
         mountPage(TestPage.MOUNT_PATH, TestPage.class);
-        mountPage(ThingListPage.MOUNT_PATH, ThingListPage.class);
         mountPage(ResultTablePage.MOUNT_PATH, ResultTablePage.class);
         mountPage(GenOverviewPage.MOUNT_PATH, GenOverviewPage.class);
         mountPage(GenSelectPage.MOUNT_PATH, GenSelectPage.class);

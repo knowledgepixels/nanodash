@@ -1,7 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ExplorePage;
+import java.util.List;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -11,8 +14,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 
 /**
  * A panel that displays a list of things (e.g., nanopublications, entities) based on an API response.
@@ -27,21 +30,12 @@ public class ThingResults extends Panel {
      * @param id          the Wicket component ID
      * @param thingField  the field in the API response that contains the thing ID
      * @param apiResponse the API response containing the data
-     * @param limit       the maximum number of items to display; if 0, all items are displayed
      * @return a ThingResults instance populated with the data from the API response
      */
-    public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse, int limit) {
+    public static ThingResults fromApiResponse(String id, String thingField, ApiResponse apiResponse) {
         List<ApiResponseEntry> list = apiResponse.getData();
-        if (limit > 0 && list.size() > limit) {
-            List<ApiResponseEntry> shortList = new ArrayList<>();
-            for (ApiResponseEntry e : list) {
-                shortList.add(e);
-                if (shortList.size() == limit) break;
-            }
-            list = shortList;
-        }
         ThingResults r = new ThingResults(id);
-        r.add(new DataView<ApiResponseEntry>("things", new ListDataProvider<ApiResponseEntry>(list)) {
+        DataView<ApiResponseEntry> dataView = new DataView<>("things", new ListDataProvider<ApiResponseEntry>(list)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -59,12 +53,24 @@ public class ThingResults extends Panel {
                 item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().add("id", npId)));
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        r.add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        r.add(navigation);
+
         return r;
     }
 
     private ThingResults(String id) {
         super(id);
+        setOutputMarkupId(true);
     }
 
 }

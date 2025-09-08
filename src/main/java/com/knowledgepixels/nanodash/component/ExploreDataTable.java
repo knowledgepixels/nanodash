@@ -1,30 +1,38 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ReferenceTablePage;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 
 /**
  * A component that displays a data table of nanopublication references.
@@ -36,8 +44,10 @@ public class ExploreDataTable extends Panel {
     private static final String refQueryName = "find-uri-references";
     private static final Logger logger = LoggerFactory.getLogger(ExploreDataTable.class);
 
-    private ExploreDataTable(String id, String ref, ApiResponse response, int limit) {
+    private ExploreDataTable(String id, String ref, ApiResponse response) {
         super(id);
+        setOutputMarkupId(true);
+
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         DataProvider dp;
         try {
@@ -48,16 +58,14 @@ public class ExploreDataTable extends Panel {
             columns.add(new Column("Object", "obj", ref));
             columns.add(new Column("Published By", "pubkey", ref));
             columns.add(new Column("Published On", "date", ref));
-            dp = new DataProvider(filterData(response.getData(), ref, limit));
-            DataTable<ApiResponseEntry, String> table = new DataTable<>("datatable", columns, dp, 100);
-            table.addBottomToolbar(new NavigationToolbar(table));
+            dp = new DataProvider(filterData(response.getData(), ref));
+            DataTable<ApiResponseEntry, String> table = new DataTable<>("datatable", columns, dp, 10);
+            table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
             table.addTopToolbar(new HeadersToolbar<String>(table, dp));
+            table.setOutputMarkupId(true);
             add(table);
             add(new Label("message", "").setVisible(false));
-            BookmarkablePageLink<Void> showAllLink = new BookmarkablePageLink<Void>("show-all", ReferenceTablePage.class, new PageParameters().add("id", ref));
-            showAllLink.setVisible(limit > 0 && response.getData().size() > limit);
-            add(showAllLink);
         } catch (Exception ex) {
             logger.error("Could not create data table for reference: {}", ref, ex);
             add(new Label("datatable", "").setVisible(false));
@@ -67,15 +75,14 @@ public class ExploreDataTable extends Panel {
     }
 
 
-    private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, String nanopubUri, int limit) {
+    private List<ApiResponseEntry> filterData(List<ApiResponseEntry> data, String nanopubUri) {
         List<ApiResponseEntry> filteredList = new ArrayList<>();
         Nanopub np = Utils.getAsNanopub(nanopubUri);
-        if (np == null && limit == 0) return data;
+        if (np == null) return data;
         for (ApiResponseEntry e : data) {
             if (np == null || !nanopubUri.equals(e.get("np"))) {
                 filteredList.add(e);
             }
-            if (limit > 0 && limit == filteredList.size()) break;
         }
         return filteredList;
     }
@@ -201,13 +208,12 @@ public class ExploreDataTable extends Panel {
      *
      * @param markupId the Wicket markup ID for the component
      * @param ref      the reference URI to be displayed in the table
-     * @param limit    the maximum number of entries to display in the table; if 0, all entries are shown
      * @return a new ExploreDataTable component or an ApiResultComponent if the data is not cached
      */
-    public static Component createComponent(final String markupId, final String ref, int limit) {
+    public static Component createComponent(final String markupId, final String ref) {
         ApiResponse response = ApiCache.retrieveResponse(refQueryName, getParams(ref));
         if (response != null) {
-            return new ExploreDataTable(markupId, ref, response, limit);
+            return new ExploreDataTable(markupId, ref, response);
         } else {
             return new ApiResultComponent(markupId, refQueryName, getParams(ref)) {
 
@@ -215,7 +221,7 @@ public class ExploreDataTable extends Panel {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new ExploreDataTable(markupId, ref, response, limit);
+                    return new ExploreDataTable(markupId, ref, response);
                 }
 
             };
