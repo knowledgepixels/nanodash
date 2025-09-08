@@ -1,8 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -19,7 +17,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -158,33 +155,33 @@ public class QueryResultTable extends Panel {
 
     }
 
-    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
-
-        private static final long serialVersionUID = 1L;
-        private SortParam<String> sortParam;
-
-        public ApiResponseComparator(SortParam<String> sortParam) {
-            this.sortParam = sortParam;
-        }
-
-        @Override
-        public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
-            String p = sortParam.getProperty();
-            int result;
-            if (o1.get(p) == null && o2.get(p) == null) {
-                result = 0;
-            } else if (o1.get(p) == null) {
-                result = 1;
-            } else if (o2.get(p) == null) {
-                result = -1;
-            } else {
-                result = o1.get(p).compareTo(o2.get(p));
-            }
-            if (!sortParam.isAscending()) result = -result;
-            return result;
-        }
-
-    }
+//    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
+//
+//        private static final long serialVersionUID = 1L;
+//        private SortParam<String> sortParam;
+//
+//        public ApiResponseComparator(SortParam<String> sortParam) {
+//            this.sortParam = sortParam;
+//        }
+//
+//        @Override
+//        public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
+//            String p = sortParam.getProperty();
+//            int result;
+//            if (o1.get(p) == null && o2.get(p) == null) {
+//                result = 0;
+//            } else if (o1.get(p) == null) {
+//                result = 1;
+//            } else if (o2.get(p) == null) {
+//                result = -1;
+//            } else {
+//                result = o1.get(p).compareTo(o2.get(p));
+//            }
+//            if (!sortParam.isAscending()) result = -result;
+//            return result;
+//        }
+//
+//    }
 
     /**
      * <p>createComponent.</p>
