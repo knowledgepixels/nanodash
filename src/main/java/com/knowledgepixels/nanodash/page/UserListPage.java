@@ -98,7 +98,6 @@ public class UserListPage extends NanodashPage {
         }
 
         final List<IRI> userList = User.getUsers(true);
-        add(new Label("usercount", userList.size()));
 
         add(new UserList("approved-users", userList));
         add(new UserList("other-users", User.getUsers(false)));

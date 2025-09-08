@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -94,10 +96,13 @@ public class UserList extends Panel {
         dataView.setItemsPerPage(10);
         dataView.setOutputMarkupId(true);
         add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
         AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
-        pagingNavigator.setVisible(dataView.getPageCount() > 1);
-        pagingNavigator.setOutputMarkupId(true);
-        add(pagingNavigator);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        add(navigation);
     }
 
 }
