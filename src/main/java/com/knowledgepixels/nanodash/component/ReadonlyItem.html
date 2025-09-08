@@ -13,13 +13,17 @@
 <span wicket:id="description">description</span>
 <a wicket:id="uri" class="uri" href="#" target="_blank">URI</a>
 </span>
+<div class="value-container">
 <a wicket:id="link" class="readonly" href="#">link</a>
+<div wicket:id="show-more-literal" onclick="showMore(this);" class="show-more"></div>
+</div>
 </span>
-<span wicket:id="extra">
-<span class="internal">
+<div class="value-container">
+<span wicket:id="extra" class="internal long-literal collapsed">
 extra HTML content
 </span>
-</span>
+<div wicket:id="show-more-html" onclick="showMore(this);" class="show-more"></div>
+</div>
 <span wicket:id="language" class="litlang">language</span>
 <span wicket:id="datatype" class="litdatatype">datatype</span>
 </wicket:panel>
