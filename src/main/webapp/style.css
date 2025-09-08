@@ -1641,7 +1641,7 @@ span.usertext {
   vertical-align: bottom !important;
   padding-bottom: 30px;
   padding-left: 20px;
-  text-indent: -20px;
+  text-indent: -16px;
 }
 
 .collapsed::after {
