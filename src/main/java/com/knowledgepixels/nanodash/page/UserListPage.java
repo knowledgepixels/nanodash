@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -68,7 +67,7 @@ public class UserListPage extends NanodashPage {
         final String uQueryName = "get-top-creators-last30d";
         ApiResponse rResponse = ApiCache.retrieveResponse(uQueryName, noParams);
         if (rResponse != null) {
-            add(new UserList("topcreators", rResponse, "userid"));
+            add(new UserList("topcreators", rResponse, "userid", false));
         } else {
             add(new ApiResultComponent("topcreators", uQueryName, noParams) {
 
@@ -76,7 +75,7 @@ public class UserListPage extends NanodashPage {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new UserList(markupId, response, "userid");
+                    return new UserList(markupId, response, "userid", false);
                 }
             });
         }
@@ -84,7 +83,7 @@ public class UserListPage extends NanodashPage {
         final String aQueryName = "get-top-authors";
         ApiResponse aResponse = ApiCache.retrieveResponse(aQueryName, noParams);
         if (aResponse != null) {
-            add(new UserList("topauthors", aResponse, "author"));
+            add(new UserList("topauthors", aResponse, "author", false));
         } else {
             add(new ApiResultComponent("topauthors", aQueryName, noParams) {
 
@@ -92,15 +91,15 @@ public class UserListPage extends NanodashPage {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new UserList(markupId, response, "author");
+                    return new UserList(markupId, response, "author", false);
                 }
             });
         }
 
         final List<IRI> userList = User.getUsers(true);
 
-        add(new UserList("approved-users", userList));
-        add(new UserList("other-users", User.getUsers(false)));
+        add(new UserList("approved-users", userList, true));
+        add(new UserList("other-users", User.getUsers(false), true));
 
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));

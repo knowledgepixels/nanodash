@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,28 +33,15 @@ public class UserList extends Panel {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructor for UserList.
-     *
-     * @param id    the component id
-     * @param users a list of user IRI objects
-     * @param notes a map of user IRI to notes (optional)
-     */
-    public UserList(String id, List<IRI> users, Map<IRI, String> notes) {
-        super(id);
-        setOutputMarkupId(true);
-        init(users, notes);
-    }
-
-    /**
      * Constructor for UserList with a list of user IRI objects.
      *
      * @param id    the component id
      * @param users a list of user IRI objects
      */
-    public UserList(String id, List<IRI> users) {
+    public UserList(String id, List<IRI> users, boolean sorted) {
         super(id);
         setOutputMarkupId(true);
-        init(users, null);
+        init(users, sorted);
     }
 
     /**
@@ -62,17 +51,24 @@ public class UserList extends Panel {
      * @param resp      the ApiResponse containing user data
      * @param userIdKey the key in the ApiResponse entries that contains the user IRI
      */
-    public UserList(String id, ApiResponse resp, String userIdKey) {
+    public UserList(String id, ApiResponse resp, String userIdKey, boolean sorted) {
         super(id);
         setOutputMarkupId(true);
         List<IRI> users = new ArrayList<>();
         for (ApiResponseEntry e : resp.getData()) {
             users.add(Utils.vf.createIRI(e.get(userIdKey)));
         }
-        init(users, null);
+        init(users, sorted);
     }
 
-    private void init(List<IRI> users, Map<IRI, String> notes) {
+    private void init(List<IRI> users, boolean sorted) {
+        final Map<IRI, String> userDisplayNameMap = new HashMap<>();
+        for (IRI userIri : users) {
+            userDisplayNameMap.put(userIri, User.getShortDisplayName(userIri));
+        }
+        if (sorted) {
+            users.sort(new UserComparator(userDisplayNameMap));
+        }
         DataView<IRI> dataView = new DataView<>("userlist", new ListDataProvider<IRI>(users)) {
 
             private static final long serialVersionUID = 1L;
@@ -83,13 +79,8 @@ public class UserList extends Panel {
                 PageParameters params = new PageParameters();
                 params.add("id", userIri);
                 BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
-                l.add(new Label("linktext", User.getShortDisplayName(userIri)));
+                l.add(new Label("linktext", userDisplayNameMap.get(userIri)));
                 item.add(l);
-                if (notes != null && notes.containsKey(userIri)) {
-                    item.add(new Label("notes", notes.get(userIri)));
-                } else {
-                    item.add(new Label("notes"));
-                }
             }
 
         };
@@ -103,6 +94,23 @@ public class UserList extends Panel {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
         add(navigation);
+    }
+
+    private static class UserComparator implements Comparator<IRI> {
+
+        private Map<IRI, String> userDisplayNameMap;
+    
+        UserComparator(Map<IRI, String> userDisplayNameMap) {
+            this.userDisplayNameMap = userDisplayNameMap;
+        }
+
+        @Override
+        public int compare(IRI userIri1, IRI userIri2) {
+            String userName1 = userDisplayNameMap.get(userIri1);
+            String userName2 = userDisplayNameMap.get(userIri2);
+            return userName1.compareTo(userName2);
+        }
+        
     }
 
 }

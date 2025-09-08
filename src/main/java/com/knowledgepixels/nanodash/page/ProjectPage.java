@@ -104,23 +104,23 @@ public class ProjectPage extends NanodashPage {
         add(TemplateResults.fromList("templates", templates, params));
 
         if (project.isDataInitialized()) {
-            add(new UserList("owners", project.getOwners()));
+            add(new UserList("owners", project.getOwners(), true));
         } else {
             add(new MethodResultComponent<Project,List<IRI>>("owners", project, Project::isDataInitialized, Project::getOwners) {
                 @Override
                 public Component getResultComponent(String markupId, List<IRI> result) {
-                    return new UserList(markupId, result);
+                    return new UserList(markupId, result, true);
                 }
             });
         }
 
         if (project.isDataInitialized()) {
-            add(new UserList("members", project.getMembers()));
+            add(new UserList("members", project.getMembers(), true));
         } else {
             add(new MethodResultComponent<Project,List<IRI>>("members", project, Project::isDataInitialized, Project::getMembers) {
                 @Override
                 public Component getResultComponent(String markupId, List<IRI> result) {
-                    return new UserList(markupId, result);
+                    return new UserList(markupId, result, true);
                 }
             });
         }
