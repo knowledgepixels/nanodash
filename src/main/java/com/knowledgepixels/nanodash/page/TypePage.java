@@ -1,11 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.AjaxLazyLoadPanel;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -15,9 +15,10 @@ import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page that displays all nanopublications of a specific type.

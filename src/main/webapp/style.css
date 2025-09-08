@@ -1675,4 +1675,31 @@ span.usertext {
   background-image: url("images/down-arrow.svg");
   background-repeat: no-repeat;
   background-position: center;
+
+.navigation {
+  border-top-style: solid;
+  border-width: 1px;
+  border-color: #888;
+  font-size: 11pt;
+  color: #888;
+}
+
+.navigation .navigatorLabel {
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+}
+
+div.navigator {
+  text-align: right;
+}
+
+div.navigator a[disabled] {
+  visibility: hidden;
+}
+
+div.navigator .goto a[disabled] {
+  visibility: visible;
+  color: #888;
 }

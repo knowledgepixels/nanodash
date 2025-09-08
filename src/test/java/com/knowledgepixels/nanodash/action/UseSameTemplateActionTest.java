@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -25,7 +26,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "create new with same template";
         UseSameTemplateAction action = new UseSameTemplateAction();
@@ -34,7 +35,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -55,7 +56,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         UseSameTemplateAction action = new UseSameTemplateAction();
         String result = action.getParamString(nanopub);
@@ -77,7 +78,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void isApplicableToReturnsTrue() throws MalformedNanopubException {
+    void isApplicableToReturnsTrue() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -98,7 +99,7 @@ class UseSameTemplateActionTest {
     }
 
     @Test
-    void isApplicableToReturnsFalse() throws MalformedNanopubException {
+    void isApplicableToReturnsFalse() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();

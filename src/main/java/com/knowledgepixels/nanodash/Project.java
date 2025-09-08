@@ -71,7 +71,7 @@ public class Project implements Serializable {
 
     public static void refresh() {
         for (Project project : projectList) {
-            project.isDataInitialized = false;
+            project.dataNeedsUpdate = true;
         }
     }
 
@@ -88,7 +88,8 @@ public class Project implements Serializable {
     private List<IRI> queryIds = new ArrayList<>();
     private IRI defaultProvenance = null;
 
-    private boolean isDataInitialized = false;
+    private boolean dataInitialized = false;
+    private boolean dataNeedsUpdate = true;
 
     private Project(String id, String label, String rootNanopubId) {
         this.id = id;
@@ -156,13 +157,18 @@ public class Project implements Serializable {
         return description;
     }
 
+    public boolean isDataInitialized() {
+        triggerDataUpdate();
+        return dataInitialized;
+    }
+
     public List<IRI> getOwners() {
-        ensureInitialized();
+        triggerDataUpdate();
         return owners;
     }
 
     public List<IRI> getMembers() {
-        ensureInitialized();
+        triggerDataUpdate();
         return members;
     }
 
@@ -186,23 +192,26 @@ public class Project implements Serializable {
         return defaultProvenance;
     }
 
-    private synchronized void ensureInitialized() {
-        if (!isDataInitialized) {
-            for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners-of-project", "project", id).getData()) {
-                String pubkeyhash = r.get("pubkeyhash");
-                if (ownerPubkeyMap.containsKey(pubkeyhash)) {
-                    addOwner(Utils.vf.createIRI(r.get("owner")));
+    private synchronized void triggerDataUpdate() {
+        if (dataNeedsUpdate) {
+            new Thread(() -> {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners-of-project", "project", id).getData()) {
+                    String pubkeyhash = r.get("pubkeyhash");
+                    if (ownerPubkeyMap.containsKey(pubkeyhash)) {
+                        addOwner(Utils.vf.createIRI(r.get("owner")));
+                    }
                 }
-            }
-            members = new ArrayList<>();
-            for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members-of-project", "project", id).getData()) {
-                IRI memberId = Utils.vf.createIRI(r.get("member"));
-                // TODO These checks are inefficient for long member lists:
-                if (owners.contains(memberId)) continue;
-                if (members.contains(memberId)) continue;
-                members.add(memberId);
-            }
-            isDataInitialized = true;
+                members = new ArrayList<>();
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members-of-project", "project", id).getData()) {
+                    IRI memberId = Utils.vf.createIRI(r.get("member"));
+                    // TODO These checks are inefficient for long member lists:
+                    if (owners.contains(memberId)) continue;
+                    if (members.contains(memberId)) continue;
+                    members.add(memberId);
+                }
+                dataInitialized = true;
+            }).start();
+            dataNeedsUpdate = false;
         }
     }
 

@@ -6,6 +6,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 
 import java.util.Random;
@@ -22,19 +23,19 @@ public class TestUtils {
     public final static ValueFactory vf = SimpleValueFactory.getInstance();
     public final static IRI anyIri = vf.createIRI("http://knowledgepixels.com/nanopubIri#any");
 
-    public static Nanopub createNanopub() throws MalformedNanopubException {
+    public static Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         return createNanopub(NANOPUB_URI);
     }
 
-    public static NanopubCreator getNanopubCreator() {
+    public static NanopubCreator getNanopubCreator() throws NanopubAlreadyFinalizedException {
         return new NanopubCreator(NANOPUB_URI);
     }
 
-    public static NanopubCreator getNanopubCreator(String nanopubUri) {
+    public static NanopubCreator getNanopubCreator(String nanopubUri) throws NanopubAlreadyFinalizedException {
         return new NanopubCreator(nanopubUri);
     }
 
-    public static Nanopub createNanopub(String nanopubUri) throws MalformedNanopubException {
+    public static Nanopub createNanopub(String nanopubUri) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator creator = getNanopubCreator(nanopubUri);
 
         // Create valid nanopub
@@ -54,11 +55,11 @@ public class TestUtils {
         return iri(anyIri + String.valueOf(new Random().nextInt()));
     }
 
-    public static void fillProvenanceGraph(NanopubCreator creator) {
+    public static void fillProvenanceGraph(NanopubCreator creator) throws NanopubAlreadyFinalizedException {
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), anyIri, anyIri));
     }
 
-    public static void fillPubInfoGraph(NanopubCreator creator) {
+    public static void fillPubInfoGraph(NanopubCreator creator) throws NanopubAlreadyFinalizedException {
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), anyIri, anyIri));
     }
 

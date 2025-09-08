@@ -5,8 +5,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryAccess;
 
 import java.util.HashMap;
@@ -32,7 +34,7 @@ class QueryApiAccessTest {
     }
 
     @Test
-    void getReturnsApiResponseForValidQueryId() throws FailedApiCallException {
+    void getReturnsApiResponseForValidQueryId() throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
@@ -45,7 +47,7 @@ class QueryApiAccessTest {
     }
 
     @Test
-    void getReturnsApiResponseForValidQueryName() throws FailedApiCallException {
+    void getReturnsApiResponseForValidQueryName() throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {

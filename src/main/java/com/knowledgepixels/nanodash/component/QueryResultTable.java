@@ -1,14 +1,23 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.QueryPage;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
@@ -23,8 +32,10 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.QueryPage;
 
 /**
  * A table component that displays the results of a query.
@@ -53,8 +64,9 @@ public class QueryResultTable extends Panel {
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             dp = new DataProvider(response.getData());
-            DataTable<ApiResponseEntry, String> table = new DataTable<>("table", columns, dp, 100);
-            table.addBottomToolbar(new NavigationToolbar(table));
+            DataTable<ApiResponseEntry, String> table = new DataTable<>("table", columns, dp, 20);
+            table.setOutputMarkupId(true);
+            table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
             table.addTopToolbar(new HeadersToolbar<String>(table, dp));
             add(table);

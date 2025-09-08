@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 
 import static com.knowledgepixels.nanodash.action.NanopubAction.getEncodedUri;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CommentActionTest {
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "comment";
         CommentAction action = new CommentAction();
@@ -21,7 +22,7 @@ class CommentActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         CommentAction action = new CommentAction();
         String result = action.getTemplateUri(nanopub);
@@ -29,7 +30,7 @@ class CommentActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         CommentAction action = new CommentAction();
         String result = action.getParamString(nanopub);
@@ -52,7 +53,7 @@ class CommentActionTest {
     }
 
     @Test
-    void isApplicableTo() throws MalformedNanopubException {
+    void isApplicableTo() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         CommentAction action = new CommentAction();
         boolean result = action.isApplicableTo(nanopub);

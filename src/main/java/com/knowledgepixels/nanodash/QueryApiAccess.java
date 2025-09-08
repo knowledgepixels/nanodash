@@ -2,8 +2,10 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +141,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName) throws FailedApiCallException {
+    public static ApiResponse get(String queryName) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         return get(queryName, new HashMap<>());
     }
 
@@ -152,7 +154,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> params = new HashMap<>();
         params.put(paramKey, paramValue);
         return get(queryName, params);
@@ -166,7 +168,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         String queryId;
         if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
             queryId = queryName;
