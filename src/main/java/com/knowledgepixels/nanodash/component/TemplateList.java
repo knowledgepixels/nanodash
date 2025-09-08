@@ -4,7 +4,10 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import jakarta.xml.bind.DatatypeConverter;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -36,6 +39,7 @@ public class TemplateList extends Panel {
      */
     public TemplateList(String id) {
         super(id);
+        setOutputMarkupId(true);
 
         final Map<String, String> ptParams = new HashMap<>();
         final String ptQueryName = "get-most-used-templates-last30d";
@@ -123,7 +127,7 @@ public class TemplateList extends Panel {
             if (t1.tag == null) return -1;
             return t1.templates.size() - t0.templates.size();
         });
-        add(new DataView<Topic>("topics", new ListDataProvider<Topic>(topicList)) {
+        DataView<Topic> topicDataView = new DataView<Topic>("topics", new ListDataProvider<Topic>(topicList)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -132,7 +136,7 @@ public class TemplateList extends Panel {
                 String tag = item.getModelObject().tag;
                 if (tag == null) tag = "Other";
                 item.add(new Label("title", tag));
-                item.add(new DataView<ApiResponseEntry>("template-list", new ListDataProvider<ApiResponseEntry>(item.getModelObject().templates)) {
+                DataView<ApiResponseEntry> entryDataView = new DataView<>("template-list", new ListDataProvider<ApiResponseEntry>(item.getModelObject().templates)) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -141,10 +145,22 @@ public class TemplateList extends Panel {
                         item.add(new TemplateItem("template", item.getModelObject()));
                     }
 
-                });
-            }
-        });
+                };
+                entryDataView.setItemsPerPage(10);
+                entryDataView.setOutputMarkupId(true);
+                item.add(entryDataView);
 
+                WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+                navigation.add(new NavigatorLabel("navigatorLabel", entryDataView));
+                AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", entryDataView);
+                navigation.setVisible(entryDataView.getPageCount() > 1);
+                navigation.add(pagingNavigator);
+                item.add(navigation);
+                item.setOutputMarkupId(true);
+            }
+        };
+        topicDataView.setOutputMarkupId(true);
+        add(topicDataView);
     }
 
     private static Calendar getTime(ApiResponseEntry entry) {

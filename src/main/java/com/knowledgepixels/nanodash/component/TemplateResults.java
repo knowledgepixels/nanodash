@@ -2,6 +2,10 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -100,7 +104,7 @@ public class TemplateResults extends Panel {
         }
         TemplateResults r = new TemplateResults(id);
 
-        r.add(new DataView<ApiResponseEntry>("templates", new ListDataProvider<ApiResponseEntry>(list)) {
+        DataView<ApiResponseEntry> dataView = new DataView<>("templates", new ListDataProvider<ApiResponseEntry>(list)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -112,13 +116,24 @@ public class TemplateResults extends Panel {
                 item.add(new TemplateItem("template", template));
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        r.add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        r.add(navigation);
 
         return r;
     }
 
     private TemplateResults(String id) {
         super(id);
+        setOutputMarkupId(true);
     }
 
 }
