@@ -1064,7 +1064,6 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
 
 .nanopub-statement {
   padding: 2px 1px;
-  text-indent: 20px hanging;
 }
 
 .nanopub-group .nanopub-statement {
@@ -1641,6 +1640,8 @@ span.usertext {
   display: inline-block;
   vertical-align: bottom !important;
   padding-bottom: 30px;
+  padding-left: 20px;
+  text-indent: -20px;
 }
 
 .collapsed::after {
@@ -1669,7 +1670,6 @@ span.usertext {
   bottom: 0;
   color: #0b73da;
   cursor: pointer;
-  vertical-align: bottom !important;
   width: 30px;
   height: 30px;
   background-image: url("images/down-arrow.svg");
