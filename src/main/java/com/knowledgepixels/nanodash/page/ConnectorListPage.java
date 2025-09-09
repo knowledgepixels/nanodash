@@ -17,8 +17,6 @@ import com.knowledgepixels.nanodash.connector.GenOverviewPage;
  */
 public class ConnectorListPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -33,15 +31,6 @@ public class ConnectorListPage extends NanodashPage {
     }
 
     private static final String[] journals = new String[]{"ios/ds", "pensoft/bdj", "pensoft/rio"};
-
-    /**
-     * Returns the number of available connectors.
-     *
-     * @return the number of connectors
-     */
-    public static int getConnectorCount() {
-        return journals.length;
-    }
 
     /**
      * Constructor for the ConnectorListPage.
