@@ -1,15 +1,18 @@
 package com.knowledgepixels.nanodash.page;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.knowledgepixels.nanodash.component.ProjectList;
+import com.knowledgepixels.nanodash.Project;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
@@ -70,7 +73,18 @@ public class ConnectorListPage extends NanodashPage {
 
         });
 
-        add(ProjectList.getListContainer("projects"));
+        add(new ItemListPanel.LazyLoad<Project>(
+                "projects",
+                "Projects  Project pages are still experimental:",
+                "get-projects",
+                new HashMap<>(),
+                (resp) -> { Project.refresh(resp); return Project.getProjectList(); },
+                (p) -> {
+                    PageParameters params = new PageParameters();
+                    params.add("id", p.getId());
+                    return new BookmarkablePageLink<>("item", ProjectPage.class, params).setBody(Model.of(p.getLabel()));
+                }
+            ).getContainer());
     }
 
 }
