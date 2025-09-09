@@ -2,15 +2,20 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import jakarta.xml.bind.DatatypeConverter;
+import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
+import org.nanopub.extra.security.MalformedCryptoElementException;
+import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.vocabulary.NPX;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,6 +93,58 @@ class NanopubElementTest {
         // Call getCreationTime again to test caching
         Calendar cachedCreationTime = nanopubElement.getCreationTime();
         assertEquals(creationTime, cachedCreationTime);
+    }
+
+    @Test
+    void seemsToHaveSignature() throws MalformedNanopubException, IOException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        boolean seemsToHaveSignature = nanopubElement.seemsToHaveSignature();
+        assertTrue(seemsToHaveSignature);
+
+        // Call seemsToHaveSignature again to test caching
+        boolean cachedSeemsToHaveSignature = nanopubElement.seemsToHaveSignature();
+        assertTrue(cachedSeemsToHaveSignature);
+    }
+
+    @Test
+    void getPubkey() throws MalformedNanopubException, IOException, MalformedCryptoElementException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        String pubkey = nanopubElement.getPubkey();
+        assertEquals(SignatureUtils.getSignatureElement(nanopub).getPublicKeyString(), pubkey);
+    }
+
+    @Test
+    void getPubkeyHash() throws MalformedCryptoElementException, MalformedNanopubException, IOException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        String pubkey = SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
+        String pubkeyHash = Utils.createSha256HexHash(pubkey);
+        assertEquals(pubkeyHash, nanopubElement.getPubkeyhash());
+    }
+
+    @Test
+    void hasValidSignature() throws MalformedNanopubException, IOException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        assertTrue(nanopubElement.hasValidSignature());
+    }
+
+    @Test
+    void getSignerId() throws MalformedNanopubException, IOException, MalformedCryptoElementException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        IRI signerId = SignatureUtils.getSignatureElement(nanopub).getSigners().iterator().next();
+        assertEquals(signerId, nanopubElement.getSignerId());
+    }
+
+    @Test
+    void getTypes() throws MalformedNanopubException, IOException {
+        NanopubImpl nanopub = new NanopubImpl(np);
+        NanopubElement nanopubElement = NanopubElement.get(nanopub);
+        List<IRI> expectedTypes = List.of(NPX.EXAMPLE_NANOPUB);
+        assertEquals(expectedTypes, nanopubElement.getTypes());
     }
 
 }
