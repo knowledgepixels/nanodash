@@ -73,7 +73,7 @@ public class ConnectorListPage extends NanodashPage {
 
         });
 
-        add(new ItemListPanel.LazyLoad<Project>(
+        add(new ItemListPanel<Project>(
                 "projects",
                 "Projects  Project pages are still experimental:",
                 "get-projects",
@@ -84,7 +84,7 @@ public class ConnectorListPage extends NanodashPage {
                     params.add("id", p.getId());
                     return new BookmarkablePageLink<>("item", ProjectPage.class, params).setBody(Model.of(p.getLabel()));
                 }
-            ).getContainer());
+            ));
     }
 
 }
