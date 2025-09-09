@@ -23,9 +23,15 @@ public class User {
     /**
      * Refreshes the user data by creating a new UserData instance.
      */
-    public synchronized static void refreshUsers() {
-        if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
-            lastRefresh = System.currentTimeMillis();
+    public static void refreshUsers() {
+        boolean refreshNeeded = (userData == null);
+        synchronized (User.class) {
+            if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+                lastRefresh = System.currentTimeMillis();
+                refreshNeeded = true;
+            }
+        }
+        if (refreshNeeded) {
             userData = new UserData();
         }
     }
@@ -33,7 +39,7 @@ public class User {
     /**
      * Ensures that the user data is loaded. If not, it refreshes the user data.
      */
-    public synchronized static void ensureLoaded() {
+    public static void ensureLoaded() {
         if (userData == null) refreshUsers();
     }
 

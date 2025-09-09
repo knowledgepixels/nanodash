@@ -2,8 +2,10 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,7 @@ public class QueryApiAccess {
         load("RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np");
         load("RA0aZxyh_I0rCJyBepXOWC2tGdI5YYHORFCC-qBR8xHZA/get-all-user-intros");
         load("RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started");
-        load("RAtIndAeo8zYnEvTjFRaHD2AlenvkJHlw6P52JWR_l5dQ/get-type-overview-last-12-months");
+        load("RActSoHqt-TlpCOldqLb9skfMioVxHzCZUYaNEM06FTsY/get-type-overview-last-12-months");
         load("RAn3agwsH2yk-8132RJApGYxdPSHHCXDAIYiCaSBBo6tg/get-approved-nanopubs");
         load("RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references");
         load("RAE35dYJQlpnqim7VeKuu07E9I1LQUZpkdYQR4RvU3KMU/get-nanopubs-by-type");
@@ -66,6 +68,8 @@ public class QueryApiAccess {
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
+        load("RAwfurJs7mlYWdW4fSpd6hM1AGjQ_2QMiy3VyOP6vdrlE/get-owners-of-project");
+        load("RAHooeYnQyfu4gXNg5g32PlQRlqsfEblsCNG2DjSYF-y0/get-members-of-project");
     }
 
     /**
@@ -86,6 +90,21 @@ public class QueryApiAccess {
      */
     public static ApiResponse forcedGet(String queryName) {
         return forcedGet(queryName, new HashMap<>());
+    }
+
+    /**
+     * Forces the retrieval of an API response for a given query name and a single parameter.
+     * Retries until a valid response is received.
+     *
+     * @param queryName  The name of the query.
+     * @param paramKey   The key of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return The API response.
+     */
+    public static ApiResponse forcedGet(String queryName, String paramKey, String paramValue) {
+        Map<String, String> params = new HashMap<>();
+        params.put(paramKey, paramValue);
+        return forcedGet(queryName, params);
     }
 
     /**
@@ -122,7 +141,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName) throws FailedApiCallException {
+    public static ApiResponse get(String queryName) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         return get(queryName, new HashMap<>());
     }
 
@@ -135,7 +154,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> params = new HashMap<>();
         params.put(paramKey, paramValue);
         return get(queryName, params);
@@ -149,7 +168,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         String queryId;
         if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
             queryId = queryName;

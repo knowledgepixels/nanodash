@@ -120,6 +120,7 @@ public class LookupApis {
             }
             HttpGet get = new HttpGet(callUrl);
             get.setHeader(HttpHeaders.ACCEPT, "application/json");
+            get.setHeader("User-Agent", NanodashPreferences.get().getWebsiteUrl() + "#user-agent");
             String respString;
             try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
                 HttpResponse resp = client.execute(get);

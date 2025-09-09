@@ -14,10 +14,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.base.CoreDatatype.XSD;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -289,14 +289,13 @@ public class Utils {
             try {
                 return Utils.getNanopub(uri);
             } catch (Exception ex) {
-                // wasn't a known nanopublication
-                logger.error("Could not retrieve nanopublication for URI: {}", uri, ex);
+                logger.error("The given URI is not a known nanopublication: {}", uri, ex);
             }
         }
         return null;
     }
 
-    private static PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
+    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
             .allowCommonBlockElements()
             .allowCommonInlineFormattingElements()
             .allowUrlProtocols("https", "http", "mailto")
@@ -409,7 +408,7 @@ public class Utils {
      * @return a list of IRI types associated with the nanopublication
      */
     public static List<IRI> getTypes(Nanopub np) {
-        List<IRI> l = new ArrayList<IRI>();
+        List<IRI> l = new ArrayList<>();
         for (IRI t : NanopubUtils.getTypes(np)) {
             if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) continue;
             if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED))

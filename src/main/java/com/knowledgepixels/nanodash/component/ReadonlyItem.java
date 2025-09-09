@@ -33,6 +33,8 @@ import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -47,6 +49,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
     private static final long serialVersionUID = 1L;
+    private static final int LONG_LITERAL_LENGTH = 100;
+    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
     private TemplateContext context;
@@ -56,6 +61,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private IModel<String> extraModel, languageModel, datatypeModel;
     private IRI iri;
     private RestrictedChoice restrictedChoice;
+    private Label showMoreLabelLiteral, showMoreLabelHTML;
     private final Template template;
 
     /**
@@ -242,6 +248,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         datatypeComp = new Label("datatype", datatypeModel);
         datatypeComp.setVisible(false);
         add(datatypeComp);
+
+        showMoreLabelLiteral = new Label("show-more-literal", "");
+        add(showMoreLabelLiteral);
+        showMoreLabelLiteral.setVisible(false);
+
+        showMoreLabelHTML = new Label("show-more-html", "");
+        add(showMoreLabelHTML);
+        showMoreLabelHTML.setVisible(false);
     }
 
     /**
@@ -368,7 +382,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             String languagetag = template.getLanguageTag(iri);
             IRI datatype = template.getDatatype(iri);
             if (languagetag != null) {
-                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
+                if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
                     return false;
                 }
             } else if (datatype != null) {
@@ -391,7 +405,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         String vs = v.stringValue();
-        if (!isUnifiableWith(v)) throw new UnificationException(vs);
+        if (!isUnifiableWith(v)) {
+            logger.error("Cannot unify {}", v);
+            throw new UnificationException(vs);
+        }
         if (v instanceof IRI) {
             if (vs.equals("local:nanopub")) {
                 vs = getNanopubValue();
@@ -411,6 +428,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
             model.setObject(vs);
         } else if (v instanceof Literal vL) {
+            if (vs.length() >= LONG_LITERAL_LENGTH) {
+                linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                showMoreLabelLiteral.setVisible(true);
+            }
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
@@ -425,13 +446,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             // TODO Didn't manage to encode this into a working regex:
             if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
                 linkComp.setVisible(false);
-                extraModel.setObject("<span class=\"internal\">" + Utils.sanitizeHtml(vs) + "</span>");
+                extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);
                 extraComp.setVisible(true);
+                showMoreLabelLiteral.setVisible(false);
+                showMoreLabelHTML.setVisible(true);
             }
         }
     }
-
 
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
@@ -517,7 +539,5 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     public String toString() {
         return "[read-only IRI item: " + iri + "]";
     }
-
-    static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 }

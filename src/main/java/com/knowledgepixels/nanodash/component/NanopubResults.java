@@ -1,7 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Utils;
+import java.util.List;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -9,7 +12,8 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.util.List;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.Utils;
 
 /**
  * A panel that displays a list of nanopubs.
@@ -27,7 +31,7 @@ public class NanopubResults extends Panel {
      */
     public static NanopubResults fromList(String id, List<NanopubElement> nanopubList) {
         NanopubResults r = new NanopubResults(id);
-        r.add(new DataView<NanopubElement>("nanopubs", new ListDataProvider<NanopubElement>(nanopubList)) {
+        DataView<NanopubElement> dataView = new DataView<>("nanopubs", new ListDataProvider<NanopubElement>(nanopubList)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -36,7 +40,18 @@ public class NanopubResults extends Panel {
                 item.add(new NanopubItem("nanopub", item.getModelObject()).setMinimal());
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        r.add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        r.add(navigation);
+
         return r;
     }
 
@@ -65,7 +80,7 @@ public class NanopubResults extends Panel {
             list = Utils.subList(list, 0, limit);
         }
         NanopubResults r = new NanopubResults(id);
-        r.add(new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {
+        DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -74,12 +89,24 @@ public class NanopubResults extends Panel {
                 item.add(new NanopubItem("nanopub", NanopubElement.get(item.getModelObject().get("np"))).setMinimal());
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        r.add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        r.add(navigation);
+
         return r;
     }
 
     private NanopubResults(String id) {
         super(id);
+        setOutputMarkupId(true);
     }
 
 }

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8" />
 <title>Users | nanodash</title>
-<link rel="stylesheet" href="style.css?v=3.48" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="style.css?v=3.51" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
@@ -59,11 +59,8 @@
 
 <h3>Approved Users</h3>
 
-<p>There are <span wicket:id="usercount">x</span> approved users:</p>
 
-<ul class="users">
-<li wicket:id="approved-users"><a wicket:id="userlink"><span wicket:id="linktext">approved user</span></a></li>
-</ul>
+<div wicket:id="approved-users"></div>
 
 <p>
 If you are yourself approved, approving of somebody else's introduction will make them approved too:
@@ -76,9 +73,7 @@ If you are yourself approved, approving of somebody else's introduction will mak
 
 <h3>Non-Approved Users</h3>
 
-<ul class="users">
-<li wicket:id="other-users"><a wicket:id="userlink"><span wicket:id="linktext">other user</span></a></li>
-</ul>
+<div wicket:id="other-users"></div>
 
 </div>
 

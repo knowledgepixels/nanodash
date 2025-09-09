@@ -4,6 +4,10 @@ import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.QueryPage;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -42,6 +46,8 @@ public class QueryList extends Panel {
      */
     public QueryList(String id, ApiResponse resp) {
         super(id);
+        setOutputMarkupId(true);
+
         List<GrlcQuery> queries = new ArrayList<>();
         for (ApiResponseEntry e : resp.getData()) {
             try {
@@ -51,7 +57,7 @@ public class QueryList extends Panel {
             }
         }
 
-        add(new DataView<GrlcQuery>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
+        DataView<GrlcQuery> dataView = new DataView<>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -84,7 +90,17 @@ public class QueryList extends Panel {
                 item.add(new Label("timestamp", timeString));
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        add(navigation);
     }
 
 }

@@ -4,6 +4,9 @@ import java.util.HashMap;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -53,8 +56,10 @@ public class ProjectList extends Panel {
      */
     public ProjectList(String id, ApiResponse resp) {
         super(id);
+        setOutputMarkupId(true);
+
         Project.refresh(resp);
-        add(new DataView<Project>("projectlist", new ListDataProvider<Project>(Project.getProjectList())) {
+        DataView<Project> dataView = new DataView<Project>("projectlist", new ListDataProvider<Project>(Project.getProjectList())) {
 
             private static final long serialVersionUID = 1L;
 
@@ -68,7 +73,17 @@ public class ProjectList extends Panel {
                 item.add(l);
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        add(navigation);
     }
 
 }

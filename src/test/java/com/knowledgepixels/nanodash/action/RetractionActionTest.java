@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 
 import static com.knowledgepixels.nanodash.action.NanopubAction.getEncodedUri;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RetractionActionTest {
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "retract";
         RetractionAction action = new RetractionAction();
@@ -20,7 +21,7 @@ class RetractionActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         RetractionAction action = new RetractionAction();
         String result = action.getTemplateUri(nanopub);
@@ -28,7 +29,7 @@ class RetractionActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         RetractionAction action = new RetractionAction();
         String result = action.getParamString(nanopub);
@@ -51,7 +52,7 @@ class RetractionActionTest {
     }
 
     @Test
-    void isApplicableTo() throws MalformedNanopubException {
+    void isApplicableTo() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         RetractionAction action = new RetractionAction();
         boolean result = action.isApplicableTo(nanopub);

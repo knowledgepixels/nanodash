@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubImpl;
 
@@ -42,7 +43,7 @@ class GrlcQueryTest {
     }
 
     @Test
-    void constructorThrowsExceptionForMissingQuery() throws MalformedNanopubException {
+    void constructorThrowsExceptionForMissingQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
 
         try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
@@ -53,7 +54,7 @@ class GrlcQueryTest {
     }
 
     @Test
-    void constructorThrowsExceptionForMoreThanOneQuery() throws MalformedNanopubException {
+    void constructorThrowsExceptionForMoreThanOneQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator nanopubCreator = TestUtils.getNanopubCreator();
         nanopubCreator.addAssertionStatement(anyIri, RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
         nanopubCreator.addAssertionStatement(randomIri(), RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
