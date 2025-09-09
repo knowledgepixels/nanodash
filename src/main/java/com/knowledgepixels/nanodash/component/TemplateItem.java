@@ -54,6 +54,7 @@ public class TemplateItem extends Panel {
         try {
             userIri = Utils.vf.createIRI(entry.get("creator"));
         } catch (IllegalArgumentException | NullPointerException ex) {
+            logger.error("Error creating IRI from creator string: {}", entry.get("creator"), ex);
         }
         String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
         add(new Label("user", userString));
