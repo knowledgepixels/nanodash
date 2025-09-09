@@ -77,11 +77,9 @@ public class ConnectorListPage extends NanodashPage {
                 "projects",
                 "Projects  Project pages are still experimental:",
                 new QueryRef("get-projects"),
-                (resp) -> { Project.refresh(resp); return Project.getProjectList(); },
-                (p) -> {
-                    PageParameters params = new PageParameters();
-                    params.add("id", p.getId());
-                    return new BookmarkablePageLink<>("item", ProjectPage.class, params).setBody(Model.of(p.getLabel()));
+                (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
+                (project) -> {
+                    return new BookmarkablePageLink<>("item", ProjectPage.class, new PageParameters().add("id", project.getId())).setBody(Model.of(project.getLabel()));
                 }
             ));
     }
