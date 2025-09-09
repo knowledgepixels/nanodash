@@ -21,6 +21,9 @@ public class QueryRef implements Serializable {
      * @param params a map of parameters for the query
      */
     public QueryRef(String name, Map<String, String> params) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Query name cannot be null or empty");
+        }
         this.name = name;
         this.params = params;
     }
@@ -43,6 +46,9 @@ public class QueryRef implements Serializable {
      */
     public QueryRef(String name, String paramKey, String paramValue) {
         this(name);
+        if (paramKey == null || paramKey.isBlank()) {
+            throw new IllegalArgumentException("Parameter key cannot be null or empty");
+        }
         params.put(paramKey, paramValue);
     }
 
