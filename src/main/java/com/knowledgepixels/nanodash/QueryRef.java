@@ -2,34 +2,74 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * A reference to a query with optional parameters.
+ * This class is used to encapsulate the name of the query and any parameters
+ * that need to be passed to it.
+ */
 public class QueryRef implements Serializable {
 
     private final String name;
-    private final HashMap<String, String> params;
+    private final Map<String, String> params;
 
-    public QueryRef(String name, HashMap<String, String> params) {
+    /**
+     * Constructor for QueryRef.
+     *
+     * @param name   the name of the query
+     * @param params a map of parameters for the query
+     */
+    public QueryRef(String name, Map<String, String> params) {
         this.name = name;
         this.params = params;
     }
 
+    /**
+     * Constructor for QueryRef with no parameters.
+     *
+     * @param name the name of the query
+     */
     public QueryRef(String name) {
-        this(name, new HashMap<String, String>());
+        this(name, new HashMap<>());
     }
 
+    /**
+     * Constructor for QueryRef with a single parameter.
+     *
+     * @param name       the name of the query
+     * @param paramKey   the key of the parameter
+     * @param paramValue the value of the parameter
+     */
     public QueryRef(String name, String paramKey, String paramValue) {
         this(name);
         params.put(paramKey, paramValue);
     }
 
+    /**
+     * Get the name of the query.
+     *
+     * @return the name of the query
+     */
     public String getName() {
         return name;
     }
 
-    public HashMap<String, String> getParams() {
+    /**
+     * Get the parameters of the query.
+     *
+     * @return a map of parameters
+     */
+    public Map<String, String> getParams() {
         return params;
     }
 
+    /**
+     * Get a specific parameter by key.
+     *
+     * @param key the key of the parameter
+     * @return the value of the parameter, or null if not found
+     */
     public String getParam(String key) {
         return params.get(key);
     }

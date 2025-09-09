@@ -1,15 +1,15 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.HashMap;
-
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryRef;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A component that retrieves and displays the result of an API call.
@@ -18,7 +18,7 @@ import com.knowledgepixels.nanodash.QueryRef;
 public abstract class ApiResultComponent extends ResultComponent {
 
     private final String queryName;
-    private final HashMap<String, String> params;
+    private final Map<String, String> params;
     private ApiResponse response = null;
     private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
 
@@ -29,12 +29,18 @@ public abstract class ApiResultComponent extends ResultComponent {
      * @param queryName the name of the API query to be executed
      * @param params    a map of parameters to be passed to the API query
      */
-    public ApiResultComponent(String id, String queryName, HashMap<String, String> params) {
+    public ApiResultComponent(String id, String queryName, Map<String, String> params) {
         super(id);
         this.queryName = queryName;
         this.params = params;
     }
 
+    /**
+     * Constructor for ApiResultComponent using a QueryRef object.
+     *
+     * @param id       the component id
+     * @param queryRef the QueryRef object containing the query name and parameters
+     */
     public ApiResultComponent(String id, QueryRef queryRef) {
         super(id);
         this.queryName = queryRef.getName();
