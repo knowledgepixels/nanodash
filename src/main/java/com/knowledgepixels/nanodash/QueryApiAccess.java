@@ -70,6 +70,7 @@ public class QueryApiAccess {
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
         load("RAwfurJs7mlYWdW4fSpd6hM1AGjQ_2QMiy3VyOP6vdrlE/get-owners-of-project");
         load("RAHooeYnQyfu4gXNg5g32PlQRlqsfEblsCNG2DjSYF-y0/get-members-of-project");
+        load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
     }
 
     /**
