@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -11,6 +10,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
 
@@ -30,7 +30,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         add(new ItemList<T>("itemlist", items, compProvider));
     }
 
-    public ItemListPanel(String markupId, String title, String queryName, HashMap<String, String> params, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
+    public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
         super(markupId);
         setOutputMarkupId(true);
 
@@ -43,11 +43,11 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         add(new Label("title", title));
         add(new Label("button").setVisible(false));
 
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryName, params);
+        ApiResponse qResponse = ApiCache.retrieveResponse(queryRef);
         if (qResponse != null) {
             add(new ItemList<T>("itemlist", resultListProvider.apply(qResponse), compProvider));
         } else {
-            add(new ApiResultComponent("itemlist", queryName, params) {
+            add(new ApiResultComponent("itemlist", queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

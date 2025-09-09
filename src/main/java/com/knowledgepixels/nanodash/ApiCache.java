@@ -93,6 +93,10 @@ public class ApiCache {
         return retrieveResponse(queryName, params);
     }
 
+    public static ApiResponse retrieveResponse(QueryRef queryRef) {
+        return retrieveResponse(queryRef.getName(), queryRef.getParams());
+    }
+
     /**
      * Retrieves a cached API response for a specific query and parameters.
      * If the cache is stale, it triggers a background refresh.

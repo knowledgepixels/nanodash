@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
 
 /**
  * A component that retrieves and displays the result of an API call.
@@ -32,6 +33,12 @@ public abstract class ApiResultComponent extends ResultComponent {
         super(id);
         this.queryName = queryName;
         this.params = params;
+    }
+
+    public ApiResultComponent(String id, QueryRef queryRef) {
+        super(id);
+        this.queryName = queryRef.getName();
+        this.params = queryRef.getParams();
     }
 
     /**
