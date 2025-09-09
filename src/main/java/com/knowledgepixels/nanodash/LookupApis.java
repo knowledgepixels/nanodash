@@ -159,6 +159,7 @@ public class LookupApis {
                     try {
                         label += " - " + responseArray.getJSONObject(i).getJSONArray("description").getString(0);
                     } catch (Exception ex) {
+                        logger.error("No description found for {}", uri, ex);
                     }
                     if (!values.contains(uri)) {
                         values.add(uri);

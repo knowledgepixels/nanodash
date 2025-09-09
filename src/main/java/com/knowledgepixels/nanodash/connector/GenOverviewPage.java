@@ -94,6 +94,7 @@ public class GenOverviewPage extends ConnectorPage {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException ex) {
+                        logger.error("Thread interrupted", ex);
                     }
                     resp = callApi(getConfig().getCandidateNanopubsApiCall(), apiParam);
                 }
@@ -235,6 +236,7 @@ public class GenOverviewPage extends ConnectorPage {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException ex) {
+                        logger.error("Thread interrupted", ex);
                     }
                     resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
                 }
@@ -315,6 +317,7 @@ public class GenOverviewPage extends ConnectorPage {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException ex) {
+                        logger.error("Thread interrupted", ex);
                     }
                     resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
                 }

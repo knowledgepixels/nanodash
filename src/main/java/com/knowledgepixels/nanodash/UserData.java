@@ -147,11 +147,13 @@ public class UserData implements Serializable {
         try {
             introNpIri = vf.createIRI(entry.get("intronp"));
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from intronp string: {}", entry.get("intronp"), ex);
         }
         IRI keyLocation = null;
         try {
             keyLocation = vf.createIRI(entry.get("keyLocation"));
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from keyLocation string: {}", entry.get("keyLocation"), ex);
         }
         if (approved) {
             if (authoritative) {

@@ -1,23 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.io.Serializable;
-import java.time.Year;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -26,8 +12,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.Utils;
+import java.io.Serializable;
+import java.time.Year;
+import java.util.*;
 
 /**
  * A panel that displays activity data in a table format.
@@ -38,6 +28,7 @@ public class ActivityPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private Map<String, Map<String, String>> typeMonthValueMap = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(ActivityPanel.class);
 
     /**
      * Constructor for ActivityPanel.
@@ -144,10 +135,10 @@ public class ActivityPanel extends Panel {
                         cellItem.add(new AttributeAppender("class", " low"));
                     }
                 } catch (NumberFormatException ex) {
+                    logger.error("Error in parsing integer from value: {}", v, ex);
                 }
             }
         }
-
     }
 
     private class EntityProvider implements IDataProvider<Entity> {
