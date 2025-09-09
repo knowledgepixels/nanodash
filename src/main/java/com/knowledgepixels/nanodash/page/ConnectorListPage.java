@@ -7,11 +7,11 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
@@ -79,7 +79,7 @@ public class ConnectorListPage extends NanodashPage {
                 new QueryRef("get-projects"),
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
                 (project) -> {
-                    return new BookmarkablePageLink<>("item", ProjectPage.class, new PageParameters().add("id", project.getId())).setBody(Model.of(project.getLabel()));
+                    return new ItemListElement("item", ProjectPage.class, new PageParameters().add("id", project.getId()), project.getLabel());
                 }
             ));
     }
