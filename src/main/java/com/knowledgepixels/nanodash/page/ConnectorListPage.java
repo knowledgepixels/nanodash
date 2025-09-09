@@ -2,11 +2,6 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.Arrays;
 
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.Project;
@@ -58,20 +53,15 @@ public class ConnectorListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        add(new DataView<String>("connectors", new ListDataProvider<String>(Arrays.asList(journals))) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(Item<String> item) {
-                String journalId = item.getModelObject();
-                ConnectorConfig config = ConnectorConfig.get(journalId);
-                BookmarkablePageLink<Void> l = new BookmarkablePageLink<>("connectorlink", GenOverviewPage.class, new PageParameters().add("journal", journalId));
-                l.add(new Label("connectortext", config.getJournalName()));
-                item.add(l);
-            }
-
-        });
+        add(new ItemListPanel<String>(
+                "journals",
+                "Journals",
+                Arrays.asList(journals),
+                (journalId) -> {
+                    String journalName = ConnectorConfig.get(journalId).getJournalName();
+                    return new ItemListElement("item", GenOverviewPage.class, new PageParameters().add("journal", journalId), journalName);
+                }
+            ));
 
         add(new ItemListPanel<Project>(
                 "projects",
