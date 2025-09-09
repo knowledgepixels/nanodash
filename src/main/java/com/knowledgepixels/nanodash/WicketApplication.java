@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.knowledgepixels.nanodash.connector.*;
 import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
 import com.knowledgepixels.nanodash.connector.ios.DsOverviewPage;
@@ -22,11 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -161,16 +164,17 @@ public class WicketApplication extends WebApplication {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse resp = client.execute(new HttpGet(LATEST_RELEASE_URL));
             int c = resp.getStatusLine().getStatusCode();
-            if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()))) {
-                while (reader.ready()) {
-                    String line = reader.readLine();
-                    // TODO: Do proper JSON parsing
-                    if (line.matches(".*\"tag_name\":\\s*\"nanodash-[0-9]+\\.[0-9]+\".*")) {
-                        latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanodash-([0-9]+\\.[0-9]+)\".*", "$1");
-                        break;
-                    }
-                }
+            if (c < 200 || c >= 300) {
+                throw new HttpStatusException(c);
+            }
+
+            Gson gson = new Gson();
+            Type nanopubReleasesType = new TypeToken<List<NanodashRelease>>() {
+            }.getType();
+
+            List<NanodashRelease> releases = gson.fromJson(new InputStreamReader(resp.getEntity().getContent()), nanopubReleasesType);
+            if (!releases.isEmpty()) {
+                latestVersion = releases.getFirst().getVersionNumber();
             }
         } catch (Exception ex) {
             logger.error("Error in fetching latest version", ex);
