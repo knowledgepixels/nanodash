@@ -1704,3 +1704,20 @@ div.navigator .goto a[disabled] {
   visibility: visible;
   color: #888;
 }
+
+div.paneltitlerow {
+  border-bottom-style: solid;
+  border-width: 1px;
+  border-color: #888;
+  width: 100%;
+}
+
+div.paneltitlerow h3 {
+  margin: 8px 0;
+  display:inline-block;
+}
+
+div.paneltitlerow span.buttons {
+  margin: 12px 0 6px 0;
+  float: right;
+}

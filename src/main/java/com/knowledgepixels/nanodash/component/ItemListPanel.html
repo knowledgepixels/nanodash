@@ -4,12 +4,19 @@
 <head>
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 </head>
-<body style="margin-left: auto; margin-right: auto; max-width: 1400px">
+<body style="margin-left: auto; margin-right: auto; max-width: 1420px">
 
 <wicket:panel>
 
-<ul class="users">
-<li wicket:id="userlist"><a wicket:id="userlink"><span wicket:id="linktext">user</span></a></li>
+<div class="paneltitlerow">
+<h3 wicket:id="title">🚀 Title</h3>
+<span class="buttons"><a class="smallbutton" href="#" wicket:id="button">button</a></span>
+</div>
+
+<p wicket:id="description">Description...</p>
+
+<ul>
+<li wicket:id="itemlist"><a href="#" wicket:id="item">item</a></li>
 </ul>
 
 <p class="emptynotice"><em>(nobody to list here)</em></p>
@@ -18,7 +25,6 @@
 <div class="navigatorLabel" wicket:id="navigatorLabel"></div>
 <div class="navigator" wicket:id="navigator"></div>
 </div>
-
 
 </wicket:panel>
 
