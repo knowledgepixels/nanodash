@@ -38,6 +38,10 @@ public class ApiCache {
         return System.currentTimeMillis() - refreshStart.get(cacheId) < 60 * 1000;
     }
 
+    public static boolean isRunning(QueryRef queryRef) {
+        return isRunning(queryRef.getName(), queryRef.getParams());
+    }
+
     /**
      * Checks if a cache refresh is running for a specific query and parameters.
      *
