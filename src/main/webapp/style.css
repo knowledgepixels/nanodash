@@ -400,7 +400,7 @@ img.thirdparty {
   margin-bottom: 7px;
 }
 
-ul.users {
+.users {
   list-style-image: url('images/user-icon.svg');
 }
 
@@ -413,7 +413,7 @@ ul.users {
   height: 12px;
 }
 
-ul.forms {
+.forms {
   list-style-image: url('images/form-icon.svg');
 }
 

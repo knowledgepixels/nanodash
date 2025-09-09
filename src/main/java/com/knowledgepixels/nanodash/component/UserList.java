@@ -1,10 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
@@ -62,12 +59,8 @@ public class UserList extends Panel {
     }
 
     private void init(List<IRI> users, boolean sorted) {
-        final Map<IRI, String> userDisplayNameMap = new HashMap<>();
-        for (IRI userIri : users) {
-            userDisplayNameMap.put(userIri, User.getShortDisplayName(userIri));
-        }
         if (sorted) {
-            users.sort(new UserComparator(userDisplayNameMap));
+            users.sort(User.getUserData().userComparator);
         }
         DataView<IRI> dataView = new DataView<>("userlist", new ListDataProvider<IRI>(users)) {
 
@@ -79,7 +72,7 @@ public class UserList extends Panel {
                 PageParameters params = new PageParameters();
                 params.add("id", userIri);
                 BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("userlink", UserPage.class, params);
-                l.add(new Label("linktext", userDisplayNameMap.get(userIri)));
+                l.add(new Label("linktext", User.getDisplayName(userIri)));
                 item.add(l);
             }
 
@@ -94,23 +87,6 @@ public class UserList extends Panel {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
         add(navigation);
-    }
-
-    private static class UserComparator implements Comparator<IRI> {
-
-        private Map<IRI, String> userDisplayNameMap;
-    
-        UserComparator(Map<IRI, String> userDisplayNameMap) {
-            this.userDisplayNameMap = userDisplayNameMap;
-        }
-
-        @Override
-        public int compare(IRI userIri1, IRI userIri2) {
-            String userName1 = userDisplayNameMap.get(userIri1);
-            String userName2 = userDisplayNameMap.get(userIri2);
-            return userName1.compareTo(userName2);
-        }
-        
     }
 
 }

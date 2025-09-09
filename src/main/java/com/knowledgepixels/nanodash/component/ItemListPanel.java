@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
@@ -17,6 +18,10 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
         super(markupId);
         setOutputMarkupId(true);
+
+        if (markupId.endsWith("-users")) {
+            add(new AttributeAppender("class", " users"));
+        }
 
         if (title.contains("  ")) {
             add(new Label("description", title.replaceFirst("^.*  ", "")));
@@ -33,6 +38,10 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
         super(markupId);
         setOutputMarkupId(true);
+
+        if (markupId.endsWith("-users")) {
+            add(new AttributeAppender("class", " users"));
+        }
 
         if (title.contains("  ")) {
             add(new Label("description", title.replaceFirst("^.*  ", "")));

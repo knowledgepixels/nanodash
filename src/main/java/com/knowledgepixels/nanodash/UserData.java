@@ -415,7 +415,7 @@ public class UserData implements Serializable {
         return null;
     }
 
-    private transient Comparator<IRI> comparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
+    public final transient Comparator<IRI> userComparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
 
     /**
      * Retrieves a list of users, either approved or unapproved.
@@ -434,7 +434,7 @@ public class UserData implements Serializable {
             }
         }
         // TODO Cache the sorted list to not sort from scratch each time:
-        list.sort(comparator);
+        list.sort(userComparator);
         return list;
     }
 
