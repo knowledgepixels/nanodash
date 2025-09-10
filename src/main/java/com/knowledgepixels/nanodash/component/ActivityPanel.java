@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
@@ -11,8 +12,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.time.Year;
 import java.util.*;
 
 /**
@@ -24,6 +28,7 @@ public class ActivityPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private Map<String, Map<String, String>> typeMonthValueMap = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(ActivityPanel.class);
 
     /**
      * Constructor for ActivityPanel.
@@ -33,6 +38,7 @@ public class ActivityPanel extends Panel {
      */
     public ActivityPanel(String markupId, ApiResponse response) {
         super(markupId);
+        setOutputMarkupId(true);
 
         List<Entity> list = new ArrayList<>();
         Set<String> types = new HashSet<>();
@@ -48,25 +54,33 @@ public class ActivityPanel extends Panel {
             typeMonthValueMap.get(type).put(e.get("month"), e.get("npCount"));
         }
 
+        final Calendar calendar = Calendar.getInstance();
+        int year = Year.now().getValue() - 1;
+        int month = calendar.get(Calendar.MONTH) + 1;
+
         List<IColumn<Entity, String>> columns = new ArrayList<>();
         columns.add(new Column("type"));
-        columns.add(new Column("2023-11"));
-        columns.add(new Column("2023-12"));
-        columns.add(new Column("2024-01"));
-        columns.add(new Column("2024-02"));
-        columns.add(new Column("2024-03"));
-        columns.add(new Column("2024-04"));
-        columns.add(new Column("2024-05"));
-        columns.add(new Column("2024-06"));
-        columns.add(new Column("2024-07"));
-        columns.add(new Column("2024-08"));
-        columns.add(new Column("2024-09"));
-        columns.add(new Column("2024-10"));
+
+        int count = 0;
+        while (count < 12) {
+            month++;
+            if (month == 13) {
+                year++;
+                month = 1;
+            }
+            columns.add(new Column(formatYearMonth(year, month)));
+            count++;
+        }
 
         DataTable<Entity, String> table = new DataTable<Entity, String>("table", columns, new EntityProvider(list), 10);
         table.addBottomToolbar(new NavigationToolbar(table));
         table.addTopToolbar(new HeadersToolbar<String>(table, null));
+        table.setOutputMarkupId(true);
         add(table);
+    }
+
+    private static String formatYearMonth(int year, int month) {
+        return year + "-" + (month > 9 ? "" + month : "0" + month);
     }
 
     private class Entity implements Serializable {
@@ -121,10 +135,10 @@ public class ActivityPanel extends Panel {
                         cellItem.add(new AttributeAppender("class", " low"));
                     }
                 } catch (NumberFormatException ex) {
+                    logger.error("Error in parsing integer from value: {}", v, ex);
                 }
             }
         }
-
     }
 
     private class EntityProvider implements IDataProvider<Entity> {
@@ -144,7 +158,7 @@ public class ActivityPanel extends Panel {
 
         @Override
         public Iterator<? extends Entity> iterator(long first, long count) {
-            return list.iterator();
+            return Utils.subList(list, first, first + count).iterator();
         }
 
         @Override

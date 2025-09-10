@@ -25,9 +25,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents a session in the Nanodash application.
@@ -68,7 +69,7 @@ public class NanodashSession extends WebSession {
 
     private KeyPair keyPair;
     private IRI userIri;
-    private Map<IRI, IntroNanopub> introNps;
+    private ConcurrentMap<IRI, IntroNanopub> introNps;
 //	private Boolean isOrcidLinked;
 //	private String orcidLinkError;
 
@@ -79,7 +80,7 @@ public class NanodashSession extends WebSession {
 
     // We should store here some sort of form model and not the forms themselves, but I couldn't figure
     // how to do it, so doing it like this for the moment...
-    private Map<String, PublishForm> formMap = new HashMap<>();
+    private ConcurrentMap<String, PublishForm> formMap = new ConcurrentHashMap<>();
 
     /**
      * Associates a form object with a specific ID.
@@ -133,7 +134,7 @@ public class NanodashSession extends WebSession {
                         if (httpSession != null) httpSession.setMaxInactiveInterval(24 * 60 * 60);  // 24h
                     }
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    logger.error("Couldn't read ORCID file", ex);
                 }
             }
         }
@@ -143,7 +144,7 @@ public class NanodashSession extends WebSession {
                 try {
                     keyPair = SignNanopub.loadKey(keyFile.getPath(), SignatureAlgorithm.RSA);
                 } catch (Exception ex) {
-                    logger.error("Couldn't load key pair");
+                    logger.error("Couldn't load key pair", ex);
                 }
             } else {
                 // Automatically generate new keys
@@ -151,7 +152,7 @@ public class NanodashSession extends WebSession {
             }
         }
         if (userIri != null && keyPair != null && introNps == null) {
-            introNps = User.getIntroNanopubs(getPubkeyString());
+            introNps = new ConcurrentHashMap<>(User.getIntroNanopubs(getPubkeyString()));
         }
 //		checkOrcidLink();
     }
@@ -241,7 +242,7 @@ public class NanodashSession extends WebSession {
             MakeKeys.make(getKeyFile().getAbsolutePath().replaceFirst("_rsa$", ""), SignatureAlgorithm.RSA);
             keyPair = SignNanopub.loadKey(getKeyFile().getPath(), SignatureAlgorithm.RSA);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Couldn't create key pair", ex);
         }
     }
 
@@ -332,7 +333,7 @@ public class NanodashSession extends WebSession {
                 FileUtils.writeStringToFile(getOrcidFile(), orcid + "\n", StandardCharsets.UTF_8);
                 //			Files.writeString(orcidFile.toPath(), orcid + "\n");
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("Couldn't write ORCID file", ex);
             }
         }
         userIri = vf.createIRI("https://orcid.org/" + orcid);

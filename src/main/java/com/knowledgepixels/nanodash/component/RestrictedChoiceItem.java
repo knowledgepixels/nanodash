@@ -21,6 +21,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -41,6 +43,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
     private Label tooltipDescription;
     private IModel<String> model;
     private RestrictedChoice restrictedChoice;
+    private static final Logger logger = LoggerFactory.getLogger(RestrictedChoiceItem.class);
 
     /**
      * Constructor for RestrictedChoiceItem.
@@ -73,7 +76,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
-            if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
                 // Capitalize first letter of label if at subject position:
                 prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
             }
@@ -260,7 +263,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Could not unify with default value: {}", defaultValue, ex);
             }
         }
     }

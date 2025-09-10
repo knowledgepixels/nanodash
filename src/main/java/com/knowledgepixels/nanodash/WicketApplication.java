@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.knowledgepixels.nanodash.connector.*;
 import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
 import com.knowledgepixels.nanodash.connector.ios.DsOverviewPage;
@@ -18,13 +20,16 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -38,6 +43,7 @@ public class WicketApplication extends WebApplication {
      * This URL points to the releases of the Nanodash repository.
      */
     public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
+    private static final Logger logger = LoggerFactory.getLogger(WicketApplication.class);
 
     /**
      * Constructor for the WicketApplication.
@@ -48,7 +54,7 @@ public class WicketApplication extends WebApplication {
             try {
                 Desktop.getDesktop().browse(new URI("http://localhost:37373"));
             } catch (IOException | URISyntaxException ex) {
-                ex.printStackTrace();
+                logger.error("Error in opening browser", ex);
             }
         }
         String v = getThisVersion();
@@ -99,7 +105,6 @@ public class WicketApplication extends WebApplication {
         mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);
         mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
         mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
-        mountPage(ReferenceTablePage.MOUNT_PATH, ReferenceTablePage.class);
         mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
         mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
         mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
@@ -123,7 +128,6 @@ public class WicketApplication extends WebApplication {
         mountPage(GetNamePage.MOUNT_PATH, GetNamePage.class);
         mountPage(TypePage.MOUNT_PATH, TypePage.class);
         mountPage(TestPage.MOUNT_PATH, TestPage.class);
-        mountPage(ThingListPage.MOUNT_PATH, ThingListPage.class);
         mountPage(ResultTablePage.MOUNT_PATH, ResultTablePage.class);
         mountPage(GenOverviewPage.MOUNT_PATH, GenOverviewPage.class);
         mountPage(GenSelectPage.MOUNT_PATH, GenSelectPage.class);
@@ -131,8 +135,10 @@ public class WicketApplication extends WebApplication {
         mountPage(GenConnectPage.MOUNT_PATH, GenConnectPage.class);
         mountPage(GenNanopubPage.MOUNT_PATH, GenNanopubPage.class);
         mountPage(ProjectPage.MOUNT_PATH, ProjectPage.class);
+        mountPage(SpacePage.MOUNT_PATH, SpacePage.class);
         mountPage(QueryPage.MOUNT_PATH, QueryPage.class);
         mountPage(QueryListPage.MOUNT_PATH, QueryListPage.class);
+        mountPage(ListPage.MOUNT_PATH, ListPage.class);
 
         getCspSettings().blocking().disabled();
     }
@@ -160,19 +166,20 @@ public class WicketApplication extends WebApplication {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse resp = client.execute(new HttpGet(LATEST_RELEASE_URL));
             int c = resp.getStatusLine().getStatusCode();
-            if (c < 200 || c >= 300) throw new RuntimeException("HTTP error: " + c);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()))) {
-                while (reader.ready()) {
-                    String line = reader.readLine();
-                    // TODO: Do proper JSON parsing
-                    if (line.matches(".*\"tag_name\":\\s*\"nanodash-[0-9]+\\.[0-9]+\".*")) {
-                        latestVersion = line.replaceFirst(".*?\"tag_name\":\\s*\"nanodash-([0-9]+\\.[0-9]+)\".*", "$1");
-                        break;
-                    }
-                }
+            if (c < 200 || c >= 300) {
+                throw new HttpStatusException(c);
+            }
+
+            Gson gson = new Gson();
+            Type nanopubReleasesType = new TypeToken<List<NanodashRelease>>() {
+            }.getType();
+
+            List<NanodashRelease> releases = gson.fromJson(new InputStreamReader(resp.getEntity().getContent()), nanopubReleasesType);
+            if (!releases.isEmpty()) {
+                latestVersion = releases.getFirst().getVersionNumber();
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error in fetching latest version", ex);
         }
         return latestVersion;
     }
@@ -186,7 +193,7 @@ public class WicketApplication extends WebApplication {
         try {
             properties.load(WicketApplication.class.getClassLoader().getResourceAsStream("nanodash.properties"));
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Error in loading properties", ex);
         }
     }
 

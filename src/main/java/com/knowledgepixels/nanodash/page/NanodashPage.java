@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -54,29 +55,25 @@ public abstract class NanodashPage extends WebPage {
             if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
                 refreshRunning = true;
-                new Thread() {
-
-                    @Override
-                    public void run() {
+                new Thread(() -> {
 //						try {
 //							Thread.sleep(2000);
 //						} catch (InterruptedException ex) {
-//							ex.printStackTrace();
+//							logger.error();
 //						}
-                        try {
-                            logger.info("Refreshing ...");
-                            User.refreshUsers();
-                            TemplateData.refreshTemplates();
-                            logger.info("Refreshing done.");
-                            lastRefresh = System.currentTimeMillis();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        } finally {
-                            refreshRunning = false;
-                        }
+                    try {
+                        logger.info("Refreshing ...");
+                        User.refreshUsers();
+                        TemplateData.refreshTemplates();
+                        Project.refresh();
+                        logger.info("Refreshing done.");
+                        lastRefresh = System.currentTimeMillis();
+                    } catch (Exception ex) {
+                        logger.error("Error during refresh", ex);
+                    } finally {
+                        refreshRunning = false;
                     }
-
-                }.start();
+                }).start();
             }
         }
     }

@@ -20,7 +20,11 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.MalformedNanopubException;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,6 +44,7 @@ public class StatementItem extends Panel {
     private boolean repetitionGroupsChanged = true;
     private Set<IRI> iriSet = new HashSet<>();
     private boolean isMatched = false;
+    private static final Logger logger = LoggerFactory.getLogger(StatementItem.class);
 
     /**
      * Constructor for creating a StatementItem with a specific ID and statement ID.
@@ -142,7 +147,7 @@ public class StatementItem extends Panel {
      * @param npCreator the NanopubCreator to which the triples will be added
      * @throws org.nanopub.MalformedNanopubException if the statement item is not properly set up
      */
-    public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException {
+    public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         if (hasEmptyElements()) {
             if (isOptional()) {
                 return;
@@ -315,7 +320,7 @@ public class StatementItem extends Panel {
 
                 // Some of the methods of StatementItem and RepetitionGroup don't work properly before this
                 // object is fully instantiated:
-                boolean isFirstGroup = repetitionGroups.size() == 0;
+                boolean isFirstGroup = repetitionGroups.isEmpty();
                 boolean isFirstLine = statementParts.size() == 1;
                 boolean isLastLine = statementParts.size() == statementPartIds.size();
                 boolean isOptional = getTemplate().isOptionalStatement(statementId);
@@ -482,14 +487,16 @@ public class StatementItem extends Panel {
                 return value;
             }
             IRI iri = (IRI) value;
+            String iriString = iri.stringValue();
+            iriString = iriString.replaceAll("~~ARTIFACTCODE~~", "~~~ARTIFACTCODE~~~");
             // Only add "__N" to URI from second repetition group on; for the first group, information about
             // narrow scopes is not yet complete.
             if (getRepeatIndex() > 0 && context.hasNarrowScope(iri)) {
                 if (context.getTemplate().isPlaceholder(iri) || context.getTemplate().isLocalResource(iri)) {
-                    return vf.createIRI(iri.stringValue() + getRepeatSuffix());
+                    iriString += getRepeatSuffix();
                 }
             }
-            return iri;
+            return vf.createIRI(iriString);
         }
 
         /**
@@ -497,7 +504,7 @@ public class StatementItem extends Panel {
          *
          * @param npCreator the NanopubCreator to which the triples will be added
          */
-        public void addTriplesTo(NanopubCreator npCreator) {
+        public void addTriplesTo(NanopubCreator npCreator) throws NanopubAlreadyFinalizedException {
             Template t = getTemplate();
             for (IRI s : statementPartIds) {
                 IRI subj = context.processIri((IRI) transform(t.getSubject(s)));
@@ -518,9 +525,9 @@ public class StatementItem extends Panel {
                         String label = GuidedChoiceItem.getLabel(value);
                         if (label.length() > 1000) label = label.substring(0, 997) + "...";
                         try {
-                            npCreator.addPubinfoStatement(vf.createIRI(value), Template.HAS_LABEL_FROM_API, vf.createLiteral(label));
+                            npCreator.addPubinfoStatement(vf.createIRI(value), NTEMPLATE.HAS_LABEL_FROM_API, vf.createLiteral(label));
                         } catch (IllegalArgumentException ex) {
-                            ex.printStackTrace();
+                            logger.error("Could not create IRI from value: {}", value, ex);
                         }
                     }
                 }

@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -16,6 +17,10 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -25,8 +30,11 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
     private static final long serialVersionUID = 1L;
     private TemplateContext context;
     private AbstractTextComponent<String> textfield;
+    private Label languageComp, datatypeComp;
+    private IModel<String> languageModel, datatypeModel;
     private final String regex;
     private final IRI iri;
+    private final static Logger logger = LoggerFactory.getLogger(LiteralTextfieldItem.class);
 
     /**
      * Constructs a LiteralTextfieldItem with the specified ID, IRI, optional flag, and template context.
@@ -75,6 +83,23 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
         tc.add(new InvalidityHighlighting());
         add(tc);
+
+        languageModel = Model.of("");
+        languageComp = new Label("language", languageModel);
+        datatypeModel = Model.of("");
+        datatypeComp = new Label("datatype", datatypeModel);
+        if (template.getLanguageTag(iri) != null) {
+            languageModel.setObject("(" + template.getLanguageTag(iri) + ")");
+            datatypeComp.setVisible(false);
+        } else if (template.getDatatype(iri) != null && !template.getDatatype(iri).equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + template.getDatatype(iri).stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            languageComp.setVisible(false);
+        } else {
+            datatypeComp.setVisible(false);
+            languageComp.setVisible(false);
+        }
+        add(languageComp);
+        add(datatypeComp);
     }
 
     /**
@@ -111,14 +136,25 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
     @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
-        if (v instanceof Literal) {
-            if (regex != null && !v.stringValue().matches(regex)) {
+        if (v instanceof Literal vL) {
+            if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
             if (getTextComponent().getModelObject().isEmpty()) {
                 return true;
             }
-            return v.stringValue().equals(getTextComponent().getModelObject());
+            String languagetag = context.getTemplate().getLanguageTag(iri);
+            IRI datatype = context.getTemplate().getDatatype(iri);
+            if (languagetag != null) {
+                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
+                    return false;
+                }
+            } else if (datatype != null) {
+                if (!vL.getDatatype().equals(datatype)) {
+                    return false;
+                }
+            }
+            return vL.stringValue().equals(getTextComponent().getModelObject());
         }
         return false;
     }
@@ -130,6 +166,16 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
+        Literal vL = (Literal) v;
+        getTextComponent().setModelObject(vL.stringValue());
+        if (context.getTemplate().getLanguageTag(iri) == null && vL.getLanguage().isPresent()) {
+            languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
+            languageComp.setVisible(true);
+        } else if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeComp.setVisible(true);
+        }
+
         getTextComponent().setModelObject(v.stringValue());
     }
 
@@ -150,7 +196,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Could not unify with default value.", ex);
             }
         }
     }

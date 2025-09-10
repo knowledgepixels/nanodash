@@ -65,10 +65,10 @@ public class StatusLine extends Panel {
         }
         String text = null;
         // TODO Improve HTML/link generation below (do it with Wicket Java code):
-        if (latest.size() == 0 && retractions.size() == 0) {
+        if (latest.isEmpty() && retractions.isEmpty()) {
             text = "<em>This nanopublication doesn't seem to be properly published (yet). This can take a minute or two for new nanopublications.</em>";
         } else if (latest.size() == 1) {
-            String l = latest.get(0);
+            String l = latest.getFirst();
             if (l.equals(npId)) {
                 text = "This is the latest version.";
             } else {

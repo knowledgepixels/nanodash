@@ -1639,6 +1639,96 @@ span.usertext {
   gap: 20px;
 }
 
+.long-literal {
+  max-height: 80px; /* if you change this also update it in the showMore() function of the nanodash.js file */
+  overflow-y: hidden;
+  position: relative;
+  max-width: 50ch;
+  display: inline-block;
+  vertical-align: bottom !important;
+  padding-bottom: 30px;
+  padding-left: 20px;
+  text-indent: -16px;
+}
+
+.collapsed::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, white 50%);
+}
+
+.expanded::after {
+  display: none;
+}
+
+.value-container {
+  position: relative;
+  display: inline-block;
+}
+
+.show-more {
+  position: absolute;
+  right: 8px;
+  bottom: 0;
+  color: #0b73da;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  background-image: url("images/down-arrow.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.navigation {
+  border-top-style: solid;
+  border-width: 1px;
+  border-color: #888;
+  font-size: 11pt;
+  color: #888;
+}
+
+.navigation .navigatorLabel {
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+}
+
+div.navigator {
+  text-align: right;
+}
+
+div.navigator a[disabled] {
+  visibility: hidden;
+}
+
+div.navigator .goto a[disabled] {
+  visibility: visible;
+  color: #888;
+}
+
+div.paneltitlerow {
+  border-bottom-style: solid;
+  border-width: 1px;
+  border-color: #888;
+  width: 100%;
+}
+
+div.paneltitlerow h3 {
+  margin: 18px 0 8px 0;
+  display: inline-block;
+}
+
+div.paneltitlerow span.buttons {
+  margin: 22px 0 6px 0;
+  float: right;
+}
+
 .flex-container > div {
   flex: 1 1 300px;
   border: 1px solid #ccc;

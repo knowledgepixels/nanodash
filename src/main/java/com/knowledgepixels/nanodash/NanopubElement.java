@@ -9,6 +9,8 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
@@ -23,6 +25,7 @@ public class NanopubElement implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static Map<String, NanopubElement> nanopubCache = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(NanopubElement.class);
 
     /**
      * Retrieves a NanopubElement instance for the given URI.
@@ -46,6 +49,9 @@ public class NanopubElement implements Serializable {
      * @return The NanopubElement instance.
      */
     public static NanopubElement get(Nanopub nanopub) {
+        if (nanopub == null) {
+            throw new IllegalArgumentException("Nanopub cannot be null");
+        }
         String uri = nanopub.getUri().stringValue();
         if (!nanopubCache.containsKey(uri)) {
             nanopubCache.put(uri, new NanopubElement(nanopub));
@@ -63,7 +69,6 @@ public class NanopubElement implements Serializable {
     private List<IRI> types;
     private Map<String, String> foafNameMap;
 
-
     /**
      * Constructs a NanopubElement for the given URI.
      * Fetches the Nanopub object using the URI.
@@ -74,7 +79,9 @@ public class NanopubElement implements Serializable {
     private NanopubElement(String uri) {
         this.uriString = uri;
         this.nanopub = Utils.getNanopub(uri);
-        if (nanopub == null) throw new IllegalArgumentException("No nanopublication found for URI: " + uri);
+        if (nanopub == null) {
+            throw new IllegalArgumentException("No nanopublication found for URI: " + uri);
+        }
     }
 
     /**
@@ -157,11 +164,16 @@ public class NanopubElement implements Serializable {
         try {
             return SignatureUtils.getSignatureElement(nanopub).getPublicKeyString();
         } catch (MalformedCryptoElementException ex) {
-            ex.printStackTrace();
+            logger.error("Error in getting the signature element of the nanopub {}", uriString, ex);
             return null;
         }
     }
 
+    /**
+     * Returns the SHA-256 hash of the public key of the Nanopub's signature
+     *
+     * @return The SHA-256 hash of the public key as a hexadecimal string, or null if the public key is not available.
+     */
     public String getPubkeyhash() {
         String pubkey = getPubkey();
         if (pubkey == null) return null;
@@ -186,7 +198,7 @@ public class NanopubElement implements Serializable {
                     hasValidSignature = false;
                 }
             } catch (MalformedCryptoElementException | GeneralSecurityException ex) {
-                ex.printStackTrace();
+                logger.error("Error in checking the signature of the nanopub {}", uriString, ex);
                 return false;
             }
         }

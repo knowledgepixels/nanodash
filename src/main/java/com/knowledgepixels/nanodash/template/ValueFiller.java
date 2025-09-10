@@ -2,18 +2,20 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
-import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
-import org.nanopub.extra.security.CryptoElement;
-import org.nanopub.extra.security.NanopubSignatureElement;
+import org.nanopub.vocabulary.NPX;
+import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * ValueFiller is a utility class that processes a Nanopub and fills a TemplateContext.
@@ -27,6 +29,7 @@ public class ValueFiller {
     private List<Statement> unusedStatements = new ArrayList<>();
     private int initialSize;
     private boolean formMode;
+    private static final Logger logger = LoggerFactory.getLogger(ValueFiller.class);
 
     /**
      * Constructor for ValueFiller.
@@ -63,13 +66,10 @@ public class ValueFiller {
             Statement stT = transform(st);
             if (stT != null) unusedStatements.add(stT);
         }
-        Collections.sort(unusedStatements, new Comparator<Statement>() {
-            @Override
-            public int compare(Statement st1, Statement st2) {
-                String st1s = st1.getSubject() + " " + st1.getPredicate() + " " + st1.getObject();
-                String st2s = st2.getSubject() + " " + st2.getPredicate() + " " + st2.getObject();
-                return st1s.compareTo(st2s);
-            }
+        unusedStatements.sort((st1, st2) -> {
+            String st1s = st1.getSubject() + " " + st1.getPredicate() + " " + st1.getObject();
+            String st2s = st2.getSubject() + " " + st2.getPredicate() + " " + st2.getObject();
+            return st1s.compareTo(st2s);
         });
         initialSize = unusedStatements.size();
     }
@@ -83,7 +83,7 @@ public class ValueFiller {
         try {
             context.fill(unusedStatements);
         } catch (UnificationException ex) {
-            ex.printStackTrace();
+            logger.error("Could not fill template context", ex);
         }
     }
 
@@ -111,7 +111,7 @@ public class ValueFiller {
      * @return true if there are unused statements, false otherwise
      */
     public boolean hasUnusedStatements() {
-        return unusedStatements.size() > 0;
+        return !unusedStatements.isEmpty();
     }
 
     /**
@@ -154,21 +154,21 @@ public class ValueFiller {
             // TODO We might want to filter some of these out afterwards in PublishForm, to be more precise:
             if (st.getSubject().equals(fillNp.getUri())) {
                 if (pred.equals(DCTERMS.CREATED)) return null;
-                if (pred.equals(Nanopub.SUPERSEDES)) return null;
+                if (pred.equals(NPX.SUPERSEDES)) return null;
                 if (pred.equals(RDFS.LABEL)) return null;
-                if (pred.equals(NanopubUtils.INTRODUCES)) return null;
-                if (pred.equals(NanopubUtils.EMBEDS)) return null;
-                if (pred.equals(PublishForm.WAS_CREATED_AT_PREDICATE)) return null;
-                if (pred.equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) return null;
-                if (pred.equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) return null;
-                if (pred.equals(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) return null;
+                if (pred.equals(NPX.INTRODUCES)) return null;
+                if (pred.equals(NPX.EMBEDS)) return null;
+                if (pred.equals(NPX.WAS_CREATED_AT)) return null;
+                if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE)) return null;
+                if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE)) return null;
+                if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE)) return null;
             }
-            if (pred.equals(CryptoElement.HAS_ALGORITHM)) return null;
-            if (pred.equals(CryptoElement.HAS_PUBLIC_KEY)) return null;
-            if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE)) return null;
-            if (pred.equals(NanopubSignatureElement.HAS_SIGNATURE_TARGET)) return null;
-            if (pred.equals(NanopubSignatureElement.SIGNED_BY)) return null;
-            if (pred.equals(Template.HAS_LABEL_FROM_API)) {
+            if (pred.equals(NPX.HAS_ALGORITHM)) return null;
+            if (pred.equals(NPX.HAS_PUBLIC_KEY)) return null;
+            if (pred.equals(NPX.HAS_SIGNATURE)) return null;
+            if (pred.equals(NPX.HAS_SIGNATURE_TARGET)) return null;
+            if (pred.equals(NPX.SIGNED_BY)) return null;
+            if (pred.equals(NTEMPLATE.HAS_LABEL_FROM_API)) {
                 GuidedChoiceItem.setLabel(st.getSubject().stringValue(), st.getObject().stringValue());
                 return null;
             }

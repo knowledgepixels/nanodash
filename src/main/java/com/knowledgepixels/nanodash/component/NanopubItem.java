@@ -19,6 +19,9 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -49,19 +52,20 @@ public class NanopubItem extends Panel {
     private boolean hideActionMenu = false;
     private List<NanopubAction> actions;
     private IRI signerId;
-    private String tempalteId;
+    private String templateId;
+    private static final Logger logger = LoggerFactory.getLogger(NanopubItem.class);
 
     /**
      * Creates a NanopubItem panel.
      *
      * @param id         the Wicket component ID
      * @param n          the NanopubElement to display
-     * @param tempalteId the ID of the template to use for rendering the assertion.
+     * @param templateId the ID of the template to use for rendering the assertion.
      */
-    public NanopubItem(String id, NanopubElement n, String tempalteId) {
+    public NanopubItem(String id, NanopubElement n, String templateId) {
         super(id);
         this.n = n;
-        this.tempalteId = tempalteId;
+        this.templateId = templateId;
     }
 
     /**
@@ -178,6 +182,7 @@ public class NanopubItem extends Panel {
                         if (creators.size() == 1) uIri = creators.iterator().next();
                     }
                 } catch (MalformedCryptoElementException ex) {
+                    logger.error("Error getting signer from nanopub {}", n.getUri(), ex);
                 }
             }
             // ----------
@@ -201,7 +206,7 @@ public class NanopubItem extends Panel {
                         negativeNotes = "- invalid signature";
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Error checking signature validity for nanopub {}", n.getUri(), ex);
                     negativeNotes = "- malformed or legacy signature";
                 }
             }
@@ -218,9 +223,10 @@ public class NanopubItem extends Panel {
             assertion.setVisible(false);
         } else {
             Template assertionTemplate = td.getTemplate(n.getNanopub());
-            if (tempalteId != null) assertionTemplate = td.getTemplate(tempalteId);
-            if (assertionTemplate == null)
+            if (templateId != null) assertionTemplate = td.getTemplate(templateId);
+            if (assertionTemplate == null) {
                 assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
+            }
             List<StatementItem> assertionStatements = new ArrayList<>();
             ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
             TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
@@ -481,7 +487,7 @@ public class NanopubItem extends Panel {
     private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
         context.initStatements();
         if (signerId != null) {
-            context.getComponentModels().put(Template.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
+            context.getComponentModels().put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
         }
         filler.fill(context);
         for (StatementItem si : context.getStatementItems()) {

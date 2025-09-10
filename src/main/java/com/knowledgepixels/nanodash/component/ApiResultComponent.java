@@ -1,31 +1,26 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A component that retrieves and displays the result of an API call.
  * It uses AjaxLazyLoadPanel to load the content lazily and shows a loading indicator while waiting for the response.
  */
-public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
-
-    private static final long serialVersionUID = 1L;
+public abstract class ApiResultComponent extends ResultComponent {
 
     private final String queryName;
-    private final HashMap<String, String> params;
-    private boolean waitIconEnabled = true;
+    private final Map<String, String> params;
     private ApiResponse response = null;
-    private String waitMessage = null;
-    private String waitComponentHtml = null;
+    private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
 
     /**
      * Constructor for ApiResultComponent.
@@ -34,10 +29,22 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
      * @param queryName the name of the API query to be executed
      * @param params    a map of parameters to be passed to the API query
      */
-    public ApiResultComponent(String id, String queryName, HashMap<String, String> params) {
+    public ApiResultComponent(String id, String queryName, Map<String, String> params) {
         super(id);
         this.queryName = queryName;
         this.params = params;
+    }
+
+    /**
+     * Constructor for ApiResultComponent using a QueryRef object.
+     *
+     * @param id       the component id
+     * @param queryRef the QueryRef object containing the query name and parameters
+     */
+    public ApiResultComponent(String id, QueryRef queryRef) {
+        super(id);
+        this.queryName = queryRef.getName();
+        this.params = queryRef.getParams();
     }
 
     /**
@@ -59,33 +66,6 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
     }
 
     /**
-     * Sets whether to show a loading icon while waiting for the API response.
-     *
-     * @param waitIconEnabled true to enable the wait icon, false to disable it
-     */
-    public void setWaitIconEnabled(boolean waitIconEnabled) {
-        this.waitIconEnabled = waitIconEnabled;
-    }
-
-    /**
-     * Sets a custom message to be displayed while waiting for the API response.
-     *
-     * @param waitMessage the message to display
-     */
-    public void setWaitMessage(String waitMessage) {
-        this.waitMessage = waitMessage;
-    }
-
-    /**
-     * Sets a custom HTML component to be displayed while waiting for the API response.
-     *
-     * @param waitComponentHtml the HTML string to display
-     */
-    public void setWaitComponentHtml(String waitComponentHtml) {
-        this.waitComponentHtml = waitComponentHtml;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -102,26 +82,10 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                logger.error("Interrupted while waiting for API response", ex);
             }
         }
         return getApiResultComponent(markupId, response);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Component getLoadingComponent(String id) {
-        if (!waitIconEnabled) {
-            return new Label(id);
-        } else if (waitComponentHtml != null) {
-            return new Label(id, waitComponentHtml).setEscapeModelStrings(false);
-        } else if (waitMessage != null) {
-            return new Label(id, getWaitComponentHtml(waitMessage)).setEscapeModelStrings(false);
-        } else {
-            return super.getLoadingComponent(id);
-        }
     }
 
     /**
@@ -141,25 +105,5 @@ public abstract class ApiResultComponent extends AjaxLazyLoadPanel<Component> {
      */
     // TODO Use lambda instead of abstract method?
     public abstract Component getApiResultComponent(String markupId, ApiResponse response);
-
-    /**
-     * Returns the HTML for a loading icon.
-     *
-     * @return a string containing the HTML for the loading icon
-     */
-    public static String getWaitIconHtml() {
-        IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
-        return "<img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/>";
-    }
-
-    /**
-     * Returns the HTML for a waiting message with an icon.
-     *
-     * @param waitMessage the message to display while waiting
-     * @return a string containing the HTML for the waiting message
-     */
-    public static String getWaitComponentHtml(String waitMessage) {
-        return "<p class=\"waiting\">" + waitMessage + " " + getWaitIconHtml() + "</p>";
-    }
 
 }

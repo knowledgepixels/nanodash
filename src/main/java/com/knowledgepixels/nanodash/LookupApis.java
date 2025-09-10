@@ -15,8 +15,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,8 @@ import java.util.Map;
  */
 public class LookupApis {
 
+    private static final Logger logger = LoggerFactory.getLogger(LookupApis.class);
+
     private LookupApis() {
     }  // no instances allowed
 
@@ -38,9 +41,8 @@ public class LookupApis {
      * @param grlcJsonObject the JSON object containing the grlc API response
      * @param labelMap       a map to store URIs and their corresponding labels
      * @param values         a list to store the extracted URIs
-     * @throws java.io.IOException if an I/O error occurs while processing the JSON
      */
-    public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String, String> labelMap, List<String> values) throws IOException {
+    public static void parseNanopubGrlcApi(JSONObject grlcJsonObject, Map<String, String> labelMap, List<String> values) {
         // Aimed to resolve Nanopub grlc API: http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_signed_nanopubs_with_text?text=covid
         JSONArray resultsArray = grlcJsonObject.getJSONObject("results").getJSONArray("bindings");
         for (int i = 0; i < resultsArray.length(); i++) {
@@ -118,6 +120,7 @@ public class LookupApis {
             }
             HttpGet get = new HttpGet(callUrl);
             get.setHeader(HttpHeaders.ACCEPT, "application/json");
+            get.setHeader("User-Agent", NanodashPreferences.get().getWebsiteUrl() + "#user-agent");
             String respString;
             try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
                 HttpResponse resp = client.execute(get);
@@ -156,6 +159,7 @@ public class LookupApis {
                     try {
                         label += " - " + responseArray.getJSONObject(i).getJSONArray("description").getString(0);
                     } catch (Exception ex) {
+                        logger.error("No description found for {}", uri, ex);
                     }
                     if (!values.contains(uri)) {
                         values.add(uri);
@@ -273,7 +277,7 @@ public class LookupApis {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Error fetching possible values from API: {}", apiString, ex);
         }
     }
 

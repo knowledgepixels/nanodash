@@ -1,11 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -15,9 +12,15 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
@@ -25,6 +28,7 @@ import java.util.Map;
 public class UserPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(UserPage.class);
 
     /**
      * The mount path for this page.
@@ -91,7 +95,7 @@ public class UserPage extends NanodashPage {
 //						try {
 //							Thread.sleep(500);
 //						} catch (InterruptedException ex) {
-//							ex.printStackTrace();
+//							logger.error();
 //						}
 //						if (!ApiCache.isRunning(statsQueryName, statsParams)) {
 //							m = ApiCache.retrieveMap(statsQueryName, statsParams);
@@ -137,7 +141,7 @@ public class UserPage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryName, params)) {
                             r = ApiCache.retrieveResponse(queryName, params);
@@ -171,7 +175,7 @@ public class UserPage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Thread interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
                             r = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);

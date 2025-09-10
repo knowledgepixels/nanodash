@@ -20,6 +20,8 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 
@@ -33,6 +35,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
     private TemplateContext context;
     private TextField<String> textfield;
     private IRI iri;
+    private static final Logger logger = LoggerFactory.getLogger(ValueTextfieldItem.class);
 
     /**
      * Constructor for creating a text field item.
@@ -99,7 +102,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
         String vs = v.stringValue();
-        if (v instanceof Literal) vs = "\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"";
+        if (v instanceof Literal vL) vs = Utils.getSerializedLiteral(vL);
         if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
         Validatable<String> validatable = new Validatable<>(vs);
         if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
@@ -125,10 +128,10 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         String vs = v.stringValue();
         if (vs.startsWith("local:")) {
             textfield.setModelObject(vs.replaceFirst("^local:", ""));
-        } else if (v instanceof IRI) {
-            textfield.setModelObject(vs);
+        } else if (v instanceof Literal vL) {
+            textfield.setModelObject(Utils.getSerializedLiteral(vL));
         } else {
-            textfield.setModelObject("\"" + vs.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") + "\"");
+            textfield.setModelObject(vs);
         }
     }
 
@@ -157,7 +160,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         @Override
         public void validate(IValidatable<String> s) {
             if (s.getValue().startsWith("\"")) {
-                if (!s.getValue().matches("\"([^\\\\\\\"]|\\\\\\\\|\\\\\")*\"")) {
+                if (!Utils.isValidLiteralSerialization(s.getValue())) {
                     s.error(new ValidationError("Invalid literal value"));
                 }
                 return;
@@ -196,7 +199,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Unification with default value failed: {}", ex.getMessage());
             }
         }
     }

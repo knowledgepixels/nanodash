@@ -1,10 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ConnectorListPage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -12,8 +10,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 
 /**
  * TitleBar is the top bar of the Nanodash application, which contains
@@ -42,7 +42,7 @@ public class TitleBar extends Panel {
 
         createContainer("mychannel").setVisible(!NanodashPreferences.get().isReadOnlyMode());
         createContainer("users");
-        createContainer("connectors").setVisible(ConnectorListPage.getConnectorCount() > 0);
+        createContainer("connectors");
         createContainer("publish").setVisible(!NanodashPreferences.get().isReadOnlyMode());
         createContainer("query");
 

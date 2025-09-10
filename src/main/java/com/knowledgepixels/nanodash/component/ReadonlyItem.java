@@ -1,10 +1,16 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.RestrictedChoice;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.UnificationException;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -23,21 +29,17 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleCreatorPattern;
+import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.RestrictedChoice;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
-
-import net.trustyuri.TrustyUriUtils;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ReadonlyItem is a component that displays a read-only item in the form.
@@ -47,6 +49,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
     private static final long serialVersionUID = 1L;
+    private static final int LONG_LITERAL_LENGTH = 100;
+    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
     private TemplateContext context;
@@ -56,6 +61,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private IModel<String> extraModel, languageModel, datatypeModel;
     private IRI iri;
     private RestrictedChoice restrictedChoice;
+    private Label showMoreLabelLiteral, showMoreLabelHTML;
     private final Template template;
 
     /**
@@ -106,7 +112,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 if (prefixLabel == null || User.isUser(v) || foafNameMap.containsKey(v)) {
                     return "";
                 } else {
-                    if (prefixLabel.length() > 0 && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+                    if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
                         // Capitalize first letter of label if at subject position:
                         prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
                     }
@@ -156,7 +162,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 String obj = getFullValue();
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
-                    if (iri.equals(Template.CREATOR_PLACEHOLDER)) {
+                    if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
                         if (objectPosition) {
                             return "me (" + User.getShortDisplayName(objIri) + ")";
                         } else {
@@ -242,6 +248,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         datatypeComp = new Label("datatype", datatypeModel);
         datatypeComp.setVisible(false);
         add(datatypeComp);
+
+        showMoreLabelLiteral = new Label("show-more-literal", "");
+        add(showMoreLabelLiteral);
+        showMoreLabelLiteral.setVisible(false);
+
+        showMoreLabelHTML = new Label("show-more-html", "");
+        add(showMoreLabelHTML);
+        showMoreLabelHTML.setVisible(false);
     }
 
     /**
@@ -365,10 +379,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
                 return false;
             }
-            String language = template.getLanguageAttribute(iri);
+            String languagetag = template.getLanguageTag(iri);
             IRI datatype = template.getDatatype(iri);
-            if (language != null) {
-                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(language)) {
+            if (languagetag != null) {
+                if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
                     return false;
                 }
             } else if (datatype != null) {
@@ -391,7 +405,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         String vs = v.stringValue();
-        if (!isUnifiableWith(v)) throw new UnificationException(vs);
+        if (!isUnifiableWith(v)) {
+            logger.error("Cannot unify {}", v);
+            throw new UnificationException(vs);
+        }
         if (v instanceof IRI) {
             if (vs.equals("local:nanopub")) {
                 vs = getNanopubValue();
@@ -411,13 +428,17 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
             model.setObject(vs);
         } else if (v instanceof Literal vL) {
+            if (vs.length() >= LONG_LITERAL_LENGTH) {
+                linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                showMoreLabelLiteral.setVisible(true);
+            }
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
-                languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
+                languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
                 languageComp.setVisible(true);
-            } else if (!vL.getDatatype().stringValue().equals("http://www.w3.org/2001/XMLSchema#string")) {
+            } else if (!vL.getDatatype().equals(XSD.STRING)) {
                 model.setObject("\"" + vs + "\"");
-                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace("http://www.w3.org/2001/XMLSchema#", "xsd:") + ")");
+                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
                 datatypeComp.setVisible(true);
             } else {
                 model.setObject("\"" + vs + "\"");
@@ -425,13 +446,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             // TODO Didn't manage to encode this into a working regex:
             if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
                 linkComp.setVisible(false);
-                extraModel.setObject("<span class=\"internal\">" + Utils.sanitizeHtml(vs) + "</span>");
+                extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);
                 extraComp.setVisible(true);
+                showMoreLabelLiteral.setVisible(false);
+                showMoreLabelHTML.setVisible(true);
             }
         }
     }
-
 
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
@@ -493,7 +515,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                     s.error(new ValidationError("Not a trusty URI"));
                 }
             }
-            if (iri.equals(Template.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
+            if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
                 boolean found = false;
                 for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
                     if (creator.stringValue().equals(iriString)) {
@@ -517,7 +539,5 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     public String toString() {
         return "[read-only IRI item: " + iri + "]";
     }
-
-    static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 }

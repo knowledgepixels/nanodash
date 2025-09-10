@@ -7,11 +7,14 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Singleton class that manages templates data.
@@ -26,7 +29,7 @@ public class TemplateData implements Serializable {
     /**
      * Refreshes the templates data by creating a new instance of TemplateData.
      */
-    public static void refreshTemplates() {
+    public static synchronized void refreshTemplates() {
         instance = new TemplateData();
     }
 
@@ -48,7 +51,7 @@ public class TemplateData implements Serializable {
     }
 
     private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
-    private Map<String, Template> templateMap;
+    private ConcurrentMap<String, Template> templateMap;
 
     /**
      * Constructor to initialize the TemplateData instance.
@@ -57,7 +60,7 @@ public class TemplateData implements Serializable {
         assertionTemplates = new ArrayList<>();
         provenanceTemplates = new ArrayList<>();
         pubInfoTemplates = new ArrayList<>();
-        templateMap = new HashMap<>();
+        templateMap = new ConcurrentHashMap<>();
         refreshTemplates(assertionTemplates, "get-assertion-templates");
         refreshTemplates(provenanceTemplates, "get-provenance-templates");
         refreshTemplates(pubInfoTemplates, "get-pubinfo-templates");
@@ -74,7 +77,7 @@ public class TemplateData implements Serializable {
             }
             previousId = entry.get("np");
         }
-        Collections.sort(templates, templateComparator);
+        templates.sort(templateComparator);
     }
 
     /**
@@ -167,7 +170,7 @@ public class TemplateData implements Serializable {
     public IRI getTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             return (IRI) st.getObject();
         }
@@ -183,7 +186,7 @@ public class TemplateData implements Serializable {
     public IRI getProvenanceTemplateId(Nanopub nanopub) {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             return (IRI) st.getObject();
         }
@@ -200,13 +203,23 @@ public class TemplateData implements Serializable {
         Set<IRI> iriSet = new HashSet<>();
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
-            if (!st.getPredicate().equals(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE)) continue;
+            if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE)) continue;
             if (!(st.getObject() instanceof IRI)) continue;
             iriSet.add((IRI) st.getObject());
         }
         return iriSet;
     }
 
+
+    public static List<Template> getTemplateList(ApiResponse apiResponse) {
+        List<Template> templates = new ArrayList<>();
+        for (ApiResponseEntry e : apiResponse.getData()) {
+            String templateNpId = e.get("template_np");
+            if (templateNpId == null) templateNpId = e.get("np");
+            templates.add(TemplateData.get().getTemplate(templateNpId));
+        }
+        return templates;
+    }
 
     private static final TemplateComparator templateComparator = new TemplateComparator();
 

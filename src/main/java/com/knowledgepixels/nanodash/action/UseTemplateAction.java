@@ -1,8 +1,8 @@
 package com.knowledgepixels.nanodash.action;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
 import org.nanopub.Nanopub;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 /**
  * Action to use a template.
@@ -56,7 +56,7 @@ public class UseTemplateAction extends NanopubAction {
      */
     @Override
     public boolean isApplicableTo(Nanopub np) {
-        return Utils.isNanopubOfClass(np, Template.ASSERTION_TEMPLATE_CLASS);
+        return Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE);
     }
 
 }

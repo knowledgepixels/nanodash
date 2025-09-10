@@ -15,7 +15,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.SimpleCreatorPattern;
+import org.eclipse.rdf4j.model.vocabulary.PROV;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -48,18 +49,18 @@ public class IriItem extends Panel implements ContextComponent {
         this.context = rg.getContext();
         final Template template = context.getTemplate();
         String labelString = null;
-        if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+        if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             if (context.getType() == ContextType.ASSERTION) {
                 labelString = "this assertion";
             } else {
                 labelString = "the assertion above";
             }
-        } else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+        } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             labelString = "this nanopublication";
         }
         if (template.getLabel(iri) != null) {
             labelString = template.getLabel(iri);
-        } else if (iri.equals(SimpleCreatorPattern.PROV_WASATTRIBUTEDTO)) {
+        } else if (iri.equals(PROV.WAS_ATTRIBUTED_TO)) {
             // temporary solution until we have full provenance graph support
             labelString = "is attributed to";
         } else if (labelString == null) {
@@ -68,7 +69,7 @@ public class IriItem extends Panel implements ContextComponent {
         if (!statementPartId.equals(template.getFirstOccurence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");
         }
-        if (labelString.length() > 0 && parentId.equals("subj") && !labelString.matches("https?://.*")) {
+        if (!labelString.isEmpty() && parentId.equals("subj") && !labelString.matches("https?://.*")) {
             // Capitalize first letter of label if at subject position:
             labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
         }
@@ -76,14 +77,14 @@ public class IriItem extends Panel implements ContextComponent {
 
         String iriString = iri.stringValue();
         String description = "";
-        if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+        if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
             } else {
                 iriString = "local:assertion";
             }
             description = "This is the identifier for the assertion of this nanopublication.";
-        } else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+        } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
             } else {
@@ -113,14 +114,17 @@ public class IriItem extends Panel implements ContextComponent {
             href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, UTF_8);
         }
         ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
-        if (iri.equals(Template.ASSERTION_PLACEHOLDER)) {
+        if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-assertion "));
             iri = vf.createIRI("local:assertion");
-        } else if (iri.equals(Template.NANOPUB_PLACEHOLDER)) {
+        } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-nanopub "));
             iri = vf.createIRI("local:nanopub");
         }
         add(linkComp);
+        if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
+            linkComp.add(AttributeAppender.append("class", "introduced"));
+        }
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();

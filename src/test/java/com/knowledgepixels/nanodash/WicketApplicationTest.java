@@ -1,14 +1,23 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.page.HomePage;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class WicketApplicationTest {
 
-    private WicketTester tester = new WicketTester(new WicketApplication());
+    private final WicketTester tester = new WicketTester(new WicketApplication());
 
     @Test
     void initSetsDefaultMarkupEncodingToUtf8() {
@@ -38,6 +47,12 @@ class WicketApplicationTest {
         WicketApplication.properties.clear();
         String result = WicketApplication.getThisVersion();
         assertNull(result);
+    }
+
+    @Test
+    void getLatestVersionWhenFetchSucceeds() {
+        String result = WicketApplication.getLatestVersion();
+        assertTrue(result.matches("\\d+.\\d+(.\\d+)*"));
     }
 
 }

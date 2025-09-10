@@ -112,7 +112,7 @@ public class OrcidLoginPage extends WebPage {
                 logger.error(IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8));
             }
         } catch (UnsupportedOperationException | IOException ex) {
-            ex.printStackTrace();
+            logger.error("Error during ORCID login", ex);
         }
         throw new RedirectToUrlException(redirectHashMap.get(parameters.get("redirect-hash").toString()));
     }

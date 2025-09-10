@@ -2,11 +2,9 @@ package com.knowledgepixels.nanodash.connector;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.opencsv.exceptions.CsvValidationException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -59,10 +57,8 @@ public abstract class ConnectorPage extends NanodashPage {
      * @param operation the operation to perform, typically a query ID.
      * @param params    the parameters to pass to the API call.
      * @return ApiResponse containing the result of the API call.
-     * @throws com.opencsv.exceptions.CsvValidationException if there is an error in CSV validation.
-     * @throws java.io.IOException                           if there is an error during the API call.
      */
-    public ApiResponse callApi(String operation, Map<String, String> params) throws CsvValidationException, IOException {
+    public ApiResponse callApi(String operation, Map<String, String> params) {
         return ApiCache.retrieveResponse(ConnectorConfig.getQueryId(operation), params);
     }
 

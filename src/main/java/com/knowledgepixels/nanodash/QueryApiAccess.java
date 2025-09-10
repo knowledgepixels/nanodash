@@ -2,12 +2,18 @@ package com.knowledgepixels.nanodash;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Utility class for accessing and managing API queries.
@@ -18,9 +24,10 @@ public class QueryApiAccess {
     private QueryApiAccess() {
     }  // no instances allowed
 
-    private static Map<String, String> queryIds = new HashMap<>();
+    private static ConcurrentMap<String, String> queryIds = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
-    private static Map<String, Pair<Long, String>> latestVersionMap = new HashMap<>();
+    private static ConcurrentMap<String, Pair<Long, String>> latestVersionMap = new ConcurrentHashMap<>();
 
     private static final String queryIriPattern = "^(.*[^A-Za-z0-9-_])(RA[A-Za-z0-9-_]{43})[/#]([^/#]+)$";
 
@@ -41,7 +48,7 @@ public class QueryApiAccess {
         load("RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np");
         load("RA0aZxyh_I0rCJyBepXOWC2tGdI5YYHORFCC-qBR8xHZA/get-all-user-intros");
         load("RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started");
-        load("RAtIndAeo8zYnEvTjFRaHD2AlenvkJHlw6P52JWR_l5dQ/get-type-overview-last-12-months");
+        load("RActSoHqt-TlpCOldqLb9skfMioVxHzCZUYaNEM06FTsY/get-type-overview-last-12-months");
         load("RAn3agwsH2yk-8132RJApGYxdPSHHCXDAIYiCaSBBo6tg/get-approved-nanopubs");
         load("RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references");
         load("RAE35dYJQlpnqim7VeKuu07E9I1LQUZpkdYQR4RvU3KMU/get-nanopubs-by-type");
@@ -53,15 +60,18 @@ public class QueryApiAccess {
         load("RAJStXEm1wZcg34ZLPqe00VPSzIVCwC2rrxdj_JR8v5DY/find-referencing-nanopubs");  // not yet used...
         load("RAtftxAXJubB4rlm9fOvvHNVIkXvWQLC6Ag_MiV7HL0ow/get-labels-for-thing");  // not yet used...
         load("RARtWHRzNY5hh31X2VB5eOCJAdp9Cjv4CakA0Idqz69MI/get-templates-with-uri");
-        load("RAfiHseHSs9ED7zbXD-OotwblOsT-AfgZ5_2RUeQkBdFc/get-introducing-np");
-        load("RAWH0fe1RCpoOgaJE1B2qfTzzdTiBUUK7iIk6l7Zll9mg/get-newer-versions-of-np");
+        load("RAIn9NTsWE0qrpKiK3nOmZRXVzwv0qnfbm7dR_CUnp4aA/get-newer-versions-of-np");
         load("RAQqjXQYlxYQeI4Y3UQy9OrD5Jx1E3PJ8KwKKQlWbiYSw/get-queries");
         load("RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub");
-        load("RAnkM-_WqYU_dch4YqbL90lNJlXJOFV17R14Ntt1WGaNM/get-projects");
+        load("RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects");
+        load("RAXvpfWIKj-TX_twTRoTaOaqjMDA0a36NeUXHPmK8Hfsw/get-spaces");
         load("RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts");
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
+        load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
+        load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
+        load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
     }
 
     /**
@@ -85,6 +95,21 @@ public class QueryApiAccess {
     }
 
     /**
+     * Forces the retrieval of an API response for a given query name and a single parameter.
+     * Retries until a valid response is received.
+     *
+     * @param queryName  The name of the query.
+     * @param paramKey   The key of the parameter.
+     * @param paramValue The value of the parameter.
+     * @return The API response.
+     */
+    public static ApiResponse forcedGet(String queryName, String paramKey, String paramValue) {
+        Map<String, String> params = new HashMap<>();
+        params.put(paramKey, paramValue);
+        return forcedGet(queryName, params);
+    }
+
+    /**
      * Forces the retrieval of an API response for a given query name and parameters.
      * Retries until a valid response is received.
      *
@@ -97,14 +122,16 @@ public class QueryApiAccess {
             ApiResponse resp = null;
             try {
                 resp = QueryApiAccess.get(queryName, params);
-            } catch (FailedApiCallException ex) {
-                ex.printStackTrace();
+            } catch (Exception ex) {
+                // TODO We should be more specific about which exceptions we catch here
+                //      and generally improve this, as this could hang forever.
+                logger.error("Error while forcing API get for query '{}' with params {}", queryName, params, ex);
             }
             if (resp != null) return resp;
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                logger.error("Interrupted while forcing API get for query '{}' with params {}", queryName, params, ex);
             }
         }
     }
@@ -116,7 +143,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName) throws FailedApiCallException {
+    public static ApiResponse get(String queryName) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         return get(queryName, new HashMap<>());
     }
 
@@ -129,7 +156,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> params = new HashMap<>();
         params.put(paramKey, paramValue);
         return get(queryName, params);
@@ -143,7 +170,7 @@ public class QueryApiAccess {
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException {
+    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         String queryId;
         if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
             queryId = queryName;
@@ -173,7 +200,7 @@ public class QueryApiAccess {
                 String l = r.getData().get(0).get("latest");
                 latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error while getting latest version of nanopub '{}'", nanopubId, ex);
                 return nanopubId;
             }
         }

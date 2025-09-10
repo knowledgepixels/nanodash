@@ -22,6 +22,9 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -40,6 +43,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
     private Label tooltipDescription;
     private IRI iri;
     private IModel<String> model;
+    private static final Logger logger = LoggerFactory.getLogger(AgentChoiceItem.class);
 
     private String getChoiceLabel(String choiceId) {
         IRI iri = vf.createIRI(choiceId);
@@ -282,14 +286,14 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
     @Override
     public void finalizeValues() {
         Value defaultValue = context.getTemplate().getDefault(iri);
-        if (Template.CREATOR_PLACEHOLDER.equals(defaultValue)) {
+        if (NTEMPLATE.CREATOR_PLACEHOLDER.equals(defaultValue)) {
             defaultValue = NanodashSession.get().getUserIri();
         }
         if (isUnifiableWith(defaultValue)) {
             try {
                 unifyWith(defaultValue);
             } catch (UnificationException ex) {
-                ex.printStackTrace();
+                logger.error("Could not unify default value: {}", defaultValue, ex);
             }
         }
     }

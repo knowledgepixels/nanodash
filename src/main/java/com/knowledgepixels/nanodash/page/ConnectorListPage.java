@@ -1,31 +1,22 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.ProjectList;
+import java.util.Arrays;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.knowledgepixels.nanodash.Project;
+import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
-import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.nanopub.extra.services.ApiResponse;
-
-import java.util.Arrays;
-import java.util.HashMap;
 
 /**
  * A page that lists all available connectors.
  */
 public class ConnectorListPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -43,15 +34,6 @@ public class ConnectorListPage extends NanodashPage {
     private static final String[] journals = new String[]{"ios/ds", "pensoft/bdj", "pensoft/rio"};
 
     /**
-     * Returns the number of available connectors.
-     *
-     * @return the number of connectors
-     */
-    public static int getConnectorCount() {
-        return journals.length;
-    }
-
-    /**
      * Constructor for the ConnectorListPage.
      *
      * @param parameters the page parameters
@@ -61,39 +43,35 @@ public class ConnectorListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        add(new DataView<String>("connectors", new ListDataProvider<String>(Arrays.asList(journals))) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(Item<String> item) {
-                String journalId = item.getModelObject();
-                ConnectorConfig config = ConnectorConfig.get(journalId);
-                BookmarkablePageLink<Void> l = new BookmarkablePageLink<>("connectorlink", GenOverviewPage.class, new PageParameters().add("journal", journalId));
-                l.add(new Image("logo", new PackageResourceReference(config.getClass(), config.getLogoFileName())));
-                l.add(new Label("connectortext", config.getJournalName()));
-                item.add(l);
-            }
-
-        });
-
-        final HashMap<String, String> noParams = new HashMap<>();
-        final String queryName = "get-projects";
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryName, noParams);
-        if (qResponse != null) {
-            add(new ProjectList("projects", qResponse));
-        } else {
-            add(new ApiResultComponent("projects", queryName, noParams) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new ProjectList(markupId, response);
+        add(new ItemListPanel<Space>(
+                "spaces",
+                "Spaces",
+                new QueryRef("get-spaces"),
+                (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList(); },
+                (space) -> {
+                    return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel(), "(" + space.getTypeLabel() + ")");
                 }
-            });
+            ));
 
-        }
+        add(new ItemListPanel<Project>(
+                "projects",
+                "Legacy Projects  These legacy project pages will be migrated into the Spaces above:",
+                new QueryRef("get-projects"),
+                (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
+                (project) -> {
+                    return new ItemListElement("item", ProjectPage.class, new PageParameters().add("id", project.getId()), project.getLabel());
+                }
+            ));
+
+        add(new ItemListPanel<String>(
+                "journals",
+                "Journals",
+                Arrays.asList(journals),
+                (journalId) -> {
+                    String journalName = ConnectorConfig.get(journalId).getJournalName();
+                    return new ItemListElement("item", GenOverviewPage.class, new PageParameters().add("journal", journalId), journalName);
+                }
+            ));
     }
 
 }

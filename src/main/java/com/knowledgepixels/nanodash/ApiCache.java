@@ -1,10 +1,12 @@
 package com.knowledgepixels.nanodash;
 
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A utility class for caching API responses and maps to reduce redundant API calls.
@@ -15,10 +17,11 @@ public class ApiCache {
     private ApiCache() {
     } // no instances allowed
 
-    private transient static Map<String, ApiResponse> cachedResponses = new HashMap<>();
-    private transient static Map<String, Map<String, String>> cachedMaps = new HashMap<>();
-    private transient static Map<String, Long> lastRefresh = new HashMap<>();
-    private transient static Map<String, Long> refreshStart = new HashMap<>();
+    private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
     /**
      * Checks if a cache refresh is currently running for the given cache ID.
@@ -29,6 +32,10 @@ public class ApiCache {
     private static boolean isRunning(String cacheId) {
         if (!refreshStart.containsKey(cacheId)) return false;
         return System.currentTimeMillis() - refreshStart.get(cacheId) < 60 * 1000;
+    }
+
+    public static boolean isRunning(QueryRef queryRef) {
+        return isRunning(queryRef.getName(), queryRef.getParams());
     }
 
     /**
@@ -63,7 +70,7 @@ public class ApiCache {
      * @param params    The parameters for the query.
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException {
+    private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> nanopubParams = new HashMap<>();
         for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
         ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
@@ -87,6 +94,16 @@ public class ApiCache {
     }
 
     /**
+     * Retrieves a cached API response for a specific QueryRef.
+     *
+     * @param queryRef The QueryRef object containing the query name and parameters.
+     * @return The cached API response, or null if not cached.
+     */
+    public static ApiResponse retrieveResponse(QueryRef queryRef) {
+        return retrieveResponse(queryRef.getName(), queryRef.getParams());
+    }
+
+    /**
      * Retrieves a cached API response for a specific query and parameters.
      * If the cache is stale, it triggers a background refresh.
      *
@@ -106,25 +123,22 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(100 + new Random().nextLong(400));
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                    try {
-                        ApiCache.updateResponse(queryName, params);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        cachedResponses.put(cacheId, null);
-                        lastRefresh.put(cacheId, System.currentTimeMillis());
-                    } finally {
-                        refreshStart.remove(cacheId);
-                    }
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100 + new Random().nextLong(400));
+                } catch (InterruptedException ex) {
+                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
-            }.start();
+                try {
+                    ApiCache.updateResponse(queryName, params);
+                } catch (Exception ex) {
+                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
+                    cachedResponses.put(cacheId, null);
+                    lastRefresh.put(cacheId, System.currentTimeMillis());
+                } finally {
+                    refreshStart.remove(cacheId);
+                }
+            }).start();
         }
         if (isCached) {
             if (cachedResponses.get(cacheId) == null) {
@@ -144,7 +158,7 @@ public class ApiCache {
      * @param params    The parameters for the query.
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException {
+    private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> map = new HashMap<>();
         Map<String, String> nanopubParams = new HashMap<>();
         for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
@@ -178,25 +192,22 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(100 + new Random().nextLong(400));
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                    try {
-                        ApiCache.updateMap(queryName, params);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        cachedResponses.put(cacheId, null);
-                        lastRefresh.put(cacheId, System.currentTimeMillis());
-                    } finally {
-                        refreshStart.remove(cacheId);
-                    }
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100 + new Random().nextLong(400));
+                } catch (InterruptedException ex) {
+                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
-            }.start();
+                try {
+                    ApiCache.updateMap(queryName, params);
+                } catch (Exception ex) {
+                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
+                    cachedResponses.put(cacheId, null);
+                    lastRefresh.put(cacheId, System.currentTimeMillis());
+                } finally {
+                    refreshStart.remove(cacheId);
+                }
+            }).start();
         }
         if (isCached) {
             if (cachedResponses.get(cacheId) == null) {
@@ -233,4 +244,5 @@ public class ApiCache {
     public static String getCacheId(String queryName, Map<String, String> params) {
         return queryName + " " + paramsToString(params);
     }
+
 }

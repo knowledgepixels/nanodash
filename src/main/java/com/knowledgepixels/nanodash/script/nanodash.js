@@ -1,8 +1,10 @@
 function getMaxWidth(el, type, limit) {
   max = 0;
-  $(el).find(type).each(function() {
+  $(el).find(type).each(function () {
     w = parseInt($(this).width());
-    if (w > max && w < limit) { max = w; }
+    if (w > max && w < limit) {
+      max = w;
+    }
   });
   return max;
 }
@@ -17,13 +19,13 @@ function updateElements() {
 
 function adjustValueWidths() {
   limit = 251;
-  $(".nanopub-graph").each(function() {
+  $(".nanopub-graph").each(function () {
     updateNanopubGraph(this);
   });
 }
 
 function setCollapseOverflow() {
-  $(".collapse-overflow").each(function() {
+  $(".collapse-overflow").each(function () {
     p = $(this).find('.collapse-content')[0];
     if ($(p).height() > 45) {
       $(p).css('max-height', '36px');
@@ -48,10 +50,10 @@ function collapseOverflow(el) {
 function updateNanopubGraph(el) {
   maxs = getMaxWidth(el, ".nanopub-statement .subj", limit);
   maxp = getMaxWidth(el, ".nanopub-statement .pred", limit);
-  $(el).find(".nanopub-statement").each(function() {
+  $(el).find(".nanopub-statement").each(function () {
     limitExceeded = false;
     if (maxs > 0) {
-      $(this).find(".subj").each(function() {
+      $(this).find(".subj").each(function () {
         if ($(this).width() < limit) {
           $(this).width(maxs + 1);
         } else {
@@ -59,8 +61,8 @@ function updateNanopubGraph(el) {
         }
       });
     }
-    if (maxp > 0 ) {
-      $(this).find(".pred").each(function() {
+    if (maxp > 0) {
+      $(this).find(".pred").each(function () {
         if ($(this).width() < limit && !limitExceeded) {
           $(this).width(maxp + 1);
         }
@@ -74,33 +76,35 @@ function updateNanopubGraphForId(id) {
 }
 
 function expandPubinfo(el) {
-  $(el).parent().find('.nanopub-pubinfo').each(function() {
+  $(el).parent().find('.nanopub-pubinfo').each(function () {
     $(this).show();
   });
   $(el).hide();
   $($(el).parent().find('.collapse')[0]).show();
-  $(el).parent().find(".nanopub-graph").each(function() {
+  $(el).parent().find(".nanopub-graph").each(function () {
     updateNanopubGraph(this);
   });
 }
 
 function collapsePubinfo(el) {
-  first=true;
-  $(el).parent().find('.nanopub-pubinfo').each(function() {
-    if (!first) { $(this).hide(); }
-    first=false;
+  first = true;
+  $(el).parent().find('.nanopub-pubinfo').each(function () {
+    if (!first) {
+      $(this).hide();
+    }
+    first = false;
   });
   $(el).hide();
   $($(el).parent().find('.expand')[0]).show();
 }
 
 function expandAssertion(el) {
-  $(el).closest('.nanopub-assertion').find('.nanopub-statement, .nanopub-group, hr').each(function() {
+  $(el).closest('.nanopub-assertion').find('.nanopub-statement, .nanopub-group, hr').each(function () {
     $(this).show();
   });
   $(el).hide();
   $($(el).parent().find('.collapse')[0]).show();
-  $(el).parent().find(".nanopub-graph").each(function() {
+  $(el).parent().find(".nanopub-graph").each(function () {
     updateNanopubGraph(this);
   });
 }
@@ -119,11 +123,12 @@ function collapseNanopubAssertions() {
 
 function collapseNanopubAssertion(el) {
   a = $(el).find(".nanopub-assertion")[0];
-  n = $(a).find(".nanopub-statement").length;$
+  n = $(a).find(".nanopub-statement").length;
+  $
   if (n < 10) return;
   $($(a).find(".expand")[0]).show();
   c = 0;
-  $(a).find(".nanopub-statement, .nanopub-group, hr").each(function() {
+  $(a).find(".nanopub-statement, .nanopub-group, hr").each(function () {
     if (c > 5) {
       $(this).hide();
     } else {
@@ -133,4 +138,19 @@ function collapseNanopubAssertion(el) {
       c = c + 1;
     }
   });
+}
+
+function showMore(el) {
+  const $longLiteral = $(el).siblings('.long-literal');
+  let maxHeight = '80px'; // if you update this also update it in the style.css file
+
+  if ($longLiteral.hasClass('collapsed')) {
+    $longLiteral.css('max-height', 'none');
+    $longLiteral.removeClass('collapsed').addClass('expanded');
+    $(el).css('transform', 'scale(1 ,-1');
+  } else {
+    $longLiteral.css('max-height', maxHeight);
+    $longLiteral.removeClass('expanded').addClass('collapsed');
+    $(el).css('transform', 'scale(1, 1)');
+  }
 }

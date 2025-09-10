@@ -1,0 +1,138 @@
+package com.knowledgepixels.nanodash.page;
+
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.Values;
+import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class ListPage extends NanodashPage {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * The mount path for this page.
+     */
+    public static final String MOUNT_PATH = "/list";
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getMountPath() {
+        return MOUNT_PATH;
+    }
+
+    private boolean added = false;
+    private static final Logger logger = LoggerFactory.getLogger(ListPage.class);
+    private final List<IRI> types = new ArrayList<>();
+    private final List<String> pubKeys = new ArrayList<>();
+    private String startTime = "";
+    private String endTime = "";
+
+    public ListPage(final PageParameters parameters) {
+        super(parameters);
+
+        if (parameters.get("id") == null) throw new RedirectToUrlException(HomePage.MOUNT_PATH);
+
+        if (!parameters.get("types").isNull() && !parameters.get("types").isEmpty()) {
+            Arrays.stream(parameters.get("types").toString().split(","))
+                    .toList()
+                    .forEach(type -> types.add(Values.iri(type)));
+        }
+
+        if (!parameters.get("pubKeys").isNull() && !parameters.get("pubKeys").isEmpty()) {
+            pubKeys.addAll(Arrays.stream(parameters.get("pubKeys").toString().split(",")).toList());
+        }
+
+        if (!parameters.get("startTime").isNull() && !parameters.get("startTime").isEmpty()) {
+            startTime = parameters.get("startTime").toString();
+        }
+
+        if (!parameters.get("endTime").isNull() && !parameters.get("endTime").isEmpty()) {
+            endTime = parameters.get("endTime").toString();
+        }
+
+        add(new TitleBar("titlebar", this, null));
+        add(new Label("pagetitle", "Nanopublication list | nanodash"));
+        refresh();
+    }
+
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
+    protected boolean hasAutoRefreshEnabled() {
+        return true;
+    }
+
+    private synchronized void refresh() {
+        if (added) {
+            remove("nanopubs");
+        }
+        added = true;
+        final Map<String, String> params = new HashMap<>();
+        if (!types.isEmpty()) {
+            params.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
+        }
+        if (!pubKeys.isEmpty()) {
+            params.put("pubkeys", String.join(" ", pubKeys));
+        }
+        if (!startTime.isBlank()) {
+            params.put("starttime", startTime);
+        }
+        if (!endTime.isBlank()) {
+            params.put("endtime", endTime);
+        }
+        final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", params);
+        ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
+        if (cachedResponse != null) {
+            add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
+        } else {
+            add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public NanopubResults getLazyLoadComponent(String markupId) {
+                    ApiResponse r = null;
+                    while (true) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ex) {
+                            logger.error("Interrupted while waiting for API response", ex);
+                        }
+                        if (!ApiCache.isRunning(queryRef)) {
+                            r = ApiCache.retrieveResponse(queryRef);
+                            if (r != null) break;
+                        }
+                    }
+                    return NanopubResults.fromApiResponse(markupId, r);
+                }
+
+                @Override
+                protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
+                    super.onContentLoaded(content, target);
+                    if (target.isPresent()) {
+                        target.get().appendJavaScript("updateElements();");
+                    }
+                }
+
+            });
+        }
+    }
+
+}

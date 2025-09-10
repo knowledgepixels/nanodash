@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,7 +25,7 @@ class ViewPageTest {
     }
 
     @Test
-    void getMountPathReturnsCorrectPath() throws MalformedNanopubException {
+    void getMountPathReturnsCorrectPath() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub mockNanopub = TestUtils.createNanopub();
         try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
             utilsMock.when(() -> Utils.getAsNanopub(anyString())).thenReturn(mockNanopub);

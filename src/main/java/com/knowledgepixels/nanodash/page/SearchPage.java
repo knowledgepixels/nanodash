@@ -1,8 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -18,8 +22,14 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.util.*;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * SearchPage allows users to search for nanopublications by URI or free text.
@@ -141,7 +151,7 @@ public class SearchPage extends NanodashPage {
                                 // nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
                                 nanopubResults = QueryApiAccess.get("find-uri-references", nanopubParams).getData();
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                logger.error("Error while running the query for URI", ex);
                             }
 //							nanopubResults = ApiAccess.getRecent("find_nanopubs_with_uri", nanopubParams, progress);
                         } else {
@@ -158,7 +168,7 @@ public class SearchPage extends NanodashPage {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
                                     nanopubResults = QueryApiAccess.get("fulltext-search-on-labels", nanopubParams).getData();
                                 } catch (Exception ex) {
-                                    ex.printStackTrace();
+                                    logger.error("Error during search", ex);
                                 }
 //								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
                             }
@@ -180,7 +190,9 @@ public class SearchPage extends NanodashPage {
                 @Override
                 protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
                     super.onContentLoaded(content, target);
-                    if (target.get() != null) target.get().appendJavaScript("updateElements();");
+                    if (target.isPresent()) {
+                        target.get().appendJavaScript("updateElements();");
+                    }
                 }
 
             });

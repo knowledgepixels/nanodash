@@ -1,9 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -12,10 +12,13 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page that displays all nanopublications of a specific type.
@@ -39,6 +42,7 @@ public class TypePage extends NanodashPage {
 
     private IRI typeIri;
     private boolean added = false;
+    private static final Logger logger = LoggerFactory.getLogger(TypePage.class);
 
     /**
      * Constructor for the TypePage.
@@ -94,7 +98,7 @@ public class TypePage extends NanodashPage {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryName, params)) {
                             r = ApiCache.retrieveResponse(queryName, params);
@@ -107,7 +111,9 @@ public class TypePage extends NanodashPage {
                 @Override
                 protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
                     super.onContentLoaded(content, target);
-                    if (target.get() != null) target.get().appendJavaScript("updateElements();");
+                    if (target.isPresent()) {
+                        target.get().appendJavaScript("updateElements();");
+                    }
                 }
 
             });

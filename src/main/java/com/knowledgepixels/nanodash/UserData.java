@@ -14,6 +14,7 @@ import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.extra.setting.NanopubSetting;
+import org.nanopub.vocabulary.NPX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,17 +32,17 @@ public class UserData implements Serializable {
     private static ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(UserData.class);
 
-    private Map<IRI, Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
-    private Map<String, Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
-    private Map<String, Set<IRI>> approvedPubkeyhashLocationMap = new HashMap<>();
-    private Map<IRI, Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
-    private Map<String, Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
-    private Map<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
-    private Map<String, Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
-    private Map<IRI, IntroNanopub> introMap = new HashMap<>();
+    private HashMap<IRI, Set<String>> approvedIdPubkeyhashMap = new HashMap<>();
+    private HashMap<String, Set<IRI>> approvedPubkeyhashIdMap = new HashMap<>();
+    private HashMap<String, Set<IRI>> approvedPubkeyhashLocationMap = new HashMap<>();
+    private HashMap<IRI, Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
+    private HashMap<String, Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
+    private HashMap<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
+    private HashMap<String, Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
+    private HashMap<IRI, IntroNanopub> introMap = new HashMap<>();
     private Set<IRI> approvedIntros = new HashSet<>();
-    private Map<IRI, String> idNameMap = new HashMap<>();
-    private Map<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
+    private HashMap<IRI, String> idNameMap = new HashMap<>();
+    private HashMap<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
 
     /**
      * Default constructor for UserData.
@@ -62,7 +63,7 @@ public class UserData implements Serializable {
             }
         }
         String settingId = setting.getNanopub().getUri().stringValue();
-        if (setting.getUpdateStrategy().stringValue().equals("http://purl.org/nanopub/x/UpdatesByCreator")) {
+        if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
             setting = new NanopubSetting(GetNanopub.get(settingId));
         }
@@ -81,10 +82,10 @@ public class UserData implements Serializable {
 //				}
 //			});
 //		} catch (RDFParseException | RDFHandlerException | IOException | MalformedNanopubException ex) {
-//			ex.printStackTrace();
+//			logger.error();
 //		}
-//
-//		if (setting.getTrustRangeAlgorithm().stringValue().equals("http://purl.org/nanopub/x/TransitiveTrust")) {
+///
+//		if (setting.getTrustRangeAlgorithm().equals(NPX.TRANSITIVE_TRUST)) {
 //			ApiResponse resp = QueryApiAccess.forcedGet("get-approved-nanopubs");
 //			List<ApiResponseEntry> results = new ArrayList<>(resp.getData());
 //			while (true) {
@@ -137,6 +138,7 @@ public class UserData implements Serializable {
         try {
             userIri = vf.createIRI(entry.get("user"));
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from user string: {}", entry.get("user"), ex);
             return;
         }
         String pubkeyhash = entry.get("pubkeyHash");
@@ -146,11 +148,15 @@ public class UserData implements Serializable {
         try {
             introNpIri = vf.createIRI(entry.get("intronp"));
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from intronp string: {}", entry.get("intronp"), ex);
         }
         IRI keyLocation = null;
         try {
-            keyLocation = vf.createIRI(entry.get("keyLocation"));
+            if (!entry.get("keyLocation").isEmpty()) {
+                keyLocation = vf.createIRI(entry.get("keyLocation"));
+            }
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from keyLocation string: {}", entry.get("keyLocation"), ex);
         }
         if (approved) {
             if (authoritative) {
@@ -166,7 +172,7 @@ public class UserData implements Serializable {
             addValue(pubkeyhashIntroMap, entry.get("pubkeyHash"), introNpIri);
         }
         String name = entry.get("name");
-        if (!"".equals(name) && !idNameMap.containsKey(userIri)) {
+        if (!name.isEmpty() && !idNameMap.containsKey(userIri)) {
             idNameMap.put(userIri, name);
         }
     }
@@ -320,7 +326,7 @@ public class UserData implements Serializable {
                 }
             }
         } catch (MalformedCryptoElementException ex) {
-            ex.printStackTrace();
+            logger.error("Error getting signature element", ex);
         }
         return null;
     }
@@ -412,14 +418,7 @@ public class UserData implements Serializable {
         return null;
     }
 
-    private transient Comparator<IRI> comparator = new Comparator<IRI>() {
-
-        @Override
-        public int compare(IRI iri1, IRI iri2) {
-            return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
-        }
-
-    };
+    public final transient Comparator<IRI> userComparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
 
     /**
      * Retrieves a list of users, either approved or unapproved.
@@ -438,7 +437,7 @@ public class UserData implements Serializable {
             }
         }
         // TODO Cache the sorted list to not sort from scratch each time:
-        list.sort(comparator);
+        list.sort(userComparator);
         return list;
     }
 
@@ -483,16 +482,13 @@ public class UserData implements Serializable {
             }
         }
         List<IntroNanopub> list = new ArrayList<>(introNps.values());
-        Collections.sort(list, new Comparator<IntroNanopub>() {
-            @Override
-            public int compare(IntroNanopub i0, IntroNanopub i1) {
-                Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
-                Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
-                if (c0 == null && c1 == null) return 0;
-                if (c0 == null) return 1;
-                if (c1 == null) return -1;
-                return -c0.compareTo(c1);
-            }
+        list.sort((i0, i1) -> {
+            Calendar c0 = SimpleTimestampPattern.getCreationTime(i0.getNanopub());
+            Calendar c1 = SimpleTimestampPattern.getCreationTime(i1.getNanopub());
+            if (c0 == null && c1 == null) return 0;
+            if (c0 == null) return 1;
+            if (c1 == null) return -1;
+            return -c0.compareTo(c1);
         });
         introNanopubLists.put(user, list);
         return list;

@@ -15,7 +15,9 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.KeyDeclaration;
@@ -25,8 +27,12 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.setting.IntroNanopub;
+import org.nanopub.vocabulary.FIP;
+import org.nanopub.vocabulary.NPX;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2Choice;
 
 import java.io.IOException;
@@ -46,6 +52,7 @@ public class Utils {
     }  // no instances allowed
 
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     // TODO Merge with IriItem.getShortNameFromURI
     public static String getShortNameFromURI(IRI uri) {
@@ -104,7 +111,7 @@ public class Utils {
             }
             return u.build().toString();
         } catch (URISyntaxException ex) {
-            ex.printStackTrace();
+            logger.error("Could not build URL with parameters: {} {}", base, parameters, ex);
             return "/";
         }
     }
@@ -282,13 +289,13 @@ public class Utils {
             try {
                 return Utils.getNanopub(uri);
             } catch (Exception ex) {
-                // wasn't a known nanopublication
+                logger.error("The given URI is not a known nanopublication: {}", uri, ex);
             }
         }
         return null;
     }
 
-    private static PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
+    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
             .allowCommonBlockElements()
             .allowCommonInlineFormattingElements()
             .allowUrlProtocols("https", "http", "mailto")
@@ -401,13 +408,13 @@ public class Utils {
      * @return a list of IRI types associated with the nanopublication
      */
     public static List<IRI> getTypes(Nanopub np) {
-        List<IRI> l = new ArrayList<IRI>();
+        List<IRI> l = new ArrayList<>();
         for (IRI t : NanopubUtils.getTypes(np)) {
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Enabling-Resource")) continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource-to-be-Developed"))
+            if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) continue;
+            if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED))
                 continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/Available-FAIR-Supporting-Resource")) continue;
-            if (t.stringValue().equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource-to-be-Developed"))
+            if (t.equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE)) continue;
+            if (t.equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED))
                 continue;
             l.add(t);
         }
@@ -421,11 +428,11 @@ public class Utils {
      * @return a label for the type, potentially truncated
      */
     public static String getTypeLabel(IRI typeIri) {
+        if (typeIri.equals(FIP.FAIR_ENABLING_RESOURCE)) return "FER";
+        if (typeIri.equals(FIP.FAIR_SUPPORTING_RESOURCE)) return "FSR";
+        if (typeIri.equals(FIP.FAIR_IMPLEMENTATION_PROFILE)) return "FIP";
+        if (typeIri.equals(NPX.DECLARED_BY)) return "user intro";
         String l = typeIri.stringValue();
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Enabling-Resource")) return "FER";
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Supporting-Resource")) return "FSR";
-        if (l.equals("https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile")) return "FIP";
-        if (l.equals("http://purl.org/nanopub/x/declaredBy")) return "user intro";
         l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
         l = l.replaceFirst("^(.+)Nanopub$", "$1");
         if (l.length() > 25) l = l.substring(0, 20) + "...";
@@ -610,7 +617,7 @@ public class Utils {
         Set<String> introducedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
             if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NanopubUtils.INTRODUCES)) continue;
+            if (!st.getPredicate().equals(NPX.INTRODUCES)) continue;
             if (st.getObject() instanceof IRI obj) introducedIriIds.add(obj.stringValue());
         }
         return introducedIriIds;
@@ -626,7 +633,7 @@ public class Utils {
         Set<String> embeddedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
             if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NanopubUtils.EMBEDS)) continue;
+            if (!st.getPredicate().equals(NPX.EMBEDS)) continue;
             if (st.getObject() instanceof IRI obj) embeddedIriIds.add(obj.stringValue());
         }
         return embeddedIriIds;
@@ -641,9 +648,85 @@ public class Utils {
         try {
             return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Could not get NANODASH_MAIN_REGISTRY environment variable, using default.", ex);
             return "https://registry.knowledgepixels.com/";
         }
+    }
+
+    private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
+    private static final String LANGTAG_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"@([0-9a-zA-Z-]{2,})$";
+    private static final String DATATYPE_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"\\^\\^<([^ ><\"^]+)>";
+
+    /**
+     * Checks whether string is valid literal serialization.
+     *
+     * @param literalString the literal string
+     * @return true if valid
+     */
+    public static boolean isValidLiteralSerialization(String literalString) {
+        if (literalString.matches(PLAIN_LITERAL_PATTERN)) {
+            return true;
+        } else if (literalString.matches(LANGTAG_LITERAL_PATTERN)) {
+            return true;
+        } else if (literalString.matches(DATATYPE_LITERAL_PATTERN)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns a serialized version of the literal.
+     *
+     * @param literal the literal
+     * @return the String serialization of the literal
+     */
+    public static String getSerializedLiteral(Literal literal) {
+        if (literal.getLanguage().isPresent()) {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"@" + Literals.normalizeLanguageTag(literal.getLanguage().get());
+        } else if (literal.getDatatype().equals(XSD.STRING)) {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"";
+        } else {
+            return "\"" + getEscapedLiteralString(literal.stringValue()) + "\"^^<" + literal.getDatatype() + ">";
+        }
+    }
+
+    /**
+     * Parses a serialized literal into a Literal object.
+     *
+     * @param serializedLiteral The serialized String of the literal
+     * @return The parse Literal object
+     */
+    public static Literal getParsedLiteral(String serializedLiteral) {
+        if (serializedLiteral.matches(PLAIN_LITERAL_PATTERN)) {
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(PLAIN_LITERAL_PATTERN, "$1")));
+        } else if (serializedLiteral.matches(LANGTAG_LITERAL_PATTERN)) {
+            String langtag = serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$3");
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$1")), langtag);
+        } else if (serializedLiteral.matches(DATATYPE_LITERAL_PATTERN)) {
+            IRI datatype = vf.createIRI(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$3"));
+            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$1")), datatype);
+        }
+        throw new IllegalArgumentException("Not a valid literal serialization: " + serializedLiteral);
+    }
+
+    /**
+     * Escapes quotes (") and slashes (/) of a literal string.
+     *
+     * @param unescapedString un-escaped string
+     * @return escaped string
+     */
+    public static String getEscapedLiteralString(String unescapedString) {
+        return unescapedString.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"");
+    }
+
+    /**
+     * Un-escapes quotes (") and slashes (/) of a literal string.
+     *
+     * @param escapedString escaped string
+     * @return un-escaped string
+     */
+    public static String getUnescapedLiteralString(String escapedString) {
+        return escapedString.replaceAll("\\\\(\\\\|\\\")", "$1");
     }
 
 }

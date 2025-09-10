@@ -4,6 +4,10 @@ import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.QueryPage;
+
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -17,6 +21,8 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +36,7 @@ import java.util.List;
 public class QueryList extends Panel {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(QueryList.class);
 
     /**
      * Constructor for QueryList.
@@ -39,16 +46,18 @@ public class QueryList extends Panel {
      */
     public QueryList(String id, ApiResponse resp) {
         super(id);
+        setOutputMarkupId(true);
+
         List<GrlcQuery> queries = new ArrayList<>();
         for (ApiResponseEntry e : resp.getData()) {
             try {
                 queries.add(GrlcQuery.get(e.get("np")));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Error processing query nanopub: {}", ex.getMessage());
             }
         }
 
-        add(new DataView<GrlcQuery>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
+        DataView<GrlcQuery> dataView = new DataView<>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -70,7 +79,7 @@ public class QueryList extends Panel {
                         userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyhash);
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Error retrieving signature info: {}", ex.getMessage());
                 }
                 item.add(new Label("user", userString));
                 String timeString = "unknown date";
@@ -81,7 +90,17 @@ public class QueryList extends Panel {
                 item.add(new Label("timestamp", timeString));
             }
 
-        });
+        };
+        dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
+        add(dataView);
+
+        WebMarkupContainer navigation = new WebMarkupContainer("navigation");
+        navigation.add(new NavigatorLabel("navigatorLabel", dataView));
+        AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", dataView);
+        navigation.setVisible(dataView.getPageCount() > 1);
+        navigation.add(pagingNavigator);
+        add(navigation);
     }
 
 }

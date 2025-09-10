@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.action;
 
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
@@ -9,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import static com.knowledgepixels.nanodash.action.NanopubAction.getEncodedUri;
 import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
@@ -26,7 +27,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "improve";
         ImproveAction action = new ImproveAction();
@@ -35,13 +36,13 @@ class ImproveActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 
@@ -56,7 +57,7 @@ class ImproveActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         ImproveAction action = new ImproveAction();
         String result = action.getParamString(nanopub);
@@ -79,13 +80,13 @@ class ImproveActionTest {
     }
 
     @Test
-    void isApplicableToReturnsTrue() throws MalformedNanopubException {
+    void isApplicableToReturnsTrue() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 
@@ -100,13 +101,13 @@ class ImproveActionTest {
     }
 
     @Test
-    void isApplicableToReturnsFalse() throws MalformedNanopubException {
+    void isApplicableToReturnsFalse() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         IRI mockedTemplateId = TestUtils.vf.createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak");
 
         NanopubCreator creator = TestUtils.getNanopubCreator();
         creator.addAssertionStatement(TestUtils.vf.createStatement(anyIri, anyIri, anyIri));
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
-        creator.addPubinfoStatement(creator.getNanopubUri(), Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, mockedTemplateId);
+        creator.addPubinfoStatement(creator.getNanopubUri(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, mockedTemplateId);
 
         Nanopub nanopub = creator.finalizeNanopub();
 

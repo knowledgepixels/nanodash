@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +19,7 @@ public class NanodashPreferences implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private static NanodashPreferences obj;
+    private static final Logger logger = LoggerFactory.getLogger(NanodashPreferences.class);
 
     /**
      * Get the singleton instance of NanodashPreferences.
@@ -25,7 +28,7 @@ public class NanodashPreferences implements Serializable {
      */
     public static NanodashPreferences get() {
         if (obj == null) {
-            File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanodash-preferences.yml");
+            File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
             if (!prefFile.exists()) {
                 return new NanodashPreferences();
             }
@@ -34,7 +37,7 @@ public class NanodashPreferences implements Serializable {
                 obj = mapper.readValue(prefFile, NanodashPreferences.class);
             } catch (IOException ex) {
                 obj = new NanodashPreferences();
-                ex.printStackTrace();
+                logger.error("Could not read preferences file at '{}' using defaults", DEFAULT_SETTING_PATH, ex);
             }
         }
         return obj;
@@ -47,6 +50,7 @@ public class NanodashPreferences implements Serializable {
     private String orcidClientId;
     private String orcidClientSecret;
     private String settingUri;
+    public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
      * Return the list of nanopub actions.
@@ -55,7 +59,9 @@ public class NanodashPreferences implements Serializable {
      */
     public List<String> getNanopubActions() {
         String s = System.getenv("NANODASH_NANOPUB_ACTIONS");
-        if (!(s == null) && !s.isEmpty()) return Arrays.asList(s.split(" "));
+        if (s != null && !s.isBlank()) {
+            return Arrays.asList(s.split(" "));
+        }
         return nanopubActions;
     }
 
@@ -94,7 +100,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getWebsiteUrl() {
         String s = System.getenv("NANODASH_WEBSITE_URL");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return websiteUrl;
     }
 
@@ -133,7 +141,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getOrcidClientId() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_ID");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return orcidClientId;
     }
 
@@ -153,7 +163,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getOrcidClientSecret() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_SECRET");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return orcidClientSecret;
     }
 

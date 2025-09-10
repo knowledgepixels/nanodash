@@ -1,12 +1,13 @@
 package com.knowledgepixels.nanodash.action;
 
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
+import org.nanopub.vocabulary.NTEMPLATE;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UseTemplateActionTest {
 
     @Test
-    void getLinkLabel() throws MalformedNanopubException {
+    void getLinkLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         String linkLabel = "use template";
         UseTemplateAction action = new UseTemplateAction();
@@ -23,7 +24,7 @@ class UseTemplateActionTest {
     }
 
     @Test
-    void getTemplateUri() throws MalformedNanopubException {
+    void getTemplateUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         UseTemplateAction action = new UseTemplateAction();
         String result = action.getTemplateUri(nanopub);
@@ -31,7 +32,7 @@ class UseTemplateActionTest {
     }
 
     @Test
-    void getParamString() throws MalformedNanopubException {
+    void getParamString() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
         UseTemplateAction action = new UseTemplateAction();
         String result = action.getParamString(nanopub);
@@ -53,9 +54,9 @@ class UseTemplateActionTest {
     }
 
     @Test
-    void isApplicableTo() throws MalformedNanopubException {
+    void isApplicableTo() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator creator = TestUtils.getNanopubCreator();
-        creator.addAssertionStatement(TestUtils.anyIri, RDF.TYPE, Template.ASSERTION_TEMPLATE_CLASS);
+        creator.addAssertionStatement(TestUtils.anyIri, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
         creator.addProvenanceStatement(creator.getAssertionUri(), TestUtils.anyIri, TestUtils.anyIri);
         creator.addPubinfoStatement(creator.getNanopubUri(), TestUtils.anyIri, TestUtils.anyIri);
         Nanopub nanopub = creator.finalizeNanopub();

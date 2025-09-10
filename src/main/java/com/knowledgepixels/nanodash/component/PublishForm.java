@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.*;
-import org.apache.commons.lang3.StringUtils;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -40,21 +43,33 @@ import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.vocabulary.NPX;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 /**
  * Form for publishing a nanopublication.
@@ -163,7 +178,7 @@ public class PublishForm extends Panel {
             targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
         }
         String targetNamespaceLabel = targetNamespace + "...";
-        targetNamespace = targetNamespace + "ARTIFACTCODE-PLACEHOLDER/";
+        targetNamespace = targetNamespace + "~~~ARTIFACTCODE~~~/";
 
         assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
         assertionContext.setFillMode(fillMode);
@@ -295,7 +310,7 @@ public class PublishForm extends Panel {
                 ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
                 if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
                     for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-                        if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NanopubUtils.HAS_NANOPUB_TYPE)) {
+                        if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
                             if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
                                 piFiller.removeUnusedStatement(st);
                             }
@@ -414,7 +429,7 @@ public class PublishForm extends Panel {
                     logger.info("Nanopublication published: {}", npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
-                    ex.printStackTrace();
+                    logger.error("Nanopublication publishing failed: {}", ex.getMessage());
                     String message = ex.getClass().getName();
                     if (ex.getMessage() != null) message = ex.getMessage();
                     feedbackPanel.error(message);
@@ -805,12 +820,7 @@ public class PublishForm extends Panel {
         return c;
     }
 
-    /**
-     * Predicate for the nanopublication's assertion creation.
-     */
-    public static final IRI WAS_CREATED_AT_PREDICATE = vf.createIRI("http://purl.org/nanopub/x/wasCreatedAt");
-
-    private synchronized Nanopub createNanopub() throws MalformedNanopubException {
+    private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -820,28 +830,28 @@ public class PublishForm extends Panel {
             c.propagateStatements(npCreator);
         }
         for (IRI introducedIri : assertionContext.getIntroducedIris()) {
-            npCreator.addPubinfoStatement(NanopubUtils.INTRODUCES, introducedIri);
+            npCreator.addPubinfoStatement(NPX.INTRODUCES, introducedIri);
         }
         for (IRI embeddedIri : assertionContext.getEmbeddedIris()) {
-            npCreator.addPubinfoStatement(NanopubUtils.EMBEDS, embeddedIri);
+            npCreator.addPubinfoStatement(NPX.EMBEDS, embeddedIri);
         }
         npCreator.addNamespace("this", targetNamespace);
         npCreator.addNamespace("sub", targetNamespace + "/");
         npCreator.addTimestampNow();
         IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
-        npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_TEMPLATE_PREDICATE, templateUri);
+        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, templateUri);
         IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
-        npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PROVENANCE_TEMPLATE_PREDICATE, prTemplateUri);
+        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, prTemplateUri);
         for (TemplateContext c : pubInfoContexts) {
             IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
-            npCreator.addPubinfoStatement(Template.WAS_CREATED_FROM_PUBINFO_TEMPLATE_PREDICATE, piTemplateUri);
+            npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, piTemplateUri);
         }
         String nanopubLabel = getNanopubLabel(npCreator);
         if (nanopubLabel != null) {
             npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
         }
         for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
-            npCreator.addPubinfoStatement(NanopubUtils.HAS_NANOPUB_TYPE, type);
+            npCreator.addPubinfoStatement(NPX.HAS_NANOPUB_TYPE, type);
         }
         IRI userIri = NanodashSession.get().getUserIri();
         if (User.getName(userIri) != null) {
@@ -850,7 +860,7 @@ public class PublishForm extends Panel {
         }
         String websiteUrl = NanodashPreferences.get().getWebsiteUrl();
         if (websiteUrl != null) {
-            npCreator.addPubinfoStatement(WAS_CREATED_AT_PREDICATE, vf.createIRI(websiteUrl));
+            npCreator.addPubinfoStatement(NPX.WAS_CREATED_AT, vf.createIRI(websiteUrl));
         }
         return npCreator.finalizeNanopub();
     }
@@ -902,12 +912,12 @@ public class PublishForm extends Panel {
                         placeholderLabel = Utils.getShortNameFromURI(placeholderValueIri);
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Nanopub label placeholder IRI error: {}", ex.getMessage());
                 }
             }
             placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
             if (placeholderLabel.length() > 100) placeholderLabel = placeholderLabel.substring(0, 97) + "...";
-            nanopubLabel = StringUtils.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
+            nanopubLabel = Strings.CS.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
         }
         return nanopubLabel;
     }
@@ -917,7 +927,7 @@ public class PublishForm extends Panel {
             return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
                  InvocationTargetException | NoSuchMethodException | SecurityException ex) {
-            ex.printStackTrace();
+            logger.error("Could not create instance of confirmation page: {}", ex.getMessage());
         }
         return null;
     }
