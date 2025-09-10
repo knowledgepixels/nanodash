@@ -195,14 +195,14 @@ public class Project implements Serializable {
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners-of-project", "project", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners", "unit", id).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (ownerPubkeyMap.containsKey(pubkeyhash)) {
                         addOwner(Utils.vf.createIRI(r.get("owner")));
                     }
                 }
                 members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members-of-project", "project", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
                     if (owners.contains(memberId)) continue;

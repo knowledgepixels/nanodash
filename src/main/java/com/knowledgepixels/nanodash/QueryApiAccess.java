@@ -68,8 +68,8 @@ public class QueryApiAccess {
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
-        load("RAwfurJs7mlYWdW4fSpd6hM1AGjQ_2QMiy3VyOP6vdrlE/get-owners-of-project");
-        load("RAHooeYnQyfu4gXNg5g32PlQRlqsfEblsCNG2DjSYF-y0/get-members-of-project");
+        load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
+        load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
     }
 
