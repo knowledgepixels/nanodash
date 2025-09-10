@@ -59,7 +59,9 @@ public class NanodashPreferences implements Serializable {
      */
     public List<String> getNanopubActions() {
         String s = System.getenv("NANODASH_NANOPUB_ACTIONS");
-        if (!(s == null) && !s.isEmpty()) return Arrays.asList(s.split(" "));
+        if (s != null && !s.isBlank()) {
+            return Arrays.asList(s.split(" "));
+        }
         return nanopubActions;
     }
 
@@ -98,7 +100,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getWebsiteUrl() {
         String s = System.getenv("NANODASH_WEBSITE_URL");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return websiteUrl;
     }
 
@@ -137,7 +141,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getOrcidClientId() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_ID");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return orcidClientId;
     }
 
@@ -157,7 +163,9 @@ public class NanodashPreferences implements Serializable {
      */
     public String getOrcidClientSecret() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_SECRET");
-        if (!(s == null) && !s.isEmpty()) return s;
+        if (s != null && !s.isBlank()) {
+            return s;
+        }
         return orcidClientSecret;
     }
 
