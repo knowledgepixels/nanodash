@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,16 @@ import static com.knowledgepixels.nanodash.NanodashPreferences.get;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NanodashPreferencesTest {
+
+    @BeforeAll
+    static void beforeAll() throws IOException {
+        File prefDir = new File(System.getProperty("user.home") + "/.nanopub");
+        if (!prefDir.exists()) {
+            Files.createDirectory(prefDir.toPath());
+        }
+        assertTrue(prefDir.exists());
+        assertTrue(prefDir.isDirectory());
+    }
 
     @BeforeEach
     void setUp() throws IOException {
