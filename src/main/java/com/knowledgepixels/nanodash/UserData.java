@@ -138,6 +138,7 @@ public class UserData implements Serializable {
         try {
             userIri = vf.createIRI(entry.get("user"));
         } catch (IllegalArgumentException ex) {
+            logger.error("Error creating IRI from user string: {}", entry.get("user"), ex);
             return;
         }
         String pubkeyhash = entry.get("pubkeyHash");
@@ -151,7 +152,9 @@ public class UserData implements Serializable {
         }
         IRI keyLocation = null;
         try {
-            keyLocation = vf.createIRI(entry.get("keyLocation"));
+            if (!entry.get("keyLocation").isEmpty()) {
+                keyLocation = vf.createIRI(entry.get("keyLocation"));
+            }
         } catch (IllegalArgumentException ex) {
             logger.error("Error creating IRI from keyLocation string: {}", entry.get("keyLocation"), ex);
         }
@@ -169,7 +172,7 @@ public class UserData implements Serializable {
             addValue(pubkeyhashIntroMap, entry.get("pubkeyHash"), introNpIri);
         }
         String name = entry.get("name");
-        if (!"".equals(name) && !idNameMap.containsKey(userIri)) {
+        if (!name.isEmpty() && !idNameMap.containsKey(userIri)) {
             idNameMap.put(userIri, name);
         }
     }

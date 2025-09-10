@@ -1,22 +1,20 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.QueryRef;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A list of templates, grouped by topic.
@@ -38,7 +36,7 @@ public class TemplateList extends Panel {
                 new QueryRef("get-most-used-templates-last30d"),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
-            ));
+        ));
 
         add(new ItemListPanel<Template>(
                 "getstarted-templates",
@@ -46,7 +44,7 @@ public class TemplateList extends Panel {
                 new QueryRef("get-suggested-templates-to-get-started"),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
-            ));
+        ));
 
         ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
         templateList.sort((t1, t2) -> {
@@ -61,7 +59,7 @@ public class TemplateList extends Panel {
         Map<String, Topic> topics = new HashMap<>();
         for (ApiResponseEntry entry : templateList) {
             String tag = entry.get("tag");
-            if ("".equals(tag)) tag = null;
+            if (tag.isEmpty()) tag = null;
             if (!topics.containsKey(tag)) {
                 topics.put(tag, new Topic(tag));
             }
@@ -87,7 +85,7 @@ public class TemplateList extends Panel {
                         tag,
                         item.getModelObject().templates,
                         (respEntry) -> new TemplateItem("item", respEntry)
-                    ));
+                ));
             }
         };
         topicDataView.setOutputMarkupId(true);
