@@ -7,11 +7,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubImpl;
+import org.nanopub.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,8 +96,7 @@ class GrlcQueryTest {
         assertEquals(QUERY_SUFFIX, query.getQuerySuffix());
     }
 
-    //@Test
-    // TODO enable this test when the new nanopub-java library is released
+    @Test
     void getNanopub() throws MalformedNanopubException, IOException {
         GrlcQuery query = GrlcQuery.get(NANOPUB_URI);
         Nanopub nanopub = new NanopubImpl(new File("src/test/resources/np-grlc-query.trig"), RDFFormat.TRIG);
@@ -149,11 +144,10 @@ class GrlcQueryTest {
         assertTrue(paramFields.isEmpty(), "Expected no parameters in the test query.");
     }
 
-    //@Test
-    // TODO enable this test when the new nanopub-java library is released
+    @Test
     void getSparql() throws MalformedNanopubException, IOException {
         GrlcQuery query = GrlcQuery.get(NANOPUB_URI);
-        String sparql = query.getSparql().replace("\r\n", "\n");
+        String sparql = query.getSparql();
         Nanopub nanopub = new NanopubImpl(new File("src/test/resources/np-grlc-query.trig"), RDFFormat.TRIG);
         AtomicReference<String> sparqlFromNanopub = new AtomicReference<>();
         nanopub.getAssertion().forEach(st -> {
@@ -163,6 +157,5 @@ class GrlcQueryTest {
         });
         assertEquals(sparql, sparqlFromNanopub.get());
     }
-
 
 }
