@@ -209,6 +209,8 @@ public class Project implements Serializable {
                     if (members.contains(memberId)) continue;
                     members.add(memberId);
                 }
+                owners.sort(User.getUserData().userComparator);
+                members.sort(User.getUserData().userComparator);
                 dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;

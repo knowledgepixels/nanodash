@@ -7,6 +7,8 @@ import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 /**
  * Panel to show a list of things.
@@ -29,17 +31,26 @@ public class ThingListPanel extends Panel {
         response.getData().sort(new Utils.ApiResponseEntrySorter("date", true));
         if (response.getData().isEmpty()) {
             setVisible(false);
+        } else if (mode == Mode.TEMPLATES) {
+            add(new Label("message").setVisible(false));
         } else if (response.getData().size() == 1) {
-            add(new Label("message", mode.messageStart + " 1 " + mode.wordSg));
+            add(new Label("message", mode.messageStart + " 1 " + mode.wordSg + ":"));
         } else if (response.getData().size() == 1000) {
-            add(new Label("message", mode.messageStart + " more " + mode.wordPl + " (>999) than what can be shown here"));
+            add(new Label("message", mode.messageStart + " more " + mode.wordPl + " (>999) than what can be shown here:"));
         } else {
-            add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl));
+            add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl + ":"));
         }
         if (mode == Mode.TEMPLATES) {
-            add(TemplateResults.fromApiResponse("things", response));
+            add(new ItemListPanel<Template>(
+                    "templates",
+                    "Related Templates",
+                    TemplateData.getTemplateList(response),
+                    (template) -> new TemplateItem("item", template)
+                ));
+            add(new Label("things").setVisible(false));
         } else {
             add(ThingResults.fromApiResponse("things", mode.returnField, response));
+            add(new Label("templates").setVisible(false));
         }
     }
 

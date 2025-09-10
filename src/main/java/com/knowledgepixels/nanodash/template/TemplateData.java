@@ -211,6 +211,16 @@ public class TemplateData implements Serializable {
     }
 
 
+    public static List<Template> getTemplateList(ApiResponse apiResponse) {
+        List<Template> templates = new ArrayList<>();
+        for (ApiResponseEntry e : apiResponse.getData()) {
+            String templateNpId = e.get("template_np");
+            if (templateNpId == null) templateNpId = e.get("np");
+            templates.add(TemplateData.get().getTemplate(templateNpId));
+        }
+        return templates;
+    }
+
     private static final TemplateComparator templateComparator = new TemplateComparator();
 
     private static class TemplateComparator implements Comparator<ApiResponseEntry>, Serializable {
