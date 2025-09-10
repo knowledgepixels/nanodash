@@ -135,6 +135,7 @@ public class WicketApplication extends WebApplication {
         mountPage(GenConnectPage.MOUNT_PATH, GenConnectPage.class);
         mountPage(GenNanopubPage.MOUNT_PATH, GenNanopubPage.class);
         mountPage(ProjectPage.MOUNT_PATH, ProjectPage.class);
+        mountPage(SpacePage.MOUNT_PATH, SpacePage.class);
         mountPage(QueryPage.MOUNT_PATH, QueryPage.class);
         mountPage(QueryListPage.MOUNT_PATH, QueryListPage.class);
         mountPage(ListPage.MOUNT_PATH, ListPage.class);
