@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -19,12 +18,13 @@ import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.MethodResultComponent;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.QueryResultTable;
 import com.knowledgepixels.nanodash.component.TemplateResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.UserList;
 import com.knowledgepixels.nanodash.template.Template;
 
 /**
@@ -103,27 +103,25 @@ public class ProjectPage extends NanodashPage {
         });
         add(TemplateResults.fromList("templates", templates, params));
 
-        if (project.isDataInitialized()) {
-            add(new UserList("owners", project.getOwners(), true));
-        } else {
-            add(new MethodResultComponent<List<IRI>>("owners", () -> project.isDataInitialized(), () -> project.getOwners() ) {
-                @Override
-                public Component getResultComponent(String markupId, List<IRI> result) {
-                    return new UserList(markupId, result, true);
+        add(new ItemListPanel<IRI>(
+                "owner-users",
+                "Owners",
+                () -> project.isDataInitialized(),
+                () -> project.getOwners(),
+                (userIri) -> {
+                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
                 }
-            });
-        }
+            ));
 
-        if (project.isDataInitialized()) {
-            add(new UserList("members", project.getMembers(), true));
-        } else {
-            add(new MethodResultComponent<List<IRI>>("members", () -> project.isDataInitialized(), () -> project.getMembers() ) {
-                @Override
-                public Component getResultComponent(String markupId, List<IRI> result) {
-                    return new UserList(markupId, result, true);
+        add(new ItemListPanel<IRI>(
+                "member-users",
+                "Members",
+                () -> project.isDataInitialized(),
+                () -> project.getMembers(),
+                (userIri) -> {
+                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
                 }
-            });
-        }
+            ));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 
