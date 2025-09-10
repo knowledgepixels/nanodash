@@ -1,19 +1,17 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
 
-public abstract class MethodResultComponent<T,R> extends ResultComponent {
+public abstract class MethodResultComponent<R> extends ResultComponent {
 
-    private final T obj;
-    private final transient Function<T,Boolean> readyFunction;
-    private final transient Function<T,R> resultFunction;
+    private final transient Supplier<Boolean> readyFunction;
+    private final transient Supplier<R> resultFunction;
 
-    public MethodResultComponent(String id, T obj, Function<T,Boolean> readyFunction, Function<T,R> resultFunction) {
+    public MethodResultComponent(String id, Supplier<Boolean> readyFunction, Supplier<R> resultFunction) {
         super(id);
         setOutputMarkupId(true);
-        this.obj = obj;
         this.readyFunction = readyFunction;
         this.resultFunction = resultFunction;
     }
@@ -23,7 +21,7 @@ public abstract class MethodResultComponent<T,R> extends ResultComponent {
      */
     @Override
     protected boolean isContentReady() {
-        return readyFunction.apply(obj);
+        return readyFunction.get();
     }
 
     /**
@@ -31,7 +29,7 @@ public abstract class MethodResultComponent<T,R> extends ResultComponent {
      */
     @Override
     public Component getLazyLoadComponent(String markupId) {
-        R result = resultFunction.apply(obj);
+        R result = resultFunction.get();
         return getResultComponent(markupId, result);
     }
 

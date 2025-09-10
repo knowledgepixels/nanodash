@@ -106,7 +106,7 @@ public class ProjectPage extends NanodashPage {
         if (project.isDataInitialized()) {
             add(new UserList("owners", project.getOwners(), true));
         } else {
-            add(new MethodResultComponent<Project,List<IRI>>("owners", project, Project::isDataInitialized, Project::getOwners) {
+            add(new MethodResultComponent<List<IRI>>("owners", () -> project.isDataInitialized(), () -> project.getOwners() ) {
                 @Override
                 public Component getResultComponent(String markupId, List<IRI> result) {
                     return new UserList(markupId, result, true);
@@ -117,7 +117,7 @@ public class ProjectPage extends NanodashPage {
         if (project.isDataInitialized()) {
             add(new UserList("members", project.getMembers(), true));
         } else {
-            add(new MethodResultComponent<Project,List<IRI>>("members", project, Project::isDataInitialized, Project::getMembers) {
+            add(new MethodResultComponent<List<IRI>>("members", () -> project.isDataInitialized(), () -> project.getMembers() ) {
                 @Override
                 public Component getResultComponent(String markupId, List<IRI> result) {
                     return new UserList(markupId, result, true);
