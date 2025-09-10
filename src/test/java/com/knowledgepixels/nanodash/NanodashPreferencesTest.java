@@ -4,6 +4,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,13 +15,18 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.knowledgepixels.nanodash.NanodashPreferences.DEFAULT_SETTING_PATH;
 import static com.knowledgepixels.nanodash.NanodashPreferences.get;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SystemStubsExtension.class)
 class NanodashPreferencesTest {
+
+    @SystemStub
+    private final EnvironmentVariables envVars = new EnvironmentVariables();
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -186,6 +195,167 @@ class NanodashPreferencesTest {
     void getWebsiteUrlWithDefaultValue() {
         NanodashPreferences preferences = get();
         assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
+    }
+
+    @Test
+    void getWebsiteUrlFromSystemEnv() {
+        String websiteUrl = "https://example.com";
+        envVars.set("NANODASH_WEBSITE_URL", websiteUrl);
+        NanodashPreferences preferences = get();
+        assertEquals(websiteUrl, preferences.getWebsiteUrl());
+    }
+
+    @Test
+    void getWebsiteUrlFromSystemEnvBlankOrNull() {
+        String websiteUrl = null;
+        envVars.set("NANODASH_WEBSITE_URL", websiteUrl);
+        NanodashPreferences preferences = get();
+        assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
+
+        websiteUrl = "";
+        envVars.set("NANODASH_WEBSITE_URL", websiteUrl);
+        assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
+
+        websiteUrl = " ";
+        envVars.set("NANODASH_WEBSITE_URL", websiteUrl);
+        assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
+    }
+
+    @Test
+    void getOrcidClientIdWithDefaultValue() {
+        NanodashPreferences preferences = get();
+        assertNull(preferences.getOrcidClientId());
+    }
+
+    @Test
+    void getOrcidClientIdFromSystemEnv() {
+        String orcidClientId = "https://orcid.org/0000-0000-0000-0000";
+        envVars.set("NANOPUB_ORCID_CLIENT_ID", orcidClientId);
+        NanodashPreferences preferences = get();
+        assertEquals(orcidClientId, preferences.getOrcidClientId());
+    }
+
+    @Test
+    void getOrcidClientIdFromSystemEnvBlankOrNull() {
+        String orcidClientId = null;
+        envVars.set("NANOPUB_ORCID_CLIENT_ID", orcidClientId);
+        NanodashPreferences preferences = get();
+        assertNull(preferences.getOrcidClientId());
+
+        orcidClientId = "";
+        envVars.set("NANOPUB_ORCID_CLIENT_ID", orcidClientId);
+        assertNull(preferences.getOrcidClientId());
+
+        orcidClientId = " ";
+        envVars.set("NANOPUB_ORCID_CLIENT_ID", orcidClientId);
+        assertNull(preferences.getOrcidClientId());
+    }
+
+    @Test
+    void getOrcidClientSecretWithDefaultValue() {
+        NanodashPreferences preferences = get();
+        assertNull(preferences.getOrcidClientSecret());
+    }
+
+    @Test
+    void getOrcidClientSecretFromSystemEnv() {
+        String orcidClientSecret = "r4nd0mS3cr3t";
+        envVars.set("NANOPUB_ORCID_CLIENT_SECRET", orcidClientSecret);
+        NanodashPreferences preferences = get();
+        assertEquals(orcidClientSecret, preferences.getOrcidClientSecret());
+    }
+
+    @Test
+    void getOrcidClientSecretFromSystemEnvBlankOrNull() {
+        String orcidClientSecret = null;
+        envVars.set("NANOPUB_ORCID_CLIENT_SECRET", orcidClientSecret);
+        NanodashPreferences preferences = get();
+        assertNull(preferences.getOrcidClientSecret());
+
+        orcidClientSecret = "";
+        envVars.set("NANOPUB_ORCID_CLIENT_SECRET", orcidClientSecret);
+        assertNull(preferences.getOrcidClientSecret());
+
+        orcidClientSecret = " ";
+        envVars.set("NANOPUB_ORCID_CLIENT_SECRET", orcidClientSecret);
+        assertNull(preferences.getOrcidClientSecret());
+    }
+
+    @Test
+    void isOrcidLoginModeWithDefaultValue() {
+        NanodashPreferences preferences = get();
+        assertFalse(preferences.isOrcidLoginMode());
+    }
+
+    @Test
+    void isOrcidLoginModeFromSystemEnvTrue() {
+        NanodashPreferences preferences = get();
+        envVars.set("NANODASH_ORCID_LOGIN_MODE", "true");
+        assertTrue(preferences.isOrcidLoginMode());
+
+        envVars.set("NANODASH_ORCID_LOGIN_MODE", true);
+        assertTrue(preferences.isOrcidLoginMode());
+    }
+
+    @Test
+    void isOrcidLoginModeFromSystemEnvNotTrue() {
+        NanodashPreferences preferences = get();
+        envVars.set("NANODASH_ORCID_LOGIN_MODE", "anythingButTrue");
+        assertFalse(preferences.isOrcidLoginMode());
+    }
+
+    @Test
+    void isReadOnlyModeWithDefaultValue() {
+        NanodashPreferences preferences = get();
+        assertFalse(preferences.isReadOnlyMode());
+    }
+
+    @Test
+    void isReadOnlyModeFromSystemEnvTrue() {
+        NanodashPreferences preferences = get();
+        envVars.set("NANODASH_READ_ONLY_MODE", "true");
+        assertTrue(preferences.isReadOnlyMode());
+
+        envVars.set("NANODASH_READ_ONLY_MODE", true);
+        assertTrue(preferences.isReadOnlyMode());
+    }
+
+    @Test
+    void isReadOnlyModeFromSystemEnvNotTrue() {
+        NanodashPreferences preferences = get();
+        envVars.set("NANODASH_READ_ONLY_MODE", "anythingButTrue");
+        assertFalse(preferences.isReadOnlyMode());
+    }
+
+    @Test
+    void getNanopubActionsWithDefaultValue() {
+        NanodashPreferences preferences = get();
+        assertTrue(preferences.getNanopubActions().isEmpty());
+    }
+
+    @Test
+    void getNanopubActionsFromSystemEnv() {
+        String nanopubActions = "com.knowledgepixels.nanodash.action.ImproveAction com.knowledgepixels.nanodash.action.UpdateAction";
+        List<String> expectedActions = Arrays.asList(nanopubActions.split(" "));
+        envVars.set("NANODASH_NANOPUB_ACTIONS", nanopubActions);
+        NanodashPreferences preferences = get();
+        assertEquals(expectedActions, preferences.getNanopubActions());
+    }
+
+    @Test
+    void getNanopubActionsFromSystemEnvBlankOrNull() {
+        String nanopubActions = null;
+        envVars.set("NANODASH_NANOPUB_ACTIONS", nanopubActions);
+        NanodashPreferences preferences = get();
+        assertTrue(preferences.getNanopubActions().isEmpty());
+
+        nanopubActions = "";
+        envVars.set("NANOPUB_ORCID_CLIENT_SECRET", nanopubActions);
+        assertTrue(preferences.getNanopubActions().isEmpty());
+
+        nanopubActions = " ";
+        envVars.set("NANODASH_NANOPUB_ACTIONS", nanopubActions);
+        assertTrue(preferences.getNanopubActions().isEmpty());
     }
 
 }
