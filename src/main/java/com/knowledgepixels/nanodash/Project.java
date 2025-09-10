@@ -42,12 +42,12 @@ public class Project implements Serializable {
      */
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
-    private static List<Project> projectList = new ArrayList<>();
+    private static List<Project> projectList = null;
     private static ConcurrentMap<String,Project> projectsByCoreInfo = new ConcurrentHashMap<>();
     private static ConcurrentMap<String,Project> projectsById = new ConcurrentHashMap<>();
 
     public static synchronized void refresh(ApiResponse resp) {
-        projectList.clear();
+        projectList = new ArrayList<>();
         ConcurrentMap<String,Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
         projectsByCoreInfo = new ConcurrentHashMap<>();
         projectsById.clear();
@@ -61,15 +61,24 @@ public class Project implements Serializable {
         }
     }
 
+    public static void ensureLoaded() {
+        if (projectList == null) {
+            refresh(QueryApiAccess.forcedGet("get-projects"));
+        }
+    }
+
     public static List<Project> getProjectList() {
+        ensureLoaded();
         return projectList;
     }
 
     public static Project get(String id) {
+        ensureLoaded();
         return projectsById.get(id);
     }
 
     public static void refresh() {
+        ensureLoaded();
         for (Project project : projectList) {
             project.dataNeedsUpdate = true;
         }
