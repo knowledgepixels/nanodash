@@ -1,36 +1,27 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import jakarta.xml.bind.DatatypeConverter;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.extra.services.ApiResponseEntry;
+
+import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+
+import jakarta.xml.bind.DatatypeConverter;
+
 /**
  * A list of templates, grouped by topic.
  */
 public class TemplateList extends Panel {
-
-    private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(TemplateList.class);
 
     /**
      * A list of templates, grouped by topic.
@@ -41,65 +32,21 @@ public class TemplateList extends Panel {
         super(id);
         setOutputMarkupId(true);
 
-        final Map<String, String> ptParams = new HashMap<>();
-        final String ptQueryName = "get-most-used-templates-last30d";
-        ApiResponse ptResponse = ApiCache.retrieveResponse(ptQueryName, ptParams);
-        if (ptResponse != null) {
-            add(TemplateResults.fromApiResponse("populartemplates", ptResponse));
-        } else {
-            add(new AjaxLazyLoadPanel<Component>("populartemplates") {
+        add(new ItemListPanel<Template>(
+                "popular-templates",
+                "Popular Templates",
+                new QueryRef("get-most-used-templates-last30d"),
+                TemplateData::getTemplateList,
+                (template) -> new TemplateItem("item", template)
+            ));
 
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    ApiResponse r = null;
-                    while (true) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            logger.error("Thread interrupted", ex);
-                        }
-                        if (!ApiCache.isRunning(ptQueryName, ptParams)) {
-                            r = ApiCache.retrieveResponse(ptQueryName, ptParams);
-                            if (r != null) break;
-                        }
-                    }
-                    return TemplateResults.fromApiResponse(markupId, r);
-                }
-
-            });
-        }
-
-        final Map<String, String> stParams = new HashMap<>();
-        final String stQueryName = "get-suggested-templates-to-get-started";
-        ApiResponse stResponse = ApiCache.retrieveResponse(stQueryName, stParams);
-        if (stResponse != null) {
-            add(TemplateResults.fromApiResponse("getstartedtemplates", stResponse));
-        } else {
-            add(new AjaxLazyLoadPanel<Component>("getstartedtemplates") {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    ApiResponse r = null;
-                    while (true) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            logger.error("Thread interrupted", ex);
-                        }
-                        if (!ApiCache.isRunning(stQueryName, stParams)) {
-                            r = ApiCache.retrieveResponse(stQueryName, stParams);
-                            if (r != null) break;
-                        }
-                    }
-                    return TemplateResults.fromApiResponse(markupId, r);
-                }
-
-            });
-        }
+        add(new ItemListPanel<Template>(
+                "getstarted-templates",
+                "Suggested Templates to Get Started",
+                new QueryRef("get-suggested-templates-to-get-started"),
+                TemplateData::getTemplateList,
+                (template) -> new TemplateItem("item", template)
+            ));
 
         ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
         templateList.sort((t1, t2) -> {
@@ -135,28 +82,12 @@ public class TemplateList extends Panel {
             protected void populateItem(Item<Topic> item) {
                 String tag = item.getModelObject().tag;
                 if (tag == null) tag = "Other";
-                item.add(new Label("title", tag));
-                DataView<ApiResponseEntry> entryDataView = new DataView<>("template-list", new ListDataProvider<ApiResponseEntry>(item.getModelObject().templates)) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void populateItem(Item<ApiResponseEntry> item) {
-                        item.add(new TemplateItem("template", item.getModelObject()));
-                    }
-
-                };
-                entryDataView.setItemsPerPage(10);
-                entryDataView.setOutputMarkupId(true);
-                item.add(entryDataView);
-
-                WebMarkupContainer navigation = new WebMarkupContainer("navigation");
-                navigation.add(new NavigatorLabel("navigatorLabel", entryDataView));
-                AjaxPagingNavigator pagingNavigator = new AjaxPagingNavigator("navigator", entryDataView);
-                navigation.setVisible(entryDataView.getPageCount() > 1);
-                navigation.add(pagingNavigator);
-                item.add(navigation);
-                item.setOutputMarkupId(true);
+                item.add(new ItemListPanel<ApiResponseEntry>(
+                        "templates",
+                        tag,
+                        item.getModelObject().templates,
+                        (respEntry) -> new TemplateItem("item", respEntry)
+                    ));
             }
         };
         topicDataView.setOutputMarkupId(true);

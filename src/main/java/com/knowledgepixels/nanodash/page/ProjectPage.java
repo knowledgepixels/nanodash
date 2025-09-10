@@ -23,7 +23,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TemplateResults;
+import com.knowledgepixels.nanodash.component.TemplateItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.Template;
 
@@ -96,12 +96,21 @@ public class ProjectPage extends NanodashPage {
 
             @Override
             protected void populateItem(Item<Pair<String, List<Template>>> item) {
-                item.add(new Label("label", item.getModelObject().getLeft()));
-                item.add(TemplateResults.fromList("templates", item.getModelObject().getRight(), params));
+                item.add(new ItemListPanel<Template>(
+                        "templates",
+                        item.getModelObject().getLeft(),
+                        item.getModelObject().getRight(),
+                        (template) -> new TemplateItem("item", template, params)
+                    ));
             }
 
         });
-        add(TemplateResults.fromList("templates", templates, params));
+        add(new ItemListPanel<Template>(
+                "templates",
+                "Templates",
+                templates,
+                (template) -> new TemplateItem("item", template, params)
+            ));
 
         add(new ItemListPanel<IRI>(
                 "owner-users",

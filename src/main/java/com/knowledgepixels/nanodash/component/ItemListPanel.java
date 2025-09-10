@@ -16,12 +16,14 @@ import com.knowledgepixels.nanodash.QueryRef;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
 
-    public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
+    private ItemListPanel(String markupId, String title) {
         super(markupId);
         setOutputMarkupId(true);
 
-        if (markupId.endsWith("-users")) {
+        if (markupId.matches("(.*-)?users")) {
             add(new AttributeAppender("class", " users"));
+        } else if (markupId.matches("(.*-)?(forms|templates)")) {
+            add(new AttributeAppender("class", " forms"));
         }
 
         if (title.contains("  ")) {
@@ -32,26 +34,16 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         }
         add(new Label("title", title));
         add(new Label("button").setVisible(false));
+    }
+    
+    public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
+        this(markupId, title);
 
         add(new ItemList<T>("itemlist", items, compProvider));
     }
 
     public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
-        super(markupId);
-        setOutputMarkupId(true);
-
-        if (markupId.endsWith("-users")) {
-            add(new AttributeAppender("class", " users"));
-        }
-
-        if (title.contains("  ")) {
-            add(new Label("description", title.replaceFirst("^.*  ", "")));
-            title = title.replaceFirst("  .*$", "");
-        } else {
-            add(new Label("description").setVisible(false));
-        }
-        add(new Label("title", title));
-        add(new Label("button").setVisible(false));
+        this(markupId, title);
 
         ApiResponse qResponse = ApiCache.retrieveResponse(queryRef);
         if (qResponse != null) {
@@ -69,21 +61,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     }
 
     public ItemListPanel(String markupId, String title, ReadyFunction readyFunction, ResultFunction<List<T>> resultFunction, ComponentProvider<T> compProvider) {
-        super(markupId);
-        setOutputMarkupId(true);
-
-        if (markupId.endsWith("-users")) {
-            add(new AttributeAppender("class", " users"));
-        }
-
-        if (title.contains("  ")) {
-            add(new Label("description", title.replaceFirst("^.*  ", "")));
-            title = title.replaceFirst("  .*$", "");
-        } else {
-            add(new Label("description").setVisible(false));
-        }
-        add(new Label("title", title));
-        add(new Label("button").setVisible(false));
+        this(markupId, title);
 
         if (readyFunction.get()) {
             add(new ItemList<T>("itemlist", resultFunction.get(), compProvider));
