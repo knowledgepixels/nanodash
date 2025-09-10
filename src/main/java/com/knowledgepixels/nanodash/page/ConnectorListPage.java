@@ -49,13 +49,13 @@ public class ConnectorListPage extends NanodashPage {
                 new QueryRef("get-spaces"),
                 (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList(); },
                 (space) -> {
-                    return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
+                    return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel(), "(" + space.getTypeLabel() + ")");
                 }
             ));
 
         add(new ItemListPanel<Project>(
                 "projects",
-                "Projects  Project pages are still experimental:",
+                "Legacy Projects  These legacy project pages will be migrated into the Spaces above:",
                 new QueryRef("get-projects"),
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
                 (project) -> {

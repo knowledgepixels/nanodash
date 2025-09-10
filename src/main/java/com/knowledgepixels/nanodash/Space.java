@@ -52,7 +52,7 @@ public class Space implements Serializable {
         spacesByCoreInfo = new ConcurrentHashMap<>();
         spacesById.clear();
         for (ApiResponseEntry entry : resp.getData()) {
-            Space space = new Space(entry.get("space"), entry.get("label"), entry.get("np"));
+            Space space = new Space(entry);
             Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
             if (prevSpace != null) space = prevSpace;
             spaceList.add(space);
@@ -84,7 +84,7 @@ public class Space implements Serializable {
         }
     }
 
-    private String id, label, rootNanopubId;
+    private String id, label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
 
     private String description = null;
@@ -100,10 +100,11 @@ public class Space implements Serializable {
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
 
-    private Space(String id, String label, String rootNanopubId) {
-        this.id = id;
-        this.label = label;
-        this.rootNanopubId = rootNanopubId;
+    private Space(ApiResponseEntry resp) {
+        this.id = resp.get("space");
+        this.label = resp.get("label");
+        this.type = resp.get("type");
+        this.rootNanopubId = resp.get("np");
         this.rootNanopub = Utils.getAsNanopub(rootNanopubId);
 
         for (Statement st : rootNanopub.getAssertion()) {
@@ -160,6 +161,14 @@ public class Space implements Serializable {
 
     public String getLabel() {
         return label;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getTypeLabel() {
+        return type.replaceFirst("^.*/", "");
     }
 
     public String getDescription() {
