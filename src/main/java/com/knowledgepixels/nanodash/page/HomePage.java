@@ -1,9 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -11,8 +8,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
-
-import java.util.HashMap;
 
 /**
  * The home page of Nanodash, which shows the most recent nanopublications
@@ -71,14 +66,12 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        final HashMap<String, String> noParams = new HashMap<>();
-
-        final String rQueryName = "get-most-recent-nanopubs";
-        ApiResponse rResponse = ApiCache.retrieveResponse(rQueryName, noParams);
+        final QueryRef rQueryRef = new QueryRef("get-most-recent-nanopubs");
+        ApiResponse rResponse = ApiCache.retrieveResponse(rQueryRef);
         if (rResponse != null) {
             add(NanopubResults.fromApiResponse("mostrecent", rResponse));
         } else {
-            add(new ApiResultComponent("mostrecent", rQueryName, noParams) {
+            add(new ApiResultComponent("mostrecent", rQueryRef) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -90,12 +83,12 @@ public class HomePage extends NanodashPage {
 
         }
 
-        final String aQueryName = "get-latest-accepted";
-        ApiResponse aResponse = ApiCache.retrieveResponse(aQueryName, noParams);
+        final QueryRef aQueryRef = new QueryRef("get-latest-accepted");
+        ApiResponse aResponse = ApiCache.retrieveResponse(aQueryRef);
         if (aResponse != null) {
             add(NanopubResults.fromApiResponse("latestaccepted", aResponse));
         } else {
-            add(new ApiResultComponent("latestaccepted", aQueryName, noParams) {
+            add(new ApiResultComponent("latestaccepted", aQueryRef) {
 
                 private static final long serialVersionUID = 1L;
 

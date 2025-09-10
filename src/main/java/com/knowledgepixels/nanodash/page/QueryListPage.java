@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.QueryList;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -10,8 +11,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
-
-import java.util.HashMap;
 
 /**
  * Page that lists queries and allows searching through them.
@@ -62,13 +61,13 @@ public class QueryListPage extends NanodashPage {
 
         form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
-        final HashMap<String, String> noParams = new HashMap<>();
         final String queryName = "get-queries";
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryName, noParams);
+        final QueryRef queryRef = new QueryRef(queryName);
+        ApiResponse qResponse = ApiCache.retrieveResponse(queryRef);
         if (qResponse != null) {
             add(new QueryList("queries", qResponse));
         } else {
-            add(new ApiResultComponent("queries", queryName, noParams) {
+            add(new ApiResultComponent("queries", queryRef) {
 
                 private static final long serialVersionUID = 1L;
 

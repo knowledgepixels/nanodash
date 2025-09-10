@@ -1,10 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
+import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +93,12 @@ public class ApiCache {
         return retrieveResponse(queryName, params);
     }
 
+    /**
+     * Retrieves a cached API response for a specific QueryRef.
+     *
+     * @param queryRef The QueryRef object containing the query name and parameters.
+     * @return The cached API response, or null if not cached.
+     */
     public static ApiResponse retrieveResponse(QueryRef queryRef) {
         return retrieveResponse(queryRef.getName(), queryRef.getParams());
     }
@@ -242,4 +244,5 @@ public class ApiCache {
     public static String getCacheId(String queryName, Map<String, String> params) {
         return queryName + " " + paramsToString(params);
     }
+
 }
