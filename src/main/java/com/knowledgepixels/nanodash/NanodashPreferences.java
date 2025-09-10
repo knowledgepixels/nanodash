@@ -28,7 +28,7 @@ public class NanodashPreferences implements Serializable {
      */
     public static NanodashPreferences get() {
         if (obj == null) {
-            File prefFile = new File(System.getProperty("user.home") + "/.nanopub/nanodash-preferences.yml");
+            File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
             if (!prefFile.exists()) {
                 return new NanodashPreferences();
             }
@@ -37,7 +37,7 @@ public class NanodashPreferences implements Serializable {
                 obj = mapper.readValue(prefFile, NanodashPreferences.class);
             } catch (IOException ex) {
                 obj = new NanodashPreferences();
-                logger.error("Could not read preferences file, using defaults.", ex);
+                logger.error("Could not read preferences file at '{}' using defaults", DEFAULT_SETTING_PATH, ex);
             }
         }
         return obj;
@@ -50,6 +50,7 @@ public class NanodashPreferences implements Serializable {
     private String orcidClientId;
     private String orcidClientSecret;
     private String settingUri;
+    public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
      * Return the list of nanopub actions.

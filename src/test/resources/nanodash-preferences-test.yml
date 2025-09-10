@@ -1,0 +1,7 @@
+readOnlyMode: false
+websiteUrl: http://localhost:37373/
+#orcidLoginMode: true
+orcidClientId: APP-W02BIN0XPD5T5PFL
+orcidClientSecret: r4nd0mS3cr3t
+#nanopubActions:
+#  - com.knowledgepixels.nanodash.action.ImproveAction
