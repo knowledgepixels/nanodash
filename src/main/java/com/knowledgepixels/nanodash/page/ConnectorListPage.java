@@ -6,6 +6,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -42,13 +43,13 @@ public class ConnectorListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        add(new ItemListPanel<String>(
-                "journals",
-                "Journals",
-                Arrays.asList(journals),
-                (journalId) -> {
-                    String journalName = ConnectorConfig.get(journalId).getJournalName();
-                    return new ItemListElement("item", GenOverviewPage.class, new PageParameters().add("journal", journalId), journalName);
+        add(new ItemListPanel<Space>(
+                "spaces",
+                "Spaces",
+                new QueryRef("get-spaces"),
+                (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList(); },
+                (space) -> {
+                    return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
                 }
             ));
 
@@ -59,6 +60,16 @@ public class ConnectorListPage extends NanodashPage {
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
                 (project) -> {
                     return new ItemListElement("item", ProjectPage.class, new PageParameters().add("id", project.getId()), project.getLabel());
+                }
+            ));
+
+        add(new ItemListPanel<String>(
+                "journals",
+                "Journals",
+                Arrays.asList(journals),
+                (journalId) -> {
+                    String journalName = ConnectorConfig.get(journalId).getJournalName();
+                    return new ItemListElement("item", GenOverviewPage.class, new PageParameters().add("journal", journalId), journalName);
                 }
             ));
     }

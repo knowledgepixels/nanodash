@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import static com.knowledgepixels.nanodash.Utils.vf;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,49 +23,64 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
 /**
- * Class representing a Nanodash project.
+ * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
-public class Project implements Serializable {
+public class Space implements Serializable {
 
-    private static List<Project> projectList = null;
-    private static ConcurrentMap<String,Project> projectsByCoreInfo = new ConcurrentHashMap<>();
-    private static ConcurrentMap<String,Project> projectsById = new ConcurrentHashMap<>();
+    /**
+     * The predicate for the owner of the space.
+     */
+    public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
+
+    /**
+     * The predicate for pinned templates in the space.
+     */
+    public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
+
+    /**
+     * The predicate for pinned queries in the space.
+     */
+    public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
+
+    private static List<Space> spaceList = null;
+    private static ConcurrentMap<String,Space> spacesByCoreInfo = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String,Space> spacesById = new ConcurrentHashMap<>();
 
     public static synchronized void refresh(ApiResponse resp) {
-        projectList = new ArrayList<>();
-        ConcurrentMap<String,Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
-        projectsByCoreInfo = new ConcurrentHashMap<>();
-        projectsById.clear();
+        spaceList = new ArrayList<>();
+        ConcurrentMap<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
+        spacesByCoreInfo = new ConcurrentHashMap<>();
+        spacesById.clear();
         for (ApiResponseEntry entry : resp.getData()) {
-            Project project = new Project(entry.get("project"), entry.get("label"), entry.get("np"));
-            Project prevProject = prevProjectsByCoreInfoPrev.get(project.getCoreInfoString());
-            if (prevProject != null) project = prevProject;
-            projectList.add(project);
-            projectsByCoreInfo.put(project.getCoreInfoString(), project);
-            projectsById.put(project.getId(), project);
+            Space space = new Space(entry.get("space"), entry.get("label"), entry.get("np"));
+            Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
+            if (prevSpace != null) space = prevSpace;
+            spaceList.add(space);
+            spacesByCoreInfo.put(space.getCoreInfoString(), space);
+            spacesById.put(space.getId(), space);
         }
     }
 
     public static void ensureLoaded() {
-        if (projectList == null) {
-            refresh(QueryApiAccess.forcedGet("get-projects"));
+        if (spaceList == null) {
+            refresh(QueryApiAccess.forcedGet("get-spaces"));
         }
     }
 
-    public static List<Project> getProjectList() {
+    public static List<Space> getSpaceList() {
         ensureLoaded();
-        return projectList;
+        return spaceList;
     }
 
-    public static Project get(String id) {
+    public static Space get(String id) {
         ensureLoaded();
-        return projectsById.get(id);
+        return spacesById.get(id);
     }
 
     public static void refresh() {
         ensureLoaded();
-        for (Project project : projectList) {
-            project.dataNeedsUpdate = true;
+        for (Space space : spaceList) {
+            space.dataNeedsUpdate = true;
         }
     }
 
@@ -83,7 +100,7 @@ public class Project implements Serializable {
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
 
-    private Project(String id, String label, String rootNanopubId) {
+    private Space(String id, String label, String rootNanopubId) {
         this.id = id;
         this.label = label;
         this.rootNanopubId = rootNanopubId;
@@ -93,11 +110,11 @@ public class Project implements Serializable {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(Space.HAS_OWNER) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
                     addOwner(obj);
-                } else if (st.getPredicate().equals(Space.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     templates.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(Space.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     queryIds.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
