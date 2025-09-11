@@ -283,7 +283,7 @@ td, th {
 }
 
 th {
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid #888;
 }
 
 tbody tr:nth-child(even) {
@@ -1711,6 +1711,10 @@ div.paneltitlerow {
   border-color: #888;
   margin-bottom: 10px;
   width: 100%;
+}
+
+div.paneltitlerow.tablepanel {
+  margin-bottom: 0;
 }
 
 div.paneltitlerow h3 {
