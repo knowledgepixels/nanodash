@@ -130,7 +130,6 @@ public class Space implements Serializable {
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
         }
-
     }
 
     private void addOwner(IRI owner) {
@@ -191,6 +190,7 @@ public class Space implements Serializable {
     }
 
     public List<Template> getTemplates() {
+        triggerDataUpdate();
         return templates;
     }
 
@@ -229,6 +229,23 @@ public class Space implements Serializable {
                 }
                 owners.sort(User.getUserData().userComparator);
                 members.sort(User.getUserData().userComparator);
+
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
+                    Template t = TemplateData.get().getTemplate(r.get("template"));
+                    if (t == null) continue;
+                    // Check pubkey with space owners
+                    templates.add(t);
+                    String tag = r.get("tag");
+                    if (tag != null && !tag.isEmpty()) {
+                        templateTags.add(r.get("tag"));
+                        List<Template> list = templatesPerTag.get(r.get("tag"));
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            templatesPerTag.put(r.get("tag"), list);
+                        }
+                        list.add(TemplateData.get().getTemplate(r.get("template")));
+                    }
+                }
                 dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;

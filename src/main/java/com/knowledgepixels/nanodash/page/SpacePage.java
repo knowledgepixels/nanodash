@@ -101,10 +101,12 @@ public class SpacePage extends NanodashPage {
             }
 
         });
+
         add(new ItemListPanel<Template>(
                 "templates",
                 "Templates",
-                templates,
+                () -> space.isDataInitialized(),
+                () -> space.getTemplates(),
                 (template) -> new TemplateItem("item", template, params)
             ));
 
@@ -113,9 +115,7 @@ public class SpacePage extends NanodashPage {
                 "Owners",
                 () -> space.isDataInitialized(),
                 () -> space.getOwners(),
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
-                }
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri))
             ));
 
         add(new ItemListPanel<IRI>(
@@ -123,9 +123,7 @@ public class SpacePage extends NanodashPage {
                 "Members",
                 () -> space.isDataInitialized(),
                 () -> space.getMembers(),
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
-                }
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri))
             ));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(space.getQueryIds())) {
