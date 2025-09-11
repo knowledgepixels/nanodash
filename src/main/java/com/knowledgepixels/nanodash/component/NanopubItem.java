@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.page.ListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -149,7 +150,7 @@ public class NanopubItem extends Panel {
                 authorsSpan.setVisible(false);
                 footer.add(new Label("creator-post", "").setVisible(false));
             } else {
-                IRI mainAuthor = authors.get(0);
+                IRI mainAuthor = authors.getFirst();
                 BookmarkablePageLink<Void> mainAuthorLink = new BookmarkablePageLink<Void>("main-author-link", UserPage.class, new PageParameters().add("id", mainAuthor));
                 String authorName = n.getFoafNameMap().get(mainAuthor.stringValue());
                 if (authorName == null) {

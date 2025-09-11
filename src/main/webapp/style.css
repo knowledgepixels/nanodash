@@ -120,11 +120,11 @@
 }
 
 [class*="col-"].header {
-  padding-bottom: 0px;
+  padding-bottom: 0;
 }
 
 [class*="col-"].header h1, [class*="col-"].header h2, [class*="col-"].header h3 {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .columncontainer {
@@ -148,7 +148,7 @@ body {
   color: #222;
   font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 12pt;
-  margin: 0px;
+  margin: 0;
   height: 100%;
   min-width: 1420px;
 }
@@ -202,7 +202,6 @@ p.center {
   display: inline-block;
   font-size: 17px;
   margin-left: 40px;
-  vertical-align: top;
   font-family: Martian, monaco, monospace;
   vertical-align: middle;
 }
@@ -476,7 +475,7 @@ span.prelink {
 .smallbutton {
   font-size: 11pt;
   font-weight: 700;
-  padding: 0px 5px;
+  padding: 0 5px;
   margin: 0;
   background-color: #0B73DA;
   color: #fff;
@@ -659,11 +658,11 @@ input[type=radio] + label strong {
   font-weight: 700;
   width: 20px;
   height: 20px;
-  padding: 0px;
+  padding: 0;
   margin: 1px;
   background-color: #0B73DA;
   color: #fff;
-  border-width: 0px;
+  border-width: 0;
   border-radius: 4px;
   display: inline-block;
   cursor: pointer;
@@ -689,7 +688,7 @@ input[type=radio] + label strong {
   font-size: 10pt;
   background-color: #fff;
   min-width: 250px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
 
@@ -998,8 +997,8 @@ div.nanopub-pubinfo:last-of-type {
 }
 
 span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
-  padding: 0px 5px;
-  margin-top: 0px;
+  padding: 0 5px;
+  margin-top: 0;
   border-radius: 5px;
 }
 
@@ -1105,11 +1104,11 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   background-color: black;
   color: #fff;
   text-align: left;
-  text-indent: 0px !important;
+  text-indent: 0 !important;
   padding: 5px;
   min-width: 500px;
   max-width: 800px;
-  border-radius: 0px 5px 5px 5px;
+  border-radius: 0 5px 5px 5px;
   position: absolute;
   z-index: 1;
   top: 100%;
@@ -1369,7 +1368,6 @@ div.widthmax {
 .breakall {
   word-break: break-all;
 }
-
 
 .progress {
   margin-top: auto;
@@ -1639,6 +1637,13 @@ span.usertext {
   gap: 20px;
 }
 
+/* we need this because the NanopubResults first load vs cached has an additional <div> */
+.flex-container > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
 .long-literal {
   max-height: 80px; /* if you change this also update it in the showMore() function of the nanodash.js file */
   overflow-y: hidden;
@@ -1729,10 +1734,16 @@ div.paneltitlerow span.buttons {
   float: right;
 }
 
-.flex-container > div {
+.flex-container .nanopub-item {
   flex: 1 1 300px;
   border: 1px solid #ccc;
   border-radius: 10px;
   padding: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.flex-container .navigation {
+  display: block;
+  flex-basis: 100%;
+  width: 100%;
 }

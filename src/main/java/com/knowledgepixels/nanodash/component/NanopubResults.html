@@ -2,23 +2,21 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
 </head>
 <body>
 
 <wicket:panel>
+  <div class="nanopub-item" wicket:id="nanopubs">
+    <span wicket:id="nanopub"></span>
+  </div>
 
-<div wicket:id="nanopubs">
-<span wicket:id="nanopub"></span>
-</div>
-
-<div class="navigation" wicket:id="navigation">
-<div class="navigatorLabel" wicket:id="navigatorLabel"></div>
-<div class="navigator" wicket:id="navigator"></div>
-</div>
-
+  <div class="navigation" wicket:id="navigation">
+    <div class="navigatorLabel" wicket:id="navigatorLabel"></div>
+    <div class="navigator" wicket:id="navigator"></div>
+  </div>
 </wicket:panel>
 
 </body>
-
 </html>
