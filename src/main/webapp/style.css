@@ -1709,15 +1709,20 @@ div.paneltitlerow {
   border-bottom-style: solid;
   border-width: 1px;
   border-color: #888;
+  margin-bottom: 10px;
   width: 100%;
 }
 
 div.paneltitlerow h3 {
-  margin: 18px 0 8px 0;
+  margin: 22px 0 8px 0;
   display:inline-block;
 }
 
 div.paneltitlerow span.buttons {
-  margin: 22px 0 6px 0;
+  margin: 26px 0 6px 0;
   float: right;
+}
+
+div.paneltitlerow span.buttons a.smallbutton {
+  margin-left: 5px;
 }

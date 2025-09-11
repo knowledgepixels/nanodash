@@ -68,7 +68,7 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacename", space.getLabel()));
         add(new ExternalLink("id", space.getId(), space.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
-        add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
+        add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         final PageParameters params = new PageParameters();
         if (space.getDefaultProvenance() != null) {
