@@ -285,12 +285,18 @@ public class Space implements Serializable {
                     String tag = r.get("tag");
                     if (tag != null && !tag.isEmpty()) {
                         pinGroupTags.add(r.get("tag"));
-                        List<Serializable> list = pinnedResourceMap.get(r.get("tag"));
-                        if (list == null) {
-                            list = new ArrayList<>();
-                            pinnedResourceMap.put(r.get("tag"), list);
-                        }
-                        list.add(TemplateData.get().getTemplate(r.get("template")));
+                        pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                    }
+                }
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-queries", "space", id).getData()) {
+                    if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    GrlcQuery query = GrlcQuery.get(r.get("query"));
+                    if (query == null) continue;
+                    pinnedResources.add(query);
+                    String tag = r.get("tag");
+                    if (tag != null && !tag.isEmpty()) {
+                        pinGroupTags.add(r.get("tag"));
+                        pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
                     }
                 }
                 dataInitialized = true;

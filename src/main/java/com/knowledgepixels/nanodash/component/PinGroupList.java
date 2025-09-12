@@ -11,10 +11,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.template.Template;
 
 public class PinGroupList extends Panel {
@@ -51,7 +50,7 @@ public class PinGroupList extends Panel {
                         item.getModelObject().getRight(),
                         (o) -> {
                             if (o instanceof Template t) return new TemplateItem("item", t, params);
-                            if (o instanceof IRI i) return new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", i), i.stringValue());
+                            if (o instanceof GrlcQuery q) return new QueryItem("item", q);
                             return null;
                         }));
             }

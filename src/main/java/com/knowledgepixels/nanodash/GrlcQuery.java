@@ -1,7 +1,14 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.component.QueryParamField;
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -13,9 +20,12 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractSimpleQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.nanopub.Nanopub;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.component.QueryParamField;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Represents a GRLC query extracted from a nanopublication.
@@ -23,7 +33,7 @@ import java.util.*;
  */
 public class GrlcQuery implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(GrlcQuery.class);
 
     private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
 
@@ -35,7 +45,14 @@ public class GrlcQuery implements Serializable {
      */
     public static GrlcQuery get(String id) {
         if (!instanceMap.containsKey(id)) {
-            instanceMap.put(id, new GrlcQuery(id));
+            try {
+                GrlcQuery q = new GrlcQuery(id);
+                id = q.getQueryId();
+                if (instanceMap.containsKey(id)) return instanceMap.get(id);
+                instanceMap.put(id, q);
+            } catch (Exception ex) {
+                logger.error("Could not load query: {}", id, ex);
+            }
         }
         return instanceMap.get(id);
     }
@@ -92,10 +109,8 @@ public class GrlcQuery implements Serializable {
             }
             queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
         } else {
-            if (id.matches("https?://.*[^A-Za-z0-9-_]RA[^A-Za-z0-9-_]{43}[/#][^/#]+")) {
+            if (id.matches("https?://.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[/#][^/#]+")) {
                 queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
-            } else if (id.matches(id)) {
-                queryId = id.replace("#", "/");
             } else {
                 throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
             }
