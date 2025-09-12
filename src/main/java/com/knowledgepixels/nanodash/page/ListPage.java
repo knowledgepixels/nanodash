@@ -5,6 +5,8 @@ import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -43,8 +45,50 @@ public class ListPage extends NanodashPage {
     private String startTime = "";
     private String endTime = "";
 
+    private enum ViewMode {
+        LIST("list-view"),
+        GRID("grid-view");
+
+        private final String value;
+
+        ViewMode(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    private static ViewMode currentViewMode = null;
+
     public ListPage(final PageParameters parameters) {
         super(parameters);
+
+        if (currentViewMode == null) {
+            currentViewMode = ViewMode.GRID;
+        }
+        logger.info("Rendering ListPage with '{}' mode.", currentViewMode.getValue());
+
+        add(new AjaxLink<>("listEnabler") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                currentViewMode = ViewMode.LIST;
+                logger.info("Switched to '{}' mode", currentViewMode.getValue());
+            }
+        });
+
+        add(new AjaxLink<>("gridEnabler") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                currentViewMode = ViewMode.GRID;
+                logger.info("Switched to '{}' mode", currentViewMode.getValue());
+            }
+        });
 
         // TODO the query works with multiple types, but the UI does not yet support that so we just assume one type is mandatory and we show the first one only for now
         if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
@@ -105,9 +149,11 @@ public class ListPage extends NanodashPage {
         final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", params);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
-            add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
+            NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
+            cachedResults.add(AttributeAppender.append("class", currentViewMode.getValue()));
+            add(cachedResults);
         } else {
-            add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+            AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
                 private static final long serialVersionUID = 1L;
 
@@ -136,7 +182,9 @@ public class ListPage extends NanodashPage {
                     }
                 }
 
-            });
+            };
+            results.add(AttributeAppender.append("class", currentViewMode.getValue()));
+            add(results);
         }
     }
 
