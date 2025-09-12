@@ -68,6 +68,7 @@ public class SpacePage extends NanodashPage {
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
+        add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLink("id", space.getId(), space.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
@@ -133,7 +134,7 @@ public class SpacePage extends NanodashPage {
                 "subspaces",
                 "Sub-Spaces",
                 space.getSubspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(space.getQueryIds())) {

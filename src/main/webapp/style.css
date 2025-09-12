@@ -176,6 +176,9 @@ h5, h6 {
 
 p.subtitle {
   margin-bottom: 10mm;
+  font-family: Martian, monaco, monospace;
+  font-style: italic;
+  font-size: 10pt;
 }
 
 p.center {
