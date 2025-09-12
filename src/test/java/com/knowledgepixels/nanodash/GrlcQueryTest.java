@@ -39,18 +39,18 @@ class GrlcQueryTest {
     }
 
     @Test
-    void constructorThrowsExceptionForMissingQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void getNullForMissingQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub nanopub = TestUtils.createNanopub();
 
         try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
             utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(nanopub);
 
-            assertThrows(IllegalArgumentException.class, () -> GrlcQuery.get(NANOPUB_URI));
+            assertNull(GrlcQuery.get(NANOPUB_URI));
         }
     }
 
     @Test
-    void constructorThrowsExceptionForMoreThanOneQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void getNullForMoreThanOneQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator nanopubCreator = TestUtils.getNanopubCreator();
         nanopubCreator.addAssertionStatement(anyIri, RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
         nanopubCreator.addAssertionStatement(randomIri(), RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
@@ -62,13 +62,13 @@ class GrlcQueryTest {
 
         try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
             utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(nanopub);
-            assertThrows(IllegalArgumentException.class, () -> GrlcQuery.get(NANOPUB_URI));
+            assertNull(GrlcQuery.get(NANOPUB_URI));
         }
     }
 
     @Test
-    void getThrowsExceptionForNullId() {
-        assertThrows(IllegalArgumentException.class, () -> GrlcQuery.get(null));
+    void getNullForNullId() {
+        assertNull(GrlcQuery.get(null));
     }
 
     @Test
