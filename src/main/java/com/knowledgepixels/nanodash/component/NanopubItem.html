@@ -2,73 +2,80 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<script type="text/javascript" src="../../../../../webapp/scripts/jquery.js?for-local-testing-only"></script>
-<script type="text/javascript" src="../script/nanodash.js?for-local-testing-only"></script>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <script type="text/javascript" src="../../../../../webapp/scripts/jquery.js?for-local-testing-only"></script>
+  <script type="text/javascript" src="../script/nanodash.js?for-local-testing-only"></script>
 </head>
 <body style="margin-left: auto; margin-right: auto; max-width: 1400px">
 
 <wicket:panel>
 
-<p wicket:id="header" class="meta">
-<span class="meta"><span class="nanopub-icon"></span> &nbsp;<a wicket:id="nanopub-id-link" href=".">link-ID</a></span>
-<span wicket:id="typespan"><span class="typetag"><a  wicket:id="type" href=".">type</a></span> </span>
-<span class="actionmenuspan"><span wicket:id="action-menu"></span></span>
-</p>
+  <p wicket:id="header" class="meta">
+    <span class="meta">
+      <span class="nanopub-icon"></span> &nbsp;<a wicket:id="nanopub-id-link"
+                                                  href=".">link-ID</a>
+    </span>
+    <span class="typetag-container" wicket:id="typespan">
+      <span class="typetag"><a wicket:id="type" href=".">type</a></span>
+    </span>
+    <span class="actionmenuspan"><span wicket:id="action-menu"></span></span>
+  </p>
 
-<div class="nanopub nanopub-view" style="position:relative">
+  <div class="nanopub nanopub-view" style="position:relative">
 
-<div class="assertionsection">
-<div class="nanopub-assertion nanopub-graph" wicket:id="assertion">
-<div wicket:id="assertion-statements">
-<div wicket:id="assertion-statement"></div>
-</div>
-<div wicket:id="unused-assertion-statements">
-<div wicket:id="unused-assertion-statement"></div>
-</div>
-<div class="expand" onclick="expandAssertion(this);"></div>
-<div class="collapse" onclick="collapseAssertion(this);"></div>
-</div>
-</div>
+    <div class="assertionsection">
+      <div class="nanopub-assertion nanopub-graph" wicket:id="assertion">
+        <div wicket:id="assertion-statements">
+          <div wicket:id="assertion-statement"></div>
+        </div>
+        <div wicket:id="unused-assertion-statements">
+          <div wicket:id="unused-assertion-statement"></div>
+        </div>
+        <div class="expand" onclick="expandAssertion(this);"></div>
+        <div class="collapse" onclick="collapseAssertion(this);"></div>
+      </div>
+    </div>
 
-<div class="provsection">
-<div class="nanopub-provenance nanopub-graph" wicket:id="provenance">
-<div wicket:id="provenance-statements">
-<div wicket:id="provenance-statement"></div>
-</div>
-<div wicket:id="unused-provenance-statements">
-<div wicket:id="unused-provenance-statement"></div>
-</div>
-</div>
-</div>
+    <div class="provsection">
+      <div class="nanopub-provenance nanopub-graph" wicket:id="provenance">
+        <div wicket:id="provenance-statements">
+          <div wicket:id="provenance-statement"></div>
+        </div>
+        <div wicket:id="unused-provenance-statements">
+          <div wicket:id="unused-provenance-statement"></div>
+        </div>
+      </div>
+    </div>
 
-<div class="pubinfosection">
+    <div class="pubinfosection">
 
-<div wicket:id="pubinfo">
+      <div wicket:id="pubinfo">
 
-<div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
-<div wicket:id="pubinfo-element">
-<div wicket:id="pubinfo-statements">
-<div wicket:id="pubinfo-statement"></div>
-</div>
-</div>
-</div>
+        <div class="nanopub-pubinfo nanopub-graph" wicket:id="pubinfo-elements">
+          <div wicket:id="pubinfo-element">
+            <div wicket:id="pubinfo-statements">
+              <div wicket:id="pubinfo-statement"></div>
+            </div>
+          </div>
+        </div>
 
-<div class="expand" onclick="expandPubinfo(this);"></div>
-<div class="collapse" onclick="collapsePubinfo(this);"></div>
-</div>
+        <div class="expand" onclick="expandPubinfo(this);"></div>
+        <div class="collapse" onclick="collapsePubinfo(this);"></div>
+      </div>
 
-</div>
+    </div>
 
-</div>
+  </div>
 
-<p wicket:id="footer" class="postmeta">
-<span wicket:id="authors-span"><a wicket:id="main-author-link"><span wicket:id="main-author-text">user name</span></a><span wicket:id="authors-post"> et al. (authors)</span>,</span>
-<a wicket:id="creator-link"><span wicket:id="creator-text">user name</span></a><span wicket:id="creator-post"> (creator)</span>,
-<span wicket:id="datetime">datetime</span>
-<span class="positive" wicket:id="positive-notes">positive notes</span>
-<span class="negative" wicket:id="negative-notes">negative notes</span>
-</p>
+  <p wicket:id="footer" class="postmeta">
+    <span wicket:id="authors-span"><a wicket:id="main-author-link"><span
+        wicket:id="main-author-text">user name</span></a><span wicket:id="authors-post"> et al. (authors)</span>,</span>
+    <a wicket:id="creator-link"><span wicket:id="creator-text">user name</span></a><span wicket:id="creator-post"> (creator)</span>,
+    <span wicket:id="datetime">datetime</span>
+    <span class="positive" wicket:id="positive-notes">positive notes</span>
+    <span class="negative" wicket:id="negative-notes">negative notes</span>
+  </p>
 </wicket:panel>
 
 </body>
