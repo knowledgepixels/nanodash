@@ -10,8 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -100,16 +98,28 @@ public class Space implements Serializable {
 
     private String id, label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
+    private SpaceData data = new SpaceData();
 
-    private String description = null;
-    private List<IRI> owners = new ArrayList<>();
-    private List<IRI> members = new ArrayList<>();
-    private ConcurrentMap<String,IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
-    private List<Serializable> pinnedResources = new ArrayList<>();
-    private Set<String> pinGroupTags = new HashSet<>();
-    private ConcurrentMap<String, List<Serializable>> pinnedResourceMap = new ConcurrentHashMap<>();
-    private List<IRI> queryIds = new ArrayList<>();
-    private IRI defaultProvenance = null;
+    private static class SpaceData implements Serializable {
+        String description = null;
+        IRI defaultProvenance = null;
+        List<IRI> owners = new ArrayList<>();
+        List<IRI> members = new ArrayList<>();
+        Map<String,IRI> ownerPubkeyMap = new HashMap<>();
+        List<Serializable> pinnedResources = new ArrayList<>();
+        Set<String> pinGroupTags = new HashSet<>();
+        Map<String, List<Serializable>> pinnedResourceMap = new HashMap<>();
+
+        void addOwner(IRI owner) {
+            // TODO This isn't efficient for long owner lists:
+            if (owners.contains(owner)) return;
+            owners.add(owner);
+            UserData ud = User.getUserData();
+            for (String pubkeyhash : ud.getPubkeyhashes(owner, true)) {
+                ownerPubkeyMap.put(pubkeyhash, owner);
+            }
+        }
+    }
 
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
@@ -120,40 +130,7 @@ public class Space implements Serializable {
         this.type = resp.get("type");
         this.rootNanopubId = resp.get("np");
         this.rootNanopub = Utils.getAsNanopub(rootNanopubId);
-
-        for (Statement st : rootNanopub.getAssertion()) {
-            if (st.getSubject().stringValue().equals(getId())) {
-                if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
-                    addOwner(obj);
-                } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
-                    queryIds.add(obj);
-                } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
-                    defaultProvenance = obj;
-                }
-            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                pinGroupTags.add(l.stringValue());
-                List<Serializable> list = pinnedResourceMap.get(l.stringValue());
-                if (list == null) {
-                    list = new ArrayList<>();
-                    pinnedResourceMap.put(l.stringValue(), list);
-                }
-                list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
-            }
-        }
-    }
-
-    private void addOwner(IRI owner) {
-        // TODO This isn't efficient for long owner lists:
-        if (owners.contains(owner)) return;
-        owners.add(owner);
-        UserData ud = User.getUserData();
-        for (String pubkeyhash : ud.getPubkeyhashes(owner, true)) {
-            ownerPubkeyMap.put(pubkeyhash, owner);
-        }
+        setCoreData(data);
     }
 
     public String getId() {
@@ -185,7 +162,7 @@ public class Space implements Serializable {
     }
 
     public String getDescription() {
-        return description;
+        return data.description;
     }
 
     public boolean isDataInitialized() {
@@ -195,35 +172,31 @@ public class Space implements Serializable {
 
     public List<IRI> getOwners() {
         triggerDataUpdate();
-        return owners;
+        return data.owners;
     }
 
     public List<IRI> getMembers() {
         triggerDataUpdate();
-        return members;
+        return data.members;
     }
 
     public List<Serializable> getPinnedResources() {
         triggerDataUpdate();
-        return pinnedResources;
+        return data.pinnedResources;
     }
 
     public Set<String> getPinGroupTags() {
         triggerDataUpdate();
-        return pinGroupTags;
+        return data.pinGroupTags;
     }
 
-    public ConcurrentMap<String, List<Serializable>> getPinnedResourceMap() {
+    public Map<String, List<Serializable>> getPinnedResourceMap() {
         triggerDataUpdate();
-        return pinnedResourceMap;
-    }
-
-    public List<IRI> getQueryIds() {
-        return queryIds;
+        return data.pinnedResourceMap;
     }
 
     public IRI getDefaultProvenance() {
-        return defaultProvenance;
+        return data.defaultProvenance;
     }
 
     public String getSuperId() {
@@ -260,48 +233,78 @@ public class Space implements Serializable {
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
+                SpaceData newData = new SpaceData();
+                setCoreData(newData);
+
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners", "unit", id).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
-                    if (ownerPubkeyMap.containsKey(pubkeyhash)) {
-                        addOwner(Utils.vf.createIRI(r.get("owner")));
+                    if (newData.ownerPubkeyMap.containsKey(pubkeyhash)) {
+                        newData.addOwner(Utils.vf.createIRI(r.get("owner")));
                     }
                 }
-                members = new ArrayList<>();
+                newData.members = new ArrayList<>();
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
-                    if (owners.contains(memberId)) continue;
-                    if (members.contains(memberId)) continue;
-                    members.add(memberId);
+                    if (newData.owners.contains(memberId)) continue;
+                    if (newData.members.contains(memberId)) continue;
+                    newData.members.add(memberId);
                 }
-                owners.sort(User.getUserData().userComparator);
-                members.sort(User.getUserData().userComparator);
+                newData.owners.sort(User.getUserData().userComparator);
+                newData.members.sort(User.getUserData().userComparator);
 
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
-                    if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    if (!newData.ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     Template t = TemplateData.get().getTemplate(r.get("template"));
                     if (t == null) continue;
-                    pinnedResources.add(t);
+                    newData.pinnedResources.add(t);
                     String tag = r.get("tag");
                     if (tag != null && !tag.isEmpty()) {
-                        pinGroupTags.add(r.get("tag"));
-                        pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                        newData.pinGroupTags.add(r.get("tag"));
+                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
                     }
                 }
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-queries", "space", id).getData()) {
-                    if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    if (!newData.ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     GrlcQuery query = GrlcQuery.get(r.get("query"));
                     if (query == null) continue;
-                    pinnedResources.add(query);
+                    newData.pinnedResources.add(query);
                     String tag = r.get("tag");
                     if (tag != null && !tag.isEmpty()) {
-                        pinGroupTags.add(r.get("tag"));
-                        pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+                        newData.pinGroupTags.add(r.get("tag"));
+                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
                     }
                 }
+                data = newData;
                 dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;
+        }
+    }
+
+    private void setCoreData(SpaceData data) {
+        for (Statement st : rootNanopub.getAssertion()) {
+            if (st.getSubject().stringValue().equals(getId())) {
+                if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                    data.description = st.getObject().stringValue();
+                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
+                    data.addOwner(obj);
+                } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
+                    data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
+                } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
+                    data.pinnedResources.add(GrlcQuery.get(obj.stringValue()));
+                } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
+                    data.defaultProvenance = obj;
+                }
+            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
+                data.pinGroupTags.add(l.stringValue());
+                List<Serializable> list = data.pinnedResourceMap.get(l.stringValue());
+                if (list == null) {
+                    list = new ArrayList<>();
+                    data.pinnedResourceMap.put(l.stringValue(), list);
+                }
+                list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
+            }
         }
     }
 
