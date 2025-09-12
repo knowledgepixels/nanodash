@@ -68,26 +68,27 @@ public class ListPage extends NanodashPage {
         if (currentViewMode == null) {
             currentViewMode = ViewMode.GRID;
         }
+        logger.info("Rendering ListPage with '{}' mode.", currentViewMode.getValue());
 
-        AjaxLink<Void> listEnabler = new AjaxLink<Void>("listEnabler") {
+        add(new AjaxLink<>("listEnabler") {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 currentViewMode = ViewMode.LIST;
+                logger.info("Switched to '{}' mode", currentViewMode.getValue());
             }
-        };
-        AjaxLink<Void> gridEnabler = new AjaxLink<Void>("gridEnabler") {
+        });
+
+        add(new AjaxLink<>("gridEnabler") {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 currentViewMode = ViewMode.GRID;
+                logger.info("Switched to '{}' mode", currentViewMode.getValue());
             }
-        };
-
-        add(listEnabler);
-        add(gridEnabler);
+        });
 
         // TODO the query works with multiple types, but the UI does not yet support that so we just assume one type is mandatory and we show the first one only for now
         if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
