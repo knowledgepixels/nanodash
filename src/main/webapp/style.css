@@ -823,7 +823,7 @@ select {
 
 .meta {
   color: #222;
-  margin: 25px 10px 0 3px;
+  margin: 10px 10px 0 3px;
   font-weight: bold;
 }
 
@@ -832,7 +832,7 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 }
 
 .postmeta {
-  margin: 0 10px 25px 5px;
+  margin: 0 10px 10px 5px;
   color: #222;
 }
 
@@ -1734,16 +1734,55 @@ div.paneltitlerow span.buttons {
   float: right;
 }
 
-.flex-container .nanopub-item {
-  flex: 1 1 300px;
+.nanopub-item {
   border: 1px solid #ccc;
-  border-radius: 10px;
   padding: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin: 10px 0 10px;
+}
+
+.flex-container .nanopub-item {
+  flex: 0 0 calc(25% - 20px);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .flex-container .navigation {
   display: block;
   flex-basis: 100%;
   width: 100%;
+}
+
+.view-selector {
+  text-align: right;
+  width: 100%;
+  padding: 20px;
+}
+
+.view-selector span {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.view-selector .list {
+  background-image: url("images/bars-solid-full.svg");
+}
+
+.view-selector .grid {
+  background-image: url("images/grip-solid-full.svg");
+}
+
+.flex-container.list-view,
+.flex-container.list-view > div {
+  display: block;
+}
+
+.flex-container.list-view .nanopub-item {
+  margin: 10px 0 10px;
 }
