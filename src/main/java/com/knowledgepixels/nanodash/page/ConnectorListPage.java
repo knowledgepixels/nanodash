@@ -45,7 +45,7 @@ public class ConnectorListPage extends NanodashPage {
 
         add(new ItemListPanel<Space>(
                 "spaces",
-                "Spaces",
+                "Existing Spaces",
                 new QueryRef("get-spaces"),
                 (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList(); },
                 (space) -> {

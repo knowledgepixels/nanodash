@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -55,6 +56,8 @@ public class PinGroupList extends Panel {
                         }));
             }
         });
+
+        add(new WebMarkupContainer("emptynotice").setVisible(pinnedResourcesList.isEmpty()));
     }
 
 

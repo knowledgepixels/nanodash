@@ -61,6 +61,10 @@
   display: table;
 }
 
+.row-section > div > div > img {
+  padding: 15px;
+}
+
 .odd {
   background: #F3F6F9;
 }
