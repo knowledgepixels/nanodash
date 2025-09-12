@@ -41,7 +41,7 @@ public class NanopubResults extends Panel {
             }
 
         };
-        dataView.setItemsPerPage(10);
+        dataView.setItemsPerPage(12);
         dataView.setOutputMarkupId(true);
         r.add(dataView);
 
@@ -90,7 +90,7 @@ public class NanopubResults extends Panel {
             }
 
         };
-        dataView.setItemsPerPage(10);
+        dataView.setItemsPerPage(12);
         dataView.setOutputMarkupId(true);
         r.add(dataView);
 
