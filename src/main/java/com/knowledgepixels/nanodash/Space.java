@@ -4,6 +4,7 @@ import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
@@ -47,7 +49,8 @@ public class Space implements Serializable {
     private static List<Space> spaceList;
     private static Map<String,Space> spacesByCoreInfo = new HashMap<>();
     private static Map<String,Space> spacesById;
-    private static Map<Space,List<Space>> subspaceMap;
+    private static Map<Space,Set<Space>> subspaceMap;
+    private static Map<Space,Set<Space>> superspaceMap;
 
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
@@ -55,6 +58,7 @@ public class Space implements Serializable {
         spacesByCoreInfo = new HashMap<>();
         spacesById = new HashMap<>();
         subspaceMap = new HashMap<>();
+        superspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = new Space(entry);
             Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
@@ -64,9 +68,10 @@ public class Space implements Serializable {
             spacesById.put(space.getId(), space);
         }
         for (Space space : spaceList) {
-            Space superSpace = space.getSuperspace();
+            Space superSpace = space.getIdSuperspace();
             if (superSpace == null) continue;
-            subspaceMap.computeIfAbsent(superSpace, k -> new ArrayList<>()).add(space);
+            subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
+            superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
         }
     }
 
@@ -223,7 +228,7 @@ public class Space implements Serializable {
         return null;
     }
 
-    public Space getSuperspace() {
+    public Space getIdSuperspace() {
         if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
         String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
         if (spacesById.containsKey(superId)) {
@@ -232,9 +237,20 @@ public class Space implements Serializable {
         return null;
     }
 
+    public List<Space> getSuperspaces() {
+        if (superspaceMap.containsKey(this)) {
+            List<Space> superspaces = new ArrayList<>(superspaceMap.get(this));
+            Collections.sort(superspaces, Ordering.usingToString());
+            return superspaces;
+        }
+        return new ArrayList<>();
+    }
+
     public List<Space> getSubspaces() {
         if (subspaceMap.containsKey(this)) {
-            return subspaceMap.get(this);
+            List<Space> subspaces = new ArrayList<>(subspaceMap.get(this));
+            Collections.sort(subspaces, Ordering.usingToString());
+            return subspaces;
         }
         return new ArrayList<>();
     }

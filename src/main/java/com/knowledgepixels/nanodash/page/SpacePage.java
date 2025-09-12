@@ -18,13 +18,11 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
 import com.knowledgepixels.nanodash.component.TemplateItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.Template;
@@ -131,21 +129,19 @@ public class SpacePage extends NanodashPage {
             ));
 
         add(new ItemListPanel<Space>(
+                "superspaces",
+                "Super-Spaces",
+                space.getSuperspaces(),
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
+            ));
+
+        add(new ItemListPanel<Space>(
                 "subspaces",
                 "Sub-Spaces",
                 space.getSubspaces(),
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
-        add(new DataView<IRI>("queries", new ListDataProvider<IRI>(space.getQueryIds())) {
-
-            @Override
-            protected void populateItem(Item<IRI> item) {
-                String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTable.createComponent("query", queryId, false));
-            }
-
-        });
     }
 
     /**

@@ -15,57 +15,41 @@
 
 <div id="content-pane">
 
+
 <div class="row-section">
 
-
 <div class="col-12">
-
-<h2><span wicket:id="spacename">Space ABC</span></h2>
-
-<p class="subtitle" wicket:id="spacetype">Space type</p>
-
-<p>Full ID: <a wicket:id="id" href=".">https://...</a> (<a wicket:id="np" href="."> <span class="nanopub-icon"></span> </a>)</p>
+  <h2><span wicket:id="spacename">Space ABC</span></h2>
+  <p class="subtitle" wicket:id="spacetype">Space type</p>
+  <p>Full ID: <a wicket:id="id" href=".">https://...</a> (<a wicket:id="np" href="."> <span class="nanopub-icon"></span> </a>)</p>
+</div>
 
 </div>
 
 
+<div class="odd"><div class="row-section">
+
 <div class="col-6">
-
-<h3>About</h3>
-
-<div wicket:id="description">...</div>
-
-<div wicket:id="members" class="users">...</div>
-
-<div wicket:id="subspaces">...</div>
-
+  <h3>About</h3>
+  <div wicket:id="description">...</div>
+  <div wicket:id="superspaces" class="hide-if-empty">...</div>
+  <div wicket:id="subspaces" class="hide-if-empty">...</div>
 </div>
 
 <div class="col-6">
-
-<h3>Pinned</h3>
-
-<div wicket:id="template-lists"></div>
-
-<div wicket:id="templates" class="forms">...</div>
-
+  <div wicket:id="members" class="users">...</div>
 </div>
 
-
-</div>
+</div></div>
 
 
 <div class="row-section">
 
-
-<div class="col-12">
-
-<div wicket:id="queries">
-<div wicket:id="query">...</div>
-</div>
-
-</div>
-
+<div class="col-6">
+  <h3>Pinned</h3>
+  <div wicket:id="template-lists"></div>
+  <div wicket:id="templates" class="forms">...</div>
+  </div>
 
 </div>
 
