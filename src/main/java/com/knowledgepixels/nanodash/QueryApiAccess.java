@@ -72,7 +72,7 @@ public class QueryApiAccess {
         load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
         load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
-        load("RAMvz3hcTY8LGe1pVVyGZg-Ga_FZgNYc9C1iuZPDuue6c/get-pinned-templates");
+        load("RAa2949qM3veXzp6rWoW-KNLSEbKOenMR9z3w9qQ48VsM/get-pinned-templates");
     }
 
     /**

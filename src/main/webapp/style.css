@@ -428,6 +428,10 @@ img.thirdparty {
   list-style-image: url('images/form-icon.svg');
 }
 
+li:has(.templateref) {
+  list-style-image: url('images/form-icon.svg');
+}
+
 .sidelogo {
   margin-bottom: 50px;
 }
