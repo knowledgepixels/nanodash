@@ -126,7 +126,6 @@ public class WicketApplication extends WebApplication {
         mountPage(BdjNanopubPage.MOUNT_PATH, BdjNanopubPage.class);
         mountPage(FdoForwarder.MOUNT_PATH, FdoForwarder.class);
         mountPage(GetNamePage.MOUNT_PATH, GetNamePage.class);
-        mountPage(TypePage.MOUNT_PATH, TypePage.class);
         mountPage(TestPage.MOUNT_PATH, TestPage.class);
         mountPage(ResultTablePage.MOUNT_PATH, ResultTablePage.class);
         mountPage(GenOverviewPage.MOUNT_PATH, GenOverviewPage.class);
