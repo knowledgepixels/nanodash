@@ -343,6 +343,10 @@ ul:has(li) + .emptynotice {
   display: none;
 }
 
+.emptynotice {
+  margin-top: 0;
+}
+
 ul:not(:has(li)) {
   display: none;
 }

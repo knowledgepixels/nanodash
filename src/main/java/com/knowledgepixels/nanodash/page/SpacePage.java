@@ -62,7 +62,7 @@ public class SpacePage extends NanodashPage {
         space = Space.get(parameters.get("id").toString());
         Nanopub np = space.getRootNanopub();
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this, "connectors"));
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
