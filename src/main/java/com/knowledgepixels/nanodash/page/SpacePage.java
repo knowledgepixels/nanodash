@@ -126,6 +126,13 @@ public class SpacePage extends NanodashPage {
                 (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri))
             ));
 
+        add(new ItemListPanel<Space>(
+                "subspaces",
+                "Sub-Spaces",
+                space.getSubspaces(),
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
+            ));
+
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(space.getQueryIds())) {
 
             @Override

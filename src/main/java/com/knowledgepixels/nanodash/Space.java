@@ -4,8 +4,10 @@ import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,15 +44,17 @@ public class Space implements Serializable {
      */
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
-    private static List<Space> spaceList = null;
-    private static ConcurrentMap<String,Space> spacesByCoreInfo = new ConcurrentHashMap<>();
-    private static ConcurrentMap<String,Space> spacesById = new ConcurrentHashMap<>();
+    private static List<Space> spaceList;
+    private static Map<String,Space> spacesByCoreInfo = new HashMap<>();
+    private static Map<String,Space> spacesById;
+    private static Map<Space,List<Space>> subspaceMap;
 
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
-        ConcurrentMap<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
-        spacesByCoreInfo = new ConcurrentHashMap<>();
-        spacesById.clear();
+        Map<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
+        spacesByCoreInfo = new HashMap<>();
+        spacesById = new HashMap<>();
+        subspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = new Space(entry);
             Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
@@ -58,6 +62,11 @@ public class Space implements Serializable {
             spaceList.add(space);
             spacesByCoreInfo.put(space.getCoreInfoString(), space);
             spacesById.put(space.getId(), space);
+        }
+        for (Space space : spaceList) {
+            Space superSpace = space.getSuperspace();
+            if (superSpace == null) continue;
+            subspaceMap.computeIfAbsent(superSpace, k -> new ArrayList<>()).add(space);
         }
     }
 
@@ -210,6 +219,26 @@ public class Space implements Serializable {
         return defaultProvenance;
     }
 
+    public String getSuperId() {
+        return null;
+    }
+
+    public Space getSuperspace() {
+        if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
+        String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
+        if (spacesById.containsKey(superId)) {
+            return spacesById.get(superId);
+        }
+        return null;
+    }
+
+    public List<Space> getSubspaces() {
+        if (subspaceMap.containsKey(this)) {
+            return subspaceMap.get(this);
+        }
+        return new ArrayList<>();
+    }
+
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
@@ -250,6 +279,11 @@ public class Space implements Serializable {
             }).start();
             dataNeedsUpdate = false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 
 }
