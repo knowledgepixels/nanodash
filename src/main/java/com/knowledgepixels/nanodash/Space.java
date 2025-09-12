@@ -105,9 +105,9 @@ public class Space implements Serializable {
     private List<IRI> owners = new ArrayList<>();
     private List<IRI> members = new ArrayList<>();
     private ConcurrentMap<String,IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
-    private List<Template> templates = new ArrayList<>();
-    private Set<String> templateTags = new HashSet<>();
-    private ConcurrentMap<String, List<Template>> templatesPerTag = new ConcurrentHashMap<>();
+    private List<Serializable> pinnedResources = new ArrayList<>();
+    private Set<String> pinGroupTags = new HashSet<>();
+    private ConcurrentMap<String, List<Serializable>> pinnedResourceMap = new ConcurrentHashMap<>();
     private List<IRI> queryIds = new ArrayList<>();
     private IRI defaultProvenance = null;
 
@@ -128,18 +128,18 @@ public class Space implements Serializable {
                 } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
                     addOwner(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    templates.add(TemplateData.get().getTemplate(obj.stringValue()));
+                    pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     queryIds.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
                 }
             } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                templateTags.add(l.stringValue());
-                List<Template> list = templatesPerTag.get(l.stringValue());
+                pinGroupTags.add(l.stringValue());
+                List<Serializable> list = pinnedResourceMap.get(l.stringValue());
                 if (list == null) {
                     list = new ArrayList<>();
-                    templatesPerTag.put(l.stringValue(), list);
+                    pinnedResourceMap.put(l.stringValue(), list);
                 }
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
@@ -203,17 +203,19 @@ public class Space implements Serializable {
         return members;
     }
 
-    public List<Template> getTemplates() {
+    public List<Serializable> getPinnedResources() {
         triggerDataUpdate();
-        return templates;
+        return pinnedResources;
     }
 
-    public Set<String> getTemplateTags() {
-        return templateTags;
+    public Set<String> getPinGroupTags() {
+        triggerDataUpdate();
+        return pinGroupTags;
     }
 
-    public ConcurrentMap<String, List<Template>> getTemplatesPerTag() {
-        return templatesPerTag;
+    public ConcurrentMap<String, List<Serializable>> getPinnedResourceMap() {
+        triggerDataUpdate();
+        return pinnedResourceMap;
     }
 
     public List<IRI> getQueryIds() {
@@ -279,14 +281,14 @@ public class Space implements Serializable {
                     if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     Template t = TemplateData.get().getTemplate(r.get("template"));
                     if (t == null) continue;
-                    templates.add(t);
+                    pinnedResources.add(t);
                     String tag = r.get("tag");
                     if (tag != null && !tag.isEmpty()) {
-                        templateTags.add(r.get("tag"));
-                        List<Template> list = templatesPerTag.get(r.get("tag"));
+                        pinGroupTags.add(r.get("tag"));
+                        List<Serializable> list = pinnedResourceMap.get(r.get("tag"));
                         if (list == null) {
                             list = new ArrayList<>();
-                            templatesPerTag.put(r.get("tag"), list);
+                            pinnedResourceMap.put(r.get("tag"), list);
                         }
                         list.add(TemplateData.get().getTemplate(r.get("template")));
                     }

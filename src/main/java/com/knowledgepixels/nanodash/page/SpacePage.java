@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -7,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -71,45 +74,23 @@ public class SpacePage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
-        final PageParameters params = new PageParameters();
-        if (space.getDefaultProvenance() != null) {
-            params.add("prtemplate", space.getDefaultProvenance().stringValue());
+        if (space.isDataInitialized()) {
+            add(getPinPanel("pin-groups"));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("pin-groups") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return getPinPanel(markupId);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return space.isDataInitialized();
+                }
+    
+            });
         }
-        List<Pair<String, List<Template>>> templateLists = new ArrayList<>();
-        List<String> templateTagList = new ArrayList<>(space.getTemplateTags());
-        Collections.sort(templateTagList);
-        List<Template> templates = new ArrayList<>(space.getTemplates());
-        for (String tag : templateTagList) {
-            for (Template t : space.getTemplatesPerTag().get(tag)) {
-                if (templates.contains(t)) templates.remove(t);
-            }
-            templateLists.add(Pair.of(tag, space.getTemplatesPerTag().get(tag)));
-        }
-        if (!templates.isEmpty()) {
-            String l = templateLists.isEmpty() ? "Templates" : "Other Templates";
-            templateLists.add(Pair.of(l, templates));
-        }
-        add(new DataView<Pair<String, List<Template>>>("template-lists", new ListDataProvider<>(templateLists)) {
-
-            @Override
-            protected void populateItem(Item<Pair<String, List<Template>>> item) {
-                item.add(new ItemListPanel<Template>(
-                        "templates",
-                        item.getModelObject().getLeft(),
-                        item.getModelObject().getRight(),
-                        (template) -> new TemplateItem("item", template, params)
-                    ));
-            }
-
-        });
-
-        add(new ItemListPanel<Template>(
-                "templates",
-                "Templates",
-                () -> space.isDataInitialized(),
-                () -> space.getTemplates(),
-                (template) -> new TemplateItem("item", template, params)
-            ));
 
         add(new ItemListPanel<Pair<IRI, String>>(
                 "members",
@@ -142,6 +123,45 @@ public class SpacePage extends NanodashPage {
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
+    }
+
+    private DataView<Pair<String, List<Serializable>>> getPinPanel(String markupId) {
+        final PageParameters params = new PageParameters();
+        if (space.getDefaultProvenance() != null) {
+            params.add("prtemplate", space.getDefaultProvenance().stringValue());
+        }
+
+        List<Pair<String, List<Serializable>>> pinnedResourcesList = new ArrayList<>();
+        List<String> pinGroupTags = new ArrayList<>(space.getPinGroupTags());
+        Collections.sort(pinGroupTags);
+        List<Serializable> pinnedResources = new ArrayList<>(space.getPinnedResources());
+        for (String tag : pinGroupTags) {
+            for (Object pinned : space.getPinnedResourceMap().get(tag)) {
+                if (pinnedResources.contains(pinned)) pinnedResources.remove(pinned);
+            }
+            pinnedResourcesList.add(Pair.of(tag, space.getPinnedResourceMap().get(tag)));
+        }
+        if (!pinnedResources.isEmpty()) {
+            String l = pinnedResourcesList.isEmpty() ? "Resources" : "Other Resources";
+            pinnedResourcesList.add(Pair.of(l, pinnedResources));
+        }
+
+        return new DataView<Pair<String, List<Serializable>>>(markupId, new ListDataProvider<>(pinnedResourcesList)) {
+
+            @Override
+            protected void populateItem(Item<Pair<String, List<Serializable>>> item) {
+                add(new ItemListPanel<Serializable>(
+                        "pinned-resource",
+                        item.getModelObject().getLeft(),
+                        item.getModelObject().getRight(),
+                        (o) -> {
+                            if (o instanceof Template t) return new TemplateItem("item", t, params);
+                            if (o instanceof IRI i) return new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", i), i.stringValue());
+                            return null;
+                        }));
+            }
+
+        };
     }
 
     /**
