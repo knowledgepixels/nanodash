@@ -63,7 +63,7 @@ public class UserListPage extends NanodashPage {
 //		});
 
         add(new ItemListPanel<IRI>(
-                "topcreator-users",
+                "topcreators",
                 "Top Nanopublication Creators Last Month",
                 new QueryRef("get-top-creators-last30d"),
                 (apiResponse) -> {
@@ -79,7 +79,7 @@ public class UserListPage extends NanodashPage {
             ));
 
         add(new ItemListPanel<IRI>(
-                "topauthor-users",
+                "topauthors",
                 "Top Authors of Accepted Nanopublications",
                 new QueryRef("get-top-authors"),
                 (apiResponse) -> {

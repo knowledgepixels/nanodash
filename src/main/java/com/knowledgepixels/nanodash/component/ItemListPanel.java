@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -32,12 +31,6 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     private ItemListPanel(String markupId, String title) {
         super(markupId);
         setOutputMarkupId(true);
-
-        if (markupId.matches("(.*-)?users")) {
-            add(new AttributeAppender("class", " users"));
-        } else if (markupId.matches("(.*-)?(forms|templates)")) {
-            add(new AttributeAppender("class", " forms"));
-        }
 
         add(new Label("title", title));
     }

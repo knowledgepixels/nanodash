@@ -2,7 +2,9 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.basic.Label;
@@ -110,20 +112,21 @@ public class SpacePage extends NanodashPage {
                 (template) -> new TemplateItem("item", template, params)
             ));
 
-        add(new ItemListPanel<IRI>(
-                "owner-users",
-                "Owners",
-                () -> space.isDataInitialized(),
-                () -> space.getOwners(),
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri))
-            ));
-
-        add(new ItemListPanel<IRI>(
-                "member-users",
+        add(new ItemListPanel<Pair<IRI, String>>(
+                "members",
                 "Members",
                 () -> space.isDataInitialized(),
-                () -> space.getMembers(),
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri))
+                () -> {
+                        List<Pair<IRI, String>> members = new ArrayList<>();
+                        Set<IRI> ownerSet = new HashSet<>(space.getOwners());
+                        for (IRI owner : space.getOwners()) members.add(Pair.of(owner, "(owner)"));
+                        for (IRI member : space.getMembers()) {
+                            if (ownerSet.contains(member)) continue;
+                            members.add(Pair.of(member, ""));
+                        }
+                        return members;
+                    },
+                (p) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", p.getLeft()), User.getShortDisplayName(p.getLeft()), p.getRight())
             ));
 
         add(new ItemListPanel<Space>(
