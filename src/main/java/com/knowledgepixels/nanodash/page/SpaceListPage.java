@@ -16,12 +16,12 @@ import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 /**
  * A page that lists all available connectors.
  */
-public class ConnectorListPage extends NanodashPage {
+public class SpaceListPage extends NanodashPage {
 
     /**
      * The mount path for this page.
      */
-    public static final String MOUNT_PATH = "/connectorlist";
+    public static final String MOUNT_PATH = "/spaces";
 
     /**
      * {@inheritDoc}
@@ -34,11 +34,11 @@ public class ConnectorListPage extends NanodashPage {
     private static final String[] journals = new String[]{"ios/ds", "pensoft/bdj", "pensoft/rio"};
 
     /**
-     * Constructor for the ConnectorListPage.
+     * Constructor for the SpaceListPage.
      *
      * @param parameters the page parameters
      */
-    public ConnectorListPage(final PageParameters parameters) {
+    public SpaceListPage(final PageParameters parameters) {
         super(parameters);
 
         add(new TitleBar("titlebar", this, "connectors"));
