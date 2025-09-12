@@ -1,39 +1,38 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
+
+    private String description;
+    private List<AbstractLink> buttons = new ArrayList<>();
+    private boolean finalized = false;
 
     private ItemListPanel(String markupId, String title) {
         super(markupId);
         setOutputMarkupId(true);
 
-        if (markupId.matches("(.*-)?users")) {
-            add(new AttributeAppender("class", " users"));
-        } else if (markupId.matches("(.*-)?(forms|templates)")) {
-            add(new AttributeAppender("class", " forms"));
-        }
-
-        if (title.contains("  ")) {
-            add(new Label("description", title.replaceFirst("^.*  ", "")));
-            title = title.replaceFirst("  .*$", "");
-        } else {
-            add(new Label("description").setVisible(false));
-        }
         add(new Label("title", title));
-        add(new Label("button").setVisible(false));
     }
     
     public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
@@ -74,6 +73,41 @@ public class ItemListPanel<T extends Serializable> extends Panel {
             });
         }
     }
+
+    public ItemListPanel<T> setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public ItemListPanel<T> addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
+        if (parameters == null) parameters = new PageParameters();
+        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
+        button.setBody(Model.of(label));
+        buttons.add(button);
+        return this;
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (!finalized) {
+            add(new Label("description", description).setVisible(description != null));
+            if (buttons.isEmpty()) {
+                add(new Label("buttons").setVisible(false));
+            } else {
+                add(new DataView<AbstractLink>("buttons", new ListDataProvider<AbstractLink>(buttons)) {
+    
+                    @Override
+                    protected void populateItem(Item<AbstractLink> item) {
+                        item.add(item.getModelObject());
+                    }
+                    
+                });
+            }
+            finalized = true;
+        }
+        super.onBeforeRender();
+    }
+
 
     public abstract class MethodResultComponent<R> extends ResultComponent {
 

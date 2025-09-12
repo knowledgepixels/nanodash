@@ -8,11 +8,10 @@
 
 <wicket:panel>
 
-<ul>
-<li wicket:id="itemlist"><span wicket:id="item">item</span></li>
-</ul>
+<!-- This needs to be on one line so we can use ul:empty in CSS: -->
+<ul><li wicket:id="itemlist"><span wicket:id="item">item</span></li></ul>
 
-<p class="emptynotice"><em>(nobody to list here)</em></p>
+<p class="emptynotice"><em>(none)</em></p>
 
 <div class="navigation" wicket:id="navigation">
 <div class="navigatorLabel" wicket:id="navigatorLabel"></div>

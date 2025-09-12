@@ -96,8 +96,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         add(new ExternalLink("prefixtooltiptext", "", prefixTooltip));
         textfield = new TextField<>("textfield", model);
         if (!optional) textfield.setRequired(true);
-        if (template.isLocalResource(iri)) {
-            textfield.add(new AttributeAppender("class", " local"));
+        if (template.isLocalResource(iri) || !prefix.isEmpty()) {
+            textfield.add(new AttributeAppender("class", " short"));
         }
         textfield.add(new Validator(iri, template, prefix, context));
         context.getComponents().add(textfield);

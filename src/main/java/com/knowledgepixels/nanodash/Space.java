@@ -4,8 +4,11 @@ import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -19,6 +22,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
@@ -42,15 +46,19 @@ public class Space implements Serializable {
      */
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
-    private static List<Space> spaceList = null;
-    private static ConcurrentMap<String,Space> spacesByCoreInfo = new ConcurrentHashMap<>();
-    private static ConcurrentMap<String,Space> spacesById = new ConcurrentHashMap<>();
+    private static List<Space> spaceList;
+    private static Map<String,Space> spacesByCoreInfo = new HashMap<>();
+    private static Map<String,Space> spacesById;
+    private static Map<Space,Set<Space>> subspaceMap;
+    private static Map<Space,Set<Space>> superspaceMap;
 
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
-        ConcurrentMap<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
-        spacesByCoreInfo = new ConcurrentHashMap<>();
-        spacesById.clear();
+        Map<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
+        spacesByCoreInfo = new HashMap<>();
+        spacesById = new HashMap<>();
+        subspaceMap = new HashMap<>();
+        superspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = new Space(entry);
             Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
@@ -58,6 +66,12 @@ public class Space implements Serializable {
             spaceList.add(space);
             spacesByCoreInfo.put(space.getCoreInfoString(), space);
             spacesById.put(space.getId(), space);
+        }
+        for (Space space : spaceList) {
+            Space superSpace = space.getIdSuperspace();
+            if (superSpace == null) continue;
+            subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
+            superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
         }
     }
 
@@ -91,9 +105,9 @@ public class Space implements Serializable {
     private List<IRI> owners = new ArrayList<>();
     private List<IRI> members = new ArrayList<>();
     private ConcurrentMap<String,IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
-    private List<Template> templates = new ArrayList<>();
-    private Set<String> templateTags = new HashSet<>();
-    private ConcurrentMap<String, List<Template>> templatesPerTag = new ConcurrentHashMap<>();
+    private List<Serializable> pinnedResources = new ArrayList<>();
+    private Set<String> pinGroupTags = new HashSet<>();
+    private ConcurrentMap<String, List<Serializable>> pinnedResourceMap = new ConcurrentHashMap<>();
     private List<IRI> queryIds = new ArrayList<>();
     private IRI defaultProvenance = null;
 
@@ -114,23 +128,22 @@ public class Space implements Serializable {
                 } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
                     addOwner(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    templates.add(TemplateData.get().getTemplate(obj.stringValue()));
+                    pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     queryIds.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
                 }
             } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                templateTags.add(l.stringValue());
-                List<Template> list = templatesPerTag.get(l.stringValue());
+                pinGroupTags.add(l.stringValue());
+                List<Serializable> list = pinnedResourceMap.get(l.stringValue());
                 if (list == null) {
                     list = new ArrayList<>();
-                    templatesPerTag.put(l.stringValue(), list);
+                    pinnedResourceMap.put(l.stringValue(), list);
                 }
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
         }
-
     }
 
     private void addOwner(IRI owner) {
@@ -190,16 +203,19 @@ public class Space implements Serializable {
         return members;
     }
 
-    public List<Template> getTemplates() {
-        return templates;
+    public List<Serializable> getPinnedResources() {
+        triggerDataUpdate();
+        return pinnedResources;
     }
 
-    public Set<String> getTemplateTags() {
-        return templateTags;
+    public Set<String> getPinGroupTags() {
+        triggerDataUpdate();
+        return pinGroupTags;
     }
 
-    public ConcurrentMap<String, List<Template>> getTemplatesPerTag() {
-        return templatesPerTag;
+    public ConcurrentMap<String, List<Serializable>> getPinnedResourceMap() {
+        triggerDataUpdate();
+        return pinnedResourceMap;
     }
 
     public List<IRI> getQueryIds() {
@@ -208,6 +224,37 @@ public class Space implements Serializable {
 
     public IRI getDefaultProvenance() {
         return defaultProvenance;
+    }
+
+    public String getSuperId() {
+        return null;
+    }
+
+    public Space getIdSuperspace() {
+        if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
+        String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
+        if (spacesById.containsKey(superId)) {
+            return spacesById.get(superId);
+        }
+        return null;
+    }
+
+    public List<Space> getSuperspaces() {
+        if (superspaceMap.containsKey(this)) {
+            List<Space> superspaces = new ArrayList<>(superspaceMap.get(this));
+            Collections.sort(superspaces, Ordering.usingToString());
+            return superspaces;
+        }
+        return new ArrayList<>();
+    }
+
+    public List<Space> getSubspaces() {
+        if (subspaceMap.containsKey(this)) {
+            List<Space> subspaces = new ArrayList<>(subspaceMap.get(this));
+            Collections.sort(subspaces, Ordering.usingToString());
+            return subspaces;
+        }
+        return new ArrayList<>();
     }
 
     private synchronized void triggerDataUpdate() {
@@ -229,10 +276,32 @@ public class Space implements Serializable {
                 }
                 owners.sort(User.getUserData().userComparator);
                 members.sort(User.getUserData().userComparator);
+
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
+                    if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    Template t = TemplateData.get().getTemplate(r.get("template"));
+                    if (t == null) continue;
+                    pinnedResources.add(t);
+                    String tag = r.get("tag");
+                    if (tag != null && !tag.isEmpty()) {
+                        pinGroupTags.add(r.get("tag"));
+                        List<Serializable> list = pinnedResourceMap.get(r.get("tag"));
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            pinnedResourceMap.put(r.get("tag"), list);
+                        }
+                        list.add(TemplateData.get().getTemplate(r.get("template")));
+                    }
+                }
                 dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 
 }

@@ -175,7 +175,10 @@ h5, h6 {
 }
 
 p.subtitle {
-  margin-bottom: 10mm;
+  margin-bottom: 24px;
+  font-family: Martian, monaco, monospace;
+  font-style: italic;
+  font-size: 10pt;
 }
 
 p.center {
@@ -282,7 +285,7 @@ td, th {
 }
 
 th {
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid #888;
 }
 
 tbody tr:nth-child(even) {
@@ -340,6 +343,14 @@ ul {
 
 ul:has(li) + .emptynotice {
   display: none;
+}
+
+.hide-if-empty:has(ul:empty) {
+  display: none;
+}
+
+.emptynotice {
+  margin-top: 0;
 }
 
 ul:not(:has(li)) {
@@ -413,6 +424,10 @@ ul.users {
 }
 
 ul.forms {
+  list-style-image: url('images/form-icon.svg');
+}
+
+li:has(.templateref) {
   list-style-image: url('images/form-icon.svg');
 }
 
@@ -1010,7 +1025,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   width: 350px;
 }
 
-.nanopub-textfield.local {
+.nanopub-textfield.short {
   width: 250px;
 }
 
@@ -1721,16 +1736,25 @@ div.paneltitlerow {
   border-bottom-style: solid;
   border-width: 1px;
   border-color: #888;
+  margin-bottom: 10px;
   width: 100%;
 }
 
-div.paneltitlerow h3 {
-  margin: 18px 0 8px 0;
+div.paneltitlerow.tablepanel {
+  margin-bottom: 0;
+}
+
+div.paneltitlerow h4 {
+  margin: 22px 0 8px 0;
   display: inline-block;
 }
 
+div.paneltitlerow span.buttons a.smallbutton {
+  margin-left: 5px;
+}
+
 div.paneltitlerow span.buttons {
-  margin: 22px 0 6px 0;
+  margin: 26px 0 6px 0;
   float: right;
 }
 

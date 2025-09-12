@@ -113,7 +113,7 @@ public class ProjectPage extends NanodashPage {
             ));
 
         add(new ItemListPanel<IRI>(
-                "owner-users",
+                "owners",
                 "Owners",
                 () -> project.isDataInitialized(),
                 () -> project.getOwners(),
@@ -123,7 +123,7 @@ public class ProjectPage extends NanodashPage {
             ));
 
         add(new ItemListPanel<IRI>(
-                "member-users",
+                "members",
                 "Members",
                 () -> project.isDataInitialized(),
                 () -> project.getMembers(),

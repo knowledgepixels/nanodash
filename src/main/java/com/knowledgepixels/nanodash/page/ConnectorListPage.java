@@ -51,17 +51,24 @@ public class ConnectorListPage extends NanodashPage {
                 (space) -> {
                     return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel(), "(" + space.getTypeLabel() + ")");
                 }
-            ));
+            ).addButton("new...",
+                    PublishPage.class,
+                    new PageParameters()
+                        .add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ")
+                        .add("template-version", "latest")
+                        .add("postpub-redirect-url", MOUNT_PATH)
+                )
+            );
 
         add(new ItemListPanel<Project>(
                 "projects",
-                "Legacy Projects  These legacy project pages will be migrated into the Spaces above:",
+                "Legacy Projects",
                 new QueryRef("get-projects"),
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
                 (project) -> {
                     return new ItemListElement("item", ProjectPage.class, new PageParameters().add("id", project.getId()), project.getLabel());
                 }
-            ));
+            ).setDescription("These legacy project pages will be migrated into the Spaces above:"));
 
         add(new ItemListPanel<String>(
                 "journals",
