@@ -127,7 +127,7 @@ public class NanopubItem extends Panel {
                 protected void populateItem(Item<IRI> item) {
                     IRI typeIri = item.getModelObject();
                     String label = Utils.getTypeLabel(typeIri);
-                    item.add(new BookmarkablePageLink<Void>("type", ListPage.class, new PageParameters().add("id", typeIri).add("types", typeIri)).setBody(Model.of(label)));
+                    item.add(new BookmarkablePageLink<Void>("type", ListPage.class, new PageParameters().add("types", typeIri)).setBody(Model.of(label)));
                 }
 
             });
