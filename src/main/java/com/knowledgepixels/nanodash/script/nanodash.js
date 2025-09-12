@@ -154,3 +154,12 @@ function showMore(el) {
     $(el).css('transform', 'scale(1, 1)');
   }
 }
+
+$(function () {
+  $('.view-selector .list').on('click', function () {
+    $('.flex-container').addClass('list-view').removeClass('grid-view');
+  });
+  $('.view-selector .grid').on('click', function () {
+    $('.flex-container').addClass('grid-view').removeClass('list-view');
+  });
+});

@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -45,9 +46,10 @@ public class ListPage extends NanodashPage {
     public ListPage(final PageParameters parameters) {
         super(parameters);
 
-        if (parameters.get("id") == null) throw new RedirectToUrlException(HomePage.MOUNT_PATH);
-
-        if (!parameters.get("types").isNull() && !parameters.get("types").isEmpty()) {
+        // TODO the query works with multiple types, but the UI does not yet support that so we just assume one type is mandatory and we show the first one only for now
+        if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
+            throw new RedirectToUrlException(HomePage.MOUNT_PATH);
+        } else {
             Arrays.stream(parameters.get("types").toString().split(","))
                     .toList()
                     .forEach(type -> types.add(Values.iri(type)));
@@ -67,6 +69,9 @@ public class ListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
+
+        // TODO show multiple types. Currently we just show the first one and assume at least one is present
+        add(new ExternalLink("typeUri", types.getFirst().stringValue(), types.getFirst().stringValue()));
         refresh();
     }
 
