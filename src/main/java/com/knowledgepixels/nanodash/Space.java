@@ -276,9 +276,9 @@ public class Space implements Serializable {
                 members.sort(User.getUserData().userComparator);
 
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
+                    if (!ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     Template t = TemplateData.get().getTemplate(r.get("template"));
                     if (t == null) continue;
-                    // Check pubkey with space owners
                     templates.add(t);
                     String tag = r.get("tag");
                     if (tag != null && !tag.isEmpty()) {
