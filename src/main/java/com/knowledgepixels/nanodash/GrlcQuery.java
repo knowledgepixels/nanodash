@@ -111,6 +111,8 @@ public class GrlcQuery implements Serializable {
         } else {
             if (id.matches("https?://.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[/#][^/#]+")) {
                 queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
+            } else if (id.matches("RA[A-Za-z0-9-_]{43}[/#][^/#]+")) {
+                queryId = id;
             } else {
                 throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
             }
