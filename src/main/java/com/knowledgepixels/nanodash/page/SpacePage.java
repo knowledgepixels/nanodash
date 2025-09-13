@@ -107,18 +107,30 @@ public class SpacePage extends NanodashPage {
 
         add(new ItemListPanel<Space>(
                 "superspaces",
-                "Super-Spaces",
+                "Part of",
                 space.getSuperspaces(),
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
-        add(new ItemListPanel<Space>(
-                "subspaces",
-                "Sub-Spaces",
-                space.getSubspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
-            ));
+        addSubspacePanel("Group");
+        addSubspacePanel("Project");
+        addSubspacePanel("Program");
+        addSubspacePanel("Initiative");
+        addSubspacePanel("Community");
+        addSubspacePanel("Event");
 
+    }
+
+    private void addSubspacePanel(String type) {
+        String typePl = type + "s";
+        typePl = typePl.replaceFirst("ys$", "ies");
+
+        add(new ItemListPanel<Space>(
+                typePl.toLowerCase(),
+                typePl,
+                space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
+            ));
     }
 
     /**

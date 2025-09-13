@@ -43,25 +43,15 @@ public class SpaceListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        add(new ItemListPanel<Space>(
-                "spaces",
-                "Existing Spaces",
-                new QueryRef("get-spaces"),
-                (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList(); },
-                (space) -> {
-                    return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel(), "(" + space.getTypeLabel() + ")");
-                }
-            ).addButton("new...",
-                    PublishPage.class,
-                    new PageParameters()
-                        .add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ")
-                        .add("template-version", "latest")
-                        .add("postpub-redirect-url", MOUNT_PATH)
-                )
-            );
+        addSpacePanel("Group");
+        addSpacePanel("Project");
+        addSpacePanel("Program");
+        addSpacePanel("Initiative");
+        addSpacePanel("Community");
+        addSpacePanel("Event");
 
         add(new ItemListPanel<Project>(
-                "projects",
+                "legacy-projects",
                 "Legacy Projects",
                 new QueryRef("get-projects"),
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
@@ -79,6 +69,28 @@ public class SpaceListPage extends NanodashPage {
                     return new ItemListElement("item", GenOverviewPage.class, new PageParameters().add("journal", journalId), journalName);
                 }
             ));
+    }
+
+    private void addSpacePanel(String type) {
+        String typePl = type + "s";
+        typePl = typePl.replaceFirst("ys$", "ies");
+        add(new ItemListPanel<Space>(
+            typePl.toLowerCase(),
+            typePl,
+            new QueryRef("get-spaces"),
+            (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList("https://w3id.org/kpxl/gen/terms/" + type); },
+            (space) -> {
+                return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
+            }
+        ).addButton("new...",
+                PublishPage.class,
+                new PageParameters()
+                    .add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ")
+                    .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                    .add("template-version", "latest")
+                    .add("postpub-redirect-url", MOUNT_PATH)
+            )
+        );
     }
 
 }

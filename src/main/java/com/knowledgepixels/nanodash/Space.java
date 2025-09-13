@@ -45,6 +45,7 @@ public class Space implements Serializable {
     public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
     private static List<Space> spaceList;
+    private static Map<String, List<Space>> spaceListByType;
     private static Map<String,Space> spacesByCoreInfo = new HashMap<>();
     private static Map<String,Space> spacesById;
     private static Map<Space,Set<Space>> subspaceMap;
@@ -52,6 +53,7 @@ public class Space implements Serializable {
 
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
+        spaceListByType = new HashMap<>();
         Map<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
         spacesByCoreInfo = new HashMap<>();
         spacesById = new HashMap<>();
@@ -62,6 +64,7 @@ public class Space implements Serializable {
             Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
             if (prevSpace != null) space = prevSpace;
             spaceList.add(space);
+            spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             spacesByCoreInfo.put(space.getCoreInfoString(), space);
             spacesById.put(space.getId(), space);
         }
@@ -82,6 +85,11 @@ public class Space implements Serializable {
     public static List<Space> getSpaceList() {
         ensureLoaded();
         return spaceList;
+    }
+
+    public static List<Space> getSpaceList(String type) {
+        ensureLoaded();
+        return spaceListByType.computeIfAbsent(type, k -> new ArrayList<>());
     }
 
     public static Space get(String id) {
@@ -228,6 +236,14 @@ public class Space implements Serializable {
             return subspaces;
         }
         return new ArrayList<>();
+    }
+
+    public List<Space> getSubspaces(String type) {
+        List<Space> l = new ArrayList<>();
+        for (Space s : getSubspaces()) {
+            if (s.getType().equals(type)) l.add(s);
+        }
+        return l;
     }
 
     private synchronized void triggerDataUpdate() {
