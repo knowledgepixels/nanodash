@@ -11,6 +11,7 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
@@ -23,6 +24,8 @@ import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.PinGroupList;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 
 
 
@@ -116,9 +119,18 @@ public class SpacePage extends NanodashPage {
         addSubspacePanel("Project");
         addSubspacePanel("Program");
         addSubspacePanel("Initiative");
+        addSubspacePanel("Outlet");
+        addSubspacePanel("Campaign");
         addSubspacePanel("Community");
         addSubspacePanel("Event");
 
+        String shortId = space.getId().replace("https://w3id.org/spaces/", "");
+        ConnectorConfig cc = ConnectorConfig.get(shortId);
+        if (cc != null) {
+            add(new BookmarkablePageLink<Void>("content-button", GenOverviewPage.class, new PageParameters().add("journal", shortId)).setBody(Model.of("Nanopublication Submissions")));
+        } else {
+            add(new Label("content-button").setVisible(false));
+        }
     }
 
     private void addSubspacePanel(String type) {

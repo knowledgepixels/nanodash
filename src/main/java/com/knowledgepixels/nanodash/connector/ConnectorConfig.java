@@ -13,8 +13,6 @@ import java.util.*;
  */
 public abstract class ConnectorConfig implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Returns the ConnectorConfig instance for a given connector ID.
      *
@@ -29,7 +27,7 @@ public abstract class ConnectorConfig implements Serializable {
         } else if (connectorId.equals("pensoft/rio")) {
             return RioConfig.get();
         } else {
-            throw new IllegalArgumentException("'journal' parameter not recognized");
+            return null;
         }
     }
 
