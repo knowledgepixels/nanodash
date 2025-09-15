@@ -199,7 +199,7 @@ public class UserPage extends NanodashPage {
         if (response.getData().isEmpty()) {
             return new Label(markupId, "(none)");
         } else {
-            return NanopubResults.fromApiResponse(markupId, response, 5);
+            return NanopubResults.fromApiResponse(markupId, response);
         }
     }
 
