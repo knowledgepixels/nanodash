@@ -79,13 +79,13 @@ public class UserListPage extends NanodashPage {
             ));
 
         add(new ItemListPanel<IRI>(
-                "topauthors",
-                "Top Authors of Accepted Nanopublications",
-                new QueryRef("get-top-authors"),
+                "latestusers",
+                "Latest New Users",
+                new QueryRef("get-latest-users"),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
                     for (ApiResponseEntry e : apiResponse.getData()) {
-                        users.add(Utils.vf.createIRI(e.get("author")));
+                        users.add(Utils.vf.createIRI(e.get("user")));
                     }
                     return users;
                 },
