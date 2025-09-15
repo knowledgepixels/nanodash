@@ -21,6 +21,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A page that shows a list of nanopublications filtered by type, public key, and time range.
+ */
 public class ListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +47,7 @@ public class ListPage extends NanodashPage {
     private final List<String> pubKeys = new ArrayList<>();
     private String startTime = "";
     private String endTime = "";
+    private static ViewMode currentViewMode = null;
 
     private enum ViewMode {
         LIST("list-view"),
@@ -60,8 +64,11 @@ public class ListPage extends NanodashPage {
         }
     }
 
-    private static ViewMode currentViewMode = null;
-
+    /**
+     * Constructor for ListPage.
+     *
+     * @param parameters Page parameters containing filters like types, pubKeys, startTime, and endTime.
+     */
     public ListPage(final PageParameters parameters) {
         super(parameters);
 
