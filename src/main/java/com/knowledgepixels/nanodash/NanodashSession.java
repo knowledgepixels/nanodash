@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
@@ -66,6 +67,7 @@ public class NanodashSession extends WebSession {
 //	private IntroExtractor introExtractor;
 
     private String userDir = System.getProperty("user.home") + "/.nanopub/";
+    private NanopubResults.ViewMode nanopubResultsViewMode = NanopubResults.ViewMode.GRID;
 
     private KeyPair keyPair;
     private IRI userIri;
@@ -445,6 +447,24 @@ public class NanodashSession extends WebSession {
     public long getTimeSinceLastIntroPublished() {
         if (lastTimeIntroPublished == null) return Long.MAX_VALUE;
         return new Date().getTime() - lastTimeIntroPublished.getTime();
+    }
+
+    /**
+     * Sets the view mode for displaying nanopublication results.
+     *
+     * @param viewMode The desired view mode (e.g., GRID or LIST).
+     */
+    public void setNanopubResultsViewMode(NanopubResults.ViewMode viewMode) {
+        this.nanopubResultsViewMode = viewMode;
+    }
+
+    /**
+     * Retrieves the current view mode for displaying nanopublication results.
+     *
+     * @return The current view mode.
+     */
+    public NanopubResults.ViewMode getNanopubResultsViewMode() {
+        return this.nanopubResultsViewMode;
     }
 
 }

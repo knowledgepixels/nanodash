@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.List;
-
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -12,8 +12,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Utils;
+import java.util.List;
 
 /**
  * A panel that displays a list of nanopubs.
@@ -107,6 +106,29 @@ public class NanopubResults extends Panel {
     private NanopubResults(String id) {
         super(id);
         setOutputMarkupId(true);
+    }
+
+    /**
+     * Enumeration that defines the possible view modes of the nanopub results.
+     */
+    public enum ViewMode {
+        LIST("list-view"),
+        GRID("grid-view");
+
+        private final String value;
+
+        ViewMode(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Retrieves the string value associated with the view mode.
+         *
+         * @return the string value of the view mode
+         */
+        public String getValue() {
+            return value;
+        }
     }
 
 }

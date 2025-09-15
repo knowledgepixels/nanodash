@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -47,22 +48,7 @@ public class ListPage extends NanodashPage {
     private final List<String> pubKeys = new ArrayList<>();
     private String startTime = "";
     private String endTime = "";
-    private static ViewMode currentViewMode = null;
-
-    private enum ViewMode {
-        LIST("list-view"),
-        GRID("grid-view");
-
-        private final String value;
-
-        ViewMode(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
+    private static final NanodashSession session = NanodashSession.get();
 
     /**
      * Constructor for ListPage.
@@ -71,19 +57,15 @@ public class ListPage extends NanodashPage {
      */
     public ListPage(final PageParameters parameters) {
         super(parameters);
-
-        if (currentViewMode == null) {
-            currentViewMode = ViewMode.GRID;
-        }
-        logger.info("Rendering ListPage with '{}' mode.", currentViewMode.getValue());
+        logger.info("Rendering ListPage with '{}' mode.", session.getNanopubResultsViewMode().getValue());
 
         add(new AjaxLink<>("listEnabler") {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                currentViewMode = ViewMode.LIST;
-                logger.info("Switched to '{}' mode", currentViewMode.getValue());
+                session.setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
+                logger.info("ListEnabler -- Switched to '{}' mode", session.getNanopubResultsViewMode().getValue());
             }
         });
 
@@ -92,8 +74,8 @@ public class ListPage extends NanodashPage {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                currentViewMode = ViewMode.GRID;
-                logger.info("Switched to '{}' mode", currentViewMode.getValue());
+                session.setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
+                logger.info("GridEnabler -- Switched to '{}' mode", session.getNanopubResultsViewMode().getValue());
             }
         });
 
@@ -157,7 +139,7 @@ public class ListPage extends NanodashPage {
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
-            cachedResults.add(AttributeAppender.append("class", currentViewMode.getValue()));
+            cachedResults.add(AttributeAppender.append("class", session.getNanopubResultsViewMode().getValue()));
             add(cachedResults);
         } else {
             AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
@@ -190,7 +172,7 @@ public class ListPage extends NanodashPage {
                 }
 
             };
-            results.add(AttributeAppender.append("class", currentViewMode.getValue()));
+            results.add(AttributeAppender.append("class", session.getNanopubResultsViewMode().getValue()));
             add(results);
         }
     }
