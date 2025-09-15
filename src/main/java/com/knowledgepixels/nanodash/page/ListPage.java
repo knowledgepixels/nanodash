@@ -48,7 +48,6 @@ public class ListPage extends NanodashPage {
     private final List<String> pubKeys = new ArrayList<>();
     private String startTime = "";
     private String endTime = "";
-    private static final NanodashSession session = NanodashSession.get();
 
     /**
      * Constructor for ListPage.
@@ -57,15 +56,15 @@ public class ListPage extends NanodashPage {
      */
     public ListPage(final PageParameters parameters) {
         super(parameters);
-        logger.info("Rendering ListPage with '{}' mode.", session.getNanopubResultsViewMode().getValue());
+        logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
 
         add(new AjaxLink<>("listEnabler") {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                session.setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
-                logger.info("ListEnabler -- Switched to '{}' mode", session.getNanopubResultsViewMode().getValue());
+                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
+                logger.info("ListEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
             }
         });
 
@@ -74,8 +73,8 @@ public class ListPage extends NanodashPage {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                session.setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
-                logger.info("GridEnabler -- Switched to '{}' mode", session.getNanopubResultsViewMode().getValue());
+                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
+                logger.info("GridEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
             }
         });
 
@@ -139,7 +138,7 @@ public class ListPage extends NanodashPage {
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
-            cachedResults.add(AttributeAppender.append("class", session.getNanopubResultsViewMode().getValue()));
+            cachedResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
             add(cachedResults);
         } else {
             AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
@@ -172,7 +171,7 @@ public class ListPage extends NanodashPage {
                 }
 
             };
-            results.add(AttributeAppender.append("class", session.getNanopubResultsViewMode().getValue()));
+            results.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
             add(results);
         }
     }
