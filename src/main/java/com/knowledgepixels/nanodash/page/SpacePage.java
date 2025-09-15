@@ -94,10 +94,10 @@ public class SpacePage extends NanodashPage {
                 () -> space.isDataInitialized(),
                 () -> {
                         List<Pair<IRI, String>> members = new ArrayList<>();
-                        Set<IRI> ownerSet = new HashSet<>(space.getOwners());
-                        for (IRI owner : space.getOwners()) members.add(Pair.of(owner, "(owner)"));
+                        Set<IRI> adminSet = new HashSet<>(space.getAdmins());
+                        for (IRI admin : space.getAdmins()) members.add(Pair.of(admin, "(admin)"));
                         for (IRI member : space.getMembers()) {
-                            if (ownerSet.contains(member)) continue;
+                            if (adminSet.contains(member)) continue;
                             members.add(Pair.of(member, ""));
                         }
                         return members;

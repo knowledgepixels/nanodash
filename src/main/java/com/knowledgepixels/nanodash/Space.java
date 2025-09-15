@@ -30,9 +30,9 @@ import com.knowledgepixels.nanodash.template.TemplateData;
 public class Space implements Serializable {
 
     /**
-     * The predicate for the owner of the space.
+     * The predicate to assign the admins of the space.
      */
-    public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
+    public static final IRI HAS_ADMIN = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin");
 
     /**
      * The predicate for pinned templates in the space.
@@ -111,20 +111,20 @@ public class Space implements Serializable {
     private static class SpaceData implements Serializable {
         String description = null;
         IRI defaultProvenance = null;
-        List<IRI> owners = new ArrayList<>();
+        List<IRI> admins = new ArrayList<>();
         List<IRI> members = new ArrayList<>();
-        Map<String,IRI> ownerPubkeyMap = new HashMap<>();
+        Map<String,IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, List<Serializable>> pinnedResourceMap = new HashMap<>();
 
-        void addOwner(IRI owner) {
+        void addAdmin(IRI admin) {
             // TODO This isn't efficient for long owner lists:
-            if (owners.contains(owner)) return;
-            owners.add(owner);
+            if (admins.contains(admin)) return;
+            admins.add(admin);
             UserData ud = User.getUserData();
-            for (String pubkeyhash : ud.getPubkeyhashes(owner, true)) {
-                ownerPubkeyMap.put(pubkeyhash, owner);
+            for (String pubkeyhash : ud.getPubkeyhashes(admin, true)) {
+                adminPubkeyMap.put(pubkeyhash, admin);
             }
         }
     }
@@ -178,9 +178,9 @@ public class Space implements Serializable {
         return dataInitialized;
     }
 
-    public List<IRI> getOwners() {
+    public List<IRI> getAdmins() {
         triggerDataUpdate();
-        return data.owners;
+        return data.admins;
     }
 
     public List<IRI> getMembers() {
@@ -252,25 +252,25 @@ public class Space implements Serializable {
                 SpaceData newData = new SpaceData();
                 setCoreData(newData);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners", "unit", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-admins", "unit", id).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
-                    if (newData.ownerPubkeyMap.containsKey(pubkeyhash)) {
-                        newData.addOwner(Utils.vf.createIRI(r.get("owner")));
+                    if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
+                        newData.addAdmin(Utils.vf.createIRI(r.get("admin")));
                     }
                 }
                 newData.members = new ArrayList<>();
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
-                    if (newData.owners.contains(memberId)) continue;
+                    if (newData.admins.contains(memberId)) continue;
                     if (newData.members.contains(memberId)) continue;
                     newData.members.add(memberId);
                 }
-                newData.owners.sort(User.getUserData().userComparator);
+                newData.admins.sort(User.getUserData().userComparator);
                 newData.members.sort(User.getUserData().userComparator);
 
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
-                    if (!newData.ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     Template t = TemplateData.get().getTemplate(r.get("template"));
                     if (t == null) continue;
                     newData.pinnedResources.add(t);
@@ -281,7 +281,7 @@ public class Space implements Serializable {
                     }
                 }
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-queries", "space", id).getData()) {
-                    if (!newData.ownerPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     GrlcQuery query = GrlcQuery.get(r.get("query"));
                     if (query == null) continue;
                     newData.pinnedResources.add(query);
@@ -303,8 +303,8 @@ public class Space implements Serializable {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     data.description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
-                    data.addOwner(obj);
+                } else if (st.getPredicate().equals(HAS_ADMIN) && st.getObject() instanceof IRI obj) {
+                    data.addAdmin(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
