@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.RedirectException;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -18,6 +20,7 @@ import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
@@ -61,7 +64,11 @@ public class ProjectPage extends NanodashPage {
     public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
 
-        project = Project.get(parameters.get("id").toString());
+        String projectId = parameters.get("id").toString();
+        if (Space.get(projectId) != null) {
+            throw new RestartResponseException(SpacePage.class, parameters);
+        }
+        project = Project.get(projectId);
         Nanopub np = project.getRootNanopub();
 
         add(new TitleBar("titlebar", this, null));
