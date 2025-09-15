@@ -422,6 +422,10 @@ ul.users {
   list-style-image: url('images/user-icon.svg');
 }
 
+.users ul {
+  list-style-image: url('images/user-icon.svg');
+}
+
 .form-icon {
   display: inline-block;
   background-image: url("images/form-icon.svg");
@@ -432,6 +436,10 @@ ul.users {
 }
 
 ul.forms {
+  list-style-image: url('images/form-icon.svg');
+}
+
+.forms ul {
   list-style-image: url('images/form-icon.svg');
 }
 
