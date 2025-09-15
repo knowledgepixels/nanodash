@@ -37,14 +37,14 @@ public class SpaceListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        addSpacePanel("Group");
-        addSpacePanel("Project");
-        addSpacePanel("Program");
-        addSpacePanel("Initiative");
-        addSpacePanel("Outlet");
-        addSpacePanel("Campaign");
-        addSpacePanel("Community");
-        addSpacePanel("Event");
+        addSpacePanel("Group", true);
+        addSpacePanel("Project", false);
+        addSpacePanel("Program", true);
+        addSpacePanel("Initiative", false);
+        addSpacePanel("Outlet", true);
+        addSpacePanel("Campaign", false);
+        addSpacePanel("Community", true);
+        addSpacePanel("Event", false);
 
         add(new ItemListPanel<Project>(
                 "legacy-projects",
@@ -57,9 +57,20 @@ public class SpaceListPage extends NanodashPage {
             ).setDescription("These legacy project pages will be migrated into the Spaces above:"));
     }
 
-    private void addSpacePanel(String type) {
+    private void addSpacePanel(String type, boolean openEnded) {
         String typePl = type + "s";
         typePl = typePl.replaceFirst("ys$", "ies");
+
+        PageParameters newLinkParams = new PageParameters()
+                .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                .add("template-version", "latest")
+                .add("postpub-redirect-url", MOUNT_PATH);
+        if (openEnded) {
+            newLinkParams.add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");
+        } else {
+            newLinkParams.add("template", "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4");
+        }
+
         add(new ItemListPanel<Space>(
             typePl.toLowerCase(),
             typePl,
@@ -68,15 +79,7 @@ public class SpaceListPage extends NanodashPage {
             (space) -> {
                 return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
             }
-        ).addButton("new...",
-                PublishPage.class,
-                new PageParameters()
-                    .add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ")
-                    .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                    .add("template-version", "latest")
-                    .add("postpub-redirect-url", MOUNT_PATH)
-            )
-        );
+        ).addButton("new...", PublishPage.class, newLinkParams));
     }
 
 }

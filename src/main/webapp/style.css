@@ -127,6 +127,10 @@
   padding-bottom: 0;
 }
 
+[class*="col-"].subheader {
+  padding-top: 0;
+}
+
 [class*="col-"].header h1, [class*="col-"].header h2, [class*="col-"].header h3 {
   margin-bottom: 0;
 }
