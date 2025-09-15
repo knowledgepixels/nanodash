@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.wicket.Component;
@@ -17,8 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
@@ -160,39 +165,19 @@ public class UserPage extends NanodashPage {
             });
         }
 
-        ApiResponse acceptedNanopubList = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);
-        if (acceptedNanopubList != null) {
-            add(makeNanopubResultComponent("latestaccepted", acceptedNanopubList));
-        } else {
-            add(new AjaxLazyLoadPanel<Component>("latestaccepted") {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    ApiResponse r = null;
-                    while (true) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            logger.error("Thread interrupted while waiting for API response", ex);
+        add(new ItemListPanel<Space>(
+                "spaces",
+                "Spaces",
+                () -> Space.isLoaded(),
+                () -> {
+                        List<Space> spaces = new ArrayList<>();
+                        for (Space space : Space.getSpaceList()) {
+                            if (space.isMember(userIri)) spaces.add(space);
                         }
-                        if (!ApiCache.isRunning("get-accepted-nanopubs-by-author", "author", userIriString)) {
-                            r = ApiCache.retrieveResponse("get-accepted-nanopubs-by-author", "author", userIriString);
-                            if (r != null) break;
-                        }
-                    }
-                    return makeNanopubResultComponent(markupId, r);
-                }
-
-//				@Override
-//				protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
-//					super.onContentLoaded(content, target);
-//					if (target.get() != null) target.get().appendJavaScript("updateElements();");
-//				}
-
-            });
-        }
+                        return spaces;
+                    },
+                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")")
+            ));
     }
 
     private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {

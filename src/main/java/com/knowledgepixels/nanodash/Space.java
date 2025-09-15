@@ -50,6 +50,7 @@ public class Space implements Serializable {
     private static Map<String,Space> spacesById;
     private static Map<Space,Set<Space>> subspaceMap;
     private static Map<Space,Set<Space>> superspaceMap;
+    private static boolean loaded = false;
 
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
@@ -74,6 +75,11 @@ public class Space implements Serializable {
             subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
             superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
         }
+        loaded = true;
+    }
+
+    public static boolean isLoaded() {
+        return loaded;
     }
 
     public static void ensureLoaded() {
@@ -186,6 +192,12 @@ public class Space implements Serializable {
     public List<IRI> getMembers() {
         triggerDataUpdate();
         return data.members;
+    }
+
+    public boolean isMember(IRI userId) {
+        triggerDataUpdate();
+        // TODO This is inefficient for large member lists:
+        return data.admins.contains(userId) || data.members.contains(userId);
     }
 
     public List<Serializable> getPinnedResources() {
