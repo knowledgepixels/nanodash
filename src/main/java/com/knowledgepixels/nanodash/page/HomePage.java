@@ -2,12 +2,23 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TemplateItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 
 /**
  * The home page of Nanodash, which shows the most recent nanopublications
@@ -83,22 +94,29 @@ public class HomePage extends NanodashPage {
 
         }
 
-        final QueryRef aQueryRef = new QueryRef("get-latest-accepted");
-        ApiResponse aResponse = ApiCache.retrieveResponse(aQueryRef);
-        if (aResponse != null) {
-            add(NanopubResults.fromApiResponse("latestaccepted", aResponse));
-        } else {
-            add(new ApiResultComponent("latestaccepted", aQueryRef) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return NanopubResults.fromApiResponse(markupId, response);
+        add(new ItemListPanel<IRI>(
+                "topcreators",
+                "Most Active Nanopublishers Last Month",
+                new QueryRef("get-top-creators-last30d"),
+                (apiResponse) -> {
+                    List<IRI> users = new ArrayList<>();
+                    for (ApiResponseEntry e : apiResponse.getData()) {
+                        users.add(Utils.vf.createIRI(e.get("userid")));
+                    }
+                    return users;
+                },
+                (userIri) -> {
+                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
                 }
-            });
+            ));
 
-        }
+        add(new ItemListPanel<Template>(
+                "getstarted-templates",
+                "Suggested Templates to Start Publishing",
+                new QueryRef("get-suggested-templates-to-get-started"),
+                TemplateData::getTemplateList,
+                (template) -> new TemplateItem("item", template)
+        ));
 
     }
 

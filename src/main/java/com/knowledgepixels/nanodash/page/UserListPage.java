@@ -64,7 +64,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "topcreators",
-                "Top Nanopublication Creators Last Month",
+                "Most Active Nanopublishers Last Month",
                 new QueryRef("get-top-creators-last30d"),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
