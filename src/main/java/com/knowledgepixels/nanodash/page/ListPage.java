@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -19,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A page that shows a list of nanopublications filtered by type, public key, and time range.
+ */
 public class ListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
@@ -43,8 +49,34 @@ public class ListPage extends NanodashPage {
     private String startTime = "";
     private String endTime = "";
 
+    /**
+     * Constructor for ListPage.
+     *
+     * @param parameters Page parameters containing filters like types, pubKeys, startTime, and endTime.
+     */
     public ListPage(final PageParameters parameters) {
         super(parameters);
+        logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
+
+        add(new AjaxLink<>("listEnabler") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
+                logger.info("ListEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
+            }
+        });
+
+        add(new AjaxLink<>("gridEnabler") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
+                logger.info("GridEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
+            }
+        });
 
         // TODO the query works with multiple types, but the UI does not yet support that so we just assume one type is mandatory and we show the first one only for now
         if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
@@ -105,9 +137,11 @@ public class ListPage extends NanodashPage {
         final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", params);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
-            add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
+            NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
+            cachedResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+            add(cachedResults);
         } else {
-            add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+            AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
                 private static final long serialVersionUID = 1L;
 
@@ -136,7 +170,9 @@ public class ListPage extends NanodashPage {
                     }
                 }
 
-            });
+            };
+            results.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+            add(results);
         }
     }
 
