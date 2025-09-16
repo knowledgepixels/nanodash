@@ -464,7 +464,7 @@ public class Utils {
      * @return an ExternalLink with the URI label
      */
     public static ExternalLink getUriLink(String markupId, String uri) {
-        return new ExternalLink(markupId, (uri.startsWith("local:") ? "" : uri), getUriLabel(uri));
+        return new ExternalLink(markupId, (Utils.isLocalURI(uri) ? "" : uri), getUriLabel(uri));
     }
 
     /**
@@ -727,6 +727,26 @@ public class Utils {
      */
     public static String getUnescapedLiteralString(String escapedString) {
         return escapedString.replaceAll("\\\\(\\\\|\\\")", "$1");
+    }
+
+    /**
+     * Checks if a given IRI is a local URI.
+     *
+     * @param uri the IRI to check
+     * @return true if the IRI is a local URI, false otherwise
+     */
+    public static boolean isLocalURI(IRI uri) {
+        return uri != null && isLocalURI(uri.stringValue());
+    }
+
+    /**
+     * Checks if a given string is a local URI.
+     *
+     * @param uriAsString the string to check
+     * @return true if the string is a local URI, false otherwise
+     */
+    public static boolean isLocalURI(String uriAsString) {
+        return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
     }
 
 }
