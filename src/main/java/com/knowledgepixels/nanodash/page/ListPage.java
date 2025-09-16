@@ -9,8 +9,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -48,6 +51,7 @@ public class ListPage extends NanodashPage {
     private final List<String> pubKeys = new ArrayList<>();
     private String startTime = "";
     private String endTime = "";
+    private TextField<String> typeField;
 
     /**
      * Constructor for ListPage.
@@ -82,28 +86,35 @@ public class ListPage extends NanodashPage {
         if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
             throw new RedirectToUrlException(HomePage.MOUNT_PATH);
         } else {
-            Arrays.stream(parameters.get("types").toString().split(","))
+            Arrays.stream(parameters.get("types").toString().split(" "))
                     .toList()
                     .forEach(type -> types.add(Values.iri(type)));
         }
 
-        if (!parameters.get("pubKeys").isNull() && !parameters.get("pubKeys").isEmpty()) {
-            pubKeys.addAll(Arrays.stream(parameters.get("pubKeys").toString().split(",")).toList());
+        if (!parameters.get("pubkeys").isNull() && !parameters.get("pubkeys").isEmpty()) {
+            pubKeys.addAll(Arrays.stream(parameters.get("pubkeys").toString().split(" ")).toList());
         }
 
-        if (!parameters.get("startTime").isNull() && !parameters.get("startTime").isEmpty()) {
-            startTime = parameters.get("startTime").toString();
+        if (!parameters.get("starttime").isNull() && !parameters.get("starttime").isEmpty()) {
+            startTime = parameters.get("starttime").toString();
         }
 
-        if (!parameters.get("endTime").isNull() && !parameters.get("endTime").isEmpty()) {
-            endTime = parameters.get("endTime").toString();
+        if (!parameters.get("endtime").isNull() && !parameters.get("endtime").isEmpty()) {
+            endTime = parameters.get("endtime").toString();
         }
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
 
-        // TODO show multiple types. Currently we just show the first one and assume at least one is present
-        add(new ExternalLink("typeUri", types.getFirst().stringValue(), types.getFirst().stringValue()));
+        RepeatingView typeLinks = new RepeatingView("typeUris");
+        for (IRI type : types) {
+            WebMarkupContainer typeContainer = new WebMarkupContainer(typeLinks.newChildId());
+            typeContainer.add(new ExternalLink("typeLink", type.stringValue(), type.getLocalName()));
+            typeContainer.add(new Label("removeType", "×"));
+            typeLinks.add(typeContainer);
+        }
+        add(typeLinks);
+
         refresh();
     }
 

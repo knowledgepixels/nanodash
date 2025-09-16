@@ -20,7 +20,14 @@
     <div class="col-12">
 
       <h2>Nanopublications</h2>
-      <p>Filtering by type: <a href="#" wicket:id="typeUri" id="ref"></a></p>
+      <p>Filtering by type:
+        <wicket:container wicket:id="typeUris">
+          <span>
+            <a wicket:id="typeLink"></a>
+            <span wicket:id="removeType" class="remove-x" style="cursor:pointer;margin-left:4px;">×</span>
+          </span>
+        </wicket:container>
+      </p>
       <div class="view-selector">
         <span wicket:id="listEnabler" class="list"></span>
         <span wicket:id="gridEnabler" class="grid"></span>
