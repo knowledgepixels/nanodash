@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.template.Template;
@@ -265,7 +266,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         if (v instanceof IRI) {
             String vs = v.stringValue();
             if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-            if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
             Validatable<String> validatable = new Validatable<>(vs);
             if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
                 vs = Utils.getUriPostfix(vs);
@@ -292,8 +293,8 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
         String vs = v.stringValue();
         if (prefix != null && vs.startsWith(prefix)) {
             vs = vs.substring(prefix.length());
-        } else if (vs.startsWith("local:")) {
-            vs = vs.replaceFirst("^local:", "");
+        } else if (Utils.isLocalURI(vs)) {
+            vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
         }
         textfield.setModelObject(vs);
         // TODO: This should be done differently, at a different place (can slow down unification):

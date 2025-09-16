@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.knowledgepixels.nanodash.*;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -58,11 +59,6 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.template.ContextType;
@@ -310,7 +306,7 @@ public class PublishForm extends Panel {
                 ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
                 if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
                     for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-                        if (st.getSubject().stringValue().equals("local:nanopub") && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
+                        if (st.getSubject().stringValue().equals(LocalUri.PREFIX + "nanopub") && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
                             if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
                                 piFiller.removeUnusedStatement(st);
                             }

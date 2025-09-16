@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -22,7 +23,7 @@ class ValueFillerTest {
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
 
         Value value = valueFiller.transform(np.getUri());
-        assertEquals(value, iri("local:nanopub"));
+        assertEquals(value.stringValue(), LocalUri.of("nanopub").stringValue());
     }
 
     @Test
@@ -31,7 +32,7 @@ class ValueFillerTest {
         ValueFiller valueFiller = new ValueFiller(np, ContextType.ASSERTION, true);
 
         Value value = valueFiller.transform(np.getAssertionUri());
-        assertEquals(value, iri("local:assertion"));
+        assertEquals(value.stringValue(), LocalUri.of("assertion").stringValue());
     }
 
     @Test

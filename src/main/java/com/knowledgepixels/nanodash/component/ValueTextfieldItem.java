@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -103,7 +104,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         if (v == null) return true;
         String vs = v.stringValue();
         if (v instanceof Literal vL) vs = Utils.getSerializedLiteral(vL);
-        if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+        if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
         Validatable<String> validatable = new Validatable<>(vs);
         if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
             vs = Utils.getUriPostfix(vs);
@@ -126,8 +127,8 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         String vs = v.stringValue();
-        if (vs.startsWith("local:")) {
-            textfield.setModelObject(vs.replaceFirst("^local:", ""));
+        if (Utils.isLocalURI(vs)) {
+            textfield.setModelObject(vs.replaceFirst("^" + LocalUri.PREFIX, ""));
         } else if (v instanceof Literal vL) {
             textfield.setModelObject(Utils.getSerializedLiteral(vL));
         } else {
@@ -166,13 +167,13 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
                 return;
             }
             String p = "";
-            if (s.getValue().matches("[^:# ]+")) p = "local:";
+            if (s.getValue().matches("[^:# ]+")) p = LocalUri.PREFIX;
             try {
                 ParsedIRI piri = new ParsedIRI(p + s.getValue());
                 if (!piri.isAbsolute()) {
                     s.error(new ValidationError("IRI not well-formed"));
                 }
-                if (p.isEmpty() && !s.getValue().startsWith("local:") && !(s.getValue()).matches("https?://.+")) {
+                if (p.isEmpty() && !Utils.isLocalURI(s.getValue()) && !(s.getValue()).matches("https?://.+")) {
                     s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
                 }
             } catch (URISyntaxException ex) {

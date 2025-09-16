@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -242,7 +243,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         if (v == null) return true;
         if (v instanceof IRI) {
             String vs = v.stringValue();
-            if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
             Validatable<String> validatable = new Validatable<>(vs);
             if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
                 vs = Utils.getUriPostfix(vs);
@@ -267,8 +268,8 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         String vs = v.stringValue();
-        if (vs.startsWith("local:")) {
-            vs = vs.replaceFirst("^local:", "");
+        if (Utils.isLocalURI(vs)) {
+            vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
         }
         textfield.setModelObject(vs);
     }

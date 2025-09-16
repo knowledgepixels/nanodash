@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
@@ -185,15 +186,15 @@ public class ValueFiller {
 
     Value transform(Value v) {
         if (fillNp.getUri().equals(v)) {
-            return vf.createIRI("local:nanopub");
+            return vf.createIRI(LocalUri.of("nanopub").stringValue());
 //			return Template.NANOPUB_PLACEHOLDER;
         } else if (fillNp.getAssertionUri().equals(v)) {
-            return vf.createIRI("local:assertion");
+            return vf.createIRI(LocalUri.of("assertion").stringValue());
 //			return Template.ASSERTION_PLACEHOLDER;
         } else if (v instanceof IRI iri && formMode) {
             if (!Utils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
                 if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
-                    return vf.createIRI("local:" + Utils.getUriPostfix(v.stringValue()));
+                    return vf.createIRI(LocalUri.PREFIX + Utils.getUriPostfix(v.stringValue()));
                 }
             }
         }

@@ -712,7 +712,7 @@ class UtilsTest {
     void getUriLinkWithLocalIri() {
         WicketTester tester = new WicketTester();
         String markupId = "uri";
-        String uri = "local:label";
+        String uri = LocalUri.of("label").stringValue();
         ExternalLink el = Utils.getUriLink(markupId, uri);
         assertEquals(markupId, el.getId());
         assertEquals("", el.getDefaultModel().getObject());

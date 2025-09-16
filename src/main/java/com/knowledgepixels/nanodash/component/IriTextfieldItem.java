@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -90,7 +91,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         if (!prefix.isEmpty()) {
             prefixTooltip += "...";
             if (template.isLocalResource(iri)) {
-                prefixTooltip = "local:...";
+                prefixTooltip = LocalUri.PREFIX + "...";
             }
         }
         add(new ExternalLink("prefixtooltiptext", "", prefixTooltip));
@@ -144,7 +145,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         if (v instanceof IRI) {
             String vs = v.stringValue();
             if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-            if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
             if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
                 vs = Utils.urlDecode(vs);
             }
@@ -174,8 +175,8 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         if (!isUnifiableWith(v)) throw new UnificationException(vs);
         if (!prefix.isEmpty() && vs.startsWith(prefix)) {
             vs = vs.substring(prefix.length());
-        } else if (vs.startsWith("local:")) {
-            vs = vs.replaceFirst("^local:", "");
+        } else if (Utils.isLocalURI(vs)) {
+            vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
         } else if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
             vs = Utils.getUriPostfix(vs);
         }
@@ -226,7 +227,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
             }
             String iriString = p + sv;
             if (iriString.matches("[^:# ]+")) {
-                p = "local:";
+                p = LocalUri.PREFIX;
                 iriString = p + sv;
             }
             try {
@@ -234,7 +235,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
                 if (!piri.isAbsolute()) {
                     s.error(new ValidationError("IRI not well-formed"));
                 }
-                if (p.isEmpty() && !sv.startsWith("local:") && !sv.matches("https?://.+")) {
+                if (p.isEmpty() && !Utils.isLocalURI(sv) && !sv.matches("https?://.+")) {
                     s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
                 }
             } catch (URISyntaxException ex) {

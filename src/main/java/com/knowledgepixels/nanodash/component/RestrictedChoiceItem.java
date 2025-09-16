@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
@@ -222,7 +223,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         if (v == null) return true;
         if (v instanceof IRI) {
             String vs = v.stringValue();
-            if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
             if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
                 return false;
             }
@@ -241,7 +242,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         String vs = v.stringValue();
-        if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+        if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
         if (!isUnifiableWith(v)) throw new UnificationException(vs);
         choice.setModelObject(vs);
     }

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -81,19 +82,19 @@ public class IriItem extends Panel implements ContextComponent {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
             } else {
-                iriString = "local:assertion";
+                iriString = LocalUri.PREFIX + "assertion";
             }
             description = "This is the identifier for the assertion of this nanopublication.";
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
             } else {
-                iriString = "local:nanopub";
+                iriString = LocalUri.PREFIX + "nanopub";
             }
             description = "This is the identifier for this whole nanopublication.";
         } else if (template.isLocalResource(iri)) {
             if (rg.getContext().getExistingNanopub() == null) {
-                iriString = iriString.replace(Utils.getUriPrefix(iriString), "local:");
+                iriString = iriString.replace(Utils.getUriPrefix(iriString), LocalUri.PREFIX);
             }
         }
         if (iriString.startsWith(context.getTemplateId())) {
@@ -108,7 +109,7 @@ public class IriItem extends Panel implements ContextComponent {
         add(Utils.getUriLink("uri", iriString));
 
         String href = null;
-        if (iriString.startsWith("local:")) {
+        if (Utils.isLocalURI(iriString)) {
             href = "";
         } else {
             href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, UTF_8);
@@ -116,10 +117,10 @@ public class IriItem extends Panel implements ContextComponent {
         ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-assertion "));
-            iri = vf.createIRI("local:assertion");
+            iri = vf.createIRI(LocalUri.PREFIX + "assertion");
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-nanopub "));
-            iri = vf.createIRI("local:nanopub");
+            iri = vf.createIRI(LocalUri.PREFIX + "nanopub");
         }
         add(linkComp);
         if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
@@ -169,9 +170,9 @@ public class IriItem extends Panel implements ContextComponent {
     public boolean isUnifiableWith(Value v) {
         if (!(v instanceof IRI)) return false;
         // TODO: Check that template URIs don't have regex characters:
-        String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", "local:");
+        String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", LocalUri.PREFIX);
         if (context.isReadOnly()) {
-            return iriS.equals(v.stringValue().replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", "local:"));
+            return iriS.equals(v.stringValue().replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", LocalUri.PREFIX));
         } else {
             return iriS.equals(v.stringValue());
         }

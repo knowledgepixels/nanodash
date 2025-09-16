@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -130,14 +131,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             public String getObject() {
                 String obj = getFullValue();
                 if (obj == null) return "";
-                if (obj.equals("local:nanopub")) {
+                if (obj.equals(LocalUri.PREFIX + "nanopub")) {
                     if (context.getExistingNanopub() != null) {
                         obj = context.getExistingNanopub().getUri().stringValue();
                         return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
                     } else {
                         return "";
                     }
-                } else if (obj.equals("local:assertion")) {
+                } else if (obj.equals(LocalUri.PREFIX + "assertion")) {
                     if (context.getExistingNanopub() != null) {
                         obj = context.getExistingNanopub().getAssertionUri().stringValue();
                         return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
@@ -317,7 +318,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     private boolean isNanopubValue(Object obj) {
         if (obj == null) return false;
-        if (obj.toString().equals("local:nanopub")) return true;
+        if (obj.toString().equals(LocalUri.PREFIX + "nanopub")) return true;
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getUri().stringValue());
     }
@@ -326,13 +327,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (context.getExistingNanopub() != null) {
             return context.getExistingNanopub().getUri().stringValue();
         } else {
-            return "local:nanopub";
+            return LocalUri.PREFIX + "nanopub";
         }
     }
 
     private boolean isAssertionValue(Object obj) {
         if (obj == null) return false;
-        if (obj.toString().equals("local:assertion")) return true;
+        if (obj.toString().equals(LocalUri.PREFIX + "assertion")) return true;
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getAssertionUri().stringValue());
     }
@@ -341,7 +342,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (context.getExistingNanopub() != null) {
             return context.getExistingNanopub().getAssertionUri().stringValue();
         } else {
-            return "local:assertion";
+            return LocalUri.PREFIX + "assertion";
         }
     }
 
@@ -353,13 +354,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (v == null) return true;
         if (v instanceof IRI) {
             String vs = v.stringValue();
-            if (vs.equals("local:nanopub")) {
+            if (vs.equals(LocalUri.PREFIX + "nanopub")) {
                 vs = getNanopubValue();
-            } else if (vs.equals("local:assertion")) {
+            } else if (vs.equals(LocalUri.PREFIX + "assertion")) {
                 vs = getAssertionValue();
             }
             if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-//			if (vs.startsWith("local:")) vs = vs.replaceFirst("^local:", "");
+//			if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
             if (template.isAutoEscapePlaceholder(iri)) {
                 vs = Utils.urlDecode(vs);
             }
@@ -410,16 +411,16 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             throw new UnificationException(vs);
         }
         if (v instanceof IRI) {
-            if (vs.equals("local:nanopub")) {
+            if (vs.equals(LocalUri.PREFIX + "nanopub")) {
                 vs = getNanopubValue();
-            } else if (vs.equals("local:assertion")) {
+            } else if (vs.equals(LocalUri.PREFIX + "assertion")) {
                 vs = getAssertionValue();
             }
             if (!prefix.isEmpty() && vs.startsWith(prefix)) {
                 vs = vs.substring(prefix.length());
                 // With read-only items, we don't need preliminary local identifiers:
-//			} else if (vs.startsWith("local:")) {
-//				vs = vs.replaceFirst("^local:", "");
+//			} else if (Utils.isLocalURI(vs)) {
+//				vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
 //			} else if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
 //				vs = Utils.getUriPostfix(vs);
             }
@@ -479,7 +480,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
             String iriString = p + sv;
             if (iriString.matches("[^:# ]+")) {
-                p = "local:";
+                p = LocalUri.PREFIX;
                 iriString = p + sv;
             }
             try {
@@ -487,7 +488,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 if (!piri.isAbsolute()) {
                     s.error(new ValidationError("IRI not well-formed"));
                 }
-                if (p.isEmpty() && !sv.startsWith("local:") && !sv.matches("https?://.+")) {
+                if (p.isEmpty() && !Utils.isLocalURI(sv) && !sv.matches("https?://.+")) {
                     s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
                 }
             } catch (URISyntaxException ex) {
