@@ -1777,7 +1777,7 @@ div.paneltitlerow span.buttons {
 .nanopub-item {
   border-top: 1px solid #ccc;
   padding: 0;
-  
+
 }
 
 .flex-container .nanopub-item {
@@ -1829,4 +1829,18 @@ div.paneltitlerow span.buttons {
   border-top: 1px solid #ccc;
   padding: 0;
   margin: 0;
+}
+
+.ui-datepicker {
+  background: white;
+  border: 1px solid #000;
+}
+
+.ui-datepicker-header a {
+  cursor: pointer;
+}
+
+.ui-datepicker-next {
+  position: absolute;
+  right: 0;
 }

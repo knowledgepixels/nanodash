@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.googlecode.wicket.jquery.ui.form.datepicker.AjaxDatePicker;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
@@ -8,10 +9,12 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -21,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.Instant.parse;
 
 /**
  * A page that shows a list of nanopublications filtered by type, public key, and time range.
@@ -57,6 +62,9 @@ public class ListPage extends NanodashPage {
     public ListPage(final PageParameters parameters) {
         super(parameters);
         logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
+
+        WebMarkupContainer dateFilterContainer = new WebMarkupContainer("dateFilterContainer");
+
 
         add(new AjaxLink<>("listEnabler") {
             private static final long serialVersionUID = 1L;
@@ -121,13 +129,52 @@ public class ListPage extends NanodashPage {
             pubKeys.addAll(Arrays.stream(parameters.get("pubkeys").toString().split(" ")).toList());
         }
 
+        Model<Date> startDateModel = Model.of((Date) null);
+        Model<Date> endDateModel = Model.of((Date) null);
+
         if (!parameters.get("starttime").isNull() && !parameters.get("starttime").isEmpty()) {
             startTime = parameters.get("starttime").toString();
+            startDateModel = Model.of(Date.from(parse(startTime)));
         }
 
         if (!parameters.get("endtime").isNull() && !parameters.get("endtime").isEmpty()) {
             endTime = parameters.get("endtime").toString();
+            endDateModel = Model.of(Date.from(parse(endTime)));
         }
+
+        AjaxDatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel) {
+            @Override
+            public void onValueChanged(IPartialPageRequestHandler handler) {
+                super.onValueChanged(handler);
+                Date selectedDate = getModelObject();
+                if (selectedDate == null) {
+                    parameters.remove("starttime");
+                } else {
+                    parameters.set("starttime", selectedDate.toInstant().toString());
+                }
+                setResponsePage(ListPage.class, parameters);
+                logger.info("Selected start date: {}", selectedDate);
+            }
+        };
+
+        AjaxDatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
+            @Override
+            public void onValueChanged(IPartialPageRequestHandler handler) {
+                super.onValueChanged(handler);
+                Date selectedDate = getModelObject();
+                if (selectedDate == null) {
+                    parameters.remove("endtime");
+                } else {
+                    parameters.set("endtime", selectedDate.toInstant().toString());
+                }
+                setResponsePage(ListPage.class, parameters);
+                logger.info("Selected end date: {}", selectedDate);
+            }
+        };
+
+        dateFilterContainer.add(startDatePicker);
+        dateFilterContainer.add(endDatePicker);
+        add(dateFilterContainer);
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
