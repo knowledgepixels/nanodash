@@ -39,8 +39,11 @@ import com.knowledgepixels.nanodash.page.QueryPage;
  */
 public class QueryResultTable extends Panel {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(QueryResultTable.class);
+
+    private Model<String> errorMessages = Model.of("");
+    private DataTable<ApiResponseEntry, String> table;
+    private Label errorLabel;
 
     private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain) {
         super(id);
@@ -53,6 +56,10 @@ public class QueryResultTable extends Panel {
             add(new BookmarkablePageLink<Void>("morelink", QueryPage.class, new PageParameters().add("id", q.getNanopub().getUri())));
         }
 
+        errorLabel = new Label("error-messages", errorMessages);
+        errorLabel.setVisible(false);
+        add(errorLabel);
+
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         DataProvider dp;
         try {
@@ -61,7 +68,7 @@ public class QueryResultTable extends Panel {
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             dp = new DataProvider(response.getData());
-            DataTable<ApiResponseEntry, String> table = new DataTable<>("table", columns, dp, 20);
+            table = new DataTable<>("table", columns, dp, 20);
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
@@ -70,13 +77,24 @@ public class QueryResultTable extends Panel {
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", q.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
+            addErrorMessage(ex.getMessage());
         }
+    }
+
+    private void addErrorMessage(String errorMessage) {
+        String s = errorMessages.getObject();
+        if (s.isEmpty()) {
+            s = "Errors: " + errorMessage;
+        } else {
+            s += ", " + errorMessage;
+        }
+        errorMessages.setObject(s);
+        errorLabel.setVisible(true);
+        if (table != null) table.setVisible(false);
     }
 
 
     private class Column extends AbstractColumn<ApiResponseEntry, String> {
-
-        private static final long serialVersionUID = 1L;
 
         private String key;
 
@@ -87,22 +105,28 @@ public class QueryResultTable extends Panel {
 
         @Override
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
-            String value = rowModel.getObject().get(key);
-            if (value.matches("https?://.+ .+")) {
-                List<Component> links = new ArrayList<>();
-                for (String v : value.split(" ")) {
-                    links.add(new NanodashLink("component", v));
-                }
-                cellItem.add(new ComponentSequence(componentId, ", ", links));
-            } else if (value.matches("https?://.+")) {
-                String label = rowModel.getObject().get(key + "_label");
-                cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
-            } else {
-                if (key.startsWith("pubkey")) {
-                    cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
+            try {
+                String value = rowModel.getObject().get(key);
+                if (value.matches("https?://.+ .+")) {
+                    List<Component> links = new ArrayList<>();
+                    for (String v : value.split(" ")) {
+                        links.add(new NanodashLink("component", v));
+                    }
+                    cellItem.add(new ComponentSequence(componentId, ", ", links));
+                } else if (value.matches("https?://.+")) {
+                    String label = rowModel.getObject().get(key + "_label");
+                    cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
                 } else {
-                    cellItem.add(new Label(componentId, value));
+                    if (key.startsWith("pubkey")) {
+                        cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
+                    } else {
+                        cellItem.add(new Label(componentId, value));
+                    }
                 }
+            } catch (Exception ex) {
+                logger.error("Failed to populate table column: ", ex);
+                cellItem.add(new Label(componentId).setVisible(false));
+                addErrorMessage(ex.getMessage());
             }
         }
 
@@ -110,8 +134,6 @@ public class QueryResultTable extends Panel {
 
 
     private class DataProvider implements ISortableDataProvider<ApiResponseEntry, String> {
-
-        private static final long serialVersionUID = 1L;
 
         private List<ApiResponseEntry> data = new ArrayList<>();
         private SingleSortState<String> sortState = new SingleSortState<>();
