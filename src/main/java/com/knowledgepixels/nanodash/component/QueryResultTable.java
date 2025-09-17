@@ -84,7 +84,7 @@ public class QueryResultTable extends Panel {
     private void addErrorMessage(String errorMessage) {
         String s = errorMessages.getObject();
         if (s.isEmpty()) {
-            s = "Errors: " + errorMessage;
+            s = "Error: " + errorMessage;
         } else {
             s += ", " + errorMessage;
         }
