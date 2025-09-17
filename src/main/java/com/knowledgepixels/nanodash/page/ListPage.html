@@ -11,34 +11,27 @@
 </head>
 
 <body>
-
 <div wicket:id="titlebar"></div>
-
 <div id="content-pane">
-
   <div class="row-section">
     <div class="col-12">
-
       <h2>Nanopublications</h2>
-      <p>Filtering by type:
-        <wicket:container wicket:id="typeUris">
-          <span>
-            <a wicket:id="typeLink"></a>
-            <span wicket:id="removeType" class="remove-x" style="cursor:pointer;margin-left:4px;">×</span>
+      <div wicket:id="typeFilterContainer">
+        <span>Filtering by type:</span>
+        <wicket:container wicket:id="typeNames">
+          <span class="typetag">
+            <span wicket:id="typeName"></span>
+            <span wicket:id="removeType"><span wicket:id="crossIcon" style="cursor: pointer"></span></span>
           </span>
         </wicket:container>
-      </p>
+      </div>
       <div class="view-selector">
         <span wicket:id="listEnabler" class="list"></span>
         <span wicket:id="gridEnabler" class="grid"></span>
       </div>
       <div class="flex-container" wicket:id="nanopubs"></div>
-
     </div>
   </div>
-
 </div>
-
 </body>
-
 </html>

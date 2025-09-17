@@ -11,10 +11,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -51,7 +48,6 @@ public class ListPage extends NanodashPage {
     private final List<String> pubKeys = new ArrayList<>();
     private String startTime = "";
     private String endTime = "";
-    private TextField<String> typeField;
 
     /**
      * Constructor for ListPage.
@@ -82,14 +78,44 @@ public class ListPage extends NanodashPage {
             }
         });
 
-        // TODO the query works with multiple types, but the UI does not yet support that so we just assume one type is mandatory and we show the first one only for now
-        if (parameters.get("types").isNull() || parameters.get("types").isEmpty()) {
-            throw new RedirectToUrlException(HomePage.MOUNT_PATH);
-        } else {
-            Arrays.stream(parameters.get("types").toString().split(" "))
-                    .toList()
-                    .forEach(type -> types.add(Values.iri(type)));
+        if (!parameters.get("types").isNull() && !parameters.get("types").isEmpty()) {
+            Arrays.stream(parameters.get("types").toString().split(" ")).toList().forEach(type -> types.add(Values.iri(type)));
         }
+
+        WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
+        RepeatingView filteredTypes = new RepeatingView("typeNames");
+        for (IRI type : types) {
+            WebMarkupContainer typeContainer = new WebMarkupContainer(filteredTypes.newChildId());
+            typeContainer.add(new Label("typeName", type.getLocalName()));
+            typeContainer.add(new AjaxLink<Void>("removeType") {
+                @Override
+                protected void onInitialize() {
+                    super.onInitialize();
+                    add(new Label("crossIcon", "×"));
+                }
+
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    List<IRI> updatedTypes = types.stream()
+                            .filter(t -> !t.equals(type))
+                            .toList();
+                    if (!updatedTypes.isEmpty()) {
+                        parameters.set("types", updatedTypes.stream()
+                                .map(IRI::stringValue)
+                                .collect(Collectors.joining(" ")));
+                    } else {
+                        parameters.remove("types");
+                    }
+                    setResponsePage(ListPage.class, parameters);
+                }
+            });
+
+            filteredTypes.add(typeContainer);
+            filteredTypes.setVisible(!types.isEmpty());
+        }
+        add(typeFilterContainer);
+        typeFilterContainer.setVisible(!types.isEmpty());
+        typeFilterContainer.add(filteredTypes);
 
         if (!parameters.get("pubkeys").isNull() && !parameters.get("pubkeys").isEmpty()) {
             pubKeys.addAll(Arrays.stream(parameters.get("pubkeys").toString().split(" ")).toList());
@@ -105,15 +131,6 @@ public class ListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
-
-        RepeatingView typeLinks = new RepeatingView("typeUris");
-        for (IRI type : types) {
-            WebMarkupContainer typeContainer = new WebMarkupContainer(typeLinks.newChildId());
-            typeContainer.add(new ExternalLink("typeLink", type.stringValue(), type.getLocalName()));
-            typeContainer.add(new Label("removeType", "×"));
-            typeLinks.add(typeContainer);
-        }
-        add(typeLinks);
 
         refresh();
     }
