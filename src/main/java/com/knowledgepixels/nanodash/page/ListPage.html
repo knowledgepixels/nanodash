@@ -16,19 +16,27 @@
   <div class="row-section">
     <div class="col-12">
       <h2>Nanopublications</h2>
-      <div wicket:id="typeFilterContainer">
-        <span>Filtering by type:</span>
-        <wicket:container wicket:id="typeNames">
+      <div class="filter-section">
+        <div class="filter-container type-filter" wicket:id="typeFilterContainer">
+          <span class="filter-section-title">Type:</span>
+          <wicket:container class="type-chip" wicket:id="typeNames">
           <span class="typetag">
             <span wicket:id="typeName"></span>
             <span wicket:id="removeType"><span wicket:id="crossIcon" style="cursor: pointer"></span></span>
           </span>
-        </wicket:container>
-      </div>
-      <div wicket:id="dateFilterContainer">
-        <span>Filtering by date:</span>
-        From <input wicket:id="startDate" type="text"/>
-        To <input wicket:id="endDate" type="text"/>
+          </wicket:container>
+        </div>
+        <div class="filter-container date-filter" wicket:id="dateFilterContainer">
+          <span class="filter-section-title">Date:</span>
+          <div class="date-container">
+            <span class="date-label">From</span><input wicket:id="startDate" type="text"/>
+            <a wicket:id="clearStartDate" class="clear-cross">&#10005;</a>
+          </div>
+          <div class="date-container">
+            <span class="date-label">To</span><input wicket:id="endDate" type="text"/>
+            <a wicket:id="clearEndDate" class="clear-cross">&#10005;</a>
+          </div>
+        </div>
       </div>
       <div class="view-selector">
         <span wicket:id="listEnabler" class="list"></span>

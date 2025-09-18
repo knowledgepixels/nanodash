@@ -1844,3 +1844,66 @@ div.paneltitlerow span.buttons {
   position: absolute;
   right: 0;
 }
+
+.date-container {
+  display: inline-block;
+  position: relative;
+}
+
+.clear-cross {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+  text-decoration: none;
+  z-index: 2;
+}
+
+.filter-section {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.filter-container {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  margin-top: 32px;
+  padding: 20px;
+}
+
+.date-filter {
+  align-items: center;
+}
+
+.date-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-right: 4px;
+}
+
+.type-chip {
+  background: #e0e7ff;
+  color: #1e293b;
+  border-radius: 16px;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.filter-section-title {
+  position: absolute;
+  top: 0;
+  left: 32px;
+  transform: translateY(-50%);
+  background: #fff;
+  padding: 0 16px;
+}
