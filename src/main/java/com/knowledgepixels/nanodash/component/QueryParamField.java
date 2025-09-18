@@ -93,14 +93,22 @@ public class QueryParamField extends Panel {
     }
 
     /**
-     * Checks if the parameter is an IRI (ends with "_iri").
+     * Checks if the parameter is an IRI parameter (ends with "_iri").
      *
-     * @return true if the parameter is an IRI, false otherwise
+     * @return true if the parameter is an IRI parameter, false otherwise
      */
     public boolean isIri() {
         return paramId.endsWith("_iri");
     }
 
+    /**
+     * Checks if the parameter is a multi parameter (ends with "_multi" or "_multi_iri").
+     *
+     * @return true if the parameter is a multi parameter, false otherwise
+     */
+    public static boolean isMultiPlaceholder(String placeholder) {
+        return placeholder.endsWith("_multi") || placeholder.endsWith("_multi_iri");
+    }
 
     private class Validator extends InvalidityHighlighting implements INullAcceptingValidator<String> {
 
@@ -142,11 +150,11 @@ public class QueryParamField extends Panel {
     /**
      * Extracts the parameter name from the placeholder ID.
      *
-     * @param placeholderId the placeholder ID, which may start with underscores and end with "_iri"
-     * @return the parameter name, stripped of leading underscores and "_iri" suffix
+     * @param placeholderId the placeholder ID, which may start with underscores and end with "_iri" and/or "_multi"
+     * @return the parameter name, stripped of leading underscores and "_iri"/"_multi" suffixes
      */
     public static String getParamName(String placeholderId) {
-        return placeholderId.replaceFirst("^_+", "").replaceFirst("_iri$", "");
+        return placeholderId.replaceFirst("^_+", "").replaceFirst("_iri$", "").replaceFirst("_multi$", "");
     }
 
 }
