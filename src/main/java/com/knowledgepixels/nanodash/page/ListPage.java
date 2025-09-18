@@ -4,6 +4,7 @@ import com.googlecode.wicket.jquery.ui.form.datepicker.AjaxDatePicker;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +65,6 @@ public class ListPage extends NanodashPage {
         logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
 
         WebMarkupContainer dateFilterContainer = new WebMarkupContainer("dateFilterContainer");
-
 
         add(new AjaxLink<>("listEnabler") {
             private static final long serialVersionUID = 1L;
@@ -139,7 +139,7 @@ public class ListPage extends NanodashPage {
 
         if (!parameters.get("endtime").isNull() && !parameters.get("endtime").isEmpty()) {
             endTime = parameters.get("endtime").toString();
-            endDateModel = Model.of(Date.from(parse(endTime)));
+            endDateModel = Model.of(Date.from(parse(NanopubItem.simpleDateFormat.format(Date.from(parse(endTime))))));
         }
 
         AjaxDatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel) {
@@ -147,35 +147,82 @@ public class ListPage extends NanodashPage {
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
                 Date selectedDate = getModelObject();
-                if (selectedDate == null) {
-                    parameters.remove("starttime");
-                } else {
-                    parameters.set("starttime", selectedDate.toInstant().toString());
+                if (selectedDate.after(new Date())) {
+                    handler.appendJavaScript("alert('Start date cannot be in the future.');");
+                    selectedDate = null;
+                } else if (!endTime.isEmpty() && selectedDate.after(Date.from(parse(endTime)))) {
+                    handler.appendJavaScript("alert('Start date cannot be after end date.');");
+                    selectedDate = null;
                 }
-                setResponsePage(ListPage.class, parameters);
-                logger.info("Selected start date: {}", selectedDate);
+                if (selectedDate != null) {
+                    parameters.set("starttime", selectedDate.toInstant().toString());
+                    logger.info("Selected start date: {}", selectedDate);
+                    setResponsePage(ListPage.class, parameters);
+                } else {
+                    this.setModelObject(null);
+                    handler.add(this);
+                }
             }
         };
+
+        WebMarkupContainer clearStartDate = new AjaxLink<Void>("clearStartDate") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                startDatePicker.setModelObject(null);
+                parameters.remove("starttime");
+                setResponsePage(ListPage.class, parameters);
+            }
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(startDatePicker.getModelObject() != null);
+            }
+        };
+        clearStartDate.add(new Label("crossIcon", "×"));
+        dateFilterContainer.add(clearStartDate);
 
         AjaxDatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
                 Date selectedDate = getModelObject();
-                if (selectedDate == null) {
-                    parameters.remove("endtime");
-                } else {
-                    parameters.set("endtime", selectedDate.toInstant().toString());
+                if (!startTime.isEmpty() && selectedDate.before(Date.from(parse(startTime)))) {
+                    handler.appendJavaScript("alert('End date cannot be before start date.');");
+                    selectedDate = null;
                 }
-                setResponsePage(ListPage.class, parameters);
-                logger.info("Selected end date: {}", selectedDate);
+                if (selectedDate != null) {
+                    parameters.set("endtime", selectedDate.toInstant().toString());
+                    logger.info("Selected end date: {}", selectedDate);
+                    setResponsePage(ListPage.class, parameters);
+                } else {
+                    this.setModelObject(null);
+                    handler.add(this);
+                }
             }
         };
 
+        WebMarkupContainer clearEndDate = new AjaxLink<Void>("clearEndDate") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                endDatePicker.setModelObject(null);
+                parameters.remove("endtime");
+                setResponsePage(ListPage.class, parameters);
+            }
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(endDatePicker.getModelObject() != null);
+            }
+        };
+        clearEndDate.add(new Label("crossIcon", "×"));
+        dateFilterContainer.add(clearEndDate);
+
         dateFilterContainer.add(startDatePicker);
         dateFilterContainer.add(endDatePicker);
-        add(dateFilterContainer);
 
+        add(dateFilterContainer);
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
 
