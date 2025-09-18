@@ -18,8 +18,6 @@ import org.nanopub.vocabulary.NTEMPLATE;
  */
 public class ValueItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
-
     private ContextComponent component;
     private Value value;
 
@@ -77,8 +75,6 @@ public class ValueItem extends Panel implements ContextComponent {
      * OnChangeAjaxBehavior that keeps the value after a refresh.
      */
     public static class KeepValueAfterRefreshBehavior extends OnChangeAjaxBehavior {
-
-        private static final long serialVersionUID = 1L;
 
         @Override
         protected void onUpdate(AjaxRequestTarget target) {

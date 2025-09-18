@@ -17,8 +17,6 @@ import java.util.List;
  */
 public class StatusLine extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Creates a new StatusLine component.
      *
@@ -29,8 +27,6 @@ public class StatusLine extends Panel {
     public static Component createComponent(String markupId, String npId) {
         // TODO Use the query cache here but with quicker refresh interval?
         ApiResultComponent c = new ApiResultComponent("statusline", "get-newer-versions-of-np", "np", npId) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public Component getApiResultComponent(String markupId, ApiResponse response) {

@@ -11,8 +11,6 @@ import org.nanopub.Nanopub;
  */
 public class ViewPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */

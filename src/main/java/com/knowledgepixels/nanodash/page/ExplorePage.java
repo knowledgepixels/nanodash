@@ -29,7 +29,6 @@ import java.util.Map;
  */
 public class ExplorePage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(ExplorePage.class);
 
     /**

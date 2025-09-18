@@ -7,8 +7,6 @@ import org.apache.wicket.markup.html.panel.Panel;
  */
 public class StatementPartItem extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private final ValueItem subjItem, predItem, objItem;
 
     /**

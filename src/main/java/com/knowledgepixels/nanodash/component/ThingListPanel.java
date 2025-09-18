@@ -15,8 +15,6 @@ import com.knowledgepixels.nanodash.template.TemplateData;
  */
 public class ThingListPanel extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructor for the ThingListPanel.
      *
@@ -69,8 +67,6 @@ public class ThingListPanel extends Panel {
             return new ThingListPanel(markupId, mode, thingRef, response);
         } else {
             ApiResultComponent c = new ApiResultComponent(markupId, mode.queryName, mode.queryParam, thingRef) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

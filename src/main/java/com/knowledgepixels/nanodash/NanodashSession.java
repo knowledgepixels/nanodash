@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class NanodashSession extends WebSession {
 
-    private static final long serialVersionUID = -7920814788717089213L;
     private transient HttpSession httpSession;
     private static final Logger logger = LoggerFactory.getLogger(NanodashSession.class);
 

@@ -35,7 +35,6 @@ import java.util.List;
  */
 public class GenOverviewPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(GenOverviewPage.class);
 
     /**
@@ -109,8 +108,6 @@ public class GenOverviewPage extends ConnectorPage {
 
                 c.add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(listData)) {
 
-                    private static final long serialVersionUID = 1L;
-
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
@@ -126,8 +123,6 @@ public class GenOverviewPage extends ConnectorPage {
                 });
 
                 c.add(new AjaxLink<>("allowncandidates") {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -185,8 +180,6 @@ public class GenOverviewPage extends ConnectorPage {
 
             c.add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(listData)) {
 
-                private static final long serialVersionUID = 1L;
-
                 @Override
                 protected void populateItem(Item<ApiResponseEntry> item) {
                     ApiResponseEntry e = item.getModelObject();
@@ -202,8 +195,6 @@ public class GenOverviewPage extends ConnectorPage {
             });
 
             c.add(new AjaxLink<>("allcandidates") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -251,8 +242,6 @@ public class GenOverviewPage extends ConnectorPage {
 
                 c.add(new DataView<ApiResponseEntry>("accepted", new ListDataProvider<ApiResponseEntry>(listData)) {
 
-                    private static final long serialVersionUID = 1L;
-
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
@@ -282,8 +271,6 @@ public class GenOverviewPage extends ConnectorPage {
                 });
 
                 c.add(new AjaxLink<>("allaccepted") {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -332,8 +319,6 @@ public class GenOverviewPage extends ConnectorPage {
 
                 c.add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(listData)) {
 
-                    private static final long serialVersionUID = 1L;
-
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
@@ -349,8 +334,6 @@ public class GenOverviewPage extends ConnectorPage {
                 });
 
                 c.add(new AjaxLink<>("allreactions") {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {

@@ -26,8 +26,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
  */
 public class HomePage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -83,8 +81,6 @@ public class HomePage extends NanodashPage {
             add(NanopubResults.fromApiResponse("mostrecent", rResponse));
         } else {
             add(new ApiResultComponent("mostrecent", rQueryRef) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

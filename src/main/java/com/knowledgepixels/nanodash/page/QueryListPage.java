@@ -17,8 +17,6 @@ import org.nanopub.extra.services.ApiResponse;
  */
 public class QueryListPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -48,8 +46,6 @@ public class QueryListPage extends NanodashPage {
 
         Form<?> form = new Form<Void>("form") {
 
-            private static final long serialVersionUID = 1L;
-
             protected void onSubmit() {
                 String searchText = searchField.getModelObject().trim();
                 PageParameters params = new PageParameters();
@@ -68,8 +64,6 @@ public class QueryListPage extends NanodashPage {
             add(new QueryList("queries", qResponse));
         } else {
             add(new ApiResultComponent("queries", queryRef) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

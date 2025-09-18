@@ -21,8 +21,6 @@ import java.util.Random;
  */
 public class GenPublishPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Mount path for this page.
      */

@@ -12,8 +12,6 @@ import java.util.Map;
  */
 public abstract class ConnectorPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     private String connectorId;
     private ConnectorConfig config;
 

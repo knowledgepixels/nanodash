@@ -179,7 +179,6 @@ public class QueryResultTable extends Panel {
 
 //    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
 //
-//        private static final long serialVersionUID = 1L;
 //        private SortParam<String> sortParam;
 //
 //        public ApiResponseComparator(SortParam<String> sortParam) {
@@ -233,8 +232,6 @@ public class QueryResultTable extends Panel {
             return new QueryResultTable(markupId, q, response, plain);
         } else {
             return new ApiResultComponent(markupId, queryId, params) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

@@ -34,8 +34,6 @@ import com.knowledgepixels.nanodash.template.Template;
  */
 public class ProjectPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -98,8 +96,6 @@ public class ProjectPage extends NanodashPage {
         }
         add(new DataView<Pair<String, List<Template>>>("template-lists", new ListDataProvider<>(templateLists)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Pair<String, List<Template>>> item) {
                 item.add(new ItemListPanel<Template>(
@@ -139,8 +135,6 @@ public class ProjectPage extends NanodashPage {
             ));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<IRI> item) {

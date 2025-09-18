@@ -22,8 +22,6 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
  */
 public class ThingResults extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Creates a new ThingResults panel.
      *
@@ -36,8 +34,6 @@ public class ThingResults extends Panel {
         List<ApiResponseEntry> list = apiResponse.getData();
         ThingResults r = new ThingResults(id);
         DataView<ApiResponseEntry> dataView = new DataView<>("things", new ListDataProvider<ApiResponseEntry>(list)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {

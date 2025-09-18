@@ -17,8 +17,6 @@ import java.util.*;
  */
 public class RestrictedChoice implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private IRI placeholderIri;
 
     private TemplateContext context;

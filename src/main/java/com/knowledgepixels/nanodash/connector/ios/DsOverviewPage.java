@@ -9,8 +9,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class DsOverviewPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Mount path for the iOS Data Source connector overview page.
      */

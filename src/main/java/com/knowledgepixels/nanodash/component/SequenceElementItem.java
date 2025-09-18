@@ -16,8 +16,6 @@ import org.eclipse.rdf4j.model.Value;
  */
 public class SequenceElementItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Prefix for sequence element properties in RDF.
      */

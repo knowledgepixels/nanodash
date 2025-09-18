@@ -14,8 +14,6 @@ import java.util.List;
  */
 public class ComponentSequence extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructs a ComponentSequence with the given ID, separator, and list of components.
      *
@@ -27,7 +25,6 @@ public class ComponentSequence extends Panel {
         super(id);
         add(new ListView<Component>("components", components) {
 
-            private static final long serialVersionUID = 1L;
             private boolean isFirst = true;
 
             @Override

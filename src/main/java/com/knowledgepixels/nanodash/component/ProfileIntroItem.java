@@ -32,8 +32,6 @@ import static com.knowledgepixels.nanodash.Utils.urlEncode;
  */
 public class ProfileIntroItem extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private NanodashSession session = NanodashSession.get();
     private NanodashPreferences prefs = NanodashPreferences.get();
     private int recommendedActionsCount = 0;
@@ -140,8 +138,6 @@ public class ProfileIntroItem extends Panel {
 
         add(new DataView<IntroNanopub>("intro-nps", new ListDataProvider<IntroNanopub>(session.getUserIntroNanopubs())) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<IntroNanopub> item) {
                 final IntroNanopub inp = item.getModelObject();
@@ -200,8 +196,6 @@ public class ProfileIntroItem extends Panel {
                 }
 
                 item.add(new DataView<>("intro-keys", new ListDataProvider<>(inp.getKeyDeclarations())) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(Item<KeyDeclaration> kdi) {

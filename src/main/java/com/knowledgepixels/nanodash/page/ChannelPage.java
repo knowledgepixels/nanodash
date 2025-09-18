@@ -31,7 +31,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class ChannelPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(ChannelPage.class);
 
     /**
@@ -92,8 +91,6 @@ public class ChannelPage extends NanodashPage {
         pubkeySelection.setDefaultModelObject(new ArrayList<String>(pubKeyList));
         pubkeySelection.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
-            private static final long serialVersionUID = -6398658082085108029L;
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 logger.info("PUBKEYS SELECTED:");
@@ -145,8 +142,6 @@ public class ChannelPage extends NanodashPage {
             add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
         } else {
             add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {

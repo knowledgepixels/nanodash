@@ -49,7 +49,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
-    private static final long serialVersionUID = 1L;
     private static final int LONG_LITERAL_LENGTH = 100;
     private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
@@ -104,8 +103,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
         add(new Label("prefix", new Model<String>() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             public String getObject() {
                 String prefixLabel = template.getPrefixLabel(iri);
@@ -124,8 +121,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }));
 
         linkComp = new ExternalLink("link", new Model<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -155,8 +150,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             }
 
         }, new Model<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -194,8 +187,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         add(linkComp);
         add(new Label("description", new Model<String>() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             public String getObject() {
                 String obj = getFullValue();
@@ -220,8 +211,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
         }));
         Model<String> uriModel = new Model<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -457,8 +446,6 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     }
 
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        private static final long serialVersionUID = 1L;
 
         /**
          * Default constructor for Validator.

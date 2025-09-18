@@ -29,8 +29,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class IriItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
-
     private IRI iri;
     private TemplateContext context;
 

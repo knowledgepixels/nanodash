@@ -31,8 +31,6 @@ import java.util.*;
  */
 public class NanopubItem extends Panel {
 
-    private static final long serialVersionUID = -5109507637942030910L;
-
     /**
      * Date format for displaying the creation date and time of the nanopub.
      */
@@ -120,8 +118,6 @@ public class NanopubItem extends Panel {
                 header.add(new Label("action-menu", "").setVisible(false));
             }
             header.add(new DataView<IRI>("typespan", new ListDataProvider<IRI>(Utils.getTypes(n.getNanopub()))) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<IRI> item) {
@@ -235,8 +231,6 @@ public class NanopubItem extends Panel {
             assertion.add(createStatementView("assertion-statements", assertionStatements));
             assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
 
-                private static final long serialVersionUID = 1L;
-
                 @Override
                 protected void populateItem(Item<Statement> item) {
                     item.add(new TripleItem("unused-assertion-statement", item.getModelObject(), n.getNanopub(), null));
@@ -259,8 +253,6 @@ public class NanopubItem extends Panel {
             populateStatementItemList(prContext, provenanceFiller, provenanceStatements);
             provenance.add(createStatementView("provenance-statements", provenanceStatements));
             provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<Statement> item) {
@@ -329,8 +321,6 @@ public class NanopubItem extends Panel {
                 }
             }
             pubInfo.add(new DataView<WebMarkupContainer>("pubinfo-elements", new ListDataProvider<WebMarkupContainer>(elements)) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<WebMarkupContainer> item) {
@@ -499,8 +489,6 @@ public class NanopubItem extends Panel {
 
     private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {
         return new DataView<StatementItem>(elementId, new ListDataProvider<StatementItem>(list)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<StatementItem> item) {

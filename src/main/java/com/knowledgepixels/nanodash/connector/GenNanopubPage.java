@@ -36,7 +36,6 @@ import java.util.Map;
  */
 public class GenNanopubPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(GenNanopubPage.class);
 
     /**
@@ -159,8 +158,6 @@ public class GenNanopubPage extends ConnectorPage {
                 add(new ReactionList("reactions", resp, np));
             } else {
                 add(new ApiResultComponent("reactions", ConnectorConfig.getQueryId("get-reactions"), params) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {

@@ -21,8 +21,6 @@ import org.nanopub.vocabulary.NTEMPLATE;
  */
 public class PublishConfirmPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */

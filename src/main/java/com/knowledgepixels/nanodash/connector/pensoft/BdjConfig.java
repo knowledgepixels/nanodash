@@ -16,8 +16,6 @@ import java.util.Set;
  */
 public class BdjConfig extends ConnectorConfig {
 
-    private static final long serialVersionUID = 1L;
-
     private static BdjConfig instance;
 
     /**

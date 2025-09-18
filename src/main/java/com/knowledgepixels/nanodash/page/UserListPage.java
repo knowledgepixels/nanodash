@@ -20,8 +20,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class UserListPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -47,8 +45,6 @@ public class UserListPage extends NanodashPage {
 
 //		final List<Group> groupList = new ArrayList<Group>(Group.getGroups());
 //		add(new DataView<Group>("groups", new ListDataProvider<Group>(groupList)) {
-//
-//			private static final long serialVersionUID = 1L;
 //
 //			@Override
 //			protected void populateItem(Item<Group> item) {

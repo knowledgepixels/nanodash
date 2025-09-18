@@ -28,8 +28,6 @@ import java.util.*;
  */
 public class TemplateContext implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     private final ContextType contextType;

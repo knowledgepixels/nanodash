@@ -39,8 +39,6 @@ import com.knowledgepixels.nanodash.Utils;
  */
 public class ExploreDataTable extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private static final String refQueryName = "find-uri-references";
     private static final Logger logger = LoggerFactory.getLogger(ExploreDataTable.class);
 
@@ -90,8 +88,6 @@ public class ExploreDataTable extends Panel {
 
     private class Column extends AbstractColumn<ApiResponseEntry, String> {
 
-        private static final long serialVersionUID = 1L;
-
         private String key, current;
 
         /**
@@ -127,8 +123,6 @@ public class ExploreDataTable extends Panel {
 
 
     private class DataProvider implements ISortableDataProvider<ApiResponseEntry, String> {
-
-        private static final long serialVersionUID = 1L;
 
         private List<ApiResponseEntry> data = new ArrayList<>();
         private SingleSortState<String> sortState = new SingleSortState<>();
@@ -181,7 +175,6 @@ public class ExploreDataTable extends Panel {
 
     private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
 
-        private static final long serialVersionUID = 1L;
         private SortParam<String> sortParam;
 
         /**
@@ -216,8 +209,6 @@ public class ExploreDataTable extends Panel {
             return new ExploreDataTable(markupId, ref, response);
         } else {
             return new ApiResultComponent(markupId, refQueryName, getParams(ref)) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

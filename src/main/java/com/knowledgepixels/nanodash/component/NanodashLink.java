@@ -38,8 +38,6 @@ import java.util.*;
  */
 public class NanodashLink extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Creates a link to a nanopublication or an IRI.
      *

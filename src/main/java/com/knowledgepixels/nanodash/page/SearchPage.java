@@ -36,7 +36,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class SearchPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(SearchPage.class);
 
     /**
@@ -74,8 +73,6 @@ public class SearchPage extends NanodashPage {
         final String pubkey = parameters.get("pubkey").toString();
 
         Form<?> form = new Form<Void>("form") {
-
-            private static final long serialVersionUID = 1L;
 
             protected void onSubmit() {
                 String searchText = searchField.getModelObject().trim();
@@ -129,8 +126,6 @@ public class SearchPage extends NanodashPage {
             add(new Label("nanopubs", "Enter a search term above."));
         } else {
             add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {

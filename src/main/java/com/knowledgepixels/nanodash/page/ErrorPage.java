@@ -9,8 +9,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class ErrorPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for the error page.
      */

@@ -27,8 +27,6 @@ import java.util.*;
  */
 public class UserData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private static ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(UserData.class);
 

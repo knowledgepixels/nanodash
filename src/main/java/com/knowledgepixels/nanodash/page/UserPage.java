@@ -32,7 +32,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class UserPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(UserPage.class);
 
     /**
@@ -91,8 +90,6 @@ public class UserPage extends NanodashPage {
 //		} else {
 //			add(new AjaxLazyLoadPanel<Component>("stats") {
 //	
-//				private static final long serialVersionUID = 1L;
-//	
 //				@Override
 //				public Component getLazyLoadComponent(String markupId) {
 //					Map<String,String> m = null;
@@ -136,8 +133,6 @@ public class UserPage extends NanodashPage {
             add(makeNanopubResultComponent("latestnanopubs", response));
         } else {
             add(new AjaxLazyLoadPanel<Component>("latestnanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {

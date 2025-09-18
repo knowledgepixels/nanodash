@@ -15,8 +15,6 @@ import java.util.HashMap;
  */
 public class TestPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      * This is used to access he page via URL.
@@ -50,8 +48,6 @@ public class TestPage extends NanodashPage {
             add(new ActivityPanel("activity", response));
         } else {
             add(new ApiResultComponent("activity", queryName, params) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

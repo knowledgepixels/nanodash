@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class TemplateData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(TemplateData.class);
 
     private static TemplateData instance;
@@ -224,8 +223,6 @@ public class TemplateData implements Serializable {
     private static final TemplateComparator templateComparator = new TemplateComparator();
 
     private static class TemplateComparator implements Comparator<ApiResponseEntry>, Serializable {
-
-        private static final long serialVersionUID = 1L;
 
         /**
          * Compares two Template objects based on their labels.

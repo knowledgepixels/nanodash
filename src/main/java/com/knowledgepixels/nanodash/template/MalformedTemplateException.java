@@ -5,8 +5,6 @@ package com.knowledgepixels.nanodash.template;
  */
 public class MalformedTemplateException extends Exception {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructs a new MalformedTemplateException with the specified detail message.
      *

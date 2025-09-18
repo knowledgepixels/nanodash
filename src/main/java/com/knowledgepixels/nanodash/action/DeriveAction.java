@@ -8,8 +8,6 @@ import org.nanopub.Nanopub;
  */
 public class DeriveAction extends NanopubAction {
 
-    private static final long serialVersionUID = 4348436856820074305L;
-
     /**
      * {@inheritDoc}
      */

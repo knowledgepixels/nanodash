@@ -11,7 +11,6 @@ import org.eclipse.rdf4j.model.IRI;
  */
 public class LiteralTextareaItem extends LiteralTextfieldItem {
 
-    private static final long serialVersionUID = 1L;
     private TextArea<String> textarea;
 
     /**

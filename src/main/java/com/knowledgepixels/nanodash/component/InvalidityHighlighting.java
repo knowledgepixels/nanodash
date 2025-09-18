@@ -10,8 +10,6 @@ import org.apache.wicket.markup.html.form.FormComponent;
  */
 public class InvalidityHighlighting extends Behavior {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructor for InvalidityHighlighting.
      * This behavior can be attached to any FormComponent to highlight invalid inputs.

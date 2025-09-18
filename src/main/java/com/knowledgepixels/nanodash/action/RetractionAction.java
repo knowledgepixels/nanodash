@@ -7,8 +7,6 @@ import org.nanopub.Nanopub;
  */
 public class RetractionAction extends NanopubAction {
 
-    private static final long serialVersionUID = 7802391790148929067L;
-
     /**
      * The URI of the template used for retraction actions.
      */

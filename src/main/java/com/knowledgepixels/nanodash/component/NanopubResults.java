@@ -19,8 +19,6 @@ import java.util.List;
  */
 public class NanopubResults extends Panel {
 
-    private static final long serialVersionUID = -5109507637942030910L;
-
     /**
      * Creates a NanopubResults panel from a list of NanopubElements.
      *
@@ -31,8 +29,6 @@ public class NanopubResults extends Panel {
     public static NanopubResults fromList(String id, List<NanopubElement> nanopubList) {
         NanopubResults r = new NanopubResults(id);
         DataView<NanopubElement> dataView = new DataView<>("nanopubs", new ListDataProvider<NanopubElement>(nanopubList)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<NanopubElement> item) {
@@ -80,8 +76,6 @@ public class NanopubResults extends Panel {
         }
         NanopubResults r = new NanopubResults(id);
         DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {

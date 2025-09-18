@@ -35,8 +35,6 @@ import net.trustyuri.TrustyUriUtils;
  */
 public class Template implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private static ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Template.class);
 
@@ -955,8 +953,6 @@ public class Template implements Serializable {
     private StatementComparator statementComparator = new StatementComparator();
 
     private class StatementComparator implements Comparator<IRI>, Serializable {
-
-        private static final long serialVersionUID = 1L;
 
         /**
          * Compares two IRIs based on their order in the template.

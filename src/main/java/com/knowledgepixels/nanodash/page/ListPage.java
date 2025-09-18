@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
  */
 public class ListPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -59,7 +57,6 @@ public class ListPage extends NanodashPage {
         logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
 
         add(new AjaxLink<>("listEnabler") {
-            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -69,7 +66,6 @@ public class ListPage extends NanodashPage {
         });
 
         add(new AjaxLink<>("gridEnabler") {
-            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -142,8 +138,6 @@ public class ListPage extends NanodashPage {
             add(cachedResults);
         } else {
             AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {

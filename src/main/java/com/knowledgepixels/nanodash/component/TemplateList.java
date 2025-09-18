@@ -74,8 +74,6 @@ public class TemplateList extends Panel {
         });
         DataView<Topic> topicDataView = new DataView<Topic>("topics", new ListDataProvider<Topic>(topicList)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Topic> item) {
                 String tag = item.getModelObject().tag;
@@ -98,8 +96,6 @@ public class TemplateList extends Panel {
 
 
     private static class Topic implements Serializable {
-
-        private static final long serialVersionUID = 5919614141679468774L;
 
         String tag;
         ArrayList<ApiResponseEntry> templates = new ArrayList<>();

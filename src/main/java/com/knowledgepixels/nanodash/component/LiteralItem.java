@@ -15,8 +15,6 @@ import com.knowledgepixels.nanodash.template.UnificationException;
  */
 public class LiteralItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
-
     private Literal literal;
 
     static final String LABEL_ID = "literal";

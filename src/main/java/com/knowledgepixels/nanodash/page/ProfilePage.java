@@ -22,8 +22,6 @@ import org.apache.wicket.validation.validator.PatternValidator;
  */
 public class ProfilePage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -80,8 +78,6 @@ public class ProfilePage extends NanodashPage {
             } else {
                 add(new Link<String>("loginout") {
 
-                    private static final long serialVersionUID = 1L;
-
                     @Override
                     public void onClick() {
                         session.logout();
@@ -108,8 +104,6 @@ public class ProfilePage extends NanodashPage {
         final TextField<String> orcidField = new TextField<>("orcidfield", model);
         orcidField.add(new PatternValidator(ORCID_PATTERN));
         Form<Void> form = new Form<Void>("form") {
-
-            private static final long serialVersionUID = 6733510753912762551L;
 
             @Override
             protected void onSubmit() {

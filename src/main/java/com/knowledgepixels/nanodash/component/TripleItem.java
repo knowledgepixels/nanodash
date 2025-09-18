@@ -12,8 +12,6 @@ import org.nanopub.Nanopub;
  */
 public class TripleItem extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructor for TripleItem.
      *
