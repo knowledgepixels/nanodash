@@ -115,7 +115,7 @@ public class ExplorePage extends NanodashPage {
             }
             add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
             add(new NanopubItem("nanopub", NanopubElement.get(np)));
-            String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
+            String url = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
             raw.add(new ExternalLink("trig-txt", url + ".trig.txt"));
             raw.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
             raw.add(new ExternalLink("nq-txt", url + ".nq.txt"));
