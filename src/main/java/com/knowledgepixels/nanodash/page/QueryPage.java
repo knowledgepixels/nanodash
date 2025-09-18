@@ -25,8 +25,6 @@ import java.util.List;
  */
 public class QueryPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */
@@ -75,8 +73,6 @@ public class QueryPage extends NanodashPage {
 
         form = new Form<Void>("form") {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void onConfigure() {
                 super.onConfigure();
@@ -104,8 +100,8 @@ public class QueryPage extends NanodashPage {
             protected void onValidate() {
                 super.onValidate();
                 for (QueryParamField f : paramFields) {
-                    f.getTextField().processInput();
-                    for (FeedbackMessage fm : f.getTextField().getFeedbackMessages()) {
+                    f.getFormComponent().processInput();
+                    for (FeedbackMessage fm : f.getFormComponent().getFeedbackMessages()) {
                         form.getFeedbackMessages().add(fm);
                     }
                 }
@@ -118,8 +114,6 @@ public class QueryPage extends NanodashPage {
 
         paramFields = q.createParamFields("paramfield");
         paramContainer.add(new ListView<QueryParamField>("paramfields", paramFields) {
-
-            private static final long serialVersionUID = 1L;
 
             protected void populateItem(ListItem<QueryParamField> item) {
                 QueryParamField f = item.getModelObject();

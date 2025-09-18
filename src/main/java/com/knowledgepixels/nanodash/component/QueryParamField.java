@@ -1,6 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.net.URISyntaxException;
+
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -10,16 +14,12 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
 
-import java.net.URISyntaxException;
-
 /**
  * A field for entering query parameters, with validation for required fields and IRIs.
  */
 public class QueryParamField extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
-    private final TextField<String> textfield;
+    private final FormComponent<String> formComponent;
     private final String paramId;
 
     /**
@@ -32,9 +32,15 @@ public class QueryParamField extends Panel {
         super(id);
         this.paramId = paramId;
         add(new Label("paramname", getParamName()));
-        textfield = new TextField<>("textfield", Model.of(""));
-        textfield.add(new Validator());
-        add(textfield);
+        if (isMultiPlaceholder()) {
+            add(new Label("textfield").setVisible(false));
+            formComponent = new TextArea<>("textarea", Model.of(""));
+        } else {
+            formComponent = new TextField<>("textfield", Model.of(""));
+            add(new Label("textarea").setVisible(false));
+        }
+        formComponent.add(new Validator());
+        add(formComponent);
         add(new Label("marker", isOptional() ? "" : "*"));
     }
 
@@ -43,8 +49,8 @@ public class QueryParamField extends Panel {
      *
      * @return the text field component
      */
-    public TextField<String> getTextField() {
-        return textfield;
+    public FormComponent<String> getFormComponent() {
+        return formComponent;
     }
 
     /**
@@ -53,7 +59,7 @@ public class QueryParamField extends Panel {
      * @return the value of the text field
      */
     public String getValue() {
-        return textfield.getModelObject();
+        return formComponent.getModelObject();
     }
 
     /**
@@ -80,7 +86,7 @@ public class QueryParamField extends Panel {
      * @return the model of the text field
      */
     public IModel<String> getModel() {
-        return textfield.getModel();
+        return formComponent.getModel();
     }
 
     /**
@@ -106,13 +112,11 @@ public class QueryParamField extends Panel {
      *
      * @return true if the parameter is a multi parameter, false otherwise
      */
-    public static boolean isMultiPlaceholder(String placeholder) {
-        return placeholder.endsWith("_multi") || placeholder.endsWith("_multi_iri");
+    public boolean isMultiPlaceholder() {
+        return paramId.endsWith("_multi") || paramId.endsWith("_multi_iri");
     }
 
     private class Validator extends InvalidityHighlighting implements INullAcceptingValidator<String> {
-
-        private static final long serialVersionUID = 1L;
 
         @Override
         public void validate(IValidatable<String> s) {
