@@ -1,25 +1,16 @@
 package com.knowledgepixels.nanodash;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mockStatic;
-
+import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryAccess;
-import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.*;
 
-import com.knowledgepixels.nanodash.utils.TestUtils;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
-@Disabled
 class QueryApiAccessTest {
 
     private final String queryName = "get-test-query";
@@ -41,7 +32,7 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(new QueryRef(queryId))).thenReturn(expectedResponse);
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(expectedResponse);
 
             ApiResponse response = QueryApiAccess.get(new QueryRef(queryId));
 
@@ -54,7 +45,7 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(new QueryRef(queryId))).thenReturn(expectedResponse);
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(expectedResponse);
 
             ApiResponse response = QueryApiAccess.get(new QueryRef(queryName));
 
@@ -67,7 +58,7 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(new QueryRef(queryId)))
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class)))
                     .thenReturn(null)
                     .thenReturn(null)
                     .thenReturn(expectedResponse);
