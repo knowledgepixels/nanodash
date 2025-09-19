@@ -7,7 +7,6 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
@@ -54,12 +53,12 @@ public class QueryParamField extends Panel {
     }
 
     /**
-     * Returns the value entered in the text field.
+     * Returns the values (multi) or single value (non-multi) entered in the text field.
      *
      * @return the value of the text field
      */
-    public String getValue() {
-        return formComponent.getModelObject();
+    public String[] getValues() {
+        return expandValues(formComponent.getModelObject(), paramId);
     }
 
     /**
@@ -81,12 +80,17 @@ public class QueryParamField extends Panel {
     }
 
     /**
-     * Returns the model of the text field.
+     * Sets the value of the field (non-multi) or adds the value to the list of values (multi).
      *
-     * @return the model of the text field
+     * @param value the value to be set/added
      */
-    public IModel<String> getModel() {
-        return formComponent.getModel();
+    public void putValue(String value) {
+        if (value == null) return;
+        if (isMultiPlaceholder()) {
+            formComponent.getModel().setObject(formComponent.getModel().getObject() + value + "\n");
+        } else {
+            formComponent.getModel().setObject(value);
+        }
     }
 
     /**
@@ -107,48 +111,67 @@ public class QueryParamField extends Panel {
         return paramId.endsWith("_iri");
     }
 
+    public boolean isSet() {
+        return isSet(formComponent.getModelObject());
+    }
+
     /**
      * Checks if the parameter is a multi parameter (ends with "_multi" or "_multi_iri").
      *
      * @return true if the parameter is a multi parameter, false otherwise
      */
     public boolean isMultiPlaceholder() {
-        return paramId.endsWith("_multi") || paramId.endsWith("_multi_iri");
+        return isMultiPlaceholder(paramId);
     }
 
     private class Validator extends InvalidityHighlighting implements INullAcceptingValidator<String> {
 
         @Override
-        public void validate(IValidatable<String> s) {
-            String value = s.getValue();
-            if (isOptional() && !isSet(value)) {
+        public void validate(IValidatable<String> i) {
+            if (isOptional() && !isSet()) {
                 // all good
                 return;
             }
-            if (!isSet(value)) {
-                s.error(new ValidationError("Missing value for " + paramId));
+            if (!isSet(i.getValue())) {
+                i.error(new ValidationError("Missing value for " + paramId));
                 return;
             }
             if (isIri()) {
-                if (!value.matches("https?://.+")) {
-                    s.error(new ValidationError("Invalid IRI protocol: " + value));
-                    return;
-                }
-                try {
-                    ParsedIRI piri = new ParsedIRI(value);
-                    if (!piri.isAbsolute()) {
-                        s.error(new ValidationError("IRI not well-formed: " + value));
+                for (String value : expandValues(i.getValue(), paramId)) {
+                    if (!value.matches("https?://.+")) {
+                        i.error(new ValidationError("Invalid IRI protocol: " + value));
+                        return;
                     }
-                } catch (URISyntaxException ex) {
-                    s.error(new ValidationError("IRI not well-formed: " + value));
+                    try {
+                        ParsedIRI piri = new ParsedIRI(value);
+                        if (!piri.isAbsolute()) {
+                            i.error(new ValidationError("IRI not well-formed: " + value));
+                        }
+                    } catch (URISyntaxException ex) {
+                        i.error(new ValidationError("IRI not well-formed: " + value));
+                    }
                 }
             }
         }
 
-        private static boolean isSet(String s) {
-            return s != null && !s.isBlank();
-        }
+    }
 
+    public static boolean isSet(String s) {
+        return s != null && !s.isBlank();
+    }
+
+    public static boolean isMultiPlaceholder(String p) {
+        return p.endsWith("_multi") || p.endsWith("_multi_iri");
+    }
+
+    public static String[] expandValues(String s, String paramId) {
+        if (!isSet(s)) {
+            return new String[] {};
+        } else if (isMultiPlaceholder(paramId)) {
+            return s.replaceFirst("\r?\n$", "").split("\r?\n");
+        } else {
+            return new String[] { s };
+        }
     }
 
     /**

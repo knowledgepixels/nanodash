@@ -12,7 +12,9 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.nanopub.extra.services.QueryRef;
 
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
@@ -60,9 +62,9 @@ public class QueryPage extends NanodashPage {
         if (id == null) id = queryId;
 
         final Multimap<String, String> queryParams = ArrayListMultimap.create();
-        for (String paramKey : parameters.getNamedKeys()) {
-            if (!paramKey.startsWith("queryparam_")) continue;
-            queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
+        for (NamedPair param : parameters.getAllNamed()) {
+            if (!param.getKey().startsWith("queryparam_")) continue;
+            queryParams.put(param.getKey().replaceFirst("queryparam_", ""), param.getValue());
         }
 
         GrlcQuery q = GrlcQuery.get(id);
@@ -88,8 +90,9 @@ public class QueryPage extends NanodashPage {
                     PageParameters params = new PageParameters();
                     params.add("runquery", q.getQueryId());
                     for (QueryParamField f : paramFields) {
-                        if (f.getValue() == null) continue;
-                        params.add("queryparam_" + f.getParamName(), f.getValue());
+                        for (String v : f.getValues()) {
+                            params.add("queryparam_" + f.getParamName(), v);
+                        }
                     }
                     setResponsePage(QueryPage.class, params);
                 } catch (Exception ex) {
@@ -120,7 +123,9 @@ public class QueryPage extends NanodashPage {
 
             protected void populateItem(ListItem<QueryParamField> item) {
                 QueryParamField f = item.getModelObject();
-                f.getModel().setObject(parameters.get("queryparam_" + f.getParamName()).toString());
+                for (StringValue parameter : parameters.getValues("queryparam_" + f.getParamName())) {
+                    f.putValue(parameter.toString());
+                }
                 item.add(item.getModelObject());
             }
 

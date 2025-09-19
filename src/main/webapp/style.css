@@ -672,6 +672,10 @@ input[type=radio] + label strong {
   cursor: pointer;
 }
 
+.input-marker {
+  vertical-align: top;
+}
+
 .introduced {
   border-style: solid;
   border-color: #ffbb00;
