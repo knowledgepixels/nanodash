@@ -3,7 +3,9 @@ package com.knowledgepixels.nanodash;
 import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,15 +22,21 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
+import jakarta.xml.bind.DatatypeConverter;
+
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
 public class Space implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Space.class);
 
     /**
      * The predicate to assign the admins of the space.
@@ -116,7 +124,9 @@ public class Space implements Serializable {
     private SpaceData data = new SpaceData();
 
     private static class SpaceData implements Serializable {
+
         String description = null;
+        Calendar startDate, endDate;
         IRI defaultProvenance = null;
         List<IRI> admins = new ArrayList<>();
         List<IRI> members = new ArrayList<>();
@@ -134,6 +144,7 @@ public class Space implements Serializable {
                 adminPubkeyMap.put(pubkeyhash, admin);
             }
         }
+
     }
 
     private boolean dataInitialized = false;
@@ -170,6 +181,14 @@ public class Space implements Serializable {
 
     public String getType() {
         return type;
+    }
+
+    public Calendar getStartDate() {
+        return data.startDate;
+    }
+
+    public Calendar getEndDate() {
+        return data.endDate;
     }
 
     public String getTypeLabel() {
@@ -316,6 +335,18 @@ public class Space implements Serializable {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     data.description = st.getObject().stringValue();
+                } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
+                    try {
+                        data.startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                    } catch (DateTimeParseException ex) {
+                        logger.error("Failed to parse date {}", st.getObject().stringValue());
+                    }
+                } else if (st.getPredicate().stringValue().equals("http://schema.org/endDate")) {
+                    try {
+                        data.endDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                    } catch (IllegalArgumentException ex) {
+                        logger.error("Failed to parse date {}", st.getObject().stringValue());
+                    }
                 } else if (st.getPredicate().equals(HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     data.addAdmin(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {

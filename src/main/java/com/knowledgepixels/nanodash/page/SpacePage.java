@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +55,8 @@ public class SpacePage extends NanodashPage {
      */
     private Space space;
 
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     /**
      * Constructor for the SpacePage.
      *
@@ -71,6 +76,23 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLink("id", space.getId(), space.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
+
+        if (space.getStartDate() != null) {
+            String dateString;
+            LocalDateTime dt = LocalDateTime.ofInstant(space.getStartDate().toInstant(), ZoneId.systemDefault());
+            dateString = dateTimeFormatter.format(dt);
+            if (space.getEndDate() != null) {
+                dt = LocalDateTime.ofInstant(space.getEndDate().toInstant(), ZoneId.systemDefault());
+                String endDate = dateTimeFormatter.format(dt);
+                if (!dateString.equals(endDate)) {
+                    dateString += " - " + endDate;
+                }
+            }
+            add(new Label("date", dateString));
+        } else {
+            add(new Label("date").setVisible(false));
+        }
+
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         if (space.isDataInitialized()) {
