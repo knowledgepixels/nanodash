@@ -148,12 +148,12 @@ public class ListPage extends NanodashPage {
         typeFilterContainer.setVisible(!types.isEmpty());
         typeFilterContainer.add(filteredTypes);
 
-
         List<StringValue> pubKeysParams = parameters.getValues(PUBKEY.getValue());
         if (pubKeysParams != null && !pubKeysParams.isEmpty()) {
             pubKeysParams.forEach(pubKeyParam -> {
                 if (!pubKeyParam.isNull() && !pubKeyParam.isEmpty()) {
-                    pubKeys.add(pubKeyParam.toString());
+                    logger.info("Adding pubkey filter: {}", pubKeyParam);
+                    pubKeys.add(String.valueOf(pubKeyParam));
                 }
             });
         }
@@ -274,10 +274,10 @@ public class ListPage extends NanodashPage {
         added = true;
         final Map<String, String> params = new HashMap<>();
         if (!types.isEmpty()) {
-            params.put(TYPE.getValue(), types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
+            params.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
         }
         if (!pubKeys.isEmpty()) {
-            params.put(PUBKEY.getValue(), String.join(" ", pubKeys));
+            params.put("pubkeys", String.join(" ", pubKeys));
         }
         if (startDate != null) {
             params.put(START_TIME.getValue(), startDate.toInstant().toString());

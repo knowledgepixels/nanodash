@@ -1,10 +1,10 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -17,15 +17,10 @@ import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
@@ -118,8 +113,12 @@ public class UserPage extends NanodashPage {
 //	
 //			});
 //		}
-
-        add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
+        
+        PageParameters pageParameters = new PageParameters();
+        for (String pubKey : User.getPubkeyhashes(userIri, false)) {
+            pageParameters.add("pubkey", pubKey);
+        }
+        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, pageParameters));
 
         final Map<String, String> params = new HashMap<>();
         final String queryName;
@@ -170,14 +169,14 @@ public class UserPage extends NanodashPage {
                 "Spaces",
                 () -> Space.isLoaded(),
                 () -> {
-                        List<Space> spaces = new ArrayList<>();
-                        for (Space space : Space.getSpaceList()) {
-                            if (space.isMember(userIri)) spaces.add(space);
-                        }
-                        return spaces;
-                    },
+                    List<Space> spaces = new ArrayList<>();
+                    for (Space space : Space.getSpaceList()) {
+                        if (space.isMember(userIri)) spaces.add(space);
+                    }
+                    return spaces;
+                },
                 (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")")
-            ));
+        ));
     }
 
     private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {
