@@ -3,12 +3,7 @@ package com.knowledgepixels.nanodash.page;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -21,6 +16,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
@@ -113,21 +109,27 @@ public class SpacePage extends NanodashPage {
             });
         }
 
-        add(new ItemListPanel<Pair<IRI, String>>(
+        add(new ItemListPanel<SpaceMemberRole>(
+                "roles",
+                "Roles",
+                () -> space.isDataInitialized(),
+                () -> space.getRoles(),
+                (r) -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getProperty()), r.getName())
+            ));
+
+        add(new ItemListPanel<IRI>(
                 "members",
                 "Members",
                 () -> space.isDataInitialized(),
-                () -> {
-                        List<Pair<IRI, String>> members = new ArrayList<>();
-                        Set<IRI> adminSet = new HashSet<>(space.getAdmins());
-                        for (IRI admin : space.getAdmins()) members.add(Pair.of(admin, "(admin)"));
-                        for (IRI member : space.getMembers()) {
-                            if (adminSet.contains(member)) continue;
-                            members.add(Pair.of(member, ""));
+                () -> space.getMembers(),
+                (m) -> {
+                        String roleLabel = "(";
+                        for (SpaceMemberRole r : space.getMemberRoles(m)) {
+                            roleLabel += r.getName() + ", ";
                         }
-                        return members;
-                    },
-                (p) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", p.getLeft()), User.getShortDisplayName(p.getLeft()), p.getRight())
+                        roleLabel = roleLabel.replaceFirst(", $", ")");
+                        return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel);
+                    }
             ));
 
         add(new ItemListPanel<Space>(

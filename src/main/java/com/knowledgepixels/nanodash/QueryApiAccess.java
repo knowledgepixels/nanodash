@@ -68,10 +68,11 @@ public class QueryApiAccess {
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
         load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
         load("RAYI6_CkA7nY58hCGx3nbBncBWXle1azhVqBnNPCpw_R8/get-admins");
-        load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
+        load("RAMyjSVA0hOSKmqmDmMYmvShEMjhUa2SyQAbHUpXSV4XI/get-space-members");
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
         load("RAa2949qM3veXzp6rWoW-KNLSEbKOenMR9z3w9qQ48VsM/get-pinned-templates");
         load("RAdyYeWRfQl8TecahiU77iVStCcESf90HR_9pr2EJP4FE/get-pinned-queries");
+        load("RAhs_WvWMKsAOJoT8ZS7e-zr1_Dr9ZEwxIIsVdKdI1lRk/get-space-member-roles");
     }
 
     /**

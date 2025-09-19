@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
@@ -128,8 +130,11 @@ public class Space implements Serializable {
         String description = null;
         Calendar startDate, endDate;
         IRI defaultProvenance = null;
+
         List<IRI> admins = new ArrayList<>();
-        List<IRI> members = new ArrayList<>();
+        Map<IRI,Set<SpaceMemberRole>> members = new HashMap<>();
+        Map<IRI,SpaceMemberRole> roles = new HashMap<>();
+
         Map<String,IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
@@ -211,13 +216,18 @@ public class Space implements Serializable {
 
     public List<IRI> getMembers() {
         triggerDataUpdate();
-        return data.members;
+        List<IRI> members = new ArrayList<IRI>(data.members.keySet());
+        members.sort(User.getUserData().userComparator);
+        return members;
+    }
+
+    public Set<SpaceMemberRole> getMemberRoles(IRI memberId) {
+        return data.members.get(memberId);
     }
 
     public boolean isMember(IRI userId) {
         triggerDataUpdate();
-        // TODO This is inefficient for large member lists:
-        return data.admins.contains(userId) || data.members.contains(userId);
+        return data.members.containsKey(userId);
     }
 
     public List<Serializable> getPinnedResources() {
@@ -237,6 +247,10 @@ public class Space implements Serializable {
 
     public IRI getDefaultProvenance() {
         return data.defaultProvenance;
+    }
+
+    public List<SpaceMemberRole> getRoles() {
+        return new ArrayList<SpaceMemberRole>(data.roles.values());
     }
 
     public String getSuperId() {
@@ -284,22 +298,38 @@ public class Space implements Serializable {
                 SpaceData newData = new SpaceData();
                 setCoreData(newData);
 
+                newData.members = new HashMap<>();
+                newData.roles = new HashMap<>();
+                newData.roles.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
+
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-admins", "unit", id)).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
-                        newData.addAdmin(Utils.vf.createIRI(r.get("admin")));
+                        IRI adminId = Utils.vf.createIRI(r.get("admin"));
+                        newData.addAdmin(adminId);
+                        newData.members.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
                     }
                 }
-                newData.members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-members", "unit", id)).getData()) {
-                    IRI memberId = Utils.vf.createIRI(r.get("member"));
-                    // TODO These checks are inefficient for long member lists:
-                    if (newData.admins.contains(memberId)) continue;
-                    if (newData.members.contains(memberId)) continue;
-                    newData.members.add(memberId);
-                }
                 newData.admins.sort(User.getUserData().userComparator);
-                newData.members.sort(User.getUserData().userComparator);
+
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef( "get-space-member-roles", "space", id)).getData()) {
+                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    SpaceMemberRole role = new SpaceMemberRole(vf.createIRI(r.get("role")), r.get("roleNoun"));
+                    if (!newData.roles.containsKey(role.getProperty())) {
+                        newData.roles.put(role.getProperty(), role);
+                    }
+                }
+
+                Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create();
+                getSpaceMemberParams.put("space", id);
+                for (SpaceMemberRole r : newData.roles.values()) {
+                    getSpaceMemberParams.put("role", r.getProperty().stringValue());
+                }
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
+                    IRI memberId = Utils.vf.createIRI(r.get("member"));
+                    SpaceMemberRole role = newData.roles.get(Utils.vf.createIRI(r.get("role")));
+                    newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
+                }
 
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-pinned-templates", "space", id)).getData()) {
                     if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
