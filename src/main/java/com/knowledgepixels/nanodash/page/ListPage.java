@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.extra.services.ApiResponse;
@@ -55,8 +56,8 @@ public class ListPage extends NanodashPage {
     private Date endDate = null;
 
     enum PARAMS {
-        TYPES("types"),
-        PUBKEYS("pubkeys"),
+        TYPE("type"),
+        PUBKEY("pubkey"),
         START_TIME("starttime"),
         END_TIME("endtime");
 
@@ -102,8 +103,14 @@ public class ListPage extends NanodashPage {
             }
         });
 
-        if (!parameters.get(TYPES.getValue()).isNull() && !parameters.get(TYPES.getValue()).isEmpty()) {
-            Arrays.stream(parameters.get(TYPES.getValue()).toString().split(" ")).toList().forEach(type -> types.add(Values.iri(type)));
+        List<StringValue> typeParams = parameters.getValues(TYPE.getValue());
+        if (typeParams != null && !typeParams.isEmpty()) {
+            typeParams.forEach(typeParam -> {
+                ;
+                if (!typeParam.isNull() && !typeParam.isEmpty()) {
+                    types.add(Values.iri(typeParam.toString()));
+                }
+            });
         }
 
         WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
@@ -124,11 +131,11 @@ public class ListPage extends NanodashPage {
                             .filter(t -> !t.equals(type))
                             .toList();
                     if (!updatedTypes.isEmpty()) {
-                        parameters.set(TYPES.getValue(), updatedTypes.stream()
+                        parameters.set(TYPE.getValue(), updatedTypes.stream()
                                 .map(IRI::stringValue)
                                 .collect(Collectors.joining(" ")));
                     } else {
-                        parameters.remove(TYPES.getValue());
+                        parameters.remove(TYPE.getValue());
                     }
                     setResponsePage(ListPage.class, parameters);
                 }
@@ -141,8 +148,14 @@ public class ListPage extends NanodashPage {
         typeFilterContainer.setVisible(!types.isEmpty());
         typeFilterContainer.add(filteredTypes);
 
-        if (!parameters.get(PUBKEYS.getValue()).isNull() && !parameters.get(PUBKEYS.getValue()).isEmpty()) {
-            pubKeys.addAll(Arrays.stream(parameters.get(PUBKEYS.getValue()).toString().split(" ")).toList());
+
+        List<StringValue> pubKeysParams = parameters.getValues(PUBKEY.getValue());
+        if (pubKeysParams != null && !pubKeysParams.isEmpty()) {
+            pubKeysParams.forEach(pubKeyParam -> {
+                if (!pubKeyParam.isNull() && !pubKeyParam.isEmpty()) {
+                    pubKeys.add(pubKeyParam.toString());
+                }
+            });
         }
 
         Model<Date> startDateModel = Model.of((Date) null);
@@ -261,10 +274,10 @@ public class ListPage extends NanodashPage {
         added = true;
         final Map<String, String> params = new HashMap<>();
         if (!types.isEmpty()) {
-            params.put(TYPES.getValue(), types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
+            params.put(TYPE.getValue(), types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
         }
         if (!pubKeys.isEmpty()) {
-            params.put(PUBKEYS.getValue(), String.join(" ", pubKeys));
+            params.put(PUBKEY.getValue(), String.join(" ", pubKeys));
         }
         if (startDate != null) {
             params.put(START_TIME.getValue(), startDate.toInstant().toString());
