@@ -1,9 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.Project;
-import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;

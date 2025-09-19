@@ -16,9 +16,12 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.User;
@@ -126,7 +129,7 @@ public class ChannelPage extends NanodashPage {
             remove("nanopubs");
         }
         added = true;
-        final Map<String, String> params = new HashMap<>();
+        final Multimap<String, String> params = ArrayListMultimap.create();
         final String queryName;
         String pubkeyHashes = getPubkeyHashesString();
         if (pubkeyHashes == null) {
@@ -137,7 +140,8 @@ public class ChannelPage extends NanodashPage {
             params.put("pubkeyhashes", pubkeyHashes);
             params.put("userid", userIri.stringValue());
         }
-        ApiResponse cachedResponse = ApiCache.retrieveResponse(queryName, params);
+        final QueryRef queryRef = new QueryRef(queryName, params);
+        ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
             add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
         } else {
@@ -152,8 +156,8 @@ public class ChannelPage extends NanodashPage {
                         } catch (InterruptedException ex) {
                             logger.error("Interrupted while waiting for API response", ex);
                         }
-                        if (!ApiCache.isRunning(queryName, params)) {
-                            r = ApiCache.retrieveResponse(queryName, params);
+                        if (!ApiCache.isRunning(queryRef)) {
+                            r = ApiCache.retrieveResponse(queryRef);
                             if (r != null) break;
                         }
                     }

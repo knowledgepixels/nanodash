@@ -1,10 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.component.QueryParamField;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.net.URLEncoder;
+import java.util.List;
+
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -15,10 +13,15 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.QueryRef;
 
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
+import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.component.QueryResultTable;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page for displaying a query and its parameters, allowing users to run the query with specified parameters.
@@ -56,7 +59,7 @@ public class QueryPage extends NanodashPage {
         final String queryId = parameters.get("runquery").toString();
         if (id == null) id = queryId;
 
-        final HashMap<String, String> queryParams = new HashMap<>();
+        final Multimap<String, String> queryParams = ArrayListMultimap.create();
         for (String paramKey : parameters.getNamedKeys()) {
             if (!paramKey.startsWith("queryparam_")) continue;
             queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
@@ -140,7 +143,7 @@ public class QueryPage extends NanodashPage {
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
         } else {
-            add(QueryResultTable.createComponent("resulttable", queryId, queryParams, true));
+            add(QueryResultTable.createComponent("resulttable", new QueryRef(queryId, queryParams), true));
         }
     }
 

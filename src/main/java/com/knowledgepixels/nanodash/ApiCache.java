@@ -1,12 +1,20 @@
 package com.knowledgepixels.nanodash;
 
-import org.nanopub.extra.services.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.nanopub.extra.services.APINotReachableException;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
+import org.nanopub.extra.services.QueryRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for caching API responses and maps to reduce redundant API calls.
@@ -35,62 +43,19 @@ public class ApiCache {
     }
 
     public static boolean isRunning(QueryRef queryRef) {
-        return isRunning(queryRef.getName(), queryRef.getParams());
+        return isRunning(queryRef.getAsUrlString());
     }
-
     /**
-     * Checks if a cache refresh is running for a specific query and parameters.
+     * Updates the cached API response for a specific query reference.
      *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
-     * @return True if a refresh is running, false otherwise.
-     */
-    public static boolean isRunning(String queryName, Map<String, String> params) {
-        return isRunning(getCacheId(queryName, params));
-    }
-
-    /**
-     * Checks if a cache refresh is running for a specific query and a single parameter.
-     *
-     * @param queryName  The name of the query.
-     * @param paramName  The name of the parameter.
-     * @param paramValue The value of the parameter.
-     * @return True if a refresh is running, false otherwise.
-     */
-    public static boolean isRunning(String queryName, String paramName, String paramValue) {
-        Map<String, String> params = new HashMap<>();
-        params.put(paramName, paramValue);
-        return isRunning(getCacheId(queryName, params));
-    }
-
-    /**
-     * Updates the cached API response for a specific query and parameters.
-     *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
+     * @param queryRef The query reference
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateResponse(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        Map<String, String> nanopubParams = new HashMap<>();
-        for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-        ApiResponse response = QueryApiAccess.get(queryName, nanopubParams);
-        String cacheId = getCacheId(queryName, params);
+    private static void updateResponse(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        ApiResponse response = QueryApiAccess.get(queryRef);
+        String cacheId = queryRef.getAsUrlString();
         cachedResponses.put(cacheId, response);
         lastRefresh.put(cacheId, System.currentTimeMillis());
-    }
-
-    /**
-     * Retrieves a cached API response for a specific query and a single parameter.
-     *
-     * @param queryName  The name of the query.
-     * @param paramName  The name of the parameter.
-     * @param paramValue The value of the parameter.
-     * @return The cached API response, or null if not cached.
-     */
-    public static ApiResponse retrieveResponse(String queryName, String paramName, String paramValue) {
-        Map<String, String> params = new HashMap<>();
-        params.put(paramName, paramValue);
-        return retrieveResponse(queryName, params);
     }
 
     /**
@@ -100,20 +65,8 @@ public class ApiCache {
      * @return The cached API response, or null if not cached.
      */
     public static ApiResponse retrieveResponse(QueryRef queryRef) {
-        return retrieveResponse(queryRef.getName(), queryRef.getParams());
-    }
-
-    /**
-     * Retrieves a cached API response for a specific query and parameters.
-     * If the cache is stale, it triggers a background refresh.
-     *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
-     * @return The cached API response, or null if not cached.
-     */
-    public static synchronized ApiResponse retrieveResponse(final String queryName, final Map<String, String> params) {
         long timeNow = System.currentTimeMillis();
-        String cacheId = getCacheId(queryName, params);
+        String cacheId = queryRef.getAsUrlString();
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
@@ -130,7 +83,7 @@ public class ApiCache {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
                 try {
-                    ApiCache.updateResponse(queryName, params);
+                    ApiCache.updateResponse(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.put(cacheId, null);
@@ -152,37 +105,33 @@ public class ApiCache {
     }
 
     /**
-     * Updates the cached map for a specific query and parameters.
+     * Updates the cached map for a specific query reference.
      *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
+     * @param queryRef The query reference
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateMap(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+    private static void updateMap(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         Map<String, String> map = new HashMap<>();
-        Map<String, String> nanopubParams = new HashMap<>();
-        for (String k : params.keySet()) nanopubParams.put(k, params.get(k));
-        List<ApiResponseEntry> respList = QueryApiAccess.get(queryName, nanopubParams).getData();
+        List<ApiResponseEntry> respList = QueryApiAccess.get(queryRef).getData();
         while (respList != null && !respList.isEmpty()) {
             ApiResponseEntry resultEntry = respList.remove(0);
             map.put(resultEntry.get("key"), resultEntry.get("value"));
         }
-        String cacheId = getCacheId(queryName, params);
+        String cacheId = queryRef.getAsUrlString();
         cachedMaps.put(cacheId, map);
         lastRefresh.put(cacheId, System.currentTimeMillis());
     }
 
     /**
-     * Retrieves a cached map for a specific query and parameters.
+     * Retrieves a cached map for a specific query reference.
      * If the cache is stale, it triggers a background refresh.
      *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
+     * @param queryRef The query reference
      * @return The cached map, or null if not cached.
      */
-    public static synchronized Map<String, String> retrieveMap(String queryName, Map<String, String> params) {
+    public static synchronized Map<String, String> retrieveMap(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
-        String cacheId = getCacheId(queryName, params);
+        String cacheId = queryRef.getAsUrlString();
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedMaps.containsKey(cacheId)) {
@@ -199,7 +148,7 @@ public class ApiCache {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
                 try {
-                    ApiCache.updateMap(queryName, params);
+                    ApiCache.updateMap(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.put(cacheId, null);
@@ -218,31 +167,6 @@ public class ApiCache {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Converts a map of parameters to a sorted string representation.
-     *
-     * @param params The map of parameters.
-     * @return A string representation of the parameters.
-     */
-    private static String paramsToString(Map<String, String> params) {
-        List<String> keys = new ArrayList<>(params.keySet());
-        Collections.sort(keys);
-        String s = "";
-        for (String k : keys) s += " " + k + "=" + params.get(k);
-        return s;
-    }
-
-    /**
-     * Generates a unique cache ID for a specific query and parameters.
-     *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
-     * @return The unique cache ID.
-     */
-    public static String getCacheId(String queryName, Map<String, String> params) {
-        return queryName + " " + paramsToString(params);
     }
 
 }

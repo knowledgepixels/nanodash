@@ -1,15 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryRef;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.knowledgepixels.nanodash.ApiCache;
 
 /**
  * A component that retrieves and displays the result of an API call.
@@ -17,23 +15,9 @@ import java.util.Map;
  */
 public abstract class ApiResultComponent extends ResultComponent {
 
-    private final String queryName;
-    private final Map<String, String> params;
+    private final QueryRef queryRef;
     private ApiResponse response = null;
     private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
-
-    /**
-     * Constructor for ApiResultComponent.
-     *
-     * @param id        the component id
-     * @param queryName the name of the API query to be executed
-     * @param params    a map of parameters to be passed to the API query
-     */
-    public ApiResultComponent(String id, String queryName, Map<String, String> params) {
-        super(id);
-        this.queryName = queryName;
-        this.params = params;
-    }
 
     /**
      * Constructor for ApiResultComponent using a QueryRef object.
@@ -43,26 +27,7 @@ public abstract class ApiResultComponent extends ResultComponent {
      */
     public ApiResultComponent(String id, QueryRef queryRef) {
         super(id);
-        this.queryName = queryRef.getName();
-        this.params = queryRef.getParams();
-    }
-
-    /**
-     * Constructor for ApiResultComponent with a single parameter.
-     *
-     * @param id         the component id
-     * @param queryName  the name of the API query to be executed
-     * @param paramKey   the key of the parameter to be passed to the API query
-     * @param paramValue the value of the parameter to be passed to the API query
-     */
-    public ApiResultComponent(String id, String queryName, String paramKey, String paramValue) {
-        this(id, queryName, getParams(paramKey, paramValue));
-    }
-
-    private static HashMap<String, String> getParams(String paramKey, String paramValue) {
-        final HashMap<String, String> params = new HashMap<>();
-        params.put(paramKey, paramValue);
-        return params;
+        this.queryRef = queryRef;
     }
 
     /**
@@ -71,9 +36,9 @@ public abstract class ApiResultComponent extends ResultComponent {
     @Override
     public Component getLazyLoadComponent(String markupId) {
         while (true) {
-            if (!ApiCache.isRunning(queryName, params)) {
+            if (!ApiCache.isRunning(queryRef)) {
                 try {
-                    response = ApiCache.retrieveResponse(queryName, params);
+                    response = ApiCache.retrieveResponse(queryRef);
                     if (response != null) break;
                 } catch (Exception ex) {
                     return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
@@ -93,7 +58,7 @@ public abstract class ApiResultComponent extends ResultComponent {
      */
     @Override
     protected boolean isContentReady() {
-        return response != null || !ApiCache.isRunning(queryName, params);
+        return response != null || !ApiCache.isRunning(queryRef);
     }
 
     /**

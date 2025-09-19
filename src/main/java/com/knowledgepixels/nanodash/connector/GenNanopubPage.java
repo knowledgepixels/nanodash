@@ -1,15 +1,5 @@
 package com.knowledgepixels.nanodash.connector;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.action.NanopubAction;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.NanopubItem;
-import com.knowledgepixels.nanodash.component.ReactionList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,11 +15,28 @@ import org.nanopub.extra.services.APINotReachableException;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.NotEnoughAPIInstancesException;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.ReactionList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Page for creating a new nanopublication.
@@ -73,10 +80,10 @@ public class GenNanopubPage extends ConnectorPage {
         String ref = getPageParameters().get("id").toString();
 
         if (mode.equals("head")) {
-            Map<String, String> params = new HashMap<>();
+            Multimap<String, String> params = ArrayListMultimap.create();
             params.put("npid", ref);
             params.put("type", getConfig().getNanopubType().stringValue());
-            ApiResponse resp = QueryApiAccess.get("get-publisher-version", params);
+            ApiResponse resp = QueryApiAccess.get(new QueryRef("get-publisher-version", params));
             if (resp != null && resp.getData().size() == 1) {
                 ref = resp.getData().get(0).get("publisher_version_np");
                 mode = "final";
@@ -151,13 +158,12 @@ public class GenNanopubPage extends ConnectorPage {
                 add(new Label("template-description", description).setEscapeModelStrings(false));
             }
 
-            final HashMap<String, String> params = new HashMap<>();
-            params.put("pub", uri);
-            ApiResponse resp = callApi("get-reactions", params);
+            QueryRef queryRef = new QueryRef(ConnectorConfig.getQueryId("get-reactions"), "pub", uri);
+            ApiResponse resp = ApiCache.retrieveResponse(queryRef);
             if (resp != null) {
                 add(new ReactionList("reactions", resp, np));
             } else {
-                add(new ApiResultComponent("reactions", ConnectorConfig.getQueryId("get-reactions"), params) {
+                add(new ApiResultComponent("reactions", queryRef) {
 
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {

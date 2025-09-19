@@ -1,20 +1,27 @@
 package com.knowledgepixels.nanodash.template;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * Singleton class that manages templates data.
@@ -66,7 +73,7 @@ public class TemplateData implements Serializable {
     }
 
     private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {
-        ApiResponse templateEntries = QueryApiAccess.forcedGet(queryId);
+        ApiResponse templateEntries = QueryApiAccess.forcedGet(new QueryRef(queryId));
         String previousId = null;
         logger.info("Loading templates...");
         for (ApiResponseEntry entry : templateEntries.getData()) {

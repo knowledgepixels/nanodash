@@ -18,6 +18,7 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
@@ -84,7 +85,7 @@ public class Space implements Serializable {
 
     public static void ensureLoaded() {
         if (spaceList == null) {
-            refresh(QueryApiAccess.forcedGet("get-spaces"));
+            refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
         }
     }
 
@@ -264,14 +265,14 @@ public class Space implements Serializable {
                 SpaceData newData = new SpaceData();
                 setCoreData(newData);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-admins", "unit", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-admins", "unit", id)).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
                         newData.addAdmin(Utils.vf.createIRI(r.get("admin")));
                     }
                 }
                 newData.members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-members", "unit", id)).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
                     if (newData.admins.contains(memberId)) continue;
@@ -281,7 +282,7 @@ public class Space implements Serializable {
                 newData.admins.sort(User.getUserData().userComparator);
                 newData.members.sort(User.getUserData().userComparator);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-pinned-templates", "space", id)).getData()) {
                     if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     Template t = TemplateData.get().getTemplate(r.get("template"));
                     if (t == null) continue;
@@ -292,7 +293,7 @@ public class Space implements Serializable {
                         newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
                     }
                 }
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-queries", "space", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-pinned-queries", "space", id)).getData()) {
                     if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                     GrlcQuery query = GrlcQuery.get(r.get("query"));
                     if (query == null) continue;

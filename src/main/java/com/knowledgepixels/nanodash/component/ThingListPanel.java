@@ -4,6 +4,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.Utils;
@@ -62,11 +63,12 @@ public class ThingListPanel extends Panel {
      * @return a new ThingListPanel component
      */
     public static Component createComponent(final String markupId, final Mode mode, final String thingRef, final String waitMessage) {
-        ApiResponse response = ApiCache.retrieveResponse(mode.queryName, mode.queryParam, thingRef);
+        QueryRef queryRef = new QueryRef(mode.queryName, mode.queryParamKey, thingRef);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             return new ThingListPanel(markupId, mode, thingRef, response);
         } else {
-            ApiResultComponent c = new ApiResultComponent(markupId, mode.queryName, mode.queryParam, thingRef) {
+            ApiResultComponent c = new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
@@ -96,7 +98,7 @@ public class ThingListPanel extends Panel {
         /**
          * The parameter to be used in the query for this mode.
          */
-        public final String queryParam;
+        public final String queryParamKey;
         /**
          * The field in the API response that contains the relevant data for this mode.
          */
@@ -118,9 +120,9 @@ public class ThingListPanel extends Panel {
          */
         public final String modeId;
 
-        private Mode(String queryName, String queryParam, String returnField, String wordSg, String wordPl, String messageStart) {
+        private Mode(String queryName, String queryParamKey, String returnField, String wordSg, String wordPl, String messageStart) {
             this.queryName = queryName;
-            this.queryParam = queryParam;
+            this.queryParamKey = queryParamKey;
             this.returnField = returnField;
             this.wordSg = wordSg;
             this.wordPl = wordPl;

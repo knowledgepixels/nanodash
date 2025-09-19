@@ -17,9 +17,9 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
