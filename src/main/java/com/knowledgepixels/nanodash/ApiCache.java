@@ -86,7 +86,7 @@ public class ApiCache {
                     ApiCache.updateResponse(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedResponses.put(cacheId, null);
+                    cachedResponses.remove(cacheId);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
