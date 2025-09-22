@@ -115,7 +115,7 @@ public class SpacePage extends NanodashPage {
                 () -> space.isDataInitialized(),
                 () -> space.getRoles(),
                 (r) -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getMainProperty()), r.getName())
-            ));
+            ).makeInline());
 
         add(new ItemListPanel<IRI>(
                 "members",

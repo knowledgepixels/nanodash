@@ -1778,6 +1778,22 @@ div.paneltitlerow span.buttons {
   float: right;
 }
 
+.inline .listpanel ul {
+  padding: 0;
+}
+
+.inline .listpanel li {
+  display: inline;
+}
+
+.inline .listpanel li:after {
+    content:"·";
+}
+
+.inline .listpanel li:last-child:after {
+    content:"";
+}
+
 .nanopub-item {
   border-top: 1px solid #ccc;
   padding: 0;

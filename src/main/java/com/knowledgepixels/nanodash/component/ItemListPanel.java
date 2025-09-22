@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -76,6 +77,11 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> setDescription(String description) {
         this.description = description;
+        return this;
+    }
+
+    public ItemListPanel<T> makeInline() {
+        add(new AttributeAppender("class", " inline"));
         return this;
     }
 
