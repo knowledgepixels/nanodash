@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.googlecode.wicket.jquery.ui.form.datepicker.AjaxDatePicker;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
@@ -23,6 +22,8 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wicketstuff.jquery.core.Options;
+import org.wicketstuff.jquery.ui.form.datepicker.AjaxDatePicker;
 
 import java.util.*;
 import java.util.stream.Collectors;

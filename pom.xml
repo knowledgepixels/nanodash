@@ -24,9 +24,14 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.googlecode.wicket-jquery-ui</groupId>
-      <artifactId>wicket-jquery-ui</artifactId>
-      <version>9.21.0</version>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-jquery-ui</artifactId>
+      <version>10.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-jquery-ui-core</artifactId>
+      <version>10.6.0</version>
     </dependency>
     <!--  WICKET DEPENDENCIES -->
     <dependency>
