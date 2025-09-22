@@ -26,6 +26,7 @@ public class ApiCache {
     } // no instances allowed
 
     private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Boolean> failed = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
@@ -74,6 +75,11 @@ public class ApiCache {
             isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
         }
+        if (failed.get(cacheId) != null) {
+            cachedResponses.remove(cacheId);
+            failed.remove(cacheId);
+            throw new RuntimeException("Query failed: " + cacheId);
+        }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
             new Thread(() -> {
@@ -87,6 +93,7 @@ public class ApiCache {
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.remove(cacheId);
+                    failed.put(cacheId, true);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
@@ -94,10 +101,6 @@ public class ApiCache {
             }).start();
         }
         if (isCached) {
-            if (cachedResponses.get(cacheId) == null) {
-                cachedResponses.remove(cacheId);
-                throw new RuntimeException("Query failed: " + cacheId);
-            }
             return cachedResponses.get(cacheId);
         } else {
             return null;
