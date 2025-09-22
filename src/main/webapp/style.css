@@ -1831,20 +1831,6 @@ div.paneltitlerow span.buttons {
   margin: 0;
 }
 
-.ui-datepicker {
-  background: white;
-  border: 1px solid #000;
-}
-
-.ui-datepicker-header a {
-  cursor: pointer;
-}
-
-.ui-datepicker-next {
-  position: absolute;
-  right: 0;
-}
-
 .date-container {
   display: inline-block;
   position: relative;
