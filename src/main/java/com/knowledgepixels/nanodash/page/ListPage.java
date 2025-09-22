@@ -35,6 +35,7 @@ import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
 public class ListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
+    private final String QUERY_NAME = "get-filtered-nanopub-list";
 
     /**
      * The mount path for this page.
@@ -278,7 +279,7 @@ public class ListPage extends NanodashPage {
         if (endDate != null) {
             queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
         }
-        final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", queryParams);
+        final QueryRef queryRef = new QueryRef(QUERY_NAME, queryParams);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
@@ -291,7 +292,7 @@ public class ListPage extends NanodashPage {
 
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {
-                    ApiResponse r = null;
+                    ApiResponse response = null;
                     while (true) {
                         try {
                             Thread.sleep(500);
@@ -299,19 +300,17 @@ public class ListPage extends NanodashPage {
                             logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryRef)) {
-                            r = ApiCache.retrieveResponse(queryRef);
-                            if (r != null) break;
+                            response = ApiCache.retrieveResponse(queryRef);
+                            if (response != null) break;
                         }
                     }
-                    return NanopubResults.fromApiResponse(markupId, r);
+                    return NanopubResults.fromApiResponse(markupId, response);
                 }
 
                 @Override
                 protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
                     super.onContentLoaded(content, target);
-                    if (target.isPresent()) {
-                        target.get().appendJavaScript("updateElements();");
-                    }
+                    target.ifPresent(ajaxRequestTarget -> ajaxRequestTarget.appendJavaScript("updateElements();"));
                 }
 
             };
