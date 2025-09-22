@@ -1,17 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -32,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDatePicker;
 import org.wicketstuff.kendo.ui.form.datetime.DatePicker;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.ApiCache;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
 
@@ -272,7 +269,7 @@ public class ListPage extends NanodashPage {
             remove("nanopubs");
         }
         added = true;
-        final Multimap<String, String> params = ArrayListMultimap.create();
+        final Multimap<String, String> queryParams = ArrayListMultimap.create();
         if (!types.isEmpty()) {
             queryParams.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
         }
