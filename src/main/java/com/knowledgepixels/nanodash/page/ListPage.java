@@ -4,6 +4,7 @@ import com.googlecode.wicket.jquery.ui.form.datepicker.AjaxDatePicker;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryRef;
+import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,13 +52,13 @@ public class ListPage extends NanodashPage {
     private boolean added = false;
     private static final Logger logger = LoggerFactory.getLogger(ListPage.class);
     private final List<IRI> types = new ArrayList<>();
-    private final List<String> pubKeys = new ArrayList<>();
+    private IRI userId;
     private Date startDate = null;
     private Date endDate = null;
 
     enum PARAMS {
         TYPE("type"),
-        PUBKEY("pubkey"),
+        USER_ID("userid"),
         START_TIME("starttime"),
         END_TIME("endtime");
 
@@ -81,11 +82,10 @@ public class ListPage extends NanodashPage {
         super(parameters);
         logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
 
-        WebMarkupContainer dateFilterContainer = new WebMarkupContainer("dateFilterContainer");
+        add(new TitleBar("titlebar", this, null));
+        add(new Label("pagetitle", "Nanopublication list | nanodash"));
 
         add(new AjaxLink<>("listEnabler") {
-            private static final long serialVersionUID = 1L;
-
             @Override
             public void onClick(AjaxRequestTarget target) {
                 NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
@@ -94,8 +94,6 @@ public class ListPage extends NanodashPage {
         });
 
         add(new AjaxLink<>("gridEnabler") {
-            private static final long serialVersionUID = 1L;
-
             @Override
             public void onClick(AjaxRequestTarget target) {
                 NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
@@ -103,28 +101,24 @@ public class ListPage extends NanodashPage {
             }
         });
 
+        WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
+        WebMarkupContainer userFilterContainer = new WebMarkupContainer("userFilterContainer");
+        WebMarkupContainer dateFilterContainer = new WebMarkupContainer("dateFilterContainer");
+
         List<StringValue> typeParams = parameters.getValues(TYPE.getValue());
         if (typeParams != null && !typeParams.isEmpty()) {
             typeParams.forEach(typeParam -> {
-                ;
                 if (!typeParam.isNull() && !typeParam.isEmpty()) {
                     types.add(Values.iri(typeParam.toString()));
                 }
             });
         }
 
-        WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
         RepeatingView filteredTypes = new RepeatingView("typeNames");
         for (IRI type : types) {
             WebMarkupContainer typeContainer = new WebMarkupContainer(filteredTypes.newChildId());
             typeContainer.add(new Label("typeName", type.getLocalName()));
             typeContainer.add(new AjaxLink<Void>("removeType") {
-                @Override
-                protected void onInitialize() {
-                    super.onInitialize();
-                    add(new Label("crossIcon", "×"));
-                }
-
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                     List<IRI> updatedTypes = types.stream()
@@ -143,19 +137,6 @@ public class ListPage extends NanodashPage {
 
             filteredTypes.add(typeContainer);
             filteredTypes.setVisible(!types.isEmpty());
-        }
-        add(typeFilterContainer);
-        typeFilterContainer.setVisible(!types.isEmpty());
-        typeFilterContainer.add(filteredTypes);
-
-        List<StringValue> pubKeysParams = parameters.getValues(PUBKEY.getValue());
-        if (pubKeysParams != null && !pubKeysParams.isEmpty()) {
-            pubKeysParams.forEach(pubKeyParam -> {
-                if (!pubKeyParam.isNull() && !pubKeyParam.isEmpty()) {
-                    logger.info("Adding pubkey filter: {}", pubKeyParam);
-                    pubKeys.add(String.valueOf(pubKeyParam));
-                }
-            });
         }
 
         Model<Date> startDateModel = Model.of((Date) null);
@@ -208,8 +189,6 @@ public class ListPage extends NanodashPage {
                 setVisible(startDatePicker.getModelObject() != null);
             }
         };
-        clearStartDate.add(new Label("crossIcon", "×"));
-        dateFilterContainer.add(clearStartDate);
 
         AjaxDatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
             @Override
@@ -245,15 +224,26 @@ public class ListPage extends NanodashPage {
                 setVisible(endDatePicker.getModelObject() != null);
             }
         };
-        clearEndDate.add(new Label("crossIcon", "×"));
-        dateFilterContainer.add(clearEndDate);
 
-        dateFilterContainer.add(startDatePicker);
-        dateFilterContainer.add(endDatePicker);
+        if (!parameters.get(USER_ID.getValue()).isNull() && !parameters.get(USER_ID.getValue()).isEmpty()) {
+            userId = Values.iri(parameters.get(USER_ID.getValue()).toString());
+            userFilterContainer.add(new Label("userId", User.getName(userId)));
+            userFilterContainer.add(new AjaxLink<Void>("removeUser") {
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    parameters.remove(USER_ID.getValue());
+                    userId = null;
+                    setResponsePage(ListPage.class, parameters);
+                }
+            });
+        }
 
-        add(dateFilterContainer);
-        add(new TitleBar("titlebar", this, null));
-        add(new Label("pagetitle", "Nanopublication list | nanodash"));
+        typeFilterContainer.setVisible(!types.isEmpty());
+        typeFilterContainer.add(filteredTypes);
+        userFilterContainer.setVisible(userId != null && !userId.stringValue().isEmpty());
+        dateFilterContainer.add(clearStartDate, clearEndDate, startDatePicker, endDatePicker);
+
+        add(typeFilterContainer, userFilterContainer, dateFilterContainer);
 
         refresh();
     }
@@ -272,20 +262,23 @@ public class ListPage extends NanodashPage {
             remove("nanopubs");
         }
         added = true;
-        final Map<String, String> params = new HashMap<>();
+        final Map<String, String> queryParams = new HashMap<>();
         if (!types.isEmpty()) {
-            params.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
+            queryParams.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
         }
-        if (!pubKeys.isEmpty()) {
-            params.put("pubkeys", String.join(" ", pubKeys));
+        if (userId != null) {
+            List<String> pubkeys = User.getPubkeyhashes(userId, null);
+            if (!pubkeys.isEmpty()) {
+                queryParams.put("pubkeys", String.join(" ", pubkeys));
+            }
         }
         if (startDate != null) {
-            params.put(START_TIME.getValue(), startDate.toInstant().toString());
+            queryParams.put(START_TIME.getValue(), startDate.toInstant().toString());
         }
         if (endDate != null) {
-            params.put(END_TIME.getValue(), endDate.toInstant().toString());
+            queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
         }
-        final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", params);
+        final QueryRef queryRef = new QueryRef("get-filtered-nanopub-list", queryParams);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);

@@ -113,12 +113,8 @@ public class UserPage extends NanodashPage {
 //	
 //			});
 //		}
-        
-        PageParameters pageParameters = new PageParameters();
-        for (String pubKey : User.getPubkeyhashes(userIri, false)) {
-            pageParameters.add("pubkey", pubKey);
-        }
-        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, pageParameters));
+
+        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
 
         final Map<String, String> params = new HashMap<>();
         final String queryName;
