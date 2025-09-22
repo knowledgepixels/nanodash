@@ -1858,23 +1858,22 @@ div.paneltitlerow span.buttons {
 
 .date-container .clear-cross {
   position: absolute;
-  right: 10px;
+  right: 40px;
   top: 50%;
-  transform: translateY(-50%);
   z-index: 2;
 }
 
 .filter-section {
   display: flex;
   gap: 24px;
-  align-items: center;
+  align-items: start;
 }
 
 .filter-container {
   display: flex;
   gap: 8px;
   position: relative;
-  border: 1.5px solid #cbd5e1;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   margin-top: 32px;
   padding: 20px;

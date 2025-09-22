@@ -22,8 +22,8 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wicketstuff.jquery.ui.form.datepicker.AjaxDatePicker;
-import org.wicketstuff.jquery.ui.form.datepicker.DatePicker;
+import org.wicketstuff.kendo.ui.form.datetime.AjaxDatePicker;
+import org.wicketstuff.kendo.ui.form.datetime.DatePicker;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,6 +37,7 @@ public class ListPage extends NanodashPage {
 
     private static final long serialVersionUID = 1L;
     private final String QUERY_NAME = "get-filtered-nanopub-list";
+    private final String DATE_FORMAT = "d MMM yyyy";
 
     /**
      * The mount path for this page.
@@ -154,7 +155,7 @@ public class ListPage extends NanodashPage {
             endDateModel = Model.of(endDate);
         }
 
-        DatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel) {
+        DatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel, DATE_FORMAT) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
@@ -192,7 +193,7 @@ public class ListPage extends NanodashPage {
             }
         };
 
-        DatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
+        DatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel, DATE_FORMAT) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
