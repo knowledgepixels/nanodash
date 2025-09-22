@@ -128,7 +128,7 @@ public class QueryParamField extends Panel {
 
         @Override
         public void validate(IValidatable<String> i) {
-            if (isOptional() && !isSet()) {
+            if (isOptional() && !isSet(i.getValue())) {
                 // all good
                 return;
             }

@@ -133,7 +133,8 @@ public class Space implements Serializable {
 
         List<IRI> admins = new ArrayList<>();
         Map<IRI,Set<SpaceMemberRole>> members = new HashMap<>();
-        Map<IRI,SpaceMemberRole> roles = new HashMap<>();
+        List<SpaceMemberRole> roles = new ArrayList<>();
+        Map<IRI,SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String,IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
@@ -250,7 +251,7 @@ public class Space implements Serializable {
     }
 
     public List<SpaceMemberRole> getRoles() {
-        return new ArrayList<SpaceMemberRole>(data.roles.values());
+        return data.roles;
     }
 
     public String getSuperId() {
@@ -298,9 +299,8 @@ public class Space implements Serializable {
                 SpaceData newData = new SpaceData();
                 setCoreData(newData);
 
-                newData.members = new HashMap<>();
-                newData.roles = new HashMap<>();
-                newData.roles.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
+                newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
+                newData.roleMap.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
 
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-admins", "unit", id)).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
@@ -312,22 +312,25 @@ public class Space implements Serializable {
                 }
                 newData.admins.sort(User.getUserData().userComparator);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef( "get-space-member-roles", "space", id)).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    SpaceMemberRole role = new SpaceMemberRole(vf.createIRI(r.get("role")), r.get("roleNoun"));
-                    if (!newData.roles.containsKey(role.getProperty())) {
-                        newData.roles.put(role.getProperty(), role);
-                    }
-                }
-
                 Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create();
                 getSpaceMemberParams.put("space", id);
-                for (SpaceMemberRole r : newData.roles.values()) {
-                    getSpaceMemberParams.put("role", r.getProperty().stringValue());
+
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef( "get-space-member-roles", "space", id)).getData()) {
+                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                    SpaceMemberRole role = new SpaceMemberRole(r);
+                    newData.roles.add(role);
+
+                    // TODO Handle cases of overlapping properties:
+                    newData.roleMap.put(role.getMainProperty(), role);
+                    for (IRI p : role.getEquivalentProperties()) newData.roleMap.put(p, role);
+                    for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
+    
+                    role.addRoleParams(getSpaceMemberParams);
                 }
+
                 for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
-                    SpaceMemberRole role = newData.roles.get(Utils.vf.createIRI(r.get("role")));
+                    SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                     newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
                 }
 
