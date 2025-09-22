@@ -22,7 +22,16 @@
   </repositories>
 
   <dependencies>
-
+    <dependency>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-kendo-ui</artifactId>
+      <version>${wicket.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-kendo-ui-theme-default</artifactId>
+      <version>${wicket.version}</version>
+    </dependency>
     <!--  WICKET DEPENDENCIES -->
     <dependency>
       <groupId>org.apache.wicket</groupId>
