@@ -22,16 +22,15 @@
   </repositories>
 
   <dependencies>
-
     <dependency>
       <groupId>org.wicketstuff</groupId>
       <artifactId>wicketstuff-jquery-ui</artifactId>
-      <version>10.6.0</version>
+      <version>${wicket.version}</version>
     </dependency>
     <dependency>
       <groupId>org.wicketstuff</groupId>
       <artifactId>wicketstuff-jquery-ui-core</artifactId>
-      <version>10.6.0</version>
+      <version>${wicket.version}</version>
     </dependency>
     <!--  WICKET DEPENDENCIES -->
     <dependency>
