@@ -18,16 +18,21 @@
       <h2>Nanopublications</h2>
       <div class="filter-section">
         <div class="filter-container type-filter" wicket:id="typeFilterContainer">
-          <span class="filter-section-title">Type:</span>
+          <span class="filter-container-title">Type</span>
           <wicket:container class="type-chip" wicket:id="typeNames">
           <span class="typetag">
             <span wicket:id="typeName"></span>
-            <span wicket:id="removeType"><span wicket:id="crossIcon" style="cursor: pointer"></span></span>
+            <a wicket:id="removeType" class="clear-cross">&#10005;</a>
           </span>
           </wicket:container>
         </div>
+        <div class="filter-container user-filter" wicket:id="userFilterContainer">
+          <span class="filter-container-title">User</span>
+          <span wicket:id="userId"></span>
+          <a wicket:id="removeUser" class="clear-cross">&#10005;</a>
+        </div>
         <div class="filter-container date-filter" wicket:id="dateFilterContainer">
-          <span class="filter-section-title">Date:</span>
+          <span class="filter-container-title">Date</span>
           <div class="date-container">
             <span class="date-label">From</span><input wicket:id="startDate" type="text"/>
             <a wicket:id="clearStartDate" class="clear-cross">&#10005;</a>
