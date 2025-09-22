@@ -17,6 +17,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -127,6 +128,8 @@ public class Space implements Serializable {
 
     private static class SpaceData implements Serializable {
 
+        List<String> altIds = new ArrayList<>();
+    
         String description = null;
         Calendar startDate, endDate;
         IRI defaultProvenance = null;
@@ -293,71 +296,84 @@ public class Space implements Serializable {
         return l;
     }
 
+    public List<String> getAltIDs() {
+        return data.altIds;
+    }
+
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
-                SpaceData newData = new SpaceData();
-                setCoreData(newData);
-
-                newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
-                newData.roleMap.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
-
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-admins", "unit", id)).getData()) {
-                    String pubkeyhash = r.get("pubkeyhash");
-                    if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
-                        IRI adminId = Utils.vf.createIRI(r.get("admin"));
-                        newData.addAdmin(adminId);
-                        newData.members.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
-                    }
-                }
-                newData.admins.sort(User.getUserData().userComparator);
-
-                Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create();
-                getSpaceMemberParams.put("space", id);
-
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef( "get-space-member-roles", "space", id)).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    SpaceMemberRole role = new SpaceMemberRole(r);
-                    newData.roles.add(role);
-
-                    // TODO Handle cases of overlapping properties:
-                    newData.roleMap.put(role.getMainProperty(), role);
-                    for (IRI p : role.getEquivalentProperties()) newData.roleMap.put(p, role);
-                    for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
+                try {
+                    SpaceData newData = new SpaceData();
+                    setCoreData(newData);
     
-                    role.addRoleParams(getSpaceMemberParams);
-                }
+                    newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
+                    newData.roleMap.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
-                    IRI memberId = Utils.vf.createIRI(r.get("member"));
-                    SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                    newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
-                }
-
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-pinned-templates", "space", id)).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    Template t = TemplateData.get().getTemplate(r.get("template"));
-                    if (t == null) continue;
-                    newData.pinnedResources.add(t);
-                    String tag = r.get("tag");
-                    if (tag != null && !tag.isEmpty()) {
-                        newData.pinGroupTags.add(r.get("tag"));
-                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
+                    spaceIds.put("space", id);
+                    for (String id : newData.altIds) {
+                        spaceIds.put("space", id);
                     }
-                }
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-pinned-queries", "space", id)).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    GrlcQuery query = GrlcQuery.get(r.get("query"));
-                    if (query == null) continue;
-                    newData.pinnedResources.add(query);
-                    String tag = r.get("tag");
-                    if (tag != null && !tag.isEmpty()) {
-                        newData.pinGroupTags.add(r.get("tag"));
-                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
+                        String pubkeyhash = r.get("pubkey");
+                        if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
+                            IRI adminId = Utils.vf.createIRI(r.get("admin"));
+                            newData.addAdmin(adminId);
+                            newData.members.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
+                        }
                     }
+                    newData.admins.sort(User.getUserData().userComparator);
+    
+                    Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef( "get-space-member-roles", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        SpaceMemberRole role = new SpaceMemberRole(r);
+                        newData.roles.add(role);
+    
+                        // TODO Handle cases of overlapping properties:
+                        newData.roleMap.put(role.getMainProperty(), role);
+                        for (IRI p : role.getEquivalentProperties()) newData.roleMap.put(p, role);
+                        for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
+        
+                        role.addRoleParams(getSpaceMemberParams);
+                    }
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
+                        IRI memberId = Utils.vf.createIRI(r.get("member"));
+                        SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
+                        newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
+                    }
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        Template t = TemplateData.get().getTemplate(r.get("template"));
+                        if (t == null) continue;
+                        newData.pinnedResources.add(t);
+                        String tag = r.get("tag");
+                        if (tag != null && !tag.isEmpty()) {
+                            newData.pinGroupTags.add(r.get("tag"));
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                        }
+                    }
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-queries", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        GrlcQuery query = GrlcQuery.get(r.get("query"));
+                        if (query == null) continue;
+                        newData.pinnedResources.add(query);
+                        String tag = r.get("tag");
+                        if (tag != null && !tag.isEmpty()) {
+                            newData.pinGroupTags.add(r.get("tag"));
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+                        }
+                    }
+                    data = newData;
+                    dataInitialized = true;
+                } catch (Exception ex) {
+                    logger.error("Error while trying to update space data: {}", ex);
                 }
-                data = newData;
-                dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;
         }
@@ -366,7 +382,9 @@ public class Space implements Serializable {
     private void setCoreData(SpaceData data) {
         for (Statement st : rootNanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(getId())) {
-                if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                if (st.getPredicate().equals(OWL.SAMEAS) && st.getObject() instanceof IRI objIri) {
+                    data.altIds.add(objIri.stringValue());
+                } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     data.description = st.getObject().stringValue();
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
                     try {

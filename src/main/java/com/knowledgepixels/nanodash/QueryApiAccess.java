@@ -66,13 +66,12 @@ public class QueryApiAccess {
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
-        load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
-        load("RAYI6_CkA7nY58hCGx3nbBncBWXle1azhVqBnNPCpw_R8/get-admins");
-        load("RA3Ea3xpasSEuIUeHn02057noxnDZnyHclGjUjlXLwqf4/get-space-members");
+        load("RAOpebLWcp0G6D9U8ZhfYGOkz-kObkytDsM6rCQlIi_j0/get-admins");
+        load("RA_Xf7mfC2PAohGYktJEXjkbzxPhkfX4DE1bQKFqkxrRg/get-space-members");
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
-        load("RAa2949qM3veXzp6rWoW-KNLSEbKOenMR9z3w9qQ48VsM/get-pinned-templates");
-        load("RAdyYeWRfQl8TecahiU77iVStCcESf90HR_9pr2EJP4FE/get-pinned-queries");
-        load("RAPt8JWlhGiAT-LMSlFY9bavnH2YI0rxXZTFtfUv7Xe7o/get-space-member-roles");
+        load("RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates");
+        load("RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries");
+        load("RAmRZR_izFZiIcpaWdRVTKAB57QGuvgVUCM0XmAkNYjLo/get-space-member-roles");
     }
 
     /**

@@ -73,6 +73,13 @@ public class SpacePage extends NanodashPage {
         add(new ExternalLink("id", space.getId(), space.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
 
+        add(new ItemListPanel<String>(
+                "altids",
+                "Alternative IDs",
+                space.getAltIDs(),
+                id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
+            ));
+
         if (space.getStartDate() != null) {
             String dateString;
             LocalDateTime dt = LocalDateTime.ofInstant(space.getStartDate().toInstant(), ZoneId.systemDefault());
@@ -114,7 +121,7 @@ public class SpacePage extends NanodashPage {
                 "Roles",
                 () -> space.isDataInitialized(),
                 () -> space.getRoles(),
-                (r) -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getMainProperty()), r.getName())
+                r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getMainProperty()), r.getName())
             ).makeInline());
 
         add(new ItemListPanel<IRI>(
@@ -122,7 +129,7 @@ public class SpacePage extends NanodashPage {
                 "Members",
                 () -> space.isDataInitialized(),
                 () -> space.getMembers(),
-                (m) -> {
+                m -> {
                         String roleLabel = "(";
                         for (SpaceMemberRole r : space.getMemberRoles(m)) {
                             roleLabel += r.getName() + ", ";
