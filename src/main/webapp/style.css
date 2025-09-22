@@ -1851,14 +1851,16 @@ div.paneltitlerow span.buttons {
 }
 
 .clear-cross {
+  cursor: pointer;
+  color: #888;
+  text-decoration: none;
+}
+
+.date-container .clear-cross {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  cursor: pointer;
-  color: #888;
-  font-size: 18px;
-  text-decoration: none;
   z-index: 2;
 }
 
