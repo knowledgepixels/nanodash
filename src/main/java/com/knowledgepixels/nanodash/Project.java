@@ -17,6 +17,7 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import com.knowledgepixels.nanodash.template.Template;
@@ -48,7 +49,7 @@ public class Project implements Serializable {
 
     public static void ensureLoaded() {
         if (projectList == null) {
-            refresh(QueryApiAccess.forcedGet("get-projects"));
+            refresh(QueryApiAccess.forcedGet(new QueryRef("get-projects")));
         }
     }
 
@@ -191,14 +192,14 @@ public class Project implements Serializable {
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-owners", "unit", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-owners", "unit", id)).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (ownerPubkeyMap.containsKey(pubkeyhash)) {
                         addOwner(Utils.vf.createIRI(r.get("owner")));
                     }
                 }
                 members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
+                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-members", "unit", id)).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
                     if (owners.contains(memberId)) continue;

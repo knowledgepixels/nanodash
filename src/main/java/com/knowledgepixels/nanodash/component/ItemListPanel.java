@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -17,9 +18,9 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
@@ -76,6 +77,11 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> setDescription(String description) {
         this.description = description;
+        return this;
+    }
+
+    public ItemListPanel<T> makeInline() {
+        add(new AttributeAppender("class", " inline"));
         return this;
     }
 

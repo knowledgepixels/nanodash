@@ -1,21 +1,19 @@
 package com.knowledgepixels.nanodash.page;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
+
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.component.ActivityPanel;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import org.apache.wicket.Component;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.ApiResponse;
-
-import java.util.HashMap;
 
 /**
  * TestPage is a simple page to test the API response.
  */
 public class TestPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -42,16 +40,12 @@ public class TestPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
 
-        final String queryName = "get-type-overview-last-12-months";
-        final HashMap<String, String> params = new HashMap<>();
-        params.put("creator", "https://orcid.org/0000-0002-1267-0234");
-        ApiResponse response = ApiCache.retrieveResponse(queryName, params);
+        final QueryRef queryRef = new QueryRef("get-type-overview-last-12-months", "creator", "https://orcid.org/0000-0002-1267-0234");
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             add(new ActivityPanel("activity", response));
         } else {
-            add(new ApiResultComponent("activity", queryName, params) {
-
-                private static final long serialVersionUID = 1L;
+            add(new ApiResultComponent("activity", queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

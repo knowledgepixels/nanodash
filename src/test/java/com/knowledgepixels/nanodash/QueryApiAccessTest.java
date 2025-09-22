@@ -5,16 +5,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryAccess;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.nanopub.extra.services.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
 class QueryApiAccessTest {
@@ -38,9 +32,9 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(queryId, new HashMap<>())).thenReturn(expectedResponse);
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(expectedResponse);
 
-            ApiResponse response = QueryApiAccess.get(queryId);
+            ApiResponse response = QueryApiAccess.get(new QueryRef(queryId));
 
             assertEquals(expectedResponse, response);
         }
@@ -51,9 +45,9 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(queryId, new HashMap<>())).thenReturn(expectedResponse);
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(expectedResponse);
 
-            ApiResponse response = QueryApiAccess.get(queryName);
+            ApiResponse response = QueryApiAccess.get(new QueryRef(queryName));
 
             assertEquals(expectedResponse, response);
         }
@@ -64,12 +58,12 @@ class QueryApiAccessTest {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(queryId, new HashMap<>()))
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class)))
                     .thenReturn(null)
                     .thenReturn(null)
                     .thenReturn(expectedResponse);
 
-            ApiResponse response = QueryApiAccess.forcedGet(queryName);
+            ApiResponse response = QueryApiAccess.forcedGet(new QueryRef(queryName));
 
             assertEquals(expectedResponse, response);
         }
@@ -78,9 +72,8 @@ class QueryApiAccessTest {
     @Test
     void getThrowsExceptionForUnknownQueryName() {
         String queryName = "unknownQueryName";
-        Map<String, String> params = new HashMap<>();
 
-        assertThrows(IllegalArgumentException.class, () -> QueryApiAccess.get(queryName, params));
+        assertThrows(IllegalArgumentException.class, () -> QueryApiAccess.get(new QueryRef(queryName)));
     }
 
     @Test

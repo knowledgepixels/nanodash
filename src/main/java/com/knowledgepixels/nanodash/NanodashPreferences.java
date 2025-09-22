@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class NanodashPreferences implements Serializable {
 
-    private static final long serialVersionUID = 1L;
     private static NanodashPreferences obj;
     private static final Logger logger = LoggerFactory.getLogger(NanodashPreferences.class);
 

@@ -672,6 +672,10 @@ input[type=radio] + label strong {
   cursor: pointer;
 }
 
+.input-marker {
+  vertical-align: top;
+}
+
 .introduced {
   border-style: solid;
   border-color: #ffbb00;
@@ -1748,7 +1752,7 @@ div.navigator .goto a[disabled] {
   color: #888;
 }
 
-div.paneltitlerow {
+.listpanel .paneltitlerow {
   border-bottom-style: solid;
   border-width: 1px;
   border-color: #888;
@@ -1756,22 +1760,43 @@ div.paneltitlerow {
   width: 100%;
 }
 
-div.paneltitlerow.tablepanel {
+.inline .listpanel .paneltitlerow {
+  border-style: none;
   margin-bottom: 0;
 }
 
-div.paneltitlerow h4 {
+.listpanel .paneltitlerow.tablepanel {
+  margin-bottom: 0;
+}
+
+.listpanel .paneltitlerow h4 {
   margin: 22px 0 8px 0;
   display: inline-block;
 }
 
-div.paneltitlerow span.buttons a.smallbutton {
+.listpanel .paneltitlerow span.buttons a.smallbutton {
   margin-left: 5px;
 }
 
-div.paneltitlerow span.buttons {
+.listpanel .paneltitlerow span.buttons {
   margin: 26px 0 6px 0;
   float: right;
+}
+
+.inline .listpanel ul {
+  padding: 0;
+}
+
+.inline .listpanel li {
+  display: inline;
+}
+
+.inline .listpanel li:after {
+    content:"·";
+}
+
+.inline .listpanel li:last-child:after {
+    content:"";
 }
 
 .nanopub-item {

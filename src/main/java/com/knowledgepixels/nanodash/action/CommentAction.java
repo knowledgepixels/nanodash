@@ -7,8 +7,6 @@ import org.nanopub.Nanopub;
  */
 public class CommentAction extends NanopubAction {
 
-    private static final long serialVersionUID = 7995012295240119652L;
-
     /**
      * The URI of the template for the comment action.
      */

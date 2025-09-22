@@ -7,8 +7,8 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
@@ -19,8 +19,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  * Page that lists all users and groups.
  */
 public class UserListPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -47,8 +45,6 @@ public class UserListPage extends NanodashPage {
 
 //		final List<Group> groupList = new ArrayList<Group>(Group.getGroups());
 //		add(new DataView<Group>("groups", new ListDataProvider<Group>(groupList)) {
-//
-//			private static final long serialVersionUID = 1L;
 //
 //			@Override
 //			protected void populateItem(Item<Group> item) {

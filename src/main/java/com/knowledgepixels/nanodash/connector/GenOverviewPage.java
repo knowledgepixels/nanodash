@@ -1,12 +1,8 @@
 package com.knowledgepixels.nanodash.connector;
 
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.page.OrcidLoginPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -23,19 +19,24 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.page.OrcidLoginPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 
 /**
  * Overview page for a connector journal.
  */
 public class GenOverviewPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(GenOverviewPage.class);
 
     /**
@@ -84,10 +85,8 @@ public class GenOverviewPage extends ConnectorPage {
             add(c);
 
             if (NanodashSession.get().getUserIri() != null) {
-
-                HashMap<String, String> apiParam = new HashMap<>();
-                apiParam.put("creator", NanodashSession.get().getUserIri().stringValue());
-                ApiResponse resp = callApi(getConfig().getCandidateNanopubsApiCall(), apiParam);
+                QueryRef queryRef = new QueryRef(getConfig().getCandidateNanopubsApiCall(), "creator", NanodashSession.get().getUserIri().stringValue());
+                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
                 while (resp == null) {
                     // we only get here in case of second-generation API calls
                     // TODO Do this in an AJAX way:
@@ -96,7 +95,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = callApi(getConfig().getCandidateNanopubsApiCall(), apiParam);
+                    resp = ApiCache.retrieveResponse(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -108,8 +107,6 @@ public class GenOverviewPage extends ConnectorPage {
                 }
 
                 c.add(new DataView<ApiResponseEntry>("own", new ListDataProvider<ApiResponseEntry>(listData)) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
@@ -126,8 +123,6 @@ public class GenOverviewPage extends ConnectorPage {
                 });
 
                 c.add(new AjaxLink<>("allowncandidates") {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -164,7 +159,8 @@ public class GenOverviewPage extends ConnectorPage {
             c.setOutputMarkupId(true);
             add(c);
 
-            ApiResponse resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
+            QueryRef queryRef = new QueryRef(getConfig().getCandidateNanopubsApiCall());
+            ApiResponse resp = ApiCache.retrieveResponse(queryRef);
             while (resp == null) {
                 // TODO Do this in an AJAX way:
                 try {
@@ -172,7 +168,7 @@ public class GenOverviewPage extends ConnectorPage {
                 } catch (InterruptedException ex) {
                     logger.error("Thread interrupted", ex);
                 }
-                resp = callApi(getConfig().getCandidateNanopubsApiCall(), new HashMap<>());
+                resp = ApiCache.retrieveResponse(queryRef);
             }
 
             final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -184,8 +180,6 @@ public class GenOverviewPage extends ConnectorPage {
             }
 
             c.add(new DataView<ApiResponseEntry>("candidates", new ListDataProvider<ApiResponseEntry>(listData)) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<ApiResponseEntry> item) {
@@ -202,8 +196,6 @@ public class GenOverviewPage extends ConnectorPage {
             });
 
             c.add(new AjaxLink<>("allcandidates") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -230,7 +222,8 @@ public class GenOverviewPage extends ConnectorPage {
                 c.setOutputMarkupId(true);
                 add(c);
 
-                ApiResponse resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
+                QueryRef queryRef = new QueryRef(getConfig().getAcceptedNanopubsApiCall());
+                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
                 while (resp == null) {
                     // TODO Do this in an AJAX way:
                     try {
@@ -238,7 +231,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = callApi(getConfig().getAcceptedNanopubsApiCall(), new HashMap<>());
+                    resp = ApiCache.retrieveResponse(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -250,8 +243,6 @@ public class GenOverviewPage extends ConnectorPage {
                 }
 
                 c.add(new DataView<ApiResponseEntry>("accepted", new ListDataProvider<ApiResponseEntry>(listData)) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
@@ -283,8 +274,6 @@ public class GenOverviewPage extends ConnectorPage {
 
                 c.add(new AjaxLink<>("allaccepted") {
 
-                    private static final long serialVersionUID = 1L;
-
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         try {
@@ -311,7 +300,8 @@ public class GenOverviewPage extends ConnectorPage {
                 c.setOutputMarkupId(true);
                 add(c);
 
-                ApiResponse resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+                QueryRef queryRef = new QueryRef(getConfig().getGeneralReactionsApiCall());
+                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
                 while (resp == null) {
                     // TODO Do this in an AJAX way:
                     try {
@@ -319,7 +309,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = callApi(getConfig().getGeneralReactionsApiCall(), new HashMap<>());
+                    resp = ApiCache.retrieveResponse(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -331,8 +321,6 @@ public class GenOverviewPage extends ConnectorPage {
                 }
 
                 c.add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(listData)) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
@@ -349,8 +337,6 @@ public class GenOverviewPage extends ConnectorPage {
                 });
 
                 c.add(new AjaxLink<>("allreactions") {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {

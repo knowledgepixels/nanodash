@@ -6,6 +6,12 @@ import com.knowledgepixels.nanodash.QueryRef;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -20,13 +26,15 @@ import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDatePicker;
 import org.wicketstuff.kendo.ui.form.datetime.DatePicker;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
 
 import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
 
@@ -87,7 +95,6 @@ public class ListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
-
         add(new AjaxLink<>("listEnabler") {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -265,7 +272,7 @@ public class ListPage extends NanodashPage {
             remove("nanopubs");
         }
         added = true;
-        final Map<String, String> queryParams = new HashMap<>();
+        final Multimap<String, String> params = ArrayListMultimap.create();
         if (!types.isEmpty()) {
             queryParams.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
         }
@@ -289,8 +296,6 @@ public class ListPage extends NanodashPage {
             add(cachedResults);
         } else {
             AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {

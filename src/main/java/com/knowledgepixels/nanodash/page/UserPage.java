@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -14,6 +15,7 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +23,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
  */
 public class UserPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(UserPage.class);
 
     /**
@@ -86,8 +89,6 @@ public class UserPage extends NanodashPage {
 //		} else {
 //			add(new AjaxLazyLoadPanel<Component>("stats") {
 //	
-//				private static final long serialVersionUID = 1L;
-//	
 //				@Override
 //				public Component getLazyLoadComponent(String markupId) {
 //					Map<String,String> m = null;
@@ -116,7 +117,7 @@ public class UserPage extends NanodashPage {
 
         add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
 
-        final Map<String, String> params = new HashMap<>();
+        final Multimap<String, String> params = ArrayListMultimap.create();
         final String queryName;
         if (pubkeyHashes.isEmpty()) {
             queryName = "get-latest-nanopubs-from-userid";
@@ -126,13 +127,12 @@ public class UserPage extends NanodashPage {
             params.put("pubkeyhashes", pubkeyHashes);
             params.put("userid", userIri.stringValue());
         }
-        ApiResponse response = ApiCache.retrieveResponse(queryName, params);
+        final QueryRef queryRef = new QueryRef(queryName, params);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             add(makeNanopubResultComponent("latestnanopubs", response));
         } else {
             add(new AjaxLazyLoadPanel<Component>("latestnanopubs") {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
@@ -143,8 +143,8 @@ public class UserPage extends NanodashPage {
                         } catch (InterruptedException ex) {
                             logger.error("Thread interrupted while waiting for API response", ex);
                         }
-                        if (!ApiCache.isRunning(queryName, params)) {
-                            r = ApiCache.retrieveResponse(queryName, params);
+                        if (!ApiCache.isRunning(queryRef)) {
+                            r = ApiCache.retrieveResponse(queryRef);
                             if (r != null) break;
                         }
                     }

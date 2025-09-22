@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.APINotReachableException;
@@ -7,13 +10,9 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryAccess;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Utility class for accessing and managing API queries.
@@ -62,17 +61,19 @@ public class QueryApiAccess {
         load("RAQqjXQYlxYQeI4Y3UQy9OrD5Jx1E3PJ8KwKKQlWbiYSw/get-queries");
         load("RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub");
         load("RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects");
+        load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
+        load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
         load("RAlPzIqHJsPt33WuPNBIyPDr8KC7htHO9UYvSuYOfTjwo/get-spaces");
         load("RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts");
         load("RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates");
         load("RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates");
         load("RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates");
-        load("RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners");
-        load("RAYI6_CkA7nY58hCGx3nbBncBWXle1azhVqBnNPCpw_R8/get-admins");
-        load("RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members");
+        load("RAOpebLWcp0G6D9U8ZhfYGOkz-kObkytDsM6rCQlIi_j0/get-admins");
+        load("RA_Xf7mfC2PAohGYktJEXjkbzxPhkfX4DE1bQKFqkxrRg/get-space-members");
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
-        load("RAa2949qM3veXzp6rWoW-KNLSEbKOenMR9z3w9qQ48VsM/get-pinned-templates");
-        load("RAdyYeWRfQl8TecahiU77iVStCcESf90HR_9pr2EJP4FE/get-pinned-queries");
+        load("RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates");
+        load("RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries");
+        load("RAmRZR_izFZiIcpaWdRVTKAB57QGuvgVUCM0XmAkNYjLo/get-space-member-roles");
     }
 
     /**
@@ -89,98 +90,44 @@ public class QueryApiAccess {
      * Retries until a valid response is received.
      *
      * @param queryName The name of the query.
-     * @return The API response.
-     */
-    public static ApiResponse forcedGet(String queryName) {
-        return forcedGet(queryName, new HashMap<>());
-    }
-
-    /**
-     * Forces the retrieval of an API response for a given query name and a single parameter.
-     * Retries until a valid response is received.
-     *
-     * @param queryName  The name of the query.
-     * @param paramKey   The key of the parameter.
-     * @param paramValue The value of the parameter.
-     * @return The API response.
-     */
-    public static ApiResponse forcedGet(String queryName, String paramKey, String paramValue) {
-        Map<String, String> params = new HashMap<>();
-        params.put(paramKey, paramValue);
-        return forcedGet(queryName, params);
-    }
-
-    /**
-     * Forces the retrieval of an API response for a given query name and parameters.
-     * Retries until a valid response is received.
-     *
-     * @param queryName The name of the query.
      * @param params    The parameters for the query.
      * @return The API response.
      */
-    public static ApiResponse forcedGet(String queryName, Map<String, String> params) {
+    public static ApiResponse forcedGet(QueryRef queryRef) {
         while (true) {
             ApiResponse resp = null;
             try {
-                resp = QueryApiAccess.get(queryName, params);
+                resp = QueryApiAccess.get(queryRef);
             } catch (Exception ex) {
                 // TODO We should be more specific about which exceptions we catch here
                 //      and generally improve this, as this could hang forever.
-                logger.error("Error while forcing API get for query '{}' with params {}", queryName, params, ex);
+                logger.error("Error while forcing API get for query {}", queryRef, ex);
             }
             if (resp != null) return resp;
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                logger.error("Interrupted while forcing API get for query '{}' with params {}", queryName, params, ex);
+                logger.error("Interrupted while forcing API get for query {}", queryRef, ex);
             }
         }
     }
 
     /**
-     * Retrieves an API response for a given query name.
+     * Retrieves an API response for a given query reference.
      *
-     * @param queryName The name of the query.
+     * @param queryRef The query reference
      * @return The API response.
      * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
      */
-    public static ApiResponse get(String queryName) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        return get(queryName, new HashMap<>());
-    }
-
-    /**
-     * Retrieves an API response for a given query name and a single parameter.
-     *
-     * @param queryName  The name of the query.
-     * @param paramKey   The key of the parameter.
-     * @param paramValue The value of the parameter.
-     * @return The API response.
-     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
-     */
-    public static ApiResponse get(String queryName, String paramKey, String paramValue) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        Map<String, String> params = new HashMap<>();
-        params.put(paramKey, paramValue);
-        return get(queryName, params);
-    }
-
-    /**
-     * Retrieves an API response for a given query name and parameters.
-     *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
-     * @return The API response.
-     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
-     */
-    public static ApiResponse get(String queryName, Map<String, String> params) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        String queryId;
-        if (queryName.matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
-            queryId = queryName;
-        } else if (queryIds.containsKey(queryName)) {
-            queryId = queryIds.get(queryName);
+    public static ApiResponse get(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        if (queryRef.getName().matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
+            // All good
+        } else if (queryIds.containsKey(queryRef.getName())) {
+            queryRef = new QueryRef(queryIds.get(queryRef.getName()), queryRef.getParams());
         } else {
-            throw new IllegalArgumentException("Query name not known: " + queryName);
+            throw new IllegalArgumentException("Query name not known: " + queryRef.getName());
         }
-        return QueryAccess.get(queryId, params);
+        return QueryAccess.get(queryRef);
     }
 
     /**
@@ -193,10 +140,8 @@ public class QueryApiAccess {
         long currentTime = System.currentTimeMillis();
         if (!latestVersionMap.containsKey(nanopubId) || currentTime - latestVersionMap.get(nanopubId).getLeft() > 1000 * 60) {
             // Re-fetch if existing value is older than 1 minute
-            Map<String, String> params = new HashMap<>();
-            params.put("np", nanopubId);
             try {
-                ApiResponse r = get("get-latest-version-of-np", params);
+                ApiResponse r = get(new QueryRef("get-latest-version-of-np", "np", nanopubId));
                 if (r.getData().size() != 1) return nanopubId;
                 String l = r.getData().get(0).get("latest");
                 latestVersionMap.put(nanopubId, Pair.of(currentTime, l));

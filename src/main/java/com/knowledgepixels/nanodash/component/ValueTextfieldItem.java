@@ -31,8 +31,6 @@ import java.net.URISyntaxException;
  */
 public class ValueTextfieldItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
-
     private TemplateContext context;
     private TextField<String> textfield;
     private IRI iri;
@@ -70,8 +68,6 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
             textfield.setLabel(Model.of(template.getLabel(iri)));
         }
         textfield.add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -141,8 +137,6 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
      * Validator class for validating the text field input.
      */
     protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        private static final long serialVersionUID = 1L;
 
 //		private IRI iri;
 //		private Template template;

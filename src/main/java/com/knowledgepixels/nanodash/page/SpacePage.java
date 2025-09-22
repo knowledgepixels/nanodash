@@ -1,11 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -18,6 +16,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 
 import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
@@ -52,6 +51,8 @@ public class SpacePage extends NanodashPage {
      */
     private Space space;
 
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     /**
      * Constructor for the SpacePage.
      *
@@ -71,6 +72,30 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLink("id", space.getId(), space.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
+
+        add(new ItemListPanel<String>(
+                "altids",
+                "Alternative IDs",
+                space.getAltIDs(),
+                id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
+            ));
+
+        if (space.getStartDate() != null) {
+            String dateString;
+            LocalDateTime dt = LocalDateTime.ofInstant(space.getStartDate().toInstant(), ZoneId.systemDefault());
+            dateString = dateTimeFormatter.format(dt);
+            if (space.getEndDate() != null) {
+                dt = LocalDateTime.ofInstant(space.getEndDate().toInstant(), ZoneId.systemDefault());
+                String endDate = dateTimeFormatter.format(dt);
+                if (!dateString.equals(endDate)) {
+                    dateString += " - " + endDate;
+                }
+            }
+            add(new Label("date", dateString));
+        } else {
+            add(new Label("date").setVisible(false));
+        }
+
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         if (space.isDataInitialized()) {
@@ -91,21 +116,27 @@ public class SpacePage extends NanodashPage {
             });
         }
 
-        add(new ItemListPanel<Pair<IRI, String>>(
+        add(new ItemListPanel<SpaceMemberRole>(
+                "roles",
+                "Roles",
+                () -> space.isDataInitialized(),
+                () -> space.getRoles(),
+                r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getMainProperty()), r.getName())
+            ).makeInline());
+
+        add(new ItemListPanel<IRI>(
                 "members",
                 "Members",
                 () -> space.isDataInitialized(),
-                () -> {
-                        List<Pair<IRI, String>> members = new ArrayList<>();
-                        Set<IRI> adminSet = new HashSet<>(space.getAdmins());
-                        for (IRI admin : space.getAdmins()) members.add(Pair.of(admin, "(admin)"));
-                        for (IRI member : space.getMembers()) {
-                            if (adminSet.contains(member)) continue;
-                            members.add(Pair.of(member, ""));
+                () -> space.getMembers(),
+                m -> {
+                        String roleLabel = "(";
+                        for (SpaceMemberRole r : space.getMemberRoles(m)) {
+                            roleLabel += r.getName() + ", ";
                         }
-                        return members;
-                    },
-                (p) -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", p.getLeft()), User.getShortDisplayName(p.getLeft()), p.getRight())
+                        roleLabel = roleLabel.replaceFirst(", $", ")");
+                        return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel);
+                    }
             ));
 
         add(new ItemListPanel<Space>(

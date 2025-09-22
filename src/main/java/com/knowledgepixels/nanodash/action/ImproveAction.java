@@ -8,8 +8,6 @@ import org.nanopub.Nanopub;
  */
 public class ImproveAction extends NanopubAction {
 
-    private static final long serialVersionUID = 7125118789143870705L;
-
     /**
      * {@inheritDoc}
      */

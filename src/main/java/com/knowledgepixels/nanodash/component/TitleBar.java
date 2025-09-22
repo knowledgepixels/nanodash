@@ -22,8 +22,6 @@ import com.knowledgepixels.nanodash.page.NanodashPage;
  */
 public class TitleBar extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private String highlight;
 
     /**
@@ -53,8 +51,6 @@ public class TitleBar extends Panel {
             // Getting serialization exception if not using 'new ArrayList<...>(...)' here:
             List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Utils.subList(pathRefs, 1, pathRefs.length));
             breadcrumbPath.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<NanodashPageRef> item) {

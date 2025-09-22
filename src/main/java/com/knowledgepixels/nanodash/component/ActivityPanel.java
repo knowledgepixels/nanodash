@@ -25,8 +25,6 @@ import java.util.*;
  */
 public class ActivityPanel extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private Map<String, Map<String, String>> typeMonthValueMap = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(ActivityPanel.class);
 
@@ -85,8 +83,6 @@ public class ActivityPanel extends Panel {
 
     private class Entity implements Serializable {
 
-        private static final long serialVersionUID = 1L;
-
         public String type;
 
         public Entity(String type) {
@@ -102,8 +98,6 @@ public class ActivityPanel extends Panel {
     }
 
     private class Column extends AbstractColumn<Entity, String> {
-
-        private static final long serialVersionUID = 1L;
 
         private String title;
 
@@ -142,8 +136,6 @@ public class ActivityPanel extends Panel {
     }
 
     private class EntityProvider implements IDataProvider<Entity> {
-
-        private static final long serialVersionUID = 1L;
 
         private List<Entity> list;
 

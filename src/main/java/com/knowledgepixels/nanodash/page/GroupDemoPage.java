@@ -10,8 +10,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class GroupDemoPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constant <code>MOUNT_PATH="/groupdemo"</code>
      */

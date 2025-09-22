@@ -20,8 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class ActionMenu extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructs an ActionMenu with the given ID, list of actions, and nanopub element.
      *
@@ -37,8 +35,6 @@ public class ActionMenu extends Panel {
         final IRI userIri = session.getUserIri();
 
         add(new DataView<NanopubAction>("menulist", new ListDataProvider<NanopubAction>(menuItems)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<NanopubAction> item) {

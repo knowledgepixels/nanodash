@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
  */
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
     private TemplateContext context;
     private AbstractTextComponent<String> textfield;
     private Label languageComp, datatypeComp;
@@ -65,8 +64,6 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
             tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
         tc.add(new IValidator<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public void validate(IValidatable<String> s) {

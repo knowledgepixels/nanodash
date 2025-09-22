@@ -19,8 +19,6 @@ import org.nanopub.Nanopub;
  */
 public class GenConnectPage extends ConnectorPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Mount path for this page.
      */

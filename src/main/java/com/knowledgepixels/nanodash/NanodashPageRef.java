@@ -15,8 +15,6 @@ import java.io.Serializable;
  */
 public class NanodashPageRef implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private final Class<? extends NanodashPage> pageClass;
     private final PageParameters parameters;
     private final String label;

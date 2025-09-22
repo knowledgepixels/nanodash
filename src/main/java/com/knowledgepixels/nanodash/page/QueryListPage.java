@@ -1,23 +1,22 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryRef;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.QueryList;
-import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
+
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.QueryList;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page that lists queries and allows searching through them.
  */
 public class QueryListPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -48,8 +47,6 @@ public class QueryListPage extends NanodashPage {
 
         Form<?> form = new Form<Void>("form") {
 
-            private static final long serialVersionUID = 1L;
-
             protected void onSubmit() {
                 String searchText = searchField.getModelObject().trim();
                 PageParameters params = new PageParameters();
@@ -68,8 +65,6 @@ public class QueryListPage extends NanodashPage {
             add(new QueryList("queries", qResponse));
         } else {
             add(new ApiResultComponent("queries", queryRef) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

@@ -25,7 +25,6 @@ public class GenSelectPage extends ConnectorPage {
 
     // TODO This page isn't linked yet, and only for testing so far.
 
-    private static final long serialVersionUID = 1L;
 
     /**
      * Mount path for this page.
@@ -53,8 +52,6 @@ public class GenSelectPage extends ConnectorPage {
 
         form = new Form<Void>("form") {
 
-            private static final long serialVersionUID = 1L;
-
             protected void onSubmit() {
                 ConnectorOption option = ConnectorOption.valueOf(radioGroup.getModelObject());
                 PageParameters params = new PageParameters();
@@ -73,15 +70,11 @@ public class GenSelectPage extends ConnectorPage {
         radioGroup.setOutputMarkupId(true);
         radioGroup.add(new ListView<ConnectorOptionGroup>("option-group", getConfig().getOptions()) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(ListItem<ConnectorOptionGroup> item) {
                 ConnectorOptionGroup g = item.getModelObject();
                 item.add(new Label("option-group-title", g.getTitle()));
                 item.add(new ListView<>("option-container", Arrays.asList(g.getOptions())) {
-
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void populateItem(ListItem<ConnectorOption> item) {

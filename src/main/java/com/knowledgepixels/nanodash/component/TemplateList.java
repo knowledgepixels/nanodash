@@ -1,20 +1,22 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.QueryRef;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import jakarta.xml.bind.DatatypeConverter;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
-import org.nanopub.extra.services.ApiResponseEntry;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
+
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * A list of templates, grouped by topic.
@@ -74,8 +76,6 @@ public class TemplateList extends Panel {
         });
         DataView<Topic> topicDataView = new DataView<Topic>("topics", new ListDataProvider<Topic>(topicList)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Topic> item) {
                 String tag = item.getModelObject().tag;
@@ -98,8 +98,6 @@ public class TemplateList extends Panel {
 
 
     private static class Topic implements Serializable {
-
-        private static final long serialVersionUID = 5919614141679468774L;
 
         String tag;
         ArrayList<ApiResponseEntry> templates = new ArrayList<>();

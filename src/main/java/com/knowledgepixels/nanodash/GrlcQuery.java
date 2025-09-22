@@ -20,6 +20,7 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractSimpleQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,10 @@ public class GrlcQuery implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(GrlcQuery.class);
 
     private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
+
+    public static GrlcQuery get(QueryRef ref) {
+        return get(ref.getName());
+    }
 
     /**
      * Returns a singleton instance of GrlcQuery for the given query ID.

@@ -22,8 +22,6 @@ import java.util.*;
  */
 public class NanopubElement implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private static Map<String, NanopubElement> nanopubCache = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(NanopubElement.class);
 

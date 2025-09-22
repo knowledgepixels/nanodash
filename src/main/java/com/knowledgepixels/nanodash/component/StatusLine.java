@@ -1,23 +1,24 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-import net.trustyuri.TrustyUriUtils;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
+
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * A component that displays the status of a nanopublication.
  */
 public class StatusLine extends Panel {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * Creates a new StatusLine component.
@@ -28,9 +29,7 @@ public class StatusLine extends Panel {
      */
     public static Component createComponent(String markupId, String npId) {
         // TODO Use the query cache here but with quicker refresh interval?
-        ApiResultComponent c = new ApiResultComponent("statusline", "get-newer-versions-of-np", "np", npId) {
-
-            private static final long serialVersionUID = 1L;
+        ApiResultComponent c = new ApiResultComponent("statusline", new QueryRef("get-newer-versions-of-np", "np", npId)) {
 
             @Override
             public Component getApiResultComponent(String markupId, ApiResponse response) {

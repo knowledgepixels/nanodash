@@ -34,8 +34,6 @@ import java.util.*;
  */
 public class StatementItem extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private TemplateContext context;
     private IRI statementId;
     private List<IRI> statementPartIds = new ArrayList<>();
@@ -69,8 +67,6 @@ public class StatementItem extends Panel {
         addRepetitionGroup();
 
         ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", viewElements) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<WebMarkupContainer> item) {
@@ -298,8 +294,6 @@ public class StatementItem extends Panel {
 
     public class RepetitionGroup implements Serializable {
 
-        private static final long serialVersionUID = 1L;
-
         private List<StatementPartItem> statementParts;
         private List<ValueItem> localItems = new ArrayList<>();
         private boolean filled = false;
@@ -339,7 +333,6 @@ public class StatementItem extends Panel {
                     addRepetitionButton = new Label("add-repetition", "+");
                     statement.add(addRepetitionButton);
                     addRepetitionButton.add(new AjaxEventBehavior("click") {
-                        private static final long serialVersionUID = 1L;
 
                         @Override
                         protected void onEvent(AjaxRequestTarget target) {
@@ -347,6 +340,7 @@ public class StatementItem extends Panel {
                             target.add(StatementItem.this);
                             target.appendJavaScript("updateElements();");
                         }
+
                     });
                 } else {
                     statement.add(new Label("add-repetition", "").setVisible(false));
@@ -355,7 +349,6 @@ public class StatementItem extends Panel {
                     removeRepetitionButton = new Label("remove-repetition", "-");
                     statement.add(removeRepetitionButton);
                     removeRepetitionButton.add(new AjaxEventBehavior("click") {
-                        private static final long serialVersionUID = 1L;
 
                         @Override
                         protected void onEvent(AjaxRequestTarget target) {
@@ -363,6 +356,7 @@ public class StatementItem extends Panel {
                             target.appendJavaScript("updateElements();");
                             target.add(StatementItem.this);
                         }
+
                     });
                 } else {
                     statement.add(new Label("remove-repetition", "").setVisible(false));

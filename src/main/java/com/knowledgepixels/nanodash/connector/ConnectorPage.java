@@ -1,18 +1,13 @@
 package com.knowledgepixels.nanodash.connector;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.ApiResponse;
 
-import java.util.Map;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 
 /**
  * Base class for connector pages in the Nanodash application.
  */
 public abstract class ConnectorPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     private String connectorId;
     private ConnectorConfig config;
@@ -49,17 +44,6 @@ public abstract class ConnectorPage extends NanodashPage {
      */
     public String getConnectorId() {
         return connectorId;
-    }
-
-    /**
-     * Calls the API for the specified operation with the given parameters.
-     *
-     * @param operation the operation to perform, typically a query ID.
-     * @param params    the parameters to pass to the API call.
-     * @return ApiResponse containing the result of the API call.
-     */
-    public ApiResponse callApi(String operation, Map<String, String> params) {
-        return ApiCache.retrieveResponse(ConnectorConfig.getQueryId(operation), params);
     }
 
     /**

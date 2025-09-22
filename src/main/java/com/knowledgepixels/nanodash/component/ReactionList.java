@@ -19,8 +19,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
  */
 public class ReactionList extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructs a ReactionList panel.
      *
@@ -32,8 +30,6 @@ public class ReactionList extends Panel {
         super(id);
 
         add(new DataView<ApiResponseEntry>("reactions", new ListDataProvider<ApiResponseEntry>(resp.getData())) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {

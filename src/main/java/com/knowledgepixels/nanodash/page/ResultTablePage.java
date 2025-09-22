@@ -1,16 +1,16 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.QueryRef;
+
+import com.knowledgepixels.nanodash.component.QueryResultTable;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * ResultTablePage displays the result of a query in a table format.
  */
 public class ResultTablePage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -40,7 +40,7 @@ public class ResultTablePage extends NanodashPage {
         final String shortName = query.replaceFirst("^.*/", "");
         add(new Label("pagetitle", shortName + " (result table) | nanodash"));
 
-        add(QueryResultTable.createComponent("table", query, false));
+        add(QueryResultTable.createComponent("table", new QueryRef(query), false));
     }
 
     /**

@@ -16,8 +16,6 @@ import java.util.Map;
  */
 public class FdoForwarder extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for the FdoForwarder page.
      */

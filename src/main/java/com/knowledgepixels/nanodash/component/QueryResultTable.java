@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,6 +25,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +179,6 @@ public class QueryResultTable extends Panel {
 
 //    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
 //
-//        private static final long serialVersionUID = 1L;
 //        private SortParam<String> sortParam;
 //
 //        public ApiResponseComparator(SortParam<String> sortParam) {
@@ -209,32 +208,17 @@ public class QueryResultTable extends Panel {
      * <p>createComponent.</p>
      *
      * @param markupId a {@link java.lang.String} object
-     * @param queryId  a {@link java.lang.String} object
+     * @param queryRef the query reference
      * @param plain    a boolean
      * @return a {@link org.apache.wicket.Component} object
      */
-    public static Component createComponent(final String markupId, final String queryId, boolean plain) {
-        return createComponent(markupId, queryId, getParams(), plain);
-    }
-
-    /**
-     * <p>createComponent.</p>
-     *
-     * @param markupId a {@link java.lang.String} object
-     * @param queryId  a {@link java.lang.String} object
-     * @param params   a {@link java.util.HashMap} object
-     * @param plain    a boolean
-     * @return a {@link org.apache.wicket.Component} object
-     */
-    public static Component createComponent(final String markupId, final String queryId, HashMap<String, String> params, boolean plain) {
-        final GrlcQuery q = GrlcQuery.get(queryId);
-        ApiResponse response = ApiCache.retrieveResponse(queryId, params);
+    public static Component createComponent(final String markupId, QueryRef queryRef, boolean plain) {
+        final GrlcQuery q = GrlcQuery.get(queryRef);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             return new QueryResultTable(markupId, q, response, plain);
         } else {
-            return new ApiResultComponent(markupId, queryId, params) {
-
-                private static final long serialVersionUID = 1L;
+            return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
@@ -243,11 +227,6 @@ public class QueryResultTable extends Panel {
 
             };
         }
-    }
-
-    private static HashMap<String, String> getParams() {
-        final HashMap<String, String> params = new HashMap<>();
-        return params;
     }
 
 }

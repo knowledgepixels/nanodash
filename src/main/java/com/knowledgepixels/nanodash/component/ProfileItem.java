@@ -16,8 +16,6 @@ import org.eclipse.rdf4j.model.IRI;
  */
 public class ProfileItem extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructor for the ProfileItem panel.
      *

@@ -19,9 +19,12 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
@@ -36,7 +39,6 @@ import com.knowledgepixels.nanodash.component.TitleBar;
  */
 public class SearchPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(SearchPage.class);
 
     /**
@@ -74,8 +76,6 @@ public class SearchPage extends NanodashPage {
         final String pubkey = parameters.get("pubkey").toString();
 
         Form<?> form = new Form<Void>("form") {
-
-            private static final long serialVersionUID = 1L;
 
             protected void onSubmit() {
                 String searchText = searchField.getModelObject().trim();
@@ -130,11 +130,9 @@ public class SearchPage extends NanodashPage {
         } else {
             add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
-                private static final long serialVersionUID = 1L;
-
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {
-                    Map<String, String> nanopubParams = new HashMap<>();
+                    Multimap<String, String> nanopubParams = ArrayListMultimap.create();
                     List<ApiResponseEntry> nanopubResults = new ArrayList<>();
                     String s = searchText;
                     if (s != null) {
@@ -149,7 +147,7 @@ public class SearchPage extends NanodashPage {
                             }
                             try {
                                 // nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
-                                nanopubResults = QueryApiAccess.get("find-uri-references", nanopubParams).getData();
+                                nanopubResults = QueryApiAccess.get(new QueryRef("find-uri-references", nanopubParams)).getData();
                             } catch (Exception ex) {
                                 logger.error("Error while running the query for URI", ex);
                             }
@@ -166,7 +164,7 @@ public class SearchPage extends NanodashPage {
                                 }
                                 try {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-                                    nanopubResults = QueryApiAccess.get("fulltext-search-on-labels", nanopubParams).getData();
+                                    nanopubResults = QueryApiAccess.get(new QueryRef("fulltext-search-on-labels", nanopubParams)).getData();
                                 } catch (Exception ex) {
                                     logger.error("Error during search", ex);
                                 }

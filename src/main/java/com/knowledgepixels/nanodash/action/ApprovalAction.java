@@ -7,8 +7,6 @@ import org.nanopub.Nanopub;
  */
 public class ApprovalAction extends NanopubAction {
 
-    private static final long serialVersionUID = 1789820405326599889L;
-
     /**
      * The URI of the template for the approval action.
      */

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8" />
 <title wicket:id="pagetitle">... (space) | nanodash</title>
-<link rel="stylesheet" href="style.css?v=3.52" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="style.css?v=3.54" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
@@ -21,7 +21,8 @@
 <div class="col-12 header">
   <h2><span wicket:id="spacename">Space ABC</span></h2>
   <p class="subtitle" wicket:id="spacetype">Space type</p>
-  <p>Full ID: <a wicket:id="id" href=".">https://...</a> (<a wicket:id="np" href="."> <span class="nanopub-icon"></span> </a>)</p>
+  <p>Main ID: <a wicket:id="id" href=".">https://...</a> (<a wicket:id="np" href="."> <span class="nanopub-icon"></span> </a>)</p>
+  <div wicket:id="altids" class="hide-if-empty inline">...</div>
 </div>
 <div class="col-6 subheader">
   <div wicket:id="superspaces" class="hide-if-empty">...</div>
@@ -33,6 +34,9 @@
 <div class="odd"><div class="row-section">
 
 <div class="col-6">
+  <h3>Date</h3>
+  <div wicket:id="date">...</div>
+
   <h3>About</h3>
   <div wicket:id="description">...</div>
   <div wicket:id="groups" class="hide-if-empty">...</div>
@@ -47,6 +51,8 @@
 </div>
 
 <div class="col-6">
+  <div wicket:id="roles">...</div>
+
   <div wicket:id="members" class="users">...</div>
 </div>
 

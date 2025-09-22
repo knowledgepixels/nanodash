@@ -11,8 +11,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class MyChannelPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * The mount path for this page.
      */

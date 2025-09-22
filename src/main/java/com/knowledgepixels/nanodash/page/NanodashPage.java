@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class NanodashPage extends WebPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(NanodashPage.class);
 
     private static long lastRefresh = 0L;

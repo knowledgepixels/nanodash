@@ -480,8 +480,6 @@ public class Utils {
 
     private static class UriLabelModel implements IModel<String> {
 
-        private static final long serialVersionUID = 1L;
-
         private IModel<String> uriModel;
 
         public UriLabelModel(IModel<String> uriModel) {
@@ -527,8 +525,6 @@ public class Utils {
      */
     // TODO Move this to ApiResponseEntry class?
     public static class ApiResponseEntrySorter implements Comparator<ApiResponseEntry>, Serializable {
-
-        private static final long serialVersionUID = 1L;
 
         private String field;
         private boolean descending;

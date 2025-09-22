@@ -37,7 +37,6 @@ import java.util.*;
  */
 public class AgentChoiceItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
     private TemplateContext context;
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
@@ -82,8 +81,6 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         }
 
         ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getDisplayValue(String choiceId) {
@@ -178,8 +175,6 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
 
         tooltipDescription = new Label("description", new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             public String getObject() {
                 String obj = AgentChoiceItem.this.getModel().getObject();
@@ -198,8 +193,6 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
         add(tooltipLink);
 
         textfield.add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

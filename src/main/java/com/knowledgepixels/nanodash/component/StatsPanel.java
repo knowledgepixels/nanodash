@@ -11,8 +11,6 @@ import java.util.Map;
  */
 public class StatsPanel extends Panel {
 
-    private static final long serialVersionUID = 1L;
-
     private final Map<String, String> statsMap;
 
     static final String VALID_NP_COUNT_KEY = "validNpCount";

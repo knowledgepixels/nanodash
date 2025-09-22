@@ -8,8 +8,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class GroupDemoPageSoc extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constant <code>MOUNT_PATH="/groupdemo-soc"</code>
      */

@@ -19,14 +19,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 
 /**
  * The home page of Nanodash, which shows the most recent nanopublications
  * and the latest accepted nanopublications.
  */
 public class HomePage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -83,8 +82,6 @@ public class HomePage extends NanodashPage {
             add(NanopubResults.fromApiResponse("mostrecent", rResponse));
         } else {
             add(new ApiResultComponent("mostrecent", rQueryRef) {
-
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {

@@ -38,8 +38,6 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
 
     // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
 
-    private static final long serialVersionUID = 1L;
-
     private String prefix;
     private TemplateContext context;
     private TextField<String> textfield;
@@ -107,8 +105,6 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
             textfield.setLabel(Model.of(template.getLabel(iri)));
         }
         textfield.add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -190,8 +186,6 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
      * Validator class for validating IRI text fields.
      */
     protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        private static final long serialVersionUID = 1L;
 
         private IRI iri;
         private Template template;

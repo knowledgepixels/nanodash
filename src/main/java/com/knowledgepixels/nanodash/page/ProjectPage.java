@@ -16,6 +16,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
@@ -33,8 +34,6 @@ import com.knowledgepixels.nanodash.template.Template;
  * The ProjectPage class represents a project page in the Nanodash application.
  */
 public class ProjectPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -98,8 +97,6 @@ public class ProjectPage extends NanodashPage {
         }
         add(new DataView<Pair<String, List<Template>>>("template-lists", new ListDataProvider<>(templateLists)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Pair<String, List<Template>>> item) {
                 item.add(new ItemListPanel<Template>(
@@ -140,12 +137,10 @@ public class ProjectPage extends NanodashPage {
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<IRI> item) {
                 String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTable.createComponent("query", queryId, false));
+                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), false));
             }
 
         });

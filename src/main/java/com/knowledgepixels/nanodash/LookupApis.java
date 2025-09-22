@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import com.beust.jcommander.Strings;
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import com.knowledgepixels.nanodash.component.QueryParamField;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -15,15 +17,16 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.beust.jcommander.Strings;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.component.QueryParamField;
 
 /**
  * Utility class for APIs look up and parsing.
@@ -73,7 +76,7 @@ public class LookupApis {
                     queryName = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
                     if (queryName.contains("?")) queryName = queryName.substring(0, queryName.indexOf("?"));
                 }
-                Map<String, String> params = new HashMap<>();
+                Multimap<String, String> params = ArrayListMultimap.create();
                 if (apiString.contains("?")) {
                     List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
                     for (NameValuePair p : urlParams) {
@@ -93,7 +96,7 @@ public class LookupApis {
                     queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
                 }
                 params.put(queryParamName, searchterm);
-                ApiResponse result = QueryApiAccess.get(queryName, params);
+                ApiResponse result = QueryApiAccess.get(new QueryRef(queryName, params));
                 int count = 0;
                 for (ApiResponseEntry r : result.getData()) {
                     String uri = r.get("thing");

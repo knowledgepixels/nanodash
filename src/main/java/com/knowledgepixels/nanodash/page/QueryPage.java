@@ -1,10 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.component.QueryParamField;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.net.URLEncoder;
+import java.util.List;
+
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -14,18 +12,23 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.nanopub.extra.services.QueryRef;
 
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
+import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.component.QueryResultTable;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page for displaying a query and its parameters, allowing users to run the query with specified parameters.
  */
 public class QueryPage extends NanodashPage {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * The mount path for this page.
@@ -58,10 +61,10 @@ public class QueryPage extends NanodashPage {
         final String queryId = parameters.get("runquery").toString();
         if (id == null) id = queryId;
 
-        final HashMap<String, String> queryParams = new HashMap<>();
-        for (String paramKey : parameters.getNamedKeys()) {
-            if (!paramKey.startsWith("queryparam_")) continue;
-            queryParams.put(paramKey.replaceFirst("queryparam_", ""), parameters.get(paramKey).toString());
+        final Multimap<String, String> queryParams = ArrayListMultimap.create();
+        for (NamedPair param : parameters.getAllNamed()) {
+            if (!param.getKey().startsWith("queryparam_")) continue;
+            queryParams.put(param.getKey().replaceFirst("queryparam_", ""), param.getValue());
         }
 
         GrlcQuery q = GrlcQuery.get(id);
@@ -75,8 +78,6 @@ public class QueryPage extends NanodashPage {
 
         form = new Form<Void>("form") {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void onConfigure() {
                 super.onConfigure();
@@ -89,8 +90,9 @@ public class QueryPage extends NanodashPage {
                     PageParameters params = new PageParameters();
                     params.add("runquery", q.getQueryId());
                     for (QueryParamField f : paramFields) {
-                        if (f.getValue() == null) continue;
-                        params.add("queryparam_" + f.getParamName(), f.getValue());
+                        for (String v : f.getValues()) {
+                            params.add("queryparam_" + f.getParamName(), v);
+                        }
                     }
                     setResponsePage(QueryPage.class, params);
                 } catch (Exception ex) {
@@ -104,8 +106,8 @@ public class QueryPage extends NanodashPage {
             protected void onValidate() {
                 super.onValidate();
                 for (QueryParamField f : paramFields) {
-                    f.getTextField().processInput();
-                    for (FeedbackMessage fm : f.getTextField().getFeedbackMessages()) {
+                    f.getFormComponent().processInput();
+                    for (FeedbackMessage fm : f.getFormComponent().getFeedbackMessages()) {
                         form.getFeedbackMessages().add(fm);
                     }
                 }
@@ -119,11 +121,11 @@ public class QueryPage extends NanodashPage {
         paramFields = q.createParamFields("paramfield");
         paramContainer.add(new ListView<QueryParamField>("paramfields", paramFields) {
 
-            private static final long serialVersionUID = 1L;
-
             protected void populateItem(ListItem<QueryParamField> item) {
                 QueryParamField f = item.getModelObject();
-                f.getModel().setObject(parameters.get("queryparam_" + f.getParamName()).toString());
+                for (StringValue parameter : parameters.getValues("queryparam_" + f.getParamName())) {
+                    f.putValue(parameter.toString().replaceFirst("\\s*$", ""));
+                }
                 item.add(item.getModelObject());
             }
 
@@ -146,7 +148,7 @@ public class QueryPage extends NanodashPage {
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
         } else {
-            add(QueryResultTable.createComponent("resulttable", queryId, queryParams, true));
+            add(QueryResultTable.createComponent("resulttable", new QueryRef(queryId, queryParams), true));
         }
     }
 

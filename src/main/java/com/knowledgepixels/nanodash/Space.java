@@ -3,7 +3,9 @@ package com.knowledgepixels.nanodash;
 import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,19 +17,29 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
 public class Space implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Space.class);
 
     /**
      * The predicate to assign the admins of the space.
@@ -84,7 +96,7 @@ public class Space implements Serializable {
 
     public static void ensureLoaded() {
         if (spaceList == null) {
-            refresh(QueryApiAccess.forcedGet("get-spaces"));
+            refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
         }
     }
 
@@ -115,10 +127,18 @@ public class Space implements Serializable {
     private SpaceData data = new SpaceData();
 
     private static class SpaceData implements Serializable {
+
+        List<String> altIds = new ArrayList<>();
+    
         String description = null;
+        Calendar startDate, endDate;
         IRI defaultProvenance = null;
+
         List<IRI> admins = new ArrayList<>();
-        List<IRI> members = new ArrayList<>();
+        Map<IRI,Set<SpaceMemberRole>> members = new HashMap<>();
+        List<SpaceMemberRole> roles = new ArrayList<>();
+        Map<IRI,SpaceMemberRole> roleMap = new HashMap<>();
+
         Map<String,IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
@@ -133,6 +153,7 @@ public class Space implements Serializable {
                 adminPubkeyMap.put(pubkeyhash, admin);
             }
         }
+
     }
 
     private boolean dataInitialized = false;
@@ -171,6 +192,14 @@ public class Space implements Serializable {
         return type;
     }
 
+    public Calendar getStartDate() {
+        return data.startDate;
+    }
+
+    public Calendar getEndDate() {
+        return data.endDate;
+    }
+
     public String getTypeLabel() {
         return type.replaceFirst("^.*/", "");
     }
@@ -191,13 +220,18 @@ public class Space implements Serializable {
 
     public List<IRI> getMembers() {
         triggerDataUpdate();
-        return data.members;
+        List<IRI> members = new ArrayList<IRI>(data.members.keySet());
+        members.sort(User.getUserData().userComparator);
+        return members;
+    }
+
+    public Set<SpaceMemberRole> getMemberRoles(IRI memberId) {
+        return data.members.get(memberId);
     }
 
     public boolean isMember(IRI userId) {
         triggerDataUpdate();
-        // TODO This is inefficient for large member lists:
-        return data.admins.contains(userId) || data.members.contains(userId);
+        return data.members.containsKey(userId);
     }
 
     public List<Serializable> getPinnedResources() {
@@ -217,6 +251,10 @@ public class Space implements Serializable {
 
     public IRI getDefaultProvenance() {
         return data.defaultProvenance;
+    }
+
+    public List<SpaceMemberRole> getRoles() {
+        return data.roles;
     }
 
     public String getSuperId() {
@@ -258,53 +296,84 @@ public class Space implements Serializable {
         return l;
     }
 
+    public List<String> getAltIDs() {
+        return data.altIds;
+    }
+
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
-                SpaceData newData = new SpaceData();
-                setCoreData(newData);
+                try {
+                    SpaceData newData = new SpaceData();
+                    setCoreData(newData);
+    
+                    newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
+                    newData.roleMap.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
 
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-admins", "unit", id).getData()) {
-                    String pubkeyhash = r.get("pubkeyhash");
-                    if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
-                        newData.addAdmin(Utils.vf.createIRI(r.get("admin")));
+                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
+                    spaceIds.put("space", id);
+                    for (String id : newData.altIds) {
+                        spaceIds.put("space", id);
                     }
-                }
-                newData.members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-members", "unit", id).getData()) {
-                    IRI memberId = Utils.vf.createIRI(r.get("member"));
-                    // TODO These checks are inefficient for long member lists:
-                    if (newData.admins.contains(memberId)) continue;
-                    if (newData.members.contains(memberId)) continue;
-                    newData.members.add(memberId);
-                }
-                newData.admins.sort(User.getUserData().userComparator);
-                newData.members.sort(User.getUserData().userComparator);
-
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-templates", "space", id).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    Template t = TemplateData.get().getTemplate(r.get("template"));
-                    if (t == null) continue;
-                    newData.pinnedResources.add(t);
-                    String tag = r.get("tag");
-                    if (tag != null && !tag.isEmpty()) {
-                        newData.pinGroupTags.add(r.get("tag"));
-                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
+                        String pubkeyhash = r.get("pubkey");
+                        if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
+                            IRI adminId = Utils.vf.createIRI(r.get("admin"));
+                            newData.addAdmin(adminId);
+                            newData.members.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
+                        }
                     }
-                }
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet("get-pinned-queries", "space", id).getData()) {
-                    if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                    GrlcQuery query = GrlcQuery.get(r.get("query"));
-                    if (query == null) continue;
-                    newData.pinnedResources.add(query);
-                    String tag = r.get("tag");
-                    if (tag != null && !tag.isEmpty()) {
-                        newData.pinGroupTags.add(r.get("tag"));
-                        newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+                    newData.admins.sort(User.getUserData().userComparator);
+    
+                    Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef( "get-space-member-roles", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        SpaceMemberRole role = new SpaceMemberRole(r);
+                        newData.roles.add(role);
+    
+                        // TODO Handle cases of overlapping properties:
+                        newData.roleMap.put(role.getMainProperty(), role);
+                        for (IRI p : role.getEquivalentProperties()) newData.roleMap.put(p, role);
+                        for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
+        
+                        role.addRoleParams(getSpaceMemberParams);
                     }
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
+                        IRI memberId = Utils.vf.createIRI(r.get("member"));
+                        SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
+                        newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
+                    }
+    
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        Template t = TemplateData.get().getTemplate(r.get("template"));
+                        if (t == null) continue;
+                        newData.pinnedResources.add(t);
+                        String tag = r.get("tag");
+                        if (tag != null && !tag.isEmpty()) {
+                            newData.pinGroupTags.add(r.get("tag"));
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                        }
+                    }
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-queries", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        GrlcQuery query = GrlcQuery.get(r.get("query"));
+                        if (query == null) continue;
+                        newData.pinnedResources.add(query);
+                        String tag = r.get("tag");
+                        if (tag != null && !tag.isEmpty()) {
+                            newData.pinGroupTags.add(r.get("tag"));
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+                        }
+                    }
+                    data = newData;
+                    dataInitialized = true;
+                } catch (Exception ex) {
+                    logger.error("Error while trying to update space data: {}", ex);
                 }
-                data = newData;
-                dataInitialized = true;
             }).start();
             dataNeedsUpdate = false;
         }
@@ -313,8 +382,22 @@ public class Space implements Serializable {
     private void setCoreData(SpaceData data) {
         for (Statement st : rootNanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(getId())) {
-                if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                if (st.getPredicate().equals(OWL.SAMEAS) && st.getObject() instanceof IRI objIri) {
+                    data.altIds.add(objIri.stringValue());
+                } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     data.description = st.getObject().stringValue();
+                } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
+                    try {
+                        data.startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                    } catch (DateTimeParseException ex) {
+                        logger.error("Failed to parse date {}", st.getObject().stringValue());
+                    }
+                } else if (st.getPredicate().stringValue().equals("http://schema.org/endDate")) {
+                    try {
+                        data.endDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                    } catch (IllegalArgumentException ex) {
+                        logger.error("Failed to parse date {}", st.getObject().stringValue());
+                    }
                 } else if (st.getPredicate().equals(HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     data.addAdmin(obj);
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {

@@ -17,7 +17,6 @@ import java.util.Map;
  */
 public abstract class NanopubAction implements Serializable {
 
-    private static final long serialVersionUID = 4086842804225420496L;
     private static final Logger logger = LoggerFactory.getLogger(NanopubAction.class);
 
     /**

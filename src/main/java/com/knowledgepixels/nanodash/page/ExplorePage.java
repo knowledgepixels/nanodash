@@ -1,12 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.*;
-import jakarta.servlet.http.HttpServletRequest;
-import net.trustyuri.TrustyUriUtils;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -17,19 +13,32 @@ import org.commonjava.mimeparse.MIMEParse;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ExploreDataTable;
+import com.knowledgepixels.nanodash.component.IriItem;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.StatusLine;
+import com.knowledgepixels.nanodash.component.ThingListPanel;
+import com.knowledgepixels.nanodash.component.TitleBar;
+
+import jakarta.servlet.http.HttpServletRequest;
+import net.trustyuri.TrustyUriUtils;
 
 /**
  * ExplorePage is a page that allows users to explore a specific Nanopublication or Thing.
  */
 public class ExplorePage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(ExplorePage.class);
 
     /**
@@ -72,10 +81,10 @@ public class ExplorePage extends NanodashPage {
             if (np != null) {
                 String npId = np.getUri().stringValue();
                 tempRef = npId + tempRef.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})([^A-Za-z0-9-_].*)$", "$3");
-                Map<String, String> params = new HashMap<>();
+                Multimap<String, String> params = ArrayListMultimap.create();
                 params.put("thing", tempRef);
                 params.put("np", npId);
-                ApiResponse resp = QueryApiAccess.forcedGet("get-latest-thing-nanopub", params);
+                ApiResponse resp = QueryApiAccess.forcedGet(new QueryRef("get-latest-thing-nanopub", params));
                 if (!resp.getData().isEmpty()) {
                     // TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
                     npId = resp.getData().get(0).get("latestVersion");
@@ -115,7 +124,7 @@ public class ExplorePage extends NanodashPage {
             }
             add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
             add(new NanopubItem("nanopub", NanopubElement.get(np)));
-            String url = "http://np.knowledgepixels.com/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
+            String url = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
             raw.add(new ExternalLink("trig-txt", url + ".trig.txt"));
             raw.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
             raw.add(new ExternalLink("nq-txt", url + ".nq.txt"));

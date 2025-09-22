@@ -36,7 +36,6 @@ import java.util.List;
  */
 public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
-    private static final long serialVersionUID = 1L;
     private TemplateContext context;
     private IRI iri;
     private Select2Choice<String> choice;
@@ -86,8 +85,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         add(prefixLabelComp);
 
         ChoiceProvider<String> choiceProvider = new ChoiceProvider<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getDisplayValue(String choiceId) {
@@ -153,8 +150,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
         tooltipDescription = new Label("description", new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             public String getObject() {
                 String obj = RestrictedChoiceItem.this.getModel().getObject();
@@ -176,8 +171,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         add(tooltipLink);
 
         choice.add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -283,8 +276,6 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
      * Validator for the restricted choice item.
      */
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        private static final long serialVersionUID = 1L;
 
         /**
          * Default constructor.

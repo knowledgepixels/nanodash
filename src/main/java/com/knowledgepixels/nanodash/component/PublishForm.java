@@ -72,7 +72,6 @@ import com.knowledgepixels.nanodash.template.ValueFiller;
  */
 public class PublishForm extends Panel {
 
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(PublishForm.class);
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
@@ -349,8 +348,6 @@ public class PublishForm extends Panel {
         }
         add(new DataView<Statement>("unused-statements", new ListDataProvider<Statement>(unusedStatementList)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Statement> item) {
                 item.add(new TripleItem("unused-statement", item.getModelObject(), (fillNp != null ? fillNp : improveNp), null));
@@ -359,8 +356,6 @@ public class PublishForm extends Panel {
         });
         add(new DataView<Statement>("unused-prstatements", new ListDataProvider<Statement>(unusedPrStatementList)) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void populateItem(Item<Statement> item) {
                 item.add(new TripleItem("unused-prstatement", item.getModelObject(), (fillNp != null ? fillNp : improveNp), null));
@@ -368,8 +363,6 @@ public class PublishForm extends Panel {
 
         });
         add(new DataView<Statement>("unused-pistatements", new ListDataProvider<Statement>(unusedPiStatementList)) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(Item<Statement> item) {
@@ -390,8 +383,6 @@ public class PublishForm extends Panel {
         consentCheck.add(new InvalidityHighlighting());
         consentCheck.add(new IValidator<Boolean>() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             public void validate(IValidatable<Boolean> validatable) {
                 if (!Boolean.TRUE.equals(validatable.getValue())) {
@@ -402,8 +393,6 @@ public class PublishForm extends Panel {
         });
 
         form = new Form<Void>("form") {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onConfigure() {
@@ -475,8 +464,6 @@ public class PublishForm extends Panel {
 
         form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
 
-            private static final long serialVersionUID = 1L;
-
             protected void populateItem(ListItem<StatementItem> item) {
                 item.add(item.getModelObject());
             }
@@ -524,8 +511,6 @@ public class PublishForm extends Panel {
         }
 
         ChoiceProvider<String> prTemplateChoiceProvider = new ChoiceProvider<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getDisplayValue(String object) {
@@ -590,8 +575,6 @@ public class PublishForm extends Panel {
         prTemplateChoice.getSettings().setCloseOnSelect(true);
         prTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 String o = prTemplateModel.getObject();
@@ -635,8 +618,6 @@ public class PublishForm extends Panel {
         }
 
         ChoiceProvider<String> piTemplateChoiceProvider = new ChoiceProvider<String>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public String getDisplayValue(String object) {
@@ -708,8 +689,6 @@ public class PublishForm extends Panel {
         piTemplateChoice.getSettings().setPlaceholder("add element...");
         piTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (newPiTemplateModel.getObject().startsWith("——")) {
@@ -748,8 +727,6 @@ public class PublishForm extends Panel {
         form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
         ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
-            private static final long serialVersionUID = 1L;
-
             protected void populateItem(ListItem<StatementItem> item) {
                 item.add(item.getModelObject());
             }
@@ -762,8 +739,6 @@ public class PublishForm extends Panel {
     private void refreshPubInfo(AjaxRequestTarget target) {
         ListView<TemplateContext> list = new ListView<TemplateContext>("pis", pubInfoContexts) {
 
-            private static final long serialVersionUID = 1L;
-
             protected void populateItem(ListItem<TemplateContext> item) {
                 final TemplateContext pic = item.getModelObject();
                 item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
@@ -771,7 +746,6 @@ public class PublishForm extends Panel {
                 Label remove = new Label("piremove", "×");
                 item.add(remove);
                 remove.add(new AjaxEventBehavior("click") {
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onEvent(AjaxRequestTarget target) {
@@ -779,11 +753,10 @@ public class PublishForm extends Panel {
                         target.add(PublishForm.this);
                         target.appendJavaScript("updateElements();");
                     }
+
                 });
                 if (requiredPubInfoContexts.contains(pic)) remove.setVisible(false);
                 item.add(new ListView<StatementItem>("pi-statements", pic.getStatementItems()) {
-
-                    private static final long serialVersionUID = 1L;
 
                     protected void populateItem(ListItem<StatementItem> item) {
                         item.add(item.getModelObject());

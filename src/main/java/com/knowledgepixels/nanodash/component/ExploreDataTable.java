@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +26,7 @@ import org.apache.wicket.model.Model;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,6 @@ import com.knowledgepixels.nanodash.Utils;
  * A component that displays a data table of nanopublication references.
  */
 public class ExploreDataTable extends Panel {
-
-    private static final long serialVersionUID = 1L;
 
     private static final String refQueryName = "find-uri-references";
     private static final Logger logger = LoggerFactory.getLogger(ExploreDataTable.class);
@@ -90,8 +88,6 @@ public class ExploreDataTable extends Panel {
 
     private class Column extends AbstractColumn<ApiResponseEntry, String> {
 
-        private static final long serialVersionUID = 1L;
-
         private String key, current;
 
         /**
@@ -127,8 +123,6 @@ public class ExploreDataTable extends Panel {
 
 
     private class DataProvider implements ISortableDataProvider<ApiResponseEntry, String> {
-
-        private static final long serialVersionUID = 1L;
 
         private List<ApiResponseEntry> data = new ArrayList<>();
         private SingleSortState<String> sortState = new SingleSortState<>();
@@ -181,7 +175,6 @@ public class ExploreDataTable extends Panel {
 
     private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
 
-        private static final long serialVersionUID = 1L;
         private SortParam<String> sortParam;
 
         /**
@@ -211,13 +204,12 @@ public class ExploreDataTable extends Panel {
      * @return a new ExploreDataTable component or an ApiResultComponent if the data is not cached
      */
     public static Component createComponent(final String markupId, final String ref) {
-        ApiResponse response = ApiCache.retrieveResponse(refQueryName, getParams(ref));
+        QueryRef queryRef = new QueryRef(refQueryName, "ref", ref);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             return new ExploreDataTable(markupId, ref, response);
         } else {
-            return new ApiResultComponent(markupId, refQueryName, getParams(ref)) {
-
-                private static final long serialVersionUID = 1L;
+            return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
@@ -226,12 +218,6 @@ public class ExploreDataTable extends Panel {
 
             };
         }
-    }
-
-    private static HashMap<String, String> getParams(String ref) {
-        final HashMap<String, String> params = new HashMap<>();
-        params.put("ref", ref);
-        return params;
-    }
+    }   
 
 }
