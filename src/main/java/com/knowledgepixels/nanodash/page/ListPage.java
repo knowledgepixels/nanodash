@@ -22,8 +22,8 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.extra.services.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wicketstuff.jquery.core.Options;
 import org.wicketstuff.jquery.ui.form.datepicker.AjaxDatePicker;
+import org.wicketstuff.jquery.ui.form.datepicker.DatePicker;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -154,7 +154,7 @@ public class ListPage extends NanodashPage {
             endDateModel = Model.of(endDate);
         }
 
-        AjaxDatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel) {
+        DatePicker startDatePicker = new AjaxDatePicker("startDate", startDateModel) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
@@ -192,7 +192,7 @@ public class ListPage extends NanodashPage {
             }
         };
 
-        AjaxDatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
+        DatePicker endDatePicker = new AjaxDatePicker("endDate", endDateModel) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 super.onValueChanged(handler);
