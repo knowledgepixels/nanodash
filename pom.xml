@@ -24,12 +24,12 @@
   <dependencies>
     <dependency>
       <groupId>org.wicketstuff</groupId>
-      <artifactId>wicketstuff-jquery-ui</artifactId>
+      <artifactId>wicketstuff-kendo-ui</artifactId>
       <version>${wicket.version}</version>
     </dependency>
     <dependency>
       <groupId>org.wicketstuff</groupId>
-      <artifactId>wicketstuff-jquery-ui-core</artifactId>
+      <artifactId>wicketstuff-kendo-ui-theme-default</artifactId>
       <version>${wicket.version}</version>
     </dependency>
     <!--  WICKET DEPENDENCIES -->
