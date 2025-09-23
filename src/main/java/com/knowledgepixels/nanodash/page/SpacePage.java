@@ -23,6 +23,7 @@ import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.PinGroupList;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 
@@ -106,6 +107,24 @@ public class SpacePage extends NanodashPage {
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new PinGroupList(markupId, space);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return space.isDataInitialized();
+                }
+    
+            });
+        }
+
+        if (space.isDataInitialized()) {
+            add(new ViewList("views", space));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("views") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ViewList(markupId, space);
                 }
     
                 @Override

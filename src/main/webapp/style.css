@@ -1752,7 +1752,7 @@ div.navigator .goto a[disabled] {
   color: #888;
 }
 
-.listpanel .paneltitlerow {
+.paneltitlerow {
   border-bottom-style: solid;
   border-width: 1px;
   border-color: #888;
@@ -1760,25 +1760,25 @@ div.navigator .goto a[disabled] {
   width: 100%;
 }
 
-.inline .listpanel .paneltitlerow {
+.inline .paneltitlerow {
   border-style: none;
   margin-bottom: 0;
 }
 
-.listpanel .paneltitlerow.tablepanel {
+.paneltitlerow.tablepanel {
   margin-bottom: 0;
 }
 
-.listpanel .paneltitlerow h4 {
+.paneltitlerow h4 {
   margin: 22px 0 8px 0;
   display: inline-block;
 }
 
-.listpanel .paneltitlerow span.buttons a.smallbutton {
+.paneltitlerow span.buttons a.smallbutton {
   margin-left: 5px;
 }
 
-.listpanel .paneltitlerow span.buttons {
+.paneltitlerow span.buttons {
   margin: 26px 0 6px 0;
   float: right;
 }

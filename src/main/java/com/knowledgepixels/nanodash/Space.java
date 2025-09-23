@@ -141,6 +141,7 @@ public class Space implements Serializable {
 
         Map<String,IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
+        List<GrlcQuery> views = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, List<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -247,6 +248,10 @@ public class Space implements Serializable {
     public Map<String, List<Serializable>> getPinnedResourceMap() {
         triggerDataUpdate();
         return data.pinnedResourceMap;
+    }
+
+    public List<GrlcQuery> getViews() {
+        return data.views;
     }
 
     public IRI getDefaultProvenance() {
@@ -368,6 +373,12 @@ public class Space implements Serializable {
                             newData.pinGroupTags.add(r.get("tag"));
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
                         }
+                    }
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-views-for-space", spaceIds)).getData()) {
+                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
+                        GrlcQuery query = GrlcQuery.get(r.get("query"));
+                        if (query == null) continue;
+                        newData.views.add(query);
                     }
                     data = newData;
                     dataInitialized = true;
