@@ -19,7 +19,7 @@ public class RestrictedChoice implements Serializable {
 
     private IRI placeholderIri;
 
-    private TemplateContext<String> context;
+    private TemplateContext context;
 
     private final Map<String, Boolean> fixedPossibleValues = new HashMap<>();
 
@@ -33,7 +33,7 @@ public class RestrictedChoice implements Serializable {
      * @param placeholderIri The IRI of the placeholder.
      * @param context        The template context.
      */
-    public RestrictedChoice(IRI placeholderIri, TemplateContext<String> context) {
+    public RestrictedChoice(IRI placeholderIri, TemplateContext context) {
         this.placeholderIri = placeholderIri;
         this.context = context;
         for (Value v : context.getTemplate().getPossibleValues(placeholderIri)) {
@@ -59,7 +59,7 @@ public class RestrictedChoice implements Serializable {
                 String suffix = "__" + i;
                 if (i == 0) suffix = "";
                 IRI refIri = vf.createIRI(r.stringValue() + suffix);
-                IModel<String> m = context.getComponentModels().get(refIri);
+                IModel<String> m = (IModel<String>) context.getComponentModels().get(refIri);
                 if (m == null) break;
                 if (m.getObject() != null && !m.getObject().startsWith("\"")) {
                     possibleValues.add(m.getObject());

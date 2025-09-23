@@ -25,7 +25,7 @@ import java.util.*;
 /**
  * Context for a template, containing all necessary information to fill.
  */
-public class TemplateContext<T> implements Serializable {
+public class TemplateContext implements Serializable {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private final Logger logger = LoggerFactory.getLogger(TemplateContext.class);
@@ -35,7 +35,7 @@ public class TemplateContext<T> implements Serializable {
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private List<Component> components = new ArrayList<>();
-    private Map<IRI, IModel<T>> componentModels = new HashMap<>();
+    private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
     private List<StatementItem> statementItems;
@@ -80,7 +80,7 @@ public class TemplateContext<T> implements Serializable {
         }
         this.existingNanopub = existingNanopub;
         if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
-            componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, (IModel<T>) Model.of(NanodashSession.get().getUserIri().stringValue()));
+            componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
         }
     }
 
@@ -91,7 +91,7 @@ public class TemplateContext<T> implements Serializable {
         if (statementItems != null) return;
         statementItems = new ArrayList<>();
         for (IRI st : template.getStatementIris()) {
-            StatementItem si = new StatementItem(componentId, st, this);
+            StatementItem<?> si = new StatementItem<>(componentId, st, this);
             statementItems.add(si);
             for (IRI i : si.getIriSet()) {
                 if (iriSet.contains(i)) {
@@ -108,7 +108,7 @@ public class TemplateContext<T> implements Serializable {
      * Finalizes the statements by processing all parameters and setting the repetition counts.
      */
     public void finalizeStatements() {
-        Map<StatementItem, Integer> finalRepetitionCount = new HashMap<>();
+        Map<StatementItem<?>, Integer> finalRepetitionCount = new HashMap<>();
         for (IRI ni : narrowScopeMap.keySet()) {
             // TODO: Move all occurrences of this to utility function:
             String postfix = Utils.getUriPostfix(ni);
@@ -239,7 +239,7 @@ public class TemplateContext<T> implements Serializable {
      *
      * @return a map of IRI to model of strings
      */
-    public Map<IRI, IModel<T>> getComponentModels() {
+    public Map<IRI, IModel<?>> getComponentModels() {
         return componentModels;
     }
 
@@ -294,9 +294,9 @@ public class TemplateContext<T> implements Serializable {
             iri = vf.createIRI(targetNamespace);
         }
         // TODO: Move this code below to the respective placeholder classes:
-        IModel<T> tf = componentModels.get(iri);
+        IModel<?> tf = componentModels.get(iri);
         Value processedValue = null;
-        T tfObjectGeneric = null;
+        Object tfObjectGeneric = null;
         if (tf != null) {
             tfObjectGeneric = tf.getObject();
         }
@@ -337,7 +337,7 @@ public class TemplateContext<T> implements Serializable {
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languagetag = template.getLanguageTag(iri);
-            if (datatype != null && datatype.equals(XSD.DATETIME)) {
+            if (datatype != null && (datatype.equals(XSD.DATETIME) || datatype.equals(XSD.DATE))) {
                 Date tfObject = (Date) tfObjectGeneric;
                 if (tfObject != null) {
                     processedValue = vf.createLiteral(tfObject.toString(), datatype);

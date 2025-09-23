@@ -54,7 +54,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
-    private TemplateContext<String> context;
+    private TemplateContext context;
     private String prefix;
     private ExternalLink linkComp;
     private Label extraComp, languageComp, datatypeComp;
@@ -76,10 +76,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
      */
     public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, final RepetitionGroup rg) {
         super(id);
-        context = (TemplateContext<String>) rg.getContext();
+        context = rg.getContext();
         this.iri = iriP;
         template = context.getTemplate();
-        model = context.getComponentModels().get(iri);
+        model = (IModel<String>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);

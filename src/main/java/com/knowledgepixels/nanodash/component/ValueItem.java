@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -14,8 +13,6 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.vocabulary.NTEMPLATE;
-
-import java.util.Date;
 
 /**
  * ValueItem is a panel that represents a single value in a statement.
@@ -51,28 +48,28 @@ public class ValueItem extends Panel implements ContextComponent {
                     component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
                 }
             } else if (template.isRestrictedChoicePlaceholder(iri)) {
-                component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isAgentPlaceholder(iri)) {
-                component = new AgentChoiceItem("value", id, iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                component = new AgentChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isGuidedChoicePlaceholder(iri)) {
-                component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isIntroducedResource(iri) && rg.getContext().getFillMode() == FillMode.SUPERSEDE) {
                 component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
-                component = new IriTextfieldItem("value", id, iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isLongLiteralPlaceholder(iri)) {
                 component = new LiteralTextareaItem("value", iri, rg.isOptional(), rg.getContext());
             } else if (template.isLiteralPlaceholder(iri)) {
                 // TODO add all date time types
                 if (template.getDatatype(iri).equals(XSD.DATE)) {
-                    component = new LiteralDateItem("value", iri, rg.isOptional(), (TemplateContext<Date>) rg.getContext());
+                    component = new LiteralDateItem("value", iri, rg.isOptional(), rg.getContext());
                 } else if (template.getDatatype(iri).equals(XSD.DATETIME)) {
-                    component = new LiteralDateTimeItem("value", iri, rg.isOptional(), (TemplateContext<Date>) rg.getContext());
+                    component = new LiteralDateTimeItem("value", iri, rg.isOptional(), rg.getContext());
                 } else {
-                    component = new LiteralTextfieldItem("value", iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                    component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
                 }
             } else if (template.isPlaceholder(iri)) {
-                component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), (TemplateContext<String>) rg.getContext());
+                component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else {
                 component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
             }

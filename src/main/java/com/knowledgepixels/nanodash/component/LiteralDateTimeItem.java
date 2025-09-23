@@ -27,15 +27,16 @@ import java.util.Date;
  */
 public class LiteralDateTimeItem extends Panel implements ContextComponent {
 
-    private TemplateContext<Date> context;
+    private TemplateContext context;
     private DateTimePicker dateTimePicker;
     private Label datatypeComp;
     private IModel<String> datatypeModel;
     private final String regex;
     private final IRI iri;
     private final static Logger logger = LoggerFactory.getLogger(LiteralDateTimeItem.class);
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private final String DATE_PATTERN = "d MMM yyyy";
+    private final String TIME_PATTERN = "HH:mm:ss";
 
     /**
      * Constructs a LiteralDateTimeItem with the specified ID, IRI, optional flag, and template context.
@@ -45,13 +46,13 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      * @param optional whether this field is optional
      * @param context  the template context containing models and parameters
      */
-    public LiteralDateTimeItem(String id, final IRI iri, boolean optional, TemplateContext<Date> context) {
+    public LiteralDateTimeItem(String id, final IRI iri, boolean optional, TemplateContext context) {
         super(id);
         this.context = context;
         final Template template = context.getTemplate();
         this.iri = iri;
         regex = template.getRegex(iri);
-        IModel<Date> model = context.getComponentModels().get(iri);
+        IModel<Date> model = (IModel<Date>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of((Date) null);
             context.getComponentModels().put(iri, model);
@@ -94,7 +95,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
      */
     protected DateTimePicker initDateTimeComponent(IModel<Date> model) {
-        dateTimePicker = new AjaxDateTimePicker("datetime", model, DATE_PATTERN, "HH:mm:ss");
+        dateTimePicker = new AjaxDateTimePicker("datetime", model, DATE_PATTERN, TIME_PATTERN);
         return dateTimePicker;
     }
 
@@ -141,7 +142,6 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      */
     @Override
     public void unifyWith(Value v) throws UnificationException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         if (v == null) {
             return;
         }
@@ -157,12 +157,6 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
             datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
             datatypeComp.setVisible(true);
-        }
-
-        try {
-            getTextComponent().setModelObject(format.parse(vL.stringValue()));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
         }
     }
 
