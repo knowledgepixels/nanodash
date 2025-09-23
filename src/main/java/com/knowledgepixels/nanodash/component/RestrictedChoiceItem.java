@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class RestrictedChoiceItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
     private IRI iri;
     private Select2Choice<String> choice;
     private ExternalLink tooltipLink;
@@ -54,7 +54,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
      * @param optional whether the choice is optional
      * @param context  the template context
      */
-    public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
+    public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext<String> context) {
         super(id);
         this.context = context;
         this.iri = iri;

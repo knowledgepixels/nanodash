@@ -31,7 +31,7 @@ import java.net.URISyntaxException;
  */
 public class ValueTextfieldItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
     private TextField<String> textfield;
     private IRI iri;
     private static final Logger logger = LoggerFactory.getLogger(ValueTextfieldItem.class);
@@ -45,7 +45,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
      * @param optional whether the field is optional
      * @param context  the template context containing models and components
      */
-    public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
+    public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext<String> context) {
         super(id);
         this.context = context;
         this.iri = iriP;

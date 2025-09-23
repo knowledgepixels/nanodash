@@ -91,11 +91,11 @@ public class PublishForm extends Panel {
 
     protected Form<?> form;
     protected FeedbackPanel feedbackPanel;
-    private final TemplateContext assertionContext;
-    private TemplateContext provenanceContext;
-    private List<TemplateContext> pubInfoContexts = new ArrayList<>();
-    private Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
-    private List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
+    private final TemplateContext<String> assertionContext;
+    private TemplateContext<String> provenanceContext;
+    private List<TemplateContext<String>> pubInfoContexts = new ArrayList<>();
+    private Map<String, TemplateContext<String>> pubInfoContextMap = new HashMap<>();
+    private List<TemplateContext<String>> requiredPubInfoContexts = new ArrayList<>();
     private String targetNamespace;
     private Class<? extends WebPage> confirmPageClass;
 
@@ -175,7 +175,7 @@ public class PublishForm extends Panel {
         String targetNamespaceLabel = targetNamespace + "...";
         targetNamespace = targetNamespace + "~~~ARTIFACTCODE~~~/";
 
-        assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
+        assertionContext = new TemplateContext<>(ContextType.ASSERTION, templateId, "statement", targetNamespace);
         assertionContext.setFillMode(fillMode);
         final String prTemplateId;
         if (pageParams.get("prtemplate").toString() != null) {
@@ -193,22 +193,22 @@ public class PublishForm extends Panel {
                 prTemplateId = defaultProvTemplateId;
             }
         }
-        provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
+        provenanceContext = new TemplateContext<>(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
         for (String t : fixedPubInfoTemplates) {
             // TODO consistently check for latest versions of templates here and below:
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
+            TemplateContext<String> c = new TemplateContext<String>(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplate().getId(), c);
             requiredPubInfoContexts.add(c);
         }
         if (fillMode == FillMode.SUPERSEDE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext<String> c = new TemplateContext<String>(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
             //requiredPubInfoContexts.add(c);
             c.setParam("np", fillNp.getUri().stringValue());
         } else if (fillMode == FillMode.DERIVE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext<String> c = new TemplateContext<String>(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
@@ -216,19 +216,19 @@ public class PublishForm extends Panel {
         for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
             String latestId = QueryApiAccess.getLatestVersionId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
+            TemplateContext<String> c = new TemplateContext<String>(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplateId(), c);
             requiredPubInfoContexts.add(c);
         }
-        Map<Integer, TemplateContext> piParamIdMap = new HashMap<>();
+        Map<Integer, TemplateContext<String>> piParamIdMap = new HashMap<>();
         for (String k : pageParams.getNamedKeys()) {
             if (!k.matches("pitemplate[1-9][0-9]*")) continue;
             Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
             String tid = pageParams.get(k).toString();
             // TODO Allow for automatically using latest template version:
             //String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
-            TemplateContext c = createPubinfoContext(tid);
+            TemplateContext<String> c = createPubinfoContext(tid);
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
                 logger.error("ERROR: pitemplate param identifier assigned multiple times: {}", i);
@@ -374,7 +374,7 @@ public class PublishForm extends Panel {
         // Finalize statements, which picks up parameter values in repetitions:
         assertionContext.finalizeStatements();
         provenanceContext.finalizeStatements();
-        for (TemplateContext c : pubInfoContexts) {
+        for (TemplateContext<String> c : pubInfoContexts) {
             c.finalizeStatements();
         }
 
@@ -435,7 +435,7 @@ public class PublishForm extends Panel {
                 for (Component fc : provenanceContext.getComponents()) {
                     processFeedback(fc);
                 }
-                for (TemplateContext c : pubInfoContexts) {
+                for (TemplateContext<String> c : pubInfoContexts) {
                     for (Component fc : c.getComponents()) {
                         processFeedback(fc);
                     }
@@ -602,7 +602,7 @@ public class PublishForm extends Panel {
         recommendedPiTemplateOptionIds.add("http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4");
         recommendedPiTemplateOptionIds.add("https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w");
         recommendedPiTemplateOptionIds.add("http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI");
-        for (TemplateContext c : pubInfoContexts) {
+        for (TemplateContext<String> c : pubInfoContexts) {
             String s = c.getTemplate().getId();
             handledPiTemplates.put(s, true);
         }
@@ -645,7 +645,7 @@ public class PublishForm extends Panel {
                     response.add("—— recommended ——");
                     for (String s : recommendedPiTemplateOptionIds) {
                         boolean isAlreadyUsed = false;
-                        for (TemplateContext c : pubInfoContexts) {
+                        for (TemplateContext<String> c : pubInfoContexts) {
                             // TODO: make this more efficient/nicer
                             if (c.getTemplate().getId().equals(s)) {
                                 isAlreadyUsed = true;
@@ -662,7 +662,7 @@ public class PublishForm extends Panel {
                     response.add("—— others ——");
                     for (String s : piTemplateOptionIds) {
                         boolean isAlreadyUsed = false;
-                        for (TemplateContext c : pubInfoContexts) {
+                        for (TemplateContext<String> c : pubInfoContexts) {
                             // TODO: make this more efficient/nicer
                             if (c.getTemplate().getId().equals(s)) {
                                 isAlreadyUsed = true;
@@ -697,7 +697,7 @@ public class PublishForm extends Panel {
                     return;
                 }
                 String id = newPiTemplateModel.getObject();
-                TemplateContext c = new TemplateContext(ContextType.PUBINFO, id, "pi-statement", targetNamespace);
+                TemplateContext<String> c = new TemplateContext<>(ContextType.PUBINFO, id, "pi-statement", targetNamespace);
                 c.initStatements();
                 pubInfoContexts.add(c);
                 newPiTemplateModel.setObject(null);
@@ -737,10 +737,10 @@ public class PublishForm extends Panel {
     }
 
     private void refreshPubInfo(AjaxRequestTarget target) {
-        ListView<TemplateContext> list = new ListView<TemplateContext>("pis", pubInfoContexts) {
+        ListView<TemplateContext<String>> list = new ListView<TemplateContext<String>>("pis", pubInfoContexts) {
 
-            protected void populateItem(ListItem<TemplateContext> item) {
-                final TemplateContext pic = item.getModelObject();
+            protected void populateItem(ListItem<TemplateContext<String>> item) {
+                final TemplateContext<String> pic = item.getModelObject();
                 item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
                 item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
                 Label remove = new Label("piremove", "×");
@@ -777,12 +777,12 @@ public class PublishForm extends Panel {
         }
     }
 
-    private TemplateContext createPubinfoContext(String piTemplateId) {
-        TemplateContext c;
+    private TemplateContext<String> createPubinfoContext(String piTemplateId) {
+        TemplateContext<String> c;
         if (pubInfoContextMap.containsKey(piTemplateId)) {
             c = pubInfoContextMap.get(piTemplateId);
         } else {
-            c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
+            c = new TemplateContext<String>(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
             pubInfoContextMap.put(piTemplateId, c);
             pubInfoContexts.add(c);
         }
@@ -795,7 +795,7 @@ public class PublishForm extends Panel {
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
         assertionContext.propagateStatements(npCreator);
         provenanceContext.propagateStatements(npCreator);
-        for (TemplateContext c : pubInfoContexts) {
+        for (TemplateContext<String> c : pubInfoContexts) {
             c.propagateStatements(npCreator);
         }
         for (IRI introducedIri : assertionContext.getIntroducedIris()) {
@@ -811,7 +811,7 @@ public class PublishForm extends Panel {
         npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, templateUri);
         IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
         npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, prTemplateUri);
-        for (TemplateContext c : pubInfoContexts) {
+        for (TemplateContext<String> c : pubInfoContexts) {
             IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
             npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, piTemplateUri);
         }

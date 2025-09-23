@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LiteralTextfieldItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
     private AbstractTextComponent<String> textfield;
     private Label languageComp, datatypeComp;
     private IModel<String> languageModel, datatypeModel;
@@ -43,7 +43,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
      * @param optional whether this field is optional
      * @param context  the template context containing models and parameters
      */
-    public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
+    public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext<String> context) {
         super(id);
         this.context = context;
         final Template template = context.getTemplate();

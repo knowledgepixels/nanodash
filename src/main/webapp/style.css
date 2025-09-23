@@ -1855,3 +1855,7 @@ div.navigator .goto a[disabled] {
   padding: 0;
   margin: 0;
 }
+
+.k-input-inner {
+  width: 100% !important;
+}

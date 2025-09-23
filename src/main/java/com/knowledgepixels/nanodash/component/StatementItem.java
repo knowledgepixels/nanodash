@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class StatementItem extends Panel {
 
-    private TemplateContext context;
+    private TemplateContext<?> context;
     private IRI statementId;
     private List<IRI> statementPartIds = new ArrayList<>();
     private List<WebMarkupContainer> viewElements = new ArrayList<>();
@@ -51,7 +51,7 @@ public class StatementItem extends Panel {
      * @param statementId the IRI of the statement this item represents
      * @param context     the template context containing information about the template and its items
      */
-    public StatementItem(String id, IRI statementId, TemplateContext context) {
+    public StatementItem(String id, IRI statementId, TemplateContext<?> context) {
         super(id);
 
         this.statementId = statementId;
@@ -425,16 +425,20 @@ public class StatementItem extends Panel {
             for (IRI iriBase : iriSet) {
                 IRI thisIri = vf.createIRI(iriBase + thisSuffix);
                 if (context.getComponentModels().containsKey(thisIri)) {
-                    IModel<String> swapModel1 = context.getComponentModels().get(thisIri);
+                    IModel<?> swapModel1 = context.getComponentModels().get(thisIri);
                     for (int i = getRepeatIndex() + 1; i < repetitionGroups.size(); i++) {
-                        IModel<String> swapModel2 = context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
+                        IModel<?> swapModel2 = context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
                         if (swapModel1 != null && swapModel2 != null) {
-                            swapModel1.setObject(swapModel2.getObject());
+                            // TODO check how to fix this -- maybe a function that does the swap?
+                            //swapModel1.setObject(swapModel2.getObject());
                         }
                         swapModel1 = swapModel2;
                     }
                     // Clear last object:
-                    if (swapModel1 != null) swapModel1.setObject("");
+                    if (swapModel1 != null) {
+                        // FIXME check if this is fine now
+                        swapModel1.setObject(null);
+                    }
                 }
             }
             RepetitionGroup lastGroup = repetitionGroups.get(repetitionGroups.size() - 1);
@@ -460,7 +464,7 @@ public class StatementItem extends Panel {
          *
          * @return the TemplateContext
          */
-        public TemplateContext getContext() {
+        public TemplateContext<?> getContext() {
             return context;
         }
 

@@ -33,7 +33,7 @@ import java.util.*;
  */
 public class GuidedChoiceItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -89,7 +89,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
      * @param optional Whether the choice is optional or required.
      * @param context  The template context containing the template and models.
      */
-    public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
+    public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext<String> context) {
         super(id);
         this.context = context;
         this.iri = iriP;

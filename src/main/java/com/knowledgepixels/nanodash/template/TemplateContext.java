@@ -13,12 +13,11 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubWithNs;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.nanopub.*;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -26,16 +25,17 @@ import java.util.*;
 /**
  * Context for a template, containing all necessary information to fill.
  */
-public class TemplateContext implements Serializable {
+public class TemplateContext<T> implements Serializable {
 
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private final Logger logger = LoggerFactory.getLogger(TemplateContext.class);
 
     private final ContextType contextType;
     private final Template template;
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private List<Component> components = new ArrayList<>();
-    private Map<IRI, IModel<String>> componentModels = new HashMap<>();
+    private Map<IRI, IModel<T>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
     private List<StatementItem> statementItems;
@@ -80,7 +80,7 @@ public class TemplateContext implements Serializable {
         }
         this.existingNanopub = existingNanopub;
         if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
-            componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
+            componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, (IModel<T>) Model.of(NanodashSession.get().getUserIri().stringValue()));
         }
     }
 
@@ -239,7 +239,7 @@ public class TemplateContext implements Serializable {
      *
      * @return a map of IRI to model of strings
      */
-    public Map<IRI, IModel<String>> getComponentModels() {
+    public Map<IRI, IModel<T>> getComponentModels() {
         return componentModels;
     }
 
@@ -281,7 +281,9 @@ public class TemplateContext implements Serializable {
      * @return the processed Value, or the original Value if no processing is applicable
      */
     public Value processValue(Value value) {
-        if (!(value instanceof IRI)) return value;
+        if (!(value instanceof IRI)) {
+            return value;
+        }
         IRI iri = (IRI) value;
         if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
             iri = NanodashSession.get().getUserIri();
@@ -292,24 +294,30 @@ public class TemplateContext implements Serializable {
             iri = vf.createIRI(targetNamespace);
         }
         // TODO: Move this code below to the respective placeholder classes:
-        IModel<String> tf = componentModels.get(iri);
+        IModel<T> tf = componentModels.get(iri);
         Value processedValue = null;
+        T tfObjectGeneric = null;
+        if (tf != null) {
+            tfObjectGeneric = tf.getObject();
+        }
         if (template.isRestrictedChoicePlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                 String prefix = template.getPrefix(iri);
                 if (prefix == null) prefix = "";
                 if (template.isLocalResource(iri)) prefix = targetNamespace;
-                if (tf.getObject().matches("https?://.+")) prefix = "";
+                if (tfObject.matches("https?://.+")) prefix = "";
                 String v = prefix + tf.getObject();
                 if (v.matches("[^:# ]+")) v = targetNamespace + v;
                 if (v.matches("https?://.*")) {
                     processedValue = vf.createIRI(v);
                 } else {
-                    processedValue = vf.createLiteral(tf.getObject());
+                    processedValue = vf.createLiteral(tfObject);
                 }
             }
         } else if (template.isUriPlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                 String prefix = template.getPrefix(iri);
                 if (prefix == null) prefix = "";
                 if (template.isLocalResource(iri)) prefix = targetNamespace;
@@ -317,7 +325,7 @@ public class TemplateContext implements Serializable {
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tf.getObject().matches("https?://.+")) prefix = "";
+                    if (tfObject.matches("https?://.+")) prefix = "";
                     v = prefix + tf.getObject();
                 }
                 if (v.matches("[^:# ]+")) v = targetNamespace + v;
@@ -329,29 +337,38 @@ public class TemplateContext implements Serializable {
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languagetag = template.getLanguageTag(iri);
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                if (datatype != null) {
-                    processedValue = vf.createLiteral(tf.getObject(), datatype);
-                } else if (languagetag != null) {
-                    processedValue = vf.createLiteral(tf.getObject(), languagetag);
-                } else {
-                    processedValue = vf.createLiteral(tf.getObject());
+            if (datatype != null && datatype.equals(XSD.DATETIME)) {
+                Date tfObject = (Date) tfObjectGeneric;
+                if (tfObject != null) {
+                    processedValue = vf.createLiteral(tfObject.toString(), datatype);
+                }
+            } else {
+                String tfObject = (String) tfObjectGeneric;
+                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                    if (datatype != null) {
+                        processedValue = vf.createLiteral(tfObject, datatype);
+                    } else if (languagetag != null) {
+                        processedValue = vf.createLiteral(tfObject, languagetag);
+                    } else {
+                        processedValue = vf.createLiteral(tfObject);
+                    }
                 }
             }
-
         } else if (template.isValuePlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                if (Utils.isValidLiteralSerialization(tf.getObject())) {
-                    processedValue = Utils.getParsedLiteral(tf.getObject());
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                if (Utils.isValidLiteralSerialization(tfObject)) {
+                    processedValue = Utils.getParsedLiteral(tfObject);
                 } else {
-                    String v = tf.getObject();
+                    String v = tfObject;
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
                 }
             }
         } else if (template.isSequenceElementPlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                processedValue = vf.createIRI(tf.getObject());
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                processedValue = vf.createIRI(tfObject);
             }
         } else {
             processedValue = iri;

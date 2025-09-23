@@ -19,7 +19,7 @@ public class RestrictedChoice implements Serializable {
 
     private IRI placeholderIri;
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
 
     private final Map<String, Boolean> fixedPossibleValues = new HashMap<>();
 
@@ -33,7 +33,7 @@ public class RestrictedChoice implements Serializable {
      * @param placeholderIri The IRI of the placeholder.
      * @param context        The template context.
      */
-    public RestrictedChoice(IRI placeholderIri, TemplateContext context) {
+    public RestrictedChoice(IRI placeholderIri, TemplateContext<String> context) {
         this.placeholderIri = placeholderIri;
         this.context = context;
         for (Value v : context.getTemplate().getPossibleValues(placeholderIri)) {

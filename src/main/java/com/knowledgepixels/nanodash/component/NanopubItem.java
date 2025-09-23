@@ -225,7 +225,7 @@ public class NanopubItem extends Panel {
             }
             List<StatementItem> assertionStatements = new ArrayList<>();
             ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
-            TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
+            TemplateContext<String> context = new TemplateContext<String>(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
             populateStatementItemList(context, assertionFiller, assertionStatements);
 
             assertion.add(createStatementView("assertion-statements", assertionStatements));
@@ -249,7 +249,7 @@ public class NanopubItem extends Panel {
                 provenanceTemplate = td.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
             List<StatementItem> provenanceStatements = new ArrayList<>();
             ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
-            TemplateContext prContext = new TemplateContext(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
+            TemplateContext<String> prContext = new TemplateContext<String>(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
             populateStatementItemList(prContext, provenanceFiller, provenanceStatements);
             provenance.add(createStatementView("provenance-statements", provenanceStatements));
             provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
@@ -296,10 +296,10 @@ public class NanopubItem extends Panel {
             pubinfoTemplateIds.add("https://w3id.org/np/RA_TZ9tvF6sBewmbIGbTFguLOPUUS70huklacisZrYtYw"); // creation site
             pubinfoTemplateIds.add("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM"); // generic
 
-            List<TemplateContext> contexts = new ArrayList<>();
-            List<TemplateContext> genericContexts = new ArrayList<>();
+            List<TemplateContext<String>> contexts = new ArrayList<>();
+            List<TemplateContext<String>> genericContexts = new ArrayList<>();
             for (String s : pubinfoTemplateIds) {
-                TemplateContext piContext = new TemplateContext(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
+                TemplateContext<String> piContext = new TemplateContext<>(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
                 if (piContext.willMatchAnyTriple()) {
                     genericContexts.add(piContext);
                 } else if (piContext.getTemplateId().equals("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")) {
@@ -311,7 +311,7 @@ public class NanopubItem extends Panel {
             }
             contexts.addAll(genericContexts);  // make sure the generic one are at the end
             List<WebMarkupContainer> elements = new ArrayList<>();
-            for (TemplateContext piContext : contexts) {
+            for (TemplateContext<String> piContext : contexts) {
                 WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
                 List<StatementItem> pubinfoStatements = new ArrayList<>();
                 populateStatementItemList(piContext, pubinfoFiller, pubinfoStatements);
@@ -474,7 +474,7 @@ public class NanopubItem extends Panel {
         super.onBeforeRender();
     }
 
-    private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
+    private void populateStatementItemList(TemplateContext<String> context, ValueFiller filler, List<StatementItem> list) {
         context.initStatements();
         if (signerId != null) {
             context.getComponentModels().put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));

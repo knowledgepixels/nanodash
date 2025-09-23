@@ -949,7 +949,6 @@ public class Template implements Serializable {
         return iri;
     }
 
-
     private StatementComparator statementComparator = new StatementComparator();
 
     private class StatementComparator implements Comparator<IRI>, Serializable {

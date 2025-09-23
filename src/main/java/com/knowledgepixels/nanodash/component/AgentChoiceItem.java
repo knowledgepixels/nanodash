@@ -37,7 +37,7 @@ import java.util.*;
  */
 public class AgentChoiceItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
+    private TemplateContext<String> context;
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -61,7 +61,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
      * @param optional whether the choice is optional
      * @param context  the template context
      */
-    public AgentChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
+    public AgentChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext<String> context) {
         super(id);
         this.context = context;
         this.iri = iriP;
