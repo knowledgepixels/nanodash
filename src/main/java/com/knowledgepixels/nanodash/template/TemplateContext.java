@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.LiteralDateItem;
+import com.knowledgepixels.nanodash.component.LiteralDateTimeItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
@@ -337,10 +339,17 @@ public class TemplateContext implements Serializable {
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languagetag = template.getLanguageTag(iri);
-            if (datatype != null && (datatype.equals(XSD.DATETIME) || datatype.equals(XSD.DATE))) {
-                Date tfObject = (Date) tfObjectGeneric;
-                if (tfObject != null) {
-                    processedValue = vf.createLiteral(tfObject.toString(), datatype);
+            if (datatype != null) {
+                if (datatype.equals(XSD.DATETIME)) {
+                    Date tfObject = (Date) tfObjectGeneric;
+                    if (tfObject != null) {
+                        processedValue = vf.createLiteral(LiteralDateTimeItem.format.format(tfObject), datatype);
+                    }
+                } else if (datatype.equals(XSD.DATE)) {
+                    Date tfObject = (Date) tfObjectGeneric;
+                    if (tfObject != null) {
+                        processedValue = vf.createLiteral(LiteralDateItem.format.format(tfObject), datatype);
+                    }
                 }
             } else {
                 String tfObject = (String) tfObjectGeneric;
