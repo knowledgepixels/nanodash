@@ -34,7 +34,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
     private final String regex;
     private final IRI iri;
     private final static Logger logger = LoggerFactory.getLogger(LiteralDateTimeItem.class);
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private final String DATE_PATTERN = "d MMM yyyy";
     private final String TIME_PATTERN = "HH:mm:ss";
 
