@@ -357,6 +357,10 @@ ul:has(li) + .emptynotice {
   display: none;
 }
 
+.header.hide-if-empty:not(:has(+ .content.hide-if-empty)) {
+  display: none;
+}
+
 .emptynotice {
   margin-top: 0;
 }
