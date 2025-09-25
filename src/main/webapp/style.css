@@ -1764,6 +1764,16 @@ div.navigator .goto a[disabled] {
   width: 100%;
 }
 
+.inline * {
+  display: inline;
+  width: auto;
+}
+.inline .paneltitlerow h4 {
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+  margin-right: 5px;
+  margin-top: 8px;
+}
+
 .inline .paneltitlerow {
   border-style: none;
   margin-bottom: 0;

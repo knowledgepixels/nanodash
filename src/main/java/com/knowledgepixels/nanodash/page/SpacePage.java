@@ -76,7 +76,7 @@ public class SpacePage extends NanodashPage {
 
         add(new ItemListPanel<String>(
                 "altids",
-                "Alternative IDs",
+                "Alternative IDs:",
                 space.getAltIDs(),
                 id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
             ));
@@ -137,7 +137,7 @@ public class SpacePage extends NanodashPage {
 
         add(new ItemListPanel<SpaceMemberRole>(
                 "roles",
-                "Roles",
+                "Roles:",
                 () -> space.isDataInitialized(),
                 () -> space.getRoles(),
                 r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getMainProperty()), r.getName())
