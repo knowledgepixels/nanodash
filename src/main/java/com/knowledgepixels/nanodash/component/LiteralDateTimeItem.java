@@ -81,11 +81,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
 
-        if (template.getDatatype(iri).equals(XSD.DATETIME)) {
-            dateTimePicker.setVisible(true);
-        }
         add(datatypeComp);
-        add(dateTimePicker);
     }
 
     /**
@@ -127,6 +123,9 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         if (v instanceof Literal vL) {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
+            }
+            if (getTextComponent().getModelObject() == null) {
+                return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
             if (!vL.getDatatype().equals(datatype)) {

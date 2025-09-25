@@ -78,12 +78,7 @@ public class LiteralDateItem extends Panel implements ContextComponent {
 
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
-
-        if (template.getDatatype(iri).equals(XSD.DATETIME)) {
-            datePicker.setVisible(true);
-        }
         add(datatypeComp);
-        add(datePicker);
     }
 
     /**
@@ -119,10 +114,15 @@ public class LiteralDateItem extends Panel implements ContextComponent {
      */
     @Override
     public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
+        if (v == null) {
+            return true;
+        }
         if (v instanceof Literal vL) {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
+            }
+            if (getTextComponent().getModelObject() == null) {
+                return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
             if (!vL.getDatatype().equals(datatype)) {
@@ -138,7 +138,9 @@ public class LiteralDateItem extends Panel implements ContextComponent {
      */
     @Override
     public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
+        if (v == null) {
+            return;
+        }
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         Literal vL = (Literal) v;
         try {
