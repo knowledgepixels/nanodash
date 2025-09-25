@@ -313,7 +313,7 @@ public class Space implements Serializable {
                     setCoreData(newData);
     
                     newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
-                    newData.roleMap.put(SpaceMemberRole.ADMIN_ROLE_IRI, SpaceMemberRole.ADMIN_ROLE);
+                    newData.roleMap.put(SpaceMemberRole.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
                     Multimap<String, String> spaceIds = ArrayListMultimap.create();
                     spaceIds.put("space", id);
@@ -339,8 +339,7 @@ public class Space implements Serializable {
                         newData.roles.add(role);
     
                         // TODO Handle cases of overlapping properties:
-                        newData.roleMap.put(role.getMainProperty(), role);
-                        for (IRI p : role.getEquivalentProperties()) newData.roleMap.put(p, role);
+                        for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);
                         for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
         
                         role.addRoleParams(getSpaceMemberParams);

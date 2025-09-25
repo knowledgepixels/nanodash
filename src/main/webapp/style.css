@@ -1933,3 +1933,14 @@ div.navigator .goto a[disabled] {
   background: #fff;
   padding: 0 16px;
 }
+
+a.source {
+  font-family: Martian, monaco, monospace;
+  font-weight: bold;
+  font-size: 10pt;
+  color: rgba(0, 0, 0, 0.2);
+}
+
+a.source:hover {
+  color: rgba(0, 0, 0, 1.0);
+}

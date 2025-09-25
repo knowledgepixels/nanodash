@@ -10,41 +10,46 @@ import com.google.common.collect.Multimap;
 
 public class SpaceMemberRole implements Serializable {
 
-    private IRI mainProperty;
-    private String name;
-    private boolean isInverse;
-    private IRI[] equivalentProperties, inverseProperties;
+    private IRI id;
+    private String label, name, title;
+    private IRI[] regularProperties, inverseProperties;
 
     public SpaceMemberRole(ApiResponseEntry e) {
-        this.mainProperty = Utils.vf.createIRI(e.get("role"));
+        this.id = Utils.vf.createIRI(e.get("role"));
+        this.label = e.get("roleLabel");
         this.name = e.get("roleName");
-        this.isInverse = "true".equals(e.get("isInverse"));
-        equivalentProperties = stringToIriArray(e.get("equivalent"));
-        inverseProperties = stringToIriArray(e.get("inverse"));
+        this.title = e.get("roleTitle");
+        regularProperties = stringToIriArray(e.get("regularProperties"));
+        inverseProperties = stringToIriArray(e.get("inverseProperties"));
     }
 
-    public SpaceMemberRole(IRI mainProperty, String name, boolean isInverse, IRI[] equivalentProperties, IRI[] inverseProperties) {
-        this.mainProperty = mainProperty;
+    private SpaceMemberRole(IRI id, String label, String name, String title, IRI[] regularProperties, IRI[] inverseProperties) {
+        this.id = id;
+        this.label = label;
         this.name = name;
-        this.isInverse = isInverse;
-        this.equivalentProperties = equivalentProperties;
+        this.title = title;
+        this.regularProperties = regularProperties;
         this.inverseProperties = inverseProperties;
     }
 
-    public IRI getMainProperty() {
-        return mainProperty;
+    public IRI getId() {
+        return id;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     public String getName() {
         return name;
     }
 
-    public boolean isInverse() {
-        return isInverse;
+    public String getTitle() {
+        return title;
     }
 
-    public IRI[] getEquivalentProperties() {
-        return equivalentProperties;
+    public IRI[] getRegularProperties() {
+        return regularProperties;
     }
 
     public IRI[] getInverseProperties() {
@@ -52,19 +57,13 @@ public class SpaceMemberRole implements Serializable {
     }
 
     public void addRoleParams(Multimap<String, String> params) {
-        if (isInverse) {
-            params.put("invrole", mainProperty.stringValue());
-            for (IRI p : equivalentProperties) params.put("invrole", p.stringValue());
-            for (IRI p : inverseProperties) params.put("role", p.stringValue());
-        } else {
-            params.put("role", mainProperty.stringValue());
-            for (IRI p : equivalentProperties) params.put("role", p.stringValue());
-            for (IRI p : inverseProperties) params.put("invrole", p.stringValue());
-        }
+        for (IRI p : regularProperties) params.put("role", p.stringValue());
+        for (IRI p : inverseProperties) params.put("invrole", p.stringValue());
     }
 
-    public static final IRI ADMIN_ROLE_IRI = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin");
-    public static final SpaceMemberRole ADMIN_ROLE = new SpaceMemberRole(ADMIN_ROLE_IRI, "admin", true, new IRI[] {}, new IRI[] {});
+    public static final IRI HAS_ADMIN_PREDICATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin");
+    private static final IRI ADMIN_ROLE_IRI = Utils.vf.createIRI("https://w3id.org/np/RAHlMUH4GnbkUmGTK_eecBk3OBFn55VyQHC0BDlpOcCPg/adminRole");
+    public static final SpaceMemberRole ADMIN_ROLE = new SpaceMemberRole(ADMIN_ROLE_IRI, "Admin role", "admin", "Admins", new IRI[] {HAS_ADMIN_PREDICATE}, new IRI[] {});
 
     private static IRI[] stringToIriArray(String string) {
         if (string == null || string.isBlank()) return new IRI[] {};
