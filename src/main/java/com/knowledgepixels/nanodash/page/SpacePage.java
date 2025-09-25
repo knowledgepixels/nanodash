@@ -165,6 +165,12 @@ public class SpacePage extends NanodashPage {
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
+        addSubspacePanel("Alliance");
+        addSubspacePanel("Consortium");
+        addSubspacePanel("Organization");
+        addSubspacePanel("Taskforce");
+        addSubspacePanel("Division");
+        addSubspacePanel("Detail");
         addSubspacePanel("Group");
         addSubspacePanel("Project");
         addSubspacePanel("Program");

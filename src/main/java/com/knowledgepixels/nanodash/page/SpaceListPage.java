@@ -37,6 +37,12 @@ public class SpaceListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
+        addSpacePanel("Alliance", true);
+        addSpacePanel("Consortium", false);
+        addSpacePanel("Organization", true);
+        addSpacePanel("Taskforce", false);
+        addSpacePanel("Division", true);
+        addSpacePanel("Detail", false);
         addSpacePanel("Group", true);
         addSpacePanel("Project", false);
         addSpacePanel("Program", true);
