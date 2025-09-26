@@ -5,6 +5,9 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -64,17 +67,29 @@ public class LiteralDateItem extends Panel implements ContextComponent {
                 e.printStackTrace();
             }
         }
-        DatePicker textComponent = initDateComponent(model);
-        if (!optional) textComponent.setRequired(true);
+        DatePicker dateComponent = initDateComponent(model);
+        if (!optional) dateComponent.setRequired(true);
         if (context.getTemplate().getLabel(iri) != null) {
-            textComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
+            dateComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
 
-        context.getComponentModels().put(iri, textComponent.getModel());
-        context.getComponents().add(textComponent);
-        textComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
-        textComponent.add(new InvalidityHighlighting());
-        add(textComponent);
+        context.getComponentModels().put(iri, dateComponent.getModel());
+        context.getComponents().add(dateComponent);
+        dateComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
+        dateComponent.add(new InvalidityHighlighting());
+        add(dateComponent);
+        dateComponent.add(new OnChangeAjaxBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == dateComponent) continue;
+                    if (c.getDefaultModel() == dateComponent.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
+                    }
+                }
+            }
+        });
 
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
@@ -82,10 +97,10 @@ public class LiteralDateItem extends Panel implements ContextComponent {
     }
 
     /**
-     * <p>initTextComponent.</p>
+     * Initializes the date picker component with the given model.
      *
-     * @param model a {@link org.apache.wicket.model.IModel} object
-     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     * @param model the model to bind to the date picker
+     * @return the initialized date picker component
      */
     protected DatePicker initDateComponent(IModel<Date> model) {
         datePicker = new AjaxDatePicker("date", model, DATE_PATTERN);
@@ -93,11 +108,11 @@ public class LiteralDateItem extends Panel implements ContextComponent {
     }
 
     /**
-     * <p>getTextComponent.</p>
+     * Accessor for the date picker component.
      *
-     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     * @return the date picker component
      */
-    protected DatePicker getTextComponent() {
+    protected DatePicker getDateComponent() {
         return datePicker;
     }
 
@@ -106,7 +121,7 @@ public class LiteralDateItem extends Panel implements ContextComponent {
      */
     @Override
     public void removeFromContext() {
-        context.getComponents().remove(getTextComponent());
+        context.getComponents().remove(getDateComponent());
     }
 
     /**
@@ -121,14 +136,18 @@ public class LiteralDateItem extends Panel implements ContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (getTextComponent().getModelObject() == null) {
+            if (getDateComponent().getModelObject() == null) {
                 return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
             if (!vL.getDatatype().equals(datatype)) {
                 return false;
             }
-            return vL.stringValue().equals(getTextComponent().getModelObject().toString());
+            try {
+                return format.parse(vL.stringValue()).toString().equals(getDateComponent().getModelObject().toString());
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }
@@ -144,7 +163,7 @@ public class LiteralDateItem extends Panel implements ContextComponent {
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         Literal vL = (Literal) v;
         try {
-            getTextComponent().setModelObject(format.parse(vL.stringValue()));
+            getDateComponent().setModelObject(format.parse(vL.stringValue()));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

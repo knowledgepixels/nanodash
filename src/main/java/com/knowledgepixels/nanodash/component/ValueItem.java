@@ -61,9 +61,9 @@ public class ValueItem extends Panel implements ContextComponent {
                 component = new LiteralTextareaItem("value", iri, rg.isOptional(), rg.getContext());
             } else if (template.isLiteralPlaceholder(iri)) {
                 // TODO add all date time types
-                if (template.getDatatype(iri).equals(XSD.DATE)) {
+                if (XSD.DATE.equals(template.getDatatype(iri))) {
                     component = new LiteralDateItem("value", iri, rg.isOptional(), rg.getContext());
-                } else if (template.getDatatype(iri).equals(XSD.DATETIME)) {
+                } else if (XSD.DATETIME.equals(template.getDatatype(iri))) {
                     component = new LiteralDateTimeItem("value", iri, rg.isOptional(), rg.getContext());
                 } else {
                     component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());

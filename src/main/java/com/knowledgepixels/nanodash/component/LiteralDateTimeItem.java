@@ -5,6 +5,9 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -66,17 +69,29 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
                 logger.error("Could not parse date from parameter: {}", context.getParam(postfix), e);
             }
         }
-        DateTimePicker textComponent = initDateTimeComponent(model);
-        if (!optional) textComponent.setRequired(true);
+        DateTimePicker dateTimeComponent = initDateTimeComponent(model);
+        if (!optional) dateTimeComponent.setRequired(true);
         if (context.getTemplate().getLabel(iri) != null) {
-            textComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
+            dateTimeComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
 
-        context.getComponentModels().put(iri, textComponent.getModel());
-        context.getComponents().add(textComponent);
-        textComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
-        textComponent.add(new InvalidityHighlighting());
-        add(textComponent);
+        context.getComponentModels().put(iri, dateTimeComponent.getModel());
+        context.getComponents().add(dateTimeComponent);
+        dateTimeComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
+        dateTimeComponent.add(new InvalidityHighlighting());
+        dateTimeComponent.add(new OnChangeAjaxBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == dateTimeComponent) continue;
+                    if (c.getDefaultModel() == dateTimeComponent.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
+                    }
+                }
+            }
+        });
+        add(dateTimeComponent);
 
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
@@ -85,10 +100,10 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
     }
 
     /**
-     * <p>initTextComponent.</p>
+     * Initializes the DateTimePicker component with the given model.
      *
-     * @param model a {@link IModel} object
-     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     * @param model the model for the DateTimePicker
+     * @return the initialized DateTimePicker component
      */
     protected DateTimePicker initDateTimeComponent(IModel<Date> model) {
         dateTimePicker = new AjaxDateTimePicker("datetime", model, DATE_PATTERN, TIME_PATTERN);
@@ -96,11 +111,11 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
     }
 
     /**
-     * <p>getTextComponent.</p>
+     * Returns the DateTimePicker component.
      *
-     * @return a {@link org.apache.wicket.markup.html.form.AbstractTextComponent} object
+     * @return the DateTimePicker component
      */
-    protected DateTimePicker getTextComponent() {
+    protected DateTimePicker getDateTimeComponent() {
         return dateTimePicker;
     }
 
@@ -109,7 +124,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      */
     @Override
     public void removeFromContext() {
-        context.getComponents().remove(getTextComponent());
+        context.getComponents().remove(getDateTimeComponent());
     }
 
     /**
@@ -124,14 +139,18 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (getTextComponent().getModelObject() == null) {
+            if (getDateTimeComponent().getModelObject() == null) {
                 return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
             if (!vL.getDatatype().equals(datatype)) {
                 return false;
             }
-            return vL.stringValue().equals(getTextComponent().getModelObject().toString());
+            try {
+                return format.parse(vL.stringValue()).toString().equals(getDateTimeComponent().getModelObject().toString());
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }
@@ -149,7 +168,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         }
         Literal vL = (Literal) v;
         try {
-            getTextComponent().setModelObject(format.parse(vL.stringValue()));
+            getDateTimeComponent().setModelObject(format.parse(vL.stringValue()));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
