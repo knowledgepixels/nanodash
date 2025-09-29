@@ -9,6 +9,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -23,7 +24,9 @@ import org.wicketstuff.kendo.ui.form.datetime.DateTimePicker;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -95,8 +98,12 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
 
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
-
         add(datatypeComp);
+
+        DropDownChoice<String> timeZoneDropDown = new DropDownChoice<String>("timezone-dropdown",
+                Model.of(TimeZone.getDefault().getID()),
+                Arrays.stream(TimeZone.getAvailableIDs()).toList());
+        add(timeZoneDropDown);
     }
 
     /**
