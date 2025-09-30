@@ -33,16 +33,19 @@ import java.util.TimeZone;
  */
 public class LiteralDateTimeItem extends Panel implements ContextComponent {
 
-    private TemplateContext context;
-    private DateTimePicker dateTimePicker;
-    private Label datatypeComp;
-    private IModel<String> datatypeModel;
-    private final String regex;
-    private final IRI iri;
     private final static Logger logger = LoggerFactory.getLogger(LiteralDateTimeItem.class);
     public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private final String DATE_PATTERN = "d MMM yyyy";
     private final String TIME_PATTERN = "HH:mm:ss";
+
+    private TemplateContext context;
+    private DateTimePicker dateTimePicker;
+    private DropDownChoice<String> timeZoneDropDown;
+    private final Label datatypeComp;
+    private final IModel<String> datatypeModel;
+    private final String regex;
+    private final IRI iri;
+    private final IModel<String> timeZoneModel = Model.of(TimeZone.getDefault().getID());
 
     /**
      * Constructs a LiteralDateTimeItem with the specified ID, IRI, optional flag, and template context.
@@ -72,37 +75,35 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
                 logger.error("Could not parse date from parameter: {}", context.getParam(postfix), e);
             }
         }
-        DateTimePicker dateTimeComponent = initDateTimeComponent(model);
-        if (!optional) dateTimeComponent.setRequired(true);
+        initDateTimePicker(model);
+        if (!optional) dateTimePicker.setRequired(true);
         if (context.getTemplate().getLabel(iri) != null) {
-            dateTimeComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
+            dateTimePicker.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
 
-        context.getComponentModels().put(iri, dateTimeComponent.getModel());
-        context.getComponents().add(dateTimeComponent);
-        dateTimeComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
-        dateTimeComponent.add(new InvalidityHighlighting());
-        dateTimeComponent.add(new OnChangeAjaxBehavior() {
+        context.getComponentModels().put(iri, dateTimePicker.getModel());
+        context.getComponents().add(dateTimePicker);
+        dateTimePicker.add(new ValueItem.KeepValueAfterRefreshBehavior());
+        dateTimePicker.add(new InvalidityHighlighting());
+        dateTimePicker.add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 for (Component c : context.getComponents()) {
-                    if (c == dateTimeComponent) continue;
-                    if (c.getDefaultModel() == dateTimeComponent.getModel()) {
+                    if (c == dateTimePicker) continue;
+                    if (c.getDefaultModel() == dateTimePicker.getModel()) {
                         c.modelChanged();
                         target.add(c);
                     }
                 }
             }
         });
-        add(dateTimeComponent);
+        add(dateTimePicker);
 
         datatypeModel = Model.of("");
         datatypeComp = new Label("datatype", datatypeModel);
         add(datatypeComp);
 
-        DropDownChoice<String> timeZoneDropDown = new DropDownChoice<String>("timezone-dropdown",
-                Model.of(TimeZone.getDefault().getID()),
-                Arrays.stream(TimeZone.getAvailableIDs()).toList());
+        initDropDownComponent(timeZoneModel);
         add(timeZoneDropDown);
     }
 
@@ -110,20 +111,18 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      * Initializes the DateTimePicker component with the given model.
      *
      * @param model the model for the DateTimePicker
-     * @return the initialized DateTimePicker component
      */
-    protected DateTimePicker initDateTimeComponent(IModel<Date> model) {
+    protected void initDateTimePicker(IModel<Date> model) {
         dateTimePicker = new AjaxDateTimePicker("datetime", model, DATE_PATTERN, TIME_PATTERN);
-        return dateTimePicker;
     }
 
     /**
-     * Returns the DateTimePicker component.
+     * Initializes the DropDownChoice component for time zones with the given model.
      *
-     * @return the DateTimePicker component
+     * @param model the model for the DropDownChoice
      */
-    protected DateTimePicker getDateTimeComponent() {
-        return dateTimePicker;
+    protected void initDropDownComponent(IModel<String> model) {
+        timeZoneDropDown = new DropDownChoice<>("timezone-dropdown", model, Arrays.stream(TimeZone.getAvailableIDs()).toList());
     }
 
     /**
@@ -131,7 +130,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
      */
     @Override
     public void removeFromContext() {
-        context.getComponents().remove(getDateTimeComponent());
+        context.getComponents().remove(dateTimePicker);
     }
 
     /**
@@ -146,7 +145,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (getDateTimeComponent().getModelObject() == null) {
+            if (dateTimePicker.getModelObject() == null) {
                 return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
@@ -154,7 +153,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
                 return false;
             }
             try {
-                return format.parse(vL.stringValue()).toString().equals(getDateTimeComponent().getModelObject().toString());
+                return format.parse(vL.stringValue()).toString().equals(dateTimePicker.getModelObject().toString());
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -175,7 +174,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         }
         Literal vL = (Literal) v;
         try {
-            getDateTimeComponent().setModelObject(format.parse(vL.stringValue()));
+            dateTimePicker.setModelObject(format.parse(vL.stringValue()));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
