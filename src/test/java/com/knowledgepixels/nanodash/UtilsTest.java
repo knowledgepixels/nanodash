@@ -730,4 +730,45 @@ class UtilsTest {
         assertEquals(Utils.getUriLabel(uri), el.getBody().getObject());
     }
 
+    @Test
+    void isLocalURIHandlesLocalUriPrefix() {
+        String localUri = LocalUri.PREFIX + "example";
+        assertTrue(Utils.isLocalURI(localUri));
+    }
+
+    @Test
+    void isLocalURIHandlesNonLocalUri() {
+        String nonLocalUri = "http://example.com";
+        assertFalse(Utils.isLocalURI(nonLocalUri));
+    }
+
+    @Test
+    void isLocalURIHandlesEmptyString() {
+        String emptyUri = "";
+        assertFalse(Utils.isLocalURI(emptyUri));
+    }
+
+    @Test
+    void isLocalURIHandlesBlankString() {
+        String blankUri = "   ";
+        assertFalse(Utils.isLocalURI(blankUri));
+    }
+
+    @Test
+    void isLocalURIHandlesValidLocalIRI() {
+        IRI localIri = Values.iri(LocalUri.PREFIX + "example");
+        assertTrue(Utils.isLocalURI(localIri));
+    }
+
+    @Test
+    void isLocalURIHandlesNonLocalIRI() {
+        IRI nonLocalIri = Values.iri("http://example.com");
+        assertFalse(Utils.isLocalURI(nonLocalIri));
+    }
+
+    @Test
+    void isLocalURIHandlesNullIRI() {
+        assertFalse(Utils.isLocalURI((IRI) null));
+    }
+
 }
