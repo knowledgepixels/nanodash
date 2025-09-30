@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.template;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.LiteralDateItem;
-import com.knowledgepixels.nanodash.component.LiteralDateTimeItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
@@ -18,8 +17,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.*;
 import org.nanopub.vocabulary.NTEMPLATE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -30,7 +27,6 @@ import java.util.*;
 public class TemplateContext implements Serializable {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
-    private final Logger logger = LoggerFactory.getLogger(TemplateContext.class);
 
     private final ContextType contextType;
     private final Template template;
@@ -338,12 +334,12 @@ public class TemplateContext implements Serializable {
             processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
-            String languagetag = template.getLanguageTag(iri);
+            String languageTag = template.getLanguageTag(iri);
             if (datatype != null) {
                 if (datatype.equals(XSD.DATETIME)) {
                     Date tfObject = (Date) tfObjectGeneric;
                     if (tfObject != null) {
-                        processedValue = vf.createLiteral(LiteralDateTimeItem.format.format(tfObject), datatype);
+                        processedValue = vf.createLiteral(tfObject);
                     }
                 } else if (datatype.equals(XSD.DATE)) {
                     Date tfObject = (Date) tfObjectGeneric;
@@ -356,8 +352,8 @@ public class TemplateContext implements Serializable {
                 if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                     if (datatype != null) {
                         processedValue = vf.createLiteral(tfObject, datatype);
-                    } else if (languagetag != null) {
-                        processedValue = vf.createLiteral(tfObject, languagetag);
+                    } else if (languageTag != null) {
+                        processedValue = vf.createLiteral(tfObject, languageTag);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
