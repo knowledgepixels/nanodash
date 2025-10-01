@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash;
 
 /**
  * Represents a release of the Nanodash application.
+ *
+ * @param tag_name The tag name of the release (e.g., "nanodash-1.0.0").
+ * @param name     The name of the release.
  */
 public record NanodashRelease(String tag_name, String name) {
 

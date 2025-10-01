@@ -141,7 +141,8 @@ public class StatementItem extends Panel {
      * Adds the triples of this statement item to the given NanopubCreator.
      *
      * @param npCreator the NanopubCreator to which the triples will be added
-     * @throws org.nanopub.MalformedNanopubException if the statement item is not properly set up
+     * @throws org.nanopub.MalformedNanopubException        if the statement item is not properly set up
+     * @throws org.nanopub.NanopubAlreadyFinalizedException if the NanopubCreator has already been finalized
      */
     public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         if (hasEmptyElements()) {
@@ -291,7 +292,9 @@ public class StatementItem extends Panel {
         return repetitionGroups.size() == 1 && repetitionGroups.get(0).isEmpty();
     }
 
-
+    /**
+     * Represents a group of repetitions for a statement item, containing multiple statement parts.
+     */
     public class RepetitionGroup implements Serializable {
 
         private List<StatementPartItem> statementParts;
@@ -302,6 +305,9 @@ public class StatementItem extends Panel {
 
         Label addRepetitionButton, removeRepetitionButton, optionalMark;
 
+        /**
+         * Constructor for creating a RepetitionGroup.
+         */
         public RepetitionGroup() {
             statementParts = new ArrayList<>();
             for (IRI s : statementPartIds) {
@@ -497,6 +503,7 @@ public class StatementItem extends Panel {
          * Adds the triples of this repetition group to the given NanopubCreator.
          *
          * @param npCreator the NanopubCreator to which the triples will be added
+         * @throws org.nanopub.NanopubAlreadyFinalizedException if the NanopubCreator has already been finalized
          */
         public void addTriplesTo(NanopubCreator npCreator) throws NanopubAlreadyFinalizedException {
             Template t = getTemplate();

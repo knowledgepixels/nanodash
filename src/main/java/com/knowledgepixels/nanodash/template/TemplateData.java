@@ -1,14 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
@@ -19,9 +12,10 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Singleton class that manages templates data.
@@ -135,6 +129,12 @@ public class TemplateData implements Serializable {
         return null;
     }
 
+    /**
+     * Returns a Template object for the template of the given Nanopub.
+     *
+     * @param np the Nanopub from which to extract the template
+     * @return the Template object if found, or null if not found or invalid
+     */
     public Template getTemplate(Nanopub np) {
         IRI templateId = getTemplateId(np);
         if (templateId == null) return null;
@@ -216,7 +216,12 @@ public class TemplateData implements Serializable {
         return iriSet;
     }
 
-
+    /**
+     * Returns a list of Template objects from the given ApiResponse.
+     *
+     * @param apiResponse the ApiResponse containing template entries
+     * @return a list of Template objects
+     */
     public static List<Template> getTemplateList(ApiResponse apiResponse) {
         List<Template> templates = new ArrayList<>();
         for (ApiResponseEntry e : apiResponse.getData()) {

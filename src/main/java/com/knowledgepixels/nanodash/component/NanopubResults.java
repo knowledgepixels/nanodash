@@ -106,7 +106,13 @@ public class NanopubResults extends Panel {
      * Enumeration that defines the possible view modes of the nanopub results.
      */
     public enum ViewMode {
+        /**
+         * List view mode, displaying nanopubs in a vertical list.
+         */
         LIST("list-view"),
+        /**
+         * Grid view mode, displaying nanopubs in a grid layout.
+         */
         GRID("grid-view");
 
         private final String value;

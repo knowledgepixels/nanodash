@@ -1,18 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
-
-import java.io.Serializable;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -26,13 +19,11 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
+import java.io.Serializable;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
-import jakarta.xml.bind.DatatypeConverter;
+import static com.knowledgepixels.nanodash.Utils.vf;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -58,16 +49,21 @@ public class Space implements Serializable {
 
     private static List<Space> spaceList;
     private static Map<String, List<Space>> spaceListByType;
-    private static Map<String,Space> spacesByCoreInfo = new HashMap<>();
-    private static Map<String,Space> spacesById;
-    private static Map<Space,Set<Space>> subspaceMap;
-    private static Map<Space,Set<Space>> superspaceMap;
+    private static Map<String, Space> spacesByCoreInfo = new HashMap<>();
+    private static Map<String, Space> spacesById;
+    private static Map<Space, Set<Space>> subspaceMap;
+    private static Map<Space, Set<Space>> superspaceMap;
     private static boolean loaded = false;
 
+    /**
+     * Refresh the list of spaces from the API response.
+     *
+     * @param resp The API response containing space data.
+     */
     public static synchronized void refresh(ApiResponse resp) {
         spaceList = new ArrayList<>();
         spaceListByType = new HashMap<>();
-        Map<String,Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
+        Map<String, Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
         spacesByCoreInfo = new HashMap<>();
         spacesById = new HashMap<>();
         subspaceMap = new HashMap<>();
@@ -90,31 +86,59 @@ public class Space implements Serializable {
         loaded = true;
     }
 
+    /**
+     * Check if the spaces have been loaded.
+     *
+     * @return true if loaded, false otherwise.
+     */
     public static boolean isLoaded() {
         return loaded;
     }
 
+    /**
+     * Ensure that the spaces are loaded, fetching them from the API if necessary.
+     */
     public static void ensureLoaded() {
         if (spaceList == null) {
             refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
         }
     }
 
+    /**
+     * Get the list of all spaces.
+     *
+     * @return List of spaces.
+     */
     public static List<Space> getSpaceList() {
         ensureLoaded();
         return spaceList;
     }
 
+    /**
+     * Get the list of spaces of a specific type.
+     *
+     * @param type The type of spaces to retrieve.
+     * @return List of spaces of the specified type.
+     */
     public static List<Space> getSpaceList(String type) {
         ensureLoaded();
         return spaceListByType.computeIfAbsent(type, k -> new ArrayList<>());
     }
 
+    /**
+     * Get a space by its id.
+     *
+     * @param id The id of the space.
+     * @return The corresponding Space object, or null if not found.
+     */
     public static Space get(String id) {
         ensureLoaded();
         return spacesById.get(id);
     }
 
+    /**
+     * Mark all spaces as needing a data update.
+     */
     public static void refresh() {
         ensureLoaded();
         for (Space space : spaceList) {
@@ -129,17 +153,17 @@ public class Space implements Serializable {
     private static class SpaceData implements Serializable {
 
         List<String> altIds = new ArrayList<>();
-    
+
         String description = null;
         Calendar startDate, endDate;
         IRI defaultProvenance = null;
 
         List<IRI> admins = new ArrayList<>();
-        Map<IRI,Set<SpaceMemberRole>> members = new HashMap<>();
+        Map<IRI, Set<SpaceMemberRole>> members = new HashMap<>();
         List<SpaceMemberRole> roles = new ArrayList<>();
-        Map<IRI,SpaceMemberRole> roleMap = new HashMap<>();
+        Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
-        Map<String,IRI> adminPubkeyMap = new HashMap<>();
+        Map<String, IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
         List<GrlcQuery> views = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
@@ -169,56 +193,121 @@ public class Space implements Serializable {
         setCoreData(data);
     }
 
+    /**
+     * Get the ID of the space.
+     *
+     * @return The space ID.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Get the root nanopublication ID of the space.
+     *
+     * @return The root nanopub ID.
+     */
     public String getRootNanopubId() {
         return rootNanopubId;
     }
 
+    /**
+     * Get a string combining the space ID and root nanopub ID for core identification.
+     *
+     * @return The core info string.
+     */
     public String getCoreInfoString() {
         return id + " " + rootNanopubId;
     }
 
+    /**
+     * Get the root nanopublication of the space.
+     *
+     * @return The root Nanopub object.
+     */
     public Nanopub getRootNanopub() {
         return rootNanopub;
     }
 
+    /**
+     * Get the label of the space.
+     *
+     * @return The space label.
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * Get the type of the space.
+     *
+     * @return The space type.
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Get the start date of the space.
+     *
+     * @return The start date as a Calendar object, or null if not set.
+     */
     public Calendar getStartDate() {
         return data.startDate;
     }
 
+    /**
+     * Get the end date of the space.
+     *
+     * @return The end date as a Calendar object, or null if not set.
+     */
     public Calendar getEndDate() {
         return data.endDate;
     }
 
+    /**
+     * Get a simplified label for the type of space by removing any namespace prefix.
+     *
+     * @return The simplified type label.
+     */
     public String getTypeLabel() {
         return type.replaceFirst("^.*/", "");
     }
 
+    /**
+     * Get the description of the space.
+     *
+     * @return The description string.
+     */
     public String getDescription() {
         return data.description;
     }
 
+    /**
+     * Check if the space data has been initialized.
+     *
+     * @return true if initialized, false otherwise.
+     */
     public boolean isDataInitialized() {
         triggerDataUpdate();
         return dataInitialized;
     }
 
+    /**
+     * Get the list of admins in this space.
+     *
+     * @return List of admin IRIs.
+     */
     public List<IRI> getAdmins() {
         triggerDataUpdate();
         return data.admins;
     }
 
+    /**
+     * Get the list of members in this space.
+     *
+     * @return List of member IRIs.
+     */
     public List<IRI> getMembers() {
         triggerDataUpdate();
         List<IRI> members = new ArrayList<IRI>(data.members.keySet());
@@ -226,46 +315,98 @@ public class Space implements Serializable {
         return members;
     }
 
+    /**
+     * Get the roles of a specific member in this space.
+     *
+     * @param memberId The IRI of the member.
+     * @return Set of roles assigned to the member, or null if the member is not part of this space.
+     */
     public Set<SpaceMemberRole> getMemberRoles(IRI memberId) {
         return data.members.get(memberId);
     }
 
+    /**
+     * Check if a user is a member of this space.
+     *
+     * @param userId The IRI of the user to check.
+     * @return true if the user is a member, false otherwise.
+     */
     public boolean isMember(IRI userId) {
         triggerDataUpdate();
         return data.members.containsKey(userId);
     }
 
+    /**
+     * Get the list of pinned resources in this space.
+     *
+     * @return List of pinned resources.
+     */
     public List<Serializable> getPinnedResources() {
         triggerDataUpdate();
         return data.pinnedResources;
     }
 
+    /**
+     * Get the set of tags used for grouping pinned resources.
+     *
+     * @return Set of tags.
+     */
     public Set<String> getPinGroupTags() {
         triggerDataUpdate();
         return data.pinGroupTags;
     }
 
+    /**
+     * Get a map of pinned resources grouped by their tags.
+     *
+     * @return Map where keys are tags and values are lists of pinned resources (Templates or GrlcQueries).
+     */
     public Map<String, List<Serializable>> getPinnedResourceMap() {
         triggerDataUpdate();
         return data.pinnedResourceMap;
     }
 
+    /**
+     * Get the list of views (GrlcQueries) associated with this space.
+     *
+     * @return List of GrlcQuery views.
+     */
     public List<GrlcQuery> getViews() {
         return data.views;
     }
 
+    /**
+     * Get the default provenance IRI for this space.
+     *
+     * @return The default provenance IRI, or null if not set.
+     */
     public IRI getDefaultProvenance() {
         return data.defaultProvenance;
     }
 
+    /**
+     * Get the roles defined in this space.
+     *
+     * @return List of roles.
+     */
     public List<SpaceMemberRole> getRoles() {
         return data.roles;
     }
 
+    /**
+     * Get the super ID of the space.
+     *
+     * @return Always returns null. Use getIdSuperspace() instead.
+     */
     public String getSuperId() {
         return null;
     }
 
+    /**
+     * Get the superspace ID.
+     *
+     * @return The superspace, or null if not applicable.
+     */
     public Space getIdSuperspace() {
         if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
         String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
@@ -275,6 +416,11 @@ public class Space implements Serializable {
         return null;
     }
 
+    /**
+     * Get superspaces of this space.
+     *
+     * @return List of superspaces.
+     */
     public List<Space> getSuperspaces() {
         if (superspaceMap.containsKey(this)) {
             List<Space> superspaces = new ArrayList<>(superspaceMap.get(this));
@@ -284,6 +430,11 @@ public class Space implements Serializable {
         return new ArrayList<>();
     }
 
+    /**
+     * Get subspaces of this space.
+     *
+     * @return List of subspaces.
+     */
     public List<Space> getSubspaces() {
         if (subspaceMap.containsKey(this)) {
             List<Space> subspaces = new ArrayList<>(subspaceMap.get(this));
@@ -293,6 +444,12 @@ public class Space implements Serializable {
         return new ArrayList<>();
     }
 
+    /**
+     * Get subspaces of a specific type.
+     *
+     * @param type The type of subspaces to retrieve.
+     * @return List of subspaces of the specified type.
+     */
     public List<Space> getSubspaces(String type) {
         List<Space> l = new ArrayList<>();
         for (Space s : getSubspaces()) {
@@ -301,6 +458,11 @@ public class Space implements Serializable {
         return l;
     }
 
+    /**
+     * Get alternative IDs for the space.
+     *
+     * @return List of alternative IDs.
+     */
     public List<String> getAltIDs() {
         return data.altIds;
     }
@@ -311,7 +473,7 @@ public class Space implements Serializable {
                 try {
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
-    
+
                     newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
                     newData.roleMap.put(SpaceMemberRole.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
@@ -320,7 +482,7 @@ public class Space implements Serializable {
                     for (String id : newData.altIds) {
                         spaceIds.put("space", id);
                     }
-    
+
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
                         String pubkeyhash = r.get("pubkey");
                         if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
@@ -330,27 +492,27 @@ public class Space implements Serializable {
                         }
                     }
                     newData.admins.sort(User.getUserData().userComparator);
-    
+
                     Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
-    
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef( "get-space-member-roles", spaceIds)).getData()) {
+
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-member-roles", spaceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
                         newData.roles.add(role);
-    
+
                         // TODO Handle cases of overlapping properties:
                         for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);
                         for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
-        
+
                         role.addRoleParams(getSpaceMemberParams);
                     }
-    
+
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                         newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
                     }
-    
+
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         Template t = TemplateData.get().getTemplate(r.get("template"));

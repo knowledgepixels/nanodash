@@ -46,6 +46,11 @@ public class UserPage extends NanodashPage {
     private IRI userIri;
     private String pubkeyHashes = "";
 
+    /**
+     * Constructor for UserPage.
+     *
+     * @param parameters Page parameters, must include "id" with the user IRI.
+     */
     public UserPage(final PageParameters parameters) {
         super(parameters);
 

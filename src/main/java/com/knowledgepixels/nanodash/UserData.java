@@ -1,16 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -29,6 +18,10 @@ import org.nanopub.extra.setting.NanopubSetting;
 import org.nanopub.vocabulary.NPX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * UserData class manages user-related data.
@@ -322,6 +315,12 @@ public class UserData implements Serializable {
         return null;
     }
 
+    /**
+     * Retrieves the IRI of the owner of a nanopublication's signature.
+     *
+     * @param np the nanopublication
+     * @return the IRI of the signature owner if found, or null if not found or if an error occurs
+     */
     public IRI getSignatureOwnerIri(Nanopub np) {
         try {
             if (np != null) {
@@ -424,6 +423,9 @@ public class UserData implements Serializable {
         return null;
     }
 
+    /**
+     * Comparator for sorting users by their display names in a case-insensitive manner.
+     */
     public final transient Comparator<IRI> userComparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
 
     /**

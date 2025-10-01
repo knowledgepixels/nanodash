@@ -1,18 +1,13 @@
 package com.knowledgepixels.nanodash;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryAccess;
-import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Utility class for accessing and managing API queries.
@@ -90,8 +85,7 @@ public class QueryApiAccess {
      * Forces the retrieval of an API response for a given query name and parameters.
      * Retries until a valid response is received.
      *
-     * @param queryName The name of the query.
-     * @param params    The parameters for the query.
+     * @param queryRef The query reference
      * @return The API response.
      */
     public static ApiResponse forcedGet(QueryRef queryRef) {
@@ -118,7 +112,9 @@ public class QueryApiAccess {
      *
      * @param queryRef The query reference
      * @return The API response.
-     * @throws org.nanopub.extra.services.FailedApiCallException If the API call fails.
+     * @throws org.nanopub.extra.services.FailedApiCallException         If the API call fails.
+     * @throws org.nanopub.extra.services.APINotReachableException       If the API is not reachable.
+     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException If there are not enough API instances.
      */
     public static ApiResponse get(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         if (queryRef.getName().matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
