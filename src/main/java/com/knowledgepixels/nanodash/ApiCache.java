@@ -1,20 +1,15 @@
 package com.knowledgepixels.nanodash;
 
+import org.nanopub.extra.services.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryRef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for caching API responses and maps to reduce redundant API calls.
@@ -43,9 +38,16 @@ public class ApiCache {
         return System.currentTimeMillis() - refreshStart.get(cacheId) < 60 * 1000;
     }
 
+    /**
+     * Checks if a cache refresh is currently running for the given QueryRef.
+     *
+     * @param queryRef The query reference
+     * @return True if a refresh is running, false otherwise.
+     */
     public static boolean isRunning(QueryRef queryRef) {
         return isRunning(queryRef.getAsUrlString());
     }
+
     /**
      * Updates the cached API response for a specific query reference.
      *

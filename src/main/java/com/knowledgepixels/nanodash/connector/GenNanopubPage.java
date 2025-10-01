@@ -1,5 +1,17 @@
 package com.knowledgepixels.nanodash.connector;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.ReactionList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -11,32 +23,9 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.action.NanopubAction;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.NanopubItem;
-import com.knowledgepixels.nanodash.component.ReactionList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-
-import net.trustyuri.TrustyUriUtils;
 
 /**
  * Page for creating a new nanopublication.
@@ -54,7 +43,9 @@ public class GenNanopubPage extends ConnectorPage {
      * Constructor for the GenNanopubPage.
      *
      * @param parameters Page parameters containing the necessary information to create the nanopublication.
-     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails while fetching data for the nanopublication.
+     * @throws org.nanopub.extra.services.FailedApiCallException         if the API call fails while fetching data for the nanopublication.
+     * @throws org.nanopub.extra.services.APINotReachableException       if the API is not reachable.
+     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException if there are not enough API instances available.
      */
     public GenNanopubPage(final PageParameters parameters) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         super(parameters);

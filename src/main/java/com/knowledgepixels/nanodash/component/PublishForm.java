@@ -1,13 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -59,13 +55,8 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.template.ValueFiller;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 /**
  * Form for publishing a nanopublication.
@@ -87,7 +78,20 @@ public class PublishForm extends Panel {
     /**
      * Fill modes for the nanopublication to be created.
      */
-    public enum FillMode {USE, SUPERSEDE, DERIVE}
+    public enum FillMode {
+        /**
+         * Use fill mode
+         */
+        USE,
+        /**
+         * Supersede fill mode
+         */
+        SUPERSEDE,
+        /**
+         * Derive fill mode
+         */
+        DERIVE
+    }
 
     protected Form<?> form;
     protected FeedbackPanel feedbackPanel;

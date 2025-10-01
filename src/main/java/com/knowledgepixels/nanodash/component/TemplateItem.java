@@ -37,6 +37,13 @@ public class TemplateItem extends Panel {
         this(id, entry, null);
     }
 
+    /**
+     * A single template item in a list, showing the template name, user, and timestamp.
+     *
+     * @param id               the wicket id of this component
+     * @param entry            the API response entry to display
+     * @param additionalParams additional parameters to add to the link
+     */
     public TemplateItem(String id, ApiResponseEntry entry, PageParameters additionalParams) {
         super(id);
 
@@ -60,7 +67,12 @@ public class TemplateItem extends Panel {
         add(new Label("timestamp", entry.get("date").substring(0, 10)));
     }
 
-
+    /**
+     * A single template item in a list, showing the template name, user, and timestamp.
+     *
+     * @param id       the wicket id of this component
+     * @param template the template to display
+     */
     public TemplateItem(String id, Template template) {
         this(id, template, null);
     }

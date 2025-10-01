@@ -1,8 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.QueryPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -14,15 +15,23 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.QueryPage;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
+/**
+ * A panel representing a single query item in a list.
+ * Displays the query label as a link, the user who created it, and the creation timestamp.
+ */
 public class QueryItem extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryItem.class);
 
+    /**
+     * Constructor.
+     *
+     * @param id    the Wicket id for this panel
+     * @param query the GrlcQuery object containing query details
+     */
     public QueryItem(String id, GrlcQuery query) {
         super(id);
 

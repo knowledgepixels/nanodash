@@ -51,14 +51,30 @@ public class Utils {
     private Utils() {
     }  // no instances allowed
 
+    /**
+     * ValueFactory instance for creating RDF model objects.
+     */
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     // TODO Merge with IriItem.getShortNameFromURI
+
+    /**
+     * Generates a short name from a given IRI object.
+     *
+     * @param uri the IRI object
+     * @return a short representation of the URI
+     */
     public static String getShortNameFromURI(IRI uri) {
         return getShortNameFromURI(uri.stringValue());
     }
 
+    /**
+     * Generates a short name from a given URI string.
+     *
+     * @param u the URI string
+     * @return a short representation of the URI
+     */
     public static String getShortNameFromURI(String u) {
         u = u.replaceFirst("\\?.*$", "");
         u = u.replaceFirst("[/#]$", "");
@@ -69,12 +85,24 @@ public class Utils {
         return u;
     }
 
+    /**
+     * Generates a short nanopublication ID from a given nanopublication ID or URI.
+     *
+     * @param npId the nanopublication ID or URI
+     * @return the first 10 characters of the artifact code
+     */
     public static String getShortNanopubId(Object npId) {
         return TrustyUriUtils.getArtifactCode(npId.toString()).substring(0, 10);
     }
 
     private static Map<String, Nanopub> nanopubs = new HashMap<>();
 
+    /**
+     * Retrieves a Nanopub object based on the given URI or artifact code.
+     *
+     * @param uriOrArtifactCode the URI or artifact code of the nanopublication
+     * @return the Nanopub object, or null if not found
+     */
     public static Nanopub getNanopub(String uriOrArtifactCode) {
         String artifactCode = getArtifactCode(uriOrArtifactCode);
         if (!nanopubs.containsKey(artifactCode)) {
@@ -89,18 +117,43 @@ public class Utils {
         return nanopubs.get(artifactCode);
     }
 
+    /**
+     * Extracts the artifact code from a given URI or artifact code string.
+     *
+     * @param uriOrArtifactCode the URI or artifact code string
+     * @return the extracted artifact code
+     */
     public static String getArtifactCode(String uriOrArtifactCode) {
         return uriOrArtifactCode.replaceFirst("^.*(RA[0-9a-zA-Z\\-_]{43})(\\?.*)?$", "$1");
     }
 
+    /**
+     * URL-encodes the string representation of the given object using UTF-8 encoding.
+     *
+     * @param o the object to be URL-encoded
+     * @return the URL-encoded string
+     */
     public static String urlEncode(Object o) {
         return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
     }
 
+    /**
+     * URL-decodes the string representation of the given object using UTF-8 encoding.
+     *
+     * @param o the object to be URL-decoded
+     * @return the URL-decoded string
+     */
     public static String urlDecode(Object o) {
         return URLDecoder.decode((o == null ? "" : o.toString()), Charsets.UTF_8);
     }
 
+    /**
+     * Generates a URL with the given base and appends the provided PageParameters as query parameters.
+     *
+     * @param base       the base URL
+     * @param parameters the PageParameters to append
+     * @return the complete URL with parameters
+     */
     public static String getUrlWithParameters(String base, PageParameters parameters) {
         try {
             URIBuilder u = new URIBuilder(base);
@@ -130,6 +183,13 @@ public class Utils {
         }
     }
 
+    /**
+     * Generates a short label for a public key or public key hash, including its status (local or approved).
+     *
+     * @param pubkeyOrPubkeyhash the public key (64 characters) or public key hash (40 characters)
+     * @param user               the IRI of the user associated with the public key
+     * @return a short label indicating the public key and its status
+     */
     public static String getShortPubkeyhashLabel(String pubkeyOrPubkeyhash, IRI user) {
         String s = getShortPubkeyName(pubkeyOrPubkeyhash);
         NanodashSession session = NanodashSession.get();
@@ -588,6 +648,9 @@ public class Utils {
      */
     public static final String TYPE_HTML = "text/html";
 
+    /**
+     * Comma-separated list of supported MIME types for nanopublications.
+     */
     public static final String SUPPORTED_TYPES =
             TYPE_TRIG + "," +
             TYPE_JELLY + "," +

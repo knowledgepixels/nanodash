@@ -445,6 +445,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         }
     }
 
+    /**
+     * Validator class for validating the input.
+     */
     protected class Validator extends InvalidityHighlighting implements IValidator<String> {
 
         /**

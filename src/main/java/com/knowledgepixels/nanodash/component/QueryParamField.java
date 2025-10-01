@@ -1,7 +1,5 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.net.URISyntaxException;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -12,6 +10,8 @@ import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
+
+import java.net.URISyntaxException;
 
 /**
  * A field for entering query parameters, with validation for required fields and IRIs.
@@ -111,6 +111,11 @@ public class QueryParamField extends Panel {
         return paramId.endsWith("_iri");
     }
 
+    /**
+     * Checks if the parameter has been set (non-blank value).
+     *
+     * @return true if the parameter has been set, false otherwise
+     */
     public boolean isSet() {
         return isSet(formComponent.getModelObject());
     }
@@ -156,10 +161,22 @@ public class QueryParamField extends Panel {
 
     }
 
+    /**
+     * Checks if a string is set (non-null and non-blank).
+     *
+     * @param s the string to check
+     * @return true if the string is set, false otherwise
+     */
     public static boolean isSet(String s) {
         return s != null && !s.isBlank();
     }
 
+    /**
+     * Checks if a parameter ID indicates a multi parameter (ends with "_multi" or "_multi_iri").
+     *
+     * @param p the parameter ID to check
+     * @return true if the parameter ID indicates a multi parameter, false otherwise
+     */
     public static boolean isMultiPlaceholder(String p) {
         return p.endsWith("_multi") || p.endsWith("_multi_iri");
     }
@@ -168,13 +185,20 @@ public class QueryParamField extends Panel {
         return p.startsWith("__");
     }
 
+    /**
+     * Expands the value string into an array of values based on whether the parameter is multi or not.
+     *
+     * @param s       the value string
+     * @param paramId the parameter ID
+     * @return an array of values
+     */
     public static String[] expandValues(String s, String paramId) {
         if (!isSet(s)) {
-            return new String[] {};
+            return new String[]{};
         } else if (isMultiPlaceholder(paramId)) {
             return s.replaceFirst("\r?\n$", "").split("\r?\n");
         } else {
-            return new String[] { s };
+            return new String[]{s};
         }
     }
 

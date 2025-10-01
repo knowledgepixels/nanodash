@@ -13,11 +13,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubWithNs;
+import org.nanopub.*;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
@@ -378,7 +374,8 @@ public class TemplateContext implements Serializable {
      * Propagates the statements from this context to a NanopubCreator.
      *
      * @param npCreator the NanopubCreator to which the statements will be added
-     * @throws org.nanopub.MalformedNanopubException if there is an error in the nanopub structure
+     * @throws org.nanopub.MalformedNanopubException        if there is an error in the nanopub structure
+     * @throws org.nanopub.NanopubAlreadyFinalizedException if the nanopub has already been finalized
      */
     public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         if (template.getNanopub() instanceof NanopubWithNs) {
