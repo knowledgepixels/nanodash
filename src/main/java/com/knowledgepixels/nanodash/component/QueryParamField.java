@@ -99,7 +99,7 @@ public class QueryParamField extends Panel {
      * @return true if the parameter is optional, false otherwise
      */
     public boolean isOptional() {
-        return paramId.startsWith("__");
+        return isOptional(paramId);
     }
 
     /**
@@ -162,6 +162,10 @@ public class QueryParamField extends Panel {
 
     public static boolean isMultiPlaceholder(String p) {
         return p.endsWith("_multi") || p.endsWith("_multi_iri");
+    }
+
+    public static boolean isOptional(String p) {
+        return p.startsWith("__");
     }
 
     public static String[] expandValues(String s, String paramId) {
