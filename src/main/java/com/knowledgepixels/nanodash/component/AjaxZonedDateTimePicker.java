@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDateTimePicker;
 import org.wicketstuff.kendo.ui.form.datetime.DateTimePicker;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -24,7 +26,7 @@ public class AjaxZonedDateTimePicker extends DateTimePicker {
     private final IModel<ZonedDateTime> zonedDateTimeModel;
     private IModel<ZoneId> zoneIdModel = Model.of(ZoneId.systemDefault());
     private final DropDownChoice<ZoneId> zoneDropDown;
-    private DateTimePicker dateTimePicker;
+    private final DateTimePicker dateTimePicker;
 
     public AjaxZonedDateTimePicker(String id, IModel<ZonedDateTime> model, String datePattern, String timePattern) {
         super(id);
@@ -57,7 +59,13 @@ public class AjaxZonedDateTimePicker extends DateTimePicker {
                 logger.info("Selected time zone: {}", selectedZone);
                 if (zonedDateTimeModel.getObject() != null) {
                     ZonedDateTime currentZonedDateTime = zonedDateTimeModel.getObject().withZoneSameLocal(selectedZone);
-                    dateTimePicker.setModelObject(Date.from(currentZonedDateTime.toLocalDateTime().atZone(zoneIdModel.getObject()).toInstant()));
+                    Date newDate = null;
+                    try {
+                        newDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").parse(currentZonedDateTime.toLocalDateTime().toString());
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    dateTimePicker.setModelObject(newDate);
                     zonedDateTimeModel.setObject(currentZonedDateTime);
                     logger.info("Updating existing datetime with selected timezone: {}", currentZonedDateTime);
                 }
