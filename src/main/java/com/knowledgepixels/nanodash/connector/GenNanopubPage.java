@@ -149,7 +149,7 @@ public class GenNanopubPage extends ConnectorPage {
                 add(new Label("template-description", description).setEscapeModelStrings(false));
             }
 
-            QueryRef queryRef = new QueryRef(ConnectorConfig.getQueryId("get-reactions"), "pub", uri);
+            QueryRef queryRef = new QueryRef("get-reactions", "pub", uri);
             ApiResponse resp = ApiCache.retrieveResponse(queryRef);
             if (resp != null) {
                 add(new ReactionList("reactions", resp, np));

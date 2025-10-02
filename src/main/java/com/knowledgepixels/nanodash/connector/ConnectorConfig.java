@@ -155,31 +155,4 @@ public abstract class ConnectorConfig implements Serializable {
         return "";
     }
 
-    private static Map<String, String> queryIds = new HashMap<>();
-
-    static {
-        load("RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj");
-        load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");
-        load("RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds");
-        load("RAFNTW3jhWKnNvhMSOfYvG53ZAurxrFv_-vnIJkZyfAuo/get-latest-ds-candidates");
-        load("RA0FiH8gukovvEHPBMn72zUDdMQylQmUwtIGNLYBZXGfk/get-ds-reactions");
-        load("RAAXmnJdXHO86GqJs8VTdqapUWqCrHKRgRT2b4NfjAfgk/get-latest-accepted-rio");
-        load("RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates");
-        load("RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions");
-    }
-
-    private static void load(String queryId) {
-        queryIds.put(queryId.substring(46), queryId);
-    }
-
-    /**
-     * Returns the query ID for a given query name.
-     *
-     * @param queryName the name of the query
-     * @return the query ID if it exists, otherwise null
-     */
-    public static String getQueryId(String queryName) {
-        return queryIds.get(queryName);
-    }
-
 }
