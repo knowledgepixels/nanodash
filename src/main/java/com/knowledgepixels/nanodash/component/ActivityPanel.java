@@ -119,17 +119,19 @@ public class ActivityPanel extends Panel {
             } else {
                 String v = e.getValue(title);
                 cellItem.add(new Label(componentId, v));
-                try {
-                    int i = Integer.parseInt(v);
-                    if (i >= 100) {
-                        cellItem.add(new AttributeAppender("class", " high"));
-                    } else if (i >= 10) {
-                        cellItem.add(new AttributeAppender("class", " med"));
-                    } else if (i >= 1) {
-                        cellItem.add(new AttributeAppender("class", " low"));
+                if (!v.isBlank()) {
+                    try {
+                        int i = Integer.parseInt(v);
+                        if (i >= 100) {
+                            cellItem.add(new AttributeAppender("class", " high"));
+                        } else if (i >= 10) {
+                            cellItem.add(new AttributeAppender("class", " med"));
+                        } else if (i >= 1) {
+                            cellItem.add(new AttributeAppender("class", " low"));
+                        }
+                    } catch (NumberFormatException ex) {
+                        logger.error("Error in parsing integer from value: {}", v, ex);
                     }
-                } catch (NumberFormatException ex) {
-                    logger.error("Error in parsing integer from value: {}", v, ex);
                 }
             }
         }

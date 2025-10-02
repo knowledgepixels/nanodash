@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash.page;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.ActivityPanel;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.NanopubResults;
@@ -53,6 +55,7 @@ public class UserPage extends NanodashPage {
      */
     public UserPage(final PageParameters parameters) {
         super(parameters);
+        setOutputMarkupId(true);
 
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
@@ -175,6 +178,36 @@ public class UserPage extends NanodashPage {
                 },
                 (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")")
         ));
+
+        if (pubkeyHashes.isEmpty()) {
+            add(new Label("activity", "<span class=\"negative\">Activity cannot be shown for this user due to missing user introduction.</span>").setEscapeModelStrings(false));
+        } else {
+            final QueryRef activityQueryRef = new QueryRef("get-monthly-type-overview-by-pubkeys");
+            for (String pk : pubkeyHashes.split(" ")) {
+                activityQueryRef.getParams().put("pubkey", pk);
+            }
+            ApiResponse activityQueryResponse = ApiCache.retrieveResponse(activityQueryRef);
+            if (activityQueryResponse != null) {
+                if (activityQueryResponse.getData().isEmpty()) {
+                    add(new Label("activity", "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false));
+                } else {
+                    add(new ActivityPanel("activity", activityQueryResponse));
+                }
+            } else {
+                add(new ApiResultComponent("activity", activityQueryRef) {
+    
+                    @Override
+                    public Component getApiResultComponent(String markupId, ApiResponse response) {
+                        if (response.getData().isEmpty()) {
+                            return new Label(markupId, "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false);
+                        } else {
+                            return new ActivityPanel(markupId, response);
+                        }
+                    }
+                });
+    
+            }
+        }
     }
 
     private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {

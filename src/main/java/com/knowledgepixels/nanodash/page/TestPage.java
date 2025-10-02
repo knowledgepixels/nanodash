@@ -40,7 +40,7 @@ public class TestPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
 
-        final QueryRef queryRef = new QueryRef("get-type-overview-last-12-months", "creator", "https://orcid.org/0000-0002-1267-0234");
+        final QueryRef queryRef = new QueryRef("get-monthly-type-overview-by-pubkeys", "pubkey", "1162349fdeaf431e71ab55898cb2a425b971d466150c2aa5b3c1beb498045a37");
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
             add(new ActivityPanel("activity", response));
