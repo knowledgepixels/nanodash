@@ -42,7 +42,7 @@ public class SpaceListPage extends NanodashPage {
         addSpacePanel("Organization", true);
         addSpacePanel("Taskforce", false);
         addSpacePanel("Division", true);
-        addSpacePanel("Detail", false);
+        addSpacePanel("Taskunit", false);
         addSpacePanel("Group", true);
         addSpacePanel("Project", false);
         addSpacePanel("Program", true);

@@ -170,7 +170,7 @@ public class SpacePage extends NanodashPage {
         addSubspacePanel("Organization");
         addSubspacePanel("Taskforce");
         addSubspacePanel("Division");
-        addSubspacePanel("Detail");
+        addSubspacePanel("Taskunit");
         addSubspacePanel("Group");
         addSubspacePanel("Project");
         addSubspacePanel("Program");
