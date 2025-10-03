@@ -103,7 +103,7 @@ public class ProjectPage extends NanodashPage {
                         "templates",
                         item.getModelObject().getLeft(),
                         item.getModelObject().getRight(),
-                        (template) -> new TemplateItem("item", template, params)
+                        (template) -> new TemplateItem("item", template, params, false)
                     ));
             }
 
@@ -112,7 +112,7 @@ public class ProjectPage extends NanodashPage {
                 "templates",
                 "Templates",
                 templates,
-                (template) -> new TemplateItem("item", template, params)
+                (template) -> new TemplateItem("item", template, params, false)
             ));
 
         add(new ItemListPanel<IRI>(

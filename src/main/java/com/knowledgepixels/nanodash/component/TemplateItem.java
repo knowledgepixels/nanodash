@@ -5,6 +5,8 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import net.trustyuri.TrustyUriUtils;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -34,7 +36,7 @@ public class TemplateItem extends Panel {
      * @param entry the API response entry to display
      */
     public TemplateItem(String id, ApiResponseEntry entry) {
-        this(id, entry, null);
+        this(id, entry, null, true);
     }
 
     /**
@@ -44,7 +46,7 @@ public class TemplateItem extends Panel {
      * @param entry            the API response entry to display
      * @param additionalParams additional parameters to add to the link
      */
-    public TemplateItem(String id, ApiResponseEntry entry, PageParameters additionalParams) {
+    public TemplateItem(String id, ApiResponseEntry entry, PageParameters additionalParams, boolean extended) {
         super(id);
 
         PageParameters params = new PageParameters();
@@ -56,15 +58,21 @@ public class TemplateItem extends Panel {
         if (label == null || label.isBlank()) label = TrustyUriUtils.getArtifactCode(entry.get("np")).substring(0, 10);
         l.add(new Label("name", label));
         add(l);
-        IRI userIri = null;
-        try {
-            userIri = Utils.vf.createIRI(entry.get("creator"));
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            logger.error("Error creating IRI from creator string: {}", entry.get("creator"), ex);
+        WebMarkupContainer statusPart = new WebMarkupContainer("status");
+        if (extended) {
+            IRI userIri = null;
+            try {
+                userIri = Utils.vf.createIRI(entry.get("creator"));
+            } catch (IllegalArgumentException | NullPointerException ex) {
+                logger.error("Error creating IRI from creator string: {}", entry.get("creator"), ex);
+            }
+            String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
+            statusPart.add(new Label("user", userString));
+            statusPart.add(new Label("timestamp", entry.get("date").substring(0, 10)));
+        } else {
+            statusPart.setVisible(false);
         }
-        String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
-        add(new Label("user", userString));
-        add(new Label("timestamp", entry.get("date").substring(0, 10)));
+        add(statusPart);
     }
 
     /**
@@ -74,7 +82,7 @@ public class TemplateItem extends Panel {
      * @param template the template to display
      */
     public TemplateItem(String id, Template template) {
-        this(id, template, null);
+        this(id, template, null, true);
     }
 
     /**
@@ -84,7 +92,7 @@ public class TemplateItem extends Panel {
      * @param template         the template to display
      * @param additionalParams additional parameters to add to the link
      */
-    public TemplateItem(String id, Template template, PageParameters additionalParams) {
+    public TemplateItem(String id, Template template, PageParameters additionalParams, boolean extended) {
         super(id);
 
         PageParameters params = new PageParameters();
@@ -94,24 +102,30 @@ public class TemplateItem extends Panel {
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
         l.add(new Label("name", template.getLabel()));
         add(l);
-        String userString = "somebody";
-        try {
-            NanopubSignatureElement se = SignatureUtils.getSignatureElement(template.getNanopub());
-            if (se != null) {
-                IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-                String pubkeyHash = Utils.createSha256HexHash(se.getPublicKeyString());
-                userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyHash);
+        WebMarkupContainer statusPart = new WebMarkupContainer("status");
+        if (extended) {
+            String userString = "somebody";
+            try {
+                NanopubSignatureElement se = SignatureUtils.getSignatureElement(template.getNanopub());
+                if (se != null) {
+                    IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
+                    String pubkeyHash = Utils.createSha256HexHash(se.getPublicKeyString());
+                    userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyHash);
+                }
+            } catch (Exception ex) {
+                logger.error("Error getting signature element for template {}", template.getId(), ex);
             }
-        } catch (Exception ex) {
-            logger.error("Error getting signature element for template {}", template.getId(), ex);
+            statusPart.add(new Label("user", userString));
+            String timeString = "unknown date";
+            Calendar c = SimpleTimestampPattern.getCreationTime(template.getNanopub());
+            if (c != null) {
+                timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
+            }
+            statusPart.add(new Label("timestamp", timeString));
+        } else {
+            statusPart.setVisible(false);
         }
-        add(new Label("user", userString));
-        String timeString = "unknown date";
-        Calendar c = SimpleTimestampPattern.getCreationTime(template.getNanopub());
-        if (c != null) {
-            timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
-        }
-        add(new Label("timestamp", timeString));
+        add(statusPart);
     }
 
 }

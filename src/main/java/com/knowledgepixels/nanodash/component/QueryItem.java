@@ -4,6 +4,8 @@ import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.QueryPage;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -32,7 +34,7 @@ public class QueryItem extends Panel {
      * @param id    the Wicket id for this panel
      * @param query the GrlcQuery object containing query details
      */
-    public QueryItem(String id, GrlcQuery query) {
+    public QueryItem(String id, GrlcQuery query, boolean extended) {
         super(id);
 
         PageParameters params = new PageParameters();
@@ -41,24 +43,30 @@ public class QueryItem extends Panel {
         l.add(new Label("linktext", query.getLabel()));
         add(l);
 
-        String userString = "somebody";
-        try {
-            NanopubSignatureElement se = SignatureUtils.getSignatureElement(query.getNanopub());
-            if (se != null) {
-                IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
-                String pubkeyhash = Utils.createSha256HexHash(se.getPublicKeyString());
-                userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyhash);
+        WebMarkupContainer statusPart = new WebMarkupContainer("status");
+        if (extended) {
+            String userString = "somebody";
+            try {
+                NanopubSignatureElement se = SignatureUtils.getSignatureElement(query.getNanopub());
+                if (se != null) {
+                    IRI signer = (se.getSigners().isEmpty() ? null : se.getSigners().iterator().next());
+                    String pubkeyhash = Utils.createSha256HexHash(se.getPublicKeyString());
+                    userString = User.getShortDisplayNameForPubkeyhash(signer, pubkeyhash);
+                }
+            } catch (Exception ex) {
+                logger.error("Error retrieving signature info: {}", ex.getMessage());
             }
-        } catch (Exception ex) {
-            logger.error("Error retrieving signature info: {}", ex.getMessage());
+            statusPart.add(new Label("user", userString));
+            String timeString = "unknown date";
+            Calendar c = SimpleTimestampPattern.getCreationTime(query.getNanopub());
+            if (c != null) {
+                timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
+            }
+            statusPart.add(new Label("timestamp", timeString));
+        } else {
+            statusPart.setVisible(false);
         }
-        add(new Label("user", userString));
-        String timeString = "unknown date";
-        Calendar c = SimpleTimestampPattern.getCreationTime(query.getNanopub());
-        if (c != null) {
-            timeString = (new SimpleDateFormat("yyyy-MM-dd")).format(c.getTime());
-        }
-        add(new Label("timestamp", timeString));
+        add(statusPart);
     }
 
 }

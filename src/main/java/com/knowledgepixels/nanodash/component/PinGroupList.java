@@ -53,9 +53,9 @@ public class PinGroupList extends Panel {
                         (o) -> {
                             if (o instanceof Template t) {
                                 t.addToLabelMap(space.getId(), space.getLabel());
-                                return new TemplateItem("item", t, params);
+                                return new TemplateItem("item", t, params, false);
                             }
-                            if (o instanceof GrlcQuery q) return new QueryItem("item", q);
+                            if (o instanceof GrlcQuery q) return new QueryItem("item", q, false);
                             return null;
                         }));
             }
