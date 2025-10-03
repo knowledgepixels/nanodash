@@ -39,10 +39,10 @@ public class ValueItem extends Panel implements ContextComponent {
                 component = new SequenceElementItem("value", iri, rg.getRepeatIndex() + 1, rg.getContext());
             } else if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
                 // This is a special placeholder that is always read-only
-                component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+                component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (rg.getContext().isReadOnly()) {
                 if (template.isPlaceholder(iri)) {
-                    component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+                    component = new ReadonlyItem("value", id, iri, statementPartId, rg);
                 } else {
                     component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
                 }
@@ -53,7 +53,7 @@ public class ValueItem extends Panel implements ContextComponent {
             } else if (template.isGuidedChoicePlaceholder(iri)) {
                 component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isIntroducedResource(iri) && rg.getContext().getFillMode() == FillMode.SUPERSEDE) {
-                component = new ReadonlyItem("value", id, iri, id.equals("obj"), statementPartId, rg);
+                component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
                 component = new IriTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else if (template.isLongLiteralPlaceholder(iri)) {

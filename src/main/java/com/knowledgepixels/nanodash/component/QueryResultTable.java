@@ -115,7 +115,7 @@ public class QueryResultTable extends Panel {
                     cellItem.add(new ComponentSequence(componentId, ", ", links));
                 } else if (value.matches("https?://.+")) {
                     String label = rowModel.getObject().get(key + "_label");
-                    cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
+                    cellItem.add(new NanodashLink(componentId, value, null, null, label));
                 } else {
                     if (key.startsWith("pubkey")) {
                         cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));

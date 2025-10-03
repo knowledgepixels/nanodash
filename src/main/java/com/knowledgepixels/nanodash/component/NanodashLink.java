@@ -45,10 +45,9 @@ public class NanodashLink extends Panel {
      * @param uri            the URI of the nanopublication or IRI
      * @param np             the nanopublication, or null if the link is not to a nanopublication
      * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
-     * @param objectPosition if true, the link is to an object position in a template, otherwise it is to a subject position
      * @param label          the label to display for the link, or null to derive it from the nanopublication or IRI
      */
-    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition, String label) {
+    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label) {
         super(id);
 
         final List<Template> templates = new ArrayList<>();
@@ -109,11 +108,8 @@ public class NanodashLink extends Panel {
             if (label == null || label.isBlank()) {
                 label = IriItem.getShortNameFromURI(uri);
                 if (iriObj.equals(User.getSignatureOwnerIri(np))) {
-                    if (objectPosition) {
-                        label = "me (" + User.getShortDisplayName(iriObj) + ")";
-                    } else {
-                        label = "I (" + User.getShortDisplayName(iriObj) + ")";
-                    }
+                    // TODO We might want to introduce a "(you)" flag here at some point
+                    label = User.getShortDisplayName(iriObj);
                 } else if (User.getName(iriObj) != null) {
                     label = User.getShortDisplayName(iriObj);
                 } else {
@@ -173,10 +169,9 @@ public class NanodashLink extends Panel {
      * @param uri            the URI of the nanopublication or IRI
      * @param np             the nanopublication, or null if the link is not to a nanopublication
      * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
-     * @param objectPosition if true, the link is to an object position in a template, otherwise it is to a subject position
      */
-    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, boolean objectPosition) {
-        this(id, uri, np, templateClass, objectPosition, null);
+    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass) {
+        this(id, uri, np, templateClass, null);
     }
 
     /**
@@ -187,7 +182,7 @@ public class NanodashLink extends Panel {
      * @param np  the nanopublication, or null if the link is not to a nanopublication
      */
     public NanodashLink(String id, String uri, Nanopub np) {
-        this(id, uri, np, null, false);
+        this(id, uri, np, null);
     }
 
     /**
@@ -197,7 +192,7 @@ public class NanodashLink extends Panel {
      * @param uri the URI of the nanopublication or IRI
      */
     public NanodashLink(String id, String uri) {
-        this(id, uri, null, null, false);
+        this(id, uri, null, null);
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();

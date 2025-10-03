@@ -70,11 +70,10 @@ public class ReadonlyItem extends Panel implements ContextComponent {
      * @param id              the component id
      * @param parentId        the parent id (e.g., "subj", "obj")
      * @param iriP            the IRI of the item
-     * @param objectPosition  whether this is an object position
      * @param statementPartId the statement part ID
      * @param rg              the repetition group
      */
-    public ReadonlyItem(String id, String parentId, final IRI iriP, boolean objectPosition, IRI statementPartId, final RepetitionGroup rg) {
+    public ReadonlyItem(String id, String parentId, final IRI iriP, IRI statementPartId, final RepetitionGroup rg) {
         super(id);
         context = rg.getContext();
         this.iri = iriP;
@@ -157,11 +156,8 @@ public class ReadonlyItem extends Panel implements ContextComponent {
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
                     if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
-                        if (objectPosition) {
-                            return "me (" + User.getShortDisplayName(objIri) + ")";
-                        } else {
-                            return "I (" + User.getShortDisplayName(objIri) + ")";
-                        }
+                        // TODO We might want to introduce a "(you)" flag here at some point
+                        return User.getShortDisplayName(objIri);
                     } else if (isAssertionValue(objIri)) {
                         if (context.getType() == ContextType.ASSERTION) {
                             return "this assertion";
