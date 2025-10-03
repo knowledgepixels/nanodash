@@ -159,7 +159,7 @@ public class Space implements Serializable {
         IRI defaultProvenance = null;
 
         List<IRI> admins = new ArrayList<>();
-        Map<IRI, Set<SpaceMemberRole>> members = new HashMap<>();
+        Map<IRI, Set<SpaceMemberRole>> users = new HashMap<>();
         List<SpaceMemberRole> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
@@ -308,21 +308,21 @@ public class Space implements Serializable {
      *
      * @return List of member IRIs.
      */
-    public List<IRI> getMembers() {
+    public List<IRI> getUsers() {
         triggerDataUpdate();
-        List<IRI> members = new ArrayList<IRI>(data.members.keySet());
-        members.sort(User.getUserData().userComparator);
-        return members;
+        List<IRI> users = new ArrayList<IRI>(data.users.keySet());
+        users.sort(User.getUserData().userComparator);
+        return users;
     }
 
     /**
      * Get the roles of a specific member in this space.
      *
-     * @param memberId The IRI of the member.
+     * @param userId The IRI of the member.
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
-    public Set<SpaceMemberRole> getMemberRoles(IRI memberId) {
-        return data.members.get(memberId);
+    public Set<SpaceMemberRole> getMemberRoles(IRI userId) {
+        return data.users.get(userId);
     }
 
     /**
@@ -333,7 +333,7 @@ public class Space implements Serializable {
      */
     public boolean isMember(IRI userId) {
         triggerDataUpdate();
-        return data.members.containsKey(userId);
+        return data.users.containsKey(userId);
     }
 
     /**
@@ -488,7 +488,7 @@ public class Space implements Serializable {
                         if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
                             IRI adminId = Utils.vf.createIRI(r.get("admin"));
                             newData.addAdmin(adminId);
-                            newData.members.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
+                            newData.users.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
                         }
                     }
                     newData.admins.sort(User.getUserData().userComparator);
@@ -510,7 +510,7 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                        newData.members.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
+                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
                     }
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {

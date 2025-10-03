@@ -36,8 +36,8 @@ public class ViewList extends Panel {
                             }
                         }
                     } else if (paramName.equals("USER_PUBKEY") || QueryParamField.isMultiPlaceholder(p)) {
-                        for (IRI memberIri : space.getMembers()) {
-                            for (String memberHash : User.getUserData().getPubkeyhashes(memberIri, true)) {
+                        for (IRI userId : space.getUsers()) {
+                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
                                 queryRefParams.put("USER_PUBKEY", memberHash);
                             }
                         }

@@ -144,10 +144,10 @@ public class SpacePage extends NanodashPage {
             ).makeInline());
 
         add(new ItemListPanel<IRI>(
-                "members",
-                "Members",
+                "users",
+                "Users",
                 () -> space.isDataInitialized(),
-                () -> space.getMembers(),
+                () -> space.getUsers(),
                 m -> {
                         String roleLabel = "(";
                         for (SpaceMemberRole r : space.getMemberRoles(m)) {
