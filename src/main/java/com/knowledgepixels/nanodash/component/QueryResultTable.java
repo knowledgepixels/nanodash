@@ -45,7 +45,7 @@ public class QueryResultTable extends Panel {
     private DataTable<ApiResponseEntry, String> table;
     private Label errorLabel;
 
-    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain) {
+    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, long rowsPerPage) {
         super(id);
 
         if (plain) {
@@ -68,7 +68,7 @@ public class QueryResultTable extends Panel {
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             dp = new DataProvider(response.getData());
-            table = new DataTable<>("table", columns, dp, 20);
+            table = new DataTable<>("table", columns, dp, rowsPerPage);
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
@@ -212,17 +212,17 @@ public class QueryResultTable extends Panel {
      * @param plain    a boolean
      * @return a {@link org.apache.wicket.Component} object
      */
-    public static Component createComponent(final String markupId, QueryRef queryRef, boolean plain) {
+    public static Component createComponent(final String markupId, QueryRef queryRef, boolean plain, long rowsPerPage) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return new QueryResultTable(markupId, q, response, plain);
+            return new QueryResultTable(markupId, q, response, plain, rowsPerPage);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, plain);
+                    return new QueryResultTable(markupId, q, response, plain, rowsPerPage);
                 }
 
             };

@@ -148,7 +148,7 @@ public class QueryPage extends NanodashPage {
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
         } else {
-            add(QueryResultTable.createComponent("resulttable", new QueryRef(queryId, queryParams), true));
+            add(QueryResultTable.createComponent("resulttable", new QueryRef(queryId, queryParams), true, 20));
         }
     }
 
