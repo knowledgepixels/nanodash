@@ -28,17 +28,17 @@ public class ViewList extends Panel {
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : query.getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
-                    if (paramName.equals("space")) {
-                        queryRefParams.put("space", space.getId());
+                    if (paramName.equals("SPACE")) {
+                        queryRefParams.put("SPACE", space.getId());
                         if (QueryParamField.isMultiPlaceholder(p)) {
                             for (String altId : space.getAltIDs()) {
-                                queryRefParams.put("space", altId);
+                                queryRefParams.put("SPACE", altId);
                             }
                         }
-                    } else if (paramName.equals("memberHash") || QueryParamField.isMultiPlaceholder(p)) {
+                    } else if (paramName.equals("USER_PUBKEY") || QueryParamField.isMultiPlaceholder(p)) {
                         for (IRI memberIri : space.getMembers()) {
                             for (String memberHash : User.getUserData().getPubkeyhashes(memberIri, true)) {
-                                queryRefParams.put("memberHash", memberHash);
+                                queryRefParams.put("USER_PUBKEY", memberHash);
                             }
                         }
                     } else if (!QueryParamField.isOptional(p)) {

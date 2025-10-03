@@ -22,11 +22,14 @@ public class PinGroupList extends Panel {
     public PinGroupList(String markupId, Space space) {
         super(markupId);
 
-        final PageParameters params = new PageParameters();
-        params.add("param_SPACE", space.getId());
+        final PageParameters tParams = new PageParameters();
+        tParams.add("param_SPACE", space.getId());
         if (space.getDefaultProvenance() != null) {
-            params.add("prtemplate", space.getDefaultProvenance().stringValue());
+            tParams.add("prtemplate", space.getDefaultProvenance().stringValue());
         }
+
+        final PageParameters qParams = new PageParameters();
+        qParams.add("queryparam_SPACE", space.getId());
 
         List<Pair<String, List<Serializable>>> pinnedResourcesList = new ArrayList<>();
         List<String> pinGroupTags = new ArrayList<>(space.getPinGroupTags());
@@ -53,9 +56,11 @@ public class PinGroupList extends Panel {
                         (o) -> {
                             if (o instanceof Template t) {
                                 t.addToLabelMap(space.getId(), space.getLabel());
-                                return new TemplateItem("item", t, params, false);
+                                return new TemplateItem("item", t, tParams, false);
                             }
-                            if (o instanceof GrlcQuery q) return new QueryItem("item", q, false);
+                            if (o instanceof GrlcQuery q) {
+                                return new QueryItem("item", q, qParams, false);
+                            }
                             return null;
                         }));
             }

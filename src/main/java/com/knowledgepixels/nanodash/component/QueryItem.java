@@ -34,11 +34,12 @@ public class QueryItem extends Panel {
      * @param id    the Wicket id for this panel
      * @param query the GrlcQuery object containing query details
      */
-    public QueryItem(String id, GrlcQuery query, boolean extended) {
+    public QueryItem(String id, GrlcQuery query, PageParameters additionalParams, boolean extended) {
         super(id);
 
         PageParameters params = new PageParameters();
         params.add("id", query.getQueryId());
+        if (additionalParams != null) params.mergeWith(additionalParams);
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("querylink", QueryPage.class, params);
         l.add(new Label("linktext", query.getLabel()));
         add(l);
