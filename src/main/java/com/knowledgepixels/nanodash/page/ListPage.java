@@ -288,7 +288,7 @@ public class ListPage extends NanodashPage {
         final QueryRef queryRef = new QueryRef(QUERY_NAME, queryParams);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
-            NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse);
+            NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20);
             cachedResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
             add(cachedResults);
         } else {
@@ -308,7 +308,7 @@ public class ListPage extends NanodashPage {
                             if (response != null) break;
                         }
                     }
-                    return NanopubResults.fromApiResponse(markupId, response);
+                    return NanopubResults.fromApiResponse(markupId, response, 20);
                 }
 
                 @Override

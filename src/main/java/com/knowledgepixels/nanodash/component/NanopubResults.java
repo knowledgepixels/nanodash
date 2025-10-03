@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.Utils;
+import java.util.List;
+
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -12,7 +12,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.util.List;
+import com.knowledgepixels.nanodash.NanopubElement;
 
 /**
  * A panel that displays a list of nanopubs.
@@ -26,7 +26,7 @@ public class NanopubResults extends Panel {
      * @param nanopubList the list of NanopubElements to display
      * @return a new NanopubResults panel
      */
-    public static NanopubResults fromList(String id, List<NanopubElement> nanopubList) {
+    public static NanopubResults fromList(String id, List<NanopubElement> nanopubList, long itemPerPage) {
         NanopubResults r = new NanopubResults(id);
         DataView<NanopubElement> dataView = new DataView<>("nanopubs", new ListDataProvider<NanopubElement>(nanopubList)) {
 
@@ -36,7 +36,7 @@ public class NanopubResults extends Panel {
             }
 
         };
-        dataView.setItemsPerPage(12);
+        dataView.setItemsPerPage(itemPerPage);
         dataView.setOutputMarkupId(true);
         r.add(dataView);
 
@@ -51,31 +51,15 @@ public class NanopubResults extends Panel {
     }
 
     /**
-     * Creates a NanopubResults panel from an ApiResponse.
-     *
-     * @param id          the component id
-     * @param apiResponse the ApiResponse containing nanopub data
-     * @return a new NanopubResults panel
-     */
-    public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse) {
-        return fromApiResponse(id, apiResponse, -1);
-    }
-
-    /**
      * Creates a NanopubResults panel from an ApiResponse with a limit on the number of nanopubs.
      *
      * @param id          the component id
      * @param apiResponse the ApiResponse containing nanopub data
-     * @param limit       the maximum number of nanopubs to display, or -1 for no limit
      * @return a new NanopubResults panel
      */
-    public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, int limit) {
-        List<ApiResponseEntry> list = apiResponse.getData();
-        if (limit >= 0 && list.size() > limit) {
-            list = Utils.subList(list, 0, limit);
-        }
+    public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, long itemPerPage) {
         NanopubResults r = new NanopubResults(id);
-        DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(list)) {
+        DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(apiResponse.getData())) {
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {
@@ -83,7 +67,7 @@ public class NanopubResults extends Panel {
             }
 
         };
-        dataView.setItemsPerPage(12);
+        dataView.setItemsPerPage(itemPerPage);
         dataView.setOutputMarkupId(true);
         r.add(dataView);
 
