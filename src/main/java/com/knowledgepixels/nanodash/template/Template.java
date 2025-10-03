@@ -923,6 +923,14 @@ public class Template implements Serializable {
         }
     }
 
+    public void addToLabelMap(Object key, String label) {
+        if (key instanceof IRI iri) {
+            labelMap.put(iri, label);
+        } else {
+            labelMap.put(vf.createIRI(key.toString()), label);
+        }
+    }
+
     private void addType(IRI thing, IRI type) {
         List<IRI> l = typeMap.get(thing);
         if (l == null) {

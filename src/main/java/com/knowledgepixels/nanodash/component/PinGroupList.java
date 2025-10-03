@@ -23,6 +23,7 @@ public class PinGroupList extends Panel {
         super(markupId);
 
         final PageParameters params = new PageParameters();
+        params.add("param_SPACE", space.getId());
         if (space.getDefaultProvenance() != null) {
             params.add("prtemplate", space.getDefaultProvenance().stringValue());
         }
@@ -50,7 +51,10 @@ public class PinGroupList extends Panel {
                         item.getModelObject().getLeft(),
                         item.getModelObject().getRight(),
                         (o) -> {
-                            if (o instanceof Template t) return new TemplateItem("item", t, params);
+                            if (o instanceof Template t) {
+                                t.addToLabelMap(space.getId(), space.getLabel());
+                                return new TemplateItem("item", t, params);
+                            }
                             if (o instanceof GrlcQuery q) return new QueryItem("item", q);
                             return null;
                         }));
