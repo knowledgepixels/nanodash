@@ -3,9 +3,13 @@ package com.knowledgepixels.nanodash.component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
+import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.util.convert.converter.ZonedDateTimeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDateTimePicker;
@@ -18,25 +22,38 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class AjaxZonedDateTimePicker extends DateTimePicker {
+public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> implements AbstractTextComponent.ITextFormatProvider {
 
     private final Logger logger = LoggerFactory.getLogger(AjaxZonedDateTimePicker.class);
     private final IModel<ZonedDateTime> zonedDateTimeModel;
     private IModel<ZoneId> zoneIdModel = Model.of(ZoneId.systemDefault());
     private final DropDownChoice<ZoneId> zoneDropDown;
     private final DateTimePicker dateTimePicker;
+    private IModel<Date> dateModel = Model.of((Date) null);
+    private String datePattern, timePattern;
 
     public AjaxZonedDateTimePicker(String id, IModel<ZonedDateTime> model, String datePattern, String timePattern) {
         super(id);
-        dateTimePicker = new AjaxDateTimePicker("datetime", model.getObject() == null ? Model.of((Date) null) : Model.of(Date.from(model.getObject().toInstant())), datePattern, timePattern) {
+        this.setType(ZonedDateTime.class);
+        this.setModel(model);
+        if (model.getObject() != null) {
+            dateModel.setObject(Date.from(model.getObject().toInstant()));
+        }
+        this.datePattern = datePattern;
+        this.timePattern = timePattern;
+        this.dateTimePicker = new AjaxDateTimePicker("datetime", dateModel, datePattern, timePattern) {
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 Date selectedDate = this.getModelObject();
                 ZonedDateTime currentZonedDateTime = LocalDateTime.ofInstant(selectedDate.toInstant(), ZoneId.systemDefault()).atZone(zoneIdModel.getObject());
                 zonedDateTimeModel.setObject(currentZonedDateTime);
+                logger.info("Date selected: {}", dateModel.getObject());
                 logger.info("Selected datetime with current timezone: {}", zonedDateTimeModel.getObject());
+                dateTimePicker.modelChanged();
+                this.modelChanged();
             }
         };
 
@@ -59,13 +76,13 @@ public class AjaxZonedDateTimePicker extends DateTimePicker {
                 logger.info("Selected time zone: {}", selectedZone);
                 if (zonedDateTimeModel.getObject() != null) {
                     ZonedDateTime currentZonedDateTime = zonedDateTimeModel.getObject().withZoneSameLocal(selectedZone);
-                    Date newDate = null;
+                    Date newDate;
                     try {
                         newDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").parse(currentZonedDateTime.toLocalDateTime().toString());
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
-                    dateTimePicker.setModelObject(newDate);
+                    dateTimePicker.setModelObject(newDate).modelChanged();
                     zonedDateTimeModel.setObject(currentZonedDateTime);
                     logger.info("Updating existing datetime with selected timezone: {}", currentZonedDateTime);
                 }
@@ -82,6 +99,44 @@ public class AjaxZonedDateTimePicker extends DateTimePicker {
 
     public DateTimePicker getDateTimePicker() {
         return dateTimePicker;
+    }
+
+    @Override
+    public String getTextFormat() {
+        logger.info("Getting text format.");
+        return String.format("%s %s", this.datePattern, this.timePattern);
+    }
+
+    @Override
+    public IModel<ZonedDateTime> getModel() {
+        return this.zonedDateTimeModel;
+    }
+
+    @Override
+    public String getInput() {
+        logger.info("Getting input as string.");
+        if (zonedDateTimeModel.getObject() == null) {
+            return "";
+        } else {
+            return zonedDateTimeModel.getObject().toString();
+        }
+    }
+
+    @Override
+    public <C> IConverter<C> getConverter(Class<C> type) {
+        return (IConverter<C>) this.newConverter();
+    }
+
+    private static IConverter<ZonedDateTime> newConverter() {
+        return new ZonedDateTimeConverter() {
+            @Override
+            public ZonedDateTime convertToObject(String value, Locale locale) {
+                if (value == null || value.trim().isEmpty()) {
+                    return null;
+                }
+                return ZonedDateTime.parse(value);
+            }
+        };
     }
 
 }

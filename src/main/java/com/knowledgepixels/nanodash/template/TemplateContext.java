@@ -19,6 +19,7 @@ import org.nanopub.*;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -337,7 +338,7 @@ public class TemplateContext implements Serializable {
             String languageTag = template.getLanguageTag(iri);
             if (datatype != null) {
                 if (datatype.equals(XSD.DATETIME)) {
-                    Date tfObject = (Date) tfObjectGeneric;
+                    ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
                     if (tfObject != null) {
                         processedValue = vf.createLiteral(tfObject);
                     }

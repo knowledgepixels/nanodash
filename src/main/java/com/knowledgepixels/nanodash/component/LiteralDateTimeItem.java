@@ -58,12 +58,14 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         }
         String postfix = Utils.getUriPostfix(iri);
         if (context.hasParam(postfix)) {
-            // FIXME
+            // FIXME parse with timezone
             //model.setObject(format.parse(context.getParam(postfix)));
             model.setObject(ZonedDateTime.now());
         }
         initZonedDateTimePicker(model);
-        if (!optional) zonedDateTimePicker.setRequired(true);
+        if (!optional) {
+            zonedDateTimePicker.setRequired(true);
+        }
         if (context.getTemplate().getLabel(iri) != null) {
             zonedDateTimePicker.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
@@ -109,7 +111,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (zonedDateTimePicker.getModelObject() == null) {
+            if (zonedDateTimePicker.getDateTimePicker().getModelObject() == null) {
                 return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
@@ -117,7 +119,8 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
                 return false;
             }
             try {
-                return format.parse(vL.stringValue()).toString().equals(zonedDateTimePicker.getModelObject().toString());
+                // TODO update to handle timezone
+                return format.parse(vL.stringValue()).toString().equals(zonedDateTimePicker.getDateTimePicker().getModelObject().toString());
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
