@@ -18,7 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Date;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -140,12 +142,10 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             throw new UnificationException(v.stringValue());
         }
         Literal vL = (Literal) v;
-        try {
-            // TODO add timezone handling
-            zonedDateTimePicker.getDateTimePicker().setModelObject(format.parse(vL.stringValue()));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        ZonedDateTime zdt = ZonedDateTime.from(vL.temporalAccessorValue());
+        zonedDateTimePicker.getDateTimePicker().setModelObject(Date.from(ZonedDateTime.from(vL.temporalAccessorValue()).toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+        // TODO add timezone handling
+        zonedDateTimePicker.getZoneDropDown().setModelObject(zdt.getZone());
 
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
             datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
