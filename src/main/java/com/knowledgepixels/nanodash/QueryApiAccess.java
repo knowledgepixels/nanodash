@@ -69,7 +69,7 @@ public class QueryApiAccess {
         load("RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates");
         load("RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries");
         load("RALlWmTd48iZxMSxUxIaM24NwiSngygwKcK4_sl6bS2jo/get-space-member-roles");
-        load("RA5dahGhH4UOqGYMFbh17I7iUWTd5llmedpv0TvVgKNwg/get-views-for-space");
+        load("RAuwOBxwXal5NTW_rl9WtUA38IJbbT8q_Vp6vq4F6Pu9k/get-views-for-space");
         load("RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj");
         load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");
         load("RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds");

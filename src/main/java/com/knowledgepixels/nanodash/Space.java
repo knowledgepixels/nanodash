@@ -165,7 +165,7 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         List<Serializable> pinnedResources = new ArrayList<>();
-        List<GrlcQuery> views = new ArrayList<>();
+        List<SpaceQueryView> views = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, List<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -371,7 +371,7 @@ public class Space implements Serializable {
      *
      * @return List of GrlcQuery views.
      */
-    public List<GrlcQuery> getViews() {
+    public List<SpaceQueryView> getViews() {
         return data.views;
     }
 
@@ -539,7 +539,8 @@ public class Space implements Serializable {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         GrlcQuery query = GrlcQuery.get(r.get("query"));
                         if (query == null) continue;
-                        newData.views.add(query);
+                        SpaceQueryView view = new SpaceQueryView(this, query, r.get("title"));
+                        newData.views.add(view);
                     }
                     data = newData;
                     dataInitialized = true;

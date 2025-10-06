@@ -11,8 +11,8 @@ import org.nanopub.extra.services.QueryRef;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.SpaceQueryView;
 import com.knowledgepixels.nanodash.User;
 
 public class ViewList extends Panel {
@@ -20,25 +20,25 @@ public class ViewList extends Panel {
     public ViewList(String markupId, Space space) {
         super(markupId);
 
-        add(new DataView<GrlcQuery>("views", new ListDataProvider<GrlcQuery>(space.getViews())) {
+        add(new DataView<SpaceQueryView>("views", new ListDataProvider<SpaceQueryView>(space.getViews())) {
 
             @Override
-            protected void populateItem(Item<GrlcQuery> item) {
-                GrlcQuery query = item.getModelObject();
+            protected void populateItem(Item<SpaceQueryView> item) {
+                SpaceQueryView view = item.getModelObject();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
-                for (String p : query.getPlaceholdersList()) {
+                for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
-                    if (paramName.equals("SPACE")) {
-                        queryRefParams.put("SPACE", space.getId());
+                    if (paramName.equals("space")) {
+                        queryRefParams.put("space", space.getId());
                         if (QueryParamField.isMultiPlaceholder(p)) {
                             for (String altId : space.getAltIDs()) {
-                                queryRefParams.put("SPACE", altId);
+                                queryRefParams.put("space", altId);
                             }
                         }
-                    } else if (paramName.equals("USER_PUBKEY") || QueryParamField.isMultiPlaceholder(p)) {
+                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
                         for (IRI userId : space.getUsers()) {
                             for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
-                                queryRefParams.put("USER_PUBKEY", memberHash);
+                                queryRefParams.put("user_pubkey", memberHash);
                             }
                         }
                     } else if (!QueryParamField.isOptional(p)) {
@@ -46,8 +46,8 @@ public class ViewList extends Panel {
                         return;
                     }
                 }
-                QueryRef queryRef = new QueryRef(query.getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, false, 10));
+                QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+                item.add(QueryResultTable.createComponent("view", queryRef, view.getTitle(), 10));
             }
 
         });
