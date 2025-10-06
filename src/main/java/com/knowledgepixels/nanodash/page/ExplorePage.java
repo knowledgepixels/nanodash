@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.page;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -23,6 +24,8 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ExploreDataTable;
 import com.knowledgepixels.nanodash.component.IriItem;
@@ -68,6 +71,12 @@ public class ExplorePage extends NanodashPage {
 
         WebMarkupContainer raw = new WebMarkupContainer("raw");
         add(raw);
+
+        if (User.getUserData().isUser(tempRef)) {
+            throw new RestartResponseException(UserPage.class, parameters);
+        } else if (Space.get(tempRef) != null) {
+            throw new RestartResponseException(SpacePage.class, parameters);
+        }
 
         Map<String, String> nanopubParams = new HashMap<>();
         nanopubParams.put("ref", tempRef);
