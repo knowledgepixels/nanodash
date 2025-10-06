@@ -10,11 +10,14 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.commonjava.mimeparse.MIMEParse;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Space;
@@ -57,6 +61,8 @@ public class ExplorePage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    private Nanopub publishedNanopub = null;
+
     /**
      * Constructor for ExplorePage.
      *
@@ -64,6 +70,59 @@ public class ExplorePage extends NanodashPage {
      */
     public ExplorePage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("publish-confirm-panel").setVisible(false));
+        initPage();
+    }
+
+    public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
+        super(parameters.add("id", publishedNanopub.getUri()));
+        this.publishedNanopub = publishedNanopub;
+
+        WebMarkupContainer publishConfirmPanel = new WebMarkupContainer("publish-confirm-panel");
+        final NanodashSession session = NanodashSession.get();
+        boolean hasKnownOwnLocalIntro = session.getLocalIntroCount() > 0;
+        boolean someIntroJustNowPublished = Utils.usesPredicateInAssertion(publishedNanopub, NPX.DECLARED_BY);
+        if (someIntroJustNowPublished) NanodashSession.get().setIntroPublishedNow();
+        boolean lastIntroPublishedMoreThanFiveMinsAgo = session.getTimeSinceLastIntroPublished() > 5 * 60 * 1000;
+        if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
+        publishConfirmPanel.add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
+
+        if (Utils.isNanopubOfClass(publishedNanopub, NTEMPLATE.ASSERTION_TEMPLATE)) {
+            publishConfirmPanel.add(new WebMarkupContainer("use-template").add(
+                    new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", publishedNanopub.getUri())))
+            );
+        } else {
+            publishConfirmPanel.add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
+        }
+
+        PageParameters plainLinkParams = new PageParameters();
+        plainLinkParams.add("template", parameters.get("template"));
+        if (!parameters.get("template-version").isEmpty()) {
+            plainLinkParams.add("template-version", parameters.get("template-version"));
+        }
+        publishConfirmPanel.add(new BookmarkablePageLink<Void>("publish-another-link", PublishPage.class, plainLinkParams));
+
+        PageParameters linkParams = new PageParameters(parameters);
+        linkParams.remove("supersede");
+        linkParams.remove("supersede-a");
+        boolean publishAnotherFilledLinkVisible = false;
+        for (NamedPair n : linkParams.getAllNamed()) {
+            if (n.getKey().equals("template")) continue;
+            if (n.getKey().equals("template-version")) continue;
+            publishAnotherFilledLinkVisible = true;
+        }
+        if (publishAnotherFilledLinkVisible) {
+            publishConfirmPanel.add(new BookmarkablePageLink<Void>("publish-another-filled-link", PublishPage.class, linkParams));
+        } else {
+            publishConfirmPanel.add(new Label("publish-another-filled-link", "").setVisible(false));
+        }
+        add(publishConfirmPanel);
+
+        initPage();
+    }
+
+    private void initPage() {
+        PageParameters parameters = getPageParameters();
 
         add(new TitleBar("titlebar", this, null));
 
@@ -156,7 +215,9 @@ public class ExplorePage extends NanodashPage {
 
         final String ref = tempRef;
         final String shortName;
-        if (parameters.get("label").isEmpty()) {
+        if (publishedNanopub != null) {
+            shortName = NanopubUtils.getLabel(np);
+        } else if (parameters.get("label").isEmpty()) {
             shortName = IriItem.getShortNameFromURI(ref);
         } else {
             shortName = parameters.get("label").toString();
@@ -164,12 +225,18 @@ public class ExplorePage extends NanodashPage {
         add(new Label("pagetitle", shortName + " (explore) | nanodash"));
         add(new Label("termname", shortName));
         add(new ExternalLink("urilink", ref, ref));
-        if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
+        if (publishedNanopub != null) {
+            add(new Label("statusline", "<h4>Status</h4><p>Successfully published.</p>").setEscapeModelStrings(false));
+        } else if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
             add(StatusLine.createComponent("statusline", ref));
         } else {
             add(new Label("statusline").setVisible(false));
         }
-        add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
+        if (publishedNanopub != null) {
+            add(new Label("classes-panel").setVisible(false));
+        } else {
+            add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
+        }
         if (isNanopubId) {
             add(new Label("instances-panel").setVisible(false));
             add(new Label("parts-panel").setVisible(false));
@@ -180,6 +247,21 @@ public class ExplorePage extends NanodashPage {
             add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
         }
         add(ExploreDataTable.createComponent("reftable", ref));
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (publishedNanopub != null && !getPageParameters().get("postpub-redirect-url").isNull()) {
+            String forwardUrl = getPageParameters().get("postpub-redirect-url").toString();
+            if (forwardUrl.contains("?")) {
+                // TODO: Add here URI of created nanopublication too?
+                throw new RedirectToUrlException(forwardUrl);
+            } else {
+                String paramString = Utils.getPageParametersAsString(new PageParameters().add("id", publishedNanopub.getUri()));
+                throw new RedirectToUrlException(forwardUrl + "?" + paramString);
+            }
+        }
+        super.onBeforeRender();
     }
 
 }
