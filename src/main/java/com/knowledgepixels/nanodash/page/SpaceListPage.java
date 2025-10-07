@@ -85,7 +85,7 @@ public class SpaceListPage extends NanodashPage {
             (space) -> {
                 return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
             }
-        ).addButton("new...", PublishPage.class, newLinkParams));
+        ).addButton("+", PublishPage.class, newLinkParams));
     }
 
 }

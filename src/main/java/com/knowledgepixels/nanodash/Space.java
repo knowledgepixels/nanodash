@@ -322,6 +322,7 @@ public class Space implements Serializable {
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
     public Set<SpaceMemberRole> getMemberRoles(IRI userId) {
+        triggerDataUpdate();
         return data.users.get(userId);
     }
 

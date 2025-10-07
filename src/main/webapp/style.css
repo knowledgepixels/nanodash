@@ -498,7 +498,7 @@ span.prelink {
 }
 
 .button.light {
-  background-color: #fff;
+  background-color: transparent;
   color: #0B73DA;
   border: 1px solid #0B73DA;
 }
@@ -1791,10 +1791,11 @@ div.navigator .goto a[disabled] {
 
 .paneltitlerow span.buttons a.smallbutton {
   margin-left: 5px;
+  margin-top: 20px;
 }
 
 .paneltitlerow span.buttons {
-  margin: 26px 0 6px 0;
+  margin: 6px 0 6px 0;
   float: right;
 }
 

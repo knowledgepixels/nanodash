@@ -87,6 +87,9 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
      * @return a string containing the HTML for the waiting message
      */
     public final static String getWaitComponentHtml(String waitMessage) {
+        if (waitMessage == null || waitMessage.isBlank()) {
+            return "<p class=\"waiting nomessage\">" + getWaitIconHtml() + "</p>";
+        }
         return "<p class=\"waiting\">" + waitMessage + " " + getWaitIconHtml() + "</p>";
     }
 
