@@ -20,11 +20,13 @@ public class ButtonList extends Panel {
         setOutputMarkupId(true);
 
         List<AbstractLink> allButtons = new ArrayList<>();
-        allButtons.addAll(buttons);
-        if (SpaceMemberRole.isCurrentUserMember(space)) {
+        if (buttons != null) {
+            allButtons.addAll(buttons);
+        }
+        if (SpaceMemberRole.isCurrentUserMember(space) && memberButtons != null) {
             allButtons.addAll(memberButtons);
         }
-        if (SpaceMemberRole.isCurrentUserAdmin(space)) {
+        if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
             allButtons.addAll(adminButtons);
         }
         if (allButtons.isEmpty()) {

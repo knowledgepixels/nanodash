@@ -131,6 +131,10 @@
   padding-top: 0;
 }
 
+[class*="col-"].footer {
+  padding-top: 0;
+}
+
 [class*="col-"].header h1, [class*="col-"].header h2, [class*="col-"].header h3 {
   margin-bottom: 0;
 }
@@ -1797,6 +1801,10 @@ div.navigator .goto a[disabled] {
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   float: right;
+}
+
+.button-list a {
+  margin-right: 10px;
 }
 
 .inline .listpanel ul {
