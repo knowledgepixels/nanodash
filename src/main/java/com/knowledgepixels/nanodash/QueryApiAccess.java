@@ -68,7 +68,7 @@ public class QueryApiAccess {
         load("RAbq1a1FwRFAZPDde3Sy4GqNUQ2TmaKOWLydJPOyCKc0w/get-filtered-nanopub-list");
         load("RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates");
         load("RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries");
-        load("RALlWmTd48iZxMSxUxIaM24NwiSngygwKcK4_sl6bS2jo/get-space-member-roles");
+        load("RAF-LNZPrT11euM9NQGOLRrJg1pD02oXM5Cxb9XP7tBkU/get-space-member-roles");
         load("RAuwOBxwXal5NTW_rl9WtUA38IJbbT8q_Vp6vq4F6Pu9k/get-views-for-space");
         load("RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj");
         load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");

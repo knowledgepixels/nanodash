@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.IRI;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 
 public class SpaceUserList extends Panel {
@@ -33,14 +34,23 @@ public class SpaceUserList extends Panel {
         add(new DataView<Pair<SpaceMemberRole, List<IRI>>>("user-lists", new ListDataProvider<>(userLists)) {
             @Override
             protected void populateItem(Item<Pair<SpaceMemberRole, List<IRI>>> item) {
-               item.add(new ItemListPanel<IRI>(
+                SpaceMemberRole role = item.getModelObject().getLeft();
+                ItemListPanel<IRI> panel = new ItemListPanel<>(
                        "user-list",
-                       item.getModelObject().getLeft().getTitle(),
+                       role.getTitle(),
                        item.getModelObject().getRight(),
                        m -> {
                            return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m));
-                       })
-                   );
+                       });
+                if (role.getRoleAssignmentTemplate() != null) {
+                    if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
+                        panel.addButton("+", PublishPage.class, new PageParameters()
+                                .add("template", role.getRoleAssignmentTemplate().getId())
+                                .add("param_space", space.getId())
+                            );
+                    }
+                }
+                item.add(panel);
             }
         });
     }

@@ -1,11 +1,14 @@
 package com.knowledgepixels.nanodash;
 
-import com.google.common.collect.Multimap;
+import java.io.Serializable;
+import java.util.stream.Stream;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.io.Serializable;
-import java.util.stream.Stream;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
 /**
  * A role that a space member can have, with associated properties.
@@ -14,6 +17,7 @@ public class SpaceMemberRole implements Serializable {
 
     private IRI id;
     private String label, name, title;
+    private Template roleAssignmentTemplate = null;
     private IRI[] regularProperties, inverseProperties;
 
     /**
@@ -26,17 +30,25 @@ public class SpaceMemberRole implements Serializable {
         this.label = e.get("roleLabel");
         this.name = e.get("roleName");
         this.title = e.get("roleTitle");
+        if (e.get("roleAssignmentTemplate") != null && !e.get("roleAssignmentTemplate").isBlank()) {
+            this.roleAssignmentTemplate = TemplateData.get().getTemplate(e.get("roleAssignmentTemplate"));
+        }
         regularProperties = stringToIriArray(e.get("regularProperties"));
         inverseProperties = stringToIriArray(e.get("inverseProperties"));
     }
 
-    private SpaceMemberRole(IRI id, String label, String name, String title, IRI[] regularProperties, IRI[] inverseProperties) {
+    private SpaceMemberRole(IRI id, String label, String name, String title, Template roleAssignmentTemplate, IRI[] regularProperties, IRI[] inverseProperties) {
         this.id = id;
         this.label = label;
         this.name = name;
         this.title = title;
+        this.roleAssignmentTemplate = roleAssignmentTemplate;
         this.regularProperties = regularProperties;
         this.inverseProperties = inverseProperties;
+    }
+
+    public boolean isAdminRole() {
+        return id.equals(ADMIN_ROLE_IRI);
     }
 
     /**
@@ -75,6 +87,10 @@ public class SpaceMemberRole implements Serializable {
         return title;
     }
 
+    public Template getRoleAssignmentTemplate() {
+        return roleAssignmentTemplate;
+    }
+
     /**
      * Get the regular properties associated with this role.
      *
@@ -107,15 +123,33 @@ public class SpaceMemberRole implements Serializable {
      * The IRI for the "hasAdmin" predicate.
      */
     public static final IRI HAS_ADMIN_PREDICATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin");
-    private static final IRI ADMIN_ROLE_IRI = Utils.vf.createIRI("https://w3id.org/np/RAHlMUH4GnbkUmGTK_eecBk3OBFn55VyQHC0BDlpOcCPg/adminRole");
+    private static final IRI ADMIN_ROLE_IRI = Utils.vf.createIRI("https://w3id.org/np/RA_eEJjQbxzSqYSwPzfjzOZi5sMPpUmHskFNsgJYSws8I/adminRole");
+    private static final String ADMIN_ROLE_ASSIGNMENT_TEMPLATE_ID = "https://w3id.org/np/RAsOQ7k3GNnuUqZuLm57PWwWopQJR_4onnCpNR457CZg8";
+
     /**
      * The predefined admin role.
      */
-    public static final SpaceMemberRole ADMIN_ROLE = new SpaceMemberRole(ADMIN_ROLE_IRI, "Admin role", "admin", "Admins", new IRI[]{HAS_ADMIN_PREDICATE}, new IRI[]{});
+    public static final SpaceMemberRole ADMIN_ROLE = new SpaceMemberRole(ADMIN_ROLE_IRI, "Admin role", "admin", "Admins", TemplateData.get().getTemplate(ADMIN_ROLE_ASSIGNMENT_TEMPLATE_ID), new IRI[]{}, new IRI[]{HAS_ADMIN_PREDICATE});
 
     private static IRI[] stringToIriArray(String string) {
         if (string == null || string.isBlank()) return new IRI[]{};
         return Stream.of(string.split(" ")).map(s -> Utils.vf.createIRI(s)).toArray(IRI[]::new);
+    }
+
+
+    public static boolean isCurrentUserMember(Space space) {
+        if (space == null) return false;
+        IRI userIri = NanodashSession.get().getUserIri();
+        if (userIri == null) return false;
+        return space.isMember(userIri);
+    }
+
+    public static boolean isCurrentUserAdmin(Space space) {
+        if (space == null) return false;
+        IRI userIri = NanodashSession.get().getUserIri();
+        if (userIri == null) return false;
+        if (space.getMemberRoles(userIri) == null) return false;
+        return space.getMemberRoles(userIri).contains(SpaceMemberRole.ADMIN_ROLE);
     }
 
 }
