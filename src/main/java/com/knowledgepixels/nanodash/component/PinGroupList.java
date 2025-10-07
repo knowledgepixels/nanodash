@@ -23,13 +23,13 @@ public class PinGroupList extends Panel {
         super(markupId);
 
         final PageParameters tParams = new PageParameters();
-        tParams.add("param_SPACE", space.getId());
+        tParams.add("param_space", space.getId());
         if (space.getDefaultProvenance() != null) {
             tParams.add("prtemplate", space.getDefaultProvenance().stringValue());
         }
 
         final PageParameters qParams = new PageParameters();
-        qParams.add("queryparam_SPACE", space.getId());
+        qParams.add("queryparam_space", space.getId());
 
         List<Pair<String, List<Serializable>>> pinnedResourcesList = new ArrayList<>();
         List<String> pinGroupTags = new ArrayList<>(space.getPinGroupTags());
