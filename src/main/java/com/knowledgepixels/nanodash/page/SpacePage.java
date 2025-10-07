@@ -15,6 +15,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
@@ -165,20 +166,20 @@ public class SpacePage extends NanodashPage {
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
             ));
 
-        addSubspacePanel("Alliance");
-        addSubspacePanel("Consortium");
-        addSubspacePanel("Organization");
-        addSubspacePanel("Taskforce");
-        addSubspacePanel("Division");
-        addSubspacePanel("Taskunit");
-        addSubspacePanel("Group");
-        addSubspacePanel("Project");
-        addSubspacePanel("Program");
-        addSubspacePanel("Initiative");
-        addSubspacePanel("Outlet");
-        addSubspacePanel("Campaign");
-        addSubspacePanel("Community");
-        addSubspacePanel("Event");
+        addSubspacePanel("Alliance", true);
+        addSubspacePanel("Consortium", false);
+        addSubspacePanel("Organization", true);
+        addSubspacePanel("Taskforce", false);
+        addSubspacePanel("Division", true);
+        addSubspacePanel("Taskunit", false);
+        addSubspacePanel("Group", true);
+        addSubspacePanel("Project", false);
+        addSubspacePanel("Program", true);
+        addSubspacePanel("Initiative", false);
+        addSubspacePanel("Outlet", true);
+        addSubspacePanel("Campaign", false);
+        addSubspacePanel("Community", true);
+        addSubspacePanel("Event", false);
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
@@ -189,16 +190,31 @@ public class SpacePage extends NanodashPage {
         }
     }
 
-    private void addSubspacePanel(String type) {
+    private void addSubspacePanel(String type, boolean openEnded) {
         String typePl = type + "s";
         typePl = typePl.replaceFirst("ys$", "ies");
 
-        add(new ItemListPanel<Space>(
+        ItemListPanel<Space> panel = new ItemListPanel<>(
                 typePl.toLowerCase(),
                 typePl,
                 space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
                 (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
-            ));
+            );
+
+        if (isCurrentUserMember()) {
+            PageParameters newLinkParams = new PageParameters()
+                    .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                    .add("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/...")
+                    .add("template-version", "latest");
+            if (openEnded) {
+                newLinkParams.add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");
+            } else {
+                newLinkParams.add("template", "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4");
+            }
+            panel.addButton("new...", PublishPage.class, newLinkParams);
+        }
+
+        add(panel);
     }
 
     /**
@@ -208,6 +224,12 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    private boolean isCurrentUserMember() {
+        IRI userIri = NanodashSession.get().getUserIri();
+        if (userIri == null) return false;
+        return space.isMember(userIri);
     }
 
 }
