@@ -22,6 +22,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.PinGroupList;
+import com.knowledgepixels.nanodash.component.SpaceUserList;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
@@ -165,6 +166,25 @@ public class SpacePage extends NanodashPage {
                         return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel);
                     }
             ));
+
+
+        if (space.isDataInitialized()) {
+            add(new SpaceUserList("user-lists", space));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("user-lists") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new SpaceUserList(markupId, space);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return space.isDataInitialized();
+                }
+    
+            });
+        }
 
         add(new ItemListPanel<Space>(
                 "superspaces",
