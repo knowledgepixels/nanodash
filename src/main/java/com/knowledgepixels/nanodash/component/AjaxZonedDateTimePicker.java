@@ -3,9 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
-import org.apache.wicket.markup.html.form.AbstractTextComponent;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.FormComponentPanel;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.convert.IConverter;
@@ -17,22 +15,18 @@ import org.wicketstuff.kendo.ui.form.datetime.DateTimePicker;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.time.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> implements AbstractTextComponent.ITextFormatProvider {
 
     private final Logger logger = LoggerFactory.getLogger(AjaxZonedDateTimePicker.class);
-    private final IModel<ZonedDateTime> zonedDateTimeModel;
-    private IModel<ZoneId> zoneIdModel = Model.of(ZoneId.systemDefault());
+    private IModel<ZonedDateTime> zonedDateTimeModel = Model.of((ZonedDateTime) null);
+    private IModel<ZoneId> zoneIdModel = Model.of((ZoneId) null);
+    private IModel<Date> dateModel = Model.of((Date) null);
     private final DropDownChoice<ZoneId> zoneDropDown;
     private final DateTimePicker dateTimePicker;
-    private IModel<Date> dateModel = Model.of((Date) null);
     private String datePattern, timePattern;
 
     public AjaxZonedDateTimePicker(String id, IModel<ZonedDateTime> model, String datePattern, String timePattern) {
@@ -48,12 +42,15 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
             @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 Date selectedDate = this.getModelObject();
-                ZonedDateTime currentZonedDateTime = LocalDateTime.ofInstant(selectedDate.toInstant(), ZoneId.systemDefault()).atZone(zoneIdModel.getObject());
-                zonedDateTimeModel.setObject(currentZonedDateTime);
-                logger.info("Date selected: {}", dateModel.getObject());
-                logger.info("Selected datetime with current timezone: {}", zonedDateTimeModel.getObject());
-                dateTimePicker.modelChanged();
-                this.modelChanged();
+                if (zoneIdModel.getObject() == null) {
+                    dateTimePicker.setModelObject(selectedDate);
+                    logger.info("Date selected without timezone: {}", dateModel.getObject());
+                } else {
+                    ZonedDateTime currentZonedDateTime = LocalDateTime.ofInstant(selectedDate.toInstant(), ZoneId.systemDefault()).atZone(zoneIdModel.getObject());
+                    zonedDateTimeModel.setObject(currentZonedDateTime);
+                    logger.info("Date selected: {}", dateModel.getObject());
+                    logger.info("Selected datetime with current timezone: {}", zonedDateTimeModel.getObject());
+                }
             }
         };
 
@@ -62,35 +59,48 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
             this.zoneIdModel = Model.of(model.getObject().getZone());
         }
 
-        List<ZoneId> zones = ZoneId.getAvailableZoneIds().stream()
+        Map<ZoneOffset, List<ZoneId>> timezoneGroups = ZoneId.getAvailableZoneIds().stream()
                 .map(ZoneId::of)
-                .sorted((a, b) -> a.getId().compareTo(b.getId()))
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(x -> x.getRules().getStandardOffset(Instant.now())));
+        List<ZoneId> zones = new ArrayList<>(timezoneGroups.keySet());
 
-        this.zoneDropDown = new DropDownChoice<>("timezone-dropdown", zoneIdModel, zones);
+        this.zoneDropDown = new DropDownChoice<>("timezone-dropdown", zoneIdModel, zones, new IChoiceRenderer<>() {
+            @Override
+            public Object getDisplayValue(ZoneId zoneId) {
+                return String.format("%s : %s", zoneId, timezoneGroups.get(zoneId).stream().map(ZoneId::getId).collect(Collectors.joining(", ")));
+            }
+
+        });
+
         this.zoneDropDown.setOutputMarkupId(true);
         this.zoneDropDown.add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                ZoneId selectedZone = zoneIdModel.getObject();
-                logger.info("Selected time zone: {}", selectedZone);
-                if (zonedDateTimeModel.getObject() != null) {
-                    ZonedDateTime currentZonedDateTime = zonedDateTimeModel.getObject().withZoneSameLocal(selectedZone);
-                    Date newDate;
-                    try {
-                        newDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").parse(currentZonedDateTime.toLocalDateTime().toString());
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
-                    dateTimePicker.setModelObject(newDate).modelChanged();
-                    zonedDateTimeModel.setObject(currentZonedDateTime);
-                    logger.info("Updating existing datetime with selected timezone: {}", currentZonedDateTime);
-                }
+                updateZoneSelection();
                 ajaxRequestTarget.add(AjaxZonedDateTimePicker.this);
             }
         });
         add(zoneDropDown);
         add(dateTimePicker);
+    }
+
+    private void updateZoneSelection() {
+        ZoneId selectedZone = zoneIdModel.getObject();
+        logger.info("Selected time zone: {}", selectedZone);
+        if (zonedDateTimeModel.getObject() == null) {
+            zonedDateTimeModel.setObject(ZonedDateTime.of(LocalDateTime.ofInstant(dateTimePicker.getModelObject().toInstant(), ZoneId.systemDefault()), selectedZone));
+            logger.info("Initializing datetime with selected timezone: {}", zonedDateTimeModel.getObject());
+        }
+        ZonedDateTime currentZonedDateTime = zonedDateTimeModel.getObject().withZoneSameLocal(selectedZone);
+        Date newDate;
+        try {
+            newDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").parse(currentZonedDateTime.toLocalDateTime().toString());
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        dateTimePicker.setModelObject(newDate).modelChanged();
+        zonedDateTimeModel.setObject(currentZonedDateTime);
+        logger.info("Updating existing datetime with selected timezone: {}", currentZonedDateTime);
     }
 
     public DropDownChoice<ZoneId> getZoneDropDown() {
@@ -137,6 +147,13 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
                 return ZonedDateTime.parse(value);
             }
         };
+    }
+
+    @Override
+    public FormComponent<ZonedDateTime> setModelObject(ZonedDateTime zonedDateTime) {
+        dateTimePicker.setModelObject(Date.from(zonedDateTime.toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+        zoneDropDown.setModelObject(zonedDateTime.getZone());
+        return super.setModelObject(zonedDateTime);
     }
 
 }

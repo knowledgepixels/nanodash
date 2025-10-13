@@ -16,11 +16,8 @@ import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -60,9 +57,12 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         }
         String postfix = Utils.getUriPostfix(iri);
         if (context.hasParam(postfix)) {
-            // FIXME parse with timezone
-            //model.setObject(format.parse(context.getParam(postfix)));
-            model.setObject(ZonedDateTime.now());
+            String zoncontext = context.getParam(postfix);
+            if (zoncontext != null) {
+                model.setObject(ZonedDateTime.parse(zoncontext));
+            } else {
+                model.setObject(null);
+            }
         }
         initZonedDateTimePicker(model);
         if (!optional) {
@@ -113,19 +113,14 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (zonedDateTimePicker.getDateTimePicker().getModelObject() == null) {
+            if (zonedDateTimePicker.getModelObject() == null) {
                 return true;
             }
             IRI datatype = context.getTemplate().getDatatype(iri);
             if (!vL.getDatatype().equals(datatype)) {
                 return false;
             }
-            try {
-                // TODO update to handle timezone
-                return format.parse(vL.stringValue()).toString().equals(zonedDateTimePicker.getDateTimePicker().getModelObject().toString());
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
+            return ZonedDateTime.from(vL.temporalAccessorValue()).equals(zonedDateTimePicker.getModelObject());
         }
         return false;
     }
@@ -143,9 +138,7 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
         }
         Literal vL = (Literal) v;
         ZonedDateTime zdt = ZonedDateTime.from(vL.temporalAccessorValue());
-        zonedDateTimePicker.getDateTimePicker().setModelObject(Date.from(ZonedDateTime.from(vL.temporalAccessorValue()).toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
-        // TODO add timezone handling
-        zonedDateTimePicker.getZoneDropDown().setModelObject(zdt.getZone());
+        zonedDateTimePicker.setModelObject(zdt);
 
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
             datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
