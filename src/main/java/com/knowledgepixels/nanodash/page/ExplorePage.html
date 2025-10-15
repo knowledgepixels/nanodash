@@ -33,16 +33,19 @@ if (window.location.hash) {
 
 <div wicket:id="statusline">Status</div>
 
+<p wicket:id="use-template">
+<a class="button" href="." wicket:id="template-link">use this template</a>
+</p>
+<p wicket:id="run-query">
+<a class="button" href="." wicket:id="query-link">run this query</a>
+</p>
+
 
 <div wicket:id="publish-confirm-panel">
 
 <p wicket:id="missing-intro-warning">
 It seems that <strong class="negative">you haven't published an introduction yet</strong> to link the local key to your ORCID identifier.
 It is recommended that you do so via <a href="./profile?message=publish-intro">your profile page</a>.
-</p>
-
-<p wicket:id="use-template">
-<a class="button" href="." wicket:id="template-link">use this template</a>
 </p>
 
 <h4>Continue Publishing</h4>
@@ -62,13 +65,6 @@ It is recommended that you do so via <a href="./profile?message=publish-intro">y
 <div wicket:id="nanopub-header"></div>
 
 <span wicket:id="nanopub"></span>
-
-<div wicket:id="use-template">
-<a class="button" href="." wicket:id="template-link">use this template</a>
-</div>
-<div wicket:id="run-query">
-<a class="button" href="." wicket:id="query-link">run this query</a>
-</div>
 
 <h4>References</h4>
 

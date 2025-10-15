@@ -87,14 +87,6 @@ public class ExplorePage extends NanodashPage {
         if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
         publishConfirmPanel.add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
 
-        if (Utils.isNanopubOfClass(publishedNanopub, NTEMPLATE.ASSERTION_TEMPLATE)) {
-            publishConfirmPanel.add(new WebMarkupContainer("use-template").add(
-                    new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", publishedNanopub.getUri())))
-            );
-        } else {
-            publishConfirmPanel.add(new WebMarkupContainer("use-template").add(new Label("template-link")).setVisible(false));
-        }
-
         PageParameters plainLinkParams = new PageParameters();
         plainLinkParams.add("template", parameters.get("template"));
         if (!parameters.get("template-version").isEmpty()) {
