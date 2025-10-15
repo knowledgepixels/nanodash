@@ -99,9 +99,10 @@ public class ExplorePage extends NanodashPage {
         linkParams.remove("supersede-a");
         boolean publishAnotherFilledLinkVisible = false;
         for (NamedPair n : linkParams.getAllNamed()) {
-            if (n.getKey().equals("template")) continue;
-            if (n.getKey().equals("template-version")) continue;
-            publishAnotherFilledLinkVisible = true;
+            if (n.getKey().matches("(param|prparam|piparam[1-9][0-9]*)_.*")) {
+                publishAnotherFilledLinkVisible = true;
+                break;
+            }
         }
         if (publishAnotherFilledLinkVisible) {
             publishConfirmPanel.add(new BookmarkablePageLink<Void>("publish-another-filled-link", PublishPage.class, linkParams));
