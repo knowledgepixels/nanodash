@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,7 +40,14 @@ public class PinGroupList extends Panel {
             for (Object pinned : space.getPinnedResourceMap().get(tag)) {
                 if (pinnedResources.contains(pinned)) pinnedResources.remove(pinned);
             }
-            pinnedResourcesList.add(Pair.of(tag, space.getPinnedResourceMap().get(tag)));
+            List<Serializable> list = new ArrayList<>(space.getPinnedResourceMap().get(tag));
+            Collections.sort(list, new Comparator<Serializable>() {
+                @Override
+                public int compare(Serializable s0, Serializable s1) {
+                    return getName(s0).compareTo(getName(s1));
+                }
+            });
+            pinnedResourcesList.add(Pair.of(tag, list));
         }
         if (!pinnedResources.isEmpty()) {
             String l = pinnedResourcesList.isEmpty() ? "Resources" : "Other Resources";
@@ -69,5 +77,10 @@ public class PinGroupList extends Panel {
         add(new WebMarkupContainer("emptynotice").setVisible(pinnedResourcesList.isEmpty()));
     }
 
+    private static final String getName(Serializable s) {
+        if (s instanceof GrlcQuery q) return q.getLabel();
+        if (s instanceof Template t) return t.getLabel();
+        return s.toString();
+    }
 
 }

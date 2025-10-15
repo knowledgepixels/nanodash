@@ -1,11 +1,18 @@
 package com.knowledgepixels.nanodash;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import jakarta.xml.bind.DatatypeConverter;
+import static com.knowledgepixels.nanodash.Utils.vf;
+
+import java.io.Serializable;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -19,11 +26,13 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.time.format.DateTimeParseException;
-import java.util.*;
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -164,10 +173,10 @@ public class Space implements Serializable {
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
-        List<Serializable> pinnedResources = new ArrayList<>();
+        Set<Serializable> pinnedResources = new HashSet<>();
         List<SpaceQueryView> views = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
-        Map<String, List<Serializable>> pinnedResourceMap = new HashMap<>();
+        Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
         void addAdmin(IRI admin) {
             // TODO This isn't efficient for long owner lists:
@@ -342,7 +351,7 @@ public class Space implements Serializable {
      *
      * @return List of pinned resources.
      */
-    public List<Serializable> getPinnedResources() {
+    public Set<Serializable> getPinnedResources() {
         triggerDataUpdate();
         return data.pinnedResources;
     }
@@ -362,7 +371,7 @@ public class Space implements Serializable {
      *
      * @return Map where keys are tags and values are lists of pinned resources (Templates or GrlcQueries).
      */
-    public Map<String, List<Serializable>> getPinnedResourceMap() {
+    public Map<String, Set<Serializable>> getPinnedResourceMap() {
         triggerDataUpdate();
         return data.pinnedResourceMap;
     }
@@ -522,7 +531,7 @@ public class Space implements Serializable {
                         String tag = r.get("tag");
                         if (tag != null && !tag.isEmpty()) {
                             newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(TemplateData.get().getTemplate(r.get("template")));
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
                         }
                     }
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-queries", spaceIds)).getData()) {
@@ -533,7 +542,7 @@ public class Space implements Serializable {
                         String tag = r.get("tag");
                         if (tag != null && !tag.isEmpty()) {
                             newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new ArrayList<>()).add(query);
+                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(query);
                         }
                     }
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-views-for-space", spaceIds)).getData()) {
@@ -583,9 +592,9 @@ public class Space implements Serializable {
                 }
             } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
                 data.pinGroupTags.add(l.stringValue());
-                List<Serializable> list = data.pinnedResourceMap.get(l.stringValue());
+                Set<Serializable> list = data.pinnedResourceMap.get(l.stringValue());
                 if (list == null) {
-                    list = new ArrayList<>();
+                    list = new HashSet<>();
                     data.pinnedResourceMap.put(l.stringValue(), list);
                 }
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
