@@ -572,7 +572,7 @@ public class Space implements Serializable {
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
                     try {
                         data.startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
-                    } catch (DateTimeParseException ex) {
+                    } catch (IllegalArgumentException ex) {
                         logger.error("Failed to parse date {}", st.getObject().stringValue());
                     }
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/endDate")) {
