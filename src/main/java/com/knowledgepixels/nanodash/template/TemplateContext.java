@@ -320,8 +320,14 @@ public class TemplateContext implements Serializable {
                 processedValue = vf.createIRI(v);
             }
         } else if (template.isLocalResource(iri)) {
-            String prefix = Utils.getUriPrefix(iri);
-            processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
+            if (template.isIntroducedResource(iri) && fillMode == FillMode.SUPERSEDE) {
+                if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+                    processedValue = vf.createIRI(tf.getObject());
+                }
+            } else {
+                String prefix = Utils.getUriPrefix(iri);
+                processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
+            }
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languagetag = template.getLanguageTag(iri);

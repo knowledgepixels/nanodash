@@ -41,7 +41,7 @@ public class ValueItem extends Panel implements ContextComponent {
                 // This is a special placeholder that is always read-only
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (rg.getContext().isReadOnly()) {
-                if (template.isPlaceholder(iri)) {
+                if (template.isPlaceholder(iri) || template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
                     component = new ReadonlyItem("value", id, iri, statementPartId, rg);
                 } else {
                     component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
