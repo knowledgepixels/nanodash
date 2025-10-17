@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
@@ -120,6 +121,13 @@ public class ExplorePage extends NanodashPage {
         add(new TitleBar("titlebar", this, null));
 
         String tempRef = parameters.get("id").toString();
+
+        Space contextSpace = Space.get(parameters.get("context").toString(""));
+        if (contextSpace != null) {
+            add(new WebMarkupContainer("back-to-context").add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextSpace.getId())).setBody(Model.of("back to " + contextSpace.getLabel()))));
+        } else {
+            add(new WebMarkupContainer("back-to-context").setVisible(false));
+        }
 
         WebMarkupContainer raw = new WebMarkupContainer("raw");
         add(raw);
