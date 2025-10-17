@@ -137,7 +137,14 @@ public class LiteralDateTimeItem extends Panel implements ContextComponent {
             throw new UnificationException(v.stringValue());
         }
         Literal vL = (Literal) v;
-        ZonedDateTime zdt = ZonedDateTime.from(vL.temporalAccessorValue());
+        ZonedDateTime zdt;
+        if (vL.stringValue().matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+            // this is for backward compatibility for date-only literals that were defined as datetime literals even though they are not valid datetime instances
+            String dateTimeString = vL.stringValue() + "T00:00:00Z";
+            zdt = ZonedDateTime.parse(dateTimeString);
+        } else {
+            zdt = ZonedDateTime.from(vL.temporalAccessorValue());
+        }
         zonedDateTimePicker.setModelObject(zdt);
 
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
