@@ -25,6 +25,7 @@ public class PinGroupList extends Panel {
 
         final PageParameters tParams = new PageParameters();
         tParams.add("param_space", space.getId());
+        tParams.add("context", space.getId());
         if (space.getDefaultProvenance() != null) {
             tParams.add("prtemplate", space.getDefaultProvenance().stringValue());
         }

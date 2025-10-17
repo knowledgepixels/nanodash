@@ -105,12 +105,15 @@ public class SpacePage extends NanodashPage {
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         final List<AbstractLink> pinButtons = new ArrayList<>();
+
         AbstractLink addPinnedTemplateButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .add("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
                 .add("param_space", space.getId())
+                .add("context", space.getId())
             );
         addPinnedTemplateButton.setBody(Model.of("+ template"));
         pinButtons.add(addPinnedTemplateButton);
+
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .add("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
                 .add("param_space", space.getId())

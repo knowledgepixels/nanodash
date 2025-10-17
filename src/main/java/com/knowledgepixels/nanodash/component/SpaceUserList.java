@@ -41,7 +41,7 @@ public class SpaceUserList extends Panel {
                        item.getModelObject().getRight(),
                        m -> {
                            return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m));
-                       });
+                       }).setSpace(space);
                 if (role.getRoleAssignmentTemplate() != null) {
                     if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
                         panel.addButton("+", PublishPage.class, new PageParameters()
