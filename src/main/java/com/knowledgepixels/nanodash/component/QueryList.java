@@ -48,7 +48,7 @@ public class QueryList extends Panel {
 
             @Override
             protected void populateItem(Item<GrlcQuery> item) {
-                item.add(new QueryItem("queryitem", item.getModelObject()));
+                item.add(new QueryItem("queryitem", item.getModelObject(), null, true));
             }
 
         };

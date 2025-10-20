@@ -1,8 +1,14 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.ActivityPanel;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -16,17 +22,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
@@ -51,8 +48,14 @@ public class UserPage extends NanodashPage {
     private IRI userIri;
     private String pubkeyHashes = "";
 
+    /**
+     * Constructor for UserPage.
+     *
+     * @param parameters Page parameters, must include "id" with the user IRI.
+     */
     public UserPage(final PageParameters parameters) {
         super(parameters);
+        setOutputMarkupId(true);
 
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
@@ -117,7 +120,7 @@ public class UserPage extends NanodashPage {
 //			});
 //		}
 
-        add(new BookmarkablePageLink<Void>("showchannel", ChannelPage.class, new PageParameters().add("id", userIriString)));
+        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
 
         final Multimap<String, String> params = ArrayListMultimap.create();
         final String queryName;
@@ -167,21 +170,51 @@ public class UserPage extends NanodashPage {
                 "Spaces",
                 () -> Space.isLoaded(),
                 () -> {
-                        List<Space> spaces = new ArrayList<>();
-                        for (Space space : Space.getSpaceList()) {
-                            if (space.isMember(userIri)) spaces.add(space);
-                        }
-                        return spaces;
-                    },
+                    List<Space> spaces = new ArrayList<>();
+                    for (Space space : Space.getSpaceList()) {
+                        if (space.isMember(userIri)) spaces.add(space);
+                    }
+                    return spaces;
+                },
                 (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")")
-            ));
+        ));
+
+        if (pubkeyHashes.isEmpty()) {
+            add(new Label("activity", "<span class=\"negative\">Activity cannot be shown for this user due to missing user introduction.</span>").setEscapeModelStrings(false));
+        } else {
+            final QueryRef activityQueryRef = new QueryRef("get-monthly-type-overview-by-pubkeys");
+            for (String pk : pubkeyHashes.split(" ")) {
+                activityQueryRef.getParams().put("pubkey", pk);
+            }
+            ApiResponse activityQueryResponse = ApiCache.retrieveResponse(activityQueryRef);
+            if (activityQueryResponse != null) {
+                if (activityQueryResponse.getData().isEmpty()) {
+                    add(new Label("activity", "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false));
+                } else {
+                    add(new ActivityPanel("activity", activityQueryResponse));
+                }
+            } else {
+                add(new ApiResultComponent("activity", activityQueryRef) {
+    
+                    @Override
+                    public Component getApiResultComponent(String markupId, ApiResponse response) {
+                        if (response.getData().isEmpty()) {
+                            return new Label(markupId, "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false);
+                        } else {
+                            return new ActivityPanel(markupId, response);
+                        }
+                    }
+                });
+    
+            }
+        }
     }
 
     private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {
         if (response.getData().isEmpty()) {
             return new Label(markupId, "(none)");
         } else {
-            return NanopubResults.fromApiResponse(markupId, response);
+            return NanopubResults.fromApiResponse(markupId, response, 5);
         }
     }
 

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8" />
 <title wicket:id="pagetitle">... (explore) | nanodash</title>
-<link rel="stylesheet" href="style.css?v=3.54" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="style.css?v=3.56" type="text/css" media="screen" title="Stylesheet" />
 <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 <script>
@@ -28,9 +28,36 @@ if (window.location.hash) {
 
 <p>Full identifier: <a href="#" wicket:id="urilink" id="ref"></a></p>
 
+<p wicket:id="back-to-context">
+<a class="button" href="." wicket:id="back-to-context-link">back to context</a>
+</p>
+
 <div wicket:id="classes-panel"></div>
 
 <div wicket:id="statusline">Status</div>
+
+<p wicket:id="use-template">
+<a class="button" href="." wicket:id="template-link">use this template</a>
+</p>
+<p wicket:id="run-query">
+<a class="button" href="." wicket:id="query-link">run this query</a>
+</p>
+
+
+<div wicket:id="publish-confirm-panel">
+
+<p wicket:id="missing-intro-warning">
+It seems that <strong class="negative">you haven't published an introduction yet</strong> to link the local key to your ORCID identifier.
+It is recommended that you do so via <a href="./profile?message=publish-intro">your profile page</a>.
+</p>
+
+<h4>Continue Publishing</h4>
+<p>
+<a class="button" href="." wicket:id="publish-another-link">with same template</a>
+<a class="button" href="." wicket:id="publish-another-filled-link">with same template and pre-filled values</a>
+</p>
+</div>
+
 
 <div wicket:id="instances-panel"></div>
 
@@ -41,13 +68,6 @@ if (window.location.hash) {
 <div wicket:id="nanopub-header"></div>
 
 <span wicket:id="nanopub"></span>
-
-<div wicket:id="use-template">
-<a class="button" href="." wicket:id="template-link">use this template</a>
-</div>
-<div wicket:id="run-query">
-<a class="button" href="." wicket:id="query-link">run this query</a>
-</div>
 
 <h4>References</h4>
 

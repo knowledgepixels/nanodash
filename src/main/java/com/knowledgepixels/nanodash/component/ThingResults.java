@@ -44,7 +44,7 @@ public class ThingResults extends Panel {
                 if (thingId.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*") && (thingLabel == null || thingLabel.isBlank()) && npLabel != null && !npLabel.isBlank()) {
                     thingLabel = Utils.getShortNameFromURI(thingId) + " in '" + npLabel.replaceFirst(" - [\\s\\S]*$", "") + "'";
                 }
-                item.add(new NanodashLink("thing-link", thingId, null, null, false, thingLabel));
+                item.add(new NanodashLink("thing-link", thingId, null, null, thingLabel));
                 String npId = item.getModelObject().get("np");
                 item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().add("id", npId)));
             }

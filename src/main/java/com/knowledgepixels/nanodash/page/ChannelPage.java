@@ -143,7 +143,7 @@ public class ChannelPage extends NanodashPage {
         final QueryRef queryRef = new QueryRef(queryName, params);
         ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
         if (cachedResponse != null) {
-            add(NanopubResults.fromApiResponse("nanopubs", cachedResponse));
+            add(NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20));
         } else {
             add(new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
 
@@ -161,7 +161,7 @@ public class ChannelPage extends NanodashPage {
                             if (r != null) break;
                         }
                     }
-                    return NanopubResults.fromApiResponse(markupId, r);
+                    return NanopubResults.fromApiResponse(markupId, r, 20);
                 }
 
                 @Override

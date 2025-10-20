@@ -45,14 +45,16 @@ public class QueryResultTable extends Panel {
     private DataTable<ApiResponseEntry, String> table;
     private Label errorLabel;
 
-    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain) {
+    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, String title, long rowsPerPage) {
         super(id);
 
         if (plain) {
             add(new Label("label").setVisible(false));
             add(new Label("morelink").setVisible(false));
         } else {
-            add(new Label("label", q.getLabel()));
+            String label = q.getLabel();
+            if (title != null) label = title;
+            add(new Label("label", label));
             add(new BookmarkablePageLink<Void>("morelink", QueryPage.class, new PageParameters().add("id", q.getNanopub().getUri())));
         }
 
@@ -68,7 +70,7 @@ public class QueryResultTable extends Panel {
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             dp = new DataProvider(response.getData());
-            table = new DataTable<>("table", columns, dp, 20);
+            table = new DataTable<>("table", columns, dp, rowsPerPage);
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
@@ -115,7 +117,7 @@ public class QueryResultTable extends Panel {
                     cellItem.add(new ComponentSequence(componentId, ", ", links));
                 } else if (value.matches("https?://.+")) {
                     String label = rowModel.getObject().get(key + "_label");
-                    cellItem.add(new NanodashLink(componentId, value, null, null, false, label));
+                    cellItem.add(new NanodashLink(componentId, value, null, null, label));
                 } else {
                     if (key.startsWith("pubkey")) {
                         cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
@@ -204,25 +206,41 @@ public class QueryResultTable extends Panel {
 //
 //    }
 
-    /**
-     * <p>createComponent.</p>
-     *
-     * @param markupId a {@link java.lang.String} object
-     * @param queryRef the query reference
-     * @param plain    a boolean
-     * @return a {@link org.apache.wicket.Component} object
-     */
-    public static Component createComponent(final String markupId, QueryRef queryRef, boolean plain) {
+    public static Component createComponent(final String markupId, QueryRef queryRef, String title, long rowsPerPage) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return new QueryResultTable(markupId, q, response, plain);
+            return new QueryResultTable(markupId, q, response, false, title, rowsPerPage);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, plain);
+                    return new QueryResultTable(markupId, q, response, false, title, rowsPerPage);
+                }
+
+            };
+        }
+    }
+
+    /**
+     * <p>createComponent.</p>
+     *
+     * @param markupId a {@link java.lang.String} object
+     * @param queryRef the query reference
+     * @return a {@link org.apache.wicket.Component} object
+     */
+    public static Component createPlainComponent(final String markupId, QueryRef queryRef, long rowsPerPage) {
+        final GrlcQuery q = GrlcQuery.get(queryRef);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        if (response != null) {
+            return new QueryResultTable(markupId, q, response, true, null, rowsPerPage);
+        } else {
+            return new ApiResultComponent(markupId, queryRef) {
+
+                @Override
+                public Component getApiResultComponent(String markupId, ApiResponse response) {
+                    return new QueryResultTable(markupId, q, response, true, null, rowsPerPage);
                 }
 
             };

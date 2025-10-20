@@ -40,7 +40,7 @@ public class ResultTablePage extends NanodashPage {
         final String shortName = query.replaceFirst("^.*/", "");
         add(new Label("pagetitle", shortName + " (result table) | nanodash"));
 
-        add(QueryResultTable.createComponent("table", new QueryRef(query), false));
+        add(QueryResultTable.createComponent("table", new QueryRef(query), null, 20));
     }
 
     /**

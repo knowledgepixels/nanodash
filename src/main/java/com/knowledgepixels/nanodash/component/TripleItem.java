@@ -24,10 +24,10 @@ public class TripleItem extends Panel {
         super(id);
 
         WebMarkupContainer statement = new WebMarkupContainer("triple");
-        statement.add(new NanodashLink("subj", st.getSubject().stringValue(), np, templateClass, false));
-        statement.add(new NanodashLink("pred", st.getPredicate().stringValue(), np, templateClass, false));
+        statement.add(new NanodashLink("subj", st.getSubject().stringValue(), np, templateClass));
+        statement.add(new NanodashLink("pred", st.getPredicate().stringValue(), np, templateClass));
         if (st.getObject() instanceof IRI) {
-            statement.add(new NanodashLink("obj", st.getObject().stringValue(), np, templateClass, true));
+            statement.add(new NanodashLink("obj", st.getObject().stringValue(), np, templateClass));
         } else {
             statement.add(new Label("obj", "\"" + st.getObject().stringValue() + "\""));
         }

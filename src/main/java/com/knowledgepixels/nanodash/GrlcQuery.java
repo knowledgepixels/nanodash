@@ -1,14 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -24,9 +17,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.component.QueryParamField;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Represents a GRLC query extracted from a nanopublication.
@@ -38,6 +30,12 @@ public class GrlcQuery implements Serializable {
 
     private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
 
+    /**
+     * Returns a singleton instance of GrlcQuery for the given QueryRef.
+     *
+     * @param ref the QueryRef object containing the query name
+     * @return a GrlcQuery instance
+     */
     public static GrlcQuery get(QueryRef ref) {
         return get(ref.getName());
     }

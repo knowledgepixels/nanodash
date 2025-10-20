@@ -37,6 +37,12 @@ public class SpaceListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
+        addSpacePanel("Alliance", true);
+        addSpacePanel("Consortium", false);
+        addSpacePanel("Organization", true);
+        addSpacePanel("Taskforce", false);
+        addSpacePanel("Division", true);
+        addSpacePanel("Taskunit", false);
         addSpacePanel("Group", true);
         addSpacePanel("Project", false);
         addSpacePanel("Program", true);
@@ -79,7 +85,7 @@ public class SpaceListPage extends NanodashPage {
             (space) -> {
                 return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
             }
-        ).addButton("new...", PublishPage.class, newLinkParams));
+        ).addButton("+", PublishPage.class, newLinkParams));
     }
 
 }

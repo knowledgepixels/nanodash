@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -22,10 +23,15 @@ public class PinGroupList extends Panel {
     public PinGroupList(String markupId, Space space) {
         super(markupId);
 
-        final PageParameters params = new PageParameters();
+        final PageParameters tParams = new PageParameters();
+        tParams.add("param_space", space.getId());
+        tParams.add("context", space.getId());
         if (space.getDefaultProvenance() != null) {
-            params.add("prtemplate", space.getDefaultProvenance().stringValue());
+            tParams.add("prtemplate", space.getDefaultProvenance().stringValue());
         }
+
+        final PageParameters qParams = new PageParameters();
+        qParams.add("queryparam_space", space.getId());
 
         List<Pair<String, List<Serializable>>> pinnedResourcesList = new ArrayList<>();
         List<String> pinGroupTags = new ArrayList<>(space.getPinGroupTags());
@@ -35,7 +41,14 @@ public class PinGroupList extends Panel {
             for (Object pinned : space.getPinnedResourceMap().get(tag)) {
                 if (pinnedResources.contains(pinned)) pinnedResources.remove(pinned);
             }
-            pinnedResourcesList.add(Pair.of(tag, space.getPinnedResourceMap().get(tag)));
+            List<Serializable> list = new ArrayList<>(space.getPinnedResourceMap().get(tag));
+            Collections.sort(list, new Comparator<Serializable>() {
+                @Override
+                public int compare(Serializable s0, Serializable s1) {
+                    return getName(s0).compareTo(getName(s1));
+                }
+            });
+            pinnedResourcesList.add(Pair.of(tag, list));
         }
         if (!pinnedResources.isEmpty()) {
             String l = pinnedResourcesList.isEmpty() ? "Resources" : "Other Resources";
@@ -50,8 +63,13 @@ public class PinGroupList extends Panel {
                         item.getModelObject().getLeft(),
                         item.getModelObject().getRight(),
                         (o) -> {
-                            if (o instanceof Template t) return new TemplateItem("item", t, params);
-                            if (o instanceof GrlcQuery q) return new QueryItem("item", q);
+                            if (o instanceof Template t) {
+                                t.addToLabelMap(space.getId(), space.getLabel());
+                                return new TemplateItem("item", t, tParams, false);
+                            }
+                            if (o instanceof GrlcQuery q) {
+                                return new QueryItem("item", q, qParams, false);
+                            }
                             return null;
                         }));
             }
@@ -60,5 +78,10 @@ public class PinGroupList extends Panel {
         add(new WebMarkupContainer("emptynotice").setVisible(pinnedResourcesList.isEmpty()));
     }
 
+    private static final String getName(Serializable s) {
+        if (s instanceof GrlcQuery q) return q.getLabel();
+        if (s instanceof Template t) return t.getLabel();
+        return s.toString();
+    }
 
 }

@@ -331,8 +331,14 @@ public class TemplateContext implements Serializable {
                 processedValue = vf.createIRI(v);
             }
         } else if (template.isLocalResource(iri)) {
-            String prefix = Utils.getUriPrefix(iri);
-            processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
+            if (template.isIntroducedResource(iri) && fillMode == FillMode.SUPERSEDE) {
+                if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+                    processedValue = vf.createIRI(tf.getObject());
+                }
+            } else {
+                String prefix = Utils.getUriPrefix(iri);
+                processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
+            }
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languageTag = template.getLanguageTag(iri);
@@ -401,7 +407,8 @@ public class TemplateContext implements Serializable {
      * Propagates the statements from this context to a NanopubCreator.
      *
      * @param npCreator the NanopubCreator to which the statements will be added
-     * @throws org.nanopub.MalformedNanopubException if there is an error in the nanopub structure
+     * @throws org.nanopub.MalformedNanopubException        if there is an error in the nanopub structure
+     * @throws org.nanopub.NanopubAlreadyFinalizedException if the nanopub has already been finalized
      */
     public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         if (template.getNanopub() instanceof NanopubWithNs) {

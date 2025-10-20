@@ -79,13 +79,13 @@ public class HomePage extends NanodashPage {
         final QueryRef rQueryRef = new QueryRef("get-most-recent-nanopubs");
         ApiResponse rResponse = ApiCache.retrieveResponse(rQueryRef);
         if (rResponse != null) {
-            add(NanopubResults.fromApiResponse("mostrecent", rResponse));
+            add(NanopubResults.fromApiResponse("mostrecent", rResponse, 10));
         } else {
             add(new ApiResultComponent("mostrecent", rQueryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return NanopubResults.fromApiResponse(markupId, response);
+                    return NanopubResults.fromApiResponse(markupId, response, 10);
                 }
             });
 

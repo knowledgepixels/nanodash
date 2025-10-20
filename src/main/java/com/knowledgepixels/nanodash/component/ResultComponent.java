@@ -8,12 +8,21 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 
+/**
+ * A base class for components that display results from an API call with a loading indicator.
+ * This class extends AjaxLazyLoadPanel to provide lazy loading functionality.
+ */
 public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
 
     private boolean waitIconEnabled = true;
     private String waitMessage = null;
     private String waitComponentHtml = null;
 
+    /**
+     * Constructor.
+     *
+     * @param id the component id
+     */
     public ResultComponent(String id) {
         super(id);
     }
@@ -78,6 +87,9 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
      * @return a string containing the HTML for the waiting message
      */
     public final static String getWaitComponentHtml(String waitMessage) {
+        if (waitMessage == null || waitMessage.isBlank()) {
+            return "<p class=\"waiting nomessage\">" + getWaitIconHtml() + "</p>";
+        }
         return "<p class=\"waiting\">" + waitMessage + " " + getWaitIconHtml() + "</p>";
     }
 

@@ -103,7 +103,7 @@ public class ProjectPage extends NanodashPage {
                         "templates",
                         item.getModelObject().getLeft(),
                         item.getModelObject().getRight(),
-                        (template) -> new TemplateItem("item", template, params)
+                        (template) -> new TemplateItem("item", template, params, false)
                     ));
             }
 
@@ -112,7 +112,7 @@ public class ProjectPage extends NanodashPage {
                 "templates",
                 "Templates",
                 templates,
-                (template) -> new TemplateItem("item", template, params)
+                (template) -> new TemplateItem("item", template, params, false)
             ));
 
         add(new ItemListPanel<IRI>(
@@ -140,7 +140,7 @@ public class ProjectPage extends NanodashPage {
             @Override
             protected void populateItem(Item<IRI> item) {
                 String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), false));
+                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), null, 10));
             }
 
         });

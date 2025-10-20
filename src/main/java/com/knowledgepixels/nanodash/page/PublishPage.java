@@ -54,7 +54,7 @@ public class PublishPage extends NanodashPage {
                 }
                 String formObjId = parameters.get("formobj").toString();
                 if (!session.hasForm(formObjId)) {
-                    PublishForm publishForm = new PublishForm("form", parameters, getClass(), PublishConfirmPage.class);
+                    PublishForm publishForm = new PublishForm("form", parameters, getClass(), ExplorePage.class);
                     session.setForm(formObjId, publishForm);
                 }
                 add(session.getForm(formObjId));

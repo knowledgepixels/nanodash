@@ -1,15 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -20,8 +12,15 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static com.knowledgepixels.nanodash.Utils.vf;
 
 /**
  * Class representing a Nanodash project.
@@ -29,12 +28,17 @@ import com.knowledgepixels.nanodash.template.TemplateData;
 public class Project implements Serializable {
 
     private static List<Project> projectList = null;
-    private static ConcurrentMap<String,Project> projectsByCoreInfo = new ConcurrentHashMap<>();
-    private static ConcurrentMap<String,Project> projectsById = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, Project> projectsByCoreInfo = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, Project> projectsById = new ConcurrentHashMap<>();
 
+    /**
+     * Refresh the list of projects from the given API response.
+     *
+     * @param resp The API response containing project data.
+     */
     public static synchronized void refresh(ApiResponse resp) {
         projectList = new ArrayList<>();
-        ConcurrentMap<String,Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
+        ConcurrentMap<String, Project> prevProjectsByCoreInfoPrev = projectsByCoreInfo;
         projectsByCoreInfo = new ConcurrentHashMap<>();
         projectsById.clear();
         for (ApiResponseEntry entry : resp.getData()) {
@@ -47,22 +51,37 @@ public class Project implements Serializable {
         }
     }
 
+    /**
+     * Ensure that the project list is loaded. If not, it fetches the data from the API.
+     */
     public static void ensureLoaded() {
         if (projectList == null) {
             refresh(QueryApiAccess.forcedGet(new QueryRef("get-projects")));
         }
     }
 
+    /**
+     * Get the list of all projects.
+     */
     public static List<Project> getProjectList() {
         ensureLoaded();
         return projectList;
     }
 
+    /**
+     * Get a project by its ID.
+     *
+     * @param id The ID of the project.
+     * @return The project with the given ID, or null if not found.
+     */
     public static Project get(String id) {
         ensureLoaded();
         return projectsById.get(id);
     }
 
+    /**
+     * Mark all projects as needing data refresh.
+     */
     public static void refresh() {
         ensureLoaded();
         for (Project project : projectList) {
@@ -76,7 +95,7 @@ public class Project implements Serializable {
     private String description = null;
     private List<IRI> owners = new ArrayList<>();
     private List<IRI> members = new ArrayList<>();
-    private ConcurrentMap<String,IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, IRI> ownerPubkeyMap = new ConcurrentHashMap<>();
     private List<Template> templates = new ArrayList<>();
     private Set<String> templateTags = new HashSet<>();
     private ConcurrentMap<String, List<Template>> templatesPerTag = new ConcurrentHashMap<>();
@@ -130,61 +149,131 @@ public class Project implements Serializable {
         }
     }
 
+    /**
+     * Get the ID of the project.
+     *
+     * @return The project ID.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Get the root nanopublication ID of the project.
+     *
+     * @return The root nanopublication ID.
+     */
     public String getRootNanopubId() {
         return rootNanopubId;
     }
 
+    /**
+     * Get a string containing the core information of the project (ID and root nanopub ID).
+     *
+     * @return A string with the project ID and root nanopub ID.
+     */
     public String getCoreInfoString() {
         return id + " " + rootNanopubId;
     }
 
+    /**
+     * Get the root nanopublication of the project.
+     *
+     * @return The root nanopublication.
+     */
     public Nanopub getRootNanopub() {
         return rootNanopub;
     }
 
+    /**
+     * Get the label of the project.
+     *
+     * @return The project label.
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * Get the description of the project.
+     *
+     * @return The project description.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Check if the project data has been initialized.
+     *
+     * @return True if the data is initialized, false otherwise.
+     */
     public boolean isDataInitialized() {
         triggerDataUpdate();
         return dataInitialized;
     }
 
+    /**
+     * Get the list of owners of the project.
+     *
+     * @return A list of IRIs representing the owners.
+     */
     public List<IRI> getOwners() {
         triggerDataUpdate();
         return owners;
     }
 
+    /**
+     * Get the list of members of the project.
+     *
+     * @return A list of IRIs representing the members.
+     */
     public List<IRI> getMembers() {
         triggerDataUpdate();
         return members;
     }
 
+    /**
+     * Get the list of templates associated with the project.
+     *
+     * @return A list of templates.
+     */
     public List<Template> getTemplates() {
         return templates;
     }
 
+    /**
+     * Get the set of template tags associated with the project.
+     *
+     * @return A set of template tags.
+     */
     public Set<String> getTemplateTags() {
         return templateTags;
     }
 
+    /**
+     * Get a map of templates categorized by their tags.
+     *
+     * @return A concurrent map where keys are tags and values are lists of templates.
+     */
     public ConcurrentMap<String, List<Template>> getTemplatesPerTag() {
         return templatesPerTag;
     }
 
+    /**
+     * Get the list of query IDs associated with the project.
+     *
+     * @return A list of IRIs representing the query IDs.
+     */
     public List<IRI> getQueryIds() {
         return queryIds;
     }
 
+    /**
+     * Get the default provenance IRI for the project.
+     *
+     * @return The default provenance IRI.
+     */
     public IRI getDefaultProvenance() {
         return defaultProvenance;
     }

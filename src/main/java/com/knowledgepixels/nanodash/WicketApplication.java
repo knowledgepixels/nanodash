@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
 import com.knowledgepixels.nanodash.page.*;
+import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -92,6 +93,7 @@ public class WicketApplication extends WebApplication {
     @Override
     protected void init() {
         super.init();
+        WicketWebjars.install(this);
 
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
@@ -106,7 +108,6 @@ public class WicketApplication extends WebApplication {
         mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
         mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
         mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
-        mountPage(PublishConfirmPage.MOUNT_PATH, PublishConfirmPage.class);
         mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
         mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
         mountPage(GroupDemoPage.MOUNT_PATH, GroupDemoPage.class);

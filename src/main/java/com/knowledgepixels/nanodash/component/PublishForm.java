@@ -78,7 +78,20 @@ public class PublishForm extends Panel {
     /**
      * Fill modes for the nanopublication to be created.
      */
-    public enum FillMode {USE, SUPERSEDE, DERIVE}
+    public enum FillMode {
+        /**
+         * Use fill mode
+         */
+        USE,
+        /**
+         * Supersede fill mode
+         */
+        SUPERSEDE,
+        /**
+         * Derive fill mode
+         */
+        DERIVE
+    }
 
     protected Form<?> form;
     protected FeedbackPanel feedbackPanel;

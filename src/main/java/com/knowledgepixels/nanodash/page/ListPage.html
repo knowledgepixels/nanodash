@@ -4,34 +4,52 @@
 <head>
   <meta charset="utf-8"/>
   <title wicket:id="pagetitle">... (list) | nanodash</title>
-  <link rel="stylesheet" href="style.css?v=3.54" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="style.css?v=3.56" type="text/css" media="screen" title="Stylesheet"/>
   <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
         title="Stylesheet"/>
   <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
-
 <div wicket:id="titlebar"></div>
-
 <div id="content-pane">
-
   <div class="row-section">
     <div class="col-12">
-
       <h2>Nanopublications</h2>
-      <p>Filtering by type: <a href="#" wicket:id="typeUri" id="ref"></a></p>
+      <div class="filter-section">
+        <div class="filter-container type-filter" wicket:id="typeFilterContainer">
+          <span class="filter-container-title">Type</span>
+          <wicket:container class="type-chip" wicket:id="typeNames">
+          <span class="typetag">
+            <span wicket:id="typeName"></span>
+            <a wicket:id="removeType" class="clear-cross">&#10005;</a>
+          </span>
+          </wicket:container>
+        </div>
+        <div class="filter-container user-filter" wicket:id="userFilterContainer">
+          <span class="filter-container-title">User</span>
+          <span wicket:id="userId"></span>
+          <a wicket:id="removeUser" class="clear-cross">&#10005;</a>
+        </div>
+        <div class="filter-container date-filter" wicket:id="dateFilterContainer">
+          <span class="filter-container-title">Date</span>
+          <div class="date-container">
+            <span class="date-label">From</span><input wicket:id="startDate" type="text"/>
+            <a wicket:id="clearStartDate" class="clear-cross">&#10005;</a>
+          </div>
+          <div class="date-container">
+            <span class="date-label">To</span><input wicket:id="endDate" type="text"/>
+            <a wicket:id="clearEndDate" class="clear-cross">&#10005;</a>
+          </div>
+        </div>
+      </div>
       <div class="view-selector">
         <span wicket:id="listEnabler" class="list"></span>
         <span wicket:id="gridEnabler" class="grid"></span>
       </div>
       <div class="flex-container" wicket:id="nanopubs"></div>
-
     </div>
   </div>
-
 </div>
-
 </body>
-
 </html>
