@@ -331,9 +331,10 @@ public class TemplateContext implements Serializable {
                 processedValue = vf.createIRI(v);
             }
         } else if (template.isLocalResource(iri)) {
+            String tfObject = (String) tfObjectGeneric;
             if (template.isIntroducedResource(iri) && fillMode == FillMode.SUPERSEDE) {
-                if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                    processedValue = vf.createIRI(tf.getObject());
+                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                    processedValue = vf.createIRI(tfObject);
                 }
             } else {
                 String prefix = Utils.getUriPrefix(iri);
