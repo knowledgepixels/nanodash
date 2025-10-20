@@ -5,13 +5,15 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
@@ -49,7 +51,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         final Template template = context.getTemplate();
         this.iri = iri;
         regex = template.getRegex(iri);
-        IModel<String> model = context.getComponentModels().get(iri);
+        IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
@@ -63,17 +65,25 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
         if (context.getTemplate().getLabel(iri) != null) {
             tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
-        tc.add(new IValidator<String>() {
+        tc.add((IValidator<String>) s -> {
+            if (regex != null) {
+                if (!s.getValue().matches(regex)) {
+                    s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+                }
+            }
+        });
 
+        tc.add(new OnChangeAjaxBehavior() {
             @Override
-            public void validate(IValidatable<String> s) {
-                if (regex != null) {
-                    if (!s.getValue().matches(regex)) {
-                        s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+            protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == tc) continue;
+                    if (c.getDefaultModel() == tc.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
                     }
                 }
             }
-
         });
         context.getComponentModels().put(iri, tc.getModel());
         context.getComponents().add(tc);

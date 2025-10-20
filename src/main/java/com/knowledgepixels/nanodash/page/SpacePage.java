@@ -32,8 +32,6 @@ import com.knowledgepixels.nanodash.component.ViewList;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 
-
-
 /**
  * The ProjectPage class represents a space page in the Nanodash application.
  */

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.LiteralDateItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
@@ -13,10 +14,12 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.*;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -24,14 +27,14 @@ import java.util.*;
  */
 public class TemplateContext implements Serializable {
 
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private final ContextType contextType;
     private final Template template;
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private List<Component> components = new ArrayList<>();
-    private Map<IRI, IModel<String>> componentModels = new HashMap<>();
+    private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
     private List<StatementItem> statementItems;
@@ -87,7 +90,7 @@ public class TemplateContext implements Serializable {
         if (statementItems != null) return;
         statementItems = new ArrayList<>();
         for (IRI st : template.getStatementIris()) {
-            StatementItem si = new StatementItem(componentId, st, this);
+            StatementItem<?> si = new StatementItem<>(componentId, st, this);
             statementItems.add(si);
             for (IRI i : si.getIriSet()) {
                 if (iriSet.contains(i)) {
@@ -104,7 +107,7 @@ public class TemplateContext implements Serializable {
      * Finalizes the statements by processing all parameters and setting the repetition counts.
      */
     public void finalizeStatements() {
-        Map<StatementItem, Integer> finalRepetitionCount = new HashMap<>();
+        Map<StatementItem<?>, Integer> finalRepetitionCount = new HashMap<>();
         for (IRI ni : narrowScopeMap.keySet()) {
             // TODO: Move all occurrences of this to utility function:
             String postfix = Utils.getUriPostfix(ni);
@@ -235,7 +238,7 @@ public class TemplateContext implements Serializable {
      *
      * @return a map of IRI to model of strings
      */
-    public Map<IRI, IModel<String>> getComponentModels() {
+    public Map<IRI, IModel<?>> getComponentModels() {
         return componentModels;
     }
 
@@ -277,7 +280,9 @@ public class TemplateContext implements Serializable {
      * @return the processed Value, or the original Value if no processing is applicable
      */
     public Value processValue(Value value) {
-        if (!(value instanceof IRI)) return value;
+        if (!(value instanceof IRI)) {
+            return value;
+        }
         IRI iri = (IRI) value;
         if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
             iri = NanodashSession.get().getUserIri();
@@ -288,24 +293,30 @@ public class TemplateContext implements Serializable {
             iri = vf.createIRI(targetNamespace);
         }
         // TODO: Move this code below to the respective placeholder classes:
-        IModel<String> tf = componentModels.get(iri);
+        IModel<?> tf = componentModels.get(iri);
         Value processedValue = null;
+        Object tfObjectGeneric = null;
+        if (tf != null) {
+            tfObjectGeneric = tf.getObject();
+        }
         if (template.isRestrictedChoicePlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                 String prefix = template.getPrefix(iri);
                 if (prefix == null) prefix = "";
                 if (template.isLocalResource(iri)) prefix = targetNamespace;
-                if (tf.getObject().matches("https?://.+")) prefix = "";
+                if (tfObject.matches("https?://.+")) prefix = "";
                 String v = prefix + tf.getObject();
                 if (v.matches("[^:# ]+")) v = targetNamespace + v;
                 if (v.matches("https?://.*")) {
                     processedValue = vf.createIRI(v);
                 } else {
-                    processedValue = vf.createLiteral(tf.getObject());
+                    processedValue = vf.createLiteral(tfObject);
                 }
             }
         } else if (template.isUriPlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                 String prefix = template.getPrefix(iri);
                 if (prefix == null) prefix = "";
                 if (template.isLocalResource(iri)) prefix = targetNamespace;
@@ -313,16 +324,17 @@ public class TemplateContext implements Serializable {
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tf.getObject().matches("https?://.+")) prefix = "";
+                    if (tfObject.matches("https?://.+")) prefix = "";
                     v = prefix + tf.getObject();
                 }
                 if (v.matches("[^:# ]+")) v = targetNamespace + v;
                 processedValue = vf.createIRI(v);
             }
         } else if (template.isLocalResource(iri)) {
+            String tfObject = (String) tfObjectGeneric;
             if (template.isIntroducedResource(iri) && fillMode == FillMode.SUPERSEDE) {
-                if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                    processedValue = vf.createIRI(tf.getObject());
+                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                    processedValue = vf.createIRI(tfObject);
                 }
             } else {
                 String prefix = Utils.getUriPrefix(iri);
@@ -330,30 +342,46 @@ public class TemplateContext implements Serializable {
             }
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
-            String languagetag = template.getLanguageTag(iri);
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                if (datatype != null) {
-                    processedValue = vf.createLiteral(tf.getObject(), datatype);
-                } else if (languagetag != null) {
-                    processedValue = vf.createLiteral(tf.getObject(), languagetag);
-                } else {
-                    processedValue = vf.createLiteral(tf.getObject());
+            String languageTag = template.getLanguageTag(iri);
+            if (datatype != null) {
+                if (datatype.equals(XSD.DATETIME)) {
+                    ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
+                    if (tfObject != null) {
+                        processedValue = vf.createLiteral(tfObject);
+                    }
+                } else if (datatype.equals(XSD.DATE)) {
+                    Date tfObject = (Date) tfObjectGeneric;
+                    if (tfObject != null) {
+                        processedValue = vf.createLiteral(LiteralDateItem.format.format(tfObject), datatype);
+                    }
+                }
+            } else {
+                String tfObject = (String) tfObjectGeneric;
+                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                    if (datatype != null) {
+                        processedValue = vf.createLiteral(tfObject, datatype);
+                    } else if (languageTag != null) {
+                        processedValue = vf.createLiteral(tfObject, languageTag);
+                    } else {
+                        processedValue = vf.createLiteral(tfObject);
+                    }
                 }
             }
-
         } else if (template.isValuePlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                if (Utils.isValidLiteralSerialization(tf.getObject())) {
-                    processedValue = Utils.getParsedLiteral(tf.getObject());
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                if (Utils.isValidLiteralSerialization(tfObject)) {
+                    processedValue = Utils.getParsedLiteral(tfObject);
                 } else {
-                    String v = tf.getObject();
+                    String v = tfObject;
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
                 }
             }
         } else if (template.isSequenceElementPlaceholder(iri)) {
-            if (tf != null && tf.getObject() != null && !tf.getObject().isEmpty()) {
-                processedValue = vf.createIRI(tf.getObject());
+            String tfObject = (String) tfObjectGeneric;
+            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
+                processedValue = vf.createIRI(tfObject);
             }
         } else {
             processedValue = iri;

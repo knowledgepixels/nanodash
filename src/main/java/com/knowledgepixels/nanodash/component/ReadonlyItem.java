@@ -78,7 +78,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         context = rg.getContext();
         this.iri = iriP;
         template = context.getTemplate();
-        model = context.getComponentModels().get(iri);
+        model = (IModel<String>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);

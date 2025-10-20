@@ -59,7 +59,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
         this.context = context;
         this.iri = iri;
         Template template = context.getTemplate();
-        model = context.getComponentModels().get(iri);
+        model = (IModel<String>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);

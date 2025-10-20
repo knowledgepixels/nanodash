@@ -32,7 +32,7 @@ import java.util.*;
 /**
  * Represents a single item in a statement, which can be a subject, predicate, or object.
  */
-public class StatementItem extends Panel {
+public class StatementItem<T> extends Panel {
 
     private TemplateContext context;
     private IRI statementId;
@@ -431,16 +431,20 @@ public class StatementItem extends Panel {
             for (IRI iriBase : iriSet) {
                 IRI thisIri = vf.createIRI(iriBase + thisSuffix);
                 if (context.getComponentModels().containsKey(thisIri)) {
-                    IModel<String> swapModel1 = context.getComponentModels().get(thisIri);
+                    IModel<T> swapModel1 = (IModel<T>) context.getComponentModels().get(thisIri);
                     for (int i = getRepeatIndex() + 1; i < repetitionGroups.size(); i++) {
-                        IModel<String> swapModel2 = context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
+                        IModel<T> swapModel2 = (IModel<T>) context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
                         if (swapModel1 != null && swapModel2 != null) {
+                            // TODO check how to fix this -- maybe a function that does the swap?
                             swapModel1.setObject(swapModel2.getObject());
                         }
                         swapModel1 = swapModel2;
                     }
                     // Clear last object:
-                    if (swapModel1 != null) swapModel1.setObject("");
+                    if (swapModel1 != null) {
+                        // FIXME check if this is fine now
+                        swapModel1.setObject((T) null);
+                    }
                 }
             }
             RepetitionGroup lastGroup = repetitionGroups.get(repetitionGroups.size() - 1);

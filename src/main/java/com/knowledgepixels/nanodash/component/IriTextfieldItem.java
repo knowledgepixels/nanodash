@@ -58,7 +58,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
         this.context = context;
         this.iri = iriP;
         final Template template = context.getTemplate();
-        IModel<String> model = context.getComponentModels().get(iri);
+        IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);

@@ -1414,7 +1414,6 @@ div.widthmax {
 }
 
 .progress {
-  margin-top: auto;
   display: flex;
   justify-content: space-between;
   margin-top: 40px;
@@ -1697,7 +1696,7 @@ span.usertext {
   vertical-align: bottom !important;
   padding-bottom: 30px;
   padding-left: 20px;
-  text-indent: 0px;
+  text-indent: 0;
 }
 
 .collapsed::after {
@@ -1773,6 +1772,7 @@ div.navigator .goto a[disabled] {
   display: inline;
   width: auto;
 }
+
 .inline .paneltitlerow h4 {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   margin-right: 5px;
@@ -1816,11 +1816,11 @@ div.navigator .goto a[disabled] {
 }
 
 .inline .listpanel li:after {
-    content:"·";
+  content: "·";
 }
 
 .inline .listpanel li:last-child:after {
-    content:"";
+  content: "";
 }
 
 .nanopub-item {
@@ -1878,6 +1878,10 @@ div.navigator .goto a[disabled] {
   border-top: 1px solid #ccc;
   padding: 0;
   margin: 0;
+}
+
+.k-input-inner {
+  width: 100% !important;
 }
 
 .date-container {

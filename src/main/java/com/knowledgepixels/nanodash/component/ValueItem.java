@@ -11,6 +11,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 /**
@@ -59,7 +60,14 @@ public class ValueItem extends Panel implements ContextComponent {
             } else if (template.isLongLiteralPlaceholder(iri)) {
                 component = new LiteralTextareaItem("value", iri, rg.isOptional(), rg.getContext());
             } else if (template.isLiteralPlaceholder(iri)) {
-                component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
+                // TODO add all date time types
+                if (XSD.DATE.equals(template.getDatatype(iri))) {
+                    component = new LiteralDateItem("value", iri, rg.isOptional(), rg.getContext());
+                } else if (XSD.DATETIME.equals(template.getDatatype(iri))) {
+                    component = new LiteralDateTimeItem("value", iri, rg.isOptional(), rg.getContext());
+                } else {
+                    component = new LiteralTextfieldItem("value", iri, rg.isOptional(), rg.getContext());
+                }
             } else if (template.isPlaceholder(iri)) {
                 component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), rg.getContext());
             } else {

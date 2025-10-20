@@ -65,7 +65,7 @@ public class PublishForm extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(PublishForm.class);
 
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static String creatorPubinfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
     private static String licensePubinfoTempalteId = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
@@ -418,9 +418,11 @@ public class PublishForm extends Panel {
                     logger.info("Nanopublication published: {}", npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
-                    logger.error("Nanopublication publishing failed: {}", ex.getMessage());
+                    logger.error("Nanopublication publishing failed: {}", ex);
                     String message = ex.getClass().getName();
-                    if (ex.getMessage() != null) message = ex.getMessage();
+                    if (ex.getMessage() != null) {
+                        message = ex.getMessage();
+                    }
                     feedbackPanel.error(message);
                 }
                 if (signedNp != null) {
@@ -860,7 +862,7 @@ public class PublishForm extends Panel {
             } else {
                 placeholderIri = placeholderIriHash;
             }
-            IModel<String> m = assertionContext.getComponentModels().get(placeholderIri);
+            IModel<String> m = (IModel<String>) assertionContext.getComponentModels().get(placeholderIri);
             if (m != null) placeholderValue = m.orElse("").getObject();
             if (placeholderValue == null) placeholderValue = "";
             String placeholderLabel = placeholderValue;
