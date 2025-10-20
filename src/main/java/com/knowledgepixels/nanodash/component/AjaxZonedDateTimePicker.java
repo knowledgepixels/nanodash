@@ -65,7 +65,12 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         List<ZoneId> zones = new ArrayList<>(timezoneGroups.keySet());
         zones.sort(Comparator.comparing(zoneId -> zoneId.getRules().getStandardOffset(Instant.now()).getTotalSeconds()));
 
-        this.zoneDropDown = new DropDownChoice<>("timezone-dropdown", zoneIdModel, zones, (IChoiceRenderer<ZoneId>) zoneId -> String.format("%s : %s", zoneId, timezoneGroups.get(zoneId).stream().map(ZoneId::getId).collect(Collectors.joining(", "))));
+        this.zoneDropDown = new DropDownChoice<>("timezone-dropdown", zoneIdModel, zones,
+                (IChoiceRenderer<ZoneId>) zoneId -> String.format("%s : %s", zoneId, timezoneGroups.get(zoneId).stream()
+                        .map(ZoneId::getId)
+                        .limit(3)
+                        .collect(Collectors.joining(", ")))
+        );
 
         this.zoneDropDown.setOutputMarkupId(true);
         this.zoneDropDown.add(new OnChangeAjaxBehavior() {
