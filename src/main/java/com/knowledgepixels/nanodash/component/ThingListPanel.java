@@ -89,7 +89,8 @@ public class ThingListPanel extends Panel {
         CLASSES("get-classes-for-thing", "thing", "class", "class", "classes", "Assigned to"),
         INSTANCES("get-instances", "class", "instance", "instance", "instances", "Has"),
         PARTS("get-parts", "thing", "part", "part", "parts", "Has"),
-        TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in");
+        TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in"),
+        DESCRIPTIONS("get-term-definitions", "term", "np", "nanopublication", "nanopublications", "Described in");
 
         /**
          * The name of the query to be used for this mode.
