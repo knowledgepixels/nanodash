@@ -124,9 +124,9 @@ public class ExplorePage extends NanodashPage {
 
         Space contextSpace = Space.get(parameters.get("context").toString(""));
         if (contextSpace != null) {
-            add(new WebMarkupContainer("back-to-context").add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextSpace.getId())).setBody(Model.of("back to " + contextSpace.getLabel()))));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextSpace.getId())).setBody(Model.of("back to " + contextSpace.getLabel())));
         } else {
-            add(new WebMarkupContainer("back-to-context").setVisible(false));
+            add(new Label("back-to-context-link").setVisible(false));
         }
 
         WebMarkupContainer raw = new WebMarkupContainer("raw");
