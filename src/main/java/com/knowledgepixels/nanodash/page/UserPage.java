@@ -1,19 +1,13 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.ActivityPanel;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -22,8 +16,19 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ActivityPanel;
+import com.knowledgepixels.nanodash.component.ApiResultComponent;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
@@ -74,7 +79,7 @@ public class UserPage extends NanodashPage {
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));
 
-        add(new ExternalLink("fullid", userIriString, userIriString));
+        add(new BookmarkablePageLink<Void>("fullid", ExplorePage.class, parameters.set("label", displayName)).setBody(Model.of(userIriString)));
 
         add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(userIri.equals(NanodashSession.get().getUserIri())));
 

@@ -11,7 +11,6 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -74,7 +73,7 @@ public class SpacePage extends NanodashPage {
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));
-        add(new ExternalLink("id", space.getId(), space.getId()));
+        add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", space.getLabel())).setBody(Model.of(space.getId())));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
 
         add(new ItemListPanel<String>(

@@ -3,15 +3,14 @@ package com.knowledgepixels.nanodash.page;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.commonjava.mimeparse.MIMEParse;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -129,14 +128,16 @@ public class ExplorePage extends NanodashPage {
             add(new Label("back-to-context-link").setVisible(false));
         }
 
+        if (User.getUserData().isUser(tempRef)) {
+            add(new BookmarkablePageLink<Void>("to-specific-page-link", UserPage.class, parameters).setBody(Model.of("go to user page")));
+        } else if (Space.get(tempRef) != null) {
+            add(new BookmarkablePageLink<Void>("to-specific-page-link", SpacePage.class, parameters).setBody(Model.of("go to Space page")));
+        } else {
+            add(new Label("to-specific-page-link").setVisible(false));
+        }
+
         WebMarkupContainer raw = new WebMarkupContainer("raw");
         add(raw);
-
-        if (User.getUserData().isUser(tempRef)) {
-            throw new RestartResponseException(UserPage.class, parameters);
-        } else if (Space.get(tempRef) != null) {
-            throw new RestartResponseException(SpacePage.class, parameters);
-        }
 
         Map<String, String> nanopubParams = new HashMap<>();
         nanopubParams.put("ref", tempRef);
