@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -13,6 +15,9 @@ import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+
 public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
@@ -20,6 +25,9 @@ public class ResourceView implements Serializable {
     private static final IRI RESOURCE_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ResourceView");
     private static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
     private static final IRI HAS_VIEW_QUERY_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField");
+    private static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
+    private static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
+    private static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -41,6 +49,10 @@ public class ResourceView implements Serializable {
     private String title = "View";
     private GrlcQuery query;
     private String queryField = "resource";
+    private List<IRI> actionList = new ArrayList<>();
+    private Map<IRI,Template> actionTemplateMap = new HashMap<>();
+    private Map<IRI,String> actionTemplateFieldMap = new HashMap<>();
+    private Map<IRI,String> labelMap = new HashMap<>();
 
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
@@ -60,7 +72,16 @@ public class ResourceView implements Serializable {
                     query = GrlcQuery.get(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(HAS_VIEW_QUERY_TARGET_FIELD)) {
                     queryField = st.getObject().stringValue();
+                } else if (st.getPredicate().equals(HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
+                    actionList.add(objIri);
                 }
+            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE)) {
+                Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
+                actionTemplateMap.put((IRI) st.getSubject(), template);
+            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
+                actionTemplateFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(RDFS.LABEL)) {
+                labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             }
         }
         if (!resourceViewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
@@ -89,6 +110,22 @@ public class ResourceView implements Serializable {
 
     public String getQueryField() {
         return queryField;
+    }
+
+    public List<IRI> getActionList() {
+        return actionList;
+    }
+
+    public Template getTemplateForAction(IRI actionIri) {
+        return actionTemplateMap.get(actionIri);
+    }
+
+    public String getTemplateFieldForAction(IRI actionIri) {
+        return actionTemplateFieldMap.get(actionIri);
+    }
+
+    public String getLabelForAction(IRI actionIri) {
+        return labelMap.get(actionIri);
     }
 
 }

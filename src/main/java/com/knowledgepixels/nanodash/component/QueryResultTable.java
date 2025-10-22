@@ -17,12 +17,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -31,8 +33,14 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.ResourceView;
+import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
+import com.knowledgepixels.nanodash.template.Template;
 
 /**
  * A table component that displays the results of a query.
@@ -44,6 +52,9 @@ public class QueryResultTable extends Panel {
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
     private Label errorLabel;
+    private boolean finalized = false;
+    private List<AbstractLink> buttons = new ArrayList<>();
+    private MaintainedResource resource;
 
     private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, String title, long rowsPerPage) {
         super(id);
@@ -81,6 +92,35 @@ public class QueryResultTable extends Panel {
             add(new Label("table", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
+    }
+
+    // TODO button adding method copied and adjusted from ItemListPanel
+    // TODO Improve this (member/admin) button handling:
+    public QueryResultTable addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
+        if (parameters == null) parameters = new PageParameters();
+        if (resource != null) parameters.add("context", resource.getId());
+        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
+        button.setBody(Model.of(label));
+        buttons.add(button);
+        return this;
+    }
+
+    public QueryResultTable setResource(MaintainedResource resource) {
+        this.resource = resource;
+        return this;
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (!finalized) {
+            if (!buttons.isEmpty()) {
+                add(new ButtonList("buttons", resource.getSpace(), buttons, null, null));
+            } else {
+                add(new Label("buttons").setVisible(false));
+            }
+            finalized = true;
+        }
+        super.onBeforeRender();
     }
 
     private void addErrorMessage(String errorMessage) {
@@ -221,6 +261,39 @@ public class QueryResultTable extends Panel {
 
             };
         }
+    }
+
+    public static Component createComponent(final String markupId, QueryRef queryRef, ResourceView view, MaintainedResource resource, long rowsPerPage) {
+        final GrlcQuery q = GrlcQuery.get(queryRef);
+        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        if (response != null) {
+            return createTableComponent(markupId, q, response, view, resource, rowsPerPage);
+        } else {
+            return new ApiResultComponent(markupId, queryRef) {
+
+                @Override
+                public Component getApiResultComponent(String markupId, ApiResponse response) {
+                    return createTableComponent(markupId, q, response, view, resource, rowsPerPage);
+                }
+
+            };
+        }
+    }
+
+    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ResourceView view, MaintainedResource resource, long rowsPerPage) {
+        QueryResultTable table = new QueryResultTable(markupId, query, response, false, view.getTitle(), rowsPerPage);
+        table.setResource(resource);
+        for (IRI actionIri : view.getActionList()) {
+            Template t = view.getTemplateForAction(actionIri);
+            if (t == null) continue;
+            String field = view.getTemplateFieldForAction(actionIri);
+            if (field == null) field = "resource";
+            String label = view.getLabelForAction(actionIri);
+            if (label == null) label = "action...";
+            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, resource.getId());
+            table.addButton(label, PublishPage.class, params);
+        }
+        return table;
     }
 
     /**

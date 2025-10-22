@@ -87,7 +87,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view.getTitle(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, resource, 10));
             }
 
         });

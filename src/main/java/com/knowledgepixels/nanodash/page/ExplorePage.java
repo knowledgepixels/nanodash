@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.QueryApiAccess;
@@ -121,9 +122,11 @@ public class ExplorePage extends NanodashPage {
 
         String tempRef = parameters.get("id").toString();
 
-        Space contextSpace = Space.get(parameters.get("context").toString(""));
-        if (contextSpace != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextSpace.getId())).setBody(Model.of("back to " + contextSpace.getLabel())));
+        String contextId = parameters.get("context").toString("");
+        if (Space.get(contextId) != null) {
+            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
+        } else if (MaintainedResource.get(contextId) != null) {
+            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().add("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
         }
