@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash;
 import static com.knowledgepixels.nanodash.Utils.vf;
 
 import java.io.Serializable;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -308,7 +307,7 @@ public class Space implements Serializable {
      * @return List of admin IRIs.
      */
     public List<IRI> getAdmins() {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.admins;
     }
 
@@ -318,7 +317,7 @@ public class Space implements Serializable {
      * @return List of member IRIs.
      */
     public List<IRI> getUsers() {
-        triggerDataUpdate();
+        ensureInitialized();
         List<IRI> users = new ArrayList<IRI>(data.users.keySet());
         users.sort(User.getUserData().userComparator);
         return users;
@@ -331,7 +330,7 @@ public class Space implements Serializable {
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
     public Set<SpaceMemberRole> getMemberRoles(IRI userId) {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.users.get(userId);
     }
 
@@ -342,8 +341,13 @@ public class Space implements Serializable {
      * @return true if the user is a member, false otherwise.
      */
     public boolean isMember(IRI userId) {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.users.containsKey(userId);
+    }
+
+    public boolean isAdminPubkey(String pubkey) {
+        ensureInitialized();
+        return data.adminPubkeyMap.containsKey(pubkey);
     }
 
     /**
@@ -352,7 +356,7 @@ public class Space implements Serializable {
      * @return List of pinned resources.
      */
     public Set<Serializable> getPinnedResources() {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.pinnedResources;
     }
 
@@ -362,7 +366,7 @@ public class Space implements Serializable {
      * @return Set of tags.
      */
     public Set<String> getPinGroupTags() {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.pinGroupTags;
     }
 
@@ -372,7 +376,7 @@ public class Space implements Serializable {
      * @return Map where keys are tags and values are lists of pinned resources (Templates or GrlcQueries).
      */
     public Map<String, Set<Serializable>> getPinnedResourceMap() {
-        triggerDataUpdate();
+        ensureInitialized();
         return data.pinnedResourceMap;
     }
 
@@ -477,9 +481,20 @@ public class Space implements Serializable {
         return data.altIds;
     }
 
-    private synchronized void triggerDataUpdate() {
+    private synchronized void ensureInitialized() {
+        Thread thread = triggerDataUpdate();
+        if (!dataInitialized && thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                logger.error("failed to join thread", ex);
+            }
+        }
+    }
+
+    private synchronized Thread triggerDataUpdate() {
         if (dataNeedsUpdate) {
-            new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 try {
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
@@ -557,9 +572,12 @@ public class Space implements Serializable {
                 } catch (Exception ex) {
                     logger.error("Error while trying to update space data: {}", ex);
                 }
-            }).start();
+            });
+            thread.start();
             dataNeedsUpdate = false;
+            return thread;
         }
+        return null;
     }
 
     private void setCoreData(SpaceData data) {

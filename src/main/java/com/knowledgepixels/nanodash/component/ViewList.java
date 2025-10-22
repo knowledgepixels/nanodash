@@ -11,6 +11,8 @@ import org.nanopub.extra.services.QueryRef;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceQueryView;
 import com.knowledgepixels.nanodash.User;
@@ -53,6 +55,44 @@ public class ViewList extends Panel {
         });
 
         add(new WebMarkupContainer("emptynotice").setVisible(space.getViews().isEmpty()));
+    }
+
+    public ViewList(String markupId, MaintainedResource resource) {
+        super(markupId);
+
+        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(resource.getViews())) {
+
+            @Override
+            protected void populateItem(Item<ResourceView> item) {
+                ResourceView view = item.getModelObject();
+                Multimap<String, String> queryRefParams = ArrayListMultimap.create();
+                for (String p : view.getQuery().getPlaceholdersList()) {
+                    String paramName = QueryParamField.getParamName(p);
+                    if (paramName.equals(view.getQueryField())) {
+                        queryRefParams.put(view.getQueryField(), resource.getId());
+//                        if (QueryParamField.isMultiPlaceholder(p)) {
+//                            for (String altId : resource.getAltIDs()) {
+//                                queryRefParams.put("space", altId);
+//                            }
+//                        }
+//                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
+//                        for (IRI userId : resource.getSpace().getUsers()) {
+//                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
+//                                queryRefParams.put("user_pubkey", memberHash);
+//                            }
+//                        }
+                    } else if (!QueryParamField.isOptional(p)) {
+                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
+                        return;
+                    }
+                }
+                QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+                item.add(QueryResultTable.createComponent("view", queryRef, view.getTitle(), 10));
+            }
+
+        });
+
+        add(new WebMarkupContainer("emptynotice").setVisible(resource.getViews().isEmpty()));
     }
 
 

@@ -139,6 +139,7 @@ public class WicketApplication extends WebApplication {
         mountPage(QueryPage.MOUNT_PATH, QueryPage.class);
         mountPage(QueryListPage.MOUNT_PATH, QueryListPage.class);
         mountPage(ListPage.MOUNT_PATH, ListPage.class);
+        mountPage(MaintainedResourcePage.MOUNT_PATH, MaintainedResourcePage.class);
 
         getCspSettings().blocking().disabled();
     }
