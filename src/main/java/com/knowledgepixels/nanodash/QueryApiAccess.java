@@ -79,7 +79,7 @@ public class QueryApiAccess {
         load("RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates");
         load("RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions");
         load("RAjaERe_ihZh_TP1CIFKa6gbd1rzqFtx8nFZFgtyd13Bo/get-term-definitions");
-        load("RAF6hmBhiA61T-k4Uk5dOBzd3wlGihbNB_KSuEWHoV7d0/get-maintained-resources");
+        load("RAjWfJeADfmjcny1NxSUrfJML3Wfv1T7AujtNhSlGRuz0/get-maintained-resources");
         load("RA3A3mRHLMPq5b0IHCJCZ04tUDMmZu74FEwYNDVB5jt7U/get-view-displays");
     }
 

@@ -15,7 +15,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
@@ -270,6 +272,16 @@ public class SpacePage extends NanodashPage {
         addSubspacePanel("Campaign", false);
         addSubspacePanel("Community", true);
         addSubspacePanel("Event", false);
+
+        add(new ItemListPanel<ApiResponseEntry>(
+                "resources",
+                "Resources",
+                new QueryRef("get-maintained-resources", "space", space.getId()),
+                (apiResponse) -> apiResponse.getData(),
+                (entry) -> {
+                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", entry.get("resource")), entry.get("label"));
+                }
+            ));
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
