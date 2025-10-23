@@ -55,7 +55,6 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         } else {
             lazyLoading = true;
             add(new ApiResultComponent("itemlist", queryRef) {
-
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
                     return new ItemList<T>(markupId, resultListProvider.apply(response), compProvider);

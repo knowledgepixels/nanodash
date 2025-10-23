@@ -15,7 +15,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
@@ -273,7 +272,7 @@ public class SpacePage extends NanodashPage {
         addSubspacePanel("Community", true);
         addSubspacePanel("Event", false);
 
-        add(new ItemListPanel<ApiResponseEntry>(
+        add(new ItemListPanel<>(
                 "resources",
                 "Resources",
                 new QueryRef("get-maintained-resources", "space", space.getId()),
@@ -281,7 +280,15 @@ public class SpacePage extends NanodashPage {
                 (entry) -> {
                     return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", entry.get("resource")), entry.get("label"));
                 }
-            ));
+            )
+            .setSpace(space)
+            .setReadyFunction(space::isDataInitialized)
+            .addMemberButton("+", PublishPage.class, new PageParameters()
+                    .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
+                    .set("param_space", space.getId())
+                    .set("context", space.getId())
+                    .set("template-version", "latest")
+                ));
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
@@ -305,10 +312,10 @@ public class SpacePage extends NanodashPage {
             .setSpace(space)
             .setReadyFunction(space::isDataInitialized)
             .addMemberButton("+", PublishPage.class, new PageParameters()
-                    .add("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
-                    .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                    .add("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
-                    .add("template-version", "latest"))
+                    .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
+                    .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                    .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
+                    .set("template-version", "latest"))
             );
     }
 
