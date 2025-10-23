@@ -1798,6 +1798,13 @@ div.navigator .goto a[disabled] {
   margin-top: 20px;
 }
 
+.paneltitlerow span.buttons a.source {
+  margin-left: 5px;
+  margin-top: 20px;
+  display: inline-block;
+  background: none;
+}
+
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   float: right;
