@@ -19,11 +19,13 @@ public class MaintainedResource implements Serializable {
 
     private static List<MaintainedResource> resourceList;
     private static Map<String, MaintainedResource> resourcesById;
+    private static Map<Space, List<MaintainedResource>> resourcesBySpace;
     private static boolean loaded = false;
 
     public static synchronized void refresh(ApiResponse resp) {
         resourceList = new ArrayList<>();
         resourcesById = new HashMap<>();
+        resourcesBySpace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = Space.get(entry.get("space"));
             if (space == null) continue;
@@ -31,6 +33,7 @@ public class MaintainedResource implements Serializable {
             if (resourcesById.containsKey(resource.getId())) continue;
             resourceList.add(resource);
             resourcesById.put(resource.getId(), resource);
+            resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
         }
         loaded = true;
     }
@@ -61,6 +64,10 @@ public class MaintainedResource implements Serializable {
     public static List<MaintainedResource> getResourceList() {
         ensureLoaded();
         return resourceList;
+    }
+
+    public static List<MaintainedResource> getResourcesBySpace(Space space) {
+        return resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>());
     }
 
     /**

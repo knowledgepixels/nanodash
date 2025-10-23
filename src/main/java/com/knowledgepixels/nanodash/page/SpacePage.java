@@ -18,6 +18,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
+import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
@@ -272,13 +273,13 @@ public class SpacePage extends NanodashPage {
         addSubspacePanel("Community", true);
         addSubspacePanel("Event", false);
 
-        add(new ItemListPanel<>(
+        add(new ItemListPanel<MaintainedResource>(
                 "resources",
                 "Resources",
-                new QueryRef("get-maintained-resources", "space", space.getId()),
-                (apiResponse) -> apiResponse.getData(),
-                (entry) -> {
-                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", entry.get("resource")), entry.get("label"));
+                new QueryRef("get-maintained-resources"),
+                (apiResponse) -> { MaintainedResource.refresh(apiResponse); return MaintainedResource.getResourcesBySpace(space); },
+                (resource) -> {
+                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", resource.getId()), resource.getLabel());
                 }
             )
             .setSpace(space)
