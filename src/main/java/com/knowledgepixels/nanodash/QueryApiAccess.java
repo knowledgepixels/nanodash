@@ -69,7 +69,7 @@ public class QueryApiAccess {
         load("RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates");
         load("RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries");
         load("RAF-LNZPrT11euM9NQGOLRrJg1pD02oXM5Cxb9XP7tBkU/get-space-member-roles");
-        load("RAuwOBxwXal5NTW_rl9WtUA38IJbbT8q_Vp6vq4F6Pu9k/get-views-for-space");  // to be deprecated
+        //load("RAuwOBxwXal5NTW_rl9WtUA38IJbbT8q_Vp6vq4F6Pu9k/get-views-for-space");  // to be deprecated
         load("RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj");
         load("RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates");
         load("RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds");
@@ -80,7 +80,7 @@ public class QueryApiAccess {
         load("RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions");
         load("RAjaERe_ihZh_TP1CIFKa6gbd1rzqFtx8nFZFgtyd13Bo/get-term-definitions");
         load("RAF6hmBhiA61T-k4Uk5dOBzd3wlGihbNB_KSuEWHoV7d0/get-maintained-resources");
-        load("RAEZxJ7JHTPTUjetzobVOxtwlLzgHOPfFrjps_pkaLLQc/get-view-displays");
+        load("RA3A3mRHLMPq5b0IHCJCZ04tUDMmZu74FEwYNDVB5jt7U/get-view-displays");
     }
 
     /**

@@ -14,7 +14,6 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.SpaceQueryView;
 import com.knowledgepixels.nanodash.User;
 
 public class ViewList extends Panel {
@@ -22,16 +21,16 @@ public class ViewList extends Panel {
     public ViewList(String markupId, Space space) {
         super(markupId);
 
-        add(new DataView<SpaceQueryView>("views", new ListDataProvider<SpaceQueryView>(space.getViews())) {
+        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(space.getViews())) {
 
             @Override
-            protected void populateItem(Item<SpaceQueryView> item) {
-                SpaceQueryView view = item.getModelObject();
+            protected void populateItem(Item<ResourceView> item) {
+                ResourceView view = item.getModelObject();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
-                    if (paramName.equals("space")) {
-                        queryRefParams.put("space", space.getId());
+                    if (paramName.equals(view.getQueryField())) {
+                        queryRefParams.put(view.getQueryField(), space.getId());
                         if (QueryParamField.isMultiPlaceholder(p)) {
                             for (String altId : space.getAltIDs()) {
                                 queryRefParams.put("space", altId);
@@ -49,7 +48,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view.getTitle(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, space.getId(), space, 10));
             }
 
         });
@@ -87,7 +86,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, resource, 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getSpace(), 10));
             }
 
         });

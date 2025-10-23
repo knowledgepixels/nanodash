@@ -173,7 +173,7 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         Set<Serializable> pinnedResources = new HashSet<>();
-        List<SpaceQueryView> views = new ArrayList<>();
+        List<ResourceView> views = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -385,7 +385,7 @@ public class Space implements Serializable {
      *
      * @return List of GrlcQuery views.
      */
-    public List<SpaceQueryView> getViews() {
+    public List<ResourceView> getViews() {
         return data.views;
     }
 
@@ -502,10 +502,14 @@ public class Space implements Serializable {
                     newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
                     newData.roleMap.put(SpaceMemberRole.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
+                    // TODO Improve this:
                     Multimap<String, String> spaceIds = ArrayListMultimap.create();
+                    Multimap<String, String> resourceIds = ArrayListMultimap.create();
                     spaceIds.put("space", id);
+                    resourceIds.put("resource", id);
                     for (String id : newData.altIds) {
                         spaceIds.put("space", id);
+                        resourceIds.put("resource", id);
                     }
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
@@ -560,11 +564,10 @@ public class Space implements Serializable {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(query);
                         }
                     }
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-views-for-space", spaceIds)).getData()) {
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        GrlcQuery query = GrlcQuery.get(r.get("query"));
-                        if (query == null) continue;
-                        SpaceQueryView view = new SpaceQueryView(this, query, r.get("title"));
+                        ResourceView view = ResourceView.get(r.get("view"));
+                        if (view == null) continue;
                         newData.views.add(view);
                     }
                     data = newData;
