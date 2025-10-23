@@ -103,6 +103,19 @@ public class Space implements Serializable {
         return loaded;
     }
 
+    public static boolean areAllSpacesInitialized() {
+        for (Space space : spaceList) {
+            if (!space.isDataInitialized()) return false;
+        }
+        return true;
+    }
+
+    public static void triggerAllDataUpdates() {
+        for (Space space : spaceList) {
+            space.triggerDataUpdate();
+        }
+    }
+
     /**
      * Ensure that the spaces are loaded, fetching them from the API if necessary.
      */

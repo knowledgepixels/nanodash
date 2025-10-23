@@ -170,10 +170,11 @@ public class UserPage extends NanodashPage {
             });
         }
 
+        Space.triggerAllDataUpdates();
         add(new ItemListPanel<Space>(
                 "spaces",
                 "Spaces",
-                () -> Space.isLoaded(),
+                () -> Space.areAllSpacesInitialized(),
                 () -> {
                     List<Space> spaces = new ArrayList<>();
                     for (Space space : Space.getSpaceList()) {
