@@ -80,7 +80,7 @@ public class QueryApiAccess {
         load("RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions");
         load("RAjaERe_ihZh_TP1CIFKa6gbd1rzqFtx8nFZFgtyd13Bo/get-term-definitions");
         load("RAF6hmBhiA61T-k4Uk5dOBzd3wlGihbNB_KSuEWHoV7d0/get-maintained-resources");
-        load("RAeFQJPpiSUso0uTRh93Qh6hEvOaNWkCoenFlG7Wh60Y0/get-views-for-resource");
+        load("RAEZxJ7JHTPTUjetzobVOxtwlLzgHOPfFrjps_pkaLLQc/get-view-displays");
     }
 
     /**

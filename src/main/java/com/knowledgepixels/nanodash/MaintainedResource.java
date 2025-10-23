@@ -130,7 +130,7 @@ public class MaintainedResource implements Serializable {
                 try {
                     ResourceData newData = new ResourceData();
 
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-views-for-resource", "resource", id)).getData()) {
+                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
                         ResourceView view = ResourceView.get(r.get("view"));
                         if (view == null) continue;
