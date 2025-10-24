@@ -82,6 +82,13 @@ public class MaintainedResource implements Serializable {
         return resourcesById.get(id);
     }
 
+    public static void refresh() {
+        ensureLoaded();
+        for (MaintainedResource resource : resourceList) {
+            resource.dataNeedsUpdate = true;
+        }
+    }
+
     private String id, label, nanopubId;
     private Space space;
     private Nanopub nanopub;

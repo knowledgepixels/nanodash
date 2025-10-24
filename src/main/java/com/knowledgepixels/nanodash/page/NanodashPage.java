@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
@@ -66,6 +67,7 @@ public abstract class NanodashPage extends WebPage {
                         User.refreshUsers();
                         TemplateData.refreshTemplates();
                         Space.refresh();
+                        MaintainedResource.refresh();
                         Project.refresh();
                         logger.info("Refreshing done.");
                         lastRefresh = System.currentTimeMillis();
