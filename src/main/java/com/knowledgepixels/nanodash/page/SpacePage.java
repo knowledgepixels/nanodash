@@ -277,7 +277,7 @@ public class SpacePage extends NanodashPage {
                 "resources",
                 "Resources",
                 new QueryRef("get-maintained-resources"),
-                (apiResponse) -> { MaintainedResource.refresh(apiResponse); return MaintainedResource.getResourcesBySpace(space); },
+                (apiResponse) -> { MaintainedResource.ensureLoaded(); return MaintainedResource.getResourcesBySpace(space); },
                 (resource) -> {
                     return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", resource.getId()), resource.getLabel());
                 }

@@ -23,6 +23,7 @@ public class MaintainedResource implements Serializable {
     private static boolean loaded = false;
 
     public static synchronized void refresh(ApiResponse resp) {
+        System.err.println("REFRESH...");
         resourceList = new ArrayList<>();
         resourcesById = new HashMap<>();
         resourcesBySpace = new HashMap<>();
@@ -147,6 +148,7 @@ public class MaintainedResource implements Serializable {
                     dataInitialized = true;
                 } catch (Exception ex) {
                     logger.error("Error while trying to update space data: {}", ex);
+                    dataNeedsUpdate = true;
                 }
             }).start();
             dataNeedsUpdate = false;
