@@ -1,12 +1,24 @@
 package com.knowledgepixels.nanodash.page;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SKOS;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
@@ -41,13 +53,39 @@ public class ResourcePartPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, "connectors"));
 
-        // TODO Get this from nanopub:
+        QueryRef getDefQuery = new QueryRef("get-term-definitions", "term", id);
+        for (IRI userIri : resource.getSpace().getUsers()) {
+            for (String pubkey : User.getUserData().getPubkeyhashes(userIri, true)) {
+                getDefQuery.getParams().put("pubkey", pubkey);
+            }
+        }
+        ApiResponse getDefResp = QueryApiAccess.forcedGet(getDefQuery);
+        if (getDefResp == null || getDefResp.getData().isEmpty()) {
+            throw new RestartResponseException(ExplorePage.class, parameters);
+        }
+        String nanopubId = getDefResp.getData().iterator().next().get("np");
+        Nanopub nanopub = Utils.getAsNanopub(nanopubId);
+
         String label = id.replaceFirst("^.*[#/]([^#/]+)$", "$1");
+        String description = null;
+        for (Statement st : nanopub.getAssertion()) {
+            if (!st.getSubject().stringValue().equals(id)) continue;
+            if (st.getPredicate().equals(RDFS.LABEL)) label = st.getObject().stringValue();
+            if (st.getPredicate().equals(SKOS.DEFINITION) || st.getPredicate().equals(DCTERMS.DESCRIPTION) || st.getPredicate().equals(RDFS.COMMENT)) {
+                description = st.getObject().stringValue();
+            }
+        }
+
+        if (description != null) {
+            add(new Label("description", description));
+        } else {
+            add(new Label("description").setVisible(false));
+        }
 
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", label)).setBody(Model.of(id)));
-        //add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", resource.getNanopubId())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", nanopubId)));
 
         add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId())).setBody(Model.of(resource.getLabel())));
 
