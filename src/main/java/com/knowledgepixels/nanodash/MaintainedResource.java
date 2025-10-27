@@ -19,6 +19,7 @@ public class MaintainedResource implements Serializable {
 
     private static List<MaintainedResource> resourceList;
     private static Map<String, MaintainedResource> resourcesById;
+    private static Map<String, MaintainedResource> resourcesByNamespace;
     private static Map<Space, List<MaintainedResource>> resourcesBySpace;
     private static boolean loaded = false;
 
@@ -27,6 +28,7 @@ public class MaintainedResource implements Serializable {
         resourceList = new ArrayList<>();
         resourcesById = new HashMap<>();
         resourcesBySpace = new HashMap<>();
+        resourcesByNamespace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = Space.get(entry.get("space"));
             if (space == null) continue;
@@ -35,6 +37,10 @@ public class MaintainedResource implements Serializable {
             resourceList.add(resource);
             resourcesById.put(resource.getId(), resource);
             resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
+            if (resource.getNamespace() != null) {
+                // TODO Handle conflicts when two resources claim the same namespace:
+                resourcesByNamespace.put(resource.getNamespace(), resource);
+            }
         }
         loaded = true;
     }
@@ -82,6 +88,14 @@ public class MaintainedResource implements Serializable {
         return resourcesById.get(id);
     }
 
+    public static MaintainedResource getByNamespace(String namespace) {
+        return resourcesByNamespace.get(namespace);
+    }
+
+    public static String getNamespace(Object stringOrIri) {
+        return stringOrIri.toString().replaceFirst("([#/])[^#/]+$", "$1");
+    }
+
     public static void refresh() {
         ensureLoaded();
         for (MaintainedResource resource : resourceList) {
@@ -89,7 +103,7 @@ public class MaintainedResource implements Serializable {
         }
     }
 
-    private String id, label, nanopubId;
+    private String id, label, nanopubId, namespace;
     private Space space;
     private Nanopub nanopub;
     private ResourceData data = new ResourceData();
@@ -106,6 +120,8 @@ public class MaintainedResource implements Serializable {
         this.id = resp.get("resource");
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
+        this.namespace = resp.get("namespace");
+        if (namespace != null && namespace.isBlank()) namespace = null;
         this.nanopub = Utils.getAsNanopub(nanopubId);
     }
 
@@ -127,6 +143,10 @@ public class MaintainedResource implements Serializable {
 
     public String getLabel() {
         return label;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public boolean isDataInitialized() {

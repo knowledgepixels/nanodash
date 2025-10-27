@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.action.NanopubAction;
-import com.knowledgepixels.nanodash.page.ListPage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -23,8 +26,19 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.page.ListPage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 /**
  * A panel that displays a nanopublication with its header, footer, assertion, provenance, and pubinfo.
@@ -89,7 +103,7 @@ public class NanopubItem extends Panel {
             WebMarkupContainer header = new WebMarkupContainer("header");
             String labelString = n.getLabel();
             if (labelString == null || labelString.isBlank()) labelString = Utils.getShortNanopubId(n.getUri());
-            header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString));
+            header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString, null));
             if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
                 NanodashSession session = NanodashSession.get();
                 final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIriForPubkeyhash(pubkeyhash, false))) ||

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
@@ -9,6 +10,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import net.trustyuri.TrustyUriUtils;
@@ -38,6 +40,10 @@ import java.util.*;
  */
 public class NanodashLink extends Panel {
 
+    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label) {
+        this(id, uri, np, templateClass, label, null);
+    }
+
     /**
      * Creates a link to a nanopublication or an IRI.
      *
@@ -47,7 +53,7 @@ public class NanodashLink extends Panel {
      * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
      * @param label          the label to display for the link, or null to derive it from the nanopublication or IRI
      */
-    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label) {
+    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label, String contextId) {
         super(id);
 
         final List<Template> templates = new ArrayList<>();
@@ -129,7 +135,7 @@ public class NanodashLink extends Panel {
                 }
             }
             String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
-            add(createLink("link", uri, shortLabel));
+            add(createLink("link", uri, shortLabel, contextId));
             String description = "";
             if (np != null && uri.startsWith(np.getUri().stringValue())) {
                 description = "This is a local identifier that was minted when the nanopublication was created.";
@@ -148,18 +154,30 @@ public class NanodashLink extends Panel {
      * @param label    a {@link java.lang.String} object
      * @return a {@link org.apache.wicket.Component} object
      */
-    public static Component createLink(String markupId, String uri, String label) {
+    public static Component createLink(String markupId, String uri, String label, String contextId) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
+        PageParameters params = new PageParameters().add("id", uri);
+        if (contextId != null) params.add("context", contextId);
         // TODO Improve this
         if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, new PageParameters().add("id", uri).add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
+        } else if (isPartOfResource(uri, contextId)) {
+            return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.add("label", label)).setBody(Model.of(label));
         } else {
-            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, new PageParameters().add("id", uri).add("label", label)).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.add("label", label)).setBody(Model.of(label));
         }
+    }
+
+    private static boolean isPartOfResource(String uri, String contextId) {
+        if (contextId == null) return false;
+        String uriNamespace = MaintainedResource.getNamespace(uri);
+        MaintainedResource resource = MaintainedResource.getByNamespace(uriNamespace);
+        if (resource == null) return false;
+        return resource.getId().equals(contextId);
     }
 
     /**

@@ -56,8 +56,9 @@ public class QueryResultTable extends Panel {
     private String contextId;
     private Space space;
 
-    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, String title, long rowsPerPage) {
+    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, String title, long rowsPerPage, String contextId) {
         super(id);
+        this.contextId = contextId;
 
         if (plain) {
             add(new Label("label").setVisible(false));
@@ -157,7 +158,7 @@ public class QueryResultTable extends Panel {
                     cellItem.add(new ComponentSequence(componentId, ", ", links));
                 } else if (value.matches("https?://.+")) {
                     String label = rowModel.getObject().get(key + "_label");
-                    cellItem.add(new NanodashLink(componentId, value, null, null, label));
+                    cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                 } else {
                     if (key.startsWith("pubkey")) {
                         cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
@@ -246,17 +247,17 @@ public class QueryResultTable extends Panel {
 //
 //    }
 
-    public static Component createComponent(final String markupId, QueryRef queryRef, String title, long rowsPerPage) {
+    public static Component createComponent(final String markupId, QueryRef queryRef, String title, long rowsPerPage, String contextId) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return new QueryResultTable(markupId, q, response, false, title, rowsPerPage);
+            return new QueryResultTable(markupId, q, response, false, title, rowsPerPage, contextId);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, false, title, rowsPerPage);
+                    return new QueryResultTable(markupId, q, response, false, title, rowsPerPage, contextId);
                 }
 
             };
@@ -281,7 +282,7 @@ public class QueryResultTable extends Panel {
     }
 
     public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ResourceView view, String contextId, Space space, long rowsPerPage) {
-        QueryResultTable table = new QueryResultTable(markupId, query, response, false, view.getTitle(), rowsPerPage);
+        QueryResultTable table = new QueryResultTable(markupId, query, response, false, view.getTitle(), rowsPerPage, contextId);
         table.setContext(contextId, space);
         for (IRI actionIri : view.getActionList()) {
             Template t = view.getTemplateForAction(actionIri);
@@ -303,17 +304,17 @@ public class QueryResultTable extends Panel {
      * @param queryRef the query reference
      * @return a {@link org.apache.wicket.Component} object
      */
-    public static Component createPlainComponent(final String markupId, QueryRef queryRef, long rowsPerPage) {
+    public static Component createPlainComponent(final String markupId, QueryRef queryRef, long rowsPerPage, String contextId) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return new QueryResultTable(markupId, q, response, true, null, rowsPerPage);
+            return new QueryResultTable(markupId, q, response, true, null, rowsPerPage, contextId);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, true, null, rowsPerPage);
+                    return new QueryResultTable(markupId, q, response, true, null, rowsPerPage, contextId);
                 }
 
             };
