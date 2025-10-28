@@ -1,13 +1,22 @@
 package com.knowledgepixels.nanodash.page;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.nanopub.Nanopub;
@@ -19,7 +28,9 @@ import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ButtonList;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
 
 /**
  * This class represents a page for a maintained resource.
@@ -68,11 +79,15 @@ public class ResourcePartPage extends NanodashPage {
 
         String label = id.replaceFirst("^.*[#/]([^#/]+)$", "$1");
         String description = null;
+        Set<IRI> classes = new HashSet<>();
         for (Statement st : nanopub.getAssertion()) {
             if (!st.getSubject().stringValue().equals(id)) continue;
             if (st.getPredicate().equals(RDFS.LABEL)) label = st.getObject().stringValue();
             if (st.getPredicate().equals(SKOS.DEFINITION) || st.getPredicate().equals(DCTERMS.DESCRIPTION) || st.getPredicate().equals(RDFS.COMMENT)) {
                 description = st.getObject().stringValue();
+            }
+            if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
+                classes.add(objIri);
             }
         }
 
@@ -90,50 +105,50 @@ public class ResourcePartPage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId())).setBody(Model.of(resource.getLabel())));
 
 
-//        final List<AbstractLink> viewButtons = new ArrayList<>();
-//        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-//                .add("template", "https://w3id.org/np/RA7vjbk3kz4FCu2eTX5oekZshPeOGNGTw8b2WLk8ZS7VI")
-//                .add("param_resource", resource.getId())
-//                .add("context", resource.getId())
-//            );
-//        addViewButton.setBody(Model.of("+"));
-//        viewButtons.add(addViewButton);
-//
-//        if (resource.isDataInitialized()) {
-//            add(new ViewList("views", resource));
-//            add(new ButtonList("view-buttons", space, null, null, viewButtons));
-//        } else {
-//            add(new AjaxLazyLoadPanel<Component>("views") {
-//    
-//                @Override
-//                public Component getLazyLoadComponent(String markupId) {
-//                    return new ViewList(markupId, resource);
-//                }
-//    
-//                @Override
-//                protected boolean isContentReady() {
-//                    return resource.isDataInitialized();
-//                }
-//    
-//            });
-//            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-//    
-//                @Override
-//                public Component getLazyLoadComponent(String markupId) {
-//                    return new ButtonList(markupId, space, null, null, viewButtons);
-//                }
-//    
-//                @Override
-//                protected boolean isContentReady() {
-//                    return resource.isDataInitialized();
-//                }
-//
-//                public Component getLoadingComponent(String id) {
-//                    return new Label(id).setVisible(false);
-//                };
-//    
-//            });
-//        }
+        final List<AbstractLink> viewButtons = new ArrayList<>();
+        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
+                .add("template", "https://w3id.org/np/RA7vjbk3kz4FCu2eTX5oekZshPeOGNGTw8b2WLk8ZS7VI")
+                .add("param_resource", resource.getId())
+                .add("context", resource.getId())
+            );
+        addViewButton.setBody(Model.of("+"));
+        viewButtons.add(addViewButton);
+
+        if (resource.isDataInitialized()) {
+            add(new ViewList("views", resource, id, classes));
+            add(new ButtonList("view-buttons", resource.getSpace(), null, null, viewButtons));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("views") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ViewList(markupId, resource, id, classes);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return resource.isDataInitialized();
+                }
+    
+            });
+            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ButtonList(markupId, resource.getSpace(), null, null, viewButtons);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return resource.isDataInitialized();
+                }
+
+                public Component getLoadingComponent(String id) {
+                    return new Label(id).setVisible(false);
+                };
+    
+            });
+        }
     }
 
     /**

@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -154,9 +156,32 @@ public class MaintainedResource implements Serializable {
         return dataInitialized;
     }
 
-    public List<ResourceView> getViews() {
+    public List<ResourceView> getTopLevelViews() {
         triggerDataUpdate();
-        return data.views;
+        List<ResourceView> views = new ArrayList<>();
+        for (ResourceView v : data.views) {
+            if (v.isTopLevelView()) views.add(v);
+        }
+        return views;
+    }
+
+    public List<ResourceView> getPartLevelViews(Set<IRI> classes) {
+        triggerDataUpdate();
+        List<ResourceView> views = new ArrayList<>();
+        for (ResourceView v : data.views) {
+            if (v.isTopLevelView()) continue;
+            if (v.hasTargetClasses()) {
+                for (IRI c : classes) {
+                    if (v.hasTargetClass(c)) {
+                        views.add(v);
+                        break;
+                    }
+                }
+            } else {
+                views.add(v);
+            }
+        }
+        return views;
     }
 
     private synchronized void triggerDataUpdate() {

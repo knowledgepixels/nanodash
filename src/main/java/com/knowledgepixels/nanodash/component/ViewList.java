@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.util.List;
+import java.util.Set;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -59,7 +62,8 @@ public class ViewList extends Panel {
     public ViewList(String markupId, MaintainedResource resource) {
         super(markupId);
 
-        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(resource.getViews())) {
+        final List<ResourceView> views = resource.getTopLevelViews();
+        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(views)) {
 
             @Override
             protected void populateItem(Item<ResourceView> item) {
@@ -91,7 +95,46 @@ public class ViewList extends Panel {
 
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(resource.getViews().isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(views.isEmpty()));
+    }
+
+    public ViewList(String markupId, MaintainedResource resource, String partId, Set<IRI> partClasses) {
+        super(markupId);
+
+        List<ResourceView> views = resource.getPartLevelViews(partClasses);
+        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(views)) {
+
+            @Override
+            protected void populateItem(Item<ResourceView> item) {
+                ResourceView view = item.getModelObject();
+                Multimap<String, String> queryRefParams = ArrayListMultimap.create();
+                for (String p : view.getQuery().getPlaceholdersList()) {
+                    String paramName = QueryParamField.getParamName(p);
+                    if (paramName.equals(view.getQueryField())) {
+                        queryRefParams.put(view.getQueryField(), partId);
+//                        if (QueryParamField.isMultiPlaceholder(p)) {
+//                            for (String altId : resource.getAltIDs()) {
+//                                queryRefParams.put("space", altId);
+//                            }
+//                        }
+//                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
+//                        for (IRI userId : resource.getSpace().getUsers()) {
+//                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
+//                                queryRefParams.put("user_pubkey", memberHash);
+//                            }
+//                        }
+                    } else if (!QueryParamField.isOptional(p)) {
+                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
+                        return;
+                    }
+                }
+                QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getSpace(), 10));
+            }
+
+        });
+
+        add(new WebMarkupContainer("emptynotice").setVisible(views.isEmpty()));
     }
 
 
