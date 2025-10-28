@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
@@ -10,7 +11,9 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioConfig;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
+import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import net.trustyuri.TrustyUriUtils;
@@ -165,6 +168,10 @@ public class NanodashLink extends Panel {
             return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
+        } else if (Space.get(uri) != null) {
+            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
+        } else if (MaintainedResource.get(uri) != null) {
+            return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
         } else if (isPartOfResource(uri, contextId)) {
             return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.add("label", label)).setBody(Model.of(label));
         } else {
