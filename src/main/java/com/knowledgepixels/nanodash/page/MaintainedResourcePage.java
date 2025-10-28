@@ -53,9 +53,11 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", resource.getLabel())).setBody(Model.of(resource.getId())));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", resource.getNanopubId())));
 
+        String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
+        add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().add("id", namespaceUri)).setBody(Model.of(namespaceUri)));
+
         Space space = resource.getSpace();
         add(new BookmarkablePageLink<Void>("space", SpacePage.class, new PageParameters().add("id", space.getId())).setBody(Model.of(space.getLabel())));
-
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
