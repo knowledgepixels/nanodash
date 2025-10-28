@@ -139,6 +139,7 @@ public class Space implements Serializable {
      * Get the list of spaces of a specific type.
      *
      * @param type The type of spaces to retrieve.
+        System.err.println("REFRESH...");
      * @return List of spaces of the specified type.
      */
     public static List<Space> getSpaceList(String type) {
@@ -161,7 +162,7 @@ public class Space implements Serializable {
      * Mark all spaces as needing a data update.
      */
     public static void refresh() {
-        ensureLoaded();
+        refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
         for (Space space : spaceList) {
             space.dataNeedsUpdate = true;
         }

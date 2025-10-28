@@ -26,7 +26,6 @@ public class MaintainedResource implements Serializable {
     private static boolean loaded = false;
 
     public static synchronized void refresh(ApiResponse resp) {
-        System.err.println("REFRESH...");
         resourceList = new ArrayList<>();
         resourcesById = new HashMap<>();
         resourcesBySpace = new HashMap<>();
@@ -99,7 +98,7 @@ public class MaintainedResource implements Serializable {
     }
 
     public static void refresh() {
-        ensureLoaded();
+        refresh(QueryApiAccess.forcedGet(new QueryRef("get-maintained-resources")));
         for (MaintainedResource resource : resourceList) {
             resource.dataNeedsUpdate = true;
         }
