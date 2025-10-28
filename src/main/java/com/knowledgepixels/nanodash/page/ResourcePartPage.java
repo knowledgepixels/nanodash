@@ -24,6 +24,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.ResourceView;
@@ -71,7 +72,10 @@ public class ResourcePartPage extends NanodashPage {
                 getDefQuery.getParams().put("pubkey", pubkey);
             }
         }
-        ApiResponse getDefResp = QueryApiAccess.forcedGet(getDefQuery);
+        ApiResponse getDefResp = ApiCache.retrieveResponse(getDefQuery);
+        if (getDefResp == null) {
+            getDefResp = QueryApiAccess.forcedGet(getDefQuery);
+        }
         if (getDefResp == null || getDefResp.getData().isEmpty()) {
             throw new RestartResponseException(ExplorePage.class, parameters);
         }
