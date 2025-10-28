@@ -39,6 +39,8 @@ public class ViewList extends Panel {
                                 queryRefParams.put("space", altId);
                             }
                         }
+                    } else if (paramName.equals(view.getQueryField() + "Np")) {
+                        queryRefParams.put(view.getQueryField() + "Np", space.getRootNanopubId());
                     } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
                         for (IRI userId : space.getUsers()) {
                             for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
@@ -51,7 +53,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, space.getId(), space, 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, space.getId(), space.getId(), space, 10));
             }
 
         });
@@ -78,6 +80,10 @@ public class ViewList extends Panel {
 //                                queryRefParams.put("space", altId);
 //                            }
 //                        }
+                    } else if (paramName.equals(view.getQueryField() + "Namespace")) {
+                        queryRefParams.put(view.getQueryField() + "Namespace", resource.getNamespace());
+                    } else if (paramName.equals(view.getQueryField() + "Np")) {
+                        queryRefParams.put(view.getQueryField() + "Np", resource.getNanopubId());
 //                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
 //                        for (IRI userId : resource.getSpace().getUsers()) {
 //                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
@@ -90,7 +96,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getId(), resource.getSpace(), 10));
             }
 
         });
@@ -98,7 +104,7 @@ public class ViewList extends Panel {
         add(new WebMarkupContainer("emptynotice").setVisible(views.isEmpty()));
     }
 
-    public ViewList(String markupId, MaintainedResource resource, String partId, Set<IRI> partClasses) {
+    public ViewList(String markupId, MaintainedResource resource, String partId, String nanopubId, Set<IRI> partClasses) {
         super(markupId);
 
         List<ResourceView> views = resource.getPartLevelViews(partClasses);
@@ -117,6 +123,10 @@ public class ViewList extends Panel {
 //                                queryRefParams.put("space", altId);
 //                            }
 //                        }
+                    } else if (paramName.equals(view.getQueryField() + "Namespace")) {
+                        queryRefParams.put(view.getQueryField() + "Namespace", resource.getNamespace());
+                    } else if (paramName.equals(view.getQueryField() + "Np")) {
+                        queryRefParams.put(view.getQueryField() + "Np", nanopubId);
 //                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
 //                        for (IRI userId : resource.getSpace().getUsers()) {
 //                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
@@ -129,7 +139,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, view, partId, resource.getId(), resource.getSpace(), 10));
             }
 
         });

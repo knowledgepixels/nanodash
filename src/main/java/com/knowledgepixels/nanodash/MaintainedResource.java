@@ -114,7 +114,8 @@ public class MaintainedResource implements Serializable {
     private boolean dataNeedsUpdate = true;
 
     private static class ResourceData implements Serializable {
-        List<ResourceView> views = new ArrayList<>();
+        List<ResourceView> topLevelViews = new ArrayList<>();
+        List<ResourceView> partLevelViews = new ArrayList<>();
     }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
@@ -158,18 +159,14 @@ public class MaintainedResource implements Serializable {
 
     public List<ResourceView> getTopLevelViews() {
         triggerDataUpdate();
-        List<ResourceView> views = new ArrayList<>();
-        for (ResourceView v : data.views) {
-            if (v.isTopLevelView()) views.add(v);
-        }
-        return views;
+        // TODO Check for compliance with target classes here too:
+        return data.topLevelViews;
     }
 
     public List<ResourceView> getPartLevelViews(Set<IRI> classes) {
         triggerDataUpdate();
         List<ResourceView> views = new ArrayList<>();
-        for (ResourceView v : data.views) {
-            if (v.isTopLevelView()) continue;
+        for (ResourceView v : data.partLevelViews) {
             if (v.hasTargetClasses()) {
                 for (IRI c : classes) {
                     if (v.hasTargetClass(c)) {
@@ -194,7 +191,11 @@ public class MaintainedResource implements Serializable {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
                         ResourceView view = ResourceView.get(r.get("view"));
                         if (view == null) continue;
-                        newData.views.add(view);
+                        if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                            newData.partLevelViews.add(view);
+                        } else {
+                            newData.topLevelViews.add(view);
+                        }
                     }
                     data = newData;
                     dataInitialized = true;

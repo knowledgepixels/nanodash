@@ -26,6 +26,7 @@ import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ButtonList;
@@ -107,7 +108,8 @@ public class ResourcePartPage extends NanodashPage {
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RA7vjbk3kz4FCu2eTX5oekZshPeOGNGTw8b2WLk8ZS7VI")
+                .add("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .add("param_displayType", ResourceView.PART_LEVEL_VIEW_DISPLAY)
                 .add("param_resource", resource.getId())
                 .add("context", resource.getId())
             );
@@ -115,14 +117,14 @@ public class ResourcePartPage extends NanodashPage {
         viewButtons.add(addViewButton);
 
         if (resource.isDataInitialized()) {
-            add(new ViewList("views", resource, id, classes));
+            add(new ViewList("views", resource, id, nanopubId, classes));
             add(new ButtonList("view-buttons", resource.getSpace(), null, null, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
     
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resource, id, classes);
+                    return new ViewList(markupId, resource, id, nanopubId, classes);
                 }
     
                 @Override

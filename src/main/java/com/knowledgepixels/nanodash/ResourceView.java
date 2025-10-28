@@ -24,14 +24,15 @@ public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
 
-    private static final IRI RESOURCE_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ResourceView");
-    private static final IRI PART_LEVEL_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/PartLevelView");
-    private static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
-    private static final IRI HAS_VIEW_QUERY_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField");
-    private static final IRI HAS_VIEW_TARGET_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewTargetClass");
-    private static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
-    private static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
-    private static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
+    public static final IRI RESOURCE_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ResourceView");
+    public static final IRI TOP_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TopLevelViewDisplay");
+    public static final IRI PART_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/PartLevelViewDisplay");
+    public static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
+    public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField");
+    public static final IRI HAS_VIEW_TARGET_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewTargetClass");
+    public static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
+    public static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
+    public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -54,7 +55,6 @@ public class ResourceView implements Serializable {
     private GrlcQuery query;
     private String queryField = "resource";
     private List<IRI> actionList = new ArrayList<>();
-    private Set<IRI> types = new HashSet<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Map<IRI,Template> actionTemplateMap = new HashMap<>();
     private Map<IRI,String> actionTemplateFieldMap = new HashMap<>();
@@ -69,8 +69,6 @@ public class ResourceView implements Serializable {
                 if (st.getPredicate().equals(RDF.TYPE)) {
                     if (st.getObject().equals(RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
-                    } else if (st.getObject() instanceof IRI objIri) {
-                        types.add(objIri);
                     }
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
@@ -136,14 +134,6 @@ public class ResourceView implements Serializable {
 
     public String getLabelForAction(IRI actionIri) {
         return labelMap.get(actionIri);
-    }
-
-    public boolean hasType(IRI type) {
-        return types.contains(type);
-    }
-
-    public boolean isTopLevelView() {
-        return !hasType(PART_LEVEL_VIEW);
     }
 
     public boolean hasTargetClasses() {

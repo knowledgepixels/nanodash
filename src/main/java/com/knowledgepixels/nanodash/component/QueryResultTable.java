@@ -264,24 +264,24 @@ public class QueryResultTable extends Panel {
         }
     }
 
-    public static Component createComponent(final String markupId, QueryRef queryRef, ResourceView view, String contextId, Space space, long rowsPerPage) {
+    public static Component createComponent(final String markupId, QueryRef queryRef, ResourceView view, String id, String contextId, Space space, long rowsPerPage) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return createTableComponent(markupId, q, response, view, contextId, space, rowsPerPage);
+            return createTableComponent(markupId, q, response, view, id, contextId, space, rowsPerPage);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return createTableComponent(markupId, q, response, view, contextId, space, rowsPerPage);
+                    return createTableComponent(markupId, q, response, view, id, contextId, space, rowsPerPage);
                 }
 
             };
         }
     }
 
-    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ResourceView view, String contextId, Space space, long rowsPerPage) {
+    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ResourceView view, String id, String contextId, Space space, long rowsPerPage) {
         QueryResultTable table = new QueryResultTable(markupId, query, response, false, view.getTitle(), rowsPerPage, contextId);
         table.setContext(contextId, space);
         for (IRI actionIri : view.getActionList()) {
@@ -291,7 +291,7 @@ public class QueryResultTable extends Panel {
             if (field == null) field = "resource";
             String label = view.getLabelForAction(actionIri);
             if (label == null) label = "action...";
-            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, contextId).set("context", contextId);
+            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, id).set("context", contextId);
             table.addButton(label, PublishPage.class, params);
         }
         return table;
