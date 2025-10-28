@@ -162,7 +162,7 @@ public class SpacePage extends NanodashPage {
                 .add("param_resource", space.getId())
                 .add("context", space.getId())
             );
-        addViewButton.setBody(Model.of("+"));
+        addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
 
         if (space.isDataInitialized()) {

@@ -63,7 +63,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 .add("param_resource", resource.getId())
                 .add("context", resource.getId())
             );
-        addViewButton.setBody(Model.of("+"));
+        addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
 
         if (resource.isDataInitialized()) {
