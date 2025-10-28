@@ -526,6 +526,7 @@ public class Space implements Serializable {
                         resourceIds.put("resource", id);
                     }
 
+                    // TODO Is this correct? Shouldn't this be run several times until no new admins are found?
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
                         String pubkeyhash = r.get("pubkey");
                         if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
