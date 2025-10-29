@@ -2,7 +2,9 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -12,6 +14,10 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.commonjava.mimeparse.MIMEParse;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignatureUtils;
@@ -172,6 +178,21 @@ public class ExplorePage extends NanodashPage {
             add(new WebMarkupContainer("use-template").setVisible(false));
             add(new WebMarkupContainer("run-query").setVisible(false));
         } else {
+
+            if (parameters.get("forward-to-part").toString("").equals("true")) {
+                parameters.remove("forward-to-part");
+                Set<String> introducedIds = Utils.getIntroducedIriIds(np);
+                if (introducedIds.size() == 1) {
+                    String subj = introducedIds.iterator().next();
+                    for (Statement st : np.getAssertion()) {
+                        if (!st.getSubject().stringValue().equals(subj)) continue;
+                        if (!st.getPredicate().equals(DCTERMS.IS_PART_OF) && !st.getPredicate().equals(SKOS.IN_SCHEME)) continue;
+                        String resourceId = st.getObject().stringValue();
+                        if (MaintainedResource.get(resourceId) == null) continue;
+                        throw new RestartResponseException(ResourcePartPage.class, parameters);
+                    }
+                }
+            }
 
             // Check whether we should redirect to Nanopub Registry for machine-friendly formats:
             String mimeType = Utils.TYPE_HTML;

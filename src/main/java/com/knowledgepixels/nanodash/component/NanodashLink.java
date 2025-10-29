@@ -175,7 +175,7 @@ public class NanodashLink extends Panel {
         } else if (isPartOfResource(uri, contextId)) {
             return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.add("label", label)).setBody(Model.of(label));
         } else {
-            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.add("label", label)).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("label", label).set("forward-to-part", "true")).setBody(Model.of(label));
         }
     }
 
