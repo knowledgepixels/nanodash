@@ -169,8 +169,10 @@ public class NanodashLink extends Panel {
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (Space.get(uri) != null) {
+            label = Space.get(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
         } else if (MaintainedResource.get(uri) != null) {
+            label = MaintainedResource.get(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
         } else if (isPartOfResource(uri, contextId)) {
             return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.set("label", label)).setBody(Model.of(label));
