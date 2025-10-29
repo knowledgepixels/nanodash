@@ -199,6 +199,7 @@ public class Space implements Serializable {
             for (String pubkeyhash : ud.getPubkeyhashes(admin, true)) {
                 adminPubkeyMap.put(pubkeyhash, admin);
             }
+            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
         }
 
     }
@@ -526,13 +527,19 @@ public class Space implements Serializable {
                         resourceIds.put("resource", id);
                     }
 
-                    // TODO Is this correct? Shouldn't this be run several times until no new admins are found?
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-admins", spaceIds)).getData()) {
-                        String pubkeyhash = r.get("pubkey");
-                        if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
-                            IRI adminId = Utils.vf.createIRI(r.get("admin"));
-                            newData.addAdmin(adminId);
-                            newData.users.computeIfAbsent(adminId, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
+                    ApiResponse getAdminsResponse = QueryApiAccess.get(new QueryRef("get-admins", spaceIds));
+                    boolean continueAddingAdmins = true;
+                    while (continueAddingAdmins) {
+                        continueAddingAdmins = false;
+                        for (ApiResponseEntry r : getAdminsResponse.getData()) {
+                            String pubkeyhash = r.get("pubkey");
+                            if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
+                                IRI adminId = Utils.vf.createIRI(r.get("admin"));
+                                if (!newData.admins.contains(adminId)) {
+                                    continueAddingAdmins = true;
+                                    newData.addAdmin(adminId);
+                                }
+                            }
                         }
                     }
                     newData.admins.sort(User.getUserData().userComparator);
