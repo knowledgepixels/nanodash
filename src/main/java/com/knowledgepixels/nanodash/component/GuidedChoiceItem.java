@@ -12,14 +12,11 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -31,9 +28,8 @@ import java.util.*;
 /**
  * A guided choice item that allows users to select from a list of predefined values.
  */
-public class GuidedChoiceItem extends Panel implements ContextComponent {
+public class GuidedChoiceItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -90,8 +86,7 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
      * @param context  The template context containing the template and models.
      */
     public GuidedChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         this.iri = iriP;
         final Template template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
@@ -317,8 +312,6 @@ public class GuidedChoiceItem extends Panel implements ContextComponent {
             }
         }
     }
-
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     /**
      * {@inheritDoc}

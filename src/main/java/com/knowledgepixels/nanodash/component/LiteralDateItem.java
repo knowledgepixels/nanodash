@@ -9,7 +9,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
@@ -28,9 +27,8 @@ import java.util.Date;
 /**
  * A component that represents a text field for entering literal values.
  */
-public class LiteralDateItem extends Panel implements ContextComponent {
+public class LiteralDateItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private DatePicker datePicker;
     private Label datatypeComp;
     private IModel<String> datatypeModel;
@@ -49,8 +47,7 @@ public class LiteralDateItem extends Panel implements ContextComponent {
      * @param context  the template context containing models and parameters
      */
     public LiteralDateItem(String id, final IRI iri, boolean optional, TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         final Template template = context.getTemplate();
         this.iri = iri;
         regex = template.getRegex(iri);

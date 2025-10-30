@@ -10,7 +10,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.IValidatable;
@@ -29,9 +28,8 @@ import java.net.URISyntaxException;
 /**
  * A text field component for entering values in a template.
  */
-public class ValueTextfieldItem extends Panel implements ContextComponent {
+public class ValueTextfieldItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private TextField<String> textfield;
     private IRI iri;
     private static final Logger logger = LoggerFactory.getLogger(ValueTextfieldItem.class);
@@ -46,8 +44,7 @@ public class ValueTextfieldItem extends Panel implements ContextComponent {
      * @param context  the template context containing models and components
      */
     public ValueTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         this.iri = iriP;
         final Template template = context.getTemplate();
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);

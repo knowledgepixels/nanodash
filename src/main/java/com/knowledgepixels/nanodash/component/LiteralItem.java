@@ -1,12 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
-
-import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.template.UnificationException;
 
 /**
  * A component that represents a literal value in the context of a statement.

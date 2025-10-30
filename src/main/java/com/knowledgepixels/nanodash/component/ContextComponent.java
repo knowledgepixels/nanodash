@@ -13,7 +13,7 @@ public interface ContextComponent {
      * Removes this component from the context.
      * This method should be called when the component is no longer needed in the context.
      */
-    public void removeFromContext();
+    void removeFromContext();
 
     /**
      * Checks if this component can be unified with the given RDF value.
@@ -21,27 +21,27 @@ public interface ContextComponent {
      * @param v the RDF value to check against
      * @return true if the component can be unified with the value, false otherwise
      */
-    public boolean isUnifiableWith(Value v);
+    boolean isUnifiableWith(Value v);
 
     /**
      * Unifies this component with the given RDF value.
      * If the component cannot be unified with the value, an UnificationException is thrown.
      *
      * @param v the RDF value to unify with
-     * @throws com.knowledgepixels.nanodash.template.UnificationException if the component cannot be unified with the value
+     * @throws UnificationException if the component cannot be unified with the value
      */
-    public void unifyWith(Value v) throws UnificationException;
+    void unifyWith(Value v) throws UnificationException;
 
     /**
      * Called when the filling of values is finished.
      * This method can be used to perform any final actions after all values have been filled.
      */
-    public void fillFinished();
+    void fillFinished();
 
     /**
      * Finalizes the values of this component.
      * This method should be called to ensure all values are set correctly and ready for use.
      */
-    public void finalizeValues();
+    void finalizeValues();
 
 }

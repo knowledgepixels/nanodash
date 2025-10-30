@@ -6,12 +6,10 @@ import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -27,10 +25,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * A panel that displays an IRI with a label and a link to explore it.
  */
-public class IriItem extends Panel implements ContextComponent {
+public class IriItem extends AbstractContextComponent {
 
     private IRI iri;
-    private TemplateContext context;
 
     /**
      * Constructor for creating an IRI item with a given IRI and repetition group.
@@ -43,9 +40,8 @@ public class IriItem extends Panel implements ContextComponent {
      * @param rg              the repetition group context
      */
     public IriItem(String id, String parentId, IRI iriP, boolean objectPosition, IRI statementPartId, RepetitionGroup rg) {
-        super(id);
+        super(id, rg.getContext());
         this.iri = iriP;
-        this.context = rg.getContext();
         final Template template = context.getTemplate();
         String labelString = null;
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
@@ -77,28 +73,28 @@ public class IriItem extends Panel implements ContextComponent {
         String iriString = iri.stringValue();
         String description = "";
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
-            if (rg.getContext().getExistingNanopub() != null) {
-                iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
+            if (this.context.getExistingNanopub() != null) {
+                iriString = this.context.getExistingNanopub().getAssertionUri().stringValue();
             } else {
                 iriString = LocalUri.PREFIX + "assertion";
             }
             description = "This is the identifier for the assertion of this nanopublication.";
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
-            if (rg.getContext().getExistingNanopub() != null) {
-                iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
+            if (this.context.getExistingNanopub() != null) {
+                iriString = this.context.getExistingNanopub().getUri().stringValue();
             } else {
                 iriString = LocalUri.PREFIX + "nanopub";
             }
             description = "This is the identifier for this whole nanopublication.";
         } else if (template.isLocalResource(iri)) {
-            if (rg.getContext().getExistingNanopub() == null) {
+            if (this.context.getExistingNanopub() == null) {
                 iriString = iriString.replace(Utils.getUriPrefix(iriString), LocalUri.PREFIX);
             }
         }
         if (iriString.startsWith(context.getTemplateId())) {
             iriString = iriString.replace(context.getTemplateId(), "");
-            if (rg.getContext().getExistingNanopub() != null) {
-                iriString = rg.getContext().getExistingNanopub().getUri().stringValue() + iriString;
+            if (this.context.getExistingNanopub() != null) {
+                iriString = this.context.getExistingNanopub().getUri().stringValue() + iriString;
             }
             description = "This is a local identifier minted within the nanopublication.";
         }

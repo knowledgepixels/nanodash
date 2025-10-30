@@ -9,14 +9,12 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.IValidatable;
@@ -45,16 +43,13 @@ import java.util.Map;
 /**
  * ReadonlyItem is a component that displays a read-only item in the form.
  */
-public class ReadonlyItem extends Panel implements ContextComponent {
-
-    // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
+public class ReadonlyItem extends AbstractContextComponent {
 
     private static final int LONG_LITERAL_LENGTH = 100;
     private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
-    private TemplateContext context;
     private String prefix;
     private ExternalLink linkComp;
     private Label extraComp, languageComp, datatypeComp;
@@ -74,8 +69,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
      * @param rg              the repetition group
      */
     public ReadonlyItem(String id, String parentId, final IRI iriP, IRI statementPartId, final RepetitionGroup rg) {
-        super(id);
-        context = rg.getContext();
+        super(id, rg.getContext());
         this.iri = iriP;
         template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);

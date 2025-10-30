@@ -5,16 +5,16 @@ import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Represents a sequence element item.
  */
-public class SequenceElementItem extends Panel implements ContextComponent {
+public class SequenceElementItem extends AbstractContextComponent {
 
     /**
      * Prefix for sequence element properties in RDF.
@@ -32,7 +32,7 @@ public class SequenceElementItem extends Panel implements ContextComponent {
      * @param context the template context
      */
     public SequenceElementItem(String id, final IRI iri, int number, TemplateContext context) {
-        super(id);
+        super(id, context);
         this.number = number;
         context.getComponentModels().put(iri, Model.of(SEQUENCE_ELEMENT_PROPERTY_PREFIX + number));
 

@@ -15,14 +15,11 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +32,8 @@ import java.util.*;
 /**
  * A component that allows users to select an agent (user) from a list or enter an ORCID or URL.
  */
-public class AgentChoiceItem extends Panel implements ContextComponent {
+public class AgentChoiceItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -62,8 +58,7 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
      * @param context  the template context
      */
     public AgentChoiceItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         this.iri = iriP;
         final Template template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
@@ -291,8 +286,6 @@ public class AgentChoiceItem extends Panel implements ContextComponent {
             }
         }
     }
-
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     /**
      * <p>toString.</p>

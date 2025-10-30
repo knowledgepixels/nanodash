@@ -14,7 +14,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.IValidatable;
@@ -34,12 +33,9 @@ import java.net.URISyntaxException;
 /**
  * A text field for entering IRIs, with a prefix label and validation.
  */
-public class IriTextfieldItem extends Panel implements ContextComponent {
-
-    // TODO: Make ContextComponent an abstract class with superclass Panel, and move the common code of the form items there.
+public class IriTextfieldItem extends AbstractContextComponent {
 
     private String prefix;
-    private TemplateContext context;
     private TextField<String> textfield;
     private IRI iri;
     private static final Logger logger = LoggerFactory.getLogger(IriTextfieldItem.class);
@@ -54,8 +50,7 @@ public class IriTextfieldItem extends Panel implements ContextComponent {
      * @param context  the template context containing models and components
      */
     public IriTextfieldItem(String id, String parentId, final IRI iriP, boolean optional, final TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         this.iri = iriP;
         final Template template = context.getTemplate();
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);

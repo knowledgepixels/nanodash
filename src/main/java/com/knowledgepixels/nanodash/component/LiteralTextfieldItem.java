@@ -11,7 +11,6 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.IValidator;
@@ -27,9 +26,8 @@ import org.slf4j.LoggerFactory;
 /**
  * A component that represents a text field for entering literal values.
  */
-public class LiteralTextfieldItem extends Panel implements ContextComponent {
+public class LiteralTextfieldItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private AbstractTextComponent<String> textfield;
     private Label languageComp, datatypeComp;
     private IModel<String> languageModel, datatypeModel;
@@ -46,8 +44,7 @@ public class LiteralTextfieldItem extends Panel implements ContextComponent {
      * @param context  the template context containing models and parameters
      */
     public LiteralTextfieldItem(String id, final IRI iri, boolean optional, TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         final Template template = context.getTemplate();
         this.iri = iri;
         regex = template.getRegex(iri);

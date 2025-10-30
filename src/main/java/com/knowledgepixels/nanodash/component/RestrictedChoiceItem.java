@@ -34,9 +34,8 @@ import java.util.List;
 /**
  * RestrictedChoiceItem is a Wicket component that provides a select2 choice input
  */
-public class RestrictedChoiceItem extends Panel implements ContextComponent {
+public class RestrictedChoiceItem extends AbstractContextComponent {
 
-    private TemplateContext context;
     private IRI iri;
     private Select2Choice<String> choice;
     private ExternalLink tooltipLink;
@@ -55,8 +54,7 @@ public class RestrictedChoiceItem extends Panel implements ContextComponent {
      * @param context  the template context
      */
     public RestrictedChoiceItem(String id, String parentId, IRI iri, boolean optional, final TemplateContext context) {
-        super(id);
-        this.context = context;
+        super(id, context);
         this.iri = iri;
         Template template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
