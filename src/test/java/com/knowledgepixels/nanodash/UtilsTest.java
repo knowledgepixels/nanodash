@@ -48,6 +48,27 @@ class UtilsTest {
     }
 
     @Test
+    void getShortNameFromDOIURI() {
+        String iriAsString = Values.iri("https://doi.org/10.1234/any12345").stringValue();
+        String shortName = "doi:10.1234/any12345";
+        String shortNameRetrieved = Utils.getShortNameFromURI(iriAsString);
+        assertEquals(shortName, shortNameRetrieved);
+
+        iriAsString = Values.iri("http://dx.doi.org/10.1234/any6789").stringValue();
+        shortName = "doi:10.1234/any6789";
+        shortNameRetrieved = Utils.getShortNameFromURI(iriAsString);
+        assertEquals(shortName, shortNameRetrieved);
+    }
+
+    @Test
+    void getShortNameWithHash() {
+        String iriAsString = Values.iri("https://knowledgepixels.com/resource/any12345").stringValue();
+        String shortName = "any12345";
+        String shortNameRetrieved = Utils.getShortNameFromURI(iriAsString);
+        assertEquals(shortName, shortNameRetrieved);
+    }
+
+    @Test
     void getShortNanopubId() {
         String shortNanopubId = Utils.getShortNanopubId(NANOPUB_IRI);
         String expectedShortNanopubId = "RAAnO3U0Lc";
