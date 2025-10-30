@@ -159,23 +159,25 @@ public class NanodashLink extends Panel {
      */
     public static Component createLink(String markupId, String uri, String label, String contextId) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
-        PageParameters params = new PageParameters().add("id", uri);
-        if (contextId != null) params.add("context", contextId);
+        PageParameters params = new PageParameters().set("id", uri);
+        if (contextId != null) params.set("context", contextId);
         // TODO Improve this
         if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.add("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (Space.get(uri) != null) {
+            label = Space.get(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
         } else if (MaintainedResource.get(uri) != null) {
+            label = MaintainedResource.get(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
         } else if (isPartOfResource(uri, contextId)) {
-            return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.add("label", label)).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.set("label", label)).setBody(Model.of(label));
         } else {
-            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.add("label", label)).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("label", label).set("forward-to-part", "true")).setBody(Model.of(label));
         }
     }
 
