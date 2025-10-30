@@ -12,7 +12,7 @@ public class LocalUri extends AbstractIRI {
      * The prefix for local URIs.
      */
     public static final String PREFIX = "local:";
-    private String localName;
+    private final String localName;
 
     private LocalUri(String localName) {
         this.localName = localName;
@@ -27,6 +27,9 @@ public class LocalUri extends AbstractIRI {
     public static LocalUri of(String localName) {
         if (localName == null || localName.isBlank()) {
             throw new IllegalArgumentException("Local name cannot be null or blank");
+        }
+        if (localName.contains("/") || localName.contains("#")) {
+            throw new IllegalArgumentException("Local name cannot contain '/' or '#'");
         }
         return new LocalUri(localName);
     }
