@@ -50,11 +50,11 @@ public class NanodashLink extends Panel {
     /**
      * Creates a link to a nanopublication or an IRI.
      *
-     * @param id             the Wicket component ID
-     * @param uri            the URI of the nanopublication or IRI
-     * @param np             the nanopublication, or null if the link is not to a nanopublication
-     * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
-     * @param label          the label to display for the link, or null to derive it from the nanopublication or IRI
+     * @param id            the Wicket component ID
+     * @param uri           the URI of the nanopublication or IRI
+     * @param np            the nanopublication, or null if the link is not to a nanopublication
+     * @param templateClass the template class of the nanopublication, or null if the link is not to a nanopublication
+     * @param label         the label to display for the link, or null to derive it from the nanopublication or IRI
      */
     public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label, String contextId) {
         super(id);
@@ -115,7 +115,7 @@ public class NanodashLink extends Panel {
             add(new Label("description", "links a nanopublication to its pubinfo"));
         } else {
             if (label == null || label.isBlank()) {
-                label = IriItem.getShortNameFromURI(uri);
+                label = Utils.getShortNameFromURI(uri);
                 if (iriObj.equals(User.getSignatureOwnerIri(np))) {
                     // TODO We might want to introduce a "(you)" flag here at some point
                     label = User.getShortDisplayName(iriObj);
@@ -192,10 +192,10 @@ public class NanodashLink extends Panel {
     /**
      * Creates a link to a nanopublication or an IRI.
      *
-     * @param id             the Wicket component ID
-     * @param uri            the URI of the nanopublication or IRI
-     * @param np             the nanopublication, or null if the link is not to a nanopublication
-     * @param templateClass  the template class of the nanopublication, or null if the link is not to a nanopublication
+     * @param id            the Wicket component ID
+     * @param uri           the URI of the nanopublication or IRI
+     * @param np            the nanopublication, or null if the link is not to a nanopublication
+     * @param templateClass the template class of the nanopublication, or null if the link is not to a nanopublication
      */
     public NanodashLink(String id, String uri, Nanopub np, IRI templateClass) {
         this(id, uri, np, templateClass, null);

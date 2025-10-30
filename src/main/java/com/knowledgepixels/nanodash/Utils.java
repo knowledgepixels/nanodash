@@ -43,6 +43,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Utility class providing various helper methods for handling nanopublications, URIs, and other related functionalities.
  */
@@ -57,8 +59,6 @@ public class Utils {
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    // TODO Merge with IriItem.getShortNameFromURI
-
     /**
      * Generates a short name from a given IRI object.
      *
@@ -72,17 +72,25 @@ public class Utils {
     /**
      * Generates a short name from a given URI string.
      *
-     * @param u the URI string
+     * @param uri the URI string
      * @return a short representation of the URI
      */
-    public static String getShortNameFromURI(String u) {
-        u = u.replaceFirst("\\?.*$", "");
-        u = u.replaceFirst("[/#]$", "");
-        u = u.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
-        u = u.replaceFirst("^.*[/#]([^/#]*[^0-9][^/#]*)$", "$1");
-        u = u.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
-        u = u.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
-        return u;
+    public static String getShortNameFromURI(String uri) {
+        if (uri.startsWith("https://doi.org/") || uri.startsWith("http://dx.doi.org/")) {
+            return uri.replaceFirst("^https?://(dx\\.)?doi.org/", "doi:");
+        }
+        uri = uri.replaceFirst("\\?.*$", "");
+        uri = uri.replaceFirst("[/#]$", "");
+        uri = uri.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
+        if (uri.contains("#")) {
+            uri = uri.replaceFirst("^.*#(.*[^0-9].*)$", "$1");
+        } else {
+            uri = uri.replaceFirst("^.*/([^/]*[^0-9/][^/]*)$", "$1");
+        }
+        uri = uri.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
+        uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
+        uri = URLDecoder.decode(uri, UTF_8);
+        return uri;
     }
 
     /**

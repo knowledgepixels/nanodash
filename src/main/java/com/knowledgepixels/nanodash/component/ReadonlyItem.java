@@ -271,7 +271,7 @@ public class ReadonlyItem extends AbstractContextComponent {
         } else if (context.getLabel(iri) != null) {
             return context.getLabel(iri).replaceFirst(" - .*$", "");
         } else {
-            return IriItem.getShortNameFromURI(iri.stringValue());
+            return Utils.getShortNameFromURI(iri.stringValue());
         }
     }
 

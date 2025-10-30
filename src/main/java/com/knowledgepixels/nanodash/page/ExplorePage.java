@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.*;
+import jakarta.servlet.http.HttpServletRequest;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -14,7 +16,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.commonjava.mimeparse.MIMEParse;
-import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.SKOS;
@@ -28,25 +29,9 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ExploreDataTable;
-import com.knowledgepixels.nanodash.component.IriItem;
-import com.knowledgepixels.nanodash.component.NanopubItem;
-import com.knowledgepixels.nanodash.component.StatusLine;
-import com.knowledgepixels.nanodash.component.ThingListPanel;
-import com.knowledgepixels.nanodash.component.TitleBar;
-
-import jakarta.servlet.http.HttpServletRequest;
-import net.trustyuri.TrustyUriUtils;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * ExplorePage is a page that allows users to explore a specific Nanopublication or Thing.
@@ -186,7 +171,8 @@ public class ExplorePage extends NanodashPage {
                     String subj = introducedIds.iterator().next();
                     for (Statement st : np.getAssertion()) {
                         if (!st.getSubject().stringValue().equals(subj)) continue;
-                        if (!st.getPredicate().equals(DCTERMS.IS_PART_OF) && !st.getPredicate().equals(SKOS.IN_SCHEME)) continue;
+                        if (!st.getPredicate().equals(DCTERMS.IS_PART_OF) && !st.getPredicate().equals(SKOS.IN_SCHEME))
+                            continue;
                         String resourceId = st.getObject().stringValue();
                         if (MaintainedResource.get(resourceId) == null) continue;
                         throw new RestartResponseException(ResourcePartPage.class, parameters);
@@ -244,7 +230,7 @@ public class ExplorePage extends NanodashPage {
         if (publishedNanopub != null) {
             shortName = NanopubUtils.getLabel(np);
         } else if (parameters.get("label").isEmpty()) {
-            shortName = IriItem.getShortNameFromURI(ref);
+            shortName = Utils.getShortNameFromURI(ref);
         } else {
             shortName = parameters.get("label").toString();
         }

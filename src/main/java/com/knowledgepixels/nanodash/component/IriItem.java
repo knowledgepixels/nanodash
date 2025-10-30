@@ -17,7 +17,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.PROV;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -59,7 +58,7 @@ public class IriItem extends AbstractContextComponent {
             // temporary solution until we have full provenance graph support
             labelString = "is attributed to";
         } else if (labelString == null) {
-            labelString = getShortNameFromURI(iri.stringValue());
+            labelString = Utils.getShortNameFromURI(iri.stringValue());
         }
         if (!statementPartId.equals(template.getFirstOccurence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");
@@ -123,31 +122,6 @@ public class IriItem extends AbstractContextComponent {
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
-
-    // TODO Merge with Utils.getShortNameFromURI
-
-    /**
-     * <p>getShortNameFromURI.</p>
-     *
-     * @param uri a {@link java.lang.String} object
-     * @return a {@link java.lang.String} object
-     */
-    public static String getShortNameFromURI(String uri) {
-        if (uri.startsWith("https://doi.org/")) return uri.replace("https://doi.org/", "doi:");
-        if (uri.startsWith("http://dx.doi.org/")) return uri.replace("http://dx.doi.org/", "doi:");
-        uri = uri.replaceFirst("\\?.*$", "");
-        uri = uri.replaceFirst("[/#]$", "");
-        uri = uri.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
-        if (uri.contains("#")) {
-            uri = uri.replaceFirst("^.*#(.*[^0-9].*)$", "$1");
-        } else {
-            uri = uri.replaceFirst("^.*/([^/]*[^0-9/][^/]*)$", "$1");
-        }
-        uri = uri.replaceFirst("((^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{8})[A-Za-z0-9\\-_]{35}$", "$1");
-        uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
-        uri = URLDecoder.decode(uri, UTF_8);
-        return uri;
-    }
 
     /**
      * {@inheritDoc}
