@@ -1110,7 +1110,7 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
 
 .nanopub-statement {
   padding: 2px 1px;
-  text-indent: 20px hanging;
+  /*text-indent: 20px hanging;*/
 }
 
 .nanopub-group .nanopub-statement {
@@ -1725,7 +1725,7 @@ span.usertext {
 
 .show-more {
   position: absolute;
-  right: 8px;
+  right: 0;
   bottom: 0;
   color: #0b73da;
   cursor: pointer;
@@ -1953,10 +1953,10 @@ div.navigator .goto a[disabled] {
 .filter-container-title {
   position: absolute;
   top: 0;
-  left: 32px;
+  left: 15px;
   transform: translateY(-50%);
   background: #fff;
-  padding: 0 16px;
+  padding: 0 5px;
 }
 
 a.source {
