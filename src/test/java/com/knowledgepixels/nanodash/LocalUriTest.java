@@ -52,13 +52,6 @@ class LocalUriTest {
     }
 
     @Test
-    void testCreationWithSlashes() {
-        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example/resource"));
-        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example/"));
-        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("/example"));
-    }
-
-    @Test
     void testCreationWithHashes() {
         assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example#resource"));
         assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example#"));

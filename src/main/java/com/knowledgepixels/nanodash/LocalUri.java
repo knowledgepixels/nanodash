@@ -28,8 +28,8 @@ public class LocalUri extends AbstractIRI {
         if (localName == null || localName.isBlank()) {
             throw new IllegalArgumentException("Local name cannot be null or blank");
         }
-        if (localName.contains("/") || localName.contains("#")) {
-            throw new IllegalArgumentException("Local name cannot contain '/' or '#'");
+        if (localName.contains("#")) {
+            throw new IllegalArgumentException("Local name cannot contain '#'");
         }
         return new LocalUri(localName);
     }
