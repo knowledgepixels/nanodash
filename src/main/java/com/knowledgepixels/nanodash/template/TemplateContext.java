@@ -450,7 +450,7 @@ public class TemplateContext implements Serializable {
      * Fills the context with statements, processing each StatementItem.
      *
      * @param statements the list of statements to fill
-     * @throws com.knowledgepixels.nanodash.template.UnificationException if there is an error during unification of statements
+     * @throws UnificationException if there is an error during unification of statements
      */
     public void fill(List<Statement> statements) throws UnificationException {
         for (StatementItem si : statementItems) {

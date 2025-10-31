@@ -211,8 +211,8 @@ public class IriTextfieldItem extends AbstractContextComponent {
             }
             if (sv.matches("https?://.+")) {
                 p = "";
-            } else if (sv.contains(":")) {
-                s.error(new ValidationError("Colon character is not allowed in postfix"));
+            } else if (sv.contains(":") || sv.contains("#")) {
+                s.error(new ValidationError("Invalid character in postfix (e.g., colon, hash)"));
             }
             String iriString = p + sv;
             if (iriString.matches("[^:# ]+")) {
