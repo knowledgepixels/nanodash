@@ -1,13 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.action.RetractionAction;
+import com.knowledgepixels.nanodash.page.ListPage;
+import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -22,23 +20,13 @@ import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.action.NanopubAction;
-import com.knowledgepixels.nanodash.page.ListPage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.template.ValueFiller;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * A panel that displays a nanopublication with its header, footer, assertion, provenance, and pubinfo.
@@ -124,6 +112,12 @@ public class NanopubItem extends Panel {
                         continue;
                     if (!isOwnNanopub && !action.isApplicableToOthersNanopubs()) continue;
                     if (!action.isApplicableTo(n.getNanopub())) continue;
+                    if (action instanceof RetractionAction && isOwnNanopub &&
+                        n.getNanopub().getPubinfo()
+                                .stream()
+                                .anyMatch(statement -> statement.getPredicate().equals(NPX.HAS_NANOPUB_TYPE) && statement.getObject().equals(NPX.RETRACTS))) {
+                        continue;
+                    }
                     actionList.add(action);
                     actionMap.put(action.getLinkLabel(n.getNanopub()), action);
                 }
