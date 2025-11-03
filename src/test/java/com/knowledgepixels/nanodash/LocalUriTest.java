@@ -51,4 +51,11 @@ class LocalUriTest {
         assertEquals("local:example", uri.stringValue());
     }
 
+    @Test
+    void testCreationWithHashes() {
+        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example#resource"));
+        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("example#"));
+        assertThrows(IllegalArgumentException.class, () -> LocalUri.of("#example"));
+    }
+
 }
