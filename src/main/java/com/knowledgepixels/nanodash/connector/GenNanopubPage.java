@@ -23,6 +23,7 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class GenNanopubPage extends ConnectorPage {
 
         String requestUrl = RequestCycle.get().getRequest().getUrl().toString();
         if (requestUrl.matches(".*/RA[A-Za-z0-9\\-_]{43}(\\?.*)?")) {
-            throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("id", Utils.getArtifactCode(requestUrl))));
+            throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(new PageParameters(getPageParameters()).set("id", GetNanopub.getArtifactCode(requestUrl))));
         }
 
         String mode = "author";

@@ -112,7 +112,7 @@ public class Utils {
      * @return the Nanopub object, or null if not found
      */
     public static Nanopub getNanopub(String uriOrArtifactCode) {
-        String artifactCode = getArtifactCode(uriOrArtifactCode);
+        String artifactCode = GetNanopub.getArtifactCode(uriOrArtifactCode);
         if (!nanopubs.containsKey(artifactCode)) {
             for (int i = 0; i < 3; i++) {  // Try 3 times to get nanopub
                 Nanopub np = GetNanopub.get(artifactCode);
@@ -123,16 +123,6 @@ public class Utils {
             }
         }
         return nanopubs.get(artifactCode);
-    }
-
-    /**
-     * Extracts the artifact code from a given URI or artifact code string.
-     *
-     * @param uriOrArtifactCode the URI or artifact code string
-     * @return the extracted artifact code
-     */
-    public static String getArtifactCode(String uriOrArtifactCode) {
-        return uriOrArtifactCode.replaceFirst("^.*(RA[0-9a-zA-Z\\-_]{43})(\\?.*)?$", "$1");
     }
 
     /**

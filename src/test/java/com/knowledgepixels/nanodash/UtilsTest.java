@@ -76,12 +76,6 @@ class UtilsTest {
     }
 
     @Test
-    void getArtifactCode() {
-        String artifactCode = Utils.getArtifactCode(NANOPUB_IRI);
-        assertEquals(ARTIFACT_CODE, artifactCode);
-    }
-
-    @Test
     void getShortOrcidId() {
         IRI orcidId = Values.iri("https://orcid.org/0000-0000-0000-0000");
         String shortOrcidId = Utils.getShortOrcidId(orcidId);
