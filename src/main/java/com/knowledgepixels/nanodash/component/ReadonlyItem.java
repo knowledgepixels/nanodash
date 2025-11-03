@@ -125,14 +125,14 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             public String getObject() {
                 String obj = getFullValue();
                 if (obj == null) return "";
-                if (obj.equals(LocalUri.PREFIX + "nanopub")) {
+                if (obj.equals(LocalUri.of("nanopub").stringValue())) {
                     if (context.getExistingNanopub() != null) {
                         obj = context.getExistingNanopub().getUri().stringValue();
                         return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
                     } else {
                         return "";
                     }
-                } else if (obj.equals(LocalUri.PREFIX + "assertion")) {
+                } else if (obj.equals(LocalUri.of("assertion").stringValue())) {
                     if (context.getExistingNanopub() != null) {
                         obj = context.getExistingNanopub().getAssertionUri().stringValue();
                         return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
@@ -303,7 +303,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
 
     private boolean isNanopubValue(Object obj) {
         if (obj == null) return false;
-        if (obj.toString().equals(LocalUri.PREFIX + "nanopub")) return true;
+        if (obj.toString().equals(LocalUri.of("nanopub").stringValue())) return true;
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getUri().stringValue());
     }
@@ -312,13 +312,13 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (context.getExistingNanopub() != null) {
             return context.getExistingNanopub().getUri().stringValue();
         } else {
-            return LocalUri.PREFIX + "nanopub";
+            return LocalUri.of("nanopub").stringValue();
         }
     }
 
     private boolean isAssertionValue(Object obj) {
         if (obj == null) return false;
-        if (obj.toString().equals(LocalUri.PREFIX + "assertion")) return true;
+        if (obj.toString().equals(LocalUri.of("assertion").stringValue())) return true;
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getAssertionUri().stringValue());
     }
@@ -327,7 +327,7 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (context.getExistingNanopub() != null) {
             return context.getExistingNanopub().getAssertionUri().stringValue();
         } else {
-            return LocalUri.PREFIX + "assertion";
+            return LocalUri.of("assertion").stringValue();
         }
     }
 
@@ -339,9 +339,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
         if (v == null) return true;
         if (v instanceof IRI) {
             String vs = v.stringValue();
-            if (vs.equals(LocalUri.PREFIX + "nanopub")) {
+            if (vs.equals(LocalUri.of("nanopub").stringValue())) {
                 vs = getNanopubValue();
-            } else if (vs.equals(LocalUri.PREFIX + "assertion")) {
+            } else if (vs.equals(LocalUri.of("assertion").stringValue())) {
                 vs = getAssertionValue();
             }
             if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
@@ -396,9 +396,9 @@ public class ReadonlyItem extends Panel implements ContextComponent {
             throw new UnificationException(vs);
         }
         if (v instanceof IRI) {
-            if (vs.equals(LocalUri.PREFIX + "nanopub")) {
+            if (vs.equals(LocalUri.of("nanopub").stringValue())) {
                 vs = getNanopubValue();
-            } else if (vs.equals(LocalUri.PREFIX + "assertion")) {
+            } else if (vs.equals(LocalUri.of("assertion").stringValue())) {
                 vs = getAssertionValue();
             }
             if (!prefix.isEmpty() && vs.startsWith(prefix)) {

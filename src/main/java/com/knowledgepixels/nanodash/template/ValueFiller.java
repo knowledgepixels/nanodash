@@ -186,15 +186,13 @@ public class ValueFiller {
 
     Value transform(Value v) {
         if (fillNp.getUri().equals(v)) {
-            return vf.createIRI(LocalUri.of("nanopub").stringValue());
-//			return Template.NANOPUB_PLACEHOLDER;
+            return LocalUri.of("nanopub");
         } else if (fillNp.getAssertionUri().equals(v)) {
-            return vf.createIRI(LocalUri.of("assertion").stringValue());
-//			return Template.ASSERTION_PLACEHOLDER;
+            return LocalUri.of("assertion");
         } else if (v instanceof IRI iri && formMode) {
             if (!Utils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
                 if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
-                    return vf.createIRI(LocalUri.PREFIX + Utils.getUriPostfix(v.stringValue()));
+                    return LocalUri.of(Utils.getUriPostfix(v.stringValue()));
                 }
             }
         }

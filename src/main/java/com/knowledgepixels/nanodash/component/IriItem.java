@@ -80,14 +80,14 @@ public class IriItem extends Panel implements ContextComponent {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getAssertionUri().stringValue();
             } else {
-                iriString = LocalUri.PREFIX + "assertion";
+                iriString = LocalUri.of("assertion").stringValue();
             }
             description = "This is the identifier for the assertion of this nanopublication.";
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             if (rg.getContext().getExistingNanopub() != null) {
                 iriString = rg.getContext().getExistingNanopub().getUri().stringValue();
             } else {
-                iriString = LocalUri.PREFIX + "nanopub";
+                iriString = LocalUri.of("nanopub").stringValue();
             }
             description = "This is the identifier for this whole nanopublication.";
         } else if (template.isLocalResource(iri)) {
@@ -115,10 +115,10 @@ public class IriItem extends Panel implements ContextComponent {
         ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-assertion "));
-            iri = vf.createIRI(LocalUri.PREFIX + "assertion");
+            iri = LocalUri.of("assertion");
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-nanopub "));
-            iri = vf.createIRI(LocalUri.PREFIX + "nanopub");
+            iri = LocalUri.of("nanopub");
         }
         add(linkComp);
         if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {

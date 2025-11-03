@@ -309,7 +309,7 @@ public class PublishForm extends Panel {
                 ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
                 if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
                     for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-                        if (st.getSubject().stringValue().equals(LocalUri.PREFIX + "nanopub") && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
+                        if (st.getSubject().stringValue().equals(LocalUri.of("nanopub").stringValue()) && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
                             if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
                                 piFiller.removeUnusedStatement(st);
                             }
