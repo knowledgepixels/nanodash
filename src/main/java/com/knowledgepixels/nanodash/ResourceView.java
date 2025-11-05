@@ -1,13 +1,7 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -17,9 +11,12 @@ import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
+import java.io.Serializable;
+import java.util.*;
 
+/**
+ * A class representing a Resource View.
+ */
 public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
@@ -36,6 +33,12 @@ public class ResourceView implements Serializable {
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
+    /**
+     * Get a ResourceView by its ID.
+     *
+     * @param id the ID of the ResourceView
+     * @return the ResourceView object
+     */
     public static ResourceView get(String id) {
         if (!resourceViews.containsKey(id)) {
             try {
@@ -56,9 +59,9 @@ public class ResourceView implements Serializable {
     private String queryField = "resource";
     private List<IRI> actionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
-    private Map<IRI,Template> actionTemplateMap = new HashMap<>();
-    private Map<IRI,String> actionTemplateFieldMap = new HashMap<>();
-    private Map<IRI,String> labelMap = new HashMap<>();
+    private Map<IRI, Template> actionTemplateMap = new HashMap<>();
+    private Map<IRI, String> actionTemplateFieldMap = new HashMap<>();
+    private Map<IRI, String> labelMap = new HashMap<>();
 
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
@@ -96,50 +99,114 @@ public class ResourceView implements Serializable {
         if (query == null) throw new IllegalArgumentException("Query not found: " + id);
     }
 
+    /**
+     * Gets the ID of the ResourceView.
+     *
+     * @return the ID of the ResourceView
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the Nanopub defining this ResourceView.
+     *
+     * @return the Nanopub defining this ResourceView
+     */
     public Nanopub getNanopub() {
         return nanopub;
     }
 
+    /**
+     * Gets the label of the ResourceView.
+     *
+     * @return the label of the ResourceView
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * Gets the title of the ResourceView.
+     *
+     * @return the title of the ResourceView
+     */
     public String getTitle() {
         return title;
     }
 
+    /**
+     * Gets the GrlcQuery associated with the ResourceView.
+     *
+     * @return the GrlcQuery associated with the ResourceView
+     */
     public GrlcQuery getQuery() {
         return query;
     }
 
+    /**
+     * Gets the query field of the ResourceView.
+     *
+     * @return the query field
+     */
     public String getQueryField() {
         return queryField;
     }
 
+    /**
+     * Gets the list of action IRIs associated with the ResourceView.
+     *
+     * @return the list of action IRIs
+     */
     public List<IRI> getActionList() {
         return actionList;
     }
 
+    /**
+     * Gets the Template for a given action IRI.
+     *
+     * @param actionIri the action IRI
+     * @return the Template for the action IRI
+     */
     public Template getTemplateForAction(IRI actionIri) {
         return actionTemplateMap.get(actionIri);
     }
 
+    /**
+     * Gets the template field for a given action IRI.
+     *
+     * @param actionIri the action IRI
+     * @return the template field for the action IRI
+     */
     public String getTemplateFieldForAction(IRI actionIri) {
         return actionTemplateFieldMap.get(actionIri);
     }
 
+    /**
+     * Gets the label for a given action IRI.
+     *
+     * @param actionIri the action IRI
+     * @return the label for the action IRI
+     */
     public String getLabelForAction(IRI actionIri) {
         return labelMap.get(actionIri);
     }
 
+    /**
+     * Checks if the ResourceView has target classes.
+     *
+     * @return true if the ResourceView has target classes, false otherwise
+     */
     public boolean hasTargetClasses() {
         return !targetClasses.isEmpty();
     }
 
+    /**
+     * Checks if the ResourceView has a specific target class.
+     *
+     * @param targetClass the target class IRI
+     * @return true if the ResourceView has the target class, false otherwise
+     */
     public boolean hasTargetClass(IRI targetClass) {
         return targetClasses.contains(targetClass);
     }
