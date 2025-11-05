@@ -1,8 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -16,19 +17,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ActivityPanel;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Page that shows a user profile, including their nanopubs and stats.
@@ -182,7 +172,7 @@ public class UserPage extends NanodashPage {
                     }
                     return spaces;
                 },
-                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")")
+                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")", null)
         ));
 
         if (pubkeyHashes.isEmpty()) {
@@ -201,7 +191,7 @@ public class UserPage extends NanodashPage {
                 }
             } else {
                 add(new ApiResultComponent("activity", activityQueryRef) {
-    
+
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         if (response.getData().isEmpty()) {
@@ -211,7 +201,7 @@ public class UserPage extends NanodashPage {
                         }
                     }
                 });
-    
+
             }
         }
     }

@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -11,11 +13,8 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.UserPage;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpaceUserList extends Panel {
 
@@ -36,24 +35,22 @@ public class SpaceUserList extends Panel {
             protected void populateItem(Item<Pair<SpaceMemberRole, List<IRI>>> item) {
                 SpaceMemberRole role = item.getModelObject().getLeft();
                 ItemListPanel<IRI> panel = new ItemListPanel<>(
-                       "user-list",
-                       role.getTitle(),
-                       item.getModelObject().getRight(),
-                       m -> {
-                           return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m));
-                       }).setSpace(space);
+                        "user-list",
+                        role.getTitle(),
+                        item.getModelObject().getRight(),
+                        // FIXME add the source nanopublication
+                        m -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), null, null)).setSpace(space);
                 if (role.getRoleAssignmentTemplate() != null) {
                     if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
                         panel.addButton("+", PublishPage.class, new PageParameters()
                                 .add("template", role.getRoleAssignmentTemplate().getId())
                                 .add("param_space", space.getId())
-                            );
+                        );
                     }
                 }
                 item.add(panel);
             }
         });
     }
-
 
 }

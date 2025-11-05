@@ -1,11 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -18,20 +16,11 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.PinGroupList;
-import com.knowledgepixels.nanodash.component.SpaceUserList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
-import com.knowledgepixels.nanodash.connector.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The ProjectPage class represents a space page in the Nanodash application.
@@ -83,7 +72,7 @@ public class SpacePage extends NanodashPage {
                 "Alternative IDs:",
                 space.getAltIDs(),
                 id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
-            ));
+        ));
 
         if (space.getStartDate() != null) {
             String dateString;
@@ -109,14 +98,14 @@ public class SpacePage extends NanodashPage {
                 .add("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
                 .add("param_space", space.getId())
                 .add("context", space.getId())
-            );
+        );
         addPinnedTemplateButton.setBody(Model.of("+ template"));
         pinButtons.add(addPinnedTemplateButton);
 
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .add("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
                 .add("param_space", space.getId())
-            );
+        );
         addPinnedQueryButton.setBody(Model.of("+ query"));
         pinButtons.add(addPinnedQueryButton);
 
@@ -125,25 +114,25 @@ public class SpacePage extends NanodashPage {
             add(new ButtonList("pin-buttons", space, null, null, pinButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("pin-groups") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new PinGroupList(markupId, space);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return space.isDataInitialized();
                 }
-    
+
             });
             add(new AjaxLazyLoadPanel<Component>("pin-buttons") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ButtonList(markupId, space, null, null, pinButtons);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return space.isDataInitialized();
@@ -151,8 +140,8 @@ public class SpacePage extends NanodashPage {
 
                 public Component getLoadingComponent(String id) {
                     return new Label(id).setVisible(false);
-                };
-    
+                }
+
             });
         }
 
@@ -161,7 +150,7 @@ public class SpacePage extends NanodashPage {
                 .add("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
                 .add("param_resource", space.getId())
                 .add("context", space.getId())
-            );
+        );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
 
@@ -170,25 +159,25 @@ public class SpacePage extends NanodashPage {
             add(new ButtonList("view-buttons", space, null, null, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ViewList(markupId, space);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return space.isDataInitialized();
                 }
-    
+
             });
             add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ButtonList(markupId, space, null, null, viewButtons);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return space.isDataInitialized();
@@ -196,26 +185,28 @@ public class SpacePage extends NanodashPage {
 
                 public Component getLoadingComponent(String id) {
                     return new Label(id).setVisible(false);
-                };
-    
+                }
+
+                ;
+
             });
         }
 
         add(new ItemListPanel<>(
-                "roles",
-                "Roles:",
-                () -> space.isDataInitialized(),
-                () -> space.getRoles(),
-                r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getId()), r.getName())
-            )
-            .makeInline()
-            .setSpace(space)
-            .addAdminButton("+", PublishPage.class, new PageParameters()
-                    .add("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
-                    .add("param_space", space.getId())
-                    .add("template-version", "latest")
+                        "roles",
+                        "Roles:",
+                        () -> space.isDataInitialized(),
+                        () -> space.getRoles(),
+                        r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getId()), r.getName())
                 )
-            );
+                        .makeInline()
+                        .setSpace(space)
+                        .addAdminButton("+", PublishPage.class, new PageParameters()
+                                .add("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
+                                .add("param_space", space.getId())
+                                .add("template-version", "latest")
+                        )
+        );
 
         add(new ItemListPanel<IRI>(
                 "users",
@@ -223,31 +214,31 @@ public class SpacePage extends NanodashPage {
                 () -> space.isDataInitialized(),
                 () -> space.getUsers(),
                 m -> {
-                        String roleLabel = "(";
-                        for (SpaceMemberRole r : space.getMemberRoles(m)) {
-                            roleLabel += r.getName() + ", ";
-                        }
-                        roleLabel = roleLabel.replaceFirst(", $", ")");
-                        return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel);
+                    String roleLabel = "(";
+                    for (SpaceMemberRole r : space.getMemberRoles(m)) {
+                        roleLabel += r.getName() + ", ";
                     }
-            ));
+                    roleLabel = roleLabel.replaceFirst(", $", ")");
+                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel, null);
+                }
+        ));
 
 
         if (space.isDataInitialized()) {
             add(new SpaceUserList("user-lists", space));
         } else {
             add(new AjaxLazyLoadPanel<Component>("user-lists") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new SpaceUserList(markupId, space);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return space.isDataInitialized();
                 }
-    
+
             });
         }
 
@@ -255,8 +246,8 @@ public class SpacePage extends NanodashPage {
                 "superspaces",
                 "Part of",
                 space.getSuperspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")")
-            ));
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")", null)
+        ));
 
         addSubspacePanel("Alliance", true);
         addSubspacePanel("Consortium", false);
@@ -277,18 +268,21 @@ public class SpacePage extends NanodashPage {
                 "resources",
                 "Resources",
                 new QueryRef("get-maintained-resources"),
-                (apiResponse) -> { MaintainedResource.ensureLoaded(); return MaintainedResource.getResourcesBySpace(space); },
+                (apiResponse) -> {
+                    MaintainedResource.ensureLoaded();
+                    return MaintainedResource.getResourcesBySpace(space);
+                },
                 (resource) -> {
                     return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", resource.getId()), resource.getLabel());
                 }
-            )
-            .setSpace(space)
-            .setReadyFunction(space::isDataInitialized)
-            .addMemberButton("+", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
-                    .set("param_space", space.getId())
-                    .set("context", space.getId())
-                    .set("template-version", "latest")
+        )
+                .setSpace(space)
+                .setReadyFunction(space::isDataInitialized)
+                .addMemberButton("+", PublishPage.class, new PageParameters()
+                        .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
+                        .set("param_space", space.getId())
+                        .set("context", space.getId())
+                        .set("template-version", "latest")
                 ));
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
@@ -305,19 +299,19 @@ public class SpacePage extends NanodashPage {
         typePl = typePl.replaceFirst("ys$", "ies");
 
         add(new ItemListPanel<>(
-                typePl.toLowerCase(),
-                typePl,
-                space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
-            )
-            .setSpace(space)
-            .setReadyFunction(space::isDataInitialized)
-            .addMemberButton("+", PublishPage.class, new PageParameters()
-                    .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
-                    .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                    .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
-                    .set("template-version", "latest"))
-            );
+                        typePl.toLowerCase(),
+                        typePl,
+                        space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
+                        (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
+                )
+                        .setSpace(space)
+                        .setReadyFunction(space::isDataInitialized)
+                        .addMemberButton("+", PublishPage.class, new PageParameters()
+                                .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
+                                .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
+                                .set("template-version", "latest"))
+        );
     }
 
     /**
