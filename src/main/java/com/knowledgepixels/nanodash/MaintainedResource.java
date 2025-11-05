@@ -113,8 +113,8 @@ public class MaintainedResource implements Serializable {
     private boolean dataNeedsUpdate = true;
 
     private static class ResourceData implements Serializable {
-        List<ResourceView> topLevelViews = new ArrayList<>();
-        List<ResourceView> partLevelViews = new ArrayList<>();
+        List<ViewDisplay> topLevelViews = new ArrayList<>();
+        List<ViewDisplay> partLevelViews = new ArrayList<>();
     }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
@@ -156,28 +156,28 @@ public class MaintainedResource implements Serializable {
         return dataInitialized;
     }
 
-    public List<ResourceView> getTopLevelViews() {
+    public List<ViewDisplay> getTopLevelViews() {
         triggerDataUpdate();
         // TODO Check for compliance with target classes here too:
         return data.topLevelViews;
     }
 
-    public List<ResourceView> getPartLevelViews(Set<IRI> classes) {
+    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
         triggerDataUpdate();
-        List<ResourceView> views = new ArrayList<>();
-        for (ResourceView v : data.partLevelViews) {
-            if (v.hasTargetClasses()) {
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
+        for (ViewDisplay v : data.partLevelViews) {
+            if (v.getView().hasTargetClasses()) {
                 for (IRI c : classes) {
-                    if (v.hasTargetClass(c)) {
-                        views.add(v);
+                    if (v.getView().hasTargetClass(c)) {
+                        viewDisplays.add(v);
                         break;
                     }
                 }
             } else {
-                views.add(v);
+                viewDisplays.add(v);
             }
         }
-        return views;
+        return viewDisplays;
     }
 
     private synchronized void triggerDataUpdate() {
@@ -188,12 +188,15 @@ public class MaintainedResource implements Serializable {
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
-                        ResourceView view = ResourceView.get(r.get("view"));
-                        if (view == null) continue;
-                        if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
-                            newData.partLevelViews.add(view);
-                        } else {
-                            newData.topLevelViews.add(view);
+                        try {
+                            ViewDisplay vd = new ViewDisplay(r);
+                            if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                                newData.partLevelViews.add(vd);
+                            } else {
+                                newData.topLevelViews.add(vd);
+                            }
+                        } catch (IllegalArgumentException ex) {
+                            logger.error("Couldn't generate view display object", ex);
                         }
                     }
                     data = newData;

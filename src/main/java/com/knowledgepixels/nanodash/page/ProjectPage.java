@@ -140,7 +140,7 @@ public class ProjectPage extends NanodashPage {
             @Override
             protected void populateItem(Item<IRI> item) {
                 String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), null, 10, null));
+                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), 10));
             }
 
         });

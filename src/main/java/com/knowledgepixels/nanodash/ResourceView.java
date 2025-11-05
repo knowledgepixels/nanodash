@@ -144,4 +144,9 @@ public class ResourceView implements Serializable {
         return targetClasses.contains(targetClass);
     }
 
+    @Override
+    public String toString() {
+        return id;
+    }
+
 }

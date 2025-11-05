@@ -18,17 +18,18 @@ import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.ViewDisplay;
 
 public class ViewList extends Panel {
 
     public ViewList(String markupId, Space space) {
         super(markupId);
 
-        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(space.getViews())) {
+        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(space.getViewDisplays())) {
 
             @Override
-            protected void populateItem(Item<ResourceView> item) {
-                ResourceView view = item.getModelObject();
+            protected void populateItem(Item<ViewDisplay> item) {
+                ResourceView view = item.getModelObject().getView();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
@@ -53,23 +54,23 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, space.getId(), space.getId(), space, 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), space.getId(), space.getId(), space, 10));
             }
 
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(space.getViews().isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(space.getViewDisplays().isEmpty()));
     }
 
     public ViewList(String markupId, MaintainedResource resource) {
         super(markupId);
 
-        final List<ResourceView> views = resource.getTopLevelViews();
-        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(views)) {
+        final List<ViewDisplay> viewDisplays = resource.getTopLevelViews();
+        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
-            protected void populateItem(Item<ResourceView> item) {
-                ResourceView view = item.getModelObject();
+            protected void populateItem(Item<ViewDisplay> item) {
+                ResourceView view = item.getModelObject().getView();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
@@ -96,23 +97,23 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, resource.getId(), resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), resource.getId(), resource.getId(), resource.getSpace(), 10));
             }
 
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(views.isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(viewDisplays.isEmpty()));
     }
 
     public ViewList(String markupId, MaintainedResource resource, String partId, String nanopubId, Set<IRI> partClasses) {
         super(markupId);
 
-        List<ResourceView> views = resource.getPartLevelViews(partClasses);
-        add(new DataView<ResourceView>("views", new ListDataProvider<ResourceView>(views)) {
+        List<ViewDisplay> viewDisplays = resource.getPartLevelViews(partClasses);
+        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
-            protected void populateItem(Item<ResourceView> item) {
-                ResourceView view = item.getModelObject();
+            protected void populateItem(Item<ViewDisplay> item) {
+                ResourceView view = item.getModelObject().getView();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
@@ -139,12 +140,12 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, view, partId, resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), partId, resource.getId(), resource.getSpace(), 10));
             }
 
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(views.isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(viewDisplays.isEmpty()));
     }
 
 

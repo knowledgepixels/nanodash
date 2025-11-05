@@ -36,9 +36,10 @@ import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.template.Template;
 
 /**
@@ -56,7 +57,7 @@ public class QueryResultTable extends Panel {
     private String contextId;
     private Space space;
 
-    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, String title, long rowsPerPage, String contextId) {
+    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, ViewDisplay viewDisplay, long rowsPerPage, String contextId) {
         super(id);
         this.contextId = contextId;
 
@@ -65,9 +66,9 @@ public class QueryResultTable extends Panel {
             add(new Label("morelink").setVisible(false));
         } else {
             String label = q.getLabel();
-            if (title != null) label = title;
+            if (viewDisplay.getView().getTitle() != null) label = viewDisplay.getView().getTitle();
             add(new Label("label", label));
-            add(new BookmarkablePageLink<Void>("morelink", QueryPage.class, new PageParameters().add("id", q.getNanopub().getUri())));
+            add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().add("id", viewDisplay.getNanopubId())));
         }
 
         errorLabel = new Label("error-messages", errorMessages);
@@ -247,42 +248,44 @@ public class QueryResultTable extends Panel {
 //
 //    }
 
-    public static Component createComponent(final String markupId, QueryRef queryRef, String title, long rowsPerPage, String contextId) {
+    public static Component createComponent(final String markupId, QueryRef queryRef, long rowsPerPage) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return new QueryResultTable(markupId, q, response, false, title, rowsPerPage, contextId);
+            return new QueryResultTable(markupId, q, response, false, null, rowsPerPage, null);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, false, title, rowsPerPage, contextId);
+                    return new QueryResultTable(markupId, q, response, false, null, rowsPerPage, null);
                 }
 
             };
         }
     }
 
-    public static Component createComponent(final String markupId, QueryRef queryRef, ResourceView view, String id, String contextId, Space space, long rowsPerPage) {
+    // TODO These long parameter lists are a bit mess; this needs to be modeled better:
+    public static Component createComponent(final String markupId, QueryRef queryRef, ViewDisplay viewDisplay, String id, String contextId, Space space, long rowsPerPage) {
         final GrlcQuery q = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (response != null) {
-            return createTableComponent(markupId, q, response, view, id, contextId, space, rowsPerPage);
+            return createTableComponent(markupId, q, response, viewDisplay, id, contextId, space, rowsPerPage);
         } else {
             return new ApiResultComponent(markupId, queryRef) {
 
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return createTableComponent(markupId, q, response, view, id, contextId, space, rowsPerPage);
+                    return createTableComponent(markupId, q, response, viewDisplay, id, contextId, space, rowsPerPage);
                 }
 
             };
         }
     }
 
-    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ResourceView view, String id, String contextId, Space space, long rowsPerPage) {
-        QueryResultTable table = new QueryResultTable(markupId, query, response, false, view.getTitle(), rowsPerPage, contextId);
+    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ViewDisplay viewDisplay, String id, String contextId, Space space, long rowsPerPage) {
+        ResourceView view = viewDisplay.getView();
+        QueryResultTable table = new QueryResultTable(markupId, query, response, false, viewDisplay, rowsPerPage, contextId);
         table.setContext(contextId, space);
         for (IRI actionIri : view.getActionList()) {
             Template t = view.getTemplateForAction(actionIri);

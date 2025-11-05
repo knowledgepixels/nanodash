@@ -187,7 +187,7 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         Set<Serializable> pinnedResources = new HashSet<>();
-        List<ResourceView> views = new ArrayList<>();
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -396,12 +396,12 @@ public class Space implements Serializable {
     }
 
     /**
-     * Get the list of views (GrlcQueries) associated with this space.
+     * Returns the view displays and their associated nanopub IDs.
      *
-     * @return List of GrlcQuery views.
+     * @return Map of views to nanopub IDs
      */
-    public List<ResourceView> getViews() {
-        return data.views;
+    public List<ViewDisplay> getViewDisplays() {
+        return data.viewDisplays;
     }
 
     /**
@@ -588,9 +588,12 @@ public class Space implements Serializable {
                     }
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        ResourceView view = ResourceView.get(r.get("view"));
-                        if (view == null) continue;
-                        newData.views.add(view);
+                        try {
+                            ViewDisplay vd = new ViewDisplay(r);
+                            newData.viewDisplays.add(vd);
+                        } catch (IllegalArgumentException ex) {
+                            logger.error("Couldn't generate view display object", ex);
+                        }
                     }
                     data = newData;
                     dataInitialized = true;
