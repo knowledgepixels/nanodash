@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -67,7 +68,11 @@ public class SpacePage extends NanodashPage {
     public SpacePage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
 
-        space = Space.get(parameters.get("id").toString());
+        String id = parameters.get("id").toString();
+        space = Space.get(id);
+        if (space == null && MaintainedResource.get(id) != null) {
+            throw new RestartResponseException(MaintainedResourcePage.class, parameters);
+        }
         Nanopub np = space.getRootNanopub();
 
         add(new TitleBar("titlebar", this, "connectors"));
@@ -82,7 +87,7 @@ public class SpacePage extends NanodashPage {
                 "altids",
                 "Alternative IDs:",
                 space.getAltIDs(),
-                id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
+                i -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", i), i)
             ));
 
         if (space.getStartDate() != null) {
