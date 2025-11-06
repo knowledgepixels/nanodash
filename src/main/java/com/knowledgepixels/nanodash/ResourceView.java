@@ -30,6 +30,8 @@ public class ResourceView implements Serializable {
     public static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
     public static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
+    public static final IRI TABULAR_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TabularView");
+    public static final IRI LIST_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ListView");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -62,6 +64,7 @@ public class ResourceView implements Serializable {
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
     private Map<IRI, String> actionTemplateFieldMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
+    private IRI viewType;
 
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
@@ -72,6 +75,9 @@ public class ResourceView implements Serializable {
                 if (st.getPredicate().equals(RDF.TYPE)) {
                     if (st.getObject().equals(RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
+                    }
+                    if (st.getObject().equals(TABULAR_VIEW) || st.getObject().equals(LIST_VIEW)) {
+                        viewType = (IRI) st.getObject();
                     }
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
@@ -214,6 +220,15 @@ public class ResourceView implements Serializable {
     @Override
     public String toString() {
         return id;
+    }
+
+    /**
+     * Gets the view type of the ResourceView.
+     *
+     * @return the view type mode IRI
+     */
+    public IRI getViewType() {
+        return viewType;
     }
 
 }
