@@ -38,7 +38,7 @@ public class QueryItem extends Panel {
         super(id);
 
         PageParameters params = new PageParameters();
-        params.add("id", query.getQueryId());
+        params.set("id", query.getQueryId());
         if (additionalParams != null) params.mergeWith(additionalParams);
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("querylink", QueryPage.class, params);
         l.add(new Label("linktext", query.getLabel()));

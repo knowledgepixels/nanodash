@@ -63,15 +63,15 @@ public class GenOverviewPage extends ConnectorPage {
             WebMarkupContainer technicalEditorActions = new WebMarkupContainer("technical-editor-actions");
 
             technicalEditorActions.add(new BookmarkablePageLink<Void>("publish-article-metadata", PublishPage.class,
-                    new PageParameters().add("template", "https://w3id.org/np/RA48p4Ct8tWL--rIc1Dcr2BcYpW_7X1pfuv_2LK3anolY")
-                            .add("template-version", "latest")
-                            .add("param_journal", getConfig().getJournalIssn())
-                            .add("param_journal-title", getConfig().getJournalName())
-                            .add("prtemplate", "https://w3id.org/np/RAekcN47h13fk6ZK4XiObgGgk-qB01sLOjyGyhMCq_jT4")
-                            .add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
-                            .add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
-                            .add("pitemplate2", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
-                            .add("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
+                    new PageParameters().set("template", "https://w3id.org/np/RA48p4Ct8tWL--rIc1Dcr2BcYpW_7X1pfuv_2LK3anolY")
+                            .set("template-version", "latest")
+                            .set("param_journal", getConfig().getJournalIssn())
+                            .set("param_journal-title", getConfig().getJournalName())
+                            .set("prtemplate", "https://w3id.org/np/RAekcN47h13fk6ZK4XiObgGgk-qB01sLOjyGyhMCq_jT4")
+                            .set("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
+                            .set("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
+                            .set("pitemplate2", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
+                            .set("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
             ));
             add(technicalEditorActions);
         } else {
@@ -111,7 +111,7 @@ public class GenOverviewPage extends ConnectorPage {
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
-                        PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "author");
+                        PageParameters params = new PageParameters().set("journal", journalId).set("id", e.get("np")).set("mode", "author");
                         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("ownlink", GenNanopubPage.class, params);
                         l.add(new Label("ownlinktext", "\"" + e.get("label") + "\""));
                         item.add(l);
@@ -184,7 +184,7 @@ public class GenOverviewPage extends ConnectorPage {
                 @Override
                 protected void populateItem(Item<ApiResponseEntry> item) {
                     ApiResponseEntry e = item.getModelObject();
-                    PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "candidate");
+                    PageParameters params = new PageParameters().set("journal", journalId).set("id", e.get("np")).set("mode", "candidate");
                     BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("candidatelink", GenNanopubPage.class, params);
                     l.add(new Label("candidatelinktext", "\"" + e.get("label") + "\""));
                     item.add(l);
@@ -247,7 +247,7 @@ public class GenOverviewPage extends ConnectorPage {
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
-                        PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("np")).add("mode", "final");
+                        PageParameters params = new PageParameters().set("journal", journalId).set("id", e.get("np")).set("mode", "final");
                         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("acceptedlink", GenNanopubPage.class, params);
                         l.add(new Label("acceptedlinktext", "\"" + e.get("label") + "\""));
                         item.add(l);
@@ -325,7 +325,7 @@ public class GenOverviewPage extends ConnectorPage {
                     @Override
                     protected void populateItem(Item<ApiResponseEntry> item) {
                         ApiResponseEntry e = item.getModelObject();
-                        PageParameters params = new PageParameters().add("journal", journalId).add("id", e.get("ref_np")).add("mode", "candidate");
+                        PageParameters params = new PageParameters().set("journal", journalId).set("id", e.get("ref_np")).set("mode", "candidate");
                         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", GenNanopubPage.class, params);
                         l.add(new Label("reactionlinktext", "\"" + e.get("comment") + "\""));
                         item.add(l);

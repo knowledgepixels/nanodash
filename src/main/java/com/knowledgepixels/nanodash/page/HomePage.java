@@ -103,7 +103,7 @@ public class HomePage extends NanodashPage {
                     return users;
                 },
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 

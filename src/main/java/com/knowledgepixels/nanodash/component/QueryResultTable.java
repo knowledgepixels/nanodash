@@ -68,7 +68,7 @@ public class QueryResultTable extends Panel {
             String label = q.getLabel();
             if (viewDisplay.getView().getTitle() != null) label = viewDisplay.getView().getTitle();
             add(new Label("label", label));
-            add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().add("id", viewDisplay.getNanopubId())));
+            add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
         }
 
         errorLabel = new Label("error-messages", errorMessages);
@@ -100,7 +100,7 @@ public class QueryResultTable extends Panel {
     // TODO Improve this (member/admin) button handling:
     public QueryResultTable addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (contextId != null) parameters.add("context", contextId);
+        if (contextId != null) parameters.set("context", contextId);
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);

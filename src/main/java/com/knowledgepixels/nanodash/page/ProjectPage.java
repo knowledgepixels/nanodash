@@ -74,12 +74,12 @@ public class ProjectPage extends NanodashPage {
         add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
         add(new Label("projectname", project.getLabel()));
         add(new ExternalLink("id", project.getId(), project.getId()));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", np.getUri())));
         add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(project.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         final PageParameters params = new PageParameters();
         if (project.getDefaultProvenance() != null) {
-            params.add("prtemplate", project.getDefaultProvenance().stringValue());
+            params.set("prtemplate", project.getDefaultProvenance().stringValue());
         }
         List<Pair<String, List<Template>>> templateLists = new ArrayList<>();
         List<String> templateTagList = new ArrayList<>(project.getTemplateTags());
@@ -131,7 +131,7 @@ public class ProjectPage extends NanodashPage {
                 () -> project.isDataInitialized(),
                 () -> project.getMembers(),
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 

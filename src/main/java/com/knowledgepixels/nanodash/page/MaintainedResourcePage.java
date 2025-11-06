@@ -51,19 +51,19 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", resource.getLabel())).setBody(Model.of(resource.getId())));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", resource.getNanopubId())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", resource.getNanopubId())));
 
         String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
-        add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().add("id", namespaceUri)).setBody(Model.of(namespaceUri)));
+        add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
 
         Space space = resource.getSpace();
-        add(new BookmarkablePageLink<Void>("space", SpacePage.class, new PageParameters().add("id", space.getId())).setBody(Model.of(space.getLabel())));
+        add(new BookmarkablePageLink<Void>("space", SpacePage.class, new PageParameters().set("id", space.getId())).setBody(Model.of(space.getLabel())));
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                .add("param_resource", resource.getId())
-                .add("context", resource.getId())
+                .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .set("param_resource", resource.getId())
+                .set("context", resource.getId())
             );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);

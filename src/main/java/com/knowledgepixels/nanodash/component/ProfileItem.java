@@ -43,7 +43,7 @@ public class ProfileItem extends Panel {
             add(l);
         } else {
             if (userId != null) {
-                BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", UserPage.class, new PageParameters().add("id", userId.stringValue()));
+                BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", UserPage.class, new PageParameters().set("id", userId.stringValue()));
                 l.add(new Label("profiletext", User.getShortDisplayName(userId)));
                 add(l);
             } else {

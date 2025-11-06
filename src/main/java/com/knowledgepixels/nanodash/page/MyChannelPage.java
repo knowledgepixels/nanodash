@@ -32,7 +32,7 @@ public class MyChannelPage extends NanodashPage {
     public MyChannelPage(final PageParameters parameters) {
         super(parameters);
         if (NanodashSession.get().getUserIri() != null) {
-            parameters.add("userid", NanodashSession.get().getUserIri());
+            parameters.set("userid", NanodashSession.get().getUserIri());
             String redirectUrl = ListPage.MOUNT_PATH + "?" + Utils.getPageParametersAsString(parameters);
             throw new RedirectToUrlException(redirectUrl);
         } else if (NanodashPreferences.get().isOrcidLoginMode()) {

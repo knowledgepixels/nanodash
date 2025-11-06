@@ -50,8 +50,8 @@ public class TemplateItem extends Panel {
         super(id);
 
         PageParameters params = new PageParameters();
-        params.add("template", entry.get("np"));
-        params.add("template-version", "latest");
+        params.set("template", entry.get("np"));
+        params.set("template-version", "latest");
         if (additionalParams != null) params.mergeWith(additionalParams);
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
         String label = entry.get("label");
@@ -96,8 +96,8 @@ public class TemplateItem extends Panel {
         super(id);
 
         PageParameters params = new PageParameters();
-        params.add("template", template.getId());
-        params.add("template-version", "latest");
+        params.set("template", template.getId());
+        params.set("template-version", "latest");
         if (additionalParams != null) params.mergeWith(additionalParams);
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
         l.add(new Label("name", template.getLabel()));

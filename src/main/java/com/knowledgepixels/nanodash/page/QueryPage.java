@@ -70,7 +70,7 @@ public class QueryPage extends NanodashPage {
         GrlcQuery q = GrlcQuery.get(id);
 
         add(new Label("querylabel", q.getLabel()));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", q.getNanopub().getUri().stringValue())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue())));
         // TODO Replace hard-coded domain with dynamic solution:
         add(new ExternalLink("openapi-this", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
         add(new ExternalLink("openapi-latest", "https://query.knowledgepixels.com/openapi/?url=spec/" + id + "%3Fapi-version=latest"));
@@ -88,7 +88,7 @@ public class QueryPage extends NanodashPage {
             protected void onSubmit() {
                 try {
                     PageParameters params = new PageParameters();
-                    params.add("runquery", q.getQueryId());
+                    params.set("runquery", q.getQueryId());
                     for (QueryParamField f : paramFields) {
                         for (String v : f.getValues()) {
                             params.add("queryparam_" + f.getParamName(), v);

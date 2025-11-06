@@ -41,7 +41,7 @@ public class ReactionList extends Panel {
                     item.add(new Label("reactionnote", "On earlier version:"));
                 }
                 item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
-                params.add("id", e.get("np"));
+                params.set("id", e.get("np"));
                 BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", ExplorePage.class, params);
                 String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
                 String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);

@@ -105,17 +105,17 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", label)).setBody(Model.of(id)));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", nanopubId)));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", nanopubId)));
 
         add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId())).setBody(Model.of(resource.getLabel())));
 
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                .add("param_displayType", ResourceView.PART_LEVEL_VIEW_DISPLAY)
-                .add("param_resource", resource.getId())
-                .add("context", resource.getId())
+                .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .set("param_displayType", ResourceView.PART_LEVEL_VIEW_DISPLAY)
+                .set("param_resource", resource.getId())
+                .set("context", resource.getId())
             );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);

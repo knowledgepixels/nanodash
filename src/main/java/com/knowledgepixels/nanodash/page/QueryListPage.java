@@ -50,7 +50,7 @@ public class QueryListPage extends NanodashPage {
             protected void onSubmit() {
                 String searchText = searchField.getModelObject().trim();
                 PageParameters params = new PageParameters();
-                params.add("query", searchText);
+                params.set("query", searchText);
                 setResponsePage(SearchPage.class, params);
             }
         };

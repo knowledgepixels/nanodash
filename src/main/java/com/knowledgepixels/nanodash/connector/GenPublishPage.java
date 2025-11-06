@@ -44,7 +44,7 @@ public class GenPublishPage extends ConnectorPage {
         add(new Label("pagetitle", getConfig().getJournalName() + ": Publish Nanopublication | nanodash"));
 
         final NanodashSession session = NanodashSession.get();
-        PageParameters journalParam = new PageParameters().add("journal", getConnectorId());
+        PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this, "connectors",
                 new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
                 new NanodashPageRef(GenSelectPage.class, journalParam, "Create Nanopublication"),
@@ -54,9 +54,9 @@ public class GenPublishPage extends ConnectorPage {
 
         if (parameters.get("template").toString() != null) {
             if (!parameters.contains("formobj")) {
-                throw new RestartResponseException(getClass(), parameters.add("formobj", Math.abs(new Random().nextLong()) + ""));
+                throw new RestartResponseException(getClass(), parameters.set("formobj", Math.abs(new Random().nextLong()) + ""));
             }
-            parameters.add("template-version", "latest");
+            parameters.set("template-version", "latest");
             String formObjId = parameters.get("formobj").toString();
             if (!session.hasForm(formObjId)) {
                 PublishForm publishForm = new PublishForm("form", parameters, getClass(), GenConnectPage.class);
@@ -68,7 +68,7 @@ public class GenPublishPage extends ConnectorPage {
         }
 
         ConnectorOption option = ConnectorOption.valueOf(parameters.get("type").toString().toUpperCase());
-        PageParameters pageParams = new PageParameters().add("journal", getConnectorId()).add("id", option.getExampleId()).add("mode", "final");
+        PageParameters pageParams = new PageParameters().set("journal", getConnectorId()).set("id", option.getExampleId()).set("mode", "final");
         add(new BookmarkablePageLink<Void>("show-example", GenNanopubPage.class, pageParams));
         add(new ExternalLink("support-link", "mailto:contact-project+knowledgepixels-support-desk@incoming.gitlab.com?subject=[" + getConfig().getJournalAbbrev() + "%20general]%20my%20problem/question&body=type%20your%20problem/question%20here"));
     }
