@@ -301,7 +301,7 @@ public class QueryResultTable extends Panel {
                 // TODO Find a better way to pass the MaintainedResource object to this method:
                 MaintainedResource r = MaintainedResource.get(contextId);
                 if (r != null && r.getNamespace() != null) {
-                    params.set("param_" + partField, r.getNamespace() + "<...>");
+                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                 }
             }
             table.addButton(label, PublishPage.class, params);

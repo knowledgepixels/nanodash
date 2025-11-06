@@ -314,7 +314,7 @@ public class SpacePage extends NanodashPage {
                         .addMemberButton("+", PublishPage.class, new PageParameters()
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
                                 .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
+                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>")
                                 .set("template-version", "latest"))
         );
     }
