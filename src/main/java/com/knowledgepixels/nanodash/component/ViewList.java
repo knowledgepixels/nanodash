@@ -1,8 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -12,13 +12,8 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.ResourceView;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.ViewDisplay;
+import java.util.List;
+import java.util.Set;
 
 public class ViewList extends Panel {
 
@@ -54,7 +49,11 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), space.getId(), space.getId(), space, 10));
+                if (view.getViewType().equals(ResourceView.TABULAR_VIEW)) {
+                    item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), space.getId(), space.getId(), space, 10));
+                } else {
+                    item.add(QueryResultList.createListViewComponent("view", queryRef, item.getModelObject()));
+                }
             }
 
         });
