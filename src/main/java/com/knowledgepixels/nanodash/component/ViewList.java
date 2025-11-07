@@ -50,9 +50,14 @@ public class ViewList extends Panel {
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
                 if (view.getViewType().equals(ResourceView.TABULAR_VIEW)) {
-                    item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), space.getId(), space.getId(), space, 10));
+                    item.add(QueryResultTableBuilder.create("view", queryRef, 10)
+                            .viewDisplay(item.getModelObject())
+                            .space(space)
+                            .contextId(space.getId())
+                            .id(space.getId())
+                            .build());
                 } else {
-                    item.add(QueryResultList.createListViewComponent("view", queryRef, item.getModelObject()));
+                    item.add(QueryResultList.createComponent("view", queryRef, item.getModelObject()));
                 }
             }
 
@@ -96,7 +101,12 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), resource.getId(), resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTableBuilder.create("view", queryRef, 10)
+                        .viewDisplay(item.getModelObject())
+                        .space(resource.getSpace())
+                        .id(resource.getId())
+                        .contextId(resource.getId())
+                        .build());
             }
 
         });
@@ -139,7 +149,12 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), partId, resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTableBuilder.create("view", queryRef, 10)
+                        .viewDisplay(item.getModelObject())
+                        .space(resource.getSpace())
+                        .id(partId)
+                        .contextId(resource.getId())
+                        .build());
             }
 
         });

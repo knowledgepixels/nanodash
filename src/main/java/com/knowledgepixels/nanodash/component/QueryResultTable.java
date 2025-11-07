@@ -1,20 +1,17 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -24,23 +21,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.ResourceView;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A table component that displays the results of a query.
@@ -57,7 +45,7 @@ public class QueryResultTable extends Panel {
     private String contextId;
     private Space space;
 
-    private QueryResultTable(String id, GrlcQuery q, ApiResponse response, boolean plain, ViewDisplay viewDisplay, long rowsPerPage, String contextId) {
+    QueryResultTable(String id, GrlcQuery grlcQuery, ApiResponse response, boolean plain, ViewDisplay viewDisplay, long rowsPerPage, String contextId) {
         super(id);
         this.contextId = contextId;
 
@@ -65,7 +53,7 @@ public class QueryResultTable extends Panel {
             add(new Label("label").setVisible(false));
             add(new Label("morelink").setVisible(false));
         } else {
-            String label = q.getLabel();
+            String label = grlcQuery.getLabel();
             if (viewDisplay.getView().getTitle() != null) label = viewDisplay.getView().getTitle();
             add(new Label("label", label));
             add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().add("id", viewDisplay.getNanopubId())));
@@ -90,7 +78,7 @@ public class QueryResultTable extends Panel {
             table.addTopToolbar(new HeadersToolbar<String>(table, dp));
             add(table);
         } catch (Exception ex) {
-            logger.error("Error creating table for query {}", q.getQueryId(), ex);
+            logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
@@ -247,81 +235,5 @@ public class QueryResultTable extends Panel {
 //        }
 //
 //    }
-
-    public static Component createComponent(final String markupId, QueryRef queryRef, long rowsPerPage) {
-        final GrlcQuery q = GrlcQuery.get(queryRef);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (response != null) {
-            return new QueryResultTable(markupId, q, response, false, null, rowsPerPage, null);
-        } else {
-            return new ApiResultComponent(markupId, queryRef) {
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, false, null, rowsPerPage, null);
-                }
-
-            };
-        }
-    }
-
-    // TODO These long parameter lists are a bit mess; this needs to be modeled better:
-    public static Component createComponent(final String markupId, QueryRef queryRef, ViewDisplay viewDisplay, String id, String contextId, Space space, long rowsPerPage) {
-        final GrlcQuery q = GrlcQuery.get(queryRef);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (response != null) {
-            return createTableComponent(markupId, q, response, viewDisplay, id, contextId, space, rowsPerPage);
-        } else {
-            return new ApiResultComponent(markupId, queryRef) {
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return createTableComponent(markupId, q, response, viewDisplay, id, contextId, space, rowsPerPage);
-                }
-
-            };
-        }
-    }
-
-    public static QueryResultTable createTableComponent(String markupId, GrlcQuery query, ApiResponse response, ViewDisplay viewDisplay, String id, String contextId, Space space, long rowsPerPage) {
-        ResourceView view = viewDisplay.getView();
-        QueryResultTable table = new QueryResultTable(markupId, query, response, false, viewDisplay, rowsPerPage, contextId);
-        table.setContext(contextId, space);
-        for (IRI actionIri : view.getActionList()) {
-            Template t = view.getTemplateForAction(actionIri);
-            if (t == null) continue;
-            String field = view.getTemplateFieldForAction(actionIri);
-            if (field == null) field = "resource";
-            String label = view.getLabelForAction(actionIri);
-            if (label == null) label = "action...";
-            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, id).set("context", contextId);
-            table.addButton(label, PublishPage.class, params);
-        }
-        return table;
-    }
-
-    /**
-     * <p>createComponent.</p>
-     *
-     * @param markupId a {@link java.lang.String} object
-     * @param queryRef the query reference
-     * @return a {@link org.apache.wicket.Component} object
-     */
-    public static Component createPlainComponent(final String markupId, QueryRef queryRef, long rowsPerPage, String contextId) {
-        final GrlcQuery q = GrlcQuery.get(queryRef);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (response != null) {
-            return new QueryResultTable(markupId, q, response, true, null, rowsPerPage, contextId);
-        } else {
-            return new ApiResultComponent(markupId, queryRef) {
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultTable(markupId, q, response, true, null, rowsPerPage, contextId);
-                }
-
-            };
-        }
-    }
 
 }
