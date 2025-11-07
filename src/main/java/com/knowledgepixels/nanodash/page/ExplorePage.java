@@ -156,16 +156,10 @@ public class ExplorePage extends NanodashPage {
                 np = Utils.getAsNanopub(npId);
             }
         }
-        if (np == null) {
-            raw.setVisible(false);
-            add(new Label("nanopub-header", ""));
-            add(new Label("nanopub", ""));
-            add(new WebMarkupContainer("use-template").setVisible(false));
-            add(new WebMarkupContainer("run-query").setVisible(false));
-        } else {
 
-            if (parameters.get("forward-to-part").toString("").equals("true")) {
-                parameters.remove("forward-to-part");
+        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty()) {
+            parameters.remove("forward-to-part");
+            if (np != null) {
                 Set<String> introducedIds = Utils.getIntroducedIriIds(np);
                 if (introducedIds.size() == 1) {
                     String subj = introducedIds.iterator().next();
@@ -179,6 +173,22 @@ public class ExplorePage extends NanodashPage {
                     }
                 }
             }
+            // TODO Improve this so we have just one check:
+            if (Space.get(contextId) != null && Space.get(contextId).coversElement(tempRef)) {
+                throw new RestartResponseException(ResourcePartPage.class, parameters);
+            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).coversElement(tempRef)) {
+                throw new RestartResponseException(ResourcePartPage.class, parameters);
+            }
+            
+        }
+
+        if (np == null) {
+            raw.setVisible(false);
+            add(new Label("nanopub-header", ""));
+            add(new Label("nanopub", ""));
+            add(new WebMarkupContainer("use-template").setVisible(false));
+            add(new WebMarkupContainer("run-query").setVisible(false));
+        } else {
 
             // Check whether we should redirect to Nanopub Registry for machine-friendly formats:
             String mimeType = Utils.TYPE_HTML;

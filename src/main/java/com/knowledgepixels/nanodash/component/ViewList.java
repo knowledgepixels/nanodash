@@ -25,7 +25,7 @@ public class ViewList extends Panel {
     public ViewList(String markupId, Space space) {
         super(markupId);
 
-        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(space.getViewDisplays())) {
+        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(space.getTopLevelViews())) {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
@@ -59,7 +59,7 @@ public class ViewList extends Panel {
 
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(space.getViewDisplays().isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(space.getTopLevelViews().isEmpty()));
     }
 
     public ViewList(String markupId, MaintainedResource resource) {
@@ -105,10 +105,28 @@ public class ViewList extends Panel {
         add(new WebMarkupContainer("emptynotice").setVisible(viewDisplays.isEmpty()));
     }
 
-    public ViewList(String markupId, MaintainedResource resource, String partId, String nanopubId, Set<IRI> partClasses) {
+    public ViewList(String markupId, Object spaceOrMaintainedResource, String partId, String nanopubId, Set<IRI> partClasses) {
         super(markupId);
 
-        List<ViewDisplay> viewDisplays = resource.getPartLevelViews(partClasses);
+        final String id;
+        final List<ViewDisplay> viewDisplays;
+        final String namespace;
+        final Space space;
+
+        if (spaceOrMaintainedResource instanceof MaintainedResource r) {
+            id = r.getId();
+            viewDisplays = r.getPartLevelViews(partClasses);
+            namespace = r.getNamespace();
+            space = r.getSpace();
+        } else if (spaceOrMaintainedResource instanceof Space s) {
+            id = s.getId();
+            viewDisplays = s.getPartLevelViews(partClasses);
+            namespace = null;
+            space = s;
+        } else {
+            throw new IllegalArgumentException("Neither MaintainedResource nor Space: " + spaceOrMaintainedResource);
+        }
+
         add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
@@ -124,9 +142,9 @@ public class ViewList extends Panel {
 //                                queryRefParams.put("space", altId);
 //                            }
 //                        }
-                    } else if (paramName.equals(view.getQueryField() + "Namespace")) {
-                        queryRefParams.put(view.getQueryField() + "Namespace", resource.getNamespace());
-                    } else if (paramName.equals(view.getQueryField() + "Np")) {
+                    } else if (paramName.equals(view.getQueryField() + "Namespace") && namespace != null) {
+                        queryRefParams.put(view.getQueryField() + "Namespace", namespace);
+                    } else if (paramName.equals(view.getQueryField() + "Np") && nanopubId != null) {
                         queryRefParams.put(view.getQueryField() + "Np", nanopubId);
 //                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
 //                        for (IRI userId : resource.getSpace().getUsers()) {
@@ -140,7 +158,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), partId, resource.getId(), resource.getSpace(), 10));
+                item.add(QueryResultTable.createComponent("view", queryRef, item.getModelObject(), partId, id, space, 10));
             }
 
         });

@@ -187,7 +187,8 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         Set<Serializable> pinnedResources = new HashSet<>();
-        List<ViewDisplay> viewDisplays = new ArrayList<>();
+        List<ViewDisplay> topLevelViews = new ArrayList<>();
+        List<ViewDisplay> partLevelViews = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -400,8 +401,37 @@ public class Space implements Serializable {
      *
      * @return Map of views to nanopub IDs
      */
-    public List<ViewDisplay> getViewDisplays() {
-        return data.viewDisplays;
+    public List<ViewDisplay> getTopLevelViews() {
+        return data.topLevelViews;
+    }
+
+    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
+        triggerDataUpdate();
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
+        for (ViewDisplay v : data.partLevelViews) {
+            if (v.getView().hasTargetClasses()) {
+                for (IRI c : classes) {
+                    if (v.getView().hasTargetClass(c)) {
+                        viewDisplays.add(v);
+                        break;
+                    }
+                }
+            } else {
+                viewDisplays.add(v);
+            }
+        }
+        return viewDisplays;
+    }
+
+    public boolean coversElement(String elementId) {
+        triggerDataUpdate();
+        for (ViewDisplay v : data.topLevelViews) {
+            if (v.getView().coversElement(elementId)) return true;
+        }
+        for (ViewDisplay v : data.partLevelViews) {
+            if (v.getView().coversElement(elementId)) return true;
+        }
+        return false;
     }
 
     /**
@@ -590,7 +620,11 @@ public class Space implements Serializable {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         try {
                             ViewDisplay vd = new ViewDisplay(r);
-                            newData.viewDisplays.add(vd);
+                            if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                                newData.partLevelViews.add(vd);
+                            } else {
+                                newData.topLevelViews.add(vd);
+                            }
                         } catch (IllegalArgumentException ex) {
                             logger.error("Couldn't generate view display object", ex);
                         }
