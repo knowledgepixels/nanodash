@@ -57,7 +57,7 @@ public class ViewList extends Panel {
                             .id(space.getId())
                             .build());
                 } else {
-                    item.add(QueryResultList.createComponent("view", queryRef, item.getModelObject()));
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
                 }
             }
 
