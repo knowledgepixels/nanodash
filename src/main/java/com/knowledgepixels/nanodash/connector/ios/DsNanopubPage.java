@@ -21,7 +21,7 @@ public class DsNanopubPage extends ConnectorPage {
      */
     public DsNanopubPage(final PageParameters params) {
         super(params);
-        setResponsePage(GenNanopubPage.class, params.add("journal", "ios/ds"));
+        setResponsePage(GenNanopubPage.class, params.set("journal", "ios/ds"));
     }
 
     /**

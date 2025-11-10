@@ -50,7 +50,7 @@ public class PublishPage extends NanodashPage {
                 add(new DifferentKeyErrorItem("form", parameters));
             } else {
                 if (!parameters.contains("formobj")) {
-                    throw new RestartResponseException(getClass(), parameters.add("formobj", Math.abs(new Random().nextLong()) + ""));
+                    throw new RestartResponseException(getClass(), parameters.set("formobj", Math.abs(new Random().nextLong()) + ""));
                 }
                 String formObjId = parameters.get("formobj").toString();
                 if (!session.hasForm(formObjId)) {

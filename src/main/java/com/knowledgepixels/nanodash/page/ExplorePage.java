@@ -67,7 +67,7 @@ public class ExplorePage extends NanodashPage {
     }
 
     public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
-        super(parameters.add("id", publishedNanopub.getUri()));
+        super(parameters.set("id", publishedNanopub.getUri()));
         this.publishedNanopub = publishedNanopub;
 
         WebMarkupContainer publishConfirmPanel = new WebMarkupContainer("publish-confirm-panel");
@@ -80,9 +80,9 @@ public class ExplorePage extends NanodashPage {
         publishConfirmPanel.add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
 
         PageParameters plainLinkParams = new PageParameters();
-        plainLinkParams.add("template", parameters.get("template"));
+        plainLinkParams.set("template", parameters.get("template"));
         if (!parameters.get("template-version").isEmpty()) {
-            plainLinkParams.add("template-version", parameters.get("template-version"));
+            plainLinkParams.set("template-version", parameters.get("template-version"));
         }
         publishConfirmPanel.add(new BookmarkablePageLink<Void>("publish-another-link", PublishPage.class, plainLinkParams));
 
@@ -115,9 +115,9 @@ public class ExplorePage extends NanodashPage {
 
         String contextId = parameters.get("context").toString("");
         if (Space.get(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().add("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
         } else if (MaintainedResource.get(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().add("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
         }
@@ -156,16 +156,10 @@ public class ExplorePage extends NanodashPage {
                 np = Utils.getAsNanopub(npId);
             }
         }
-        if (np == null) {
-            raw.setVisible(false);
-            add(new Label("nanopub-header", ""));
-            add(new Label("nanopub", ""));
-            add(new WebMarkupContainer("use-template").setVisible(false));
-            add(new WebMarkupContainer("run-query").setVisible(false));
-        } else {
 
-            if (parameters.get("forward-to-part").toString("").equals("true")) {
-                parameters.remove("forward-to-part");
+        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty()) {
+            parameters.remove("forward-to-part");
+            if (np != null) {
                 Set<String> introducedIds = Utils.getIntroducedIriIds(np);
                 if (introducedIds.size() == 1) {
                     String subj = introducedIds.iterator().next();
@@ -179,6 +173,22 @@ public class ExplorePage extends NanodashPage {
                     }
                 }
             }
+            // TODO Improve this so we have just one check:
+            if (Space.get(contextId) != null && Space.get(contextId).coversElement(tempRef)) {
+                throw new RestartResponseException(ResourcePartPage.class, parameters);
+            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).coversElement(tempRef)) {
+                throw new RestartResponseException(ResourcePartPage.class, parameters);
+            }
+            
+        }
+
+        if (np == null) {
+            raw.setVisible(false);
+            add(new Label("nanopub-header", ""));
+            add(new Label("nanopub", ""));
+            add(new WebMarkupContainer("use-template").setVisible(false));
+            add(new WebMarkupContainer("run-query").setVisible(false));
+        } else {
 
             // Check whether we should redirect to Nanopub Registry for machine-friendly formats:
             String mimeType = Utils.TYPE_HTML;
@@ -214,12 +224,12 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
-                add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().add("template", np.getUri()))));
+                add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
             } else {
                 add(new WebMarkupContainer("use-template").setVisible(false));
             }
             if (Utils.isNanopubOfClass(np, GrlcQuery.GRLC_QUERY_CLASS)) {
-                add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().add("id", np.getUri()))));
+                add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().set("id", np.getUri()))));
             } else {
                 add(new WebMarkupContainer("run-query").setVisible(false));
             }
@@ -271,7 +281,7 @@ public class ExplorePage extends NanodashPage {
                 // TODO: Add here URI of created nanopublication too?
                 throw new RedirectToUrlException(forwardUrl);
             } else {
-                String paramString = Utils.getPageParametersAsString(new PageParameters().add("id", publishedNanopub.getUri()));
+                String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", publishedNanopub.getUri()));
                 throw new RedirectToUrlException(forwardUrl + "?" + paramString);
             }
         }

@@ -27,11 +27,13 @@ public class ResourceView implements Serializable {
     public static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
     public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField");
     public static final IRI HAS_VIEW_TARGET_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewTargetClass");
+    public static final IRI HAS_ELEMENT_NAMESPACE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasElementNamespace");
     public static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
     public static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
     public static final IRI TABULAR_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TabularView");
     public static final IRI LIST_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ListView");
+    public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -61,10 +63,11 @@ public class ResourceView implements Serializable {
     private String queryField = "resource";
     private List<IRI> actionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
-    private Map<IRI, Template> actionTemplateMap = new HashMap<>();
-    private Map<IRI, String> actionTemplateFieldMap = new HashMap<>();
-    private Map<IRI, String> labelMap = new HashMap<>();
-    private IRI viewType;
+    private Set<IRI> elementNamespaces = new HashSet<>();
+    private Map<IRI,Template> actionTemplateMap = new HashMap<>();
+    private Map<IRI,String> actionTemplateTargetFieldMap = new HashMap<>();
+    private Map<IRI,String> actionTemplatePartFieldMap = new HashMap<>();
+    private Map<IRI,String> labelMap = new HashMap<>();
 
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
@@ -89,6 +92,8 @@ public class ResourceView implements Serializable {
                     queryField = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
                     actionList.add(objIri);
+                } else if (st.getPredicate().equals(HAS_ELEMENT_NAMESPACE) && st.getObject() instanceof IRI objIri) {
+                    elementNamespaces.add(objIri);
                 } else if (st.getPredicate().equals(HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
                     targetClasses.add(objIri);
                 }
@@ -96,7 +101,9 @@ public class ResourceView implements Serializable {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
                 actionTemplateMap.put((IRI) st.getSubject(), template);
             } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
-                actionTemplateFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                actionTemplateTargetFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_PART_FIELD)) {
+                actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             }
@@ -184,8 +191,12 @@ public class ResourceView implements Serializable {
      * @param actionIri the action IRI
      * @return the template field for the action IRI
      */
-    public String getTemplateFieldForAction(IRI actionIri) {
-        return actionTemplateFieldMap.get(actionIri);
+    public String getTemplateTargetFieldForAction(IRI actionIri) {
+        return actionTemplateTargetFieldMap.get(actionIri);
+    }
+
+    public String getTemplatePartFieldForAction(IRI actionIri) {
+        return actionTemplatePartFieldMap.get(actionIri);
     }
 
     /**
@@ -196,6 +207,13 @@ public class ResourceView implements Serializable {
      */
     public String getLabelForAction(IRI actionIri) {
         return labelMap.get(actionIri);
+    }
+
+    public boolean coversElement(String elementId) {
+        for (IRI namespace : elementNamespaces) {
+            if (elementId.startsWith(namespace.stringValue())) return true;
+        }
+        return false;
     }
 
     /**

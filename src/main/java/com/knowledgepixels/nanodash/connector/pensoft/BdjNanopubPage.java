@@ -21,7 +21,7 @@ public class BdjNanopubPage extends ConnectorPage {
      */
     public BdjNanopubPage(final PageParameters params) {
         super(params);
-        setResponsePage(GenNanopubPage.class, params.add("journal", "pensoft/bdj"));
+        setResponsePage(GenNanopubPage.class, params.set("journal", "pensoft/bdj"));
     }
 
     /**

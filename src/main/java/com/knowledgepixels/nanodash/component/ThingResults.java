@@ -46,7 +46,7 @@ public class ThingResults extends Panel {
                 }
                 item.add(new NanodashLink("thing-link", thingId, null, null, thingLabel));
                 String npId = item.getModelObject().get("np");
-                item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().add("id", npId)));
+                item.add(new BookmarkablePageLink<Void>("nanopub-link", ExplorePage.class, new PageParameters().set("id", npId)));
             }
 
         };

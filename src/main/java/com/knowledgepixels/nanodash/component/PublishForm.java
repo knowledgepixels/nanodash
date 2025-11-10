@@ -462,7 +462,7 @@ public class PublishForm extends Panel {
 
         form.add(new Label("nanopub-namespace", targetNamespaceLabel));
 
-        form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().add("id", assertionContext.getTemplate().getId())));
+        form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().set("id", assertionContext.getTemplate().getId())));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
         if (description == null) description = "";
@@ -730,7 +730,7 @@ public class PublishForm extends Panel {
             target.add(form);
             target.appendJavaScript("updateElements();");
         }
-        form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().add("id", provenanceContext.getTemplate().getId())));
+        form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().set("id", provenanceContext.getTemplate().getId())));
         ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
             protected void populateItem(ListItem<StatementItem> item) {
@@ -748,7 +748,7 @@ public class PublishForm extends Panel {
             protected void populateItem(ListItem<TemplateContext> item) {
                 final TemplateContext pic = item.getModelObject();
                 item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
-                item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().add("id", pic.getTemplate().getId())));
+                item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().set("id", pic.getTemplate().getId())));
                 Label remove = new Label("piremove", "×");
                 item.add(remove);
                 remove.add(new AjaxEventBehavior("click") {

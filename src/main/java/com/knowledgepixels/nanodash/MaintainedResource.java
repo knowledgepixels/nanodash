@@ -180,6 +180,17 @@ public class MaintainedResource implements Serializable {
         return viewDisplays;
     }
 
+    public boolean coversElement(String elementId) {
+        triggerDataUpdate();
+        for (ViewDisplay v : data.topLevelViews) {
+            if (v.getView().coversElement(elementId)) return true;
+        }
+        for (ViewDisplay v : data.partLevelViews) {
+            if (v.getView().coversElement(elementId)) return true;
+        }
+        return false;
+    }
+
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {

@@ -172,7 +172,7 @@ public class UserPage extends NanodashPage {
                     }
                     return spaces;
                 },
-                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")", null)
+                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")", null)
         ));
 
         if (pubkeyHashes.isEmpty()) {

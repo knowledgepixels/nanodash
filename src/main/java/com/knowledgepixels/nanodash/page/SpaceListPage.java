@@ -58,7 +58,7 @@ public class SpaceListPage extends NanodashPage {
                 new QueryRef("get-projects"),
                 (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
                 (project) -> {
-                    return new ItemListElement("item", ProjectPage.class, new PageParameters().add("id", project.getId()), project.getLabel());
+                    return new ItemListElement("item", ProjectPage.class, new PageParameters().set("id", project.getId()), project.getLabel());
                 }
             ).setDescription("These legacy project pages will be migrated into the Spaces above:"));
     }
@@ -68,13 +68,13 @@ public class SpaceListPage extends NanodashPage {
         typePl = typePl.replaceFirst("ys$", "ies");
 
         PageParameters newLinkParams = new PageParameters()
-                .add("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                .add("template-version", "latest")
-                .add("postpub-redirect-url", MOUNT_PATH);
+                .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                .set("template-version", "latest")
+                .set("postpub-redirect-url", MOUNT_PATH);
         if (openEnded) {
-            newLinkParams.add("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");
+            newLinkParams.set("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");
         } else {
-            newLinkParams.add("template", "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4");
+            newLinkParams.set("template", "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4");
         }
 
         add(new ItemListPanel<Space>(
@@ -83,7 +83,7 @@ public class SpaceListPage extends NanodashPage {
             new QueryRef("get-spaces"),
             (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList("https://w3id.org/kpxl/gen/terms/" + type); },
             (space) -> {
-                return new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel());
+                return new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space.getId()), space.getLabel());
             }
         ).addButton("+", PublishPage.class, newLinkParams));
     }

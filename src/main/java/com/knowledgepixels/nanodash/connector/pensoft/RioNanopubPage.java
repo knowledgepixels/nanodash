@@ -21,7 +21,7 @@ public class RioNanopubPage extends ConnectorPage {
      */
     public RioNanopubPage(final PageParameters params) {
         super(params);
-        setResponsePage(GenNanopubPage.class, params.add("journal", "pensoft/rio"));
+        setResponsePage(GenNanopubPage.class, params.set("journal", "pensoft/rio"));
     }
 
     /**

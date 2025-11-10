@@ -21,7 +21,7 @@ public class BdjOverviewPage extends ConnectorPage {
      */
     public BdjOverviewPage(PageParameters params) {
         super(params);
-        setResponsePage(GenOverviewPage.class, params.add("journal", "pensoft/bdj"));
+        setResponsePage(GenOverviewPage.class, params.set("journal", "pensoft/bdj"));
     }
 
     /**

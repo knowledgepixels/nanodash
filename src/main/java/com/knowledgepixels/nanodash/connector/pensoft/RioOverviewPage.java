@@ -21,7 +21,7 @@ public class RioOverviewPage extends ConnectorPage {
      */
     public RioOverviewPage(PageParameters params) {
         super(params);
-        setResponsePage(GenOverviewPage.class, params.add("journal", "pensoft/rio"));
+        setResponsePage(GenOverviewPage.class, params.set("journal", "pensoft/rio"));
     }
 
     /**

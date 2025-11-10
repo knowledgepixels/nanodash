@@ -70,7 +70,7 @@ public class UserListPage extends NanodashPage {
                     return users;
                 },
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 
@@ -86,7 +86,7 @@ public class UserListPage extends NanodashPage {
                     return users;
                 },
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 
@@ -95,7 +95,7 @@ public class UserListPage extends NanodashPage {
                 "Approved Users",
                 User.getUsers(true),
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 
@@ -104,7 +104,7 @@ public class UserListPage extends NanodashPage {
                 "Non-Approved Users",
                 User.getUsers(false),
                 (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
             ));
 

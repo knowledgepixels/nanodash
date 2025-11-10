@@ -21,7 +21,7 @@ public class DsOverviewPage extends ConnectorPage {
      */
     public DsOverviewPage(PageParameters params) {
         super(params);
-        setResponsePage(GenOverviewPage.class, params.add("journal", "ios/ds"));
+        setResponsePage(GenOverviewPage.class, params.set("journal", "ios/ds"));
     }
 
     /**

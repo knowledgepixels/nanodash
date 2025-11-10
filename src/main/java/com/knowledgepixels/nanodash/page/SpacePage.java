@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -56,7 +57,11 @@ public class SpacePage extends NanodashPage {
     public SpacePage(final PageParameters parameters) throws FailedApiCallException {
         super(parameters);
 
-        space = Space.get(parameters.get("id").toString());
+        String id = parameters.get("id").toString();
+        space = Space.get(id);
+        if (space == null && MaintainedResource.get(id) != null) {
+            throw new RestartResponseException(MaintainedResourcePage.class, parameters);
+        }
         Nanopub np = space.getRootNanopub();
 
         add(new TitleBar("titlebar", this, "connectors"));
@@ -65,14 +70,14 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", space.getLabel())).setBody(Model.of(space.getId())));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().add("id", np.getUri())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", np.getUri())));
 
         add(new ItemListPanel<String>(
                 "altids",
                 "Alternative IDs:",
                 space.getAltIDs(),
-                id -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", id), id)
-        ));
+                i -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", i), i)
+            ));
 
         if (space.getStartDate() != null) {
             String dateString;
@@ -95,16 +100,16 @@ public class SpacePage extends NanodashPage {
         final List<AbstractLink> pinButtons = new ArrayList<>();
 
         AbstractLink addPinnedTemplateButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
-                .add("param_space", space.getId())
-                .add("context", space.getId())
+                .set("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
+                .set("param_space", space.getId())
+                .set("context", space.getId())
         );
         addPinnedTemplateButton.setBody(Model.of("+ template"));
         pinButtons.add(addPinnedTemplateButton);
 
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
-                .add("param_space", space.getId())
+                .set("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
+                .set("param_space", space.getId())
         );
         addPinnedQueryButton.setBody(Model.of("+ query"));
         pinButtons.add(addPinnedQueryButton);
@@ -147,9 +152,9 @@ public class SpacePage extends NanodashPage {
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .add("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                .add("param_resource", space.getId())
-                .add("context", space.getId())
+                .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .set("param_resource", space.getId())
+                .set("context", space.getId())
         );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
@@ -197,14 +202,14 @@ public class SpacePage extends NanodashPage {
                         "Roles:",
                         () -> space.isDataInitialized(),
                         () -> space.getRoles(),
-                        r -> new ItemListElement("item", ExplorePage.class, new PageParameters().add("id", r.getId()), r.getName())
+                        r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getId()), r.getName())
                 )
                         .makeInline()
                         .setSpace(space)
                         .addAdminButton("+", PublishPage.class, new PageParameters()
-                                .add("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
-                                .add("param_space", space.getId())
-                                .add("template-version", "latest")
+                                .set("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
+                                .set("param_space", space.getId())
+                                .set("template-version", "latest")
                         )
         );
 
@@ -219,7 +224,7 @@ public class SpacePage extends NanodashPage {
                         roleLabel += r.getName() + ", ";
                     }
                     roleLabel = roleLabel.replaceFirst(", $", ")");
-                    return new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), roleLabel, null);
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", m), User.getShortDisplayName(m), roleLabel, null);
                 }
         ));
 
@@ -246,7 +251,7 @@ public class SpacePage extends NanodashPage {
                 "superspaces",
                 "Part of",
                 space.getSuperspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")", null)
+                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")", null)
         ));
 
         addSubspacePanel("Alliance", true);
@@ -273,7 +278,7 @@ public class SpacePage extends NanodashPage {
                     return MaintainedResource.getResourcesBySpace(space);
                 },
                 (resource) -> {
-                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().add("id", resource.getId()), resource.getLabel());
+                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel());
                 }
         )
                 .setSpace(space)
@@ -288,7 +293,7 @@ public class SpacePage extends NanodashPage {
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
         if (cc != null) {
-            add(new BookmarkablePageLink<Void>("content-button", GenOverviewPage.class, new PageParameters().add("journal", shortId)).setBody(Model.of("Nanopublication Submissions")));
+            add(new BookmarkablePageLink<Void>("content-button", GenOverviewPage.class, new PageParameters().set("journal", shortId)).setBody(Model.of("Nanopublication Submissions")));
         } else {
             add(new Label("content-button").setVisible(false));
         }
@@ -302,14 +307,14 @@ public class SpacePage extends NanodashPage {
                         typePl.toLowerCase(),
                         typePl,
                         space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
-                        (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().add("id", space), space.getLabel())
+                        (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
                         .setSpace(space)
                         .setReadyFunction(space::isDataInitialized)
                         .addMemberButton("+", PublishPage.class, new PageParameters()
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
                                 .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
-                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<...>")
+                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>")
                                 .set("template-version", "latest"))
         );
     }

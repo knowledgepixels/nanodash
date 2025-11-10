@@ -93,7 +93,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     // TODO Improve this (member/admin) button handling:
     public ItemListPanel<T> addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.add("context", space.getId());
+        if (space != null) parameters.set("context", space.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);
@@ -102,7 +102,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addMemberButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.add("context", space.getId());
+        if (space != null) parameters.set("context", space.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         memberButtons.add(button);
@@ -111,7 +111,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addAdminButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.add("context", space.getId());
+        if (space != null) parameters.set("context", space.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         adminButtons.add(button);

@@ -63,7 +63,7 @@ public class FdoForwarder extends NanodashPage {
                 throw new RedirectToUrlException(formatMaterializationMap.values().iterator().next(), 302);
             }
         }
-        throw new RedirectToUrlException(Utils.getUrlWithParameters(ExplorePage.MOUNT_PATH, new PageParameters().add("id", id)));
+        throw new RedirectToUrlException(Utils.getUrlWithParameters(ExplorePage.MOUNT_PATH, new PageParameters().set("id", id)));
     }
 
 }

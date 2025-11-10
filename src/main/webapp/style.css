@@ -1058,9 +1058,11 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   width: 350px;
 }
 
+/* deactivate for now, because short textfields can currently also hold full URIs
 .nanopub-textfield.short {
   width: 250px;
 }
+*/
 
 .pubinfosection .nanopub-pubinfo {
   display: none;

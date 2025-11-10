@@ -43,8 +43,8 @@ public class SpaceUserList extends Panel {
                 if (role.getRoleAssignmentTemplate() != null) {
                     if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
                         panel.addButton("+", PublishPage.class, new PageParameters()
-                                .add("template", role.getRoleAssignmentTemplate().getId())
-                                .add("param_space", space.getId())
+                                .set("template", role.getRoleAssignmentTemplate().getId())
+                                .set("param_space", space.getId())
                         );
                     }
                 }

@@ -52,7 +52,7 @@ public class GenNanopubPage extends ConnectorPage {
         super(parameters);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
 
-        PageParameters journalParam = new PageParameters().add("journal", getConnectorId());
+        PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this, "connectors",
                 new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
                 new NanodashPageRef("Nanopublication")
@@ -114,14 +114,14 @@ public class GenNanopubPage extends ConnectorPage {
             }
 
             technicalEditorActions.add(new BookmarkablePageLink<Void>("make-final-version", PublishPage.class,
-                    new PageParameters().add("template", templateId)
-                            .add("derive", np.getUri().stringValue())
-                            .add("template-version", "latest")
-                            .add("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
-                            .add("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
-                            .add("pitemplate2", "https://w3id.org/np/RA_JdI7pfDcyvEXLr_gper3h8egmNggeTqkJbyHrlMEdo")
-                            .add("pitemplate3", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
-                            .add("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
+                    new PageParameters().set("template", templateId)
+                            .set("derive", np.getUri().stringValue())
+                            .set("template-version", "latest")
+                            .set("pitemplate1", "https://w3id.org/np/RA5R_qv3VsZIrDKd8Mr37x3HoKCsKkwN5tJVqgQsKhjTE")
+                            .set("piparam1_type", getConfig().getNanopubType() == null ? "" : getConfig().getNanopubType().stringValue())
+                            .set("pitemplate2", "https://w3id.org/np/RA_JdI7pfDcyvEXLr_gper3h8egmNggeTqkJbyHrlMEdo")
+                            .set("pitemplate3", "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA")
+                            .set("target-namespace", getConfig().getTargetNamespace() == null ? "https://w3id.org/np/" : getConfig().getTargetNamespace())
             ));
             add(technicalEditorActions);
         } else {
@@ -168,12 +168,12 @@ public class GenNanopubPage extends ConnectorPage {
 
             add(new BookmarkablePageLink<Void>("create-new-reaction", PublishPage.class,
                             new PageParameters()
-                                    .add("template", "http://purl.org/np/RAaRGtbno5qhDnHdw0Pae1CEyVmeqE5tuwAJ9bZTc4jaU")
-                                    .add("param_paper", np.getUri().stringValue())
-                                    .add("template-version", "latest")
-                                    .add("link-message", "Here you can publish a reaction to the given nanopublication by typing your text into the text field below and " +
+                                    .set("template", "http://purl.org/np/RAaRGtbno5qhDnHdw0Pae1CEyVmeqE5tuwAJ9bZTc4jaU")
+                                    .set("param_paper", np.getUri().stringValue())
+                                    .set("template-version", "latest")
+                                    .set("link-message", "Here you can publish a reaction to the given nanopublication by typing your text into the text field below and " +
                                                          "choosing the relation that fits best (if unsure, you can choose 'cites as related').")
-                                    .add("postpub-redirect-url", this.getMountPath() + "?" + Utils.getPageParametersAsString(parameters))
+                                    .set("postpub-redirect-url", this.getMountPath() + "?" + Utils.getPageParametersAsString(parameters))
                     )
             );
 

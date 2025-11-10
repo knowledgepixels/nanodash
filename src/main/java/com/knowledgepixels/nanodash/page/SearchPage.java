@@ -82,9 +82,9 @@ public class SearchPage extends NanodashPage {
                 Boolean filterCheck = filterUser.getModelObject();
                 String pubkey = pubkeySelection.getModelObject();
                 PageParameters params = new PageParameters();
-                params.add("query", searchText);
-                params.add("filter", filterCheck);
-                if (pubkey != null) params.add("pubkey", pubkey);
+                params.set("query", searchText);
+                params.set("filter", filterCheck);
+                if (pubkey != null) params.set("pubkey", pubkey);
                 setResponsePage(SearchPage.class, params);
             }
         };
