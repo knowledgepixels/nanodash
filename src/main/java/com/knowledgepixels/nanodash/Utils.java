@@ -42,6 +42,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -58,6 +59,7 @@ public class Utils {
      */
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+    private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
 
     /**
      * Generates a short name from a given IRI object.
@@ -372,6 +374,16 @@ public class Utils {
      */
     public static String sanitizeHtml(String rawHtml) {
         return htmlSanitizePolicy.sanitize(rawHtml);
+    }
+
+    /**
+     * Checks if a given string is likely to be HTML content.
+     *
+     * @param value the string to check
+     * @return true if the given string is HTML content, false otherwise
+     */
+    public static boolean looksLikeHtml(String value) {
+        return LEADING_TAG.matcher(value).find();
     }
 
     /**
