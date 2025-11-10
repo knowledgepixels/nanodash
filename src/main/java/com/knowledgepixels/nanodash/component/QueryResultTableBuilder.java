@@ -35,7 +35,7 @@ public class QueryResultTableBuilder implements Serializable {
      *
      * @param markupId    the markup ID for the component
      * @param queryRef    the query reference
-     * @param rowsPerPage the number of rows per page
+     * @param viewDisplay the view display configuration
      * @return a new QueryResultTableBuilder instance
      */
     public static QueryResultTableBuilder create(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -94,56 +94,14 @@ public class QueryResultTableBuilder implements Serializable {
     public Component build() {
         final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (space == null) {
+        if (!plain) {
             if (response != null) {
-                ResourceView view = viewDisplay.getView();
-                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                table.setContext(contextId, space);
-                for (IRI actionIri : view.getActionList()) {
-                    Template t = view.getTemplateForAction(actionIri);
-                    if (t == null) continue;
-                    String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                    if (targetField == null) targetField = "resource";
-                    String label = view.getLabelForAction(actionIri);
-                    if (label == null) label = "action...";
-                    PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
-                    String partField = view.getTemplatePartFieldForAction(actionIri);
-                    if (partField != null) {
-                        // TODO Find a better way to pass the MaintainedResource object to this method:
-                        MaintainedResource r = MaintainedResource.get(contextId);
-                        if (r != null && r.getNamespace() != null) {
-                            params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                        }
-                    }
-                    table.addButton(label, PublishPage.class, params);
-                }
-                return table;
+                return createComponent(grlcQuery, response);
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        ResourceView view = viewDisplay.getView();
-                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                        table.setContext(contextId, space);
-                        for (IRI actionIri : view.getActionList()) {
-                            Template t = view.getTemplateForAction(actionIri);
-                            if (t == null) continue;
-                            String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                            if (targetField == null) targetField = "resource";
-                            String label = view.getLabelForAction(actionIri);
-                            if (label == null) label = "action...";
-                            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
-                            String partField = view.getTemplatePartFieldForAction(actionIri);
-                            if (partField != null) {
-                                // TODO Find a better way to pass the MaintainedResource object to this method:
-                                MaintainedResource r = MaintainedResource.get(contextId);
-                                if (r != null && r.getNamespace() != null) {
-                                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                                }
-                            }
-                            table.addButton(label, PublishPage.class, params);
-                        }
-                        return table;
+                        return createComponent(grlcQuery, response);
                     }
                 };
             }
@@ -161,4 +119,28 @@ public class QueryResultTableBuilder implements Serializable {
         }
     }
 
+    private Component createComponent(GrlcQuery grlcQuery, ApiResponse response) {
+        ResourceView view = viewDisplay.getView();
+        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
+        table.setContext(contextId, space);
+        for (IRI actionIri : view.getActionList()) {
+            Template t = view.getTemplateForAction(actionIri);
+            if (t == null) continue;
+            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+            if (targetField == null) targetField = "resource";
+            String label = view.getLabelForAction(actionIri);
+            if (label == null) label = "action...";
+            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
+            String partField = view.getTemplatePartFieldForAction(actionIri);
+            if (partField != null) {
+                // TODO Find a better way to pass the MaintainedResource object to this method:
+                MaintainedResource r = MaintainedResource.get(contextId);
+                if (r != null && r.getNamespace() != null) {
+                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                }
+            }
+            table.addButton(label, PublishPage.class, params);
+        }
+        return table;
+    }
 }
