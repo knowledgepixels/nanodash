@@ -4,6 +4,7 @@ import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -147,7 +148,7 @@ public class QueryPage extends NanodashPage {
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
         } else {
-            add(QueryResultTableBuilder.create("resulttable", new QueryRef(queryId, queryParams), 20).plain(true).build());
+            add(QueryResultTableBuilder.create("resulttable", new QueryRef(queryId, queryParams), new ViewDisplay(20)).plain(true).build());
         }
     }
 

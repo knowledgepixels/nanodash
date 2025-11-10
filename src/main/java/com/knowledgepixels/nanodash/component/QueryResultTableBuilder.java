@@ -17,7 +17,6 @@ import java.io.Serializable;
 public class QueryResultTableBuilder implements Serializable {
 
     private String markupId;
-    private long rowsPerPage;
     private boolean plain = false;
     private ViewDisplay viewDisplay = null;
     private String contextId = null;
@@ -25,10 +24,10 @@ public class QueryResultTableBuilder implements Serializable {
     private Space space = null;
     private String id = null;
 
-    private QueryResultTableBuilder(String markupId, QueryRef queryRef, long rowsPerPage) {
+    private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
-        this.rowsPerPage = rowsPerPage;
         this.queryRef = queryRef;
+        this.viewDisplay = viewDisplay;
     }
 
     /**
@@ -39,8 +38,8 @@ public class QueryResultTableBuilder implements Serializable {
      * @param rowsPerPage the number of rows per page
      * @return a new QueryResultTableBuilder instance
      */
-    public static QueryResultTableBuilder create(String markupId, QueryRef queryRef, long rowsPerPage) {
-        return new QueryResultTableBuilder(markupId, queryRef, rowsPerPage);
+    public static QueryResultTableBuilder create(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
+        return new QueryResultTableBuilder(markupId, queryRef, viewDisplay);
     }
 
     /**
@@ -77,17 +76,6 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
-     * Sets the ViewDisplay for the QueryResultTable.
-     *
-     * @param viewDisplay the ViewDisplay object
-     * @return the current QueryResultTableBuilder instance
-     */
-    public QueryResultTableBuilder viewDisplay(ViewDisplay viewDisplay) {
-        this.viewDisplay = viewDisplay;
-        return this;
-    }
-
-    /**
      * Sets the context ID for the QueryResultTable.
      *
      * @param contextId the context ID string
@@ -109,7 +97,7 @@ public class QueryResultTableBuilder implements Serializable {
         if (space == null) {
             if (response != null) {
                 ResourceView view = viewDisplay.getView();
-                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, rowsPerPage, contextId);
+                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
                 table.setContext(contextId, space);
                 for (IRI actionIri : view.getActionList()) {
                     Template t = view.getTemplateForAction(actionIri);
@@ -135,7 +123,7 @@ public class QueryResultTableBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         ResourceView view = viewDisplay.getView();
-                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, rowsPerPage, contextId);
+                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
                         table.setContext(contextId, space);
                         for (IRI actionIri : view.getActionList()) {
                             Template t = view.getTemplateForAction(actionIri);
@@ -161,12 +149,12 @@ public class QueryResultTableBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, rowsPerPage, contextId);
+                return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, rowsPerPage, contextId);
+                        return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
                     }
                 };
             }

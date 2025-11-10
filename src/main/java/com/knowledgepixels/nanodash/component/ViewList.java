@@ -50,8 +50,7 @@ public class ViewList extends Panel {
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
                 if (view.getViewType().equals(ResourceView.TABULAR_VIEW)) {
-                    item.add(QueryResultTableBuilder.create("view", queryRef, 10)
-                            .viewDisplay(item.getModelObject())
+                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                             .space(space)
                             .contextId(space.getId())
                             .id(space.getId())
@@ -101,8 +100,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTableBuilder.create("view", queryRef, 10)
-                        .viewDisplay(item.getModelObject())
+                item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                         .space(resource.getSpace())
                         .id(resource.getId())
                         .contextId(resource.getId())
@@ -167,8 +165,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTableBuilder.create("view", queryRef, 10)
-                        .viewDisplay(item.getModelObject())
+                item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                         .space(space)
                         .id(partId)
                         .contextId(id)

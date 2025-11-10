@@ -131,7 +131,7 @@ public class ProjectPage extends NanodashPage {
             @Override
             protected void populateItem(Item<IRI> item) {
                 String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTableBuilder.create("query", new QueryRef(queryId), 10).build());
+                item.add(QueryResultTableBuilder.create("query", new QueryRef(queryId), new ViewDisplay(20)).build());
             }
 
         });

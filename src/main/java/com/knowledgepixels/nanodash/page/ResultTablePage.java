@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,7 +40,7 @@ public class ResultTablePage extends NanodashPage {
         final String shortName = query.replaceFirst("^.*/", "");
         add(new Label("pagetitle", shortName + " (result table) | nanodash"));
 
-        add(QueryResultTableBuilder.create("table", new QueryRef(query), 20).build());
+        add(QueryResultTableBuilder.create("table", new QueryRef(query), new ViewDisplay(20)).build());
 
     }
 

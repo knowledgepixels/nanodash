@@ -45,7 +45,7 @@ public class QueryResultTable extends Panel {
     private String contextId;
     private Space space;
 
-    QueryResultTable(String id, GrlcQuery grlcQuery, ApiResponse response, boolean plain, ViewDisplay viewDisplay, long rowsPerPage, String contextId) {
+    QueryResultTable(String id, GrlcQuery grlcQuery, ApiResponse response, boolean plain, ViewDisplay viewDisplay, String contextId) {
         super(id);
         this.contextId = contextId;
 
@@ -54,9 +54,13 @@ public class QueryResultTable extends Panel {
             add(new Label("morelink").setVisible(false));
         } else {
             String label = grlcQuery.getLabel();
-            if (viewDisplay.getView().getTitle() != null) label = viewDisplay.getView().getTitle();
+            if (viewDisplay.getTitle() != null) label = viewDisplay.getTitle();
             add(new Label("label", label));
-            add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+            if (viewDisplay.getNanopubId() != null) {
+                add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+            } else {
+                add(new Label("morelink").setVisible(false));
+            }
         }
 
         errorLabel = new Label("error-messages", errorMessages);
@@ -71,7 +75,7 @@ public class QueryResultTable extends Panel {
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             dp = new DataProvider(response.getData());
-            table = new DataTable<>("table", columns, dp, rowsPerPage);
+            table = new DataTable<>("table", columns, dp, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));

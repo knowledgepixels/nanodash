@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -21,7 +22,9 @@ public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
 
+    // TODO Move these to some "vocab" location:
     public static final IRI RESOURCE_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ResourceView");
+
     public static final IRI TOP_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TopLevelViewDisplay");
     public static final IRI PART_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/PartLevelViewDisplay");
     public static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
@@ -34,6 +37,12 @@ public class ResourceView implements Serializable {
     public static final IRI TABULAR_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TabularView");
     public static final IRI LIST_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ListView");
     public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField");
+
+    public static final IRI HAS_PAGE_SIZE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPageSize");
+
+    public static final IRI VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ViewDisplay");
+    public static final IRI IS_DISPLAY_OF_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/isDisplayOfView");
+    public static final IRI IS_DISPLAY_FOR = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/isDisplayFor");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -61,6 +70,7 @@ public class ResourceView implements Serializable {
     private String title = "View";
     private GrlcQuery query;
     private String queryField = "resource";
+    private Integer pageSize;
     private List<IRI> actionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Set<IRI> elementNamespaces = new HashSet<>();
@@ -97,6 +107,12 @@ public class ResourceView implements Serializable {
                     elementNamespaces.add(objIri);
                 } else if (st.getPredicate().equals(HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
                     targetClasses.add(objIri);
+                } else if (st.getPredicate().equals(HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
+                    try {
+                        pageSize = Integer.parseInt(objL.stringValue());
+                    } catch (NumberFormatException ex) {
+                        logger.error("Invalid page size value: " + objL.stringValue(), ex);
+                    }
                 }
             } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE)) {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
@@ -165,6 +181,15 @@ public class ResourceView implements Serializable {
      */
     public String getQueryField() {
         return queryField;
+    }
+
+    /**
+     * Returns the preferred page size.
+     *
+     * @return page size (0 = everything on first page)
+     */
+    public Integer getPageSize() {
+        return pageSize;
     }
 
     /**

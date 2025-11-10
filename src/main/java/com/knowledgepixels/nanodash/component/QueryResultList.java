@@ -1,18 +1,16 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.ViewDisplay;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.ViewDisplay;
 
 public class QueryResultList extends Panel {
 
-    private static final Logger logger = LoggerFactory.getLogger(QueryResultList.class);
     private RepeatingView listItems;
 
     QueryResultList(String markupId, GrlcQuery grlcQuery, ApiResponse response, ViewDisplay viewDisplay) {
