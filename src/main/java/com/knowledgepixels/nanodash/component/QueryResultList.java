@@ -29,9 +29,11 @@ public class QueryResultList extends Panel {
             int count = 0;
             for (String header : response.getHeader()) {
                 String dataValue = entry.get(header);
-                labelText.append(dataValue);
-                if (count < response.getHeader().length - 1) {
-                    labelText.append(", ");
+                if (dataValue != null && !dataValue.isBlank()) {
+                    labelText.append(dataValue);
+                    if (count < response.getHeader().length - 1) {
+                        labelText.append(", ");
+                    }
                 }
                 count++;
 
