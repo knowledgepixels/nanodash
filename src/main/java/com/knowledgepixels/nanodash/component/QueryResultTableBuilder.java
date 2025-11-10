@@ -114,11 +114,19 @@ public class QueryResultTableBuilder implements Serializable {
                 for (IRI actionIri : view.getActionList()) {
                     Template t = view.getTemplateForAction(actionIri);
                     if (t == null) continue;
-                    String field = view.getTemplateFieldForAction(actionIri);
-                    if (field == null) field = "resource";
+                    String targetField = view.getTemplateTargetFieldForAction(actionIri);
+                    if (targetField == null) targetField = "resource";
                     String label = view.getLabelForAction(actionIri);
                     if (label == null) label = "action...";
-                    PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, id).set("context", contextId);
+                    PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
+                    String partField = view.getTemplatePartFieldForAction(actionIri);
+                    if (partField != null) {
+                        // TODO Find a better way to pass the MaintainedResource object to this method:
+                        MaintainedResource r = MaintainedResource.get(contextId);
+                        if (r != null && r.getNamespace() != null) {
+                            params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                        }
+                    }
                     table.addButton(label, PublishPage.class, params);
                 }
                 return table;
@@ -132,11 +140,19 @@ public class QueryResultTableBuilder implements Serializable {
                         for (IRI actionIri : view.getActionList()) {
                             Template t = view.getTemplateForAction(actionIri);
                             if (t == null) continue;
-                            String field = view.getTemplateFieldForAction(actionIri);
-                            if (field == null) field = "resource";
+                            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+                            if (targetField == null) targetField = "resource";
                             String label = view.getLabelForAction(actionIri);
                             if (label == null) label = "action...";
-                            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + field, id).set("context", contextId);
+                            PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
+                            String partField = view.getTemplatePartFieldForAction(actionIri);
+                            if (partField != null) {
+                                // TODO Find a better way to pass the MaintainedResource object to this method:
+                                MaintainedResource r = MaintainedResource.get(contextId);
+                                if (r != null && r.getNamespace() != null) {
+                                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                                }
+                            }
                             table.addButton(label, PublishPage.class, params);
                         }
                         return table;

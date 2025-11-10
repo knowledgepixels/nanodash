@@ -64,10 +64,11 @@ public class ResourceView implements Serializable {
     private List<IRI> actionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Set<IRI> elementNamespaces = new HashSet<>();
-    private Map<IRI,Template> actionTemplateMap = new HashMap<>();
-    private Map<IRI,String> actionTemplateTargetFieldMap = new HashMap<>();
-    private Map<IRI,String> actionTemplatePartFieldMap = new HashMap<>();
-    private Map<IRI,String> labelMap = new HashMap<>();
+    private Map<IRI, Template> actionTemplateMap = new HashMap<>();
+    private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
+    private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
+    private Map<IRI, String> labelMap = new HashMap<>();
+    private IRI viewType;
 
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
