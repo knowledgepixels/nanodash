@@ -1,9 +1,23 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.Utils;
+import java.io.Serializable;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -15,9 +29,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.time.Year;
-import java.util.*;
+import com.knowledgepixels.nanodash.Utils;
 
 /**
  * A panel that displays activity data in a table format.
@@ -71,7 +83,7 @@ public class ActivityPanel extends Panel {
         }
 
         DataTable<Entity, String> table = new DataTable<Entity, String>("table", columns, new EntityProvider(list), 10);
-        table.addBottomToolbar(new NavigationToolbar(table));
+        table.addBottomToolbar(new AjaxNavigationToolbar(table));
         table.addTopToolbar(new HeadersToolbar<String>(table, null));
         table.setOutputMarkupId(true);
         add(table);
