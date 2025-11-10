@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -15,6 +16,8 @@ public class QueryResultList extends Panel {
 
     QueryResultList(String markupId, GrlcQuery grlcQuery, ApiResponse response, ViewDisplay viewDisplay) {
         super(markupId);
+
+        add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
 
         String label = grlcQuery.getLabel();
         if (viewDisplay.getView().getTitle() != null) {

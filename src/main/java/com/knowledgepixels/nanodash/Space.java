@@ -629,6 +629,8 @@ public class Space implements Serializable {
                             logger.error("Couldn't generate view display object", ex);
                         }
                     }
+                    Collections.sort(newData.topLevelViews);
+                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {

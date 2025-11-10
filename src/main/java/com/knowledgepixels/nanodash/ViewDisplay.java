@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A class representing the display of a resource view associated with a Space.
  */
-public class ViewDisplay implements Serializable {
+public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
 
@@ -27,6 +27,8 @@ public class ViewDisplay implements Serializable {
     private ResourceView view;
     private String title;
     private Integer pageSize;
+    private Integer displayWidth;
+    private String structuralPosition;
     private Set<IRI> types = new HashSet<>();
     private IRI resource;
 
@@ -86,6 +88,10 @@ public class ViewDisplay implements Serializable {
                     } catch (NumberFormatException ex) {
                         logger.error("Invalid page size value: " + objL.stringValue(), ex);
                     }
+                } else if (st.getPredicate().equals(ResourceView.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
+                    displayWidth = ResourceView.columnWidths.get(objIri);
+                } else if (st.getPredicate().equals(ResourceView.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
+                    structuralPosition = objL.stringValue();
                 }
             }
         }
@@ -126,8 +132,23 @@ public class ViewDisplay implements Serializable {
 
     public Integer getPageSize() {
         if (pageSize != null) return pageSize;
+        if (view == null) return 10;
         if (view.getPageSize() != null) return view.getPageSize();
         return 10;
+    }
+
+    public Integer getDisplayWidth() {
+        if (displayWidth != null) return displayWidth;
+        if (view == null) return 12;
+        if (view.getDisplayWidth() != null) return view.getDisplayWidth();
+        return 12;
+    }
+
+    public String getStructuralPosition() {
+        if (structuralPosition != null) return structuralPosition;
+        if (view == null) return "5.5.default";
+        if (view.getStructuralPosition() != null) return view.getStructuralPosition();
+        return "5.5.default";
     }
 
     public String getTitle() {
@@ -135,5 +156,12 @@ public class ViewDisplay implements Serializable {
         if (view != null) return view.getTitle();
         return null;
     }
+
+    @Override
+    public int compareTo(ViewDisplay other) {
+        return this.getStructuralPosition().compareTo(other.getStructuralPosition());
+    }
+
+    
 
 }
