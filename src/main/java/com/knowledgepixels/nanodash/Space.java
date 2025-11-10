@@ -619,7 +619,7 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         try {
-                            ViewDisplay vd = new ViewDisplay(r);
+                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
                             if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
                                 newData.partLevelViews.add(vd);
                             } else {
@@ -629,6 +629,8 @@ public class Space implements Serializable {
                             logger.error("Couldn't generate view display object", ex);
                         }
                     }
+                    Collections.sort(newData.topLevelViews);
+                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {

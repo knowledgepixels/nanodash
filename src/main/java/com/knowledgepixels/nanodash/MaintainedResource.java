@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,7 @@ public class MaintainedResource implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
                         try {
-                            ViewDisplay vd = new ViewDisplay(r);
+                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
                             if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
                                 newData.partLevelViews.add(vd);
                             } else {
@@ -210,6 +211,8 @@ public class MaintainedResource implements Serializable {
                             logger.error("Couldn't generate view display object", ex);
                         }
                     }
+                    Collections.sort(newData.topLevelViews);
+                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {

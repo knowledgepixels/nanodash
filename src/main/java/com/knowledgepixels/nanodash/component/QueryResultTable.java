@@ -49,6 +49,8 @@ public class QueryResultTable extends Panel {
         super(id);
         this.contextId = contextId;
 
+        add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+
         if (plain) {
             add(new Label("label").setVisible(false));
             add(new Label("morelink").setVisible(false));

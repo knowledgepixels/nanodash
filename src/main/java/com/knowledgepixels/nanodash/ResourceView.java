@@ -39,6 +39,36 @@ public class ResourceView implements Serializable {
     public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField");
 
     public static final IRI HAS_PAGE_SIZE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPageSize");
+    public static final IRI HAS_STRUCTURAL_POSITION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasStructuralPosition");
+
+    public static final IRI HAS_DISPLAY_WIDTH = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasDisplayWidth");
+    public static final IRI COLUMN_WIDTH_1_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth01of12");
+    public static final IRI COLUMN_WIDTH_2_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth02of12");
+    public static final IRI COLUMN_WIDTH_3_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth03of12");
+    public static final IRI COLUMN_WIDTH_4_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth04of12");
+    public static final IRI COLUMN_WIDTH_5_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth05of12");
+    public static final IRI COLUMN_WIDTH_6_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth06of12");
+    public static final IRI COLUMN_WIDTH_7_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth07of12");
+    public static final IRI COLUMN_WIDTH_8_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth08of12");
+    public static final IRI COLUMN_WIDTH_9_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth09of12");
+    public static final IRI COLUMN_WIDTH_10_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth10of12");
+    public static final IRI COLUMN_WIDTH_11_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth11of12");
+    public static final IRI COLUMN_WIDTH_12_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth12of12");
+    static Map<IRI,Integer> columnWidths = new HashMap<>();
+    static {
+        columnWidths.put(COLUMN_WIDTH_1_OF_12, 1);
+        columnWidths.put(COLUMN_WIDTH_2_OF_12, 2);
+        columnWidths.put(COLUMN_WIDTH_3_OF_12, 3);
+        columnWidths.put(COLUMN_WIDTH_4_OF_12, 4);
+        columnWidths.put(COLUMN_WIDTH_5_OF_12, 5);
+        columnWidths.put(COLUMN_WIDTH_6_OF_12, 6);
+        columnWidths.put(COLUMN_WIDTH_7_OF_12, 7);
+        columnWidths.put(COLUMN_WIDTH_8_OF_12, 8);
+        columnWidths.put(COLUMN_WIDTH_9_OF_12, 9);
+        columnWidths.put(COLUMN_WIDTH_10_OF_12, 10);
+        columnWidths.put(COLUMN_WIDTH_11_OF_12, 11);
+        columnWidths.put(COLUMN_WIDTH_12_OF_12, 12);
+    }
 
     public static final IRI VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ViewDisplay");
     public static final IRI IS_DISPLAY_OF_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/isDisplayOfView");
@@ -71,6 +101,8 @@ public class ResourceView implements Serializable {
     private GrlcQuery query;
     private String queryField = "resource";
     private Integer pageSize;
+    private Integer displayWidth;
+    private String structuralPosition;
     private List<IRI> actionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Set<IRI> elementNamespaces = new HashSet<>();
@@ -113,6 +145,10 @@ public class ResourceView implements Serializable {
                     } catch (NumberFormatException ex) {
                         logger.error("Invalid page size value: " + objL.stringValue(), ex);
                     }
+                } else if (st.getPredicate().equals(HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
+                    displayWidth = columnWidths.get(objIri);
+                } else if (st.getPredicate().equals(HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
+                    structuralPosition = objL.stringValue();
                 }
             } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE)) {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
@@ -190,6 +226,14 @@ public class ResourceView implements Serializable {
      */
     public Integer getPageSize() {
         return pageSize;
+    }
+
+    public Integer getDisplayWidth() {
+        return displayWidth;
+    }
+
+    public String getStructuralPosition() {
+        return structuralPosition;
     }
 
     /**

@@ -1675,6 +1675,10 @@ p.waiting {
   color: #ccc;
 }
 
+.listview img { /* for wait icon */
+  padding: 15px;
+}
+
 span.usertext {
   background: #ffb;
   padding: 3px;
