@@ -619,7 +619,7 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         try {
-                            ViewDisplay vd = new ViewDisplay(r);
+                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
                             if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
                                 newData.partLevelViews.add(vd);
                             } else {
