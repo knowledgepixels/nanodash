@@ -1,8 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.net.URLEncoder;
-import java.util.List;
-
+import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
+import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -17,13 +21,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.nanopub.extra.services.QueryRef;
 
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.component.QueryParamField;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.net.URLEncoder;
+import java.util.List;
 
 /**
  * Page for displaying a query and its parameters, allowing users to run the query with specified parameters.
@@ -148,7 +147,7 @@ public class QueryPage extends NanodashPage {
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
         } else {
-            add(QueryResultTable.createPlainComponent("resulttable", new QueryRef(queryId, queryParams), 20, null));
+            add(QueryResultTableBuilder.create("resulttable", new QueryRef(queryId, queryParams), 20).plain(true).build());
         }
     }
 

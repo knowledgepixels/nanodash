@@ -1,9 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.template.Template;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -18,17 +17,9 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.Project;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.QueryResultTable;
-import com.knowledgepixels.nanodash.component.TemplateItem;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.template.Template;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The ProjectPage class represents a project page in the Nanodash application.
@@ -104,7 +95,7 @@ public class ProjectPage extends NanodashPage {
                         item.getModelObject().getLeft(),
                         item.getModelObject().getRight(),
                         (template) -> new TemplateItem("item", template, params, false)
-                    ));
+                ));
             }
 
         });
@@ -113,7 +104,7 @@ public class ProjectPage extends NanodashPage {
                 "Templates",
                 templates,
                 (template) -> new TemplateItem("item", template, params, false)
-            ));
+        ));
 
         add(new ItemListPanel<IRI>(
                 "owners",
@@ -123,7 +114,7 @@ public class ProjectPage extends NanodashPage {
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().add("id", userIri), User.getShortDisplayName(userIri));
                 }
-            ));
+        ));
 
         add(new ItemListPanel<IRI>(
                 "members",
@@ -133,14 +124,14 @@ public class ProjectPage extends NanodashPage {
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
-            ));
+        ));
 
         add(new DataView<IRI>("queries", new ListDataProvider<IRI>(project.getQueryIds())) {
 
             @Override
             protected void populateItem(Item<IRI> item) {
                 String queryId = QueryApiAccess.getQueryId(item.getModelObject());
-                item.add(QueryResultTable.createComponent("query", new QueryRef(queryId), 10));
+                item.add(QueryResultTableBuilder.create("query", new QueryRef(queryId), 10).build());
             }
 
         });
