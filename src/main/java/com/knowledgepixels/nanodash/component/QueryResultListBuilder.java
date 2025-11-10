@@ -7,10 +7,12 @@ import org.apache.wicket.Component;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
+import java.io.Serializable;
+
 /**
  * Builder class for creating QueryResultList components.
  */
-public class QueryResultListBuilder {
+public class QueryResultListBuilder implements Serializable {
 
     private String markupId;
     private QueryRef queryRef;

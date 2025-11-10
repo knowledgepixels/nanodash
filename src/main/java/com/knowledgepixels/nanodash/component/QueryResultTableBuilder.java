@@ -9,10 +9,12 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
+import java.io.Serializable;
+
 /**
  * Builder class for creating QueryResultTable components with various configurations.
  */
-public class QueryResultTableBuilder {
+public class QueryResultTableBuilder implements Serializable {
 
     private String markupId;
     private long rowsPerPage;
