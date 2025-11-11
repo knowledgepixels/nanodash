@@ -36,15 +36,15 @@ public class QueryResultList extends Panel {
         RepeatingView listItems = new RepeatingView("listItems");
         boolean hasExternalLink = Arrays.stream(response.getHeader()).toList().contains("link");
         for (ApiResponseEntry entry : response.getData()) {
+            String labelText;
             if (hasExternalLink && entry.get("link") != null && !entry.get("link").isBlank()) {
-                StringBuilder externalLink = new StringBuilder("<a href=\"" + entry.get("link") + "\">");
-                externalLink.append(entry.get(response.getHeader()[0]));
-                externalLink.append("</a>");
-                listItems.add(new Label(listItems.newChildId(), externalLink.toString()).setEscapeModelStrings(false));
+                labelText = "<a href=\"" + entry.get("link") + "\">";
+                labelText = labelText.concat(entry.get(response.getHeader()[0]));
+                labelText = labelText.concat("</a>");
             } else {
-                String labelText = buildInlineLabel(entry, response);
-                listItems.add(new Label(listItems.newChildId(), labelText).setEscapeModelStrings(false));
+                labelText = buildInlineLabel(entry, response);
             }
+            listItems.add(new Label(listItems.newChildId(), labelText).setEscapeModelStrings(false));
         }
         add(listItems);
     }
