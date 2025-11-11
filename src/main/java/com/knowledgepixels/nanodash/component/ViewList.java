@@ -32,7 +32,7 @@ public class ViewList extends Panel {
                         queryRefParams.put(view.getQueryField(), space.getId());
                         if (QueryParamField.isMultiPlaceholder(p)) {
                             for (String altId : space.getAltIDs()) {
-                                queryRefParams.put("space", altId);
+                                queryRefParams.put(view.getQueryField(), altId);
                             }
                         }
                     } else if (paramName.equals(view.getQueryField() + "Np")) {
@@ -81,7 +81,7 @@ public class ViewList extends Panel {
                         queryRefParams.put(view.getQueryField(), resource.getId());
 //                        if (QueryParamField.isMultiPlaceholder(p)) {
 //                            for (String altId : resource.getAltIDs()) {
-//                                queryRefParams.put("space", altId);
+//                                queryRefParams.put(view.getQueryField(), altId);
 //                            }
 //                        }
                     } else if (paramName.equals(view.getQueryField() + "Namespace")) {
@@ -146,7 +146,7 @@ public class ViewList extends Panel {
                         queryRefParams.put(view.getQueryField(), partId);
 //                        if (QueryParamField.isMultiPlaceholder(p)) {
 //                            for (String altId : resource.getAltIDs()) {
-//                                queryRefParams.put("space", altId);
+//                                queryRefParams.put(view.getQueryField(), altId);
 //                            }
 //                        }
                     } else if (paramName.equals(view.getQueryField() + "Namespace") && namespace != null) {
