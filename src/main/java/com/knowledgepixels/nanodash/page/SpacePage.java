@@ -101,6 +101,7 @@ public class SpacePage extends NanodashPage {
 
         AbstractLink addPinnedTemplateButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .set("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
+                .set("template-version", "latest")
                 .set("param_space", space.getId())
                 .set("context", space.getId())
         );
@@ -109,6 +110,7 @@ public class SpacePage extends NanodashPage {
 
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .set("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
+                .set("template-version", "latest")
                 .set("param_space", space.getId())
         );
         addPinnedQueryButton.setBody(Model.of("+ query"));
@@ -153,6 +155,7 @@ public class SpacePage extends NanodashPage {
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                 .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .set("template-version", "latest")
                 .set("param_resource", space.getId())
                 .set("context", space.getId())
         );
