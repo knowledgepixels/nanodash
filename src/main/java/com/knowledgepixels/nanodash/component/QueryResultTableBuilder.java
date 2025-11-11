@@ -94,7 +94,7 @@ public class QueryResultTableBuilder implements Serializable {
     public Component build() {
         final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (space == null) {
+        if (space != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
                 table.setContext(contextId, space);
