@@ -101,7 +101,7 @@ public class QueryResultTable extends Panel {
         return this;
     }
 
-    public QueryResultTable setContext(String contextId, Space space) {
+    public QueryResultTable setContext(Space space) {
         this.space = space;
         return this;
     }
