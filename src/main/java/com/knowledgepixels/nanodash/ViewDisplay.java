@@ -127,6 +127,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @return the nanopub ID
      */
     public String getNanopubId() {
+        if (nanopub == null) return null;
         return nanopub.getUri().stringValue();
     }
 
