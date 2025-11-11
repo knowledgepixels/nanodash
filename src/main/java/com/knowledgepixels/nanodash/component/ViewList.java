@@ -43,6 +43,12 @@ public class ViewList extends Panel {
                                 queryRefParams.put("user_pubkey", memberHash);
                             }
                         }
+                    } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
+                        for (IRI adminId : space.getAdmins()) {
+                            for (String adminHash : User.getUserData().getPubkeyhashes(adminId, true)) {
+                                queryRefParams.put("admin_pubkey", adminHash);
+                            }
+                        }
                     } else if (!QueryParamField.isOptional(p)) {
                         item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
                         return;
