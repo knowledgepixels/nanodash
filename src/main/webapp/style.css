@@ -1980,3 +1980,9 @@ a.source:hover {
 .inline-list div {
   display: inline;
 }
+
+.cell-data-html p,
+.cell-data-html span,
+.cell-data-html div {
+  margin: 0;
+}

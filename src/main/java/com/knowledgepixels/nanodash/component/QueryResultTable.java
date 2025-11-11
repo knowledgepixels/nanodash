@@ -114,6 +114,15 @@ public class QueryResultTable extends Panel {
         super.onBeforeRender();
     }
 
+    /**
+     * Set the space for this component.
+     *
+     * @param space The space to set.
+     */
+    public void setSpace(Space space) {
+        this.space = space;
+    }
+
     private void addErrorMessage(String errorMessage) {
         String s = errorMessages.getObject();
         if (s.isEmpty()) {
@@ -153,7 +162,15 @@ public class QueryResultTable extends Panel {
                     if (key.startsWith("pubkey")) {
                         cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
                     } else {
-                        cellItem.add(new Label(componentId, value));
+                        Label cellLabel;
+                        if (Utils.looksLikeHtml(value)) {
+                            cellLabel = (Label) new Label(componentId, Utils.sanitizeHtml(value))
+                                    .setEscapeModelStrings(false)
+                                    .add(new AttributeAppender("class", "cell-data-html"));
+                        } else {
+                            cellLabel = new Label(componentId, value);
+                        }
+                        cellItem.add(cellLabel);
                     }
                 }
             } catch (Exception ex) {
