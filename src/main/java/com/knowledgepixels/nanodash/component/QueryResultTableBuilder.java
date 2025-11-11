@@ -97,7 +97,6 @@ public class QueryResultTableBuilder implements Serializable {
         if (space != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                table.setContext(space);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getActionList()) {
@@ -125,7 +124,6 @@ public class QueryResultTableBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                        table.setContext(space);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getActionList()) {

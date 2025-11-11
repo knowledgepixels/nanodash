@@ -101,11 +101,6 @@ public class QueryResultTable extends Panel {
         return this;
     }
 
-    public QueryResultTable setContext(Space space) {
-        this.space = space;
-        return this;
-    }
-
     @Override
     protected void onBeforeRender() {
         if (!finalized) {
