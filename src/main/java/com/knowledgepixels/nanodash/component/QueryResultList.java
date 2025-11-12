@@ -13,10 +13,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 public class QueryResultList extends Panel {
+
+    private static final String SEPARATOR = ", ";
 
     QueryResultList(String markupId, GrlcQuery grlcQuery, ApiResponse response, ViewDisplay viewDisplay) {
         super(markupId);
@@ -34,27 +33,38 @@ public class QueryResultList extends Panel {
             add(new Label("np").setVisible(false));
         }
         RepeatingView listItems = new RepeatingView("listItems");
-        boolean hasExternalLink = Arrays.stream(response.getHeader()).toList().contains("link");
         for (ApiResponseEntry entry : response.getData()) {
-            String labelText;
-            if (hasExternalLink && entry.get("link") != null && !entry.get("link").isBlank()) {
-                labelText = "<a href=\"" + entry.get("link") + "\">";
-                labelText = labelText.concat(entry.get(response.getHeader()[0]));
-                labelText = labelText.concat("</a>");
-            } else {
-                labelText = buildInlineLabel(entry, response);
-            }
+            String labelText = buildInlineLabel(entry, response);
             listItems.add(new Label(listItems.newChildId(), labelText).setEscapeModelStrings(false));
         }
         add(listItems);
     }
 
     private String buildInlineLabel(ApiResponseEntry entry, ApiResponse response) {
-        return Arrays.stream(response.getHeader())
-                .map(entry::get)
-                .filter(entryValue -> entryValue != null && !entryValue.isBlank())
-                .map(entryValue -> Utils.looksLikeHtml(entryValue) ? Utils.sanitizeHtml(entryValue) : entryValue)
-                .collect(Collectors.joining(", "));
+        StringBuilder labelBuilder = new StringBuilder();
+        for (String key : response.getHeader()) {
+            if (!key.endsWith("_label")) {
+                String entryValue = entry.get(key);
+                if (entryValue != null && !entryValue.isBlank()) {
+                    if (Utils.looksLikeHtml(entryValue)) {
+                        entryValue = Utils.sanitizeHtml(entryValue);
+                    } else if (entryValue.matches("https?://.+")) {
+                        String label = entry.get(key + "_label");
+                        String anchorElement = "<a href=\"%s\">%s</a>";
+                        if (label != null && !label.isBlank()) {
+                            entryValue = String.format(anchorElement, entryValue, label);
+                        } else {
+                            entryValue = String.format(anchorElement, entryValue, entryValue);
+                        }
+                    }
+                    labelBuilder.append(entryValue).append(SEPARATOR);
+                }
+            }
+        }
+        if (labelBuilder.toString().endsWith(SEPARATOR)) {
+            labelBuilder.setLength(labelBuilder.length() - 2);
+        }
+        return labelBuilder.toString();
     }
 
 }
