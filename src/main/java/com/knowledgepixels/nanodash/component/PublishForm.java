@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -46,7 +49,12 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
+import org.nanopub.extra.services.APINotReachableException;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.FailedApiCallException;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -56,6 +64,8 @@ import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -247,6 +257,31 @@ public class PublishForm extends Panel {
                     // TODO Allow for automatically using latest template version
                     createPubinfoContext(piTemplateId.stringValue());
                 }
+            }
+        }
+        if (!pageParams.get("values-from-query").isEmpty() && !pageParams.get("values-from-query-mapping").isEmpty()) {
+            String querySpec = pageParams.get("values-from-query").toString();
+
+            String mapping = pageParams.get("values-from-query-mapping").toString();
+            String mapsFrom, mapsTo;
+            if (mapping.contains(":")) {
+                mapsFrom = mapping.split(":")[0];
+                mapsTo = mapping.split(":")[1];
+            } else {
+                mapsFrom = mapping;
+                mapsTo = mapping;
+            }
+            try {
+                ApiResponse resp = QueryApiAccess.get(Utils.parseQueryRef(querySpec));
+                int i = 0;
+                for (ApiResponseEntry e : resp.getData()) {
+                    String mapsToSuffix = "";
+                    if (i > 0) mapsToSuffix = "__" + i;
+                    assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
+                    i++;
+                }
+            } catch (FailedApiCallException | APINotReachableException | NotEnoughAPIInstancesException | NullPointerException ex) {
+                ex.printStackTrace();
             }
         }
         for (String k : pageParams.getNamedKeys()) {

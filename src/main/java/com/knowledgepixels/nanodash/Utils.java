@@ -1,11 +1,15 @@
 package com.knowledgepixels.nanodash;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.hash.Hashing;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -26,6 +30,7 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
@@ -804,6 +809,20 @@ public class Utils {
      */
     public static boolean isLocalURI(String uriAsString) {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
+    }
+
+    // TODO Move this to QueryRef class in nanopub-java
+    public static QueryRef parseQueryRef(String queryRefUrlString) {
+        if (queryRefUrlString.contains("?")) {
+            String queryName = queryRefUrlString.split("\\?")[0];
+            Multimap<String,String> queryParams = ArrayListMultimap.create();
+            for (NameValuePair nvp : URLEncodedUtils.parse(queryRefUrlString.split("\\?")[1], Charsets.UTF_8)) {
+                queryParams.put(nvp.getName(), nvp.getValue());
+            }
+            return new QueryRef(queryName, queryParams);
+        } else {
+            return new QueryRef(queryRefUrlString);
+        }
     }
 
 }
