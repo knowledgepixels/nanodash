@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
+    private static final Logger logger = LoggerFactory.getLogger(ViewDisplay.class);
 
     private String id;
     private Nanopub nanopub;

@@ -18,7 +18,7 @@ public class QueryResultTableBuilder implements Serializable {
 
     private String markupId;
     private boolean plain = false;
-    private ViewDisplay viewDisplay = null;
+    private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
     private Space space = null;
@@ -35,7 +35,7 @@ public class QueryResultTableBuilder implements Serializable {
      *
      * @param markupId    the markup ID for the component
      * @param queryRef    the query reference
-     * @param rowsPerPage the number of rows per page
+     * @param viewDisplay the view display object
      * @return a new QueryResultTableBuilder instance
      */
     public static QueryResultTableBuilder create(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -97,7 +97,7 @@ public class QueryResultTableBuilder implements Serializable {
         if (space != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                table.setContext(contextId, space);
+                table.setSpace(space);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getActionList()) {
@@ -130,7 +130,7 @@ public class QueryResultTableBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
-                        table.setContext(contextId, space);
+                        table.setSpace(space);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getActionList()) {

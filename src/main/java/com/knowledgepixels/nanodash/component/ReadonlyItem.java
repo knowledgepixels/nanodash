@@ -423,8 +423,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             } else {
                 model.setObject("\"" + vs + "\"");
             }
-            // TODO Didn't manage to encode this into a working regex:
-            if (vs.startsWith("<p>") || vs.startsWith("<p ") || vs.startsWith("<div>") || vs.startsWith("<div ") || vs.startsWith("<span>") || vs.startsWith("<span ") || vs.startsWith("<img ")) {
+            if (Utils.looksLikeHtml(vs)) {
                 linkComp.setVisible(false);
                 extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);

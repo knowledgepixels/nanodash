@@ -1975,3 +1975,14 @@ a.source {
 a.source:hover {
   color: rgba(0, 0, 0, 1.0);
 }
+
+.inline-list p,
+.inline-list div {
+  display: inline;
+}
+
+.cell-data-html p,
+.cell-data-html span,
+.cell-data-html div {
+  margin: 0;
+}
