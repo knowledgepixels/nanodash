@@ -149,7 +149,7 @@ public class ResourceView implements Serializable {
                     }
                 } else if (st.getPredicate().equals(HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = columnWidths.get(objIri);
-                } else if (st.getPredicate().equals(HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
                 }
             } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE)) {
