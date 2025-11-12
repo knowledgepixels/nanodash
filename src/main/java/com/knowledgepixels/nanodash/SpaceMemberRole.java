@@ -1,14 +1,13 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.stream.Stream;
-
-import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
-
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponseEntry;
+
+import java.io.Serializable;
+import java.util.stream.Stream;
 
 /**
  * A role that a space member can have, with associated properties.
@@ -47,6 +46,11 @@ public class SpaceMemberRole implements Serializable {
         this.inverseProperties = inverseProperties;
     }
 
+    /**
+     * Check if this role is the admin role.
+     *
+     * @return True if this role is the admin role, false otherwise.
+     */
     public boolean isAdminRole() {
         return id.equals(ADMIN_ROLE_IRI);
     }
@@ -87,6 +91,11 @@ public class SpaceMemberRole implements Serializable {
         return title;
     }
 
+    /**
+     * Get the template used for assigning this role.
+     *
+     * @return The template used for assigning this role.
+     */
     public Template getRoleAssignmentTemplate() {
         return roleAssignmentTemplate;
     }
@@ -131,12 +140,23 @@ public class SpaceMemberRole implements Serializable {
      */
     public static final SpaceMemberRole ADMIN_ROLE = new SpaceMemberRole(ADMIN_ROLE_IRI, "Admin role", "admin", "Admins", TemplateData.get().getTemplate(ADMIN_ROLE_ASSIGNMENT_TEMPLATE_ID), new IRI[]{}, new IRI[]{HAS_ADMIN_PREDICATE});
 
+    /**
+     * Convert a space-separated string of IRIs to an array of IRI objects.
+     *
+     * @param string The space-separated string of IRIs.
+     * @return An array of IRI objects.
+     */
     private static IRI[] stringToIriArray(String string) {
         if (string == null || string.isBlank()) return new IRI[]{};
-        return Stream.of(string.split(" ")).map(s -> Utils.vf.createIRI(s)).toArray(IRI[]::new);
+        return Stream.of(string.split(" ")).map(Utils.vf::createIRI).toArray(IRI[]::new);
     }
 
-
+    /**
+     * Check if the current user is a member of the given space.
+     *
+     * @param space The space to check.
+     * @return True if the current user is a member of the space, false otherwise.
+     */
     public static boolean isCurrentUserMember(Space space) {
         if (space == null) return false;
         IRI userIri = NanodashSession.get().getUserIri();
@@ -144,6 +164,12 @@ public class SpaceMemberRole implements Serializable {
         return space.isMember(userIri);
     }
 
+    /**
+     * Check if the current user is an admin of the given space.
+     *
+     * @param space The space to check.
+     * @return True if the current user is an admin of the space, false otherwise.
+     */
     public static boolean isCurrentUserAdmin(Space space) {
         if (space == null) return false;
         IRI userIri = NanodashSession.get().getUserIri();
