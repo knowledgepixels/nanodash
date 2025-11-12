@@ -37,6 +37,7 @@ public class ResourceView implements Serializable {
     public static final IRI TABULAR_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TabularView");
     public static final IRI LIST_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ListView");
     public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField");
+    public static final IRI HAS_ACTION_TEMPLATE_QUERY_MAPPING = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateQueryMapping");
 
     public static final IRI HAS_PAGE_SIZE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPageSize");
     public static final IRI HAS_STRUCTURAL_POSITION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasStructuralPosition");
@@ -109,6 +110,7 @@ public class ResourceView implements Serializable {
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
+    private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
 
@@ -157,6 +159,8 @@ public class ResourceView implements Serializable {
                 actionTemplateTargetFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_PART_FIELD)) {
                 actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
+                actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             }
@@ -267,6 +271,10 @@ public class ResourceView implements Serializable {
 
     public String getTemplatePartFieldForAction(IRI actionIri) {
         return actionTemplatePartFieldMap.get(actionIri);
+    }
+
+    public String getTemplateQueryMapping(IRI actionIri) {
+        return actionTemplateQueryMappingMap.get(actionIri);
     }
 
     /**

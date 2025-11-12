@@ -116,6 +116,11 @@ public class QueryResultTableBuilder implements Serializable {
                                 params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                             }
                         }
+                        String queryMapping = view.getTemplateQueryMapping(actionIri);
+                        if (queryMapping != null && queryMapping.contains(":")) {
+                            params.set("values-from-query", queryRef.getAsUrlString());
+                            params.set("values-from-query-mapping", queryMapping);
+                        }
                         table.addButton(label, PublishPage.class, params);
                     }
                 }
@@ -143,6 +148,11 @@ public class QueryResultTableBuilder implements Serializable {
                                     if (r != null && r.getNamespace() != null) {
                                         params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                                     }
+                                }
+                                String queryMapping = view.getTemplateQueryMapping(actionIri);
+                                if (queryMapping != null && queryMapping.contains(":")) {
+                                    params.set("values-from-query", queryRef.getAsUrlString());
+                                    params.set("values-from-query-mapping", queryMapping);
                                 }
                                 table.addButton(label, PublishPage.class, params);
                             }
