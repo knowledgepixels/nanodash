@@ -90,7 +90,7 @@ public class TemplateContext implements Serializable {
         if (statementItems != null) return;
         statementItems = new ArrayList<>();
         for (IRI st : template.getStatementIris()) {
-            StatementItem<?> si = new StatementItem<>(componentId, st, this);
+            StatementItem si = new StatementItem(componentId, st, this);
             statementItems.add(si);
             for (IRI i : si.getIriSet()) {
                 if (iriSet.contains(i)) {
@@ -107,7 +107,7 @@ public class TemplateContext implements Serializable {
      * Finalizes the statements by processing all parameters and setting the repetition counts.
      */
     public void finalizeStatements() {
-        Map<StatementItem<?>, Integer> finalRepetitionCount = new HashMap<>();
+        Map<StatementItem, Integer> finalRepetitionCount = new HashMap<>();
         for (IRI ni : narrowScopeMap.keySet()) {
             // TODO: Move all occurrences of this to utility function:
             String postfix = Utils.getUriPostfix(ni);
