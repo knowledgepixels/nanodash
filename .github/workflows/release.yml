@@ -1,47 +1,49 @@
-name: "release"
+name: Autorelease
 
 on:
   push:
-    tags:
-      - "nanodash-*"
+    branches: [ release ]
+    paths-ignore:
+      - 'CHANGELOG.md'
+env:
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  GITHUB_USERNAME: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
 
 jobs:
-  make-release:
-    name: "Make release"
+  test:
     runs-on: "ubuntu-latest"
-
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
       - name: Set up JDK
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: "21"
           distribution: "temurin"
-      - name: Set environment variable
-        run: echo "NANODASH_VERSION=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)" >> $GITHUB_ENV
 
-      - name: Package
-        run: ./mvnw package
+      - name: Maven Test
+        run: ./mvnw test
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
+  release:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Set up JDK
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: nanodash-${{ env.NANODASH_VERSION }}
-          prerelease: false
-      - name: Log in to Docker Hub
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+          distribution: "temurin"
+          java-version: "23"
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          username: tkuhn
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38 # v3.3.0
-        with:
-          images: nanopub/nanodash
-      - name: Build and push Docker image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          node-version: 22.20.0
+      - name: Release
+        run: |
+          npm ci
+          npx semantic-release
