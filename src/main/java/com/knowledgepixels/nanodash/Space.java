@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -203,7 +204,8 @@ public class Space implements Serializable {
         IRI defaultProvenance = null;
 
         List<IRI> admins = new ArrayList<>();
-        Map<IRI, Set<SpaceMemberRole>> users = new HashMap<>();
+        // TODO Make Pair<SpaceMemberRole, String> a new class with SpaceMemberRole + nanopub URI
+        Map<IRI, Set<Pair<SpaceMemberRole, String>>> users = new HashMap<>();
         List<SpaceMemberRole> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
@@ -214,7 +216,7 @@ public class Space implements Serializable {
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
-        void addAdmin(IRI admin) {
+        void addAdmin(IRI admin, String npId) {
             // TODO This isn't efficient for long owner lists:
             if (admins.contains(admin)) return;
             admins.add(admin);
@@ -222,7 +224,7 @@ public class Space implements Serializable {
             for (String pubkeyhash : ud.getPubkeyhashes(admin, true)) {
                 adminPubkeyMap.put(pubkeyhash, admin);
             }
-            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(SpaceMemberRole.ADMIN_ROLE);
+            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(Pair.of(SpaceMemberRole.ADMIN_ROLE, npId));
         }
 
     }
@@ -368,7 +370,7 @@ public class Space implements Serializable {
      * @param userId The IRI of the member.
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
-    public Set<SpaceMemberRole> getMemberRoles(IRI userId) {
+    public Set<Pair<SpaceMemberRole,String>> getMemberRoles(IRI userId) {
         ensureInitialized();
         return data.users.get(userId);
     }
@@ -596,7 +598,7 @@ public class Space implements Serializable {
                                 IRI adminId = Utils.vf.createIRI(r.get("admin"));
                                 if (!newData.admins.contains(adminId)) {
                                     continueAddingAdmins = true;
-                                    newData.addAdmin(adminId);
+                                    newData.addAdmin(adminId, r.get("np"));
                                 }
                             }
                         }
@@ -620,7 +622,7 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(role);
+                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(Pair.of(role, r.get("np")));
                     }
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {
@@ -693,7 +695,7 @@ public class Space implements Serializable {
                         logger.error("Failed to parse date {}", st.getObject().stringValue());
                     }
                 } else if (st.getPredicate().equals(HAS_ADMIN) && st.getObject() instanceof IRI obj) {
-                    data.addAdmin(obj);
+                    data.addAdmin(obj, rootNanopub.getUri().stringValue());
                 } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
                 } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {

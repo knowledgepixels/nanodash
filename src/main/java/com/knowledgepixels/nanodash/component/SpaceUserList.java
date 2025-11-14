@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,25 +22,31 @@ public class SpaceUserList extends Panel {
     public SpaceUserList(String markupId, Space space) {
         super(markupId);
 
-        List<Pair<SpaceMemberRole, List<IRI>>> userLists = new ArrayList<>();
+        List<Pair<SpaceMemberRole, List<Pair<IRI,String>>>> userLists = new ArrayList<>();
         for (SpaceMemberRole r : space.getRoles()) {
-            List<IRI> userList = new ArrayList<>();
+            // list of pairs of userId + nanopubId:
+            List<Pair<IRI,String>> userList = new ArrayList<>();
             for (IRI userId : space.getUsers()) {
-                if (space.getMemberRoles(userId).contains(r)) userList.add(userId);
+                for (Pair<SpaceMemberRole,String> p : space.getMemberRoles(userId)) {
+                    if (p.getLeft().equals(r)) {
+                        userList.add(Pair.of(userId, p.getRight()));
+                        break;
+                    }
+                }
             }
             userLists.add(Pair.of(r, userList));
         }
 
-        add(new DataView<Pair<SpaceMemberRole, List<IRI>>>("user-lists", new ListDataProvider<>(userLists)) {
+        add(new DataView<Pair<SpaceMemberRole, List<Pair<IRI,String>>>>("user-lists", new ListDataProvider<>(userLists)) {
             @Override
-            protected void populateItem(Item<Pair<SpaceMemberRole, List<IRI>>> item) {
+            protected void populateItem(Item<Pair<SpaceMemberRole, List<Pair<IRI,String>>>> item) {
                 SpaceMemberRole role = item.getModelObject().getLeft();
-                ItemListPanel<IRI> panel = new ItemListPanel<>(
+                ItemListPanel<Pair<IRI,String>> panel = new ItemListPanel<>(
                         "user-list",
                         role.getTitle(),
                         item.getModelObject().getRight(),
                         // FIXME add the source nanopublication
-                        m -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m), null, null)).setSpace(space);
+                        m -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m.getLeft()), null, Utils.getAsNanopub(m.getRight()))).setSpace(space);
                 if (role.getRoleAssignmentTemplate() != null) {
                     if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
                         panel.addButton("+", PublishPage.class, new PageParameters()

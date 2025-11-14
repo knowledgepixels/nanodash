@@ -4,6 +4,8 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -216,22 +218,6 @@ public class SpacePage extends NanodashPage {
                                 .set("template-version", "latest")
                         )
         );
-
-        add(new ItemListPanel<IRI>(
-                "users",
-                "Users",
-                () -> space.isDataInitialized(),
-                () -> space.getUsers(),
-                m -> {
-                    String roleLabel = "(";
-                    for (SpaceMemberRole r : space.getMemberRoles(m)) {
-                        roleLabel += r.getName() + ", ";
-                    }
-                    roleLabel = roleLabel.replaceFirst(", $", ")");
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", m), User.getShortDisplayName(m), roleLabel, null);
-                }
-        ));
-
 
         if (space.isDataInitialized()) {
             add(new SpaceUserList("user-lists", space));
