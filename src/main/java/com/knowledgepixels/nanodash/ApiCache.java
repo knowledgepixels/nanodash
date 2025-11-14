@@ -25,6 +25,7 @@ public class ApiCache {
     private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Long> runAfter = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
     /**
@@ -86,6 +87,12 @@ public class ApiCache {
             refreshStart.put(cacheId, timeNow);
             new Thread(() -> {
                 try {
+                    if (runAfter.containsKey(cacheId)) {
+                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                            Thread.sleep(100);
+                        }
+                        runAfter.remove(cacheId);
+                    }
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
@@ -148,6 +155,12 @@ public class ApiCache {
             refreshStart.put(cacheId, timeNow);
             new Thread(() -> {
                 try {
+                    if (runAfter.containsKey(cacheId)) {
+                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                            Thread.sleep(100);
+                        }
+                        runAfter.remove(cacheId);
+                    }
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
@@ -172,6 +185,11 @@ public class ApiCache {
         } else {
             return null;
         }
+    }
+
+    public static void clearCache(QueryRef queryRef, long waitMillis) {
+        cachedResponses.remove(queryRef.getAsUrlString());
+        runAfter.put(queryRef.getAsUrlString(), System.currentTimeMillis() + waitMillis);
     }
 
 }

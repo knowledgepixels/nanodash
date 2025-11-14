@@ -70,6 +70,7 @@ public class SpaceListPage extends NanodashPage {
         PageParameters newLinkParams = new PageParameters()
                 .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
                 .set("template-version", "latest")
+                .set("refresh-upon-publish", "spaces")
                 .set("postpub-redirect-url", MOUNT_PATH);
         if (openEnded) {
             newLinkParams.set("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");

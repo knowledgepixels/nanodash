@@ -25,6 +25,7 @@ public class MaintainedResource implements Serializable {
     private static Map<String, MaintainedResource> resourcesByNamespace;
     private static Map<Space, List<MaintainedResource>> resourcesBySpace;
     private static boolean loaded = false;
+    private static Long runRootUpdateAfter = null;
 
     public static synchronized void refresh(ApiResponse resp) {
         resourceList = new ArrayList<>();
@@ -61,8 +62,23 @@ public class MaintainedResource implements Serializable {
      */
     public static void ensureLoaded() {
         if (resourceList == null) {
+            try {
+                if (runRootUpdateAfter != null) {
+                    while (System.currentTimeMillis() < runRootUpdateAfter) {
+                        Thread.sleep(100);
+                    }
+                    runRootUpdateAfter = null;
+                }
+            } catch (InterruptedException ex) {
+                logger.error("Interrupted", ex);
+            }
             refresh(QueryApiAccess.forcedGet(new QueryRef("get-maintained-resources")));
         }
+    }
+
+    public static void forceRootRefresh(long waitMillis) {
+        resourceList = null;
+        runRootUpdateAfter = System.currentTimeMillis() + waitMillis;
     }
 
     /**

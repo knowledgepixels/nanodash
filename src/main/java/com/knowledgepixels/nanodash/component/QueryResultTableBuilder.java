@@ -121,6 +121,7 @@ public class QueryResultTableBuilder implements Serializable {
                             params.set("values-from-query", queryRef.getAsUrlString());
                             params.set("values-from-query-mapping", queryMapping);
                         }
+                        params.set("refresh-upon-publish", queryRef.getAsUrlString());
                         table.addButton(label, PublishPage.class, params);
                     }
                 }
@@ -154,6 +155,7 @@ public class QueryResultTableBuilder implements Serializable {
                                     params.set("values-from-query", queryRef.getAsUrlString());
                                     params.set("values-from-query-mapping", queryMapping);
                                 }
+                                params.set("refresh-upon-publish", queryRef.getAsUrlString());
                                 table.addButton(label, PublishPage.class, params);
                             }
                         }

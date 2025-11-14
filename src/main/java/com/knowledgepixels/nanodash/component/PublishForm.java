@@ -1,13 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.Strings;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -63,10 +63,22 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.LocalUri;
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 /**
  * Form for publishing a nanopublication.
@@ -459,6 +471,21 @@ public class PublishForm extends Panel {
                         message = ex.getMessage();
                     }
                     feedbackPanel.error(message);
+                }
+                if (!pageParams.get("refresh-upon-publish").isEmpty()) {
+                    String toRefresh = pageParams.get("refresh-upon-publish").toString();
+                    if (toRefresh.equals("spaces")) {
+                        Space.forceRootRefresh(3 * 1000);
+                    } else if (toRefresh.equals("maintainedResources")) {
+                        MaintainedResource.forceRootRefresh(3 * 1000);
+                    } else if (Space.get(toRefresh) != null) {
+                        Space.get(toRefresh).forceRefresh(3 * 1000);;
+                    } else {
+                        QueryRef queryRef = Utils.parseQueryRef(toRefresh);
+                        // Make sure the next cache update happens not before 3 seconds from now, at which point the
+                        // published nanopub should show up in the Nanopub Query instances:
+                        ApiCache.clearCache(queryRef, 3 * 1000);
+                    }
                 }
                 if (signedNp != null) {
                     throw new RestartResponseException(getConfirmPage(signedNp, pageParams));

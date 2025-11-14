@@ -62,6 +62,7 @@ public class Space implements Serializable {
     private static Map<Space, Set<Space>> subspaceMap;
     private static Map<Space, Set<Space>> superspaceMap;
     private static boolean loaded = false;
+    private static Long runRootUpdateAfter = null;
 
     /**
      * Refresh the list of spaces from the API response.
@@ -121,8 +122,23 @@ public class Space implements Serializable {
      */
     public static void ensureLoaded() {
         if (spaceList == null) {
+            try {
+                if (runRootUpdateAfter != null) {
+                    while (System.currentTimeMillis() < runRootUpdateAfter) {
+                        Thread.sleep(100);
+                    }
+                    runRootUpdateAfter = null;
+                }
+            } catch (InterruptedException ex) {
+                logger.error("Interrupted", ex);
+            }
             refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
         }
+    }
+
+    public static void forceRootRefresh(long waitMillis) {
+        spaceList = null;
+        runRootUpdateAfter = System.currentTimeMillis() + waitMillis;
     }
 
     /**
@@ -168,6 +184,12 @@ public class Space implements Serializable {
         }
     }
 
+    public void forceRefresh(long waitMillis) {
+        dataNeedsUpdate = true;
+        dataInitialized = false;
+        runUpdateAfter = System.currentTimeMillis() + waitMillis;
+    }
+
     private String id, label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
     private SpaceData data = new SpaceData();
@@ -207,6 +229,7 @@ public class Space implements Serializable {
 
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
+    private Long runUpdateAfter = null;
 
     private Space(ApiResponseEntry resp) {
         this.id = resp.get("space");
@@ -541,6 +564,12 @@ public class Space implements Serializable {
         if (dataNeedsUpdate) {
             Thread thread = new Thread(() -> {
                 try {
+                    if (runUpdateAfter != null) {
+                        while (System.currentTimeMillis() < runUpdateAfter) {
+                            Thread.sleep(100);
+                        }
+                        runUpdateAfter = null;
+                    }
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
 

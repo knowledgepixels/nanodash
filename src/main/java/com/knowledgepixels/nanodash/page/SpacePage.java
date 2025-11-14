@@ -212,6 +212,7 @@ public class SpacePage extends NanodashPage {
                         .addAdminButton("+", PublishPage.class, new PageParameters()
                                 .set("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
                                 .set("param_space", space.getId())
+                                .set("refresh-upon-publish", space.getId())
                                 .set("template-version", "latest")
                         )
         );
@@ -290,6 +291,7 @@ public class SpacePage extends NanodashPage {
                         .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
                         .set("param_space", space.getId())
                         .set("context", space.getId())
+                        .set("refresh-upon-publish", "maintainedResources")
                         .set("template-version", "latest")
                 ));
 
@@ -318,6 +320,7 @@ public class SpacePage extends NanodashPage {
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
                                 .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
                                 .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>")
+                                .set("refresh-upon-publish", "spaces")
                                 .set("template-version", "latest"))
         );
     }

@@ -45,6 +45,7 @@ public class SpaceUserList extends Panel {
                         panel.addButton("+", PublishPage.class, new PageParameters()
                                 .set("template", role.getRoleAssignmentTemplate().getId())
                                 .set("param_space", space.getId())
+                                .set("refresh-upon-publish", space.getId())
                         );
                     }
                 }
