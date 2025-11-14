@@ -10,7 +10,7 @@ env:
   GITHUB_USERNAME: ${{ github.actor }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-  DOCKERHUB_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
   test:
