@@ -23,18 +23,18 @@ public class SpaceUserList extends Panel {
         super(markupId);
 
         List<Pair<SpaceMemberRole, List<Pair<IRI,String>>>> userLists = new ArrayList<>();
-        for (SpaceMemberRole r : space.getRoles()) {
+        for (Pair<SpaceMemberRole,String> r : space.getRoles()) {
             // list of pairs of userId + nanopubId:
             List<Pair<IRI,String>> userList = new ArrayList<>();
             for (IRI userId : space.getUsers()) {
                 for (Pair<SpaceMemberRole,String> p : space.getMemberRoles(userId)) {
-                    if (p.getLeft().equals(r)) {
+                    if (p.getLeft().equals(r.getLeft())) {
                         userList.add(Pair.of(userId, p.getRight()));
                         break;
                     }
                 }
             }
-            userLists.add(Pair.of(r, userList));
+            userLists.add(Pair.of(r.getLeft(), userList));
         }
 
         add(new DataView<Pair<SpaceMemberRole, List<Pair<IRI,String>>>>("user-lists", new ListDataProvider<>(userLists)) {

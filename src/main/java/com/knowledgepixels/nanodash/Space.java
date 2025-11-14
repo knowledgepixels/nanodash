@@ -206,7 +206,7 @@ public class Space implements Serializable {
         List<IRI> admins = new ArrayList<>();
         // TODO Make Pair<SpaceMemberRole, String> a new class with SpaceMemberRole + nanopub URI
         Map<IRI, Set<Pair<SpaceMemberRole, String>>> users = new HashMap<>();
-        List<SpaceMemberRole> roles = new ArrayList<>();
+        List<Pair<SpaceMemberRole,String>> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
@@ -473,7 +473,7 @@ public class Space implements Serializable {
      *
      * @return List of roles.
      */
-    public List<SpaceMemberRole> getRoles() {
+    public List<Pair<SpaceMemberRole,String>> getRoles() {
         return data.roles;
     }
 
@@ -575,7 +575,7 @@ public class Space implements Serializable {
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
 
-                    newData.roles.add(SpaceMemberRole.ADMIN_ROLE);
+                    newData.roles.add(Pair.of(SpaceMemberRole.ADMIN_ROLE, null));
                     newData.roleMap.put(SpaceMemberRole.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
                     // TODO Improve this:
@@ -610,7 +610,7 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-member-roles", spaceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
-                        newData.roles.add(role);
+                        newData.roles.add(Pair.of(role, r.get("np")));
 
                         // TODO Handle cases of overlapping properties:
                         for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);

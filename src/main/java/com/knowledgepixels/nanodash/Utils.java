@@ -350,6 +350,7 @@ public class Utils {
      * @return the Nanopub object if found, or null if not a known nanopublication
      */
     public static Nanopub getAsNanopub(String uri) {
+        if (uri == null) return null;
         if (TrustyUriUtils.isPotentialTrustyUri(uri)) {
             try {
                 return Utils.getNanopub(uri);
