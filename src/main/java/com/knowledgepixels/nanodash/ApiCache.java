@@ -21,7 +21,7 @@ public class ApiCache {
     } // no instances allowed
 
     private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String, Boolean> failed = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Integer> failed = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
@@ -78,8 +78,7 @@ public class ApiCache {
             isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
         }
-        if (failed.get(cacheId) != null) {
-            cachedResponses.remove(cacheId);
+        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
@@ -93,6 +92,10 @@ public class ApiCache {
                         }
                         runAfter.remove(cacheId);
                     }
+                    if (failed.get(cacheId) != null) {
+                        // 1 second pause between failed attempts;
+                        Thread.sleep(1000);
+                    }
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
@@ -102,7 +105,11 @@ public class ApiCache {
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.remove(cacheId);
-                    failed.put(cacheId, true);
+                    if (failed.get(cacheId) == null) {
+                        failed.put(cacheId, 1);
+                    } else {
+                        failed.put(cacheId, failed.get(cacheId) + 1);
+                    }
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
