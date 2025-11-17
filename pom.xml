@@ -268,6 +268,26 @@
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${jib-maven-plugin.version}</version>
+        <configuration>
+          <from>
+            <image>${tomcat-docker-image}</image>
+          </from>
+          <to>
+            <image>${env.IMAGE_NAME}</image>
+            <tags>
+              <tag>${project.version}</tag>
+              <tag>latest</tag>
+            </tags>
+          </to>
+          <container>
+            <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+          </container>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <properties>
@@ -280,5 +300,7 @@
     <jetty.version>11.0.26</jetty.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <slf4j.version>2.0.17</slf4j.version>
+    <jib-maven-plugin.version>3.4.6</jib-maven-plugin.version>
+    <tomcat-docker-image>tomcat:11.0.11</tomcat-docker-image>
   </properties>
 </project>

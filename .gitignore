@@ -12,3 +12,4 @@
 /*.tar.gz
 /*.tar.gz.enc
 .run/
+node_modules/
