@@ -107,11 +107,15 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                        .space(resource.getSpace())
-                        .id(resource.getId())
-                        .contextId(resource.getId())
-                        .build());
+                if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
+                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
+                            .space(resource.getSpace())
+                            .id(resource.getId())
+                            .contextId(resource.getId())
+                            .build());
+                } else {
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
+                }
             }
 
         });
@@ -172,11 +176,15 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                        .space(space)
-                        .id(partId)
-                        .contextId(id)
-                        .build());
+                if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
+                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
+                            .space(space)
+                            .id(partId)
+                            .contextId(id)
+                            .build());
+                } else {
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
+                }
             }
 
         });
