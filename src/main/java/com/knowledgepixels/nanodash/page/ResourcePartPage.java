@@ -1,12 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -24,16 +23,10 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.ResourceView;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class represents a page for a maintained resource.
@@ -130,47 +123,49 @@ public class ResourcePartPage extends NanodashPage {
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                     .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                    .set("param_displayType", ResourceView.PART_LEVEL_VIEW_DISPLAY)
+                    .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
                     .set("param_resource", resource.getId())
                     .set("context", resource.getId())
-                );
+            );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);
-    
+
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
             if (resource.isDataInitialized()) {
                 add(new ViewList("views", resource, id, nanopubRef, classes));
                 add(new ButtonList("view-buttons", space, null, null, viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
-        
+
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
                         return new ViewList(markupId, resource, id, nanopubRef, classes);
                     }
-        
+
                     @Override
                     protected boolean isContentReady() {
                         return resource.isDataInitialized();
                     }
-        
+
                 });
                 add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-        
+
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
                         return new ButtonList(markupId, space, null, null, viewButtons);
                     }
-        
+
                     @Override
                     protected boolean isContentReady() {
                         return resource.isDataInitialized();
                     }
-    
+
                     public Component getLoadingComponent(String id) {
                         return new Label(id).setVisible(false);
-                    };
-        
+                    }
+
+                    ;
+
                 });
             }
         } else {
@@ -181,46 +176,48 @@ public class ResourcePartPage extends NanodashPage {
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                     .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                    .set("param_displayType", ResourceView.PART_LEVEL_VIEW_DISPLAY)
+                    .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
                     .set("param_resource", space.getId())
                     .set("context", space.getId())
-                );
+            );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);
-    
+
             if (space.isDataInitialized()) {
                 add(new ViewList("views", space, id, nanopubId, classes));
                 add(new ButtonList("view-buttons", space, null, null, viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
-        
+
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
                         return new ViewList(markupId, space, id, nanopubId, classes);
                     }
-        
+
                     @Override
                     protected boolean isContentReady() {
                         return space.isDataInitialized();
                     }
-        
+
                 });
                 add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-        
+
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
                         return new ButtonList(markupId, space, null, null, viewButtons);
                     }
-        
+
                     @Override
                     protected boolean isContentReady() {
                         return space.isDataInitialized();
                     }
-    
+
                     public Component getLoadingComponent(String id) {
                         return new Label(id).setVisible(false);
-                    };
-        
+                    }
+
+                    ;
+
                 });
             }
         }

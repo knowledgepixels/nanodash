@@ -1,17 +1,12 @@
 package com.knowledgepixels.nanodash;
 
-import static com.knowledgepixels.nanodash.Utils.vf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -26,13 +21,8 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -40,21 +30,6 @@ import jakarta.xml.bind.DatatypeConverter;
 public class Space implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
-
-    /**
-     * The predicate to assign the admins of the space.
-     */
-    public static final IRI HAS_ADMIN = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin");
-
-    /**
-     * The predicate for pinned templates in the space.
-     */
-    public static final IRI HAS_PINNED_TEMPLATE = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedTemplate");
-
-    /**
-     * The predicate for pinned queries in the space.
-     */
-    public static final IRI HAS_PINNED_QUERY = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPinnedQuery");
 
     private static List<Space> spaceList;
     private static Map<String, List<Space>> spaceListByType;
@@ -156,7 +131,7 @@ public class Space implements Serializable {
      * Get the list of spaces of a specific type.
      *
      * @param type The type of spaces to retrieve.
-        System.err.println("REFRESH...");
+     *             System.err.println("REFRESH...");
      * @return List of spaces of the specified type.
      */
     public static List<Space> getSpaceList(String type) {
@@ -206,7 +181,7 @@ public class Space implements Serializable {
         List<IRI> admins = new ArrayList<>();
         // TODO Make Pair<SpaceMemberRole, String> a new class with SpaceMemberRole + nanopub URI
         Map<IRI, Set<Pair<SpaceMemberRole, String>>> users = new HashMap<>();
-        List<Pair<SpaceMemberRole,String>> roles = new ArrayList<>();
+        List<Pair<SpaceMemberRole, String>> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
@@ -370,7 +345,7 @@ public class Space implements Serializable {
      * @param userId The IRI of the member.
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
-    public Set<Pair<SpaceMemberRole,String>> getMemberRoles(IRI userId) {
+    public Set<Pair<SpaceMemberRole, String>> getMemberRoles(IRI userId) {
         ensureInitialized();
         return data.users.get(userId);
     }
@@ -473,7 +448,7 @@ public class Space implements Serializable {
      *
      * @return List of roles.
      */
-    public List<Pair<SpaceMemberRole,String>> getRoles() {
+    public List<Pair<SpaceMemberRole, String>> getRoles() {
         return data.roles;
     }
 
@@ -576,7 +551,7 @@ public class Space implements Serializable {
                     setCoreData(newData);
 
                     newData.roles.add(Pair.of(SpaceMemberRole.ADMIN_ROLE, null));
-                    newData.roleMap.put(SpaceMemberRole.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
+                    newData.roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
                     // TODO Improve this:
                     Multimap<String, String> spaceIds = ArrayListMultimap.create();
@@ -651,7 +626,7 @@ public class Space implements Serializable {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         try {
                             ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
                                 newData.partLevelViews.add(vd);
                             } else {
                                 newData.topLevelViews.add(vd);
@@ -694,11 +669,11 @@ public class Space implements Serializable {
                     } catch (IllegalArgumentException ex) {
                         logger.error("Failed to parse date {}", st.getObject().stringValue());
                     }
-                } else if (st.getPredicate().equals(HAS_ADMIN) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     data.addAdmin(obj, rootNanopub.getUri().stringValue());
-                } else if (st.getPredicate().equals(HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     data.pinnedResources.add(GrlcQuery.get(obj.stringValue()));
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     data.defaultProvenance = obj;

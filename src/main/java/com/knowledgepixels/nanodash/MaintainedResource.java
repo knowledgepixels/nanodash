@@ -1,13 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -15,6 +8,9 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class MaintainedResource implements Serializable {
 
@@ -218,7 +214,7 @@ public class MaintainedResource implements Serializable {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
                         try {
                             ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (ResourceView.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
                                 newData.partLevelViews.add(vd);
                             } else {
                                 newData.topLevelViews.add(vd);

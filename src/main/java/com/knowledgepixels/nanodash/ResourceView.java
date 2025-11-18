@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -22,58 +23,22 @@ public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
 
-    // TODO Move these to some "vocab" location:
-    public static final IRI RESOURCE_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ResourceView");
+    static Map<IRI, Integer> columnWidths = new HashMap<>();
 
-    public static final IRI TOP_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TopLevelViewDisplay");
-    public static final IRI PART_LEVEL_VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/PartLevelViewDisplay");
-    public static final IRI HAS_VIEW_QUERY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQuery");
-    public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField");
-    public static final IRI HAS_VIEW_TARGET_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewTargetClass");
-    public static final IRI HAS_ELEMENT_NAMESPACE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasElementNamespace");
-    public static final IRI HAS_VIEW_ACTION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasViewAction");
-    public static final IRI HAS_ACTION_TEMPLATE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplate");
-    public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField");
-    public static final IRI TABULAR_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/TabularView");
-    public static final IRI LIST_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ListView");
-    public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField");
-    public static final IRI HAS_ACTION_TEMPLATE_QUERY_MAPPING = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasActionTemplateQueryMapping");
-
-    public static final IRI HAS_PAGE_SIZE = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasPageSize");
-    public static final IRI HAS_STRUCTURAL_POSITION = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasStructuralPosition");
-
-    public static final IRI HAS_DISPLAY_WIDTH = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/hasDisplayWidth");
-    public static final IRI COLUMN_WIDTH_1_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth01of12");
-    public static final IRI COLUMN_WIDTH_2_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth02of12");
-    public static final IRI COLUMN_WIDTH_3_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth03of12");
-    public static final IRI COLUMN_WIDTH_4_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth04of12");
-    public static final IRI COLUMN_WIDTH_5_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth05of12");
-    public static final IRI COLUMN_WIDTH_6_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth06of12");
-    public static final IRI COLUMN_WIDTH_7_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth07of12");
-    public static final IRI COLUMN_WIDTH_8_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth08of12");
-    public static final IRI COLUMN_WIDTH_9_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth09of12");
-    public static final IRI COLUMN_WIDTH_10_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth10of12");
-    public static final IRI COLUMN_WIDTH_11_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth11of12");
-    public static final IRI COLUMN_WIDTH_12_OF_12 = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ColumnWidth12of12");
-    static Map<IRI,Integer> columnWidths = new HashMap<>();
     static {
-        columnWidths.put(COLUMN_WIDTH_1_OF_12, 1);
-        columnWidths.put(COLUMN_WIDTH_2_OF_12, 2);
-        columnWidths.put(COLUMN_WIDTH_3_OF_12, 3);
-        columnWidths.put(COLUMN_WIDTH_4_OF_12, 4);
-        columnWidths.put(COLUMN_WIDTH_5_OF_12, 5);
-        columnWidths.put(COLUMN_WIDTH_6_OF_12, 6);
-        columnWidths.put(COLUMN_WIDTH_7_OF_12, 7);
-        columnWidths.put(COLUMN_WIDTH_8_OF_12, 8);
-        columnWidths.put(COLUMN_WIDTH_9_OF_12, 9);
-        columnWidths.put(COLUMN_WIDTH_10_OF_12, 10);
-        columnWidths.put(COLUMN_WIDTH_11_OF_12, 11);
-        columnWidths.put(COLUMN_WIDTH_12_OF_12, 12);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_1_OF_12, 1);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_2_OF_12, 2);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_3_OF_12, 3);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_4_OF_12, 4);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_5_OF_12, 5);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_6_OF_12, 6);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_7_OF_12, 7);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_8_OF_12, 8);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_9_OF_12, 9);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_10_OF_12, 10);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_11_OF_12, 11);
+        columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_12_OF_12, 12);
     }
-
-    public static final IRI VIEW_DISPLAY = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/ViewDisplay");
-    public static final IRI IS_DISPLAY_OF_VIEW = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/isDisplayOfView");
-    public static final IRI IS_DISPLAY_FOR = Utils.vf.createIRI("https://w3id.org/kpxl/gen/terms/isDisplayFor");
 
     private static Map<String, ResourceView> resourceViews = new HashMap<>();
 
@@ -121,45 +86,45 @@ public class ResourceView implements Serializable {
         for (Statement st : nanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(id)) {
                 if (st.getPredicate().equals(RDF.TYPE)) {
-                    if (st.getObject().equals(RESOURCE_VIEW)) {
+                    if (st.getObject().equals(KPXL_TERMS.RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
                     }
-                    if (st.getObject().equals(TABULAR_VIEW) || st.getObject().equals(LIST_VIEW)) {
+                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW)) {
                         viewType = (IRI) st.getObject();
                     }
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_VIEW_QUERY)) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY)) {
                     query = GrlcQuery.get(st.getObject().stringValue());
-                } else if (st.getPredicate().equals(HAS_VIEW_QUERY_TARGET_FIELD)) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY_TARGET_FIELD)) {
                     queryField = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
                     actionList.add(objIri);
-                } else if (st.getPredicate().equals(HAS_ELEMENT_NAMESPACE) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ELEMENT_NAMESPACE) && st.getObject() instanceof IRI objIri) {
                     elementNamespaces.add(objIri);
-                } else if (st.getPredicate().equals(HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
                     targetClasses.add(objIri);
-                } else if (st.getPredicate().equals(HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
                     } catch (NumberFormatException ex) {
                         logger.error("Invalid page size value: " + objL.stringValue(), ex);
                     }
-                } else if (st.getPredicate().equals(HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = columnWidths.get(objIri);
-                } else if (st.getPredicate().equals(HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
                 }
-            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE)) {
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE)) {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
                 actionTemplateMap.put((IRI) st.getSubject(), template);
-            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
                 actionTemplateTargetFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_PART_FIELD)) {
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_PART_FIELD)) {
                 actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
-            } else if (st.getPredicate().equals(HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
                 actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());

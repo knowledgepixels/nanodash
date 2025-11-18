@@ -1,13 +1,13 @@
 package com.knowledgepixels.nanodash.page;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.QueryRef;
-
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.nanopub.extra.services.QueryRef;
 
 /**
  * A page that lists all available connectors.
@@ -56,11 +56,14 @@ public class SpaceListPage extends NanodashPage {
                 "legacy-projects",
                 "Legacy Projects",
                 new QueryRef("get-projects"),
-                (apiResponse) -> { Project.refresh(apiResponse); return Project.getProjectList(); },
+                (apiResponse) -> {
+                    Project.refresh(apiResponse);
+                    return Project.getProjectList();
+                },
                 (project) -> {
                     return new ItemListElement("item", ProjectPage.class, new PageParameters().set("id", project.getId()), project.getLabel());
                 }
-            ).setDescription("These legacy project pages will be migrated into the Spaces above:"));
+        ).setDescription("These legacy project pages will be migrated into the Spaces above:"));
     }
 
     private void addSpacePanel(String type, boolean openEnded) {
@@ -68,7 +71,7 @@ public class SpaceListPage extends NanodashPage {
         typePl = typePl.replaceFirst("ys$", "ies");
 
         PageParameters newLinkParams = new PageParameters()
-                .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                .set("param_type", KPXL_TERMS.NAMESPACE + type)
                 .set("template-version", "latest")
                 .set("refresh-upon-publish", "spaces")
                 .set("postpub-redirect-url", MOUNT_PATH);
@@ -79,13 +82,16 @@ public class SpaceListPage extends NanodashPage {
         }
 
         add(new ItemListPanel<Space>(
-            typePl.toLowerCase(),
-            typePl,
-            new QueryRef("get-spaces"),
-            (apiResponse) -> { Space.refresh(apiResponse); return Space.getSpaceList("https://w3id.org/kpxl/gen/terms/" + type); },
-            (space) -> {
-                return new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space.getId()), space.getLabel());
-            }
+                typePl.toLowerCase(),
+                typePl,
+                new QueryRef("get-spaces"),
+                (apiResponse) -> {
+                    Space.refresh(apiResponse);
+                    return Space.getSpaceList(KPXL_TERMS.NAMESPACE + type);
+                },
+                (space) -> {
+                    return new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space.getId()), space.getLabel());
+                }
         ).addButton("+", PublishPage.class, newLinkParams));
     }
 

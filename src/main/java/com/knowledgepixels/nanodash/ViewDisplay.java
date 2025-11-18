@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -65,32 +66,32 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         for (Statement st : nanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(id)) {
                 if (st.getPredicate().equals(RDF.TYPE)) {
-                    if (st.getObject().equals(ResourceView.VIEW_DISPLAY)) {
+                    if (st.getObject().equals(KPXL_TERMS.VIEW_DISPLAY)) {
                         viewDisplayTypeFound = true;
                     } else if (st.getObject() instanceof IRI objIri) {
                         types.add(objIri);
                     }
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(ResourceView.IS_DISPLAY_OF_VIEW) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_OF_VIEW) && st.getObject() instanceof IRI objIri) {
                     if (view != null) {
                         throw new IllegalArgumentException("View already set: " + objIri);
                     }
                     view = ResourceView.get(objIri.stringValue());
-                } else if (st.getPredicate().equals(ResourceView.IS_DISPLAY_FOR) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_FOR) && st.getObject() instanceof IRI objIri) {
                     if (resource != null) {
                         throw new IllegalArgumentException("Resource already set: " + objIri);
                     }
                     resource = objIri;
-                } else if (st.getPredicate().equals(ResourceView.HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
                     } catch (NumberFormatException ex) {
                         logger.error("Invalid page size value: " + objL.stringValue(), ex);
                     }
-                } else if (st.getPredicate().equals(ResourceView.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = ResourceView.columnWidths.get(objIri);
-                } else if (st.getPredicate().equals(ResourceView.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
                 }
             }

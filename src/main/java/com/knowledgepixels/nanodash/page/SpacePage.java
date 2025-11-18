@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -303,14 +304,14 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         typePl.toLowerCase(),
                         typePl,
-                        space.getSubspaces("https://w3id.org/kpxl/gen/terms/" + type),
+                        space.getSubspaces(KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
                         .setSpace(space)
                         .setReadyFunction(space::isDataInitialized)
                         .addMemberButton("+", PublishPage.class, new PageParameters()
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
-                                .set("param_type", "https://w3id.org/kpxl/gen/terms/" + type)
+                                .set("param_type", KPXL_TERMS.NAMESPACE + type)
                                 .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>")
                                 .set("refresh-upon-publish", "spaces")
                                 .set("template-version", "latest"))

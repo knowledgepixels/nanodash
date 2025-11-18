@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -55,7 +56,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType().equals(ResourceView.TABULAR_VIEW)) {
+                if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                     item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                             .space(space)
                             .contextId(space.getId())

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -105,8 +106,6 @@ public class Project implements Serializable {
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
 
-    public static final IRI HAS_OWNER = vf.createIRI("https://w3id.org/kpxl/gen/terms/hasOwner");
-
     private Project(String id, String label, String rootNanopubId) {
         this.id = id;
         this.label = label;
@@ -117,11 +116,11 @@ public class Project implements Serializable {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
-                } else if (st.getPredicate().equals(HAS_OWNER) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_OWNER) && st.getObject() instanceof IRI obj) {
                     addOwner(obj);
-                } else if (st.getPredicate().equals(Space.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
                     templates.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(Space.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
                     queryIds.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
