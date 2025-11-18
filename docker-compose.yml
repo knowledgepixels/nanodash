@@ -1,10 +1,10 @@
 services:
   nanodash:
     build: .
-    image: nanopub/nanodash
+    image: nanopub/nanodash:latest
     restart: unless-stopped
     ports:
-      - 37373:8080
+      - "37373:8080"
     volumes:
       - ~/.nanopub:/root/.nanopub
       - .:/local
