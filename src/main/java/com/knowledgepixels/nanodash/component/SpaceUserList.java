@@ -46,7 +46,7 @@ public class SpaceUserList extends Panel {
                         role.getTitle(),
                         item.getModelObject().getRight(),
                         // FIXME add the source nanopublication
-                        m -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", m), User.getShortDisplayName(m.getLeft()), null, Utils.getAsNanopub(m.getRight()))).setSpace(space);
+                        m -> new ItemListElement("item", UserPage.class, new PageParameters().add("id", m.getLeft()), User.getShortDisplayName(m.getLeft()), null, Utils.getAsNanopub(m.getRight()))).setSpace(space);
                 if (role.getRoleAssignmentTemplate() != null) {
                     if (!role.isAdminRole() || SpaceMemberRole.isCurrentUserAdmin(space)) {
                         panel.addButton("+", PublishPage.class, new PageParameters()
