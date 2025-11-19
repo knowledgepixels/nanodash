@@ -96,8 +96,9 @@ public class QueryResultTableBuilder implements Serializable {
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (space != null) {
             if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
+                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay);
                 table.setSpace(space);
+                table.setContextId(contextId);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getActionList()) {
@@ -130,8 +131,9 @@ public class QueryResultTableBuilder implements Serializable {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
+                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay);
                         table.setSpace(space);
+                        table.setContextId(contextId);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getActionList()) {
@@ -165,12 +167,16 @@ public class QueryResultTableBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
+                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay);
+                table.setContextId(contextId);
+                return table;
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
+                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay);
+                        table.setContextId(contextId);
+                        return table;
                     }
                 };
             }
