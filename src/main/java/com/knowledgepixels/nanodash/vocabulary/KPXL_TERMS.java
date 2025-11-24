@@ -31,6 +31,7 @@ public class KPXL_TERMS {
     public static final IRI COLUMN_WIDTH_11_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth11of12");
     public static final IRI COLUMN_WIDTH_12_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth12of12");
     public static final IRI VIEW_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewAction");
+    public static final IRI VIEW_RESULT_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewResultAction");
     public static final IRI VIEW_ENTRY_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewEntryAction");
 
     public static final IRI HAS_DISPLAY_WIDTH = VocabUtils.createIRI(NAMESPACE, "hasDisplayWidth");
