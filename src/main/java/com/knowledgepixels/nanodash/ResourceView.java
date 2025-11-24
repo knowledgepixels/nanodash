@@ -69,11 +69,13 @@ public class ResourceView implements Serializable {
     private Integer pageSize;
     private Integer displayWidth;
     private String structuralPosition;
-    private List<IRI> actionList = new ArrayList<>();
+    private List<IRI> viewActionList = new ArrayList<>();
+    private List<IRI> entryActionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Set<IRI> elementNamespaces = new HashSet<>();
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
+    private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
     private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
@@ -82,6 +84,7 @@ public class ResourceView implements Serializable {
     private ResourceView(String id, Nanopub nanopub) {
         this.id = id;
         this.nanopub = nanopub;
+        List<IRI> actionList = new ArrayList<>();
         boolean resourceViewTypeFound = false;
         for (Statement st : nanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(id)) {
@@ -128,6 +131,17 @@ public class ResourceView implements Serializable {
                 actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(RDF.TYPE)) {
+                if (st.getObject().equals(KPXL_TERMS.VIEW_ACTION) || st.getObject().equals(KPXL_TERMS.VIEW_ENTRY_ACTION)) {
+                    actionTemplateTypeMap.put((IRI) st.getSubject(), (IRI) st.getObject());
+                }
+            }
+        }
+        for (IRI actionIri : actionList) {
+            if (actionTemplateTypeMap.containsKey(actionIri) && actionTemplateTypeMap.get(actionIri).equals(KPXL_TERMS.VIEW_ENTRY_ACTION)) {
+                entryActionList.add(actionIri);
+            } else {
+                viewActionList.add(actionIri);
             }
         }
         if (!resourceViewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
@@ -210,8 +224,12 @@ public class ResourceView implements Serializable {
      *
      * @return the list of action IRIs
      */
-    public List<IRI> getActionList() {
-        return actionList;
+    public List<IRI> getViewActionList() {
+        return viewActionList;
+    }
+
+    public List<IRI> getEntryActionList() {
+        return entryActionList;
     }
 
     /**

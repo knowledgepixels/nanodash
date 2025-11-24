@@ -92,15 +92,14 @@ public class QueryResultTableBuilder implements Serializable {
      * @return the constructed Component
      */
     public Component build() {
-        final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (space != null) {
             if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
+                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay, contextId);
                 table.setSpace(space);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
-                    for (IRI actionIri : view.getActionList()) {
+                    for (IRI actionIri : view.getViewActionList()) {
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
                         String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -130,11 +129,11 @@ public class QueryResultTableBuilder implements Serializable {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, grlcQuery, response, false, viewDisplay, contextId);
+                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay, contextId);
                         table.setSpace(space);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
-                            for (IRI actionIri : view.getActionList()) {
+                            for (IRI actionIri : view.getViewActionList()) {
                                 Template t = view.getTemplateForAction(actionIri);
                                 if (t == null) continue;
                                 String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -165,12 +164,12 @@ public class QueryResultTableBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
+                return new QueryResultTable(markupId, queryRef, response, plain, viewDisplay, contextId);
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        return new QueryResultTable(markupId, grlcQuery, response, plain, viewDisplay, contextId);
+                        return new QueryResultTable(markupId, queryRef, response, plain, viewDisplay, contextId);
                     }
                 };
             }
