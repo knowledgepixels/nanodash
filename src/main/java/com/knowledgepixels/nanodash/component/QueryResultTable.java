@@ -93,7 +93,7 @@ public class QueryResultTable extends Panel {
                 if (h.endsWith("_label")) continue;
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
-            if (!viewDisplay.getView().getViewEntryActionList().isEmpty()) {
+            if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
                 columns.add(new Column("", Column.ACTIONS));
             }
             dp = new DataProvider(response.getData());
@@ -169,9 +169,9 @@ public class QueryResultTable extends Panel {
         @Override
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
             try {
-                if (key.equals(ACTIONS)) {
+                ResourceView view = viewDisplay.getView();
+                if (key.equals(ACTIONS) && view != null) {
                     List<AbstractLink> links = new ArrayList<>();
-                    ResourceView view = viewDisplay.getView();
                     for (IRI actionIri : view.getViewEntryActionList()) {
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
