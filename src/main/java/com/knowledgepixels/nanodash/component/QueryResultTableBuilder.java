@@ -99,7 +99,7 @@ public class QueryResultTableBuilder implements Serializable {
                 table.setSpace(space);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
-                    for (IRI actionIri : view.getViewActionList()) {
+                    for (IRI actionIri : view.getViewResultActionList()) {
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
                         String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -133,7 +133,7 @@ public class QueryResultTableBuilder implements Serializable {
                         table.setSpace(space);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
-                            for (IRI actionIri : view.getViewActionList()) {
+                            for (IRI actionIri : view.getViewResultActionList()) {
                                 Template t = view.getTemplateForAction(actionIri);
                                 if (t == null) continue;
                                 String targetField = view.getTemplateTargetFieldForAction(actionIri);

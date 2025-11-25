@@ -1,8 +1,13 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -13,8 +18,9 @@ import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * A class representing a Resource View.
@@ -69,8 +75,8 @@ public class ResourceView implements Serializable {
     private Integer pageSize;
     private Integer displayWidth;
     private String structuralPosition;
-    private List<IRI> viewActionList = new ArrayList<>();
-    private List<IRI> entryActionList = new ArrayList<>();
+    private List<IRI> viewResultActionList = new ArrayList<>();
+    private List<IRI> viewEntryActionList = new ArrayList<>();
     private Set<IRI> targetClasses = new HashSet<>();
     private Set<IRI> elementNamespaces = new HashSet<>();
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
@@ -139,9 +145,9 @@ public class ResourceView implements Serializable {
         }
         for (IRI actionIri : actionList) {
             if (actionTemplateTypeMap.containsKey(actionIri) && actionTemplateTypeMap.get(actionIri).equals(KPXL_TERMS.VIEW_ENTRY_ACTION)) {
-                entryActionList.add(actionIri);
+                viewEntryActionList.add(actionIri);
             } else {
-                viewActionList.add(actionIri);
+                viewResultActionList.add(actionIri);
             }
         }
         if (!resourceViewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
@@ -224,12 +230,12 @@ public class ResourceView implements Serializable {
      *
      * @return the list of action IRIs
      */
-    public List<IRI> getViewActionList() {
-        return viewActionList;
+    public List<IRI> getViewResultActionList() {
+        return viewResultActionList;
     }
 
-    public List<IRI> getEntryActionList() {
-        return entryActionList;
+    public List<IRI> getViewEntryActionList() {
+        return viewEntryActionList;
     }
 
     /**

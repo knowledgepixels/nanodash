@@ -93,7 +93,9 @@ public class QueryResultTable extends Panel {
                 if (h.endsWith("_label")) continue;
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
-            columns.add(new Column("", Column.ACTIONS));
+            if (!viewDisplay.getView().getViewEntryActionList().isEmpty()) {
+                columns.add(new Column("", Column.ACTIONS));
+            }
             dp = new DataProvider(response.getData());
             table = new DataTable<>("table", columns, dp, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
             table.setOutputMarkupId(true);
@@ -170,7 +172,7 @@ public class QueryResultTable extends Panel {
                 if (key.equals(ACTIONS)) {
                     List<AbstractLink> links = new ArrayList<>();
                     ResourceView view = viewDisplay.getView();
-                    for (IRI actionIri : view.getEntryActionList()) {
+                    for (IRI actionIri : view.getViewEntryActionList()) {
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
