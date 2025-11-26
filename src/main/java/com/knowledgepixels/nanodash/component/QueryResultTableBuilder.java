@@ -166,7 +166,7 @@ public class QueryResultTableBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                QueryResultTable table = return new QueryResultTable(markupId, queryRef, response, plain, viewDisplay);
+                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, plain, viewDisplay);
                 table.setContextId(contextId);
                 return table;
             } else {
