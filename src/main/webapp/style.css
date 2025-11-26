@@ -1820,6 +1820,10 @@ div.navigator .goto a[disabled] {
   float: right;
 }
 
+td div:has(.button-list) {
+  text-align: right;
+}
+
 .button-list a {
   margin-right: 10px;
 }
