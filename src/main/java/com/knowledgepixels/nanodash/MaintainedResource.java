@@ -127,7 +127,9 @@ public class MaintainedResource implements Serializable {
 
     private static class ResourceData implements Serializable {
         List<ViewDisplay> topLevelViews = new ArrayList<>();
+        Set<String> topLevelViewKinds = new HashSet<>();
         List<ViewDisplay> partLevelViews = new ArrayList<>();
+        Set<String> partLevelViewKinds = new HashSet<>();
     }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
@@ -215,8 +217,14 @@ public class MaintainedResource implements Serializable {
                         try {
                             ViewDisplay vd = ViewDisplay.get(r.get("display"));
                             if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
+                                if (newData.partLevelViewKinds.contains(r.get("viewKind"))) continue;
+                                newData.partLevelViewKinds.add(r.get("viewKind"));
+                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
                                 newData.partLevelViews.add(vd);
                             } else {
+                                if (newData.topLevelViewKinds.contains(r.get("viewKind"))) continue;
+                                newData.topLevelViewKinds.add(r.get("viewKind"));
+                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
                                 newData.topLevelViews.add(vd);
                             }
                         } catch (IllegalArgumentException ex) {

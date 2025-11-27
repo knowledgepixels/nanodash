@@ -14,6 +14,8 @@ public class KPXL_TERMS {
 
     public static final IRI TOP_LEVEL_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "TopLevelViewDisplay");
     public static final IRI PART_LEVEL_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "PartLevelViewDisplay");
+    public static final IRI ACTIVATED_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "ActivatedViewDisplay");
+    public static final IRI DEACTIVATED_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "DeactivatedViewDisplay");
     public static final IRI RESOURCE_VIEW = VocabUtils.createIRI(NAMESPACE, "ResourceView");
     public static final IRI TABULAR_VIEW = VocabUtils.createIRI(NAMESPACE, "TabularView");
     public static final IRI LIST_VIEW = VocabUtils.createIRI(NAMESPACE, "ListView");
