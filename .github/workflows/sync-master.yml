@@ -1,0 +1,25 @@
+name: Sync master branch after release
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: master
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge release into master
+        run: |
+          git fetch origin release
+          git merge origin/release
+          git push
