@@ -12,11 +12,15 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
 
 public class ViewList extends Panel {
+
+    private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
     public ViewList(String markupId, Space space) {
         super(markupId);
@@ -51,7 +55,8 @@ public class ViewList extends Panel {
                             }
                         }
                     } else if (!QueryParamField.isOptional(p)) {
-                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
+                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
+                        logger.error("Error: Query has non-optional parameter: " + view.getQuery().getQueryId() + " " + p);
                         return;
                     }
                 }
@@ -103,6 +108,7 @@ public class ViewList extends Panel {
 //                        }
                     } else if (!QueryParamField.isOptional(p)) {
                         item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
+                        logger.error("Error: Query has non-optional parameter: " + view.getQuery().getQueryId() + " " + p);
                         return;
                     }
                 }
@@ -162,8 +168,12 @@ public class ViewList extends Panel {
 //                        }
                     } else if (paramName.equals(view.getQueryField() + "Namespace") && namespace != null) {
                         queryRefParams.put(view.getQueryField() + "Namespace", namespace);
-                    } else if (paramName.equals(view.getQueryField() + "Np") && nanopubId != null) {
-                        queryRefParams.put(view.getQueryField() + "Np", nanopubId);
+                    } else if (paramName.equals(view.getQueryField() + "Np")) {
+                        if (!QueryParamField.isOptional(p) && nanopubId == null) {
+                            queryRefParams.put(view.getQueryField() + "Np", "x:");
+                        } else {
+                            queryRefParams.put(view.getQueryField() + "Np", nanopubId);
+                        }
 //                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
 //                        for (IRI userId : resource.getSpace().getUsers()) {
 //                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
@@ -172,6 +182,7 @@ public class ViewList extends Panel {
 //                        }
                     } else if (!QueryParamField.isOptional(p)) {
                         item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
+                        logger.error("Error: Query has non-optional parameter: " + view.getQuery().getQueryId() + " " + p);
                         return;
                     }
                 }

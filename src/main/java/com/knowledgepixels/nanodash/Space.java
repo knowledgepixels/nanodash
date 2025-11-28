@@ -425,13 +425,19 @@ public class Space implements Serializable {
         return viewDisplays;
     }
 
-    public boolean coversElement(String elementId) {
+    public boolean coversElement(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
         for (ViewDisplay v : data.topLevelViews) {
             if (v.getView().coversElement(elementId)) return true;
+            for (IRI c : classes) {
+                if (v.getView().hasTargetClass(c)) return true;
+            }
         }
         for (ViewDisplay v : data.partLevelViews) {
             if (v.getView().coversElement(elementId)) return true;
+            for (IRI c : classes) {
+                if (v.getView().hasTargetClass(c)) return true;
+            }
         }
         return false;
     }

@@ -692,7 +692,8 @@ public class Utils {
         Set<String> introducedIriIds = new HashSet<>();
         for (Statement st : np.getPubinfo()) {
             if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NPX.INTRODUCES)) continue;
+            IRI p = st.getPredicate();
+            if (!p.equals(NPX.INTRODUCES) && !p.equals(NPX.DESCRIBES) && !p.equals(NPX.EMBEDS)) continue;
             if (st.getObject() instanceof IRI obj) introducedIriIds.add(obj.stringValue());
         }
         return introducedIriIds;
