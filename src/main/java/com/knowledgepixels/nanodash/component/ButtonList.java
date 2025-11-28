@@ -10,12 +10,13 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
+import com.knowledgepixels.nanodash.ProfiledResource;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 
 public class ButtonList extends Panel {
 
-    public ButtonList(String markupId, Space space, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
+    public ButtonList(String markupId, ProfiledResource profiledResource, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
         super(markupId);
         setOutputMarkupId(true);
 
@@ -23,11 +24,13 @@ public class ButtonList extends Panel {
         if (buttons != null) {
             allButtons.addAll(buttons);
         }
-        if (SpaceMemberRole.isCurrentUserMember(space) && memberButtons != null) {
-            allButtons.addAll(memberButtons);
-        }
-        if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
-            allButtons.addAll(adminButtons);
+        if (profiledResource instanceof Space space) {
+            if (SpaceMemberRole.isCurrentUserMember(space) && memberButtons != null) {
+                allButtons.addAll(memberButtons);
+            }
+            if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
+                allButtons.addAll(adminButtons);
+            }
         }
         if (allButtons.isEmpty()) {
             add(new Label("buttons").setVisible(false));
