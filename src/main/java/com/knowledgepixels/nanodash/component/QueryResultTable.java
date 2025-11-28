@@ -59,9 +59,8 @@ public class QueryResultTable extends Panel {
     private final QueryRef queryRef;
     private final ViewDisplay viewDisplay;
 
-    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, boolean plain, ViewDisplay viewDisplay, String contextId) {
+    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, boolean plain, ViewDisplay viewDisplay) {
         super(id);
-        this.contextId = contextId;
         this.queryRef = queryRef;
         this.viewDisplay = viewDisplay;
 
@@ -112,13 +111,12 @@ public class QueryResultTable extends Panel {
 
     // TODO button adding method copied and adjusted from ItemListPanel
     // TODO Improve this (member/admin) button handling:
-    public QueryResultTable addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
+    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
         if (contextId != null) parameters.set("context", contextId);
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);
-        return this;
     }
 
     @Override
@@ -141,6 +139,10 @@ public class QueryResultTable extends Panel {
      */
     public void setSpace(Space space) {
         this.space = space;
+    }
+
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
     }
 
     private void addErrorMessage(String errorMessage) {

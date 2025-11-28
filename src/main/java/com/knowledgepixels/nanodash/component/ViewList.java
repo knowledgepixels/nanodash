@@ -70,7 +70,11 @@ public class ViewList extends Panel {
                             .id(space.getId())
                             .build());
                 } else {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                            .space(space)
+                            .contextId(space.getId())
+                            .id(space.getId())
+                            .build());
                 }
             }
 
@@ -122,7 +126,11 @@ public class ViewList extends Panel {
                             .contextId(resource.getId())
                             .build());
                 } else {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                            .space(resource.getSpace())
+                            .id(resource.getId())
+                            .contextId(resource.getId())
+                            .build());
                 }
             }
 
@@ -196,7 +204,11 @@ public class ViewList extends Panel {
                             .contextId(id)
                             .build());
                 } else {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject()).build());
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                            .space(space)
+                            .id(partId)
+                            .contextId(id)
+                            .build());
                 }
             }
 
