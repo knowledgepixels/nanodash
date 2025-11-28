@@ -8,7 +8,7 @@ on:
 env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
   GITHUB_USERNAME: ${{ github.actor }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
