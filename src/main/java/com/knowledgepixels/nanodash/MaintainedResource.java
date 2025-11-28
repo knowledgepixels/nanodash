@@ -123,7 +123,8 @@ public class MaintainedResource extends ProfiledResource {
     private Nanopub nanopub;
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
-        super(resp.get("resource"), space);
+        super(resp.get("resource"));
+        initSpace(space);
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
         this.namespace = resp.get("namespace");

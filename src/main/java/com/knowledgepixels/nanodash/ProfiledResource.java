@@ -29,9 +29,13 @@ public class ProfiledResource implements Serializable {
     private ResourceData data = new ResourceData();
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
+    private Long runUpdateAfter = null;
 
-    protected ProfiledResource(String id, Space space) {
+    protected ProfiledResource(String id) {
         this.id = id;
+    }
+
+    protected void initSpace(Space space) {
         this.space = space;
     }
 
@@ -39,10 +43,17 @@ public class ProfiledResource implements Serializable {
         return id;
     }
 
-    protected synchronized void triggerDataUpdate() {
+    protected synchronized Thread triggerDataUpdate() {
         if (dataNeedsUpdate) {
-            new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 try {
+                    if (runUpdateAfter != null) {
+                        while (System.currentTimeMillis() < runUpdateAfter) {
+                            Thread.sleep(100);
+                        }
+                        runUpdateAfter = null;
+                    }
+
                     ResourceData newData = new ResourceData();
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
@@ -59,9 +70,22 @@ public class ProfiledResource implements Serializable {
                     logger.error("Error while trying to update space data: {}", ex);
                     dataNeedsUpdate = true;
                 }
-            }).start();
+            });
+            thread.start();
             dataNeedsUpdate = false;
+            return thread;
         }
+        return null;
+    }
+
+    public void forceRefresh(long waitMillis) {
+        dataNeedsUpdate = true;
+        dataInitialized = false;
+        runUpdateAfter = System.currentTimeMillis() + waitMillis;
+    }
+
+    public Long getRunUpdateAfter() {
+        return runUpdateAfter;
     }
 
     public Space getSpace() {

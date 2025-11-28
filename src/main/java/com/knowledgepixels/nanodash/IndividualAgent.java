@@ -16,7 +16,7 @@ public class IndividualAgent extends ProfiledResource {
     }
 
     private IndividualAgent(String id) {
-        super(id, null);
+        super(id);
     }
 
 }
