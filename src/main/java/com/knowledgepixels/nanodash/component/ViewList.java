@@ -79,7 +79,7 @@ public class ViewList extends Panel {
         add(new WebMarkupContainer("emptynotice").setVisible(topLevelViewDisplays.isEmpty()));
     }
 
-    public ViewList(String markupId, MaintainedResource resource) {
+    public ViewList(String markupId, ProfiledResource resource) {
         super(markupId);
 
         final List<ViewDisplay> viewDisplays = resource.getViewDisplays(true, null);

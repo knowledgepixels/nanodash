@@ -2,12 +2,19 @@ package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 public class ProfiledResource implements Serializable {
 
@@ -57,6 +64,21 @@ public class ProfiledResource implements Serializable {
         }
     }
 
+    public Space getSpace() {
+        return space;
+    }
+
+    public String getNanopubId() {
+        return null;
+    }
+
+    public Nanopub getNanopub() {
+        return null;
+    }
+    public String getNamespace() {
+        return null;
+    }
+
     public void setDataNeedsUpdate() {
         dataNeedsUpdate = true;
     }
@@ -68,6 +90,31 @@ public class ProfiledResource implements Serializable {
 
     public List<ViewDisplay> getViewDisplays() {
         return data.viewDisplays;
+    }
+
+    public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
+        triggerDataUpdate();
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
+        Set<IRI> viewKinds = new HashSet<>();
+
+        for (ViewDisplay vd : getViewDisplays()) {
+            IRI kind = vd.getViewKindIri();
+            if (kind != null) {
+                if (viewKinds.contains(kind)) continue;
+                viewKinds.add(vd.getViewKindIri());
+            }
+            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
+
+            if (vd.appliesTo(getId(), null)) {
+                viewDisplays.add(vd);
+            } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                // Deprecated
+                viewDisplays.add(vd);
+            }
+        }
+
+        Collections.sort(viewDisplays);
+        return viewDisplays;
     }
 
     @Override

@@ -204,6 +204,25 @@ public class UserPage extends NanodashPage {
 
             }
         }
+
+        IndividualAgent individualAgent = IndividualAgent.get(userIriString);
+        if (individualAgent.isDataInitialized()) {
+            add(new ViewList("views", individualAgent));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("views") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ViewList(markupId, individualAgent);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return individualAgent.isDataInitialized();
+                }
+    
+            });
+        }
     }
 
     private static Component makeNanopubResultComponent(String markupId, ApiResponse response) {

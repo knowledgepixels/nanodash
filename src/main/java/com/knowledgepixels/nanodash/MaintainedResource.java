@@ -1,9 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,8 +13,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 public class MaintainedResource extends ProfiledResource {
 
@@ -124,12 +120,10 @@ public class MaintainedResource extends ProfiledResource {
     }
 
     private String label, nanopubId, namespace;
-    private Space space;
     private Nanopub nanopub;
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
         super(resp.get("resource"), space);
-        this.space = space;
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
         this.namespace = resp.get("namespace");
@@ -137,14 +131,12 @@ public class MaintainedResource extends ProfiledResource {
         this.nanopub = Utils.getAsNanopub(nanopubId);
     }
 
-    public Space getSpace() {
-        return space;
-    }
-
+    @Override
     public String getNanopubId() {
         return nanopubId;
     }
 
+    @Override
     public Nanopub getNanopub() {
         return nanopub;
     }
@@ -153,33 +145,9 @@ public class MaintainedResource extends ProfiledResource {
         return label;
     }
 
+    @Override
     public String getNamespace() {
         return namespace;
-    }
-
-    public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
-        triggerDataUpdate();
-        List<ViewDisplay> viewDisplays = new ArrayList<>();
-        Set<IRI> viewKinds = new HashSet<>();
-
-        for (ViewDisplay vd : getViewDisplays()) {
-            IRI kind = vd.getViewKindIri();
-            if (kind != null) {
-                if (viewKinds.contains(kind)) continue;
-                viewKinds.add(vd.getViewKindIri());
-            }
-            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
-
-            if (vd.appliesTo(getId(), null)) {
-                viewDisplays.add(vd);
-            } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
-                // Deprecated
-                viewDisplays.add(vd);
-            }
-        }
-
-        Collections.sort(viewDisplays);
-        return viewDisplays;
     }
 
     public boolean appliesTo(String elementId, Set<IRI> classes) {
