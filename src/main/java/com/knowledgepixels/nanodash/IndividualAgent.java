@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.rdf4j.model.IRI;
+
 // TODO Merge this class with User or otherwise make them aligned.
 public class IndividualAgent extends ProfiledResource {
 
@@ -17,6 +19,12 @@ public class IndividualAgent extends ProfiledResource {
 
     private IndividualAgent(String id) {
         super(id);
+    }
+
+    public boolean isCurrentUser() {
+        IRI userIri = NanodashSession.get().getUserIri();
+        if (userIri == null) return false;
+        return getId().equals(userIri.stringValue());
     }
 
 }

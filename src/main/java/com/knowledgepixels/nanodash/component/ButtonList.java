@@ -10,6 +10,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
+import com.knowledgepixels.nanodash.IndividualAgent;
 import com.knowledgepixels.nanodash.ProfiledResource;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
@@ -29,6 +30,10 @@ public class ButtonList extends Panel {
                 allButtons.addAll(memberButtons);
             }
             if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
+                allButtons.addAll(adminButtons);
+            }
+        } else if (profiledResource instanceof IndividualAgent ia) {
+            if (ia.isCurrentUser() && adminButtons != null) {
                 allButtons.addAll(adminButtons);
             }
         }

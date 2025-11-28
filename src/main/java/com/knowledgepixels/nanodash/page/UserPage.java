@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.component.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -205,9 +206,20 @@ public class UserPage extends NanodashPage {
             }
         }
 
+        final List<AbstractLink> viewButtons = new ArrayList<>();
+        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
+                .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
+                .set("template-version", "latest")
+                .set("param_resource", userIriString)
+                .set("context", userIriString)
+            );
+        addViewButton.setBody(Model.of("+ view"));
+        viewButtons.add(addViewButton);
+
         IndividualAgent individualAgent = IndividualAgent.get(userIriString);
         if (individualAgent.isDataInitialized()) {
             add(new ViewList("views", individualAgent));
+            add(new ButtonList("view-buttons", individualAgent, null, null, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
     
@@ -220,6 +232,23 @@ public class UserPage extends NanodashPage {
                 protected boolean isContentReady() {
                     return individualAgent.isDataInitialized();
                 }
+    
+            });
+            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
+    
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ButtonList(markupId, individualAgent, null, null, viewButtons);
+                }
+    
+                @Override
+                protected boolean isContentReady() {
+                    return individualAgent.isDataInitialized();
+                }
+
+                public Component getLoadingComponent(String id) {
+                    return new Label(id).setVisible(false);
+                };
     
             });
         }

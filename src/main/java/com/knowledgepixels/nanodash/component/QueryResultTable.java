@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.ProfiledResource;
 import com.knowledgepixels.nanodash.ResourceView;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.Utils;
@@ -55,7 +56,7 @@ public class QueryResultTable extends Panel {
     private boolean finalized = false;
     private List<AbstractLink> buttons = new ArrayList<>();
     private String contextId;
-    private Space space;
+    private ProfiledResource profiledResource;
     private final QueryRef queryRef;
     private final ViewDisplay viewDisplay;
 
@@ -125,7 +126,7 @@ public class QueryResultTable extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", space, buttons, null, null));
+                add(new ButtonList("buttons", profiledResource, buttons, null, null));
             } else {
                 add(new Label("buttons").setVisible(false));
             }
@@ -139,8 +140,8 @@ public class QueryResultTable extends Panel {
      *
      * @param space The space to set.
      */
-    public void setSpace(Space space) {
-        this.space = space;
+    public void setProfiledResource(ProfiledResource profiledResource) {
+        this.profiledResource = profiledResource;
     }
 
     private void addErrorMessage(String errorMessage) {
@@ -201,7 +202,7 @@ public class QueryResultTable extends Panel {
                         button.setBody(Model.of(label));
                         links.add(button);
                     }
-                    cellItem.add(new ButtonList(componentId, space, links, null, null));
+                    cellItem.add(new ButtonList(componentId, profiledResource, links, null, null));
                 } else {
                     String value = rowModel.getObject().get(key);
                     if (value.matches("https?://.+ .+")) {

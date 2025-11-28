@@ -21,7 +21,7 @@ public class QueryResultTableBuilder implements Serializable {
     private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
-    private Space space = null;
+    private ProfiledResource profiledResource = null;
     private String id = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -43,13 +43,13 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
-     * Sets the space for the QueryResultTable.
+     * Sets the profiled resource for the QueryResultTable.
      *
-     * @param space the Space object
+     * @param profiledResource the profiled resource object
      * @return the current QueryResultTableBuilder instance
      */
-    public QueryResultTableBuilder space(Space space) {
-        this.space = space;
+    public QueryResultTableBuilder profiledResource(ProfiledResource profiledResource) {
+        this.profiledResource = profiledResource;
         return this;
     }
 
@@ -93,10 +93,10 @@ public class QueryResultTableBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
-        if (space != null) {
+        if (profiledResource != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay, contextId);
-                table.setSpace(space);
+                table.setProfiledResource(profiledResource);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
@@ -130,7 +130,7 @@ public class QueryResultTableBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay, contextId);
-                        table.setSpace(space);
+                        table.setProfiledResource(profiledResource);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {

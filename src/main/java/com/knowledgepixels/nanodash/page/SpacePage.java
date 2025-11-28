@@ -71,7 +71,7 @@ public class SpacePage extends NanodashPage {
         if (space == null && MaintainedResource.get(id) != null) {
             throw new RestartResponseException(MaintainedResourcePage.class, parameters);
         }
-        Nanopub np = space.getRootNanopub();
+        Nanopub np = space.getNanopub();
 
         add(new TitleBar("titlebar", this, "connectors"));
 

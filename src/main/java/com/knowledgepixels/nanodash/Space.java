@@ -226,7 +226,8 @@ public class Space extends ProfiledResource {
      *
      * @return The root nanopub ID.
      */
-    public String getRootNanopubId() {
+    @Override
+    public String getNanopubId() {
         return rootNanopubId;
     }
 
@@ -244,7 +245,8 @@ public class Space extends ProfiledResource {
      *
      * @return The root Nanopub object.
      */
-    public Nanopub getRootNanopub() {
+    @Override
+    public Nanopub getNanopub() {
         return rootNanopub;
     }
 
