@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
-public class MaintainedResource implements Serializable {
+public class MaintainedResource extends ProfiledResource {
 
     private static final Logger logger = LoggerFactory.getLogger(MaintainedResource.class);
 
@@ -120,25 +119,17 @@ public class MaintainedResource implements Serializable {
     public static void refresh() {
         refresh(QueryApiAccess.forcedGet(new QueryRef("get-maintained-resources")));
         for (MaintainedResource resource : resourceList) {
-            resource.dataNeedsUpdate = true;
+            resource.setDataNeedsUpdate();
         }
     }
 
-    private String id, label, nanopubId, namespace;
+    private String label, nanopubId, namespace;
     private Space space;
     private Nanopub nanopub;
-    private ResourceData data = new ResourceData();
-
-    private boolean dataInitialized = false;
-    private boolean dataNeedsUpdate = true;
-
-    private static class ResourceData implements Serializable {
-        List<ViewDisplay> viewDisplays = new ArrayList<>();
-    }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
+        super(resp.get("resource"), space);
         this.space = space;
-        this.id = resp.get("resource");
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
         this.namespace = resp.get("namespace");
@@ -148,10 +139,6 @@ public class MaintainedResource implements Serializable {
 
     public Space getSpace() {
         return space;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getNanopubId() {
@@ -170,17 +157,12 @@ public class MaintainedResource implements Serializable {
         return namespace;
     }
 
-    public boolean isDataInitialized() {
-        triggerDataUpdate();
-        return dataInitialized;
-    }
-
     public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
-        for (ViewDisplay vd : data.viewDisplays) {
+        for (ViewDisplay vd : getViewDisplays()) {
             IRI kind = vd.getViewKindIri();
             if (kind != null) {
                 if (viewKinds.contains(kind)) continue;
@@ -188,7 +170,7 @@ public class MaintainedResource implements Serializable {
             }
             if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
 
-            if (vd.appliesTo(id, null)) {
+            if (vd.appliesTo(getId(), null)) {
                 viewDisplays.add(vd);
             } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated
@@ -202,40 +184,10 @@ public class MaintainedResource implements Serializable {
 
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
-        for (ViewDisplay v : data.viewDisplays) {
+        for (ViewDisplay v : getViewDisplays()) {
             if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
-    }
-
-    private synchronized void triggerDataUpdate() {
-        if (dataNeedsUpdate) {
-            new Thread(() -> {
-                try {
-                    ResourceData newData = new ResourceData();
-
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
-                        if (!space.isAdminPubkey(r.get("pubkey"))) continue;
-                        try {
-                            newData.viewDisplays.add(ViewDisplay.get(r.get("display")));
-                        } catch (IllegalArgumentException ex) {
-                            logger.error("Couldn't generate view display object", ex);
-                        }
-                    }
-                    data = newData;
-                    dataInitialized = true;
-                } catch (Exception ex) {
-                    logger.error("Error while trying to update space data: {}", ex);
-                    dataNeedsUpdate = true;
-                }
-            }).start();
-            dataNeedsUpdate = false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return id;
     }
 
 }
