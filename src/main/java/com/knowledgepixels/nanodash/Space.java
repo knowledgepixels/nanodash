@@ -395,7 +395,7 @@ public class Space implements Serializable {
         return data.pinnedResourceMap;
     }
 
-    public List<ViewDisplay> geViewDisplays(boolean toplevel, Set<IRI> classes) {
+    public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();

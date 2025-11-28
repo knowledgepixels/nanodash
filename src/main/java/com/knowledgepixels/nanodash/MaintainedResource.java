@@ -1,6 +1,14 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -9,8 +17,7 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 public class MaintainedResource implements Serializable {
 
@@ -126,10 +133,7 @@ public class MaintainedResource implements Serializable {
     private boolean dataNeedsUpdate = true;
 
     private static class ResourceData implements Serializable {
-        List<ViewDisplay> topLevelViews = new ArrayList<>();
-        Set<String> topLevelViewKinds = new HashSet<>();
-        List<ViewDisplay> partLevelViews = new ArrayList<>();
-        Set<String> partLevelViewKinds = new HashSet<>();
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
@@ -171,36 +175,34 @@ public class MaintainedResource implements Serializable {
         return dataInitialized;
     }
 
-    public List<ViewDisplay> getTopLevelViews() {
-        triggerDataUpdate();
-        // TODO Check for compliance with target classes here too:
-        return data.topLevelViews;
-    }
-
-    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
+    public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().appliesToClasses()) {
-                for (IRI c : classes) {
-                    if (v.getView().appliesToClass(c)) {
-                        viewDisplays.add(v);
-                        break;
-                    }
-                }
-            } else {
-                viewDisplays.add(v);
+        Set<IRI> viewKinds = new HashSet<>();
+
+        for (ViewDisplay vd : data.viewDisplays) {
+            IRI kind = vd.getViewKindIri();
+            if (kind != null) {
+                if (viewKinds.contains(kind)) continue;
+                viewKinds.add(vd.getViewKindIri());
+            }
+            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
+
+            if (vd.appliesTo(id, null)) {
+                viewDisplays.add(vd);
+            } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                // Deprecated
+                viewDisplays.add(vd);
             }
         }
+
+        Collections.sort(viewDisplays);
         return viewDisplays;
     }
 
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
-        for (ViewDisplay v : data.topLevelViews) {
-            if (v.appliesTo(elementId, classes)) return true;
-        }
-        for (ViewDisplay v : data.partLevelViews) {
+        for (ViewDisplay v : data.viewDisplays) {
             if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
@@ -215,24 +217,11 @@ public class MaintainedResource implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
                         if (!space.isAdminPubkey(r.get("pubkey"))) continue;
                         try {
-                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
-                                if (newData.partLevelViewKinds.contains(r.get("viewKind"))) continue;
-                                newData.partLevelViewKinds.add(r.get("viewKind"));
-                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
-                                newData.partLevelViews.add(vd);
-                            } else {
-                                if (newData.topLevelViewKinds.contains(r.get("viewKind"))) continue;
-                                newData.topLevelViewKinds.add(r.get("viewKind"));
-                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
-                                newData.topLevelViews.add(vd);
-                            }
+                            newData.viewDisplays.add(ViewDisplay.get(r.get("display")));
                         } catch (IllegalArgumentException ex) {
                             logger.error("Couldn't generate view display object", ex);
                         }
                     }
-                    Collections.sort(newData.topLevelViews);
-                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {

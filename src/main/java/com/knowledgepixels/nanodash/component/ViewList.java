@@ -25,7 +25,7 @@ public class ViewList extends Panel {
     public ViewList(String markupId, Space space) {
         super(markupId);
 
-        final List<ViewDisplay> topLevelViewDisplays = space.geViewDisplays(true, null);
+        final List<ViewDisplay> topLevelViewDisplays = space.getViewDisplays(true, null);
 
         add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(topLevelViewDisplays)) {
 
@@ -82,7 +82,7 @@ public class ViewList extends Panel {
     public ViewList(String markupId, MaintainedResource resource) {
         super(markupId);
 
-        final List<ViewDisplay> viewDisplays = resource.getTopLevelViews();
+        final List<ViewDisplay> viewDisplays = resource.getViewDisplays(true, null);
         add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
@@ -141,12 +141,12 @@ public class ViewList extends Panel {
 
         if (spaceOrMaintainedResource instanceof MaintainedResource r) {
             id = r.getId();
-            viewDisplays = r.getPartLevelViews(partClasses);
+            viewDisplays = r.getViewDisplays(false, partClasses);
             namespace = r.getNamespace();
             space = r.getSpace();
         } else if (spaceOrMaintainedResource instanceof Space s) {
             id = s.getId();
-            viewDisplays = s.geViewDisplays(false, partClasses);
+            viewDisplays = s.getViewDisplays(false, partClasses);
             namespace = null;
             space = s;
         } else {
