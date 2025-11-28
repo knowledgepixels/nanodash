@@ -68,6 +68,7 @@ public class ResourceView implements Serializable {
 
     private String id;
     private Nanopub nanopub;
+    private IRI viewKind;
     private String label;
     private String title = "View";
     private GrlcQuery query;
@@ -101,6 +102,8 @@ public class ResourceView implements Serializable {
                     if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW)) {
                         viewType = (IRI) st.getObject();
                     }
+                } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
+                    viewKind = objIri;
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
@@ -173,6 +176,10 @@ public class ResourceView implements Serializable {
      */
     public Nanopub getNanopub() {
         return nanopub;
+    }
+
+    public IRI getViewKindIri() {
+        return viewKind;
     }
 
     /**
@@ -283,8 +290,10 @@ public class ResourceView implements Serializable {
         for (IRI namespace : appliesToNamespaces) {
             if (resourceId.startsWith(namespace.stringValue())) return true;
         }
-        for (IRI c : classes) {
-            if (appliesToClasses.contains(c)) return true;
+        if (classes != null) {
+            for (IRI c : classes) {
+                if (appliesToClasses.contains(c)) return true;
+            }
         }
         return false;
     }

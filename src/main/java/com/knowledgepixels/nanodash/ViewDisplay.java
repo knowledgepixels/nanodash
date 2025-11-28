@@ -113,6 +113,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return id;
     }
 
+    public boolean hasType(IRI type) {
+        return types.contains(type);
+    }
+
     /**
      * Creates a plain minimal view display without attached view object.
      *
@@ -131,6 +135,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return view;
     }
 
+    public IRI getViewKindIri() {
+        return view.getViewKindIri();
+    }
+
     public boolean appliesTo(String resourceId, Set<IRI> classes) {
         if (appliesTo.contains(resourceId)) return true;
         if (appliesToNamespaces.isEmpty() && appliesToClasses.isEmpty()) {
@@ -139,8 +147,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
             for (IRI namespace : appliesToNamespaces) {
                 if (resourceId.startsWith(namespace.stringValue())) return true;
             }
-            for (IRI c : classes) {
-                if (appliesToClasses.contains(c)) return true;
+            if (classes != null) {
+                for (IRI c : classes) {
+                    if (appliesToClasses.contains(c)) return true;
+                }
             }
         }
         return false;

@@ -186,10 +186,7 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         Set<Serializable> pinnedResources = new HashSet<>();
-        List<ViewDisplay> topLevelViews = new ArrayList<>();
-        Set<String> topLevelViewKinds = new HashSet<>();
-        List<ViewDisplay> partLevelViews = new ArrayList<>();
-        Set<String> partLevelViewKinds = new HashSet<>();
+        List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -398,39 +395,34 @@ public class Space implements Serializable {
         return data.pinnedResourceMap;
     }
 
-    /**
-     * Returns the view displays and their associated nanopub IDs.
-     *
-     * @return Map of views to nanopub IDs
-     */
-    public List<ViewDisplay> getTopLevelViews() {
-        return data.topLevelViews;
-    }
-
-    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
+    public List<ViewDisplay> geViewDisplays(boolean toplevel, Set<IRI> classes) {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().appliesToClasses()) {
-                for (IRI c : classes) {
-                    if (v.getView().appliesToClass(c)) {
-                        viewDisplays.add(v);
-                        break;
-                    }
-                }
-            } else {
-                viewDisplays.add(v);
+        Set<IRI> viewKinds = new HashSet<>();
+
+        for (ViewDisplay vd : data.viewDisplays) {
+            IRI kind = vd.getViewKindIri();
+            if (kind != null) {
+                if (viewKinds.contains(kind)) continue;
+                viewKinds.add(vd.getViewKindIri());
+            }
+            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
+
+            if (vd.appliesTo(id, null)) {
+                viewDisplays.add(vd);
+            } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                // Deprecated
+                viewDisplays.add(vd);
             }
         }
+
+        Collections.sort(viewDisplays);
         return viewDisplays;
     }
 
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
-        for (ViewDisplay v : data.topLevelViews) {
-            if (v.appliesTo(elementId, classes)) return true;
-        }
-        for (ViewDisplay v : data.partLevelViews) {
+        for (ViewDisplay v : data.viewDisplays) {
             if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
@@ -627,24 +619,11 @@ public class Space implements Serializable {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         try {
-                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
-                                if (newData.partLevelViewKinds.contains(r.get("viewKind"))) continue;
-                                newData.partLevelViewKinds.add(r.get("viewKind"));
-                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
-                                newData.partLevelViews.add(vd);
-                            } else {
-                                if (newData.topLevelViewKinds.contains(r.get("viewKind"))) continue;
-                                newData.topLevelViewKinds.add(r.get("viewKind"));
-                                if (KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY.stringValue().equals(r.get("displayMode"))) continue;
-                                newData.topLevelViews.add(vd);
-                            }
+                            newData.viewDisplays.add(ViewDisplay.get(r.get("display")));
                         } catch (IllegalArgumentException ex) {
                             logger.error("Couldn't generate view display object", ex);
                         }
                     }
-                    Collections.sort(newData.topLevelViews);
-                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
