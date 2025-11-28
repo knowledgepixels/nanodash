@@ -41,6 +41,7 @@ public class KPXL_TERMS {
     public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasViewQueryTargetField");
     public static final IRI APPLIES_TO_INSTANCES_OF = VocabUtils.createIRI(NAMESPACE, "appliesToInstancesOf");
     public static final IRI APPLIES_TO_NAMESPACE = VocabUtils.createIRI(NAMESPACE, "appliesToNamespace");
+    public static final IRI APPLIES_TO = VocabUtils.createIRI(NAMESPACE, "appliesTo");
     public static final IRI HAS_VIEW_ACTION = VocabUtils.createIRI(NAMESPACE, "hasViewAction");
     public static final IRI HAS_ACTION_TEMPLATE = VocabUtils.createIRI(NAMESPACE, "hasActionTemplate");
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateTargetField");
