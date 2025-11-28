@@ -198,10 +198,10 @@ public class MaintainedResource implements Serializable {
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
         for (ViewDisplay v : data.topLevelViews) {
-            if (v.getView().appliesTo(elementId, classes)) return true;
+            if (v.appliesTo(elementId, classes)) return true;
         }
         for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().appliesTo(elementId, classes)) return true;
+            if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
     }

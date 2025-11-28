@@ -31,6 +31,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Integer displayWidth;
     private String structuralPosition;
     private Set<IRI> types = new HashSet<>();
+    private Set<IRI> appliesToClasses = new HashSet<>();
+    private Set<IRI> appliesToNamespaces = new HashSet<>();
     private IRI resource;
 
     private static Map<String, ViewDisplay> viewDisplays = new HashMap<>();
@@ -93,6 +95,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     displayWidth = ResourceView.columnWidths.get(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_NAMESPACE) && st.getObject() instanceof IRI objIri) {
+                    appliesToNamespaces.add(objIri);
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_INSTANCES_OF) && st.getObject() instanceof IRI objIri) {
+                    appliesToClasses.add(objIri);
                 }
             }
         }
@@ -120,6 +126,36 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      */
     public ResourceView getView() {
         return view;
+    }
+
+    public boolean appliesTo(String resourceId, Set<IRI> classes) {
+        if (appliesToNamespaces.isEmpty()) {
+            return view.appliesTo(resourceId, classes);
+        } else {
+            for (IRI namespace : appliesToNamespaces) {
+                if (resourceId.startsWith(namespace.stringValue())) return true;
+            }
+            for (IRI c : classes) {
+                if (appliesToClasses.contains(c)) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean appliesToClasses() {
+        if (appliesToClasses.isEmpty()) {
+            return view.appliesToClasses();
+        } else {
+            return true;
+        }
+    }
+
+    public boolean appliesToClass(IRI targetClass) {
+        if (appliesToClasses.isEmpty()) {
+            return view.appliesToClasses();
+        } else {
+            return appliesToClasses.contains(targetClass);
+        }
     }
 
     /**
