@@ -411,9 +411,9 @@ public class Space implements Serializable {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().hasTargetClasses()) {
+            if (v.getView().appliesToClasses()) {
                 for (IRI c : classes) {
-                    if (v.getView().hasTargetClass(c)) {
+                    if (v.getView().appliesToClass(c)) {
                         viewDisplays.add(v);
                         break;
                     }
@@ -425,19 +425,13 @@ public class Space implements Serializable {
         return viewDisplays;
     }
 
-    public boolean coversElement(String elementId, Set<IRI> classes) {
+    public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
         for (ViewDisplay v : data.topLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
-            for (IRI c : classes) {
-                if (v.getView().hasTargetClass(c)) return true;
-            }
+            if (v.getView().appliesTo(elementId, classes)) return true;
         }
         for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
-            for (IRI c : classes) {
-                if (v.getView().hasTargetClass(c)) return true;
-            }
+            if (v.getView().appliesTo(elementId, classes)) return true;
         }
         return false;
     }

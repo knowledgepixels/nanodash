@@ -180,9 +180,9 @@ public class ExplorePage extends NanodashPage {
                 }
             }
             // TODO Improve this so we have just one check:
-            if (Space.get(contextId) != null && Space.get(contextId).coversElement(tempRef, classes)) {
+            if (Space.get(contextId) != null && Space.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).coversElement(tempRef, classes)) {
+            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             }
             

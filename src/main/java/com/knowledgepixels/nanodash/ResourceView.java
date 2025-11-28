@@ -77,8 +77,8 @@ public class ResourceView implements Serializable {
     private String structuralPosition;
     private List<IRI> viewResultActionList = new ArrayList<>();
     private List<IRI> viewEntryActionList = new ArrayList<>();
-    private Set<IRI> targetClasses = new HashSet<>();
-    private Set<IRI> elementNamespaces = new HashSet<>();
+    private Set<IRI> appliesToClasses = new HashSet<>();
+    private Set<IRI> appliesToNamespaces = new HashSet<>();
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
@@ -111,10 +111,13 @@ public class ResourceView implements Serializable {
                     queryField = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
                     actionList.add(objIri);
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ELEMENT_NAMESPACE) && st.getObject() instanceof IRI objIri) {
-                    elementNamespaces.add(objIri);
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_NAMESPACE) && st.getObject() instanceof IRI objIri) {
+                    appliesToNamespaces.add(objIri);
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_INSTANCES_OF) && st.getObject() instanceof IRI objIri) {
+                    appliesToClasses.add(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
-                    targetClasses.add(objIri);
+                    // Deprecated
+                    appliesToClasses.add(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
@@ -276,9 +279,12 @@ public class ResourceView implements Serializable {
         return labelMap.get(actionIri);
     }
 
-    public boolean coversElement(String elementId) {
-        for (IRI namespace : elementNamespaces) {
-            if (elementId.startsWith(namespace.stringValue())) return true;
+    public boolean appliesTo(String resourceId, Set<IRI> classes) {
+        for (IRI namespace : appliesToNamespaces) {
+            if (resourceId.startsWith(namespace.stringValue())) return true;
+        }
+        for (IRI c : classes) {
+            if (appliesToClasses.contains(c)) return true;
         }
         return false;
     }
@@ -288,8 +294,8 @@ public class ResourceView implements Serializable {
      *
      * @return true if the ResourceView has target classes, false otherwise
      */
-    public boolean hasTargetClasses() {
-        return !targetClasses.isEmpty();
+    public boolean appliesToClasses() {
+        return !appliesToClasses.isEmpty();
     }
 
     /**
@@ -298,8 +304,8 @@ public class ResourceView implements Serializable {
      * @param targetClass the target class IRI
      * @return true if the ResourceView has the target class, false otherwise
      */
-    public boolean hasTargetClass(IRI targetClass) {
-        return targetClasses.contains(targetClass);
+    public boolean appliesToClass(IRI targetClass) {
+        return appliesToClasses.contains(targetClass);
     }
 
     @Override
