@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -45,8 +46,25 @@ public class QueryResultList extends Panel {
         }
         RepeatingView listItems = new RepeatingView("listItems");
         for (ApiResponseEntry entry : response.getData()) {
-            String labelText = buildInlineLabel(entry, response);
-            listItems.add(new Label(listItems.newChildId(), labelText).setEscapeModelStrings(false));
+            List<Component> components = new ArrayList<>();
+            for (String key : response.getHeader()) {
+                if (!key.endsWith("_label")) {
+                    String entryValue = entry.get(key);
+                    if (entryValue != null && !entryValue.isBlank()) {
+                        if (entryValue.matches("https?://.+")) {
+                            String entryLabel = entry.get(key + "_label");
+                            components.add(new NanodashLink("component", entryValue, null, null, entryLabel));
+                        } else {
+                            if (Utils.looksLikeHtml(entryValue)) {
+                                entryValue = Utils.sanitizeHtml(entryValue);
+                            }
+                            components.add(new Label("component", entryValue));
+                        }
+                    }
+                }
+            }
+            ComponentSequence componentSequence = new ComponentSequence(listItems.newChildId(), SEPARATOR, components);
+            listItems.add(componentSequence);
         }
         add(listItems);
     }
@@ -82,33 +100,6 @@ public class QueryResultList extends Panel {
 
     public void setContextId(String contextId) {
         this.contextId = contextId;
-    }
-
-    private String buildInlineLabel(ApiResponseEntry entry, ApiResponse response) {
-        StringBuilder labelBuilder = new StringBuilder();
-        for (String key : response.getHeader()) {
-            if (!key.endsWith("_label")) {
-                String entryValue = entry.get(key);
-                if (entryValue != null && !entryValue.isBlank()) {
-                    if (Utils.looksLikeHtml(entryValue)) {
-                        entryValue = Utils.sanitizeHtml(entryValue);
-                    } else if (entryValue.matches("https?://.+")) {
-                        String label = entry.get(key + "_label");
-                        String anchorElement = "<a href=\"%s\">%s</a>";
-                        if (label != null && !label.isBlank()) {
-                            entryValue = String.format(anchorElement, entryValue, label);
-                        } else {
-                            entryValue = String.format(anchorElement, entryValue, entryValue);
-                        }
-                    }
-                    labelBuilder.append(entryValue).append(SEPARATOR);
-                }
-            }
-        }
-        if (labelBuilder.toString().endsWith(SEPARATOR)) {
-            labelBuilder.setLength(labelBuilder.length() - 2);
-        }
-        return labelBuilder.toString();
     }
 
 }
