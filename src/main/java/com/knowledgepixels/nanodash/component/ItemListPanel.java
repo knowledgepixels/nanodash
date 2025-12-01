@@ -19,7 +19,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.ProfiledResource;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
@@ -28,7 +28,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private List<AbstractLink> memberButtons = new ArrayList<>();
     private List<AbstractLink> adminButtons = new ArrayList<>();
-    private Space space;
+    private ProfiledResource profiledResource;
     private boolean finalized = false;
     private boolean lazyLoading = false;
     private ReadyFunction readyFunction;
@@ -93,7 +93,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     // TODO Improve this (member/admin) button handling:
     public ItemListPanel<T> addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.set("context", space.getId());
+        if (profiledResource != null) parameters.set("context", profiledResource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);
@@ -102,7 +102,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addMemberButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.set("context", space.getId());
+        if (profiledResource != null) parameters.set("context", profiledResource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         memberButtons.add(button);
@@ -111,15 +111,15 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addAdminButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (space != null) parameters.set("context", space.getId());
+        if (profiledResource != null) parameters.set("context", profiledResource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         adminButtons.add(button);
         return this;
     }
 
-    public ItemListPanel<T> setSpace(Space space) {
-        this.space = space;
+    public ItemListPanel<T> setProfiledResource(ProfiledResource profiledResource) {
+        this.profiledResource = profiledResource;
         return this;
     }
 
@@ -132,12 +132,12 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             add(new Label("description", description).setVisible(description != null));
-            if (space != null && readyFunction != null && !readyFunction.get()) {
+            if (profiledResource != null && readyFunction != null && !readyFunction.get()) {
                 add(new AjaxLazyLoadPanel<Component>("buttons") {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ButtonList(markupId, space, buttons, memberButtons, adminButtons);
+                        return new ButtonList(markupId, profiledResource, buttons, memberButtons, adminButtons);
                     }
 
                     @Override
@@ -156,7 +156,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
                 });
             } else {
-                add(new ButtonList("buttons", space, buttons, memberButtons, adminButtons));
+                add(new ButtonList("buttons", profiledResource, buttons, memberButtons, adminButtons));
             }
             finalized = true;
         }

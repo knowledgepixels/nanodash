@@ -16,8 +16,10 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.commonjava.mimeparse.MIMEParse;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -159,24 +162,27 @@ public class ExplorePage extends NanodashPage {
 
         if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty()) {
             parameters.remove("forward-to-part");
+            Set<IRI> classes = new HashSet<>();
             if (np != null) {
                 Set<String> introducedIds = Utils.getIntroducedIriIds(np);
                 if (introducedIds.size() == 1) {
                     String subj = introducedIds.iterator().next();
                     for (Statement st : np.getAssertion()) {
                         if (!st.getSubject().stringValue().equals(subj)) continue;
-                        if (!st.getPredicate().equals(DCTERMS.IS_PART_OF) && !st.getPredicate().equals(SKOS.IN_SCHEME))
-                            continue;
-                        String resourceId = st.getObject().stringValue();
-                        if (MaintainedResource.get(resourceId) == null) continue;
-                        throw new RestartResponseException(ResourcePartPage.class, parameters);
+                        if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
+                            String resourceId = st.getObject().stringValue();
+                            if (MaintainedResource.get(resourceId) == null) continue;
+                            throw new RestartResponseException(ResourcePartPage.class, parameters);
+                        } else if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
+                            classes.add(objIri);
+                        }
                     }
                 }
             }
             // TODO Improve this so we have just one check:
-            if (Space.get(contextId) != null && Space.get(contextId).coversElement(tempRef)) {
+            if (Space.get(contextId) != null && Space.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).coversElement(tempRef)) {
+            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             }
             

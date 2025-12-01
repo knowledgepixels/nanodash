@@ -1,6 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -9,10 +14,7 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
-
-public class MaintainedResource implements Serializable {
+public class MaintainedResource extends ProfiledResource {
 
     private static final Logger logger = LoggerFactory.getLogger(MaintainedResource.class);
 
@@ -113,26 +115,16 @@ public class MaintainedResource implements Serializable {
     public static void refresh() {
         refresh(QueryApiAccess.forcedGet(new QueryRef("get-maintained-resources")));
         for (MaintainedResource resource : resourceList) {
-            resource.dataNeedsUpdate = true;
+            resource.setDataNeedsUpdate();
         }
     }
 
-    private String id, label, nanopubId, namespace;
-    private Space space;
+    private String label, nanopubId, namespace;
     private Nanopub nanopub;
-    private ResourceData data = new ResourceData();
-
-    private boolean dataInitialized = false;
-    private boolean dataNeedsUpdate = true;
-
-    private static class ResourceData implements Serializable {
-        List<ViewDisplay> topLevelViews = new ArrayList<>();
-        List<ViewDisplay> partLevelViews = new ArrayList<>();
-    }
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
-        this.space = space;
-        this.id = resp.get("resource");
+        super(resp.get("resource"));
+        initSpace(space);
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
         this.namespace = resp.get("namespace");
@@ -140,18 +132,12 @@ public class MaintainedResource implements Serializable {
         this.nanopub = Utils.getAsNanopub(nanopubId);
     }
 
-    public Space getSpace() {
-        return space;
-    }
-
-    public String getId() {
-        return id;
-    }
-
+    @Override
     public String getNanopubId() {
         return nanopubId;
     }
 
+    @Override
     public Nanopub getNanopub() {
         return nanopub;
     }
@@ -160,85 +146,17 @@ public class MaintainedResource implements Serializable {
         return label;
     }
 
+    @Override
     public String getNamespace() {
         return namespace;
     }
 
-    public boolean isDataInitialized() {
+    public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
-        return dataInitialized;
-    }
-
-    public List<ViewDisplay> getTopLevelViews() {
-        triggerDataUpdate();
-        // TODO Check for compliance with target classes here too:
-        return data.topLevelViews;
-    }
-
-    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
-        triggerDataUpdate();
-        List<ViewDisplay> viewDisplays = new ArrayList<>();
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().hasTargetClasses()) {
-                for (IRI c : classes) {
-                    if (v.getView().hasTargetClass(c)) {
-                        viewDisplays.add(v);
-                        break;
-                    }
-                }
-            } else {
-                viewDisplays.add(v);
-            }
-        }
-        return viewDisplays;
-    }
-
-    public boolean coversElement(String elementId) {
-        triggerDataUpdate();
-        for (ViewDisplay v : data.topLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
-        }
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
+        for (ViewDisplay v : getViewDisplays()) {
+            if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
-    }
-
-    private synchronized void triggerDataUpdate() {
-        if (dataNeedsUpdate) {
-            new Thread(() -> {
-                try {
-                    ResourceData newData = new ResourceData();
-
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
-                        if (!space.isAdminPubkey(r.get("pubkey"))) continue;
-                        try {
-                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
-                                newData.partLevelViews.add(vd);
-                            } else {
-                                newData.topLevelViews.add(vd);
-                            }
-                        } catch (IllegalArgumentException ex) {
-                            logger.error("Couldn't generate view display object", ex);
-                        }
-                    }
-                    Collections.sort(newData.topLevelViews);
-                    Collections.sort(newData.partLevelViews);
-                    data = newData;
-                    dataInitialized = true;
-                } catch (Exception ex) {
-                    logger.error("Error while trying to update space data: {}", ex);
-                    dataNeedsUpdate = true;
-                }
-            }).start();
-            dataNeedsUpdate = false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return id;
     }
 
 }

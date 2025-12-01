@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -31,6 +30,7 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * The ProjectPage class represents a space page in the Nanodash application.
@@ -71,7 +71,7 @@ public class SpacePage extends NanodashPage {
         if (space == null && MaintainedResource.get(id) != null) {
             throw new RestartResponseException(MaintainedResourcePage.class, parameters);
         }
-        Nanopub np = space.getRootNanopub();
+        Nanopub np = space.getNanopub();
 
         add(new TitleBar("titlebar", this, "connectors"));
 
@@ -217,7 +217,7 @@ public class SpacePage extends NanodashPage {
                         r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getLeft().getId()), r.getLeft().getName(), null, Utils.getAsNanopub(r.getRight()))
                 )
                         .makeInline()
-                        .setSpace(space)
+                        .setProfiledResource(space)
                         .addAdminButton("+", PublishPage.class, new PageParameters()
                                 .set("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
                                 .set("param_space", space.getId())
@@ -278,7 +278,7 @@ public class SpacePage extends NanodashPage {
                     return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel());
                 }
         )
-                .setSpace(space)
+                .setProfiledResource(space)
                 .setReadyFunction(space::isDataInitialized)
                 .addMemberButton("+", PublishPage.class, new PageParameters()
                         .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
@@ -307,7 +307,7 @@ public class SpacePage extends NanodashPage {
                         space.getSubspaces(KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
-                        .setSpace(space)
+                        .setProfiledResource(space)
                         .setReadyFunction(space::isDataInitialized)
                         .addMemberButton("+", PublishPage.class, new PageParameters()
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")

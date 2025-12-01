@@ -14,6 +14,8 @@ public class KPXL_TERMS {
 
     public static final IRI TOP_LEVEL_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "TopLevelViewDisplay");
     public static final IRI PART_LEVEL_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "PartLevelViewDisplay");
+    public static final IRI ACTIVATED_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "ActivatedViewDisplay");
+    public static final IRI DEACTIVATED_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "DeactivatedViewDisplay");
     public static final IRI RESOURCE_VIEW = VocabUtils.createIRI(NAMESPACE, "ResourceView");
     public static final IRI TABULAR_VIEW = VocabUtils.createIRI(NAMESPACE, "TabularView");
     public static final IRI LIST_VIEW = VocabUtils.createIRI(NAMESPACE, "ListView");
@@ -37,8 +39,9 @@ public class KPXL_TERMS {
     public static final IRI HAS_DISPLAY_WIDTH = VocabUtils.createIRI(NAMESPACE, "hasDisplayWidth");
     public static final IRI HAS_VIEW_QUERY = VocabUtils.createIRI(NAMESPACE, "hasViewQuery");
     public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasViewQueryTargetField");
-    public static final IRI HAS_VIEW_TARGET_CLASS = VocabUtils.createIRI(NAMESPACE, "hasViewTargetClass");
-    public static final IRI HAS_ELEMENT_NAMESPACE = VocabUtils.createIRI(NAMESPACE, "hasElementNamespace");
+    public static final IRI APPLIES_TO_INSTANCES_OF = VocabUtils.createIRI(NAMESPACE, "appliesToInstancesOf");
+    public static final IRI APPLIES_TO_NAMESPACE = VocabUtils.createIRI(NAMESPACE, "appliesToNamespace");
+    public static final IRI APPLIES_TO = VocabUtils.createIRI(NAMESPACE, "appliesTo");
     public static final IRI HAS_VIEW_ACTION = VocabUtils.createIRI(NAMESPACE, "hasViewAction");
     public static final IRI HAS_ACTION_TEMPLATE = VocabUtils.createIRI(NAMESPACE, "hasActionTemplate");
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateTargetField");
@@ -48,6 +51,10 @@ public class KPXL_TERMS {
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");
+
+    // TODO Remove these deprecated terms.
+    // Deprecated:
+    public static final IRI HAS_VIEW_TARGET_CLASS = VocabUtils.createIRI(NAMESPACE, "hasViewTargetClass");
 
     /**
      * The predicate to assign the admins of the space.

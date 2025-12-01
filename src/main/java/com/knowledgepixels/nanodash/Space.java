@@ -27,7 +27,7 @@ import java.util.*;
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
-public class Space implements Serializable {
+public class Space extends ProfiledResource {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
 
@@ -85,6 +85,12 @@ public class Space implements Serializable {
             if (!space.isDataInitialized()) return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean isDataInitialized() {
+        triggerDataUpdate();
+        return dataInitialized && super.isDataInitialized();
     }
 
     public static void triggerAllDataUpdates() {
@@ -161,12 +167,12 @@ public class Space implements Serializable {
     }
 
     public void forceRefresh(long waitMillis) {
+        super.forceRefresh(waitMillis);
         dataNeedsUpdate = true;
         dataInitialized = false;
-        runUpdateAfter = System.currentTimeMillis() + waitMillis;
     }
 
-    private String id, label, rootNanopubId, type;
+    private String label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
     private SpaceData data = new SpaceData();
 
@@ -186,8 +192,6 @@ public class Space implements Serializable {
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
         Set<Serializable> pinnedResources = new HashSet<>();
-        List<ViewDisplay> topLevelViews = new ArrayList<>();
-        List<ViewDisplay> partLevelViews = new ArrayList<>();
         Set<String> pinGroupTags = new HashSet<>();
         Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
@@ -206,10 +210,10 @@ public class Space implements Serializable {
 
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
-    private Long runUpdateAfter = null;
 
     private Space(ApiResponseEntry resp) {
-        this.id = resp.get("space");
+        super(resp.get("space"));
+        initSpace(this);
         this.label = resp.get("label");
         this.type = resp.get("type");
         this.rootNanopubId = resp.get("np");
@@ -218,20 +222,12 @@ public class Space implements Serializable {
     }
 
     /**
-     * Get the ID of the space.
-     *
-     * @return The space ID.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
      * Get the root nanopublication ID of the space.
      *
      * @return The root nanopub ID.
      */
-    public String getRootNanopubId() {
+    @Override
+    public String getNanopubId() {
         return rootNanopubId;
     }
 
@@ -241,7 +237,7 @@ public class Space implements Serializable {
      * @return The core info string.
      */
     public String getCoreInfoString() {
-        return id + " " + rootNanopubId;
+        return getId() + " " + rootNanopubId;
     }
 
     /**
@@ -249,7 +245,8 @@ public class Space implements Serializable {
      *
      * @return The root Nanopub object.
      */
-    public Nanopub getRootNanopub() {
+    @Override
+    public Nanopub getNanopub() {
         return rootNanopub;
     }
 
@@ -307,15 +304,6 @@ public class Space implements Serializable {
         return data.description;
     }
 
-    /**
-     * Check if the space data has been initialized.
-     *
-     * @return true if initialized, false otherwise.
-     */
-    public boolean isDataInitialized() {
-        triggerDataUpdate();
-        return dataInitialized;
-    }
 
     /**
      * Get the list of admins in this space.
@@ -396,40 +384,10 @@ public class Space implements Serializable {
         return data.pinnedResourceMap;
     }
 
-    /**
-     * Returns the view displays and their associated nanopub IDs.
-     *
-     * @return Map of views to nanopub IDs
-     */
-    public List<ViewDisplay> getTopLevelViews() {
-        return data.topLevelViews;
-    }
-
-    public List<ViewDisplay> getPartLevelViews(Set<IRI> classes) {
+    public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
-        List<ViewDisplay> viewDisplays = new ArrayList<>();
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().hasTargetClasses()) {
-                for (IRI c : classes) {
-                    if (v.getView().hasTargetClass(c)) {
-                        viewDisplays.add(v);
-                        break;
-                    }
-                }
-            } else {
-                viewDisplays.add(v);
-            }
-        }
-        return viewDisplays;
-    }
-
-    public boolean coversElement(String elementId) {
-        triggerDataUpdate();
-        for (ViewDisplay v : data.topLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
-        }
-        for (ViewDisplay v : data.partLevelViews) {
-            if (v.getView().coversElement(elementId)) return true;
+        for (ViewDisplay v : getViewDisplays()) {
+            if (v.appliesTo(elementId, classes)) return true;
         }
         return false;
     }
@@ -467,8 +425,8 @@ public class Space implements Serializable {
      * @return The superspace, or null if not applicable.
      */
     public Space getIdSuperspace() {
-        if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
-        String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
+        if (!getId().matches("https?://[^/]+/.*/[^/]*/?")) return null;
+        String superId = getId().replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
         if (spacesById.containsKey(superId)) {
             return spacesById.get(superId);
         }
@@ -527,7 +485,15 @@ public class Space implements Serializable {
     }
 
     private synchronized void ensureInitialized() {
-        Thread thread = triggerDataUpdate();
+        Thread thread = triggerSpaceDataUpdate();
+        if (!dataInitialized && thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                logger.error("failed to join thread", ex);
+            }
+        }
+        thread = super.triggerDataUpdate();
         if (!dataInitialized && thread != null) {
             try {
                 thread.join();
@@ -537,15 +503,20 @@ public class Space implements Serializable {
         }
     }
 
-    private synchronized Thread triggerDataUpdate() {
+    @Override
+    protected synchronized Thread triggerDataUpdate() {
+        triggerSpaceDataUpdate();
+        return super.triggerDataUpdate();
+    }
+
+    private synchronized Thread triggerSpaceDataUpdate() {
         if (dataNeedsUpdate) {
             Thread thread = new Thread(() -> {
                 try {
-                    if (runUpdateAfter != null) {
-                        while (System.currentTimeMillis() < runUpdateAfter) {
+                    if (getRunUpdateAfter() != null) {
+                        while (System.currentTimeMillis() < getRunUpdateAfter()) {
                             Thread.sleep(100);
                         }
-                        runUpdateAfter = null;
                     }
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
@@ -556,8 +527,8 @@ public class Space implements Serializable {
                     // TODO Improve this:
                     Multimap<String, String> spaceIds = ArrayListMultimap.create();
                     Multimap<String, String> resourceIds = ArrayListMultimap.create();
-                    spaceIds.put("space", id);
-                    resourceIds.put("resource", id);
+                    spaceIds.put("space", getId());
+                    resourceIds.put("resource", getId());
                     for (String id : newData.altIds) {
                         spaceIds.put("space", id);
                         resourceIds.put("resource", id);
@@ -622,21 +593,6 @@ public class Space implements Serializable {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(query);
                         }
                     }
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", resourceIds)).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        try {
-                            ViewDisplay vd = ViewDisplay.get(r.get("display"));
-                            if (KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"))) {
-                                newData.partLevelViews.add(vd);
-                            } else {
-                                newData.topLevelViews.add(vd);
-                            }
-                        } catch (IllegalArgumentException ex) {
-                            logger.error("Couldn't generate view display object", ex);
-                        }
-                    }
-                    Collections.sort(newData.topLevelViews);
-                    Collections.sort(newData.partLevelViews);
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
@@ -688,11 +644,6 @@ public class Space implements Serializable {
                 list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        return id;
     }
 
 }

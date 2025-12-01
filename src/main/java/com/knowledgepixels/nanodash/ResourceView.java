@@ -55,19 +55,34 @@ public class ResourceView implements Serializable {
      * @return the ResourceView object
      */
     public static ResourceView get(String id) {
-        if (!resourceViews.containsKey(id)) {
+        String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+        // Automatically selecting latest version of view definition:
+        // TODO This should be made configurable at some point, so one can make it a fixed version.
+        String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+        String latestId = id;
+        Nanopub np = Utils.getAsNanopub(latestNpId);
+        if (!latestNpId.equals(npId)) {
+            Set<String> embeddedIris = Utils.getEmbeddedIriIds(np);
+            if (embeddedIris.size() == 1) {
+                latestId = embeddedIris.iterator().next();
+            } else {
+                latestNpId = npId;
+                np = Utils.getAsNanopub(npId);
+            }
+        }
+        if (!resourceViews.containsKey(latestId)) {
             try {
-                Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
-                resourceViews.put(id, new ResourceView(id, np));
+                resourceViews.put(latestId, new ResourceView(latestId, np));
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: " + id, ex);
             }
         }
-        return resourceViews.get(id);
+        return resourceViews.get(latestId);
     }
 
     private String id;
     private Nanopub nanopub;
+    private IRI viewKind;
     private String label;
     private String title = "View";
     private GrlcQuery query;
@@ -77,8 +92,8 @@ public class ResourceView implements Serializable {
     private String structuralPosition;
     private List<IRI> viewResultActionList = new ArrayList<>();
     private List<IRI> viewEntryActionList = new ArrayList<>();
-    private Set<IRI> targetClasses = new HashSet<>();
-    private Set<IRI> elementNamespaces = new HashSet<>();
+    private Set<IRI> appliesToClasses = new HashSet<>();
+    private Set<IRI> appliesToNamespaces = new HashSet<>();
     private Map<IRI, Template> actionTemplateMap = new HashMap<>();
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
@@ -101,6 +116,8 @@ public class ResourceView implements Serializable {
                     if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW)) {
                         viewType = (IRI) st.getObject();
                     }
+                } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
+                    viewKind = objIri;
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
@@ -111,10 +128,13 @@ public class ResourceView implements Serializable {
                     queryField = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_ACTION) && st.getObject() instanceof IRI objIri) {
                     actionList.add(objIri);
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ELEMENT_NAMESPACE) && st.getObject() instanceof IRI objIri) {
-                    elementNamespaces.add(objIri);
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_NAMESPACE) && st.getObject() instanceof IRI objIri) {
+                    appliesToNamespaces.add(objIri);
+                } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_INSTANCES_OF) && st.getObject() instanceof IRI objIri) {
+                    appliesToClasses.add(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_TARGET_CLASS) && st.getObject() instanceof IRI objIri) {
-                    targetClasses.add(objIri);
+                    // Deprecated
+                    appliesToClasses.add(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PAGE_SIZE) && st.getObject() instanceof Literal objL) {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
@@ -170,6 +190,10 @@ public class ResourceView implements Serializable {
      */
     public Nanopub getNanopub() {
         return nanopub;
+    }
+
+    public IRI getViewKindIri() {
+        return viewKind;
     }
 
     /**
@@ -276,9 +300,14 @@ public class ResourceView implements Serializable {
         return labelMap.get(actionIri);
     }
 
-    public boolean coversElement(String elementId) {
-        for (IRI namespace : elementNamespaces) {
-            if (elementId.startsWith(namespace.stringValue())) return true;
+    public boolean appliesTo(String resourceId, Set<IRI> classes) {
+        for (IRI namespace : appliesToNamespaces) {
+            if (resourceId.startsWith(namespace.stringValue())) return true;
+        }
+        if (classes != null) {
+            for (IRI c : classes) {
+                if (appliesToClasses.contains(c)) return true;
+            }
         }
         return false;
     }
@@ -288,8 +317,8 @@ public class ResourceView implements Serializable {
      *
      * @return true if the ResourceView has target classes, false otherwise
      */
-    public boolean hasTargetClasses() {
-        return !targetClasses.isEmpty();
+    public boolean appliesToClasses() {
+        return !appliesToClasses.isEmpty();
     }
 
     /**
@@ -298,8 +327,8 @@ public class ResourceView implements Serializable {
      * @param targetClass the target class IRI
      * @return true if the ResourceView has the target class, false otherwise
      */
-    public boolean hasTargetClass(IRI targetClass) {
-        return targetClasses.contains(targetClass);
+    public boolean appliesToClass(IRI targetClass) {
+        return appliesToClasses.contains(targetClass);
     }
 
     @Override
