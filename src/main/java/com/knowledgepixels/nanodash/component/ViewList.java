@@ -1,8 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -14,15 +15,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.ProfiledResource;
-import com.knowledgepixels.nanodash.ResourceView;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.util.List;
+import java.util.Set;
 
 public class ViewList extends Panel {
 
@@ -78,9 +72,9 @@ public class ViewList extends Panel {
                             .build());
                 } else {
                     item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                            .space(resource.getSpace())
-                            .id(resource.getId())
-                            .contextId(resource.getId())
+                            .space(profiledResource.getSpace())
+                            .id(profiledResource.getId())
+                            .contextId(profiledResource.getId())
                             .build());
                 }
             }

@@ -96,7 +96,6 @@ public class QueryResultTableBuilder implements Serializable {
         if (profiledResource != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay);
-                table.setSpace(space);
                 table.setContextId(contextId);
                 table.setProfiledResource(profiledResource);
                 ResourceView view = viewDisplay.getView();
@@ -132,7 +131,6 @@ public class QueryResultTableBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay);
-                        table.setSpace(space);
                         table.setContextId(contextId);
                         table.setProfiledResource(profiledResource);
                         ResourceView view = viewDisplay.getView();

@@ -45,6 +45,7 @@ public class QueryResultTable extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private String contextId;
     private ProfiledResource profiledResource;
+    private Space space;
     private final QueryRef queryRef;
     private final ViewDisplay viewDisplay;
 
@@ -122,9 +123,9 @@ public class QueryResultTable extends Panel {
     }
 
     /**
-     * Set the space for this component.
+     * Set the profiled resource for this component.
      *
-     * @param space The space to set.
+     * @param profiledResource The profiled resource to set.
      */
     public void setProfiledResource(ProfiledResource profiledResource) {
         this.profiledResource = profiledResource;
