@@ -55,15 +55,29 @@ public class ResourceView implements Serializable {
      * @return the ResourceView object
      */
     public static ResourceView get(String id) {
-        if (!resourceViews.containsKey(id)) {
+        String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+        // Automatically selecting latest version of view definition:
+        // TODO This should be made configurable at some point, so one can make it a fixed version.
+        String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+        String latestId = id;
+        Nanopub np = Utils.getAsNanopub(latestNpId);
+        if (!latestNpId.equals(npId)) {
+            Set<String> embeddedIris = Utils.getEmbeddedIriIds(np);
+            if (embeddedIris.size() == 1) {
+                latestId = embeddedIris.iterator().next();
+            } else {
+                latestNpId = npId;
+                np = Utils.getAsNanopub(npId);
+            }
+        }
+        if (!resourceViews.containsKey(latestId)) {
             try {
-                Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
-                resourceViews.put(id, new ResourceView(id, np));
+                resourceViews.put(latestId, new ResourceView(latestId, np));
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: " + id, ex);
             }
         }
-        return resourceViews.get(id);
+        return resourceViews.get(latestId);
     }
 
     private String id;
