@@ -1,12 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -14,7 +8,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.*;
 
 public class ProfiledResource implements Serializable {
 
@@ -99,6 +94,7 @@ public class ProfiledResource implements Serializable {
     public Nanopub getNanopub() {
         return null;
     }
+
     public String getNamespace() {
         return null;
     }
@@ -141,9 +137,46 @@ public class ProfiledResource implements Serializable {
         return viewDisplays;
     }
 
+    public String getLabel() {
+        return space.getLabel();
+    }
+
     @Override
     public String toString() {
         return id;
+    }
+
+    /**
+     * Gets the chain of superspaces from the current space up to the root space.
+     *
+     * @return the list of superspaces from the given space to the root space
+     */
+    public List<ProfiledResource> getAllSuperSpacesUntilRoot() {
+        List<ProfiledResource> chain = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        collectAncestors(space, chain, visited);
+        Collections.reverse(chain);
+        return chain;
+    }
+
+    private void collectAncestors(Space current, List<ProfiledResource> chain, Set<String> visited) {
+        if (current == null) {
+            return;
+        }
+        List<Space> parents = current.getSuperspaces();
+        if (parents == null || parents.isEmpty()) {
+            return;
+        }
+        Space parent = parents.getFirst();
+        if (parent == null) {
+            return;
+        }
+        String pid = parent.getId();
+        if (pid == null || !visited.add(pid)) {
+            return;
+        }
+        chain.add(parent);
+        collectAncestors(parent, chain, visited);
     }
 
 }

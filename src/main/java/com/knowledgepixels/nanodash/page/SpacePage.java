@@ -1,9 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
@@ -23,7 +20,8 @@ import org.nanopub.extra.services.QueryRef;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The ProjectPage class represents a space page in the Nanodash application.
@@ -66,15 +64,15 @@ public class SpacePage extends NanodashPage {
         }
         Nanopub np = space.getNanopub();
 
-        List<Space> superSpaces = getSuperspaceUntilRoot(space);
+        List<ProfiledResource> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             add(new TitleBar("titlebar", this, null,
-                    new NanodashPageRef(SpacePage.class, space.getLabel())
+                    new NanodashPageRef(SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel())
             ));
         } else {
             superSpaces.add(space);
             add(new TitleBar("titlebar", this, null,
-                    superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, ss.getLabel())).toArray(NanodashPageRef[]::new)
+                    superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
             ));
         }
 
@@ -326,40 +324,6 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
-    }
-
-    /**
-     * Gets the chain of superspaces from the given space up to the root space.
-     *
-     * @param space the starting space
-     * @return the list of superspaces from the given space to the root space
-     */
-    public List<Space> getSuperspaceUntilRoot(Space space) {
-        List<Space> chain = new ArrayList<>();
-        Set<String> visited = new HashSet<>();
-        collectAncestors(space, chain, visited);
-        Collections.reverse(chain);
-        return chain;
-    }
-
-    private void collectAncestors(Space current, List<Space> chain, Set<String> visited) {
-        if (current == null) {
-            return;
-        }
-        List<Space> parents = current.getSuperspaces();
-        if (parents == null || parents.isEmpty()) {
-            return;
-        }
-        Space parent = parents.getFirst();
-        if (parent == null) {
-            return;
-        }
-        String pid = parent.getId();
-        if (pid == null || !visited.add(pid)) {
-            return;
-        }
-        chain.add(parent);
-        collectAncestors(parent, chain, visited);
     }
 
 }

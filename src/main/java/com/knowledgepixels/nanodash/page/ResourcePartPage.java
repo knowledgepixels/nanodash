@@ -20,7 +20,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
@@ -47,28 +46,31 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
-     * Maintained resource object with the data shown on this page.
+     * Profiled resource (Space or MaintainedResource) object with the data shown on this page.
      */
-    private MaintainedResource resource;
-    private Space space;
+    private ProfiledResource profiledResource;
 
-    public ResourcePartPage(final PageParameters parameters) throws FailedApiCallException {
+    public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 
         final String id = parameters.get("id").toString();
         final String contextId = parameters.get("context").toString();
-        resource = MaintainedResource.get(contextId);
-        if (resource == null) {
-            space = Space.get(contextId);
-        } else {
-            space = resource.getSpace();
+        profiledResource = MaintainedResource.get(contextId);
+        if (profiledResource == null) {
+            if (Space.get(contextId) == null) {
+                throw new IllegalArgumentException("Not a resource or space: " + contextId);
+            }
+            profiledResource = Space.get(contextId);
         }
-        if (space == null) throw new IllegalArgumentException("Not a resource or space: " + contextId);
 
-        add(new TitleBar("titlebar", this, "connectors"));
+        List<ProfiledResource> superSpaces = profiledResource.getAllSuperSpacesUntilRoot();
+        superSpaces.add(profiledResource);
+        add(new TitleBar("titlebar", this, null,
+                superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
+        ));
 
         QueryRef getDefQuery = new QueryRef("get-term-definitions", "term", id);
-        for (IRI userIri : space.getUsers()) {
+        for (IRI userIri : profiledResource.getSpace().getUsers()) {
             for (String pubkey : User.getUserData().getPubkeyhashes(userIri, true)) {
                 getDefQuery.getParams().put("pubkey", pubkey);
             }
@@ -117,34 +119,35 @@ public class ResourcePartPage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", nanopubId == null ? id : nanopubId)));
 
         // TODO Improve this code, e.g. make Space a subclass of MaintainedResource or otherwise refactor:
-        if (resource != null) {
-            add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId())).setBody(Model.of(resource.getLabel())));
+        // we now use the ProfileResource abstraction, but the code still has to be imprved
+        if (profiledResource != null) {
+            add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", profiledResource.getId())).setBody(Model.of(profiledResource.getLabel())));
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                     .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
                     .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
-                    .set("param_resource", resource.getId())
-                    .set("context", resource.getId())
+                    .set("param_resource", profiledResource.getId())
+                    .set("context", profiledResource.getId())
             );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
-            if (resource.isDataInitialized()) {
-                add(new ViewList("views", resource, id, nanopubRef, classes));
-                add(new ButtonList("view-buttons", space, null, null, viewButtons));
+            if (profiledResource.isDataInitialized()) {
+                add(new ViewList("views", profiledResource, id, nanopubRef, classes));
+                add(new ButtonList("view-buttons", profiledResource.getSpace(), null, null, viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resource, id, nanopubRef, classes);
+                        return new ViewList(markupId, profiledResource, id, nanopubRef, classes);
                     }
 
                     @Override
                     protected boolean isContentReady() {
-                        return resource.isDataInitialized();
+                        return profiledResource.isDataInitialized();
                     }
 
                 });
@@ -152,51 +155,49 @@ public class ResourcePartPage extends NanodashPage {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ButtonList(markupId, space, null, null, viewButtons);
+                        return new ButtonList(markupId, profiledResource.getSpace(), null, null, viewButtons);
                     }
 
                     @Override
                     protected boolean isContentReady() {
-                        return resource.isDataInitialized();
+                        return profiledResource.isDataInitialized();
                     }
 
                     public Component getLoadingComponent(String id) {
                         return new Label(id).setVisible(false);
                     }
-
-                    ;
 
                 });
             }
         } else {
             // TODO Ugly code duplication (see above):
 
-            add(new BookmarkablePageLink<Void>("resource", SpacePage.class, new PageParameters().set("id", space.getId())).setBody(Model.of(space.getLabel())));
+            add(new BookmarkablePageLink<Void>("resource", SpacePage.class, new PageParameters().set("id", profiledResource.getSpace().getId())).setBody(Model.of(profiledResource.getSpace().getLabel())));
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                     .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
                     .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
-                    .set("param_resource", space.getId())
-                    .set("context", space.getId())
+                    .set("param_resource", profiledResource.getSpace().getId())
+                    .set("context", profiledResource.getSpace().getId())
             );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);
 
-            if (space.isDataInitialized()) {
-                add(new ViewList("views", space, id, nanopubId, classes));
-                add(new ButtonList("view-buttons", space, null, null, viewButtons));
+            if (profiledResource.getSpace().isDataInitialized()) {
+                add(new ViewList("views", profiledResource.getSpace(), id, nanopubId, classes));
+                add(new ButtonList("view-buttons", profiledResource.getSpace(), null, null, viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, space, id, nanopubId, classes);
+                        return new ViewList(markupId, profiledResource.getSpace(), id, nanopubId, classes);
                     }
 
                     @Override
                     protected boolean isContentReady() {
-                        return space.isDataInitialized();
+                        return profiledResource.getSpace().isDataInitialized();
                     }
 
                 });
@@ -204,19 +205,17 @@ public class ResourcePartPage extends NanodashPage {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ButtonList(markupId, space, null, null, viewButtons);
+                        return new ButtonList(markupId, profiledResource.getSpace(), null, null, viewButtons);
                     }
 
                     @Override
                     protected boolean isContentReady() {
-                        return space.isDataInitialized();
+                        return profiledResource.getSpace().isDataInitialized();
                     }
 
                     public Component getLoadingComponent(String id) {
                         return new Label(id).setVisible(false);
                     }
-
-                    ;
 
                 });
             }

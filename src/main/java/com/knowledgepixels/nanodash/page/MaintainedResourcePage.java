@@ -1,8 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.ProfiledResource;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -10,13 +14,9 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.FailedApiCallException;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents a page for a maintained resource.
@@ -39,14 +39,19 @@ public class MaintainedResourcePage extends NanodashPage {
     /**
      * Maintained resource object with the data shown on this page.
      */
-    private MaintainedResource resource;
+    private final MaintainedResource resource;
 
-    public MaintainedResourcePage(final PageParameters parameters) throws FailedApiCallException {
+    public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 
         resource = MaintainedResource.get(parameters.get("id").toString());
 
-        add(new TitleBar("titlebar", this, "connectors"));
+        List<ProfiledResource> superSpaces = resource.getAllSuperSpacesUntilRoot();
+        superSpaces.add(resource.getSpace());
+        superSpaces.add(resource);
+        add(new TitleBar("titlebar", this, null,
+                superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
+        ));
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
@@ -65,7 +70,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 .set("template-version", "latest")
                 .set("param_resource", resource.getId())
                 .set("context", resource.getId())
-            );
+        );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
 
@@ -74,25 +79,25 @@ public class MaintainedResourcePage extends NanodashPage {
             add(new ButtonList("view-buttons", space, null, null, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ViewList(markupId, resource);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return resource.isDataInitialized();
                 }
-    
+
             });
             add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ButtonList(markupId, space, null, null, viewButtons);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return resource.isDataInitialized();
@@ -100,8 +105,8 @@ public class MaintainedResourcePage extends NanodashPage {
 
                 public Component getLoadingComponent(String id) {
                     return new Label(id).setVisible(false);
-                };
-    
+                }
+
             });
         }
     }
