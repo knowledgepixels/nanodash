@@ -7,8 +7,8 @@ import java.io.Serializable;
  */
 public class SpaceMemberRoleRef implements Serializable {
 
-    private SpaceMemberRole role;
-    private String nanopubUri;
+    private final SpaceMemberRole role;
+    private final String nanopubUri;
 
     /**
      * Constructor for SpaceMemberRoleRef.
