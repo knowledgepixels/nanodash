@@ -1,9 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.commons.lang3.tuple.Pair;
@@ -22,26 +19,26 @@ public class SpaceUserList extends Panel {
     public SpaceUserList(String markupId, Space space) {
         super(markupId);
 
-        List<Pair<SpaceMemberRole, List<Pair<IRI,String>>>> userLists = new ArrayList<>();
-        for (Pair<SpaceMemberRole,String> r : space.getRoles()) {
+        List<Pair<SpaceMemberRole, List<Pair<IRI, String>>>> userLists = new ArrayList<>();
+        for (SpaceMemberRoleRef r : space.getRoles()) {
             // list of pairs of userId + nanopubId:
-            List<Pair<IRI,String>> userList = new ArrayList<>();
+            List<Pair<IRI, String>> userList = new ArrayList<>();
             for (IRI userId : space.getUsers()) {
-                for (Pair<SpaceMemberRole,String> p : space.getMemberRoles(userId)) {
-                    if (p.getLeft().equals(r.getLeft())) {
-                        userList.add(Pair.of(userId, p.getRight()));
+                for (SpaceMemberRoleRef p : space.getMemberRoles(userId)) {
+                    if (p.getRole().equals(r.getRole())) {
+                        userList.add(Pair.of(userId, p.getNanopubUri()));
                         break;
                     }
                 }
             }
-            userLists.add(Pair.of(r.getLeft(), userList));
+            userLists.add(Pair.of(r.getRole(), userList));
         }
 
-        add(new DataView<Pair<SpaceMemberRole, List<Pair<IRI,String>>>>("user-lists", new ListDataProvider<>(userLists)) {
+        add(new DataView<Pair<SpaceMemberRole, List<Pair<IRI, String>>>>("user-lists", new ListDataProvider<>(userLists)) {
             @Override
-            protected void populateItem(Item<Pair<SpaceMemberRole, List<Pair<IRI,String>>>> item) {
+            protected void populateItem(Item<Pair<SpaceMemberRole, List<Pair<IRI, String>>>> item) {
                 SpaceMemberRole role = item.getModelObject().getLeft();
-                ItemListPanel<Pair<IRI,String>> panel = new ItemListPanel<>(
+                ItemListPanel<Pair<IRI, String>> panel = new ItemListPanel<>(
                         "user-list",
                         role.getTitle(),
                         item.getModelObject().getRight(),
