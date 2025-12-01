@@ -1,20 +1,16 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -31,17 +27,9 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.ProfiledResource;
-import com.knowledgepixels.nanodash.ResourceView;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A table component that displays the results of a query.
@@ -57,12 +45,12 @@ public class QueryResultTable extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private String contextId;
     private ProfiledResource profiledResource;
+    private Space space;
     private final QueryRef queryRef;
     private final ViewDisplay viewDisplay;
 
-    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, boolean plain, ViewDisplay viewDisplay, String contextId) {
+    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, boolean plain, ViewDisplay viewDisplay) {
         super(id);
-        this.contextId = contextId;
         this.queryRef = queryRef;
         this.viewDisplay = viewDisplay;
 
@@ -113,13 +101,12 @@ public class QueryResultTable extends Panel {
 
     // TODO button adding method copied and adjusted from ItemListPanel
     // TODO Improve this (member/admin) button handling:
-    public QueryResultTable addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
+    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
         if (contextId != null) parameters.set("context", contextId);
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);
-        return this;
     }
 
     @Override
@@ -136,12 +123,21 @@ public class QueryResultTable extends Panel {
     }
 
     /**
-     * Set the space for this component.
+     * Set the profiled resource for this component.
      *
-     * @param space The space to set.
+     * @param profiledResource The profiled resource to set.
      */
     public void setProfiledResource(ProfiledResource profiledResource) {
         this.profiledResource = profiledResource;
+    }
+
+    /**
+     * Set the context ID for this component.
+     *
+     * @param contextId The context ID to set.
+     */
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
     }
 
     private void addErrorMessage(String errorMessage) {
@@ -155,7 +151,6 @@ public class QueryResultTable extends Panel {
         errorLabel.setVisible(true);
         if (table != null) table.setVisible(false);
     }
-
 
     private class Column extends AbstractColumn<ApiResponseEntry, String> {
 
