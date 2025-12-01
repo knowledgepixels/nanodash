@@ -4,7 +4,6 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 
@@ -174,8 +173,8 @@ public class SpaceMemberRole implements Serializable {
         IRI userIri = NanodashSession.get().getUserIri();
         if (userIri == null) return false;
         if (space.getMemberRoles(userIri) == null) return false;
-        for (Pair<SpaceMemberRole, String> r : space.getMemberRoles(userIri)) {
-            if (r.getLeft().isAdminRole()) return true;
+        for (SpaceMemberRoleRef spaceMemberRoleRef : space.getMemberRoles(userIri)) {
+            if (spaceMemberRoleRef.getRole().isAdminRole()) return true;
         }
         return false;
     }

@@ -7,7 +7,6 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -185,9 +184,8 @@ public class Space extends ProfiledResource {
         IRI defaultProvenance = null;
 
         List<IRI> admins = new ArrayList<>();
-        // TODO Make Pair<SpaceMemberRole, String> a new class with SpaceMemberRole + nanopub URI
-        Map<IRI, Set<Pair<SpaceMemberRole, String>>> users = new HashMap<>();
-        List<Pair<SpaceMemberRole, String>> roles = new ArrayList<>();
+        Map<IRI, Set<SpaceMemberRoleRef>> users = new HashMap<>();
+        List<SpaceMemberRoleRef> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
@@ -203,7 +201,7 @@ public class Space extends ProfiledResource {
             for (String pubkeyhash : ud.getPubkeyhashes(admin, true)) {
                 adminPubkeyMap.put(pubkeyhash, admin);
             }
-            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(Pair.of(SpaceMemberRole.ADMIN_ROLE, npId));
+            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
         }
 
     }
@@ -333,7 +331,7 @@ public class Space extends ProfiledResource {
      * @param userId The IRI of the member.
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
-    public Set<Pair<SpaceMemberRole, String>> getMemberRoles(IRI userId) {
+    public Set<SpaceMemberRoleRef> getMemberRoles(IRI userId) {
         ensureInitialized();
         return data.users.get(userId);
     }
@@ -406,7 +404,7 @@ public class Space extends ProfiledResource {
      *
      * @return List of roles.
      */
-    public List<Pair<SpaceMemberRole, String>> getRoles() {
+    public List<SpaceMemberRoleRef> getRoles() {
         return data.roles;
     }
 
@@ -521,7 +519,7 @@ public class Space extends ProfiledResource {
                     SpaceData newData = new SpaceData();
                     setCoreData(newData);
 
-                    newData.roles.add(Pair.of(SpaceMemberRole.ADMIN_ROLE, null));
+                    newData.roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
                     newData.roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
                     // TODO Improve this:
@@ -556,7 +554,7 @@ public class Space extends ProfiledResource {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-member-roles", spaceIds)).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
-                        newData.roles.add(Pair.of(role, r.get("np")));
+                        newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
 
                         // TODO Handle cases of overlapping properties:
                         for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);
@@ -568,7 +566,7 @@ public class Space extends ProfiledResource {
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(Pair.of(role, r.get("np")));
+                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
                     }
 
                     for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {

@@ -1,11 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.connector.ConnectorConfig;
+import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -18,19 +19,11 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.PinGroupList;
-import com.knowledgepixels.nanodash.component.SpaceUserList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
-import com.knowledgepixels.nanodash.connector.ConnectorConfig;
-import com.knowledgepixels.nanodash.connector.GenOverviewPage;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The ProjectPage class represents a space page in the Nanodash application.
@@ -86,7 +79,7 @@ public class SpacePage extends NanodashPage {
                 "Alternative IDs:",
                 space.getAltIDs(),
                 i -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", i), i)
-            ));
+        ));
 
         if (space.getStartDate() != null) {
             String dateString;
@@ -214,7 +207,7 @@ public class SpacePage extends NanodashPage {
                         "Roles:",
                         () -> space.isDataInitialized(),
                         () -> space.getRoles(),
-                        r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getLeft().getId()), r.getLeft().getName(), null, Utils.getAsNanopub(r.getRight()))
+                        r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getRole().getId()), r.getRole().getName(), null, Utils.getAsNanopub(r.getNanopubUri()))
                 )
                         .makeInline()
                         .setProfiledResource(space)
