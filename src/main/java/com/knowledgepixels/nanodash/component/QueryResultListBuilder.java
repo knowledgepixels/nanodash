@@ -46,6 +46,12 @@ public class QueryResultListBuilder implements Serializable {
         return this;
     }
 
+    /**
+     * Sets the context ID for the QueryResultList.
+     *
+     * @param contextId the context ID
+     * @return the current QueryResultListBuilder instance
+     */
     public QueryResultListBuilder contextId(String contextId) {
         this.contextId = contextId;
         return this;
@@ -62,11 +68,10 @@ public class QueryResultListBuilder implements Serializable {
      * @return the QueryResultList component
      */
     public Component build() {
-        final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (space != null) {
             if (response != null) {
-                QueryResultList resultList = new QueryResultList(markupId, grlcQuery, response, viewDisplay);
+                QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setSpace(space);
                 resultList.setContextId(contextId);
                 ResourceView view = viewDisplay.getView();
@@ -101,7 +106,7 @@ public class QueryResultListBuilder implements Serializable {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultList resultList = new QueryResultList(markupId, grlcQuery, response, viewDisplay);
+                        QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setSpace(space);
                         resultList.setContextId(contextId);
                         ResourceView view = viewDisplay.getView();
@@ -137,14 +142,14 @@ public class QueryResultListBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                QueryResultList resultList = new QueryResultList(markupId, grlcQuery, response, viewDisplay);
+                QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setContextId(contextId);
                 return resultList;
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultList resultList = new QueryResultList(markupId, grlcQuery, response, viewDisplay);
+                        QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setContextId(contextId);
                         return resultList;
                     }
