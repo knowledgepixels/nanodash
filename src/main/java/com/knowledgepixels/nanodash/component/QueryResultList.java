@@ -29,9 +29,15 @@ public class QueryResultList extends Panel {
     private String contextId;
     private boolean finalized = false;
     private Space space;
+    private final QueryRef queryRef;
+    private final ViewDisplay viewDisplay;
+    private final ApiResponse response;
 
     QueryResultList(String markupId, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay) {
         super(markupId);
+        this.queryRef = queryRef;
+        this.viewDisplay = viewDisplay;
+        this.response = response;
 
         add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
 
@@ -46,6 +52,56 @@ public class QueryResultList extends Panel {
         } else {
             add(new Label("np").setVisible(false));
         }
+
+    }
+
+    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
+        if (parameters == null) {
+            parameters = new PageParameters();
+        }
+        if (contextId != null) {
+            parameters.set("context", contextId);
+        }
+        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
+        button.setBody(Model.of(label));
+        buttons.add(button);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (!finalized) {
+            if (!buttons.isEmpty()) {
+                add(new ButtonList("buttons", space, buttons, null, null));
+            } else {
+                add(new Label("buttons").setVisible(false));
+            }
+            finalized = true;
+        }
+        super.onBeforeRender();
+    }
+
+    /**
+     * Sets the space.
+     *
+     * @param space the space
+     */
+    public void setSpace(Space space) {
+        this.space = space;
+    }
+
+    /**
+     * Sets the context ID.
+     *
+     * @param contextId the context ID
+     */
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
+    }
+
+    /**
+     * Populates the list with data from the API response.
+     */
+    protected void populateList() {
         RepeatingView listItems = new RepeatingView("listItems");
         for (ApiResponseEntry entry : response.getData()) {
             List<Component> components = new ArrayList<>();
@@ -55,7 +111,7 @@ public class QueryResultList extends Panel {
                     if (entryValue != null && !entryValue.isBlank()) {
                         if (entryValue.matches("https?://.+")) {
                             String entryLabel = entry.get(key + "_label");
-                            components.add(new NanodashLink("component", entryValue, null, null, entryLabel));
+                            components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
                         } else {
                             if (Utils.looksLikeHtml(entryValue)) {
                                 entryValue = Utils.sanitizeHtml(entryValue);
@@ -103,49 +159,6 @@ public class QueryResultList extends Panel {
             listItems.add(componentSequence);
         }
         add(listItems);
-    }
-
-    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
-        if (parameters == null) {
-            parameters = new PageParameters();
-        }
-        if (contextId != null) {
-            parameters.set("context", contextId);
-        }
-        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
-        button.setBody(Model.of(label));
-        buttons.add(button);
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        if (!finalized) {
-            if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", space, buttons, null, null));
-            } else {
-                add(new Label("buttons").setVisible(false));
-            }
-            finalized = true;
-        }
-        super.onBeforeRender();
-    }
-
-    /**
-     * Sets the space.
-     *
-     * @param space the space
-     */
-    public void setSpace(Space space) {
-        this.space = space;
-    }
-
-    /**
-     * Sets the context ID.
-     *
-     * @param contextId the context ID
-     */
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
     }
 
 }
