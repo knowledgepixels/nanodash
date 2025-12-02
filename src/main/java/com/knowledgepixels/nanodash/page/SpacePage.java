@@ -243,13 +243,6 @@ public class SpacePage extends NanodashPage {
             });
         }
 
-        add(new ItemListPanel<Space>(
-                "superspaces",
-                "Part of",
-                space.getSuperspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")", null)
-        ));
-
         addSubspacePanel("Alliance", true);
         addSubspacePanel("Consortium", false);
         addSubspacePanel("Organization", true);

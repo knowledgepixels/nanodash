@@ -63,7 +63,10 @@ public class ResourcePartPage extends NanodashPage {
             profiledResource = Space.get(contextId);
         }
 
-        List<ProfiledResource> superSpaces = profiledResource.getAllSuperSpacesUntilRoot();
+        List<ProfiledResource> superSpaces = profiledResource.getSpace().getAllSuperSpacesUntilRoot();
+        if (profiledResource instanceof MaintainedResource) {
+            superSpaces.add(profiledResource.getSpace());
+        }
         superSpaces.add(profiledResource);
         add(new TitleBar("titlebar", this, null,
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
@@ -121,8 +124,6 @@ public class ResourcePartPage extends NanodashPage {
         // TODO Improve this code, e.g. make Space a subclass of MaintainedResource or otherwise refactor:
         // we now use the ProfileResource abstraction, but the code still has to be imprved
         if (profiledResource != null) {
-            add(new BookmarkablePageLink<Void>("resource", MaintainedResourcePage.class, new PageParameters().set("id", profiledResource.getId())).setBody(Model.of(profiledResource.getLabel())));
-
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
                     .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
@@ -171,8 +172,6 @@ public class ResourcePartPage extends NanodashPage {
             }
         } else {
             // TODO Ugly code duplication (see above):
-
-            add(new BookmarkablePageLink<Void>("resource", SpacePage.class, new PageParameters().set("id", profiledResource.getSpace().getId())).setBody(Model.of(profiledResource.getSpace().getLabel())));
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
