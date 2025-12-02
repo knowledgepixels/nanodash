@@ -2,11 +2,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<meta charset="utf-8" />
-<title wicket:id="pagetitle">... (resource) | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.1.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <meta charset="utf-8"/>
+  <title wicket:id="pagetitle">... (resource) | nanodash</title>
+  <link rel="stylesheet" href="style.css?v=4.1.1" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
@@ -14,34 +15,24 @@
 <div wicket:id="titlebar"></div>
 
 <div id="content-pane">
+  <div class="row-section">
+    <div class="col-12 header">
+      <h2><span wicket:id="resourcename">Resource ABC</span></h2>
+      <p><a wicket:id="id" href=".">https://...</a> <a wicket:id="np" href="." class="source">^</a></p>
+      <p class="hide-if-empty">Namespace: <a wicket:id="namespace" href="." class="hide-if-empty-trigger"></a></p>
+    </div>
+  </div>
 
-
-<div class="row-section">
-
-<div class="col-12 header">
-  <h2><span wicket:id="resourcename">Resource ABC</span></h2>
-  <p><a wicket:id="id" href=".">https://...</a> <a wicket:id="np" href="." class="source">^</a></p>
-  <p class="hide-if-empty">Namespace: <a wicket:id="namespace" href="." class="hide-if-empty-trigger"></a></p>
-  <p>Maintained by: <a wicket:id="space" href=".">Space</a></p>
-</div>
-
-</div>
-
-
-<div class="odd"><div class="row-section">
-
-<div class="col-12 header">
-</div>
-
-<div wicket:id="views"></div>
-
-<div class="col-12 footer">
-<div wicket:id="view-buttons"></div>
-</div>
-
-</div></div>
-
-
+  <div class="odd">
+    <div class="row-section">
+      <div class="col-12 header">
+      </div>
+      <div wicket:id="views"></div>
+      <div class="col-12 footer">
+        <div wicket:id="view-buttons"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </body>

@@ -1,8 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
@@ -66,7 +64,17 @@ public class SpacePage extends NanodashPage {
         }
         Nanopub np = space.getNanopub();
 
-        add(new TitleBar("titlebar", this, "connectors"));
+        List<ProfiledResource> superSpaces = space.getAllSuperSpacesUntilRoot();
+        if (superSpaces.isEmpty()) {
+            add(new TitleBar("titlebar", this, null,
+                    new NanodashPageRef(SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel())
+            ));
+        } else {
+            superSpaces.add(space);
+            add(new TitleBar("titlebar", this, null,
+                    superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
+            ));
+        }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
@@ -197,8 +205,6 @@ public class SpacePage extends NanodashPage {
                     return new Label(id).setVisible(false);
                 }
 
-                ;
-
             });
         }
 
@@ -236,13 +242,6 @@ public class SpacePage extends NanodashPage {
 
             });
         }
-
-        add(new ItemListPanel<Space>(
-                "superspaces",
-                "Part of",
-                space.getSuperspaces(),
-                (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel(), "(" + space.getTypeLabel() + ")", null)
-        ));
 
         addSubspacePanel("Alliance", true);
         addSubspacePanel("Consortium", false);
