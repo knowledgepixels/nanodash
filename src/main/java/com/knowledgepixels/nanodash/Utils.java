@@ -830,8 +830,10 @@ public class Utils {
         if (queryRefUrlString.contains("?")) {
             String queryName = queryRefUrlString.split("\\?")[0];
             Multimap<String,String> queryParams = ArrayListMultimap.create();
-            for (NameValuePair nvp : URLEncodedUtils.parse(queryRefUrlString.split("\\?")[1], Charsets.UTF_8)) {
-                queryParams.put(nvp.getName(), nvp.getValue());
+            if (!queryRefUrlString.endsWith("?")) {
+                for (NameValuePair nvp : URLEncodedUtils.parse(queryRefUrlString.split("\\?")[1], Charsets.UTF_8)) {
+                    queryParams.put(nvp.getName(), nvp.getValue());
+                }
             }
             return new QueryRef(queryName, queryParams);
         } else {
