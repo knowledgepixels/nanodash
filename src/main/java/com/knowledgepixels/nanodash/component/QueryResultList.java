@@ -116,7 +116,7 @@ public class QueryResultList extends Panel {
                             if (Utils.looksLikeHtml(entryValue)) {
                                 entryValue = Utils.sanitizeHtml(entryValue);
                             }
-                            components.add(new Label("component", entryValue));
+                            components.add(new Label("component", entryValue).setEscapeModelStrings(false));
                         }
                     }
                 }
