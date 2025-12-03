@@ -23,11 +23,22 @@ public class ViewList extends Panel {
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
     public ViewList(String markupId, ProfiledResource profiledResource) {
+        this(markupId, profiledResource, null, null, null);
+    }
+
+    public ViewList(String markupId, ProfiledResource profiledResource, String partId, String nanopubId, Set<IRI> partClasses) {
         super(markupId);
 
-        final List<ViewDisplay> topLevelViewDisplays = profiledResource.getViewDisplays(true, null);
+        final String id = (partId == null ? profiledResource.getId() : partId);
+        final String npId = (nanopubId == null ? profiledResource.getNanopubId() : nanopubId);
+        final List<ViewDisplay> viewDisplays;
+        if (partId == null) {
+            viewDisplays = profiledResource.getViewDisplays(true, null);
+        } else {
+            viewDisplays = profiledResource.getViewDisplays(false, partClasses);
+        }
 
-        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(topLevelViewDisplays)) {
+        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
@@ -36,7 +47,7 @@ public class ViewList extends Panel {
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
                     if (paramName.equals(view.getQueryField())) {
-                        queryRefParams.put(view.getQueryField(), profiledResource.getId());
+                        queryRefParams.put(view.getQueryField(), id);
                         if (QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
                             // TODO Support this also for maintained resources and users.
                             for (String altId : space.getAltIDs()) {
@@ -46,7 +57,11 @@ public class ViewList extends Panel {
                     } else if (paramName.equals(view.getQueryField() + "Namespace") && profiledResource.getNamespace() != null) {
                         queryRefParams.put(view.getQueryField() + "Namespace", profiledResource.getNamespace());
                     } else if (paramName.equals(view.getQueryField() + "Np")) {
-                        queryRefParams.put(view.getQueryField() + "Np", profiledResource.getNanopubId());
+                        if (!QueryParamField.isOptional(p) && npId == null) {
+                            queryRefParams.put(view.getQueryField() + "Np", "x:");
+                        } else {
+                            queryRefParams.put(view.getQueryField() + "Np", npId);
+                        }
                     } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
                         for (IRI userId : space.getUsers()) {
                             for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
@@ -70,91 +85,13 @@ public class ViewList extends Panel {
                     item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                             .profiledResource(profiledResource)
                             .contextId(profiledResource.getId())
-                            .id(profiledResource.getId())
+                            .id(id)
                             .build());
                 } else {
                     item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
                             .space(profiledResource.getSpace())
-                            .id(profiledResource.getId())
+                            .id(id)
                             .contextId(profiledResource.getId())
-                            .build());
-                }
-            }
-
-        });
-
-        add(new WebMarkupContainer("emptynotice").setVisible(topLevelViewDisplays.isEmpty()));
-    }
-
-    public ViewList(String markupId, ProfiledResource profiledResource, String partId, String nanopubId, Set<IRI> partClasses) {
-        super(markupId);
-
-        final String id;
-        final List<ViewDisplay> viewDisplays;
-        final String namespace;
-        final Space space;
-
-        if (profiledResource instanceof MaintainedResource r) {
-            id = r.getId();
-            viewDisplays = r.getViewDisplays(false, partClasses);
-            namespace = r.getNamespace();
-            space = r.getSpace();
-        } else if (profiledResource instanceof Space s) {
-            id = s.getId();
-            viewDisplays = s.getViewDisplays(false, partClasses);
-            namespace = null;
-            space = s;
-        } else {
-            throw new IllegalArgumentException("Neither MaintainedResource nor Space: " + profiledResource);
-        }
-
-        add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
-
-            @Override
-            protected void populateItem(Item<ViewDisplay> item) {
-                ResourceView view = item.getModelObject().getView();
-                Multimap<String, String> queryRefParams = ArrayListMultimap.create();
-                for (String p : view.getQuery().getPlaceholdersList()) {
-                    String paramName = QueryParamField.getParamName(p);
-                    if (paramName.equals(view.getQueryField())) {
-                        queryRefParams.put(view.getQueryField(), partId);
-//                        if (QueryParamField.isMultiPlaceholder(p)) {
-//                            for (String altId : resource.getAltIDs()) {
-//                                queryRefParams.put(view.getQueryField(), altId);
-//                            }
-//                        }
-                    } else if (paramName.equals(view.getQueryField() + "Namespace") && namespace != null) {
-                        queryRefParams.put(view.getQueryField() + "Namespace", namespace);
-                    } else if (paramName.equals(view.getQueryField() + "Np")) {
-                        if (!QueryParamField.isOptional(p) && nanopubId == null) {
-                            queryRefParams.put(view.getQueryField() + "Np", "x:");
-                        } else {
-                            queryRefParams.put(view.getQueryField() + "Np", nanopubId);
-                        }
-//                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p)) {
-//                        for (IRI userId : resource.getSpace().getUsers()) {
-//                            for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
-//                                queryRefParams.put("user_pubkey", memberHash);
-//                            }
-//                        }
-                    } else if (!QueryParamField.isOptional(p)) {
-                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter.</span>").setEscapeModelStrings(false));
-                        logger.error("Error: Query has non-optional parameter: " + view.getQuery().getQueryId() + " " + p);
-                        return;
-                    }
-                }
-                QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
-                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                            .profiledResource(profiledResource)
-                            .id(partId)
-                            .contextId(id)
-                            .build());
-                } else {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                            .space(space)
-                            .id(partId)
-                            .contextId(id)
                             .build());
                 }
             }
@@ -163,6 +100,5 @@ public class ViewList extends Panel {
 
         add(new WebMarkupContainer("emptynotice").setVisible(viewDisplays.isEmpty()));
     }
-
 
 }
