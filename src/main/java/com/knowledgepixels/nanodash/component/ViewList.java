@@ -43,6 +43,8 @@ public class ViewList extends Panel {
                                 queryRefParams.put(view.getQueryField(), altId);
                             }
                         }
+                    } else if (paramName.equals(view.getQueryField() + "Namespace") && profiledResource.getNamespace() != null) {
+                        queryRefParams.put(view.getQueryField() + "Namespace", profiledResource.getNamespace());
                     } else if (paramName.equals(view.getQueryField() + "Np")) {
                         queryRefParams.put(view.getQueryField() + "Np", profiledResource.getNanopubId());
                     } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
