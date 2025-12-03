@@ -125,7 +125,10 @@ public class ProfiledResource implements Serializable {
             }
             if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
 
-            if (vd.appliesTo(getId(), null)) {
+            if (!toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                // Deprecated
+                // do nothing
+            } else if (vd.appliesTo(getId(), classes)) {
                 viewDisplays.add(vd);
             } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated
