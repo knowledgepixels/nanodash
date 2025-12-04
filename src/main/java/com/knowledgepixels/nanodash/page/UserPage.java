@@ -176,35 +176,35 @@ public class UserPage extends NanodashPage {
                 (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")", null)
         ));
 
-        if (pubkeyHashes.isEmpty()) {
-            add(new Label("activity", "<span class=\"negative\">Activity cannot be shown for this user due to missing user introduction.</span>").setEscapeModelStrings(false));
-        } else {
-            final QueryRef activityQueryRef = new QueryRef("get-monthly-type-overview-by-pubkeys");
-            for (String pk : pubkeyHashes.split(" ")) {
-                activityQueryRef.getParams().put("pubkey", pk);
-            }
-            ApiResponse activityQueryResponse = ApiCache.retrieveResponse(activityQueryRef);
-            if (activityQueryResponse != null) {
-                if (activityQueryResponse.getData().isEmpty()) {
-                    add(new Label("activity", "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false));
-                } else {
-                    add(new ActivityPanel("activity", activityQueryResponse));
-                }
-            } else {
-                add(new ApiResultComponent("activity", activityQueryRef) {
-
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        if (response.getData().isEmpty()) {
-                            return new Label(markupId, "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false);
-                        } else {
-                            return new ActivityPanel(markupId, response);
-                        }
-                    }
-                });
-
-            }
-        }
+//        if (pubkeyHashes.isEmpty()) {
+//            add(new Label("activity", "<span class=\"negative\">Activity cannot be shown for this user due to missing user introduction.</span>").setEscapeModelStrings(false));
+//        } else {
+//            final QueryRef activityQueryRef = new QueryRef("get-monthly-type-overview-by-pubkeys");
+//            for (String pk : pubkeyHashes.split(" ")) {
+//                activityQueryRef.getParams().put("pubkey", pk);
+//            }
+//            ApiResponse activityQueryResponse = ApiCache.retrieveResponse(activityQueryRef);
+//            if (activityQueryResponse != null) {
+//                if (activityQueryResponse.getData().isEmpty()) {
+//                    add(new Label("activity", "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false));
+//                } else {
+//                    add(new ActivityPanel("activity", activityQueryResponse));
+//                }
+//            } else {
+//                add(new ApiResultComponent("activity", activityQueryRef) {
+//
+//                    @Override
+//                    public Component getApiResultComponent(String markupId, ApiResponse response) {
+//                        if (response.getData().isEmpty()) {
+//                            return new Label(markupId, "<em>No recent activity to show for this user.</em>").setEscapeModelStrings(false);
+//                        } else {
+//                            return new ActivityPanel(markupId, response);
+//                        }
+//                    }
+//                });
+//
+//            }
+//        }
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
