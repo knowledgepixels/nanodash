@@ -165,10 +165,9 @@ public class ExplorePage extends NanodashPage {
             Set<IRI> classes = new HashSet<>();
             if (np != null) {
                 Set<String> introducedIds = Utils.getIntroducedIriIds(np);
-                if (introducedIds.size() == 1) {
-                    String subj = introducedIds.iterator().next();
+                if (introducedIds.size() == 1 && introducedIds.iterator().next().equals(tempRef)) {
                     for (Statement st : np.getAssertion()) {
-                        if (!st.getSubject().stringValue().equals(subj)) continue;
+                        if (!st.getSubject().stringValue().equals(tempRef)) continue;
                         if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
                             String resourceId = st.getObject().stringValue();
                             if (MaintainedResource.get(resourceId) == null) continue;
