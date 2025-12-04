@@ -1,12 +1,9 @@
 package com.knowledgepixels.nanodash;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -15,6 +12,8 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * A class representing the display of a resource view associated with a Space.
@@ -36,8 +35,6 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<IRI> appliesToNamespaces = new HashSet<>();
     private IRI resource;
 
-    private static Map<String, ViewDisplay> viewDisplays = new HashMap<>();
-
     /**
      * Get a ResourceView by its ID.
      *
@@ -45,15 +42,13 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @return the ResourceView object
      */
     public static ViewDisplay get(String id) {
-        if (!viewDisplays.containsKey(id)) {
-            try {
-                Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
-                viewDisplays.put(id, new ViewDisplay(id, np));
-            } catch (Exception ex) {
-                logger.error("Couldn't load nanopub for resource: " + id, ex);
-            }
+        try {
+            Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
+            return new ViewDisplay(id, np);
+        } catch (Exception ex) {
+            logger.error("Couldn't load nanopub for resource: " + id, ex);
         }
-        return viewDisplays.get(id);
+        return null;
     }
 
     /**

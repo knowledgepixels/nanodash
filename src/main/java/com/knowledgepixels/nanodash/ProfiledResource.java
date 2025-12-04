@@ -19,6 +19,14 @@ public class ProfiledResource implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
+    private static List<ProfiledResource> instances = new ArrayList<>();
+
+    public static void refresh() {
+        for (ProfiledResource r : instances) {
+            r.setDataNeedsUpdate();
+        }
+    }
+
     private String id;
     private Space space;
     private ResourceData data = new ResourceData();
@@ -28,6 +36,7 @@ public class ProfiledResource implements Serializable {
 
     protected ProfiledResource(String id) {
         this.id = id;
+        instances.add(this);
     }
 
     protected void initSpace(Space space) {
