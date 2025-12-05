@@ -1,10 +1,10 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -22,10 +22,17 @@ import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.ProfiledResource;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
 
 /**
  * This class represents a page for a maintained resource.
@@ -126,8 +133,8 @@ public class ResourcePartPage extends NanodashPage {
         if (profiledResource != null) {
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                    .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
+                    .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                    .set("template-version", "latest")
                     .set("param_resource", profiledResource.getId())
                     .set("context", profiledResource.getId())
             );
@@ -175,8 +182,8 @@ public class ResourcePartPage extends NanodashPage {
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAxERE0cQ9jLQZ5VjeA-1v3XnE9ugxLpFG8vpkAd5FqHE")
-                    .set("param_displayType", KPXL_TERMS.PART_LEVEL_VIEW_DISPLAY)
+                    .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                    .set("template-version", "latest")
                     .set("param_resource", profiledResource.getSpace().getId())
                     .set("context", profiledResource.getSpace().getId())
             );
