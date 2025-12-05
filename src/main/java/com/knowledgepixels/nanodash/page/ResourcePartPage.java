@@ -55,6 +55,11 @@ public class ResourcePartPage extends NanodashPage {
 
         final String id = parameters.get("id").toString();
         final String contextId = parameters.get("context").toString();
+        final String nanopubId;
+        String label = id.replaceFirst("^.*[#/]([^#/]+)$", "$1");
+        String description = null;
+        Set<IRI> classes = new HashSet<>();
+
         profiledResource = MaintainedResource.get(contextId);
         if (profiledResource == null) {
             if (Space.get(contextId) == null) {
@@ -63,26 +68,12 @@ public class ResourcePartPage extends NanodashPage {
             profiledResource = Space.get(contextId);
         }
 
-        List<ProfiledResource> superSpaces = profiledResource.getSpace().getAllSuperSpacesUntilRoot();
-        if (profiledResource instanceof MaintainedResource) {
-            superSpaces.add(profiledResource.getSpace());
-        }
-        superSpaces.add(profiledResource);
-        add(new TitleBar("titlebar", this, null,
-                superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
-        ));
-
         QueryRef getDefQuery = new QueryRef("get-term-definitions", "term", id);
         for (IRI userIri : profiledResource.getSpace().getUsers()) {
             for (String pubkey : User.getUserData().getPubkeyhashes(userIri, true)) {
                 getDefQuery.getParams().put("pubkey", pubkey);
             }
         }
-
-        final String nanopubId;
-        String label = id.replaceFirst("^.*[#/]([^#/]+)$", "$1");
-        String description = null;
-        Set<IRI> classes = new HashSet<>();
 
         ApiResponse getDefResp = ApiCache.retrieveResponse(getDefQuery);
         if (getDefResp == null) {
@@ -93,8 +84,12 @@ public class ResourcePartPage extends NanodashPage {
 
             Nanopub nanopub = Utils.getAsNanopub(nanopubId);
             for (Statement st : nanopub.getAssertion()) {
-                if (!st.getSubject().stringValue().equals(id)) continue;
-                if (st.getPredicate().equals(RDFS.LABEL)) label = st.getObject().stringValue();
+                if (!st.getSubject().stringValue().equals(id)) {
+                    continue;
+                }
+                if (st.getPredicate().equals(RDFS.LABEL)) {
+                    label = st.getObject().stringValue();
+                }
                 if (st.getPredicate().equals(SKOS.DEFINITION) || st.getPredicate().equals(DCTERMS.DESCRIPTION) || st.getPredicate().equals(RDFS.COMMENT)) {
                     description = st.getObject().stringValue();
                 }
@@ -109,12 +104,23 @@ public class ResourcePartPage extends NanodashPage {
 //            throw new RestartResponseException(ExplorePage.class, parameters);
 //        }
 
-
         if (description != null) {
             add(new Label("description", description));
         } else {
             add(new Label("description").setVisible(false));
         }
+
+        List<ProfiledResource> superSpaces = profiledResource.getSpace().getAllSuperSpacesUntilRoot();
+        if (profiledResource instanceof MaintainedResource) {
+            superSpaces.add(profiledResource.getSpace());
+        }
+        superSpaces.add(profiledResource);
+        List<NanodashPageRef> breadCrumb = new ArrayList<>(superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toList());
+        breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
+        NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);
+        add(new TitleBar("titlebar", this, null,
+                breadCrumbArray
+        ));
 
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
