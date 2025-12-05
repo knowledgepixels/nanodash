@@ -121,7 +121,15 @@ public class ProfiledResource implements Serializable {
         return data.viewDisplays;
     }
 
-    public List<ViewDisplay> getViewDisplays(boolean toplevel, Set<IRI> classes) {
+    public List<ViewDisplay> getTopLevelViewDisplays() {
+        return getViewDisplays(true, getId(), null);
+    }
+
+    public List<ViewDisplay> getPartLevelViewDisplays(String resourceId, Set<IRI> classes) {
+        return getViewDisplays(false, resourceId, classes);
+    }
+
+    private List<ViewDisplay> getViewDisplays(boolean toplevel, String resourceId, Set<IRI> classes) {
         triggerDataUpdate();
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
@@ -137,7 +145,7 @@ public class ProfiledResource implements Serializable {
             if (!toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated
                 // do nothing
-            } else if (vd.appliesTo(getId(), classes)) {
+            } else if (vd.appliesTo(resourceId, classes)) {
                 viewDisplays.add(vd);
             } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated

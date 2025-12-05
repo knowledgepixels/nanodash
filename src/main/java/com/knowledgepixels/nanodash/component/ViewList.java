@@ -33,9 +33,9 @@ public class ViewList extends Panel {
         final String npId = (nanopubId == null ? profiledResource.getNanopubId() : nanopubId);
         final List<ViewDisplay> viewDisplays;
         if (partId == null) {
-            viewDisplays = profiledResource.getViewDisplays(true, null);
+            viewDisplays = profiledResource.getTopLevelViewDisplays();
         } else {
-            viewDisplays = profiledResource.getViewDisplays(false, partClasses);
+            viewDisplays = profiledResource.getPartLevelViewDisplays(partId, partClasses);
         }
 
         add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
