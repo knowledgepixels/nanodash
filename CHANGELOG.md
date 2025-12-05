@@ -1,3 +1,19 @@
+## [4.3.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.2.0...nanodash-4.3.0) (2025-12-05)
+
+### Features
+
+* **ResourceView:** Move to new model of views and their displays ([ae8e445](https://github.com/knowledgepixels/nanodash/commit/ae8e445c0d3c45cbfbb2d406eb5ecbcb58f0621d))
+
+### Bug Fixes
+
+* **ResourcePartPage:** update breadcrumb navigation to include resource part and full hierarchy ([7fe9042](https://github.com/knowledgepixels/nanodash/commit/7fe9042c23786eb5a52fcb3b96964647230bd883))
+* **ViewDisplay:** Correctly consider gen:appliesTo values ([d90b828](https://github.com/knowledgepixels/nanodash/commit/d90b828c8fdd43cefafb905f43c27f03b98217c8))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([8949f41](https://github.com/knowledgepixels/nanodash/commit/8949f41a4504ee34d61f438a230c65c452d6ff1d))
+* update TODO annotations ([3ae1d94](https://github.com/knowledgepixels/nanodash/commit/3ae1d945d92d01c4d3c8faa1c2586a04df0ede16))
+
 ## [4.2.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.1.1...nanodash-4.2.0) (2025-12-04)
 
 ### Features
