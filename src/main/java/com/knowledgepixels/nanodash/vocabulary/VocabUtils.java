@@ -5,7 +5,7 @@ import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.base.AbstractNamespace;
 import org.eclipse.rdf4j.model.base.InternedIRI;
 
-// TODO merge with VocabUtils from nanopub-java
+// TODO remove this class and use the one defined in nanopub-java when available
 public class VocabUtils {
 
     private VocabUtils() {

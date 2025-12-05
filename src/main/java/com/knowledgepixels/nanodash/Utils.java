@@ -825,11 +825,11 @@ public class Utils {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
     }
 
-    // TODO Move this to QueryRef class in nanopub-java
+    // TODO replace with nanopub-java method (QueryRef.parseString) when available:
     public static QueryRef parseQueryRef(String queryRefUrlString) {
         if (queryRefUrlString.contains("?")) {
             String queryName = queryRefUrlString.split("\\?")[0];
-            Multimap<String,String> queryParams = ArrayListMultimap.create();
+            Multimap<String, String> queryParams = ArrayListMultimap.create();
             if (!queryRefUrlString.endsWith("?")) {
                 for (NameValuePair nvp : URLEncodedUtils.parse(queryRefUrlString.split("\\?")[1], Charsets.UTF_8)) {
                     queryParams.put(nvp.getName(), nvp.getValue());
