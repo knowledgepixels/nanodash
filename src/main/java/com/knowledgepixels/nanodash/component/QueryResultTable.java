@@ -9,9 +9,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
-import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -28,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,7 +42,6 @@ public class QueryResultTable extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private String contextId;
     private ProfiledResource profiledResource;
-    private Space space;
     private final QueryRef queryRef;
     private final ViewDisplay viewDisplay;
 
@@ -76,7 +72,7 @@ public class QueryResultTable extends Panel {
         add(errorLabel);
 
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
-        DataProvider dp;
+        QueryResultDataProvider dataProvider;
         try {
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label")) continue;
@@ -85,12 +81,12 @@ public class QueryResultTable extends Panel {
             if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
                 columns.add(new Column("", Column.ACTIONS));
             }
-            dp = new DataProvider(response.getData());
-            table = new DataTable<>("table", columns, dp, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
+            dataProvider = new QueryResultDataProvider(response.getData());
+            table = new DataTable<>("table", columns, dataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
-            table.addTopToolbar(new HeadersToolbar<String>(table, dp));
+            table.addTopToolbar(new HeadersToolbar<String>(table, dataProvider));
             add(table);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
@@ -230,51 +226,6 @@ public class QueryResultTable extends Panel {
                 cellItem.add(new Label(componentId).setVisible(false));
                 addErrorMessage(ex.getMessage());
             }
-        }
-
-    }
-
-
-    private class DataProvider implements ISortableDataProvider<ApiResponseEntry, String> {
-
-        private List<ApiResponseEntry> data = new ArrayList<>();
-        private SingleSortState<String> sortState = new SingleSortState<>();
-
-        public DataProvider() {
-//			sortState.setSort(new SortParam<String>("date", false));
-        }
-
-        public DataProvider(List<ApiResponseEntry> data) {
-            this();
-            this.data = data;
-        }
-
-        @Override
-        public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
-//			List<ApiResponseEntry> copy = new ArrayList<>(data);
-//			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
-//			Collections.sort(copy, comparator);
-//			return Utils.subList(copy, first, first + count).iterator();
-            return Utils.subList(data, first, first + count).iterator();
-        }
-
-        @Override
-        public IModel<ApiResponseEntry> model(ApiResponseEntry object) {
-            return new Model<ApiResponseEntry>(object);
-        }
-
-        @Override
-        public long size() {
-            return data.size();
-        }
-
-        @Override
-        public ISortState<String> getSortState() {
-            return sortState;
-        }
-
-        @Override
-        public void detach() {
         }
 
     }
