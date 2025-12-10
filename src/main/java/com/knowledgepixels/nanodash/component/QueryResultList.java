@@ -7,13 +7,11 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -27,26 +25,24 @@ import org.nanopub.extra.services.QueryRef;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QueryResultList extends Panel {
+/**
+ * Component for displaying query results in a list format.
+ */
+public class QueryResultList extends QueryResult {
 
     private static final String SEPARATOR = ", ";
-    private final List<AbstractLink> buttons = new ArrayList<>();
-    private String contextId;
-    private boolean finalized = false;
-    private Space space;
-    private final QueryRef queryRef;
-    private final ViewDisplay viewDisplay;
-    private final ApiResponse response;
 
+    /**
+     * Constructor for QueryResultList.
+     *
+     * @param markupId    the markup ID
+     * @param queryRef    the query reference
+     * @param response    the API response
+     * @param viewDisplay the view display
+     */
     QueryResultList(String markupId, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay) {
-        super(markupId);
-        this.queryRef = queryRef;
-        this.viewDisplay = viewDisplay;
-        this.response = response;
+        super(markupId, queryRef, response, viewDisplay);
 
-        add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
-
-        final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
         String label = grlcQuery.getLabel();
         if (viewDisplay.getView().getTitle() != null) {
             label = viewDisplay.getView().getTitle();
@@ -59,56 +55,11 @@ public class QueryResultList extends Panel {
         }
 
         setOutputMarkupId(true);
-        populateList();
-    }
-
-    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
-        if (parameters == null) {
-            parameters = new PageParameters();
-        }
-        if (contextId != null) {
-            parameters.set("context", contextId);
-        }
-        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
-        button.setBody(Model.of(label));
-        buttons.add(button);
+        populateComponent();
     }
 
     @Override
-    protected void onBeforeRender() {
-        if (!finalized) {
-            if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", space, buttons, null, null));
-            } else {
-                add(new Label("buttons").setVisible(false));
-            }
-            finalized = true;
-        }
-        super.onBeforeRender();
-    }
-
-    /**
-     * Sets the space.
-     *
-     * @param space the space
-     */
-    public void setSpace(Space space) {
-        this.space = space;
-    }
-
-    /**
-     * Sets the context ID.
-     *
-     * @param contextId the context ID
-     */
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
-    }
-
-    /**
-     * Populates the list with data from the API response.
-     */
-    private void populateList() {
+    protected void populateComponent() {
         QueryResultDataProvider dataProvider = new QueryResultDataProvider(response.getData());
         DataView<ApiResponseEntry> dataView = new DataView<>("items", dataProvider) {
 
@@ -166,7 +117,7 @@ public class QueryResultList extends Panel {
                         button.setBody(Model.of(labelForAction));
                         links.add(button);
                     }
-                    components.add(new ButtonList("component", space, links, null, null));
+                    components.add(new ButtonList("component", profiledResource, links, null, null));
                 }
                 ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components);
                 listItem.add(componentSequence);

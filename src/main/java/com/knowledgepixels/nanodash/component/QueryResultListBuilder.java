@@ -72,7 +72,7 @@ public class QueryResultListBuilder implements Serializable {
         if (space != null) {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                resultList.setSpace(space);
+                resultList.setProfiledResource(space);
                 resultList.setContextId(contextId);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
@@ -107,7 +107,7 @@ public class QueryResultListBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                        resultList.setSpace(space);
+                        resultList.setProfiledResource(space);
                         resultList.setContextId(contextId);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
