@@ -58,7 +58,9 @@ public class QueryResultTable extends Panel {
             add(new Label("morelink").setVisible(false));
         } else {
             String label = grlcQuery.getLabel();
-            if (viewDisplay.getTitle() != null) label = viewDisplay.getTitle();
+            if (viewDisplay.getTitle() != null) {
+                label = viewDisplay.getTitle();
+            }
             add(new Label("label", label));
             if (viewDisplay.getNanopubId() != null) {
                 add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
@@ -75,7 +77,9 @@ public class QueryResultTable extends Panel {
         QueryResultDataProvider dataProvider;
         try {
             for (String h : response.getHeader()) {
-                if (h.endsWith("_label")) continue;
+                if (h.endsWith("_label")) {
+                    continue;
+                }
                 columns.add(new Column(h.replaceAll("_", " "), h));
             }
             if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
@@ -98,8 +102,12 @@ public class QueryResultTable extends Panel {
     // TODO button adding method copied and adjusted from ItemListPanel
     // TODO Improve this (member/admin) button handling:
     public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
-        if (parameters == null) parameters = new PageParameters();
-        if (contextId != null) parameters.set("context", contextId);
+        if (parameters == null) {
+            parameters = new PageParameters();
+        }
+        if (contextId != null) {
+            parameters.set("context", contextId);
+        }
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);

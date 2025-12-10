@@ -58,6 +58,8 @@ public class QueryResultList extends Panel {
             add(new Label("np").setVisible(false));
         }
 
+        setOutputMarkupId(true);
+        populateList();
     }
 
     public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
@@ -106,7 +108,7 @@ public class QueryResultList extends Panel {
     /**
      * Populates the list with data from the API response.
      */
-    protected void populateList() {
+    private void populateList() {
         QueryResultDataProvider dataProvider = new QueryResultDataProvider(response.getData());
         DataView<ApiResponseEntry> dataView = new DataView<>("items", dataProvider) {
 
@@ -172,6 +174,7 @@ public class QueryResultList extends Panel {
             }
         };
         dataView.setItemsPerPage(10);
+        dataView.setOutputMarkupId(true);
 
         WebMarkupContainer navigation = new WebMarkupContainer("navigation");
         navigation.add(new NavigatorLabel("navigatorLabel", dataView));

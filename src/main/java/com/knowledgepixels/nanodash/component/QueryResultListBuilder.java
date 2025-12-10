@@ -74,7 +74,6 @@ public class QueryResultListBuilder implements Serializable {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setSpace(space);
                 resultList.setContextId(contextId);
-                resultList.populateList();
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
@@ -110,7 +109,6 @@ public class QueryResultListBuilder implements Serializable {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setSpace(space);
                         resultList.setContextId(contextId);
-                        resultList.populateList();
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
@@ -146,7 +144,6 @@ public class QueryResultListBuilder implements Serializable {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setContextId(contextId);
-                resultList.populateList();
                 return resultList;
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
@@ -154,7 +151,6 @@ public class QueryResultListBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setContextId(contextId);
-                        resultList.populateList();
                         return resultList;
                     }
                 };
