@@ -95,7 +95,7 @@ public class QueryResultTableBuilder implements Serializable {
         ApiResponse response = ApiCache.retrieveResponse(queryRef);
         if (profiledResource != null) {
             if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay);
+                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
                 table.setProfiledResource(profiledResource);
                 ResourceView view = viewDisplay.getView();
@@ -130,7 +130,7 @@ public class QueryResultTableBuilder implements Serializable {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, false, viewDisplay);
+                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                         table.setContextId(contextId);
                         table.setProfiledResource(profiledResource);
                         ResourceView view = viewDisplay.getView();
@@ -166,14 +166,14 @@ public class QueryResultTableBuilder implements Serializable {
             }
         } else {
             if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, plain, viewDisplay);
+                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
                 return table;
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, plain, viewDisplay);
+                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
                         return table;
                     }

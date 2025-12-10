@@ -9,13 +9,10 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
-import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -28,46 +25,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * A table component that displays the results of a query.
+ * Component for displaying query results in a table format.
  */
-public class QueryResultTable extends Panel {
+public class QueryResultTable extends QueryResult {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryResultTable.class);
 
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
     private Label errorLabel;
-    private boolean finalized = false;
-    private List<AbstractLink> buttons = new ArrayList<>();
-    private String contextId;
-    private ProfiledResource profiledResource;
-    private Space space;
-    private final QueryRef queryRef;
-    private final ViewDisplay viewDisplay;
 
-    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, boolean plain, ViewDisplay viewDisplay) {
-        super(id);
-        this.queryRef = queryRef;
-        this.viewDisplay = viewDisplay;
-
-        final GrlcQuery grlcQuery = GrlcQuery.get(queryRef);
-        add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+    QueryResultTable(String id, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, boolean plain) {
+        super(id, queryRef, response, viewDisplay);
 
         if (plain) {
             add(new Label("label").setVisible(false));
-            add(new Label("morelink").setVisible(false));
+            add(new Label("np").setVisible(false));
         } else {
             String label = grlcQuery.getLabel();
-            if (viewDisplay.getTitle() != null) label = viewDisplay.getTitle();
+            if (viewDisplay.getTitle() != null) {
+                label = viewDisplay.getTitle();
+            }
             add(new Label("label", label));
             if (viewDisplay.getNanopubId() != null) {
-                add(new BookmarkablePageLink<Void>("morelink", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+                add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
             } else {
-                add(new Label("morelink").setVisible(false));
+                add(new Label("np").setVisible(false));
             }
         }
 
@@ -75,69 +61,7 @@ public class QueryResultTable extends Panel {
         errorLabel.setVisible(false);
         add(errorLabel);
 
-        List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
-        DataProvider dp;
-        try {
-            for (String h : response.getHeader()) {
-                if (h.endsWith("_label")) continue;
-                columns.add(new Column(h.replaceAll("_", " "), h));
-            }
-            if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
-                columns.add(new Column("", Column.ACTIONS));
-            }
-            dp = new DataProvider(response.getData());
-            table = new DataTable<>("table", columns, dp, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
-            table.setOutputMarkupId(true);
-            table.addBottomToolbar(new AjaxNavigationToolbar(table));
-            table.addBottomToolbar(new NoRecordsToolbar(table));
-            table.addTopToolbar(new HeadersToolbar<String>(table, dp));
-            add(table);
-        } catch (Exception ex) {
-            logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
-            add(new Label("table", "").setVisible(false));
-            addErrorMessage(ex.getMessage());
-        }
-    }
-
-    // TODO button adding method copied and adjusted from ItemListPanel
-    // TODO Improve this (member/admin) button handling:
-    public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
-        if (parameters == null) parameters = new PageParameters();
-        if (contextId != null) parameters.set("context", contextId);
-        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
-        button.setBody(Model.of(label));
-        buttons.add(button);
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        if (!finalized) {
-            if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", profiledResource, buttons, null, null));
-            } else {
-                add(new Label("buttons").setVisible(false));
-            }
-            finalized = true;
-        }
-        super.onBeforeRender();
-    }
-
-    /**
-     * Set the profiled resource for this component.
-     *
-     * @param profiledResource The profiled resource to set.
-     */
-    public void setProfiledResource(ProfiledResource profiledResource) {
-        this.profiledResource = profiledResource;
-    }
-
-    /**
-     * Set the context ID for this component.
-     *
-     * @param contextId The context ID to set.
-     */
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
+        populateComponent();
     }
 
     private void addErrorMessage(String errorMessage) {
@@ -150,6 +74,34 @@ public class QueryResultTable extends Panel {
         errorMessages.setObject(s);
         errorLabel.setVisible(true);
         if (table != null) table.setVisible(false);
+    }
+
+    @Override
+    protected void populateComponent() {
+        List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
+        QueryResultDataProvider dataProvider;
+        try {
+            for (String h : response.getHeader()) {
+                if (h.endsWith("_label")) {
+                    continue;
+                }
+                columns.add(new Column(h.replaceAll("_", " "), h));
+            }
+            if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
+                columns.add(new Column("", Column.ACTIONS));
+            }
+            dataProvider = new QueryResultDataProvider(response.getData());
+            table = new DataTable<>("table", columns, dataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
+            table.setOutputMarkupId(true);
+            table.addBottomToolbar(new AjaxNavigationToolbar(table));
+            table.addBottomToolbar(new NoRecordsToolbar(table));
+            table.addTopToolbar(new HeadersToolbar<String>(table, dataProvider));
+            add(table);
+        } catch (Exception ex) {
+            logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
+            add(new Label("table", "").setVisible(false));
+            addErrorMessage(ex.getMessage());
+        }
     }
 
     private class Column extends AbstractColumn<ApiResponseEntry, String> {
@@ -230,51 +182,6 @@ public class QueryResultTable extends Panel {
                 cellItem.add(new Label(componentId).setVisible(false));
                 addErrorMessage(ex.getMessage());
             }
-        }
-
-    }
-
-
-    private class DataProvider implements ISortableDataProvider<ApiResponseEntry, String> {
-
-        private List<ApiResponseEntry> data = new ArrayList<>();
-        private SingleSortState<String> sortState = new SingleSortState<>();
-
-        public DataProvider() {
-//			sortState.setSort(new SortParam<String>("date", false));
-        }
-
-        public DataProvider(List<ApiResponseEntry> data) {
-            this();
-            this.data = data;
-        }
-
-        @Override
-        public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
-//			List<ApiResponseEntry> copy = new ArrayList<>(data);
-//			ApiResponseComparator comparator = new ApiResponseComparator(sortState.getSort());
-//			Collections.sort(copy, comparator);
-//			return Utils.subList(copy, first, first + count).iterator();
-            return Utils.subList(data, first, first + count).iterator();
-        }
-
-        @Override
-        public IModel<ApiResponseEntry> model(ApiResponseEntry object) {
-            return new Model<ApiResponseEntry>(object);
-        }
-
-        @Override
-        public long size() {
-            return data.size();
-        }
-
-        @Override
-        public ISortState<String> getSortState() {
-            return sortState;
-        }
-
-        @Override
-        public void detach() {
         }
 
     }
