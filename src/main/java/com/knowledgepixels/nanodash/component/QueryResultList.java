@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class QueryResultList extends QueryResult {
 
-    private static final String SEPARATOR = ", ";
+    private static final String SEPARATOR = " · ";
 
     /**
      * Constructor for QueryResultList.
