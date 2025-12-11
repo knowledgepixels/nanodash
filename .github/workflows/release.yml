@@ -14,7 +14,12 @@ env:
 
 jobs:
   test:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distribution: [ "temurin" ]
+        java: [ "21" , "23", "25" ]
+    name: Testing with Java ${{ matrix.java }} (${{ matrix.distribution }})
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -22,11 +27,12 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          java-version: "21"
-          distribution: "temurin"
+          distribution: ${{ matrix.distribution }}
+          java-version: ${{ matrix.java }}
+          cache: 'maven'
 
-      - name: Maven Test
-        run: ./mvnw test
+      - name: Test with Maven
+        run: ./mvnw -B test
 
   release:
     runs-on: ubuntu-latest
