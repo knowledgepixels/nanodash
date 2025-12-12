@@ -121,6 +121,8 @@ public class ExplorePage extends NanodashPage {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
         } else if (MaintainedResource.get(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
+        } else if (User.isUser(contextId)) {
+            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
         }

@@ -213,6 +213,7 @@ public class UserPage extends NanodashPage {
                 .set("param_resource", userIriString)
                 .set("param_appliesToResource", userIriString)
                 .set("context", userIriString)
+                .set("refresh-upon-publish", userIriString)
             );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);

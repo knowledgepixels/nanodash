@@ -19,12 +19,22 @@ public class ProfiledResource implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
-    private static List<ProfiledResource> instances = new ArrayList<>();
+    private static Map<String,ProfiledResource> instances = new HashMap<>();
 
     public static void refresh() {
-        for (ProfiledResource r : instances) {
+        for (ProfiledResource r : instances.values()) {
             r.setDataNeedsUpdate();
         }
+    }
+
+    public static void forceRefresh(String id, long waitMillis) {
+        if (isProfiledResource(id)) {
+            instances.get(id).forceRefresh(waitMillis);
+        }
+    }
+
+    public static boolean isProfiledResource(String id) {
+        return instances.containsKey(id);
     }
 
     private String id;
@@ -36,7 +46,7 @@ public class ProfiledResource implements Serializable {
 
     protected ProfiledResource(String id) {
         this.id = id;
-        instances.add(this);
+        instances.put(id, this);
     }
 
     protected void initSpace(Space space) {

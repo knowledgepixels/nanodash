@@ -69,6 +69,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 .set("param_resource", resource.getId())
                 .set("param_appliesToResource", resource.getId())
                 .set("context", resource.getId())
+                .set("refresh-upon-publish", resource.getId())
         );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);

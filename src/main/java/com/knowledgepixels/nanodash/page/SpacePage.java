@@ -169,6 +169,7 @@ public class SpacePage extends NanodashPage {
                 .set("param_resource", space.getId())
                 .set("param_appliesToResource", space.getId())
                 .set("context", space.getId())
+                .set("refresh-upon-publish", id)
         );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
