@@ -166,8 +166,8 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public abstract class MethodResultComponent<R> extends ResultComponent {
 
-        private final transient Supplier<Boolean> readyFunction;
-        private final transient Supplier<R> resultFunction;
+        private final Supplier<Boolean> readyFunction;
+        private final Supplier<R> resultFunction;
 
         public MethodResultComponent(String id, ReadyFunction readyFunction, ResultFunction<R> resultFunction) {
             super(id);
