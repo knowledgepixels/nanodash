@@ -27,13 +27,20 @@ public class MaintainedResource extends ProfiledResource {
 
     public static synchronized void refresh(ApiResponse resp) {
         resourceList = new ArrayList<>();
+        Map<String, MaintainedResource> previousResourcesById = resourcesById;
         resourcesById = new HashMap<>();
         resourcesBySpace = new HashMap<>();
         resourcesByNamespace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = Space.get(entry.get("space"));
             if (space == null) continue;
-            MaintainedResource resource = new MaintainedResource(entry, space);
+            MaintainedResource resource = null;
+            if (previousResourcesById != null) {
+                resource = previousResourcesById.get(entry.get("resource"));
+            }
+            if (resource == null) {
+                resource = new MaintainedResource(entry, space);
+            }
             if (resourcesById.containsKey(resource.getId())) continue;
             resourceList.add(resource);
             resourcesById.put(resource.getId(), resource);
@@ -124,6 +131,10 @@ public class MaintainedResource extends ProfiledResource {
 
     private MaintainedResource(ApiResponseEntry resp, Space space) {
         super(resp.get("resource"));
+        initialize(resp, space);
+    }
+
+    private void initialize(ApiResponseEntry resp, Space space) {
         initSpace(space);
         this.label = resp.get("label");
         this.nanopubId = resp.get("np");
