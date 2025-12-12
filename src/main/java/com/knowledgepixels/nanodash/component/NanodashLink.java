@@ -174,10 +174,13 @@ public class NanodashLink extends Panel {
         } else if (MaintainedResource.get(uri) != null) {
             label = MaintainedResource.get(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
-        } else if (isPartOfResource(uri, contextId)) {
-            return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params.set("label", label)).setBody(Model.of(label));
         } else {
-            return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("label", label).set("forward-to-part", "true")).setBody(Model.of(label));
+            if (!"^".equals(label)) params.set("label", label);
+            if (isPartOfResource(uri, contextId)) {
+                return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params).setBody(Model.of(label));
+            } else {
+                return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true")).setBody(Model.of(label));
+            }
         }
     }
 
