@@ -111,7 +111,7 @@ public class QueryApiAccess {
             }
             if (resp != null) return resp;
             try {
-                Thread.sleep(100);
+                Thread.sleep(5000);
             } catch (InterruptedException ex) {
                 logger.error("Interrupted while forcing API get for query {}", queryRef, ex);
             }
