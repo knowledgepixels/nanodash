@@ -1,3 +1,40 @@
+## [4.4.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.3.0...nanodash-4.4.0) (2025-12-15)
+
+### Features
+
+* **NanodashLink:** Don't pass "^" label so it makes good nanopub links ([89837d6](https://github.com/knowledgepixels/nanodash/commit/89837d6a4836ef3659493623daeae17ee460b2c0))
+* **ProfiledResource:** Consistently refresh, also for view displays ([a218bb8](https://github.com/knowledgepixels/nanodash/commit/a218bb85c2eaf11aae1199855938fbf47fa08f1f))
+* **QueryResultList:** add pagination and navigation for query results ([8f5eb99](https://github.com/knowledgepixels/nanodash/commit/8f5eb99d2020109ddab073757b4ae0e12dcd92cf))
+
+### Dependency updates
+
+* **deps:** update sem-release dependencies to fix security issues ([0ee25fc](https://github.com/knowledgepixels/nanodash/commit/0ee25fcf5c403e9433c5e5d6d1a955d076883a64))
+
+### Bug Fixes
+
+* Increase wait time after failed API request ([f4d9f05](https://github.com/knowledgepixels/nanodash/commit/f4d9f052d184d85a0b33657f93476aee2685d7ef))
+* **ItemListPanel:** transient marker caused problems and not needed ([82e7d95](https://github.com/knowledgepixels/nanodash/commit/82e7d952028ca6112d16520520d4b253a0698726))
+* **MaintainedResource:** Keep cached results after refresh ([71380b9](https://github.com/knowledgepixels/nanodash/commit/71380b9b0a450711ac5af1b45a8af8743ce9fc3c))
+* **QueryResultList:** add output markup for pagination component ([ba8cf37](https://github.com/knowledgepixels/nanodash/commit/ba8cf37c1ee022d987c7ef78ffc8ac86cd4d21b2))
+
+### Build and continuous integration
+
+* **release:** enhance testing workflow to support multiple Java versions ([887a0ff](https://github.com/knowledgepixels/nanodash/commit/887a0ff6afea50329e1808ddb98931cbd39819e2))
+* **test:** update to support multiple Java versions and parallel coverage reporting ([1ce543d](https://github.com/knowledgepixels/nanodash/commit/1ce543df6bf6ac29be83847318e7c9bab4924906))
+
+### General maintenance
+
+* add contributing guidelines ([5e74c4d](https://github.com/knowledgepixels/nanodash/commit/5e74c4dcf8380f1c4083e070f8e63c31951991e4))
+* **QueryResult:** add abstract base class for displaying query results ([51f8299](https://github.com/knowledgepixels/nanodash/commit/51f8299b133bab3bd82980c0152ef2566d987802))
+* **QueryResultDataProvider:** add data provider for query results ([e1e0972](https://github.com/knowledgepixels/nanodash/commit/e1e09721c7aec41cc8c24f31dce6e0f04065e6f1))
+* **QueryResultList:** change separator format for improved readability ([cb926fe](https://github.com/knowledgepixels/nanodash/commit/cb926feee08174e1b29f7afd3bddbcd8a3593603))
+* **readme:** add badges and contributing section ([587560c](https://github.com/knowledgepixels/nanodash/commit/587560c40ce3a8c39ba1f28a81fcc09e134cbafb))
+* setting next snapshot version [skip ci] ([a987b21](https://github.com/knowledgepixels/nanodash/commit/a987b214f227281d9257e80d83962ececa0e15e7))
+
+### Refactoring
+
+* **QueryResult:** simplify QueryResultList and QueryResultTable components ([799fceb](https://github.com/knowledgepixels/nanodash/commit/799fceb2e92892b3e3710c8e29020c2e93e9fe2e))
+
 ## [4.3.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.2.0...nanodash-4.3.0) (2025-12-05)
 
 ### Features
