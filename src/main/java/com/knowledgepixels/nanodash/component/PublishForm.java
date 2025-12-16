@@ -1,12 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -49,12 +46,7 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
-import org.nanopub.extra.services.APINotReachableException;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.FailedApiCallException;
-import org.nanopub.extra.services.NotEnoughAPIInstancesException;
-import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.*;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -63,23 +55,8 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.LocalUri;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.ProfiledResource;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.template.ValueFiller;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 /**
  * Form for publishing a nanopublication.
@@ -285,7 +262,7 @@ public class PublishForm extends Panel {
                 mapsTo = mapping;
             }
             try {
-                ApiResponse resp = QueryApiAccess.get(Utils.parseQueryRef(querySpec));
+                ApiResponse resp = QueryApiAccess.get(QueryRef.parseString(querySpec));
                 int i = 0;
                 for (ApiResponseEntry e : resp.getData()) {
                     String mapsToSuffix = "";
@@ -293,7 +270,8 @@ public class PublishForm extends Panel {
                     assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
                     i++;
                 }
-            } catch (FailedApiCallException | APINotReachableException | NotEnoughAPIInstancesException | NullPointerException ex) {
+            } catch (FailedApiCallException | APINotReachableException | NotEnoughAPIInstancesException |
+                     NullPointerException ex) {
                 ex.printStackTrace();
             }
         }
@@ -480,9 +458,9 @@ public class PublishForm extends Panel {
                     } else if (toRefresh.equals("maintainedResources")) {
                         MaintainedResource.forceRootRefresh(3 * 1000);
                     } else if (ProfiledResource.isProfiledResource(toRefresh)) {
-                        ProfiledResource.forceRefresh(toRefresh, 3 * 1000);;
+                        ProfiledResource.forceRefresh(toRefresh, 3 * 1000);
                     } else {
-                        QueryRef queryRef = Utils.parseQueryRef(toRefresh);
+                        QueryRef queryRef = QueryRef.parseString(toRefresh);
                         // Make sure the next cache update happens not before 3 seconds from now, at which point the
                         // published nanopub should show up in the Nanopub Query instances:
                         ApiCache.clearCache(queryRef, 3 * 1000);

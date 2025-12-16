@@ -166,7 +166,7 @@ public class ExplorePage extends NanodashPage {
             parameters.remove("forward-to-part");
             Set<IRI> classes = new HashSet<>();
             if (np != null) {
-                Set<String> introducedIds = Utils.getIntroducedIriIds(np);
+                Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(np);
                 if (introducedIds.size() == 1 && introducedIds.iterator().next().equals(tempRef)) {
                     for (Statement st : np.getAssertion()) {
                         if (!st.getSubject().stringValue().equals(tempRef)) continue;

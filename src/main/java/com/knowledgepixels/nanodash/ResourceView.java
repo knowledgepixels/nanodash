@@ -1,13 +1,8 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -15,12 +10,12 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A class representing a Resource View.
@@ -62,7 +57,7 @@ public class ResourceView implements Serializable {
         String latestId = id;
         Nanopub np = Utils.getAsNanopub(latestNpId);
         if (!latestNpId.equals(npId)) {
-            Set<String> embeddedIris = Utils.getEmbeddedIriIds(np);
+            Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
             if (embeddedIris.size() == 1) {
                 latestId = embeddedIris.iterator().next();
             } else {

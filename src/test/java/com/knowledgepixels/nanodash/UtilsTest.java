@@ -511,7 +511,7 @@ class UtilsTest {
                 randomIri1.stringValue()
         );
 
-        Set<String> actualIriIds = Utils.getIntroducedIriIds(nanopub);
+        Set<String> actualIriIds = NanopubUtils.getIntroducedIriIds(nanopub);
         assertEquals(expectedIntroducedIriIds, actualIriIds);
     }
 
@@ -536,7 +536,7 @@ class UtilsTest {
                 randomIri1.stringValue()
         );
 
-        Set<String> result = Utils.getEmbeddedIriIds(nanopub);
+        Set<String> result = NanopubUtils.getEmbeddedIriIds(nanopub);
 
         assertEquals(expectedEmbeddedIris, result);
     }

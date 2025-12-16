@@ -9,6 +9,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -190,7 +191,7 @@ public class ValueFiller {
         } else if (fillNp.getAssertionUri().equals(v)) {
             return LocalUri.of("assertion");
         } else if (v instanceof IRI iri && formMode) {
-            if (!Utils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
+            if (!NanopubUtils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
                 if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
                     return LocalUri.of(Utils.getUriPostfix(v.stringValue()));
                 }

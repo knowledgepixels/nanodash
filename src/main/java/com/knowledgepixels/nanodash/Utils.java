@@ -1,15 +1,11 @@
 package com.knowledgepixels.nanodash;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.hash.Hashing;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -30,7 +26,6 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
@@ -680,41 +675,6 @@ public class Utils {
      */
     public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
 
-    // TODO Move these to nanopub-java library:
-
-    /**
-     * Retrieves a set of introduced IRI IDs from the nanopublication.
-     *
-     * @param np the nanopublication from which to extract introduced IRI IDs
-     * @return a set of introduced IRI IDs
-     */
-    public static Set<String> getIntroducedIriIds(Nanopub np) {
-        Set<String> introducedIriIds = new HashSet<>();
-        for (Statement st : np.getPubinfo()) {
-            if (!st.getSubject().equals(np.getUri())) continue;
-            IRI p = st.getPredicate();
-            if (!p.equals(NPX.INTRODUCES) && !p.equals(NPX.DESCRIBES) && !p.equals(NPX.EMBEDS)) continue;
-            if (st.getObject() instanceof IRI obj) introducedIriIds.add(obj.stringValue());
-        }
-        return introducedIriIds;
-    }
-
-    /**
-     * Retrieves a set of embedded IRI IDs from the nanopublication.
-     *
-     * @param np the nanopublication from which to extract embedded IRI IDs
-     * @return a set of embedded IRI IDs
-     */
-    public static Set<String> getEmbeddedIriIds(Nanopub np) {
-        Set<String> embeddedIriIds = new HashSet<>();
-        for (Statement st : np.getPubinfo()) {
-            if (!st.getSubject().equals(np.getUri())) continue;
-            if (!st.getPredicate().equals(NPX.EMBEDS)) continue;
-            if (st.getObject() instanceof IRI obj) embeddedIriIds.add(obj.stringValue());
-        }
-        return embeddedIriIds;
-    }
-
     /**
      * Returns the URL of the default Nanopub Registry as configured by the given instance.
      *
@@ -823,22 +783,6 @@ public class Utils {
      */
     public static boolean isLocalURI(String uriAsString) {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
-    }
-
-    // TODO replace with nanopub-java method (QueryRef.parseString) when available:
-    public static QueryRef parseQueryRef(String queryRefUrlString) {
-        if (queryRefUrlString.contains("?")) {
-            String queryName = queryRefUrlString.split("\\?")[0];
-            Multimap<String, String> queryParams = ArrayListMultimap.create();
-            if (!queryRefUrlString.endsWith("?")) {
-                for (NameValuePair nvp : URLEncodedUtils.parse(queryRefUrlString.split("\\?")[1], Charsets.UTF_8)) {
-                    queryParams.put(nvp.getName(), nvp.getValue());
-                }
-            }
-            return new QueryRef(queryName, queryParams);
-        } else {
-            return new QueryRef(queryRefUrlString);
-        }
     }
 
 }

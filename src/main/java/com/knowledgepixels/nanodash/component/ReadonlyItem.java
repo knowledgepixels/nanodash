@@ -30,6 +30,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -251,7 +252,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 linkComp.add(new AttributeAppender("class", "this-nanopub"));
             } else if (context.getExistingNanopub() != null) {
                 Nanopub np = context.getExistingNanopub();
-                if (Utils.getIntroducedIriIds(np).contains(obj) || Utils.getEmbeddedIriIds(np).contains(obj)) {
+                if (NanopubUtils.getIntroducedIriIds(np).contains(obj) || NanopubUtils.getEmbeddedIriIds(np).contains(obj)) {
                     linkComp.add(AttributeAppender.append("class", "introduced"));
                 }
             }
