@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.vocabulary;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Namespace;
+import org.nanopub.vocabulary.VocabUtils;
 
 /**
  * Vocabulary for Knowledge Pixels Terms.
