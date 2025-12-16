@@ -96,7 +96,10 @@ public class QueryResultList extends QueryResult {
                         if (targetField == null) targetField = "resource";
                         String labelForAction = view.getLabelForAction(actionIri);
                         if (labelForAction == null) labelForAction = "action...";
-                        PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, contextId).set("context", contextId);
+                        PageParameters params = new PageParameters().set("template", t.getId())
+                                .set("param_" + targetField, contextId)
+                                .set("context", contextId)
+                                .set("template-version", "latest");
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:

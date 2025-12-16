@@ -107,7 +107,10 @@ public class QueryResultTableBuilder implements Serializable {
                         if (targetField == null) targetField = "resource";
                         String label = view.getLabelForAction(actionIri);
                         if (label == null) label = "action...";
-                        PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
+                        PageParameters params = new PageParameters().set("template", t.getId())
+                                .set("param_" + targetField, id)
+                                .set("context", contextId)
+                                .set("template-version", "latest");
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:
@@ -142,7 +145,10 @@ public class QueryResultTableBuilder implements Serializable {
                                 if (targetField == null) targetField = "resource";
                                 String label = view.getLabelForAction(actionIri);
                                 if (label == null) label = "action...";
-                                PageParameters params = new PageParameters().set("template", t.getId()).set("param_" + targetField, id).set("context", contextId);
+                                PageParameters params = new PageParameters().set("template", t.getId())
+                                        .set("param_" + targetField, id)
+                                        .set("context", contextId)
+                                        .set("template-version", "latest");
                                 String partField = view.getTemplatePartFieldForAction(actionIri);
                                 if (partField != null) {
                                     // TODO Find a better way to pass the MaintainedResource object to this method:
