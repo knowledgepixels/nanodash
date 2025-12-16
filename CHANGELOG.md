@@ -1,3 +1,38 @@
+## [4.5.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.4.0...nanodash-4.5.0) (2025-12-16)
+
+### Features
+
+* Add simple script for stress-testing ([45a4847](https://github.com/knowledgepixels/nanodash/commit/45a4847cb1518c7b01925b9b6ea68741af440e57))
+* add support for PLAIN_PARAGRAPH_VIEW in resource display logic ([a0ba42c](https://github.com/knowledgepixels/nanodash/commit/a0ba42c85ef240ef9c7f6de635413ff402636994))
+* Make use of template-version=latest in more places ([c20c94c](https://github.com/knowledgepixels/nanodash/commit/c20c94c1b51e3abc3905fa0c37268460b6ebdea6))
+* **QueryResultPlainParagraph:** use ListView for allowing multi paragraphs view ([3d82328](https://github.com/knowledgepixels/nanodash/commit/3d82328254b5e48c009b7999da82359dc9db17cf))
+* Support for OpenAIRE Graph lookup ([39c0371](https://github.com/knowledgepixels/nanodash/commit/39c03710e870858ed22da0f5cd1e3424dbc4eba5))
+
+### Dependency updates
+
+* **deps:** Update nanopub dependency ([1bf4857](https://github.com/knowledgepixels/nanodash/commit/1bf48575c071187b61dbd0121c2bd29f99541211))
+
+### Bug Fixes
+
+* **QueryResultPlainParagraph:** update title header from h2 to h3 ([c35eff5](https://github.com/knowledgepixels/nanodash/commit/c35eff5f32d54d2568f20c39c04a39c16a3c3768))
+* **Space:** Synchronize ensureLoaded wait code ([feab842](https://github.com/knowledgepixels/nanodash/commit/feab842deece800e2a65c3d0bc61231f47bba0a3))
+
+### Tests
+
+* **ProfiledResource:** add unit tests ([dc2c16a](https://github.com/knowledgepixels/nanodash/commit/dc2c16a78ef7558a20df90ea9064ec6ab6e9a0eb))
+
+### General maintenance
+
+* **KPXL_TERMS:** add IRI for PlainParagraphView ([65af494](https://github.com/knowledgepixels/nanodash/commit/65af494ca64ff9ec25945fe44bbcf0e040b84cc5))
+* **QueryResultPlainParagraph:** add component for displaying query results in plain paragraph format ([960e3e5](https://github.com/knowledgepixels/nanodash/commit/960e3e506d3335031f053379bee1e6c0e2cf49a3))
+* **QueryResultPlainParagraphBuilder:** add builder for QueryResultPlainParagraph component ([3d59090](https://github.com/knowledgepixels/nanodash/commit/3d59090cd45530bad45edc39d26f168c8f084c66))
+* setting next snapshot version [skip ci] ([6c1916b](https://github.com/knowledgepixels/nanodash/commit/6c1916b785ef98bad2343ce4fb4f2016f88389bd))
+
+### Refactoring
+
+* replace Utils methods with NanopubUtils defined in the nanopub-java library ([7ce230f](https://github.com/knowledgepixels/nanodash/commit/7ce230f793750d8df2a56d98cec79fe36c68a853))
+* replace VocabUtils with the ones defined in the nanopub-java library ([ed9b72e](https://github.com/knowledgepixels/nanodash/commit/ed9b72efaba5911addfd23a80f4274b6fffacb53))
+
 ## [4.4.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.3.0...nanodash-4.4.0) (2025-12-15)
 
 ### Features
