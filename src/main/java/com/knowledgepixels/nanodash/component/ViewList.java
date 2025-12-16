@@ -81,17 +81,22 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
+                if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
+                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                            .space(profiledResource.getSpace())
+                            .id(id)
+                            .contextId(profiledResource.getId())
+                            .build());
+                } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                     item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                             .profiledResource(profiledResource)
                             .contextId(profiledResource.getId())
                             .id(id)
                             .build());
-                } else {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                            .space(profiledResource.getSpace())
-                            .id(id)
+                } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
+                    item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
                             .contextId(profiledResource.getId())
+                            .id(id)
                             .build());
                 }
             }

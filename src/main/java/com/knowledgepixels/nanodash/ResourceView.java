@@ -1,13 +1,8 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -18,9 +13,8 @@ import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A class representing a Resource View.
@@ -113,7 +107,7 @@ public class ResourceView implements Serializable {
                     if (st.getObject().equals(KPXL_TERMS.RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
                     }
-                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW)) {
+                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW) || st.getObject().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
                         viewType = (IRI) st.getObject();
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
