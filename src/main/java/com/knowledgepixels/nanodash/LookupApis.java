@@ -169,6 +169,32 @@ public class LookupApis {
                         labelMap.put(uri, label);
                     }
                 }
+            } else if (apiString.startsWith("https://api.openaire.eu/graph/v")) {
+                String type = apiString.replaceFirst("^https://api\\.openaire\\.eu/graph/(v[0-9]+/[a-zA-Z]+).*$", "$1");
+                for (Object obj : new JSONObject(respString).getJSONArray("results")) {
+                    if (obj instanceof JSONObject jsonObj) {
+                        String uri = "https://api.openaire.eu/graph/" + type + "/" + jsonObj.getString("id");
+                        if (!values.contains(uri)) {
+                            values.add(uri);
+                            String label = uri;
+                            if (jsonObj.has("mainTitle")) {
+                                label = jsonObj.getString("mainTitle");
+                            } else if (jsonObj.has("legalShortName")) {
+                                label = jsonObj.getString("legalShortName");
+                            } else if (jsonObj.has("officialName")) {
+                                label = jsonObj.getString("officialName");
+                            } else if (jsonObj.has("title")) {
+                                label = jsonObj.getString("title");
+                            } else if (jsonObj.has("familyName")) {
+                                label = jsonObj.getString("familyName");
+                                if (jsonObj.has("givenName")) {
+                                    label = jsonObj.getString("givenName") + " " + label;
+                                }
+                            }
+                            labelMap.put(uri, label);
+                        }
+                    }
+                }
             } else if (apiString.startsWith("https://api.gbif.org/v1/species/suggest")) {
                 JSONArray responseArray = new JSONArray(respString);
                 for (int i = 0; i < responseArray.length(); i++) {
