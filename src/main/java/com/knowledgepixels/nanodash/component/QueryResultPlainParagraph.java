@@ -3,7 +3,10 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 /**
@@ -28,12 +31,13 @@ public class QueryResultPlainParagraph extends QueryResult {
 
     @Override
     protected void populateComponent() {
-        Label title = new Label("title", response.getData().getFirst().get("title"));
-        Label content = new Label("paragraph", response.getData().getFirst().get("content"));
-        content.setEscapeModelStrings(false);
-
-        add(title);
-        add(content);
+        add(new ListView<>("paragraphs", response.getData()) {
+            @Override
+            protected void populateItem(ListItem<ApiResponseEntry> item) {
+                item.add(new Label("title", item.getModelObject().get("title")));
+                item.add(new Label("content", item.getModelObject().get("content")).setEscapeModelStrings(false));
+            }
+        });
     }
 
 }
