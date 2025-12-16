@@ -19,6 +19,7 @@ public class KPXL_TERMS {
     public static final IRI RESOURCE_VIEW = VocabUtils.createIRI(NAMESPACE, "ResourceView");
     public static final IRI TABULAR_VIEW = VocabUtils.createIRI(NAMESPACE, "TabularView");
     public static final IRI LIST_VIEW = VocabUtils.createIRI(NAMESPACE, "ListView");
+    public static final IRI PLAIN_PARAGRAPH_VIEW = VocabUtils.createIRI(NAMESPACE, "PlainParagraphView");
     public static final IRI VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "ViewDisplay");
     public static final IRI COLUMN_WIDTH_1_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth01of12");
     public static final IRI COLUMN_WIDTH_2_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth02of12");

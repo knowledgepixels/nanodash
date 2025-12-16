@@ -108,7 +108,7 @@ public class ResourceView implements Serializable {
                     if (st.getObject().equals(KPXL_TERMS.RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
                     }
-                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW)) {
+                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW) || st.getObject().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
                         viewType = (IRI) st.getObject();
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
