@@ -98,17 +98,21 @@ public class Space extends ProfiledResource {
         }
     }
 
+    private static final String ensureLoadedLock = "";
+
     /**
      * Ensure that the spaces are loaded, fetching them from the API if necessary.
      */
     public static void ensureLoaded() {
         if (spaceList == null) {
             try {
-                if (runRootUpdateAfter != null) {
-                    while (System.currentTimeMillis() < runRootUpdateAfter) {
-                        Thread.sleep(100);
+                synchronized (ensureLoadedLock) {
+                    if (runRootUpdateAfter != null) {
+                        while (System.currentTimeMillis() < runRootUpdateAfter) {
+                            Thread.sleep(100);
+                        }
+                        runRootUpdateAfter = null;
                     }
-                    runRootUpdateAfter = null;
                 }
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
