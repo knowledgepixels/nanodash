@@ -60,7 +60,7 @@ public class QueryListPage extends NanodashPage {
 
         final String queryName = "get-queries";
         final QueryRef queryRef = new QueryRef(queryName);
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryRef);
+        ApiResponse qResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (qResponse != null) {
             add(new QueryList("queries", qResponse));
         } else {

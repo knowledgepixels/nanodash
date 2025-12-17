@@ -96,7 +96,7 @@ public class LookupApis {
                     queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
                 }
                 params.put(queryParamName, searchterm);
-                ApiResponse result = QueryApiAccess.get(new QueryRef(queryName, params));
+                ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryName, params), false);
                 int count = 0;
                 for (ApiResponseEntry r : result.getData()) {
                     String uri = r.get("thing");

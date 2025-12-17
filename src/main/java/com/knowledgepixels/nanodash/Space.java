@@ -1,12 +1,15 @@
 package com.knowledgepixels.nanodash;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -20,8 +23,14 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -117,7 +126,7 @@ public class Space extends ProfiledResource {
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
-            refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
+            refresh(ApiCache.retrieveResponseSync(new QueryRef("get-spaces"), true));
         }
     }
 
@@ -163,7 +172,7 @@ public class Space extends ProfiledResource {
      * Mark all spaces as needing a data update.
      */
     public static void refresh() {
-        refresh(QueryApiAccess.forcedGet(new QueryRef("get-spaces")));
+        refresh(ApiCache.retrieveResponseSync(new QueryRef("get-spaces"), true));
         for (Space space : spaceList) {
             space.dataNeedsUpdate = true;
         }
@@ -536,7 +545,7 @@ public class Space extends ProfiledResource {
                         resourceIds.put("resource", id);
                     }
 
-                    ApiResponse getAdminsResponse = QueryApiAccess.get(new QueryRef("get-admins", spaceIds));
+                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef("get-admins", spaceIds), false);
                     boolean continueAddingAdmins = true;
                     while (continueAddingAdmins) {
                         continueAddingAdmins = false;
@@ -555,7 +564,7 @@ public class Space extends ProfiledResource {
 
                     Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
 
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-member-roles", spaceIds)).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-space-member-roles", spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
                         newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
@@ -567,13 +576,13 @@ public class Space extends ProfiledResource {
                         role.addRoleParams(getSpaceMemberParams);
                     }
 
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-space-members", getSpaceMemberParams)).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-space-members", getSpaceMemberParams), false).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                         newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
                     }
 
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-templates", spaceIds)).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-pinned-templates", spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         Template t = TemplateData.get().getTemplate(r.get("template"));
                         if (t == null) continue;
@@ -584,7 +593,7 @@ public class Space extends ProfiledResource {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
                         }
                     }
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-pinned-queries", spaceIds)).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-pinned-queries", spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         GrlcQuery query = GrlcQuery.get(r.get("query"));
                         if (query == null) continue;

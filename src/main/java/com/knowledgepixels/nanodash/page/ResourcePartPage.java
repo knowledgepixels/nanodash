@@ -26,7 +26,6 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.ProfiledResource;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -82,9 +81,9 @@ public class ResourcePartPage extends NanodashPage {
             }
         }
 
-        ApiResponse getDefResp = ApiCache.retrieveResponse(getDefQuery);
+        ApiResponse getDefResp = ApiCache.retrieveResponseAsync(getDefQuery);
         if (getDefResp == null) {
-            getDefResp = QueryApiAccess.forcedGet(getDefQuery);
+            getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
         }
         if (getDefResp != null && !getDefResp.getData().isEmpty()) {
             nanopubId = getDefResp.getData().iterator().next().get("np");

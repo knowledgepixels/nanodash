@@ -1,9 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.template.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -46,7 +49,9 @@ import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.server.PublishNanopub;
-import org.nanopub.extra.services.*;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -55,8 +60,23 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.LocalUri;
+import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.ProfiledResource;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 
 /**
  * Form for publishing a nanopublication.
@@ -261,18 +281,13 @@ public class PublishForm extends Panel {
                 mapsFrom = mapping;
                 mapsTo = mapping;
             }
-            try {
-                ApiResponse resp = QueryApiAccess.get(QueryRef.parseString(querySpec));
-                int i = 0;
-                for (ApiResponseEntry e : resp.getData()) {
-                    String mapsToSuffix = "";
-                    if (i > 0) mapsToSuffix = "__" + i;
-                    assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
-                    i++;
-                }
-            } catch (FailedApiCallException | APINotReachableException | NotEnoughAPIInstancesException |
-                     NullPointerException ex) {
-                ex.printStackTrace();
+            ApiResponse resp = ApiCache.retrieveResponseSync(QueryRef.parseString(querySpec), false);
+            int i = 0;
+            for (ApiResponseEntry e : resp.getData()) {
+                String mapsToSuffix = "";
+                if (i > 0) mapsToSuffix = "__" + i;
+                assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
+                i++;
             }
         }
         for (String k : pageParams.getNamedKeys()) {

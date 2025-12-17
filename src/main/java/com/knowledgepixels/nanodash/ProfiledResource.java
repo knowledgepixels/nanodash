@@ -1,6 +1,14 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -8,8 +16,7 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 public class ProfiledResource implements Serializable {
 
@@ -70,7 +77,7 @@ public class ProfiledResource implements Serializable {
 
                     ResourceData newData = new ResourceData();
 
-                    for (ApiResponseEntry r : QueryApiAccess.get(new QueryRef("get-view-displays", "resource", id)).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-view-displays", "resource", id), true).getData()) {
                         if (space != null && !space.isAdminPubkey(r.get("pubkey"))) continue;
                         try {
                             newData.viewDisplays.add(ViewDisplay.get(r.get("display")));

@@ -1,8 +1,13 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -13,15 +18,9 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.knowledgepixels.nanodash.Utils.vf;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * Class representing a Nanodash project.
@@ -57,7 +56,7 @@ public class Project implements Serializable {
      */
     public static void ensureLoaded() {
         if (projectList == null) {
-            refresh(QueryApiAccess.forcedGet(new QueryRef("get-projects")));
+            refresh(ApiCache.retrieveResponseSync(new QueryRef("get-projects"), true));
         }
     }
 
@@ -280,14 +279,14 @@ public class Project implements Serializable {
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
             new Thread(() -> {
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-owners", "unit", id)).getData()) {
+                for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-owners", "unit", id), true).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (ownerPubkeyMap.containsKey(pubkeyhash)) {
                         addOwner(Utils.vf.createIRI(r.get("owner")));
                     }
                 }
                 members = new ArrayList<>();
-                for (ApiResponseEntry r : QueryApiAccess.forcedGet(new QueryRef("get-members", "unit", id)).getData()) {
+                for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-members", "unit", id), true).getData()) {
                     IRI memberId = Utils.vf.createIRI(r.get("member"));
                     // TODO These checks are inefficient for long member lists:
                     if (owners.contains(memberId)) continue;

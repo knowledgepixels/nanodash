@@ -149,7 +149,7 @@ public class QueryApiAccess {
         if (!latestVersionMap.containsKey(nanopubId) || currentTime - latestVersionMap.get(nanopubId).getLeft() > 1000 * 60) {
             // Re-fetch if existing value is older than 1 minute
             try {
-                ApiResponse r = get(new QueryRef("get-latest-version-of-np", "np", nanopubId));
+                ApiResponse r = ApiCache.retrieveResponseSync(new QueryRef("get-latest-version-of-np", "np", nanopubId), false);
                 if (r.getData().size() != 1) return nanopubId;
                 String l = r.getData().get(0).get("latest");
                 latestVersionMap.put(nanopubId, Pair.of(currentTime, l));

@@ -55,11 +55,69 @@ public class ApiCache {
      * @param queryRef The query reference
      * @throws FailedApiCallException If the API call fails.
      */
-    private static void updateResponse(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        ApiResponse response = QueryApiAccess.get(queryRef);
+    private static void updateResponse(QueryRef queryRef, boolean forced) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        ApiResponse response;
+        if (forced) {
+            response = QueryApiAccess.forcedGet(queryRef);
+        } else {
+            response = QueryApiAccess.get(queryRef);
+        }
         String cacheId = queryRef.getAsUrlString();
         cachedResponses.put(cacheId, response);
         lastRefresh.put(cacheId, System.currentTimeMillis());
+    }
+
+    public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
+        long timeNow = System.currentTimeMillis();
+        String cacheId = queryRef.getAsUrlString();
+        boolean isCached = false;
+        boolean needsRefresh = true;
+        if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
+            long cacheAge = timeNow - lastRefresh.get(cacheId);
+            isCached = cacheAge < 24 * 60 * 60 * 1000;
+            needsRefresh = cacheAge > 60 * 1000;
+        }
+        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
+            failed.remove(cacheId);
+            throw new RuntimeException("Query failed: " + cacheId);
+        }
+        if (needsRefresh && !isRunning(cacheId)) {
+            refreshStart.put(cacheId, timeNow);
+            try {
+                if (runAfter.containsKey(cacheId)) {
+                    while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                        Thread.sleep(100);
+                    }
+                    runAfter.remove(cacheId);
+                }
+                if (failed.get(cacheId) != null) {
+                    // 1 second pause between failed attempts;
+                    Thread.sleep(1000);
+                }
+                Thread.sleep(100 + new Random().nextLong(400));
+            } catch (InterruptedException ex) {
+                logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
+            }
+            try {
+                ApiCache.updateResponse(queryRef, forced);
+            } catch (Exception ex) {
+                logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
+                cachedResponses.remove(cacheId);
+                if (failed.get(cacheId) == null) {
+                    failed.put(cacheId, 1);
+                } else {
+                    failed.put(cacheId, failed.get(cacheId) + 1);
+                }
+                lastRefresh.put(cacheId, System.currentTimeMillis());
+            } finally {
+                refreshStart.remove(cacheId);
+            }
+        }
+        if (cachedResponses.containsKey(cacheId)) {
+            return cachedResponses.get(cacheId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -68,7 +126,7 @@ public class ApiCache {
      * @param queryRef The QueryRef object containing the query name and parameters.
      * @return The cached API response, or null if not cached.
      */
-    public static ApiResponse retrieveResponse(QueryRef queryRef) {
+    public static ApiResponse retrieveResponseAsync(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         boolean isCached = false;
@@ -101,7 +159,7 @@ public class ApiCache {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
                 }
                 try {
-                    ApiCache.updateResponse(queryRef);
+                    ApiCache.updateResponse(queryRef, false);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.remove(cacheId);

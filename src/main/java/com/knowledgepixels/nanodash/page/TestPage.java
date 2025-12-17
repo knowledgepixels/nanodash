@@ -41,7 +41,7 @@ public class TestPage extends NanodashPage {
         add(new TitleBar("titlebar", this, null));
 
         final QueryRef queryRef = new QueryRef("get-monthly-type-overview-by-pubkeys", "pubkey", "1162349fdeaf431e71ab55898cb2a425b971d466150c2aa5b3c1beb498045a37");
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             add(new ActivityPanel("activity", response));
         } else {

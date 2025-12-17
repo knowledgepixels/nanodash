@@ -64,7 +64,7 @@ public class ThingListPanel extends Panel {
      */
     public static Component createComponent(final String markupId, final Mode mode, final String thingRef, final String waitMessage) {
         QueryRef queryRef = new QueryRef(mode.queryName, mode.queryParamKey, thingRef);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             return new ThingListPanel(markupId, mode, thingRef, response);
         } else {

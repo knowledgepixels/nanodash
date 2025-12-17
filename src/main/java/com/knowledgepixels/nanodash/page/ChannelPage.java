@@ -141,7 +141,7 @@ public class ChannelPage extends NanodashPage {
             params.put("userid", userIri.stringValue());
         }
         final QueryRef queryRef = new QueryRef(queryName, params);
-        ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
+        ApiResponse cachedResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (cachedResponse != null) {
             add(NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20));
         } else {
@@ -157,7 +157,7 @@ public class ChannelPage extends NanodashPage {
                             logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryRef)) {
-                            r = ApiCache.retrieveResponse(queryRef);
+                            r = ApiCache.retrieveResponseAsync(queryRef);
                             if (r != null) break;
                         }
                     }

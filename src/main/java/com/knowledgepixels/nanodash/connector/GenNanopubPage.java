@@ -75,7 +75,7 @@ public class GenNanopubPage extends ConnectorPage {
             Multimap<String, String> params = ArrayListMultimap.create();
             params.put("npid", ref);
             params.put("type", getConfig().getNanopubType().stringValue());
-            ApiResponse resp = QueryApiAccess.get(new QueryRef("get-publisher-version", params));
+            ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef("get-publisher-version", params), false);
             if (resp != null && resp.getData().size() == 1) {
                 ref = resp.getData().get(0).get("publisher_version_np");
                 mode = "final";
@@ -151,7 +151,7 @@ public class GenNanopubPage extends ConnectorPage {
             }
 
             QueryRef queryRef = new QueryRef("get-reactions", "pub", uri);
-            ApiResponse resp = ApiCache.retrieveResponse(queryRef);
+            ApiResponse resp = ApiCache.retrieveResponseAsync(queryRef);
             if (resp != null) {
                 add(new ReactionList("reactions", resp, np));
             } else {

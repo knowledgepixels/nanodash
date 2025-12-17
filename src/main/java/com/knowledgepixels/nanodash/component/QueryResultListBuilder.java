@@ -68,7 +68,7 @@ public class QueryResultListBuilder implements Serializable {
      * @return the QueryResultList component
      */
     public Component build() {
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (space != null) {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);

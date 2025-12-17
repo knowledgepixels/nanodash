@@ -129,7 +129,7 @@ public class UserPage extends NanodashPage {
             params.put("userid", userIri.stringValue());
         }
         final QueryRef queryRef = new QueryRef(queryName, params);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             add(makeNanopubResultComponent("latestnanopubs", response));
         } else {
@@ -145,7 +145,7 @@ public class UserPage extends NanodashPage {
                             logger.error("Thread interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryRef)) {
-                            r = ApiCache.retrieveResponse(queryRef);
+                            r = ApiCache.retrieveResponseAsync(queryRef);
                             if (r != null) break;
                         }
                     }

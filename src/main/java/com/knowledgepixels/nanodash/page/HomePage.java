@@ -77,7 +77,7 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         final QueryRef rQueryRef = new QueryRef("get-most-recent-nanopubs");
-        ApiResponse rResponse = ApiCache.retrieveResponse(rQueryRef);
+        ApiResponse rResponse = ApiCache.retrieveResponseAsync(rQueryRef);
         if (rResponse != null) {
             add(NanopubResults.fromApiResponse("mostrecent", rResponse, 10));
         } else {

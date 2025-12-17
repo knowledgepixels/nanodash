@@ -61,7 +61,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
      * @return the QueryResultPlainParagraph component
      */
     public Component build() {
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
             resultPlainParagraph.setContextId(contextId);

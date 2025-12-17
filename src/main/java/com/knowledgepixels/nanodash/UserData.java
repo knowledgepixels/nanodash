@@ -1,5 +1,16 @@
 package com.knowledgepixels.nanodash;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -18,10 +29,6 @@ import org.nanopub.extra.setting.NanopubSetting;
 import org.nanopub.vocabulary.NPX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * UserData class manages user-related data.
@@ -111,7 +118,7 @@ public class UserData implements Serializable {
 
         logger.info("Loading user details...");
         // Get latest introductions for all users, including unapproved ones:
-        for (ApiResponseEntry entry : QueryApiAccess.forcedGet(new QueryRef("get-all-user-intros")).getData()) {
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef("get-all-user-intros"), true).getData()) {
             register(entry);
         }
     }

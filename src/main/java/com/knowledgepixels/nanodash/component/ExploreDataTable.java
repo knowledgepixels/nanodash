@@ -199,7 +199,7 @@ public class ExploreDataTable extends Panel {
      */
     public static Component createComponent(final String markupId, final String ref) {
         QueryRef queryRef = new QueryRef(refQueryName, "ref", ref);
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             return new ExploreDataTable(markupId, ref, response);
         } else {

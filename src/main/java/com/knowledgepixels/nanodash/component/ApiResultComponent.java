@@ -38,7 +38,7 @@ public abstract class ApiResultComponent extends ResultComponent {
         while (true) {
             if (!ApiCache.isRunning(queryRef)) {
                 try {
-                    response = ApiCache.retrieveResponse(queryRef);
+                    response = ApiCache.retrieveResponseAsync(queryRef);
                     if (response != null) break;
                 } catch (Exception ex) {
                     return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);

@@ -286,7 +286,7 @@ public class ListPage extends NanodashPage {
             queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
         }
         final QueryRef queryRef = new QueryRef(QUERY_NAME, queryParams);
-        ApiResponse cachedResponse = ApiCache.retrieveResponse(queryRef);
+        ApiResponse cachedResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20);
             cachedResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
@@ -304,7 +304,7 @@ public class ListPage extends NanodashPage {
                             logger.error("Interrupted while waiting for API response", ex);
                         }
                         if (!ApiCache.isRunning(queryRef)) {
-                            response = ApiCache.retrieveResponse(queryRef);
+                            response = ApiCache.retrieveResponseAsync(queryRef);
                             if (response != null) break;
                         }
                     }

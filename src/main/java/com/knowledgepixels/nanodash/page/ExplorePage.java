@@ -115,6 +115,8 @@ public class ExplorePage extends NanodashPage {
         add(new TitleBar("titlebar", this, null));
 
         String tempRef = parameters.get("id").toString();
+        // Sometimes these Wicket session IDs end up here and they can mess up the query cache:
+        tempRef = tempRef.replaceFirst(";jsessionid.*$", "");
 
         String contextId = parameters.get("context").toString("");
         if (Space.get(contextId) != null) {
@@ -153,7 +155,7 @@ public class ExplorePage extends NanodashPage {
                 Multimap<String, String> params = ArrayListMultimap.create();
                 params.put("thing", tempRef);
                 params.put("np", npId);
-                ApiResponse resp = QueryApiAccess.forcedGet(new QueryRef("get-latest-thing-nanopub", params));
+                ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef("get-latest-thing-nanopub", params), false);
                 if (!resp.getData().isEmpty()) {
                     // TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
                     npId = resp.getData().get(0).get("latestVersion");

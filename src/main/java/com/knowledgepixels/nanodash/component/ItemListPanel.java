@@ -49,7 +49,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
         this(markupId, title);
 
-        ApiResponse qResponse = ApiCache.retrieveResponse(queryRef);
+        ApiResponse qResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (qResponse != null) {
             add(new ItemList<T>("itemlist", resultListProvider.apply(qResponse), compProvider));
         } else {

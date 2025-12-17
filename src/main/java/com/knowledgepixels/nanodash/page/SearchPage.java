@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
@@ -147,7 +147,7 @@ public class SearchPage extends NanodashPage {
                             }
                             try {
                                 // nanopubResults = ApiAccess.getAll("find_nanopubs_with_uri", nanopubParams).getData();
-                                nanopubResults = QueryApiAccess.get(new QueryRef("find-uri-references", nanopubParams)).getData();
+                                nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("find-uri-references", nanopubParams), false).getData();
                             } catch (Exception ex) {
                                 logger.error("Error while running the query for URI", ex);
                             }
@@ -164,7 +164,7 @@ public class SearchPage extends NanodashPage {
                                 }
                                 try {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-                                    nanopubResults = QueryApiAccess.get(new QueryRef("fulltext-search-on-labels", nanopubParams)).getData();
+                                    nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("fulltext-search-on-labels", nanopubParams), false).getData();
                                 } catch (Exception ex) {
                                     logger.error("Error during search", ex);
                                 }

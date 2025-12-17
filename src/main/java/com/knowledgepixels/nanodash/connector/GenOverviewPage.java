@@ -86,7 +86,7 @@ public class GenOverviewPage extends ConnectorPage {
 
             if (NanodashSession.get().getUserIri() != null) {
                 QueryRef queryRef = new QueryRef(getConfig().getCandidateNanopubsApiCall(), "creator", NanodashSession.get().getUserIri().stringValue());
-                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
+                ApiResponse resp = ApiCache.retrieveResponseAsync(queryRef);
                 while (resp == null) {
                     // we only get here in case of second-generation API calls
                     // TODO Do this in an AJAX way:
@@ -95,7 +95,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = ApiCache.retrieveResponse(queryRef);
+                    resp = ApiCache.retrieveResponseAsync(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -160,7 +160,7 @@ public class GenOverviewPage extends ConnectorPage {
             add(c);
 
             QueryRef queryRef = new QueryRef(getConfig().getCandidateNanopubsApiCall());
-            ApiResponse resp = ApiCache.retrieveResponse(queryRef);
+            ApiResponse resp = ApiCache.retrieveResponseAsync(queryRef);
             while (resp == null) {
                 // TODO Do this in an AJAX way:
                 try {
@@ -168,7 +168,7 @@ public class GenOverviewPage extends ConnectorPage {
                 } catch (InterruptedException ex) {
                     logger.error("Thread interrupted", ex);
                 }
-                resp = ApiCache.retrieveResponse(queryRef);
+                resp = ApiCache.retrieveResponseAsync(queryRef);
             }
 
             final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -223,7 +223,7 @@ public class GenOverviewPage extends ConnectorPage {
                 add(c);
 
                 QueryRef queryRef = new QueryRef(getConfig().getAcceptedNanopubsApiCall());
-                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
+                ApiResponse resp = ApiCache.retrieveResponseAsync(queryRef);
                 while (resp == null) {
                     // TODO Do this in an AJAX way:
                     try {
@@ -231,7 +231,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = ApiCache.retrieveResponse(queryRef);
+                    resp = ApiCache.retrieveResponseAsync(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();
@@ -301,7 +301,7 @@ public class GenOverviewPage extends ConnectorPage {
                 add(c);
 
                 QueryRef queryRef = new QueryRef(getConfig().getGeneralReactionsApiCall());
-                ApiResponse resp = ApiCache.retrieveResponse(queryRef);
+                ApiResponse resp = ApiCache.retrieveResponseAsync(queryRef);
                 while (resp == null) {
                     // TODO Do this in an AJAX way:
                     try {
@@ -309,7 +309,7 @@ public class GenOverviewPage extends ConnectorPage {
                     } catch (InterruptedException ex) {
                         logger.error("Thread interrupted", ex);
                     }
-                    resp = ApiCache.retrieveResponse(queryRef);
+                    resp = ApiCache.retrieveResponseAsync(queryRef);
                 }
 
                 final List<ApiResponseEntry> listData = new ArrayList<ApiResponseEntry>();

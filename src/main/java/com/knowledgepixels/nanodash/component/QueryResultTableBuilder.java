@@ -92,7 +92,7 @@ public class QueryResultTableBuilder implements Serializable {
      * @return the constructed Component
      */
     public Component build() {
-        ApiResponse response = ApiCache.retrieveResponse(queryRef);
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (profiledResource != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
