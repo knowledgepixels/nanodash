@@ -9,7 +9,6 @@ import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Represents a sequence element item.
