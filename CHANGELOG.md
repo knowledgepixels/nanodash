@@ -1,3 +1,18 @@
+## [4.5.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.0...nanodash-4.5.1) (2025-12-17)
+
+### Bug Fixes
+
+* Use API result cache for all requests ([e662f50](https://github.com/knowledgepixels/nanodash/commit/e662f50621f58719f0c4df8c7262d5f56b50013c))
+
+### Build and continuous integration
+
+* **deps:** update actions/checkout action to v5.0.1 ([003da6c](https://github.com/knowledgepixels/nanodash/commit/003da6c920038b80d137b6ac866777ea4cef613e))
+* **deps:** update actions/setup-java action to v5.1.0 ([563c30d](https://github.com/knowledgepixels/nanodash/commit/563c30d501e3a20d380350791a044566eb3ed469))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([929b979](https://github.com/knowledgepixels/nanodash/commit/929b979735488e66fb702230fcb8552d53e89687))
+
 ## [4.5.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.4.0...nanodash-4.5.0) (2025-12-16)
 
 ### Features
