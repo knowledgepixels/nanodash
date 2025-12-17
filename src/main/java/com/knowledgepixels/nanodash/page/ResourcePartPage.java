@@ -81,10 +81,7 @@ public class ResourcePartPage extends NanodashPage {
             }
         }
 
-        ApiResponse getDefResp = ApiCache.retrieveResponseAsync(getDefQuery);
-        if (getDefResp == null) {
-            getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
-        }
+        ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
         if (getDefResp != null && !getDefResp.getData().isEmpty()) {
             nanopubId = getDefResp.getData().iterator().next().get("np");
 
