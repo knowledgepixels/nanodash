@@ -46,6 +46,7 @@ public class MaintainedResourcePage extends NanodashPage {
 
         resource = MaintainedResource.get(parameters.get("id").toString());
         Space space = resource.getSpace();
+        resource.triggerDataUpdate();
 
         List<ProfiledResource> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());

@@ -62,9 +62,13 @@ public class Space extends ProfiledResource {
         subspaceMap = new HashMap<>();
         superspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
-            Space space = new Space(entry);
-            Space prevSpace = prevSpacesByCoreInfoPrev.get(space.getCoreInfoString());
-            if (prevSpace != null) space = prevSpace;
+            String id = getCoreInfoString(entry);
+            Space space;
+            if (prevSpacesByCoreInfoPrev.containsKey(id)) {
+                space = prevSpacesByCoreInfoPrev.get(id);
+            } else {
+                space = new Space(entry);
+            }
             spaceList.add(space);
             spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             spacesByCoreInfo.put(space.getCoreInfoString(), space);
@@ -75,6 +79,7 @@ public class Space extends ProfiledResource {
             if (superSpace == null) continue;
             subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
             superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
+            space.setDataNeedsUpdate();
         }
         loaded = true;
     }
@@ -217,6 +222,12 @@ public class Space extends ProfiledResource {
             users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
         }
 
+    }
+
+    private static String getCoreInfoString(ApiResponseEntry resp) {
+        String id = resp.get("space");
+        String rootNanopubId = resp.get("np");
+        return id + " " + rootNanopubId;
     }
 
     private boolean dataInitialized = false;
@@ -515,7 +526,7 @@ public class Space extends ProfiledResource {
     }
 
     @Override
-    protected synchronized Thread triggerDataUpdate() {
+    public synchronized Thread triggerDataUpdate() {
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }

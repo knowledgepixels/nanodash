@@ -64,7 +64,7 @@ public class ProfiledResource implements Serializable {
         return id;
     }
 
-    protected synchronized Thread triggerDataUpdate() {
+    public synchronized Thread triggerDataUpdate() {
         if (dataNeedsUpdate) {
             Thread thread = new Thread(() -> {
                 try {

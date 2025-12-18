@@ -63,6 +63,7 @@ public class SpacePage extends NanodashPage {
             throw new RestartResponseException(MaintainedResourcePage.class, parameters);
         }
         Nanopub np = space.getNanopub();
+        space.triggerDataUpdate();
 
         List<ProfiledResource> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
