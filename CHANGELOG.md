@@ -1,3 +1,14 @@
+## [4.5.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.1...nanodash-4.5.2) (2025-12-18)
+
+### Bug Fixes
+
+* **ResourcePartPage:** Synchronous retrieval of definition ([deae9e0](https://github.com/knowledgepixels/nanodash/commit/deae9e05fbe2a9a8691688bf306c17d5c0d01d70))
+* **Space:** Leaking Space objects fixed ([f28b782](https://github.com/knowledgepixels/nanodash/commit/f28b7829847eb74c701cbbdc5f59c71ab5c6de75))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([c40515e](https://github.com/knowledgepixels/nanodash/commit/c40515eec11ce732ba1da131a1aaab06c362dea9))
+
 ## [4.5.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.0...nanodash-4.5.1) (2025-12-17)
 
 ### Bug Fixes
