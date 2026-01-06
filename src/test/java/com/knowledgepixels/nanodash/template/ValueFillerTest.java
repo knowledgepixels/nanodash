@@ -12,7 +12,6 @@ import org.nanopub.NanopubAlreadyFinalizedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.eclipse.rdf4j.model.util.Values.iri;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ValueFillerTest {
