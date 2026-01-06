@@ -29,10 +29,7 @@ public class QueryResultPlainParagraph extends QueryResult {
         super(markupId, queryRef, response, viewDisplay);
 
         String label = grlcQuery.getLabel();
-        String paragraphTitle = response.getData().isEmpty() ? null : response.getData().get(0).get("title");
-        if (paragraphTitle != null && !paragraphTitle.isBlank()) {
-            label = paragraphTitle;
-        } else if (viewDisplay.getView() != null && viewDisplay.getView().getTitle() != null) {
+        if (viewDisplay.getView() != null && viewDisplay.getView().getTitle() != null) {
             label = viewDisplay.getView().getTitle();
         }
         add(new Label("label", label));
@@ -51,6 +48,7 @@ public class QueryResultPlainParagraph extends QueryResult {
         add(new ListView<>("paragraphs", response.getData()) {
             @Override
             protected void populateItem(ListItem<ApiResponseEntry> item) {
+                item.add(new Label("title", item.getModelObject().get("title")));
                 item.add(new Label("content", item.getModelObject().get("content")).setEscapeModelStrings(false));
             }
         });
