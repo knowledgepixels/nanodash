@@ -1,3 +1,20 @@
+## [4.6.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.2...nanodash-4.6.0) (2026-01-06)
+
+### Features
+
+* **LookupApis:** Update to latest ror.org API version ([9868a81](https://github.com/knowledgepixels/nanodash/commit/9868a81d20e0e1a9a00c5da56a3a426128f76f34))
+* **QueryResultPlainParagraph:** Show source links of elements ([be7bda7](https://github.com/knowledgepixels/nanodash/commit/be7bda791fb30ca47a29742fcef4060443bb8c99))
+* **QueryResultPlainParagraph:** Support view buttons/actions ([2337c49](https://github.com/knowledgepixels/nanodash/commit/2337c4971ada224f3da7ea8dd43844d62d235eb5))
+* **QueryResultPlanParagraph:** Add proper titles and fix earlier commit ([d340def](https://github.com/knowledgepixels/nanodash/commit/d340deff2a032c013b2d2895fd62e0825a6dceb7))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([52b0047](https://github.com/knowledgepixels/nanodash/commit/52b00470c5d40a93c8b429c4af513b0852f5f10f))
+
+### Refactoring
+
+* remove unused imports ([9a7754f](https://github.com/knowledgepixels/nanodash/commit/9a7754f5f1f580394e6300a0adf43ef793c04c51))
+
 ## [4.5.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.1...nanodash-4.5.2) (2025-12-18)
 
 ### Bug Fixes
