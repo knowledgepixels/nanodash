@@ -1814,11 +1814,47 @@ div.navigator .goto a[disabled] {
   margin-top: 20px;
   display: inline-block;
   background: none;
+  color: #0B73DA;
+}
+
+.paneltitlerow span.buttons a.source:hover {
+  background: none;
+  color: #0B73DAC0;
 }
 
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   float: right;
+}
+
+.paragraph-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.paragraph-header h5 {
+  margin: 0;
+}
+
+.paragraph-header span.buttons {
+  float: none;
+  margin: 0;
+}
+
+.paragraph-header span.buttons a.smallbutton {
+  margin-top: 0;
+}
+
+.paragraph-header span.buttons a.source {
+  background: none;
+  color: #0B73DA;
+}
+
+.paragraph-header span.buttons a.source:hover {
+  background: none;
+  color: #0B73DAC0;
 }
 
 td div:has(.button-list) {

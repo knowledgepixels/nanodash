@@ -49,6 +49,12 @@ public class QueryResultPlainParagraph extends QueryResult {
             @Override
             protected void populateItem(ListItem<ApiResponseEntry> item) {
                 item.add(new Label("title", item.getModelObject().get("title")));
+                String npId = item.getModelObject().get("np");
+                if (npId != null && !npId.isBlank()) {
+                    item.add(new BookmarkablePageLink<Void>("pnp", ExplorePage.class, new PageParameters().set("id", npId)));
+                } else {
+                    item.add(new Label("pnp").setVisible(false));
+                }
                 item.add(new Label("content", item.getModelObject().get("content")).setEscapeModelStrings(false));
             }
         });
