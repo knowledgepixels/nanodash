@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
@@ -20,6 +22,40 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
     private QueryRef queryRef;
     private Space space = null;
     private String id = null;
+
+    // This method is the result of refactoring and copying code from other classes done
+    // by Cursor. This should in general be aligned and refactored more with the other classes.
+    private void addResultButtons(QueryResultPlainParagraph resultPlainParagraph) {
+        ResourceView view = viewDisplay.getView();
+        if (view == null) return;
+        for (IRI actionIri : view.getViewResultActionList()) {
+            Template t = view.getTemplateForAction(actionIri);
+            if (t == null) continue;
+            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+            if (targetField == null) targetField = "resource";
+            String label = view.getLabelForAction(actionIri);
+            if (label == null) label = "action...";
+            PageParameters params = new PageParameters().set("template", t.getId())
+                    .set("param_" + targetField, id)
+                    .set("context", contextId)
+                    .set("template-version", "latest");
+            String partField = view.getTemplatePartFieldForAction(actionIri);
+            if (partField != null) {
+                // TODO Find a better way to pass the MaintainedResource object to this method:
+                MaintainedResource r = MaintainedResource.get(contextId);
+                if (r != null && r.getNamespace() != null) {
+                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                }
+            }
+            String queryMapping = view.getTemplateQueryMapping(actionIri);
+            if (queryMapping != null && queryMapping.contains(":")) {
+                params.set("values-from-query", queryRef.getAsUrlString());
+                params.set("values-from-query-mapping", queryMapping);
+            }
+            params.set("refresh-upon-publish", queryRef.getAsUrlString());
+            resultPlainParagraph.addButton(label, PublishPage.class, params);
+        }
+    }
 
     private QueryResultPlainParagraphBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -62,27 +98,38 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        if (response != null) {
-            QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
-            resultPlainParagraph.setContextId(contextId);
-            return resultPlainParagraph;
-        } else {
-            if (space != null) {
+        if (space != null) {
+            if (response != null) {
+                QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
+                resultPlainParagraph.setProfiledResource(space);
+                resultPlainParagraph.setContextId(contextId);
+                addResultButtons(resultPlainParagraph);
+                return resultPlainParagraph;
+            } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
                         resultPlainParagraph.setProfiledResource(space);
                         resultPlainParagraph.setContextId(contextId);
+                        addResultButtons(resultPlainParagraph);
                         return resultPlainParagraph;
                     }
                 };
+            }
+        } else {
+            if (response != null) {
+                QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
+                resultPlainParagraph.setContextId(contextId);
+                addResultButtons(resultPlainParagraph);
+                return resultPlainParagraph;
             } else {
                 return new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
                         resultPlainParagraph.setContextId(contextId);
+                        addResultButtons(resultPlainParagraph);
                         return resultPlainParagraph;
                     }
                 };
