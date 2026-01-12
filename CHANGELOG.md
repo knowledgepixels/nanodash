@@ -1,3 +1,15 @@
+## [4.6.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.6.0...nanodash-4.6.1) (2026-01-12)
+
+### Bug Fixes
+
+* **ViewDisplay:** Avoid breaking page for invalid view display ([d458d26](https://github.com/knowledgepixels/nanodash/commit/d458d2611d58f42b5684d10545672d6d2caf2878))
+
+### General maintenance
+
+* Add nohup.out to .gitignore ([7d679f2](https://github.com/knowledgepixels/nanodash/commit/7d679f2d5d962cd8ba5d407b0f8289f77a403cd7))
+* setting next snapshot version [skip ci] ([75a12da](https://github.com/knowledgepixels/nanodash/commit/75a12dad21b1db0920897af066392fdf1be89d90))
+* Update CSS version link ([9815864](https://github.com/knowledgepixels/nanodash/commit/9815864eae259ae8a58d3688eb0b5ad5a2cedb21))
+
 ## [4.6.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.5.2...nanodash-4.6.0) (2026-01-06)
 
 ### Features
