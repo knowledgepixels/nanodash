@@ -41,14 +41,14 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @param id the ID of the ResourceView
      * @return the ResourceView object
      */
-    public static ViewDisplay get(String id) {
+    public static ViewDisplay get(String id) throws IllegalArgumentException {
         try {
             Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
             return new ViewDisplay(id, np);
         } catch (Exception ex) {
             logger.error("Couldn't load nanopub for resource: " + id, ex);
+            throw new IllegalArgumentException("invalid view value " + id);
         }
-        return null;
     }
 
     /**
