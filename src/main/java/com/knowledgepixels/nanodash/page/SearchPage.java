@@ -164,7 +164,7 @@ public class SearchPage extends NanodashPage {
                                 }
                                 try {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-                                    nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("fulltext-search-on-labels", nanopubParams), false).getData();
+                                    nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("fulltext-search", nanopubParams), false).getData();
                                 } catch (Exception ex) {
                                     logger.error("Error during search", ex);
                                 }
