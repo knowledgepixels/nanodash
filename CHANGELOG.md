@@ -1,3 +1,19 @@
+## [4.7.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.6.1...nanodash-4.7.0) (2026-01-13)
+
+### Features
+
+* **SearchPage:** Basic search covers all literals ([ec4b1bd](https://github.com/knowledgepixels/nanodash/commit/ec4b1bdd04a9ee34c1db501e690e73034e28a1c5))
+
+### Bug Fixes
+
+* **QueryPage:** Enforce full-ID to ensure OpenAPI links work ([e037aaa](https://github.com/knowledgepixels/nanodash/commit/e037aaabfbac9d0a2fbf59b71514d68d5333aa71))
+* **SearchPage:** Search page tampered with cached list ([acdebe6](https://github.com/knowledgepixels/nanodash/commit/acdebe64035364204544e9adfe194b00430e85a9))
+* Some log messages failed to show ([1cd30f9](https://github.com/knowledgepixels/nanodash/commit/1cd30f9399ea080bbc1969be06f41d3a9b76b059))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([cf694df](https://github.com/knowledgepixels/nanodash/commit/cf694dfe56fdbe1f11fa1c00fc9147935c2b8d0a))
+
 ## [4.6.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.6.0...nanodash-4.6.1) (2026-01-12)
 
 ### Bug Fixes
