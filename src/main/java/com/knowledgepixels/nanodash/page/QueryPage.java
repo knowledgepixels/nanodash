@@ -8,6 +8,8 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
+
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -68,6 +70,9 @@ public class QueryPage extends NanodashPage {
         }
 
         GrlcQuery q = GrlcQuery.get(id);
+        if (!q.getQueryId().equals(id)) {
+            throw new RestartResponseException(getClass(), parameters.set("id", q.getQueryId()));
+        }
 
         add(new Label("querylabel", q.getLabel()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue())));
