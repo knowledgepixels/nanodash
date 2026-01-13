@@ -164,14 +164,16 @@ public class SearchPage extends NanodashPage {
                                 }
                                 try {
                                     // nanopubResults = ApiAccess.getAll("find_nanopubs_with_text", nanopubParams).getData();
-                                    nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("fulltext-search-on-labels", nanopubParams), false).getData();
+                                    nanopubResults = ApiCache.retrieveResponseSync(new QueryRef("fulltext-search", nanopubParams), false).getData();
                                 } catch (Exception ex) {
                                     logger.error("Error during search", ex);
                                 }
+                                logger.info("Results in: {}", nanopubResults.size());
 //								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
                             }
                         }
                     }
+                    nanopubResults = new ArrayList<>(nanopubResults);
                     nanopubResults.sort(new ApiResponseEntry.DataComparator());
                     List<String> nanopubIds = new ArrayList<>();
                     while (!nanopubResults.isEmpty() && nanopubIds.size() < 100) {
