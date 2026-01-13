@@ -168,10 +168,12 @@ public class SearchPage extends NanodashPage {
                                 } catch (Exception ex) {
                                     logger.error("Error during search", ex);
                                 }
+                                logger.info("Results in: {}", nanopubResults.size());
 //								nanopubResults = ApiAccess.getRecent("find_nanopubs_with_text", nanopubParams, progress);
                             }
                         }
                     }
+                    nanopubResults = new ArrayList<>(nanopubResults);
                     nanopubResults.sort(new ApiResponseEntry.DataComparator());
                     List<String> nanopubIds = new ArrayList<>();
                     while (!nanopubResults.isEmpty() && nanopubIds.size() < 100) {

@@ -63,6 +63,7 @@ public class ApiCache {
             response = QueryApiAccess.get(queryRef);
         }
         String cacheId = queryRef.getAsUrlString();
+        logger.info("updateResponse {}", cacheId);
         cachedResponses.put(cacheId, response);
         lastRefresh.put(cacheId, System.currentTimeMillis());
     }
@@ -70,11 +71,10 @@ public class ApiCache {
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
-        boolean isCached = false;
+        logger.info("retrieveResponseSync {}", cacheId);
         boolean needsRefresh = true;
         if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
         }
         if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
@@ -82,6 +82,7 @@ public class ApiCache {
             throw new RuntimeException("Query failed: " + cacheId);
         }
         if (needsRefresh && !isRunning(cacheId)) {
+            logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {
                 if (runAfter.containsKey(cacheId)) {
