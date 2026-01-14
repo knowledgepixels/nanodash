@@ -191,7 +191,13 @@ public class ValueFiller {
         } else if (fillNp.getAssertionUri().equals(v)) {
             return LocalUri.of("assertion");
         } else if (v instanceof IRI iri && formMode) {
-            if (!NanopubUtils.getIntroducedIriIds(fillNp).contains(iri.stringValue()) || fillMode != FillMode.SUPERSEDE) {
+            Set<String> introducedIriIds = NanopubUtils.getIntroducedIriIds(fillNp);
+            Set<String> embeddedIriIds = NanopubUtils.getEmbeddedIriIds(fillNp);
+            boolean isIntroduced = introducedIriIds.contains(iri.stringValue());
+            boolean isEmbedded = embeddedIriIds.contains(iri.stringValue());
+            // When superseding, only introduced IRIs should not be transformed.
+            // Embedded IRIs should always be transformed (like when deriving).
+            if (!isIntroduced || fillMode != FillMode.SUPERSEDE || isEmbedded) {
                 if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
                     return LocalUri.of(Utils.getUriPostfix(v.stringValue()));
                 }
