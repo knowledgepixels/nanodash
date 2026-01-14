@@ -4,6 +4,7 @@
 .settings/
 .classpath
 .project
+.vscode
 /docker-compose.override.yml
 /local-data
 /peer-backups
