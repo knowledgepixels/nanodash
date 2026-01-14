@@ -7,10 +7,13 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
@@ -37,6 +40,8 @@ public class QueryResultTable extends QueryResult {
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
     private Label errorLabel;
+    private FilteredQueryResultDataProvider filteredDataProvider;
+    private Model<String> filterModel = Model.of("");
 
     QueryResultTable(String id, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, boolean plain) {
         super(id, queryRef, response, viewDisplay);
@@ -60,6 +65,19 @@ public class QueryResultTable extends QueryResult {
         errorLabel = new Label("error-messages", errorMessages);
         errorLabel.setVisible(false);
         add(errorLabel);
+
+        TextField<String> filterField = new TextField<>("filter", filterModel);
+        filterField.setOutputMarkupId(true);
+        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (filteredDataProvider != null && table != null) {
+                    filteredDataProvider.setFilterText(filterModel.getObject());
+                    target.add(table);
+                }
+            }
+        });
+        add(filterField);
 
         populateComponent();
     }
@@ -91,7 +109,8 @@ public class QueryResultTable extends QueryResult {
                 columns.add(new Column("", Column.ACTIONS));
             }
             dataProvider = new QueryResultDataProvider(response.getData());
-            table = new DataTable<>("table", columns, dataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
+            filteredDataProvider = new FilteredQueryResultDataProvider(dataProvider, response);
+            table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
