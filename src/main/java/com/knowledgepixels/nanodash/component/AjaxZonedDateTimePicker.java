@@ -151,8 +151,10 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
 
     @Override
     public FormComponent<ZonedDateTime> setModelObject(ZonedDateTime zonedDateTime) {
-        dateTimePicker.setModelObject(Date.from(zonedDateTime.toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
-        zoneDropDown.setModelObject(zonedDateTime.getZone());
+        if (zonedDateTime != null) {
+            dateTimePicker.setModelObject(Date.from(zonedDateTime.toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+            zoneDropDown.setModelObject(zonedDateTime.getZone());
+        }
         return super.setModelObject(zonedDateTime);
     }
 
