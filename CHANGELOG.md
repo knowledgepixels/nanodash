@@ -1,3 +1,18 @@
+## [4.8.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.7.0...nanodash-4.8.0) (2026-01-14)
+
+### Features
+
+* **QueryResultTable:** Add result filtering textfield ([35eecfc](https://github.com/knowledgepixels/nanodash/commit/35eecfcf7da28b4397dd9a954b19f66208e684f6))
+
+### Bug Fixes
+
+* **AjaxZonedDateTimePicker:** Avoid NullPointerException when optional ([35f6e62](https://github.com/knowledgepixels/nanodash/commit/35f6e6214b7a1358651439faf2f36af42e844924))
+* **MaintainedResource:** Fix sync problem in ensureLoaded ([0bd3618](https://github.com/knowledgepixels/nanodash/commit/0bd36189a3a90fcac17f8db7f59855b5d26a365e))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([a1c0e00](https://github.com/knowledgepixels/nanodash/commit/a1c0e004f44866bc5c46bfa8b887d232f0a3a317))
+
 ## [4.7.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.6.1...nanodash-4.7.0) (2026-01-13)
 
 ### Features
