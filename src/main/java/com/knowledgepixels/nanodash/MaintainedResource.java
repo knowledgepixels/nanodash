@@ -68,12 +68,10 @@ public class MaintainedResource extends ProfiledResource {
     public static void ensureLoaded() {
         if (resourceList == null) {
             try {
-                if (runRootUpdateAfter != null) {
-                    while (System.currentTimeMillis() < runRootUpdateAfter) {
-                        Thread.sleep(100);
-                    }
-                    runRootUpdateAfter = null;
+                while (runRootUpdateAfter != null && System.currentTimeMillis() < runRootUpdateAfter) {
+                    Thread.sleep(100);
                 }
+                runRootUpdateAfter = null;
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
