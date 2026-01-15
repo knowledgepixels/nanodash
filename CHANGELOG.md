@@ -1,3 +1,14 @@
+## [4.8.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.8.0...nanodash-4.8.1) (2026-01-15)
+
+### Bug Fixes
+
+* **ValueFiller:** Apply transform to embedded URIs ([444d571](https://github.com/knowledgepixels/nanodash/commit/444d5713b5c3062fedd3f29e21c53202bb7d72ae))
+
+### General maintenance
+
+* add .vscode to .gitignore ([d393434](https://github.com/knowledgepixels/nanodash/commit/d3934349db4a793a15fc4b2e87762803b2ec2224))
+* setting next snapshot version [skip ci] ([6400e96](https://github.com/knowledgepixels/nanodash/commit/6400e96306a73661314ff4ad6c1314f5921f95b7))
+
 ## [4.8.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.7.0...nanodash-4.8.0) (2026-01-14)
 
 ### Features
