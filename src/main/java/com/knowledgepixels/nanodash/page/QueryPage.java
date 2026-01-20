@@ -4,6 +4,7 @@ import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
@@ -138,11 +139,11 @@ public class QueryPage extends NanodashPage {
         paramContainer.setVisible(!paramFields.isEmpty());
         form.add(paramContainer);
 
-        // TODO Replace hard-coded Nanopub Query URL with dynamic solution:
-        String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", "https://query.petapico.org/tools/") + "/yasgui.html#query=" + URLEncoder.encode(q.getSparql(), Charsets.UTF_8);
+        // Hack to prevent auto-execution:
+        String sparql = "'auto_execution_blocker: Fill in placeholders below if applicable, then remove this line to run the query'\n\n" + q.getSparql();
+        String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", Utils.getMainQueryUrl() + "tools/") + "/yasgui.html#query=" + URLEncoder.encode(sparql, Charsets.UTF_8);
         // TODO We also need to replace the nanopub-query placeholder service URLs in the query above.
-        // Deactivated for now:
-        form.add(new ExternalLink("yasgui", editLink).setVisible(false));
+        form.add(new ExternalLink("yasgui", editLink));
 
         add(form);
 

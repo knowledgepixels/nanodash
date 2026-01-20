@@ -688,6 +688,19 @@ public class Utils {
             return "https://registry.knowledgepixels.com/";
         }
     }
+    /**
+     * Returns the URL of the default Nanopub Query as configured by the given instance.
+     *
+     * @return Nanopub Query URL
+     */
+    public static String getMainQueryUrl() {
+        try {
+            return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_QUERY", "https://query.knowledgepixels.com/");
+        } catch (IOException ex) {
+            logger.error("Could not get NANODASH_MAIN_QUERY environment variable, using default.", ex);
+            return "https://query.knowledgepixels.com/";
+        }
+    }
 
     private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
     private static final String LANGTAG_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"@([0-9a-zA-Z-]{2,})$";
