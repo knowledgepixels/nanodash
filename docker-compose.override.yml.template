@@ -9,3 +9,4 @@ services:
       - NANOPUB_ORCID_CLIENT_ID=your-orcid-client-id
       - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
       - NANODASH_MAIN_REGISTRY=https://registry.knowledgepixels.com/
+      - NANODASH_MAIN_QUERY=https://query.knowledgepixels.com/
