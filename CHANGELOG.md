@@ -1,3 +1,14 @@
+## [4.9.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.8.1...nanodash-4.9.0) (2026-01-21)
+
+### Features
+
+* **QueryPage:** Reactivate YasGUI link with auto-exec-blocker ([4f3d962](https://github.com/knowledgepixels/nanodash/commit/4f3d96200dd887b20dadb1c0d66cd642625a65b4))
+
+### General maintenance
+
+* Add bot icon (not yet used) ([0d54735](https://github.com/knowledgepixels/nanodash/commit/0d5473535c6fb5f4af465b3568c7f5f5a2df8c5a))
+* setting next snapshot version [skip ci] ([4f3689b](https://github.com/knowledgepixels/nanodash/commit/4f3689be2cb3d2066e65dce17549b8e4d4493854))
+
 ## [4.8.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.8.0...nanodash-4.8.1) (2026-01-15)
 
 ### Bug Fixes
