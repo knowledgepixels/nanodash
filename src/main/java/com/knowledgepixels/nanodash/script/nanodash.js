@@ -163,3 +163,17 @@ $(function () {
     $('.flex-container').addClass('grid-view').removeClass('list-view');
   });
 });
+
+function toggleMode() {
+  var body = document.body;
+  var toggleButton = document.getElementById('mode-toggle');
+  var toggleText = toggleButton.querySelector('.mode-toggle-text');
+  
+  if (body.classList.contains('mode-advanced')) {
+    body.classList.remove('mode-advanced');
+    toggleText.textContent = 'expand for more options';
+  } else {
+    body.classList.add('mode-advanced');
+    toggleText.textContent = 'collapse to simple view';
+  }
+}
