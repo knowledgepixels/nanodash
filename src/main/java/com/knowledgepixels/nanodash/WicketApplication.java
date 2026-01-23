@@ -21,6 +21,7 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
+import org.apache.wicket.util.lang.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +144,7 @@ public class WicketApplication extends WebApplication {
         mountPage(ResourcePartPage.MOUNT_PATH, ResourcePartPage.class);
 
         getCspSettings().blocking().disabled();
+        getStoreSettings().setMaxSizePerSession(Bytes.MAX);
     }
 
     /**
