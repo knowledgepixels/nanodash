@@ -744,6 +744,13 @@ public class Template implements Serializable {
 //				!assertionTypes.contains(NTEMPLATE.PROVENANCE_TEMPLATE) && !assertionTypes.contains(PUBINFO_TEMPLATE))) {
 //			throw new MalformedTemplateException("Unknown template type");
 //		}
+        // Grouped IRI are added via group, so direct link from template is redundant:
+        for (IRI iri : typeMap.keySet()) {
+            if (!typeMap.get(iri).contains(NTEMPLATE.GROUPED_STATEMENT)) continue;
+            for (IRI groupedIri : getStatementIris(iri)) {
+                statementMap.get(templateIri).remove(groupedIri);
+            }
+        }
         for (List<IRI> l : statementMap.values()) {
             l.sort(statementComparator);
         }
