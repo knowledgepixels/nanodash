@@ -1,3 +1,25 @@
+## [4.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.9.0...nanodash-4.10.0) (2026-01-26)
+
+### Features
+
+* **PublishForm:** Show simple view with toggle for full view ([0195add](https://github.com/knowledgepixels/nanodash/commit/0195add2a6441e44acbcb8bf006861926c04e308))
+
+### Bug Fixes
+
+* Prevent pages from prematurely be discarded from the page store ([9f77daf](https://github.com/knowledgepixels/nanodash/commit/9f77dafac8e55929b93f8a79fe6a1ff095afc6e3))
+
+### General maintenance
+
+* Make consent box text more concise and clearer ([99fc4a3](https://github.com/knowledgepixels/nanodash/commit/99fc4a353c8f1e28b8c2369177345a0d40ce7066))
+* setting next snapshot version [skip ci] ([53c81bb](https://github.com/knowledgepixels/nanodash/commit/53c81bb436898227c8e72c209b06e45a186b0607))
+* Update CSS version links ([1a981df](https://github.com/knowledgepixels/nanodash/commit/1a981df7d30d315c3f47d56e23b38800aa3db32b))
+
+### Style improvements
+
+* Add "advanced" CSS class so we can later hide when needed ([b78ed2d](https://github.com/knowledgepixels/nanodash/commit/b78ed2d0447ca2c3930d8b3493289f52fa53a336))
+* Deactivate namespace display on publish form for simplicity ([1923302](https://github.com/knowledgepixels/nanodash/commit/1923302abf850a067d71fb51f1ef37fd4144e631))
+* Remove title for publish form ([a694b09](https://github.com/knowledgepixels/nanodash/commit/a694b09ccafd64fb3f891d6db215492b279ea141))
+
 ## [4.9.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.8.1...nanodash-4.9.0) (2026-01-21)
 
 ### Features
