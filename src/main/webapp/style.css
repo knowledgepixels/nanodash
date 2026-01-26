@@ -1576,6 +1576,10 @@ span.internal {
   padding-right: 50px;
 }
 
+.collapse-content:has(p:only-child:empty) {
+  display: none;
+}
+
 .nanopub-assertion {
   position: relative;
 }
