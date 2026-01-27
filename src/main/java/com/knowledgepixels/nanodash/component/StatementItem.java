@@ -124,8 +124,13 @@ public class StatementItem extends Panel {
             first = false;
         }
         String htmlClassString = "";
-        if (!context.isReadOnly() && isOptional()) {
-            htmlClassString += "nanopub-optional ";
+        if (!context.isReadOnly()) {
+            if (isOptional()) {
+                htmlClassString += "nanopub-optional ";
+            }
+            if (isAdvanced()) {
+                htmlClassString += "advanced ";
+            }
         }
         boolean singleItem = context.getStatementItems().size() == 1;
         boolean repeatableOrRepeated = (!context.isReadOnly() && isRepeatable()) || (context.isReadOnly() && getRepetitionCount() > 1);
@@ -171,12 +176,17 @@ public class StatementItem extends Panel {
     }
 
     /**
-     * Returns the IRI of the statement this item represents.
-     *
-     * @return the statement ID
+     * Returns whether the statement is optional.
      */
     public boolean isOptional() {
         return repetitionGroups.size() == 1 && getTemplate().isOptionalStatement(statementId);
+    }
+
+    /**
+     * Returns whether the statement is advanced.
+     */
+    public boolean isAdvanced() {
+        return getTemplate().isAdvancedStatement(statementId);
     }
 
     /**
@@ -328,11 +338,19 @@ public class StatementItem extends Panel {
                 if (statementParts.size() == 1 && !isFirstGroup) {
                     statement.add(new AttributeAppender("class", " separate-statement"));
                 }
-                if (!context.isReadOnly() && isOptional && isLastLine) {
-                    optionalMark = new Label("label", "(optional)");
-                } else {
-                    optionalMark = new Label("label", "");
-                    optionalMark.setVisible(false);
+                if (!context.isReadOnly()) {
+                    if (isOptional && isLastLine) {
+                        if (isAdvanced()) {
+                            optionalMark = new Label("label", "(optional, advanced)");
+                        } else {
+                            optionalMark = new Label("label", "(optional)");
+                        }
+                    } else if (isAdvanced()) {
+                        optionalMark = new Label("label", "(advanced)");
+                    } else {
+                        optionalMark = new Label("label", "");
+                        optionalMark.setVisible(false);
+                    }
                 }
                 statement.add(optionalMark);
                 if (isLastLine) {

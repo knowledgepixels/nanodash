@@ -43,6 +43,9 @@ public class Template implements Serializable {
      */
     public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
+    // TODO Move this to the other ntemplate vocabulary terms in nanopub-java:
+    private static final IRI ADVANCED_STATEMENT = vf.createIRI("https://w3id.org/np/o/ntemplate/AdvancedStatement");
+
     private Nanopub nanopub;
     private String label;
     private String description;
@@ -493,6 +496,16 @@ public class Template implements Serializable {
      */
     public boolean isOptionalStatement(IRI iri) {
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.OPTIONAL_STATEMENT);
+    }
+
+    /**
+     * Checks if the IRI is an advanced statement, which are only show upon expanding to full view in form mode.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is an advanced statement, false otherwise.
+     */
+    public boolean isAdvancedStatement(IRI iri) {
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(ADVANCED_STATEMENT);
     }
 
     /**
