@@ -48,6 +48,11 @@ function collapseOverflow(el) {
 }
 
 function updateNanopubGraph(el) {
+  // Reset widths so they can be recalculated based on current visibility
+  $(el).find(".nanopub-statement .subj, .nanopub-statement .pred").each(function () {
+    $(this).css('width', 'auto');
+  });
+
   maxs = getMaxWidth(el, ".nanopub-statement .subj", limit);
   maxp = getMaxWidth(el, ".nanopub-statement .pred", limit);
   $(el).find(".nanopub-statement").each(function () {
@@ -176,4 +181,11 @@ function toggleMode() {
     body.classList.add('mode-advanced');
     toggleText.textContent = 'collapse to simple view';
   }
+
+  // Recalculate layout after visibility changes have been applied
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      updateElements();
+    });
+  });
 }
