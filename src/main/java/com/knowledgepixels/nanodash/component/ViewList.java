@@ -81,7 +81,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType() != null) {
+                if (view.getViewType() != null && ResourceView.getSupportedViewTypes().contains(view.getViewType())) {
                     if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                         item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
                                 .space(profiledResource.getSpace())
@@ -99,9 +99,12 @@ public class ViewList extends Panel {
                                 .contextId(profiledResource.getId())
                                 .id(id)
                                 .build());
+                    } else {
+                        item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
+                        logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
                     }
                 } else {
-                    item.add(new Label("view", "<span class=\"negative\">Error: Unsupported view type</span>").setEscapeModelStrings(false));
+                    item.add(new Label("view", "<span class=\"negative\">Unsupported view type</span>").setEscapeModelStrings(false));
                     logger.error("Unsupported view type.");
                 }
             }

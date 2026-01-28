@@ -23,6 +23,7 @@ import java.util.*;
 public class ResourceView implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
+    private static final Set<IRI> supportedViewTypes = Set.of(KPXL_TERMS.TABULAR_VIEW, KPXL_TERMS.LIST_VIEW, KPXL_TERMS.PLAIN_PARAGRAPH_VIEW, KPXL_TERMS.NANOPUB_SET_VIEW);
 
     static Map<IRI, Integer> columnWidths = new HashMap<>();
 
@@ -108,8 +109,8 @@ public class ResourceView implements Serializable {
                     if (st.getObject().equals(KPXL_TERMS.RESOURCE_VIEW)) {
                         resourceViewTypeFound = true;
                     }
-                    if (st.getObject().equals(KPXL_TERMS.TABULAR_VIEW) || st.getObject().equals(KPXL_TERMS.LIST_VIEW) || st.getObject().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
-                        viewType = (IRI) st.getObject();
+                    if (st.getObject() instanceof IRI objIri && supportedViewTypes.contains(objIri)) {
+                        viewType = objIri;
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
                     viewKind = objIri;
@@ -338,6 +339,15 @@ public class ResourceView implements Serializable {
      */
     public IRI getViewType() {
         return viewType;
+    }
+
+    /**
+     * Get the supported view types.
+     *
+     * @return a set of supported view type IRIs
+     */
+    public static Set<IRI> getSupportedViewTypes() {
+        return supportedViewTypes;
     }
 
 }
