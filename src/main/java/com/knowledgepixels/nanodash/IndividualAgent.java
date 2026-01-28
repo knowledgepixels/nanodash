@@ -27,4 +27,13 @@ public class IndividualAgent extends ProfiledResource {
         return getId().equals(userIri.stringValue());
     }
 
+    @Override
+    public String getLabel() {
+        try {
+            return User.getUserData().getShortDisplayName(Utils.vf.createIRI(getId()));
+        } catch (Exception ex) {
+        }
+        return getId();
+    }
+
 }

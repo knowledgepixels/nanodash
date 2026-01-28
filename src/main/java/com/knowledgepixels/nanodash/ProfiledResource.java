@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
-public class ProfiledResource implements Serializable {
+public abstract class ProfiledResource implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfiledResource.class);
 
@@ -42,6 +42,10 @@ public class ProfiledResource implements Serializable {
 
     public static boolean isProfiledResource(String id) {
         return instances.containsKey(id);
+    }
+
+    public static ProfiledResource get(String id) {
+        return instances.get(id);
     }
 
     private String id;
@@ -174,9 +178,7 @@ public class ProfiledResource implements Serializable {
         return viewDisplays;
     }
 
-    public String getLabel() {
-        return space.getLabel();
-    }
+    public abstract String getLabel();
 
     @Override
     public String toString() {

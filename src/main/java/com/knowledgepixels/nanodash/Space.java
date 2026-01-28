@@ -277,6 +277,7 @@ public class Space extends ProfiledResource {
      *
      * @return The space label.
      */
+    @Override
     public String getLabel() {
         return label;
     }
