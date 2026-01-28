@@ -176,10 +176,10 @@ function toggleMode() {
   
   if (body.classList.contains('mode-advanced')) {
     body.classList.remove('mode-advanced');
-    toggleText.textContent = 'expand for more options';
+    toggleText.textContent = 'show more';
   } else {
     body.classList.add('mode-advanced');
-    toggleText.textContent = 'collapse to simple view';
+    toggleText.textContent = 'show less';
   }
 
   // Recalculate layout after visibility changes have been applied

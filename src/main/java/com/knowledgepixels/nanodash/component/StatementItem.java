@@ -338,19 +338,31 @@ public class StatementItem extends Panel {
                 if (statementParts.size() == 1 && !isFirstGroup) {
                     statement.add(new AttributeAppender("class", " separate-statement"));
                 }
-                if (!context.isReadOnly()) {
-                    if (isOptional && isLastLine) {
-                        if (isAdvanced()) {
-                            optionalMark = new Label("label", "(optional, advanced)");
-                        } else {
-                            optionalMark = new Label("label", "(optional)");
-                        }
-                    } else if (isAdvanced()) {
-                        optionalMark = new Label("label", "(advanced)");
-                    } else {
-                        optionalMark = new Label("label", "");
-                        optionalMark.setVisible(false);
-                    }
+
+                // This code adds "advanced" marks similar to "optional":
+//                if (!context.isReadOnly()) {
+//                    if (isOptional && isLastLine) {
+//                        if (isAdvanced()) {
+//                            optionalMark = new Label("label", "(optional, advanced)");
+//                        } else {
+//                            optionalMark = new Label("label", "(optional)");
+//                        }
+//                    } else if (isAdvanced()) {
+//                        optionalMark = new Label("label", "(advanced)");
+//                    } else {
+//                        optionalMark = new Label("label", "");
+//                        optionalMark.setVisible(false);
+//                    }
+//                } else {
+//                    optionalMark = new Label("label", "");
+//                    optionalMark.setVisible(false);
+//                }
+
+                if (!context.isReadOnly() && isOptional && isLastLine) {
+                    optionalMark = new Label("label", "(optional)");
+                } else {
+                    optionalMark = new Label("label", "");
+                    optionalMark.setVisible(false);
                 }
                 statement.add(optionalMark);
                 if (isLastLine) {
