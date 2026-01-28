@@ -1,3 +1,22 @@
+## [4.11.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.10.0...nanodash-4.11.0) (2026-01-28)
+
+### Features
+
+* show label for profiled resources filled into form ([63ace79](https://github.com/knowledgepixels/nanodash/commit/63ace79c7fb1f6fb04a426b62e5efc727a3c5fa2))
+* Support for "advanced" statements, hidden in collapsed view ([0171112](https://github.com/knowledgepixels/nanodash/commit/01711127e3ffa680cfc6af1f72ebc2d7d11c1c5b))
+* **Template:** Allow for redundant group statement links ([008c4fa](https://github.com/knowledgepixels/nanodash/commit/008c4faad2309b322e3eb84f4e819061c0ce5252))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([3e0cf3a](https://github.com/knowledgepixels/nanodash/commit/3e0cf3a39ed6de35b7649a5b7fdd4e1c168e3628))
+* Update CSS link version ([474a8d5](https://github.com/knowledgepixels/nanodash/commit/474a8d5423899c98daa1881ab4936473507b53d0))
+
+### Style improvements
+
+* Adjust component width after expand/collapse ([9d5fefb](https://github.com/knowledgepixels/nanodash/commit/9d5fefb2a61c4542d4f8ef029701790b5bf8a3aa))
+* Adjust labels for expand/collapse forms ([72009af](https://github.com/knowledgepixels/nanodash/commit/72009afd9b7cc309e9a62f952fb2c5f6bb92b473))
+* Hide 'collapse-content' when empty ([9c4a047](https://github.com/knowledgepixels/nanodash/commit/9c4a0479762b51e43214e22b3d2db0eeffa0ea79))
+
 ## [4.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.9.0...nanodash-4.10.0) (2026-01-26)
 
 ### Features
