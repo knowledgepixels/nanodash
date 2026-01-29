@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <meta charset="utf-8"/>
+  <title wicket:id="pagetitle">... (list) | nanodash</title>
+  <link rel="stylesheet" href="style.css?v=4.10.1" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<wicket:panel>
+  <div id="content-pane">
+    <div class="row-section">
+      <div class="col-12">
+        <h4 wicket:id="title">[Title]</h4>
+        <div class="view-selector">
+          <span wicket:id="listEnabler" class="list"></span>
+          <span wicket:id="gridEnabler" class="grid"></span>
+        </div>
+        <div class="flex-container" wicket:id="nanopubs"></div>
+      </div>
+    </div>
+  </div>
+</wicket:panel>
+
+</body>
+</html>
