@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import org.apache.wicket.Component;
 import org.nanopub.extra.services.ApiResponse;
@@ -14,12 +13,10 @@ import java.io.Serializable;
  */
 public class QueryResultNanopubSetBuilder implements Serializable {
 
-    private String markupId;
-    private ViewDisplay viewDisplay;
+    private final String markupId;
+    private final ViewDisplay viewDisplay;
     private String contextId = null;
-    private QueryRef queryRef;
-    private Space space = null;
-    private String id = null;
+    private final QueryRef queryRef;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -39,11 +36,6 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         return new QueryResultNanopubSetBuilder(markupId, queryRef, viewDisplay);
     }
 
-    public QueryResultNanopubSetBuilder space(Space space) {
-        this.space = space;
-        return this;
-    }
-
     /**
      * Sets the context ID for the QueryResultNanopubSet.
      *
@@ -55,11 +47,6 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         return this;
     }
 
-    public QueryResultNanopubSetBuilder id(String id) {
-        this.id = id;
-        return this;
-    }
-
     /**
      * Builds the QueryResultNanopubSet component.
      *
@@ -68,12 +55,18 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
-            return new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+            queryResultNanopubSet.setContextId(contextId);
+            queryResultNanopubSet.populateComponent();
+            return queryResultNanopubSet;
         } else {
             return new ApiResultComponent(markupId, queryRef) {
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+                    queryResultNanopubSet.setContextId(contextId);
+                    queryResultNanopubSet.populateComponent();
+                    return queryResultNanopubSet;
                 }
             };
         }

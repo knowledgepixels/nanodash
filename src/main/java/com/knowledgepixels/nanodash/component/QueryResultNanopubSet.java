@@ -3,10 +3,14 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.ListPage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -52,17 +56,22 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getView().getTitle();
         }
         add(new Label("title", titleLabel));
-
         setOutputMarkupId(true);
-
-        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", response, 20);
-        nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
-        add(nanopubResults);
     }
 
     @Override
     protected void populateComponent() {
-        // TODO Auto-generated method stub. Implement as needed. Most likely not needed for this subclass.
+        logger.info("Populating the component with nanopub results.");
+        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", response, 10);
+        nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+        add(nanopubResults);
+
+        if (viewDisplay.getNanopubId() != null) {
+            add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+        } else {
+            add(new Label("np").setVisible(false));
+        }
+        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", contextId)));
     }
 
 }

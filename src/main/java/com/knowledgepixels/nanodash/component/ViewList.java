@@ -102,7 +102,6 @@ public class ViewList extends Panel {
                     } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
                         item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
                                 .contextId(profiledResource.getId())
-                                .id(id)
                                 .build());
                     } else {
                         item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
