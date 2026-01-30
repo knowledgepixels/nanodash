@@ -217,7 +217,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
             if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
                 return false;
             }
-            if (choice.getModelObject().isEmpty()) {
+            if (choice.getModelObject() == null || choice.getModelObject().isEmpty()) {
                 return true;
             }
             return vs.equals(choice.getModelObject());
