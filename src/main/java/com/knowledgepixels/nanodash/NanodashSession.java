@@ -66,7 +66,7 @@ public class NanodashSession extends WebSession {
 //	private IntroExtractor introExtractor;
 
     private String userDir = System.getProperty("user.home") + "/.nanopub/";
-    private NanopubResults.ViewMode nanopubResultsViewMode = NanopubResults.ViewMode.GRID;
+    private NanopubResults.ViewMode nanopubResultsViewMode = NanopubResults.ViewMode.LIST;
 
     private KeyPair keyPair;
     private IRI userIri;
