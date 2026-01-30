@@ -237,8 +237,12 @@ public class Template implements Serializable {
             String baseIri = iri.stringValue().replaceFirst("__[0-9]+$", "");
             Value v = defaultValues.get(vf.createIRI(baseIri));
             if (v instanceof IRI vIri) {
-                int repeatSuffix = Integer.parseInt(iri.stringValue().replaceFirst("^.*__([0-9]+)$", "$1"));
-                return vf.createIRI(vIri.stringValue() + (repeatSuffix + 1));
+                // Append repeat suffix only for local URIs; fixed URIs stay unchanged
+                if (vIri.stringValue().startsWith(nanopub.getUri().stringValue())) {
+                    int repeatSuffix = Integer.parseInt(iri.stringValue().replaceFirst("^.*__([0-9]+)$", "$1"));
+                    return vf.createIRI(vIri.stringValue() + (repeatSuffix + 1));
+                }
+                return vIri;
             }
         }
         iri = transform(iri);
