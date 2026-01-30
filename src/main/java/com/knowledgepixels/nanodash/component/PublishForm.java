@@ -71,7 +71,10 @@ import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.SpacePage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -482,6 +485,19 @@ public class PublishForm extends Panel {
                     }
                 }
                 if (signedNp != null) {
+                    String contextId = pageParams.get("context").toString("");
+                    if (!contextId.isEmpty()) {
+                        PageParameters redirectParams = new PageParameters().set("id", contextId).set("just-published", signedNp.getUri().stringValue());
+                        if (Space.get(contextId) != null) {
+                            throw new RestartResponseException(SpacePage.class, redirectParams);
+                        }
+                        if (MaintainedResource.get(contextId) != null) {
+                            throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
+                        }
+                        if (User.isUser(contextId)) {
+                            throw new RestartResponseException(UserPage.class, redirectParams);
+                        }
+                    }
                     throw new RestartResponseException(getConfirmPage(signedNp, pageParams));
                 } else {
                     logger.error("Nanopublication publishing failed");

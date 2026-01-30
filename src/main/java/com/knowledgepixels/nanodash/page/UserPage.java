@@ -66,6 +66,8 @@ public class UserPage extends NanodashPage {
         String pageType = "users";
         add(new TitleBar("titlebar", this, pageType));
 
+        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
+
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));

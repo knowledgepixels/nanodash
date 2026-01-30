@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.ProfiledResource;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.JustPublishedMessagePanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import org.apache.wicket.Component;
@@ -54,6 +55,8 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new TitleBar("titlebar", this, null,
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ));
+
+        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));

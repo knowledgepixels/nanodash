@@ -112,13 +112,14 @@ public class ExplorePage extends NanodashPage {
     private void initPage() {
         PageParameters parameters = getPageParameters();
 
-        add(new TitleBar("titlebar", this, null));
-
         String tempRef = parameters.get("id").toString();
         // Sometimes these Wicket session IDs end up here and they can mess up the query cache:
         tempRef = tempRef.replaceFirst(";jsessionid.*$", "");
 
         String contextId = parameters.get("context").toString("");
+
+        add(new TitleBar("titlebar", this, null));
+
         if (Space.get(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
         } else if (MaintainedResource.get(contextId) != null) {
@@ -164,7 +165,7 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
-        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty()) {
+        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty() && publishedNanopub == null) {
             parameters.remove("forward-to-part");
             Set<IRI> classes = new HashSet<>();
             if (np != null) {

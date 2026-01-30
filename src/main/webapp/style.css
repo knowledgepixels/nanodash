@@ -1382,6 +1382,25 @@ hr {
   padding: 0;
 }
 
+.just-published-message-box {
+  position: relative;
+  padding-right: 28px;
+}
+
+.just-published-message-close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  font-size: 18px;
+  line-height: 1;
+  color: #666;
+  text-decoration: none;
+}
+
+.just-published-message-close:hover {
+  color: #000;
+}
+
 .instruction {
   background: #DAE5F1;
   padding: 25px;
