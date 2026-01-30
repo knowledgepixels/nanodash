@@ -151,6 +151,9 @@ public class QueryResultTable extends QueryResult {
                                 .set("param_" + targetField, contextId)
                                 .set("context", contextId)
                                 .set("template-version", "latest");
+                        if (partId != null && contextId != null && !partId.equals(contextId)) {
+                            params.set("part", partId);
+                        }
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:

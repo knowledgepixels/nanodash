@@ -97,6 +97,9 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
+                if (id != null && contextId != null && !id.equals(contextId)) {
+                    table.setPartId(id);
+                }
                 table.setProfiledResource(profiledResource);
                 ResourceView view = viewDisplay.getView();
                 if (view != null) {
@@ -111,6 +114,9 @@ public class QueryResultTableBuilder implements Serializable {
                                 .set("param_" + targetField, id)
                                 .set("context", contextId)
                                 .set("template-version", "latest");
+                        if (id != null && contextId != null && !id.equals(contextId)) {
+                            params.set("part", id);
+                        }
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:
@@ -135,6 +141,9 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                         table.setContextId(contextId);
+                        if (id != null && contextId != null && !id.equals(contextId)) {
+                            table.setPartId(id);
+                        }
                         table.setProfiledResource(profiledResource);
                         ResourceView view = viewDisplay.getView();
                         if (view != null) {
@@ -149,6 +158,9 @@ public class QueryResultTableBuilder implements Serializable {
                                         .set("param_" + targetField, id)
                                         .set("context", contextId)
                                         .set("template-version", "latest");
+                                if (id != null && contextId != null && !id.equals(contextId)) {
+                                    params.set("part", id);
+                                }
                                 String partField = view.getTemplatePartFieldForAction(actionIri);
                                 if (partField != null) {
                                     // TODO Find a better way to pass the MaintainedResource object to this method:

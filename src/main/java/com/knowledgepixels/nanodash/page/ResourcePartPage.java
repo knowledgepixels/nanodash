@@ -155,6 +155,7 @@ public class ResourcePartPage extends NanodashPage {
                     .set("template-version", "latest")
                     .set("param_resource", profiledResource.getId())
                     .set("context", profiledResource.getId())
+                    .set("part", id)
             );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);
@@ -204,6 +205,7 @@ public class ResourcePartPage extends NanodashPage {
                     .set("template-version", "latest")
                     .set("param_resource", profiledResource.getSpace().getId())
                     .set("context", profiledResource.getSpace().getId())
+                    .set("part", id)
             );
             addViewButton.setBody(Model.of("+ view"));
             viewButtons.add(addViewButton);

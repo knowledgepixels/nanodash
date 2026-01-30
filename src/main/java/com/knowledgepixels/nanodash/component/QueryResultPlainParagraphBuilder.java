@@ -39,6 +39,9 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                     .set("param_" + targetField, id)
                     .set("context", contextId)
                     .set("template-version", "latest");
+            if (id != null && contextId != null && !id.equals(contextId)) {
+                params.set("part", id);
+            }
             String partField = view.getTemplatePartFieldForAction(actionIri);
             if (partField != null) {
                 // TODO Find a better way to pass the MaintainedResource object to this method:
