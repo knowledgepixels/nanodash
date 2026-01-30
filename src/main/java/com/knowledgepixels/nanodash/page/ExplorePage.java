@@ -188,8 +188,9 @@ public class ExplorePage extends NanodashPage {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
+            } else if (User.isUser(contextId) && IndividualAgent.get(contextId).appliesTo(tempRef, classes)) {
+                throw new RestartResponseException(ResourcePartPage.class, parameters);
             }
-            
         }
 
         if (np == null) {
