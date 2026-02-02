@@ -23,7 +23,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
     private String id;
     private Nanopub nanopub;
-    private ResourceView view;
+    private View view;
     private String title;
     private Integer pageSize;
     private Integer displayWidth;
@@ -35,21 +35,21 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private IRI resource;
 
     /**
-     * Constructor for ViewDisplay with only a ResourceView. This is used for temporary view displays used in profiles as defaults.
+     * Constructor for ViewDisplay with only a View. This is used for temporary view displays used in profiles as defaults.
      *
-     * @param view the ResourceView associated with this ViewDisplay
+     * @param view the View associated with this ViewDisplay
      */
-    public ViewDisplay(ResourceView view) {
+    public ViewDisplay(View view) {
         this.id = null;
         this.nanopub = null;
         this.view = view;
     }
 
     /**
-     * Get a ResourceView by its ID.
+     * Get a View by its ID.
      *
-     * @param id the ID of the ResourceView
-     * @return the ResourceView object
+     * @param id the ID of the View
+     * @return the View object
      */
     public static ViewDisplay get(String id) throws IllegalArgumentException {
         try {
@@ -85,7 +85,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     if (view != null) {
                         throw new IllegalArgumentException("View already set: " + objIri);
                     }
-                    view = ResourceView.get(objIri.stringValue());
+                    view = View.get(objIri.stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_FOR) && st.getObject() instanceof IRI objIri) {
                     if (resource != null) {
                         throw new IllegalArgumentException("Resource already set: " + objIri);
@@ -98,7 +98,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                         logger.error("Invalid page size value: " + objL.stringValue(), ex);
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
-                    displayWidth = ResourceView.columnWidths.get(objIri);
+                    displayWidth = View.columnWidths.get(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_NAMESPACE) && st.getObject() instanceof IRI objIri) {
@@ -132,11 +132,11 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     }
 
     /**
-     * Gets the ResourceView associated with this ViewDisplay.
+     * Gets the View associated with this ViewDisplay.
      *
-     * @return the ResourceView
+     * @return the View
      */
-    public ResourceView getView() {
+    public View getView() {
         return view;
     }
 

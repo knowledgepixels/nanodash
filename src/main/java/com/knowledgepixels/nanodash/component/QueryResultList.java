@@ -85,7 +85,7 @@ public class QueryResultList extends QueryResult {
                         }
                     }
                 }
-                ResourceView view = viewDisplay.getView();
+                View view = viewDisplay.getView();
                 if (view != null && !view.getViewEntryActionList().isEmpty()) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {
@@ -120,7 +120,7 @@ public class QueryResultList extends QueryResult {
                         button.setBody(Model.of(labelForAction));
                         links.add(button);
                     }
-                    components.add(new ButtonList("component", profiledResource, links, null, null));
+                    components.add(new ButtonList("component", resourceWithProfile, links, null, null));
                 }
                 ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components);
                 listItem.add(componentSequence);

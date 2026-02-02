@@ -22,53 +22,53 @@ public class ViewList extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
-    public ViewList(String markupId, ProfiledResource profiledResource) {
-        this(markupId, profiledResource, null, null, null);
+    public ViewList(String markupId, ResourceWithProfile resourceWithProfile) {
+        this(markupId, resourceWithProfile, null, null, null);
     }
 
-    public ViewList(String markupId, ProfiledResource profiledResource, String partId, String nanopubId, Set<IRI> partClasses) {
+    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
         super(markupId);
 
-        final String id = (partId == null ? profiledResource.getId() : partId);
-        final String npId = (nanopubId == null ? profiledResource.getNanopubId() : nanopubId);
+        final String id = (partId == null ? resourceWithProfile.getId() : partId);
+        final String npId = (nanopubId == null ? resourceWithProfile.getNanopubId() : nanopubId);
         final List<ViewDisplay> viewDisplays;
         if (partId == null) {
-            viewDisplays = profiledResource.getTopLevelViewDisplays();
+            viewDisplays = resourceWithProfile.getTopLevelViewDisplays();
         } else {
-            viewDisplays = profiledResource.getPartLevelViewDisplays(partId, partClasses);
+            viewDisplays = resourceWithProfile.getPartLevelViewDisplays(partId, partClasses);
         }
 
         add(new DataView<ViewDisplay>("views", new ListDataProvider<ViewDisplay>(viewDisplays)) {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
-                ResourceView view = item.getModelObject().getView();
+                View view = item.getModelObject().getView();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
                     if (paramName.equals(view.getQueryField())) {
                         queryRefParams.put(view.getQueryField(), id);
-                        if (QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
+                        if (QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                             // TODO Support this also for maintained resources and users.
                             for (String altId : space.getAltIDs()) {
                                 queryRefParams.put(view.getQueryField(), altId);
                             }
                         }
-                    } else if (paramName.equals(view.getQueryField() + "Namespace") && profiledResource.getNamespace() != null) {
-                        queryRefParams.put(view.getQueryField() + "Namespace", profiledResource.getNamespace());
+                    } else if (paramName.equals(view.getQueryField() + "Namespace") && resourceWithProfile.getNamespace() != null) {
+                        queryRefParams.put(view.getQueryField() + "Namespace", resourceWithProfile.getNamespace());
                     } else if (paramName.equals(view.getQueryField() + "Np")) {
                         if (!QueryParamField.isOptional(p) && npId == null) {
                             queryRefParams.put(view.getQueryField() + "Np", "x:");
                         } else {
                             queryRefParams.put(view.getQueryField() + "Np", npId);
                         }
-                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
+                    } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                         for (IRI userId : space.getUsers()) {
                             for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
                                 queryRefParams.put("user_pubkey", memberHash);
                             }
                         }
-                    } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && profiledResource instanceof Space space) {
+                    } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                         for (IRI adminId : space.getAdmins()) {
                             for (String adminHash : User.getUserData().getPubkeyhashes(adminId, true)) {
                                 queryRefParams.put("admin_pubkey", adminHash);
@@ -81,27 +81,27 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType() != null && ResourceView.getSupportedViewTypes().contains(view.getViewType())) {
+                if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
                     if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                         item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                                .space(profiledResource.getSpace())
+                                .space(resourceWithProfile.getSpace())
                                 .id(id)
-                                .contextId(profiledResource.getId())
+                                .contextId(resourceWithProfile.getId())
                                 .build());
                     } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                         item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                                .profiledResource(profiledResource)
-                                .contextId(profiledResource.getId())
+                                .profiledResource(resourceWithProfile)
+                                .contextId(resourceWithProfile.getId())
                                 .id(id)
                                 .build());
                     } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
                         item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
-                                .contextId(profiledResource.getId())
+                                .contextId(resourceWithProfile.getId())
                                 .id(id)
                                 .build());
                     } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
                         item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
-                                .contextId(profiledResource.getId())
+                                .contextId(resourceWithProfile.getId())
                                 .build());
                     } else {
                         item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));

@@ -74,7 +74,7 @@ public class QueryResultListBuilder implements Serializable {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setProfiledResource(space);
                 resultList.setContextId(contextId);
-                ResourceView view = viewDisplay.getView();
+                View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
                         Template t = view.getTemplateForAction(actionIri);
@@ -115,7 +115,7 @@ public class QueryResultListBuilder implements Serializable {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setProfiledResource(space);
                         resultList.setContextId(contextId);
-                        ResourceView view = viewDisplay.getView();
+                        View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
                                 Template t = view.getTemplateForAction(actionIri);

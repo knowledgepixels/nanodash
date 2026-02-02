@@ -26,7 +26,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
     // This method is the result of refactoring and copying code from other classes done
     // by Cursor. This should in general be aligned and refactored more with the other classes.
     private void addResultButtons(QueryResultPlainParagraph resultPlainParagraph) {
-        ResourceView view = viewDisplay.getView();
+        View view = viewDisplay.getView();
         if (view == null) return;
         for (IRI actionIri : view.getViewResultActionList()) {
             Template t = view.getTemplateForAction(actionIri);

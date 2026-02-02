@@ -65,7 +65,7 @@ public class SpacePage extends NanodashPage {
         Nanopub np = space.getNanopub();
         space.triggerDataUpdate();
 
-        List<ProfiledResource> superSpaces = space.getAllSuperSpacesUntilRoot();
+        List<ResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             add(new TitleBar("titlebar", this, null,
                     new NanodashPageRef(SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel())

@@ -11,33 +11,33 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.*;
 
-public abstract class ProfiledResource implements Serializable {
+public abstract class ResourceWithProfile implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProfiledResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceWithProfile.class);
 
     protected static class ResourceData implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
-    private static Map<String, ProfiledResource> instances = new HashMap<>();
+    private static Map<String, ResourceWithProfile> instances = new HashMap<>();
 
     public static void refresh() {
-        for (ProfiledResource r : instances.values()) {
+        for (ResourceWithProfile r : instances.values()) {
             r.setDataNeedsUpdate();
         }
     }
 
     public static void forceRefresh(String id, long waitMillis) {
-        if (isProfiledResource(id)) {
+        if (isResourceWithProfile(id)) {
             instances.get(id).forceRefresh(waitMillis);
         }
     }
 
-    public static boolean isProfiledResource(String id) {
+    public static boolean isResourceWithProfile(String id) {
         return instances.containsKey(id);
     }
 
-    public static ProfiledResource get(String id) {
+    public static ResourceWithProfile get(String id) {
         return instances.get(id);
     }
 
@@ -48,7 +48,7 @@ public abstract class ProfiledResource implements Serializable {
     private boolean dataNeedsUpdate = true;
     private Long runUpdateAfter = null;
 
-    protected ProfiledResource(String id) {
+    protected ResourceWithProfile(String id) {
         this.id = id;
         instances.put(id, this);
     }
@@ -174,7 +174,7 @@ public abstract class ProfiledResource implements Serializable {
         // This is a temporary hack to always show the latest nanopubs view for users by default without needing to create a ViewDisplay for each user
         // TODO remove this once we have a better system for default views
         if (User.isUser(resourceId)) {
-            ViewDisplay latestNpsViewDisplay = new ViewDisplay(ResourceView.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
+            ViewDisplay latestNpsViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
             viewDisplays.add(latestNpsViewDisplay);
         }
 
@@ -194,15 +194,15 @@ public abstract class ProfiledResource implements Serializable {
      *
      * @return the list of superspaces from the given space to the root space
      */
-    public List<ProfiledResource> getAllSuperSpacesUntilRoot() {
-        List<ProfiledResource> chain = new ArrayList<>();
+    public List<ResourceWithProfile> getAllSuperSpacesUntilRoot() {
+        List<ResourceWithProfile> chain = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         collectAncestors(space, chain, visited);
         Collections.reverse(chain);
         return chain;
     }
 
-    private void collectAncestors(Space current, List<ProfiledResource> chain, Set<String> visited) {
+    private void collectAncestors(Space current, List<ResourceWithProfile> chain, Set<String> visited) {
         if (current == null) {
             return;
         }

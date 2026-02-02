@@ -27,7 +27,7 @@ public abstract class QueryResult extends Panel {
     protected final QueryRef queryRef;
     protected final ViewDisplay viewDisplay;
     protected final ApiResponse response;
-    protected ProfiledResource profiledResource;
+    protected ResourceWithProfile resourceWithProfile;
     protected final GrlcQuery grlcQuery;
 
     /**
@@ -52,7 +52,7 @@ public abstract class QueryResult extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", profiledResource, buttons, null, null));
+                add(new ButtonList("buttons", resourceWithProfile, buttons, null, null));
             } else {
                 add(new Label("buttons").setVisible(false));
             }
@@ -62,12 +62,12 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
-     * Set the profiled resource for this component.
+     * Set the resource with profile for this component.
      *
-     * @param profiledResource The profiled resource to set.
+     * @param resourceWithProfile The resource with profile to set.
      */
-    public void setProfiledResource(ProfiledResource profiledResource) {
-        this.profiledResource = profiledResource;
+    public void setProfiledResource(ResourceWithProfile resourceWithProfile) {
+        this.resourceWithProfile = resourceWithProfile;
     }
 
     /**

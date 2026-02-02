@@ -14,7 +14,7 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MaintainedResource extends ProfiledResource {
+public class MaintainedResource extends ResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(MaintainedResource.class);
 

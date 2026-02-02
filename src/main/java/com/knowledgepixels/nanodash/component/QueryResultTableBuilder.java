@@ -21,7 +21,7 @@ public class QueryResultTableBuilder implements Serializable {
     private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
-    private ProfiledResource profiledResource = null;
+    private ResourceWithProfile resourceWithProfile = null;
     private String id = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -43,13 +43,13 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
-     * Sets the profiled resource for the QueryResultTable.
+     * Sets the resource with profile for the QueryResultTable.
      *
-     * @param profiledResource the profiled resource object
+     * @param resourceWithProfile the ResourceWithProfile object
      * @return the current QueryResultTableBuilder instance
      */
-    public QueryResultTableBuilder profiledResource(ProfiledResource profiledResource) {
-        this.profiledResource = profiledResource;
+    public QueryResultTableBuilder profiledResource(ResourceWithProfile resourceWithProfile) {
+        this.resourceWithProfile = resourceWithProfile;
         return this;
     }
 
@@ -93,15 +93,15 @@ public class QueryResultTableBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        if (profiledResource != null) {
+        if (resourceWithProfile != null) {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
                 if (id != null && contextId != null && !id.equals(contextId)) {
                     table.setPartId(id);
                 }
-                table.setProfiledResource(profiledResource);
-                ResourceView view = viewDisplay.getView();
+                table.setProfiledResource(resourceWithProfile);
+                View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
                         Template t = view.getTemplateForAction(actionIri);
@@ -144,8 +144,8 @@ public class QueryResultTableBuilder implements Serializable {
                         if (id != null && contextId != null && !id.equals(contextId)) {
                             table.setPartId(id);
                         }
-                        table.setProfiledResource(profiledResource);
-                        ResourceView view = viewDisplay.getView();
+                        table.setProfiledResource(resourceWithProfile);
+                        View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
                                 Template t = view.getTemplateForAction(actionIri);

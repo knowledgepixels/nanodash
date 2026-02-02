@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.ProfiledResource;
+import com.knowledgepixels.nanodash.ResourceWithProfile;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ButtonList;
 import com.knowledgepixels.nanodash.component.JustPublishedMessagePanel;
@@ -49,7 +49,7 @@ public class MaintainedResourcePage extends NanodashPage {
         Space space = resource.getSpace();
         resource.triggerDataUpdate();
 
-        List<ProfiledResource> superSpaces = resource.getAllSuperSpacesUntilRoot();
+        List<ResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());
         superSpaces.add(resource);
         add(new TitleBar("titlebar", this, null,
