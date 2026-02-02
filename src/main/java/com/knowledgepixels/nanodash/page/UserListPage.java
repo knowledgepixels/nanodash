@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -91,9 +92,18 @@ public class UserListPage extends NanodashPage {
             ));
 
         add(new ItemListPanel<IRI>(
-                "approved-users",
-                "Approved Users",
-                User.getUsers(true),
+                "approved-human-users",
+                "Approved Human Users",
+                User.getUsers(true).stream().filter(iri -> !User.isSoftware(iri)).collect(Collectors.toList()),
+                (userIri) -> {
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
+                }
+            ));
+
+        add(new ItemListPanel<IRI>(
+                "approved-software-agents",
+                "Approved Software Agents",
+                User.getUsers(true).stream().filter(User::isSoftware).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 }
