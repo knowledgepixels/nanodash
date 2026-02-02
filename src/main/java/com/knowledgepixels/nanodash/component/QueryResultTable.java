@@ -174,7 +174,7 @@ public class QueryResultTable extends QueryResult {
                         button.setBody(Model.of(label));
                         links.add(button);
                     }
-                    cellItem.add(new ButtonList(componentId, profiledResource, links, null, null));
+                    cellItem.add(new ButtonList(componentId, resourceWithProfile, links, null, null));
                 } else {
                     String value = rowModel.getObject().get(key);
                     if (value.matches("https?://.+ .+")) {

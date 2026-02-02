@@ -1,8 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.IndividualAgent;
+import com.knowledgepixels.nanodash.ResourceWithProfile;
+import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -10,14 +11,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
-import com.knowledgepixels.nanodash.IndividualAgent;
-import com.knowledgepixels.nanodash.ProfiledResource;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ButtonList extends Panel {
 
-    public ButtonList(String markupId, ProfiledResource profiledResource, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
+    public ButtonList(String markupId, ResourceWithProfile resourceWithProfile, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
         super(markupId);
         setOutputMarkupId(true);
 
@@ -25,14 +24,14 @@ public class ButtonList extends Panel {
         if (buttons != null) {
             allButtons.addAll(buttons);
         }
-        if (profiledResource instanceof Space space) {
+        if (resourceWithProfile instanceof Space space) {
             if (SpaceMemberRole.isCurrentUserMember(space) && memberButtons != null) {
                 allButtons.addAll(memberButtons);
             }
             if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
                 allButtons.addAll(adminButtons);
             }
-        } else if (profiledResource instanceof IndividualAgent ia) {
+        } else if (resourceWithProfile instanceof IndividualAgent ia) {
             if (ia.isCurrentUser() && adminButtons != null) {
                 allButtons.addAll(adminButtons);
             }
@@ -46,7 +45,7 @@ public class ButtonList extends Panel {
                 protected void populateItem(Item<AbstractLink> item) {
                     item.add(item.getModelObject());
                 }
-                
+
             });
         }
     }

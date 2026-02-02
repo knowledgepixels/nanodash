@@ -7,7 +7,7 @@ import java.util.Set;
 import org.eclipse.rdf4j.model.IRI;
 
 // TODO Merge this class with User or otherwise make them aligned.
-public class IndividualAgent extends ProfiledResource {
+public class IndividualAgent extends ResourceWithProfile {
 
     private static Map<String,IndividualAgent> instanceMap = new HashMap<>();
 

@@ -120,7 +120,7 @@ public class QueryResultList extends QueryResult {
                         button.setBody(Model.of(labelForAction));
                         links.add(button);
                     }
-                    components.add(new ButtonList("component", profiledResource, links, null, null));
+                    components.add(new ButtonList("component", resourceWithProfile, links, null, null));
                 }
                 ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components);
                 listItem.add(componentSequence);

@@ -35,7 +35,7 @@ import jakarta.xml.bind.DatatypeConverter;
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
-public class Space extends ProfiledResource {
+public class Space extends ResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
 

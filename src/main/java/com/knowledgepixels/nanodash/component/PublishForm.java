@@ -65,7 +65,7 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.ProfiledResource;
+import com.knowledgepixels.nanodash.ResourceWithProfile;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
@@ -476,8 +476,8 @@ public class PublishForm extends Panel {
                         Space.forceRootRefresh(3 * 1000);
                     } else if (toRefresh.equals("maintainedResources")) {
                         MaintainedResource.forceRootRefresh(3 * 1000);
-                    } else if (ProfiledResource.isProfiledResource(toRefresh)) {
-                        ProfiledResource.forceRefresh(toRefresh, 3 * 1000);
+                    } else if (ResourceWithProfile.isResourceWithProfile(toRefresh)) {
+                        ResourceWithProfile.forceRefresh(toRefresh, 3 * 1000);
                     } else {
                         QueryRef queryRef = QueryRef.parseString(toRefresh);
                         // Make sure the next cache update happens not before 3 seconds from now, at which point the
