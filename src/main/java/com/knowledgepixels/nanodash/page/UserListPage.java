@@ -88,7 +88,8 @@ public class UserListPage extends NanodashPage {
                 },
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ItemListPanel<IRI>(
@@ -97,7 +98,8 @@ public class UserListPage extends NanodashPage {
                 User.getUsers(true).stream().filter(iri -> !User.isSoftware(iri)).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ItemListPanel<IRI>(
@@ -106,7 +108,8 @@ public class UserListPage extends NanodashPage {
                 User.getUsers(true).stream().filter(User::isSoftware).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ItemListPanel<IRI>(
@@ -115,7 +118,8 @@ public class UserListPage extends NanodashPage {
                 User.getUsers(false),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));

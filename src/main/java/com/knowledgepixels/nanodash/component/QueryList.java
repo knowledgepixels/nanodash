@@ -3,18 +3,23 @@ package com.knowledgepixels.nanodash.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.knowledgepixels.nanodash.FilteredListDataProvider;
 import com.knowledgepixels.nanodash.GrlcQuery;
 
 /**
@@ -31,6 +36,10 @@ public class QueryList extends Panel {
      * @param id   the component ID
      * @param resp the API response containing query data
      */
+    private Model<String> filterModel = Model.of("");
+    private FilteredListDataProvider<GrlcQuery> filteredDataProvider;
+    private DataView<GrlcQuery> dataView;
+
     public QueryList(String id, ApiResponse resp) {
         super(id);
         setOutputMarkupId(true);
@@ -44,7 +53,10 @@ public class QueryList extends Panel {
             }
         }
 
-        DataView<GrlcQuery> dataView = new DataView<>("querylist", new ListDataProvider<GrlcQuery>(queries)) {
+        add(new Label("title", "Other Queries"));
+
+        filteredDataProvider = new FilteredListDataProvider<>(queries, GrlcQuery::getLabel);
+        dataView = new DataView<>("querylist", filteredDataProvider) {
 
             @Override
             protected void populateItem(Item<GrlcQuery> item) {
@@ -54,6 +66,20 @@ public class QueryList extends Panel {
         };
         dataView.setItemsPerPage(10);
         dataView.setOutputMarkupId(true);
+
+        TextField<String> filterField = new TextField<>("filter", filterModel);
+        filterField.setOutputMarkupId(true);
+        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                filteredDataProvider.setFilterText(filterModel.getObject());
+                WebMarkupContainer nav = (WebMarkupContainer) get("navigation");
+                nav.setVisible(dataView.getPageCount() > 1);
+                target.add(QueryList.this);
+            }
+        });
+        add(filterField);
+        add(new WebMarkupContainer("buttons"));
         add(dataView);
 
         WebMarkupContainer navigation = new WebMarkupContainer("navigation");

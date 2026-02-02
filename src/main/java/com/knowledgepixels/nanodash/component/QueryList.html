@@ -8,6 +8,14 @@
 
 <wicket:panel>
 
+<div class="listpanel">
+
+<div class="paneltitlerow">
+<h4 wicket:id="title">Other Queries</h4>
+<input type="text" wicket:id="filter" placeholder="Filter..." style="margin: 0 10px; padding: 2px 5px; font-size: 12px; width: 150px;"/>
+<span class="buttons"></span>
+</div>
+
 <ul class="queries">
 <li wicket:id="querylist"><span wicket:id="queryitem">query item</span></li>
 </ul>
@@ -15,6 +23,8 @@
 <div class="navigation" wicket:id="navigation">
 <div class="navigatorLabel" wicket:id="navigatorLabel"></div>
 <div class="navigator" wicket:id="navigator"></div>
+</div>
+
 </div>
 
 </wicket:panel>
