@@ -12,84 +12,30 @@
 <body>
 
 <div wicket:id="titlebar"></div>
-
 <div id="content-pane">
-  <div wicket:id="justPublishedMessage"></div>
+  <div class="row-section">
+    <div class="col-6">
+      <h2><span wicket:id="userIcon"></span><span wicket:id="username">User Name</span></h2>
+      <p><a href="." wicket:id="fullid">https://orcid.org/xxxx-xxxx-xxxx-xxxx</a></p>
+      <p><a href="." wicket:id="showprofile" class="button light">See Your Profile Details</a></p>
+    </div>
+  </div>
 
-    
-<div class="row-section">
-
-<div class="col-6">
-
-<h2><span wicket:id="userIcon"></span> <span wicket:id="username">User Name</span></h2>
-
-<p><a href="." wicket:id="fullid">https://orcid.org/xxxx-xxxx-xxxx-xxxx</a></p>
-
-<p><a href="." wicket:id="showprofile" class="button light">See Your Profile Details</a></p>
-
-<!--
-<h3>Stats</h3>
-
-<div wicket:id="stats"></div>
--->
-
-</div>
-
-</div>
-
-
-<div class="odd"><div class="row-section">
-
-<div class="col-6">
-
-<h3>Latest Nanopublications</h3>
-
-<div wicket:id="latestnanopubs">
-</div>
-
-<p><a href="." wicket:id="showchannel" class="button">Show Full Channel</a></p>
-
-</div>
-
-<div class="col-6">
-
-<div wicket:id="spaces" class="users">...</div>
-
-</div>
-
-</div></div>
-
-
-<!--
-<div class="row-section">
-
-<div class="col-12">
-
-<h3>Activity</h3>
-
-<div wicket:id="activity"></div>
-
-</div>
-
-</div>
--->
-
-<div class="row-section">
-
-<div class="col-12 header">
-</div>
-
-<div wicket:id="views"></div>
-
-<div class="col-12 footer">
-<div wicket:id="view-buttons"></div>
-</div>
-
-</div>
-
+  <div class="odd">
+    <div class="row-section">
+      <div class="col-6">
+        <div wicket:id="views"></div>
+        <div class="col-12 footer">
+          <div wicket:id="view-buttons"></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div wicket:id="spaces" class="users">...</div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 </body>
-
 </html>

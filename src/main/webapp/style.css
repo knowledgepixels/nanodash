@@ -1834,6 +1834,7 @@ div.navigator .goto a[disabled] {
   border-color: #888;
   margin-bottom: 10px;
   width: 100%;
+  position: relative;
 }
 
 .inline * {
@@ -1995,6 +1996,20 @@ td div:has(.button-list) {
   margin: 0;
 }
 
+.view-selector.with-source {
+  display: inline-block;
+  position: absolute;
+  right: 0;
+}
+
+.view-selector.with-source .buttons {
+  margin: 0;
+}
+
+.view-selector.with-source .buttons .source {
+  margin-top: 0;
+}
+
 .k-input-inner {
   width: 100% !important;
 }
@@ -2089,9 +2104,11 @@ a.source:hover {
 .advanced {
   display: none !important;
 }
+
 .mode-advanced .advanced {
   display: revert !important;
 }
+
 .mode-toggle-button {
   border: none;
   background: #ffffff;

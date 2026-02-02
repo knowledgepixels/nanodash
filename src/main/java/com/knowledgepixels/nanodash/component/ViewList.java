@@ -81,23 +81,35 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
-                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                            .space(profiledResource.getSpace())
-                            .id(id)
-                            .contextId(profiledResource.getId())
-                            .build());
-                } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
-                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                            .profiledResource(profiledResource)
-                            .contextId(profiledResource.getId())
-                            .id(id)
-                            .build());
-                } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
-                    item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
-                            .contextId(profiledResource.getId())
-                            .id(id)
-                            .build());
+                if (view.getViewType() != null && ResourceView.getSupportedViewTypes().contains(view.getViewType())) {
+                    if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
+                        item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                                .space(profiledResource.getSpace())
+                                .id(id)
+                                .contextId(profiledResource.getId())
+                                .build());
+                    } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
+                        item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
+                                .profiledResource(profiledResource)
+                                .contextId(profiledResource.getId())
+                                .id(id)
+                                .build());
+                    } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
+                        item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
+                                .contextId(profiledResource.getId())
+                                .id(id)
+                                .build());
+                    } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
+                        item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
+                                .contextId(profiledResource.getId())
+                                .build());
+                    } else {
+                        item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
+                        logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
+                    }
+                } else {
+                    item.add(new Label("view", "<span class=\"negative\">Unsupported view type</span>").setEscapeModelStrings(false));
+                    logger.error("Unsupported view type.");
                 }
             }
 

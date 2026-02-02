@@ -16,7 +16,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,8 +122,6 @@ public class UserPage extends NanodashPage {
 //			});
 //		}
 
-        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
-
         final Multimap<String, String> params = ArrayListMultimap.create();
         final String queryName;
         if (pubkeyHashes.isEmpty()) {
@@ -135,7 +132,7 @@ public class UserPage extends NanodashPage {
             params.put("pubkeyhashes", pubkeyHashes);
             params.put("userid", userIri.stringValue());
         }
-        final QueryRef queryRef = new QueryRef(queryName, params);
+        /*final QueryRef queryRef = new QueryRef(queryName, params);
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             add(makeNanopubResultComponent("latestnanopubs", response));
@@ -166,13 +163,13 @@ public class UserPage extends NanodashPage {
 //				}
 
             });
-        }
+        }*/
 
         Space.triggerAllDataUpdates();
         add(new ItemListPanel<Space>(
                 "spaces",
                 "Spaces",
-                () -> Space.areAllSpacesInitialized(),
+                Space::areAllSpacesInitialized,
                 () -> {
                     List<Space> spaces = new ArrayList<>();
                     for (Space space : Space.getSpaceList()) {
@@ -221,7 +218,7 @@ public class UserPage extends NanodashPage {
                 .set("param_appliesToResource", userIriString)
                 .set("context", userIriString)
                 .set("refresh-upon-publish", userIriString)
-            );
+        );
         addViewButton.setBody(Model.of("+ view"));
         viewButtons.add(addViewButton);
 
@@ -231,25 +228,25 @@ public class UserPage extends NanodashPage {
             add(new ButtonList("view-buttons", individualAgent, null, null, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ViewList(markupId, individualAgent);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return individualAgent.isDataInitialized();
                 }
-    
+
             });
             add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-    
+
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
                     return new ButtonList(markupId, individualAgent, null, null, viewButtons);
                 }
-    
+
                 @Override
                 protected boolean isContentReady() {
                     return individualAgent.isDataInitialized();
@@ -257,8 +254,8 @@ public class UserPage extends NanodashPage {
 
                 public Component getLoadingComponent(String id) {
                     return new Label(id).setVisible(false);
-                };
-    
+                }
+
             });
         }
     }

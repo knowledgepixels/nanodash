@@ -1,14 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -16,7 +8,8 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.*;
 
 public abstract class ProfiledResource implements Serializable {
 
@@ -26,7 +19,7 @@ public abstract class ProfiledResource implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
-    private static Map<String,ProfiledResource> instances = new HashMap<>();
+    private static Map<String, ProfiledResource> instances = new HashMap<>();
 
     public static void refresh() {
         for (ProfiledResource r : instances.values()) {
@@ -158,10 +151,14 @@ public abstract class ProfiledResource implements Serializable {
         for (ViewDisplay vd : getViewDisplays()) {
             IRI kind = vd.getViewKindIri();
             if (kind != null) {
-                if (viewKinds.contains(kind)) continue;
+                if (viewKinds.contains(kind)) {
+                    continue;
+                }
                 viewKinds.add(vd.getViewKindIri());
             }
-            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
+            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) {
+                continue;
+            }
 
             if (!toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated
@@ -172,6 +169,13 @@ public abstract class ProfiledResource implements Serializable {
                 // Deprecated
                 viewDisplays.add(vd);
             }
+        }
+
+        // This is a temporary hack to always show the latest nanopubs view for users by default without needing to create a ViewDisplay for each user
+        // TODO remove this once we have a better system for default views
+        if (User.isUser(resourceId)) {
+            ViewDisplay latestNpsViewDisplay = new ViewDisplay(ResourceView.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
+            viewDisplays.add(latestNpsViewDisplay);
         }
 
         Collections.sort(viewDisplays);
