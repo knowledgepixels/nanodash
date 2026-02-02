@@ -6,13 +6,20 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.knowledgepixels.nanodash.FilteredListDataProvider;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
@@ -38,43 +45,104 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         setOutputMarkupId(true);
 
         add(new Label("title", title));
+        WebMarkupContainer filterContainer = new WebMarkupContainer("filterContainer");
+        filterContainer.add(new TextField<>("filter", Model.of("")).setVisible(false));
+        filterContainer.setVisible(false);
+        add(filterContainer);
     }
-    
-    public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
-        this(markupId, title);
 
-        add(new ItemList<T>("itemlist", items, compProvider));
+    private void addFilterAndItemList(String itemListId, List<T> items, ComponentProvider<T> compProvider, FilteredListDataProvider.SerializableFunction<T, String> filterTextGetter) {
+        if (filterTextGetter != null) {
+            IModel<String> filterModel = Model.of("");
+            TextField<String> filterField = new TextField<>("filter", filterModel);
+            filterField.setOutputMarkupId(true);
+            filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    target.add(ItemListPanel.this);
+                }
+            });
+            WebMarkupContainer filterContainer = new WebMarkupContainer("filterContainer");
+            filterContainer.add(filterField);
+            get("filterContainer").replaceWith(filterContainer);
+            add(new ItemList<T>(itemListId, items, compProvider, filterTextGetter, filterModel));
+        } else {
+            add(new ItemList<T>(itemListId, items, compProvider, null));
+        }
+    }
+
+    public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider) {
+        this(markupId, title, items, compProvider, null);
+    }
+
+    public ItemListPanel(String markupId, String title, List<T> items, ComponentProvider<T> compProvider, FilteredListDataProvider.SerializableFunction<T, String> filterTextGetter) {
+        this(markupId, title);
+        addFilterAndItemList("itemlist", items, compProvider, filterTextGetter);
     }
 
     public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider) {
+        this(markupId, title, queryRef, resultListProvider, compProvider, null);
+    }
+
+    public ItemListPanel(String markupId, String title, QueryRef queryRef, ApiResultListProvider<T> resultListProvider, ComponentProvider<T> compProvider, FilteredListDataProvider.SerializableFunction<T, String> filterTextGetter) {
         this(markupId, title);
 
         ApiResponse qResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (qResponse != null) {
-            add(new ItemList<T>("itemlist", resultListProvider.apply(qResponse), compProvider));
+            addFilterAndItemList("itemlist", resultListProvider.apply(qResponse), compProvider, filterTextGetter);
         } else {
             lazyLoading = true;
+            final FilteredListDataProvider.SerializableFunction<T, String> getter = filterTextGetter;
             add(new ApiResultComponent("itemlist", queryRef) {
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new ItemList<T>(markupId, resultListProvider.apply(response), compProvider);
+                    if (getter != null) {
+                        IModel<String> filterModel = Model.of("");
+                        ItemListPanel.this.get("filterContainer").replaceWith(createFilterContainer(filterModel, ItemListPanel.this));
+                        return new ItemList<T>(markupId, resultListProvider.apply(response), compProvider, getter, filterModel);
+                    }
+                    return new ItemList<T>(markupId, resultListProvider.apply(response), compProvider, null);
                 }
             });
         }
     }
 
+    private WebMarkupContainer createFilterContainer(IModel<String> filterModel, ItemListPanel<?> panel) {
+        WebMarkupContainer filterContainer = new WebMarkupContainer("filterContainer");
+        TextField<String> filterField = new TextField<>("filter", filterModel);
+        filterField.setOutputMarkupId(true);
+        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(panel);
+            }
+        });
+        filterContainer.add(filterField);
+        return filterContainer;
+    }
+
     public ItemListPanel(String markupId, String title, ReadyFunction readyFunction, ResultFunction<List<T>> resultFunction, ComponentProvider<T> compProvider) {
+        this(markupId, title, readyFunction, resultFunction, compProvider, null);
+    }
+
+    public ItemListPanel(String markupId, String title, ReadyFunction readyFunction, ResultFunction<List<T>> resultFunction, ComponentProvider<T> compProvider, FilteredListDataProvider.SerializableFunction<T, String> filterTextGetter) {
         this(markupId, title);
         this.readyFunction = readyFunction;
 
         if (readyFunction.get()) {
-            add(new ItemList<T>("itemlist", resultFunction.get(), compProvider));
+            addFilterAndItemList("itemlist", resultFunction.get(), compProvider, filterTextGetter);
         } else {
             lazyLoading = true;
+            final FilteredListDataProvider.SerializableFunction<T, String> getter = filterTextGetter;
             add(new MethodResultComponent<List<T>>("itemlist", readyFunction, resultFunction) {
                 @Override
                 public Component getResultComponent(String markupId, List<T> result) {
-                    return new ItemList<T>(markupId, resultFunction.get(), compProvider);
+                    if (getter != null) {
+                        IModel<String> filterModel = Model.of("");
+                        ItemListPanel.this.get("filterContainer").replaceWith(createFilterContainer(filterModel, ItemListPanel.this));
+                        return new ItemList<T>(markupId, resultFunction.get(), compProvider, getter, filterModel);
+                    }
+                    return new ItemList<T>(markupId, resultFunction.get(), compProvider, null);
                 }
             });
         }

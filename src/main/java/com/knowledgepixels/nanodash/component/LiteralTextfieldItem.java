@@ -144,7 +144,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             if (regex != null && !vL.stringValue().matches(regex)) {
                 return false;
             }
-            if (getTextComponent().getModelObject().isEmpty()) {
+            if (getTextComponent().getModelObject() == null || getTextComponent().getModelObject().isEmpty()) {
                 return true;
             }
             String languagetag = context.getTemplate().getLanguageTag(iri);

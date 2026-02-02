@@ -269,7 +269,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             if (!validatable.isValid()) {
                 return false;
             }
-            if (textfield.getModelObject().isEmpty()) {
+            if (textfield.getModelObject() == null || textfield.getModelObject().isEmpty()) {
                 return true;
             }
             return vs.equals(textfield.getModelObject());

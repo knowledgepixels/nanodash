@@ -77,6 +77,8 @@ public class SpacePage extends NanodashPage {
             ));
         }
 
+        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
+
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));

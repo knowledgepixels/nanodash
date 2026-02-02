@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -87,16 +88,28 @@ public class UserListPage extends NanodashPage {
                 },
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ItemListPanel<IRI>(
-                "approved-users",
-                "Approved Users",
-                User.getUsers(true),
+                "approved-human-users",
+                "Approved Human Users",
+                User.getUsers(true).stream().filter(iri -> !User.isSoftware(iri)).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
+            ));
+
+        add(new ItemListPanel<IRI>(
+                "approved-software-agents",
+                "Approved Software Agents",
+                User.getUsers(true).stream().filter(User::isSoftware).collect(Collectors.toList()),
+                (userIri) -> {
+                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
+                },
+                User::getShortDisplayName
             ));
 
         add(new ItemListPanel<IRI>(
@@ -105,7 +118,8 @@ public class UserListPage extends NanodashPage {
                 User.getUsers(false),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
+                },
+                User::getShortDisplayName
             ));
 
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));

@@ -22,6 +22,7 @@ public abstract class QueryResult extends Panel {
 
     protected final List<AbstractLink> buttons = new ArrayList<>();
     protected String contextId;
+    protected String partId;
     protected boolean finalized = false;
     protected final QueryRef queryRef;
     protected final ViewDisplay viewDisplay;
@@ -76,6 +77,16 @@ public abstract class QueryResult extends Panel {
      */
     public void setContextId(String contextId) {
         this.contextId = contextId;
+    }
+
+    /**
+     * Set the part ID when this view is shown on a part page (e.g. paper collection).
+     * Used for redirect-after-publish to return to the part page.
+     *
+     * @param partId The part ID to set, or null when on the main context page.
+     */
+    public void setPartId(String partId) {
+        this.partId = partId;
     }
 
     // TODO button adding method copied and adjusted from ItemListPanel
