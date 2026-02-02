@@ -430,6 +430,7 @@ img.thirdparty {
   background-position: center;
   vertical-align: middle;
   margin-top: 0;
+  margin-right: 0.3em;
   width: 1em;
   height: 1em;
 }
@@ -442,6 +443,7 @@ img.thirdparty {
   background-position: center;
   vertical-align: middle;
   margin-top: 0;
+  margin-right: 0.3em;
   width: 1em;
   height: 1em;
 }
@@ -462,11 +464,13 @@ img.thirdparty {
 }
 
 ul.users {
-  list-style-image: url('images/user-icon.svg');
+  list-style: none;
+  padding-left: 0;
 }
 
 .users ul {
-  list-style-image: url('images/user-icon.svg');
+  list-style: none;
+  padding-left: 0;
 }
 
 .form-icon {
