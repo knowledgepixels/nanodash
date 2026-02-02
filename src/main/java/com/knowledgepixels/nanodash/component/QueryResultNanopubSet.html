@@ -13,24 +13,18 @@
 <body>
 
 <wicket:panel>
-  <div id="content-pane">
-    <div class="row-section">
-      <div class="col-12">
-        <div class="paneltitlerow listpanel">
-          <h4 wicket:id="title">[View Title]</h4>
-          <div class="view-selector with-source">
-            <span wicket:id="listEnabler" class="list"></span>
-            <span wicket:id="gridEnabler" class="grid"></span>
-            <span class="buttons" style="margin: 0;">
+  <div class="paneltitlerow listpanel">
+    <h4 wicket:id="title">[View Title]</h4>
+    <div class="view-selector with-source">
+      <span wicket:id="listEnabler" class="list"></span>
+      <span wicket:id="gridEnabler" class="grid"></span>
+      <span class="buttons" style="margin: 0;">
               <a href="." wicket:id="np" class="source" style="margin-top: 0;">^</a>
             </span>
-          </div>
-        </div>
-        <div class="flex-container" wicket:id="nanopubs"></div>
-        <p><a href="." wicket:id="showchannel" class="button">Show Full Channel</a></p>
-      </div>
     </div>
   </div>
+  <div class="flex-container" wicket:id="nanopubs"></div>
+  <p><a href="." wicket:id="showchannel" class="button">Show Full Channel</a></p>
 </wicket:panel>
 
 </body>

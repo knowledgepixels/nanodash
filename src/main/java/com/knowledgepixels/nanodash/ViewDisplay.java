@@ -1,9 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -13,7 +10,9 @@ import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A class representing the display of a resource view associated with a Space.
@@ -34,6 +33,17 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<IRI> appliesToClasses = new HashSet<>();
     private Set<IRI> appliesToNamespaces = new HashSet<>();
     private IRI resource;
+
+    /**
+     * Constructor for ViewDisplay with only a ResourceView. This is used for temporary view displays used in profiles as defaults.
+     *
+     * @param view the ResourceView associated with this ViewDisplay
+     */
+    public ViewDisplay(ResourceView view) {
+        this.id = null;
+        this.nanopub = null;
+        this.view = view;
+    }
 
     /**
      * Get a ResourceView by its ID.
@@ -209,7 +219,5 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     public int compareTo(ViewDisplay other) {
         return this.getStructuralPosition().compareTo(other.getStructuralPosition());
     }
-
-    
 
 }

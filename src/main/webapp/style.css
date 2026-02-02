@@ -1781,6 +1781,7 @@ div.navigator .goto a[disabled] {
   border-color: #888;
   margin-bottom: 10px;
   width: 100%;
+  position: relative;
 }
 
 .inline * {
@@ -1945,7 +1946,7 @@ td div:has(.button-list) {
 .view-selector.with-source {
   display: inline-block;
   position: absolute;
-  right: 3%;
+  right: 0;
 }
 
 .view-selector.with-source .buttons {
