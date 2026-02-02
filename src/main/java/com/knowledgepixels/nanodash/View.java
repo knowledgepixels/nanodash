@@ -20,9 +20,9 @@ import java.util.*;
 /**
  * A class representing a Resource View.
  */
-public class ResourceView implements Serializable {
+public class View implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceView.class);
+    private static final Logger logger = LoggerFactory.getLogger(View.class);
     private static final Set<IRI> supportedViewTypes = Set.of(KPXL_TERMS.TABULAR_VIEW, KPXL_TERMS.LIST_VIEW, KPXL_TERMS.PLAIN_PARAGRAPH_VIEW, KPXL_TERMS.NANOPUB_SET_VIEW);
 
     static Map<IRI, Integer> columnWidths = new HashMap<>();
@@ -42,15 +42,15 @@ public class ResourceView implements Serializable {
         columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_12_OF_12, 12);
     }
 
-    private static Map<String, ResourceView> resourceViews = new HashMap<>();
+    private static Map<String, View> views = new HashMap<>();
 
     /**
-     * Get a ResourceView by its ID.
+     * Get a View by its ID.
      *
-     * @param id the ID of the ResourceView
-     * @return the ResourceView object
+     * @param id the ID of the View
+     * @return the View object
      */
-    public static ResourceView get(String id) {
+    public static View get(String id) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
         // Automatically selecting latest version of view definition:
         // TODO This should be made configurable at some point, so one can make it a fixed version.
@@ -66,14 +66,14 @@ public class ResourceView implements Serializable {
                 np = Utils.getAsNanopub(npId);
             }
         }
-        if (!resourceViews.containsKey(latestId)) {
+        if (!views.containsKey(latestId)) {
             try {
-                resourceViews.put(latestId, new ResourceView(latestId, np));
+                views.put(latestId, new View(latestId, np));
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: " + id, ex);
             }
         }
-        return resourceViews.get(latestId);
+        return views.get(latestId);
     }
 
     private String id;
@@ -98,16 +98,16 @@ public class ResourceView implements Serializable {
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
 
-    private ResourceView(String id, Nanopub nanopub) {
+    private View(String id, Nanopub nanopub) {
         this.id = id;
         this.nanopub = nanopub;
         List<IRI> actionList = new ArrayList<>();
-        boolean resourceViewTypeFound = false;
+        boolean viewTypeFound = false;
         for (Statement st : nanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(id)) {
                 if (st.getPredicate().equals(RDF.TYPE)) {
                     if (st.getObject().equals(KPXL_TERMS.RESOURCE_VIEW)) {
-                        resourceViewTypeFound = true;
+                        viewTypeFound = true;
                     }
                     if (st.getObject() instanceof IRI objIri && supportedViewTypes.contains(objIri)) {
                         viewType = objIri;
@@ -166,23 +166,23 @@ public class ResourceView implements Serializable {
                 viewResultActionList.add(actionIri);
             }
         }
-        if (!resourceViewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
+        if (!viewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
         if (query == null) throw new IllegalArgumentException("Query not found: " + id);
     }
 
     /**
-     * Gets the ID of the ResourceView.
+     * Gets the ID of the View.
      *
-     * @return the ID of the ResourceView
+     * @return the ID of the View
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Gets the Nanopub defining this ResourceView.
+     * Gets the Nanopub defining this View.
      *
-     * @return the Nanopub defining this ResourceView
+     * @return the Nanopub defining this View
      */
     public Nanopub getNanopub() {
         return nanopub;
@@ -193,34 +193,34 @@ public class ResourceView implements Serializable {
     }
 
     /**
-     * Gets the label of the ResourceView.
+     * Gets the label of the View.
      *
-     * @return the label of the ResourceView
+     * @return the label of the View
      */
     public String getLabel() {
         return label;
     }
 
     /**
-     * Gets the title of the ResourceView.
+     * Gets the title of the View.
      *
-     * @return the title of the ResourceView
+     * @return the title of the View
      */
     public String getTitle() {
         return title;
     }
 
     /**
-     * Gets the GrlcQuery associated with the ResourceView.
+     * Gets the GrlcQuery associated with the View.
      *
-     * @return the GrlcQuery associated with the ResourceView
+     * @return the GrlcQuery associated with the View
      */
     public GrlcQuery getQuery() {
         return query;
     }
 
     /**
-     * Gets the query field of the ResourceView.
+     * Gets the query field of the View.
      *
      * @return the query field
      */
@@ -246,7 +246,7 @@ public class ResourceView implements Serializable {
     }
 
     /**
-     * Gets the list of action IRIs associated with the ResourceView.
+     * Gets the list of action IRIs associated with the View.
      *
      * @return the list of action IRIs
      */
@@ -309,19 +309,19 @@ public class ResourceView implements Serializable {
     }
 
     /**
-     * Checks if the ResourceView has target classes.
+     * Checks if the View has target classes.
      *
-     * @return true if the ResourceView has target classes, false otherwise
+     * @return true if the View has target classes, false otherwise
      */
     public boolean appliesToClasses() {
         return !appliesToClasses.isEmpty();
     }
 
     /**
-     * Checks if the ResourceView has a specific target class.
+     * Checks if the View has a specific target class.
      *
      * @param targetClass the target class IRI
-     * @return true if the ResourceView has the target class, false otherwise
+     * @return true if the View has the target class, false otherwise
      */
     public boolean appliesToClass(IRI targetClass) {
         return appliesToClasses.contains(targetClass);
@@ -333,7 +333,7 @@ public class ResourceView implements Serializable {
     }
 
     /**
-     * Gets the view type of the ResourceView.
+     * Gets the view type of the View.
      *
      * @return the view type mode IRI
      */

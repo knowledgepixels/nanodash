@@ -42,7 +42,7 @@ public class ViewList extends Panel {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
-                ResourceView view = item.getModelObject().getView();
+                View view = item.getModelObject().getView();
                 Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                 for (String p : view.getQuery().getPlaceholdersList()) {
                     String paramName = QueryParamField.getParamName(p);
@@ -81,7 +81,7 @@ public class ViewList extends Panel {
                     }
                 }
                 QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                if (view.getViewType() != null && ResourceView.getSupportedViewTypes().contains(view.getViewType())) {
+                if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
                     if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                         item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
                                 .space(resourceWithProfile.getSpace())

@@ -101,7 +101,7 @@ public class QueryResultTableBuilder implements Serializable {
                     table.setPartId(id);
                 }
                 table.setProfiledResource(resourceWithProfile);
-                ResourceView view = viewDisplay.getView();
+                View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
                         Template t = view.getTemplateForAction(actionIri);
@@ -145,7 +145,7 @@ public class QueryResultTableBuilder implements Serializable {
                             table.setPartId(id);
                         }
                         table.setProfiledResource(resourceWithProfile);
-                        ResourceView view = viewDisplay.getView();
+                        View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
                                 Template t = view.getTemplateForAction(actionIri);

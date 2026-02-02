@@ -136,7 +136,7 @@ public class QueryResultTable extends QueryResult {
         @Override
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
             try {
-                ResourceView view = viewDisplay.getView();
+                View view = viewDisplay.getView();
                 if (key.equals(ACTIONS) && view != null) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {

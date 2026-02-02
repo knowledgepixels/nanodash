@@ -85,7 +85,7 @@ public class QueryResultList extends QueryResult {
                         }
                     }
                 }
-                ResourceView view = viewDisplay.getView();
+                View view = viewDisplay.getView();
                 if (view != null && !view.getViewEntryActionList().isEmpty()) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {

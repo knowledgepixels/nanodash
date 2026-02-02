@@ -174,7 +174,7 @@ public abstract class ResourceWithProfile implements Serializable {
         // This is a temporary hack to always show the latest nanopubs view for users by default without needing to create a ViewDisplay for each user
         // TODO remove this once we have a better system for default views
         if (User.isUser(resourceId)) {
-            ViewDisplay latestNpsViewDisplay = new ViewDisplay(ResourceView.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
+            ViewDisplay latestNpsViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
             viewDisplays.add(latestNpsViewDisplay);
         }
 
