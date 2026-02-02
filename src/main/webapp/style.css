@@ -135,6 +135,21 @@
   padding-top: 0;
 }
 
+.home-footer {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 1.5em;
+  padding-top: 0.5em;
+}
+
+.home-footer a {
+  color: #666;
+}
+
+.home-footer a:hover {
+  color: #333;
+}
+
 [class*="col-"].header h1, [class*="col-"].header h2, [class*="col-"].header h3 {
   margin-bottom: 0;
 }
