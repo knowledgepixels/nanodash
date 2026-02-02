@@ -44,6 +44,7 @@ public class UserData implements Serializable {
     private HashMap<IRI, Set<String>> unapprovedIdPubkeyhashMap = new HashMap<>();
     private HashMap<String, Set<IRI>> unapprovedPubkeyhashIdMap = new HashMap<>();
     private HashMap<String, Set<IRI>> unapprovedPubkeyhashLocationMap = new HashMap<>();
+    private HashMap<IRI, Boolean> softwareIdMap = new HashMap<>();
     private HashMap<String, Set<IRI>> pubkeyhashIntroMap = new HashMap<>();
     private HashMap<IRI, IntroNanopub> introMap = new HashMap<>();
     private Set<IRI> approvedIntros = new HashSet<>();
@@ -181,6 +182,9 @@ public class UserData implements Serializable {
         if (!name.isEmpty() && !idNameMap.containsKey(userIri)) {
             idNameMap.put(userIri, name);
         }
+        if ("true".equals(entry.get("isSoftware"))) {
+            softwareIdMap.put(userIri, true);
+        }
     }
 
 /*
@@ -268,6 +272,10 @@ public class UserData implements Serializable {
      */
     public boolean isUser(IRI userIri) {
         return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
+    }
+
+    public boolean isSoftware(IRI userIri) {
+        return softwareIdMap.containsKey(userIri) && softwareIdMap.get(userIri);
     }
 
     /**

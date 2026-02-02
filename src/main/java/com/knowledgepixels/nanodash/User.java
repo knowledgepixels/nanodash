@@ -177,6 +177,16 @@ public class User {
     }
 
     /**
+     * Checks if a given IRI represents a software agent.
+     *
+     * @param userIri The IRI to check.
+     * @return True if the IRI represents a software agent, false otherwise.
+     */
+    public static boolean isSoftware(IRI userIri) {
+        return getUserData().isSoftware(userIri);
+    }
+
+    /**
      * Checks if a given IRI represents a user.
      *
      * @param userIri The IRI to check.

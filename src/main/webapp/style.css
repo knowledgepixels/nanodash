@@ -425,10 +425,25 @@ img.thirdparty {
 .user-icon {
   display: inline-block;
   background-image: url("images/user-icon.svg");
-  vertical-align: top;
-  margin-top: 6px;
-  width: 12px;
-  height: 12px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  vertical-align: middle;
+  margin-top: 0;
+  width: 1em;
+  height: 1em;
+}
+
+.bot-icon {
+  display: inline-block;
+  background-image: url("images/bot-icon.svg");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  vertical-align: middle;
+  margin-top: 0;
+  width: 1em;
+  height: 1em;
 }
 
 .api-icon {

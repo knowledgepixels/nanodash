@@ -4,10 +4,12 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -70,6 +72,9 @@ public class UserPage extends NanodashPage {
 
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
+        EmptyPanel userIcon = new EmptyPanel("userIcon");
+        userIcon.add(AttributeModifier.replace("class", User.isSoftware(userIri) ? "bot-icon" : "user-icon"));
+        add(userIcon);
         add(new Label("username", displayName));
 
         add(new BookmarkablePageLink<Void>("fullid", ExplorePage.class, parameters.set("label", displayName)).setBody(Model.of(userIriString)));
