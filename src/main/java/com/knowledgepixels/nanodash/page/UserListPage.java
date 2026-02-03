@@ -94,7 +94,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
-                "Approved Human Users",
+                "Human Users",
                 User.getUsers(true).stream().filter(iri -> !User.isSoftware(iri)).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
@@ -104,7 +104,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "approved-software-agents",
-                "Approved Software Agents",
+                "Software Agents",
                 User.getUsers(true).stream().filter(User::isSoftware).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
