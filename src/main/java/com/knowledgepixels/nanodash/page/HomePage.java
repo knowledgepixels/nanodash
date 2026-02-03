@@ -72,8 +72,8 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         final QueryRef rQueryRef = new QueryRef(QueryApiAccess.GET_MOST_RECENT_NANOPUBS);
-        View view = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
-        add(new DataView<ViewDisplay>("mostrecent", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(view)))) {
+        View mostRecentNanopubsView = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
+        add(new DataView<ViewDisplay>("mostrecent", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(mostRecentNanopubsView)))) {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
@@ -82,27 +82,42 @@ public class HomePage extends NanodashPage {
             }
         });
 
-        add(new ItemListPanel<IRI>(
-                "topcreators",
-                "Most Active Nanopublishers Last Month",
-                new QueryRef(QueryApiAccess.GET_TOP_CREATORS_LAST30D),
-                (apiResponse) -> {
-                    List<IRI> users = new ArrayList<>();
-                    for (ApiResponseEntry e : apiResponse.getData()) {
-                        users.add(Utils.vf.createIRI(e.get("userid")));
-                    }
-                    return users;
-                },
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri))
-        ));
+        View topCreatorsView = View.get("https://w3id.org/np/RAuv15ISgaPadgIj_LCSQNd2QRKmMcPulun6NyiblzEOs/top-creators-last-30days");
+        add(new DataView<ViewDisplay>("topCreators", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(topCreatorsView)))) {
 
-        add(new ItemListPanel<Template>(
-                "getstarted-templates",
-                "Suggested Templates to Start Publishing",
-                new QueryRef(QueryApiAccess.GET_SUGGESTED_TEMPLATES_TO_GET_STARTED),
-                TemplateData::getTemplateList,
-                (template) -> new TemplateItem("item", template)
-        ));
+            @Override
+            protected void populateItem(Item<ViewDisplay> item) {
+                item.add(new ItemListPanel<IRI>(
+                        "creatorsView",
+                        topCreatorsView.getTitle(),
+                        new QueryRef(topCreatorsView.getQuery().getQueryId()),
+                        (apiResponse) -> {
+                            List<IRI> users = new ArrayList<>();
+                            for (ApiResponseEntry e : apiResponse.getData()) {
+                                users.add(Utils.vf.createIRI(e.get("userid")));
+                            }
+                            return users;
+                        },
+                        (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri))
+                ));
+            }
+        });
+
+        View getStartedView = View.get("https://w3id.org/np/RAx2ljM4FrwsW9evtQj5LJWlL21tJR3Z-b__PdOpws2lY/suggested-templates-get-started");
+        add(new DataView<ViewDisplay>("getStartedTemplates", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(topCreatorsView)))) {
+
+            @Override
+            protected void populateItem(Item<ViewDisplay> item) {
+                item.add(new ItemListPanel<Template>(
+                        "getStartedTemplatesView",
+                        getStartedView.getTitle(),
+                        new QueryRef(getStartedView.getQuery().getQueryId()),
+                        TemplateData::getTemplateList,
+                        (template) -> new TemplateItem("item", template)
+                ));
+            }
+        });
+
     }
 
 }
