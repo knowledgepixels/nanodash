@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.ListPage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -71,7 +70,6 @@ public class QueryResultNanopubSet extends QueryResult {
         } else {
             add(new Label("np").setVisible(false));
         }
-        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", contextId)));
     }
 
 }
