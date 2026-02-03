@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.Component;
@@ -33,7 +34,6 @@ import java.util.List;
  */
 public class ExploreDataTable extends Panel {
 
-    private static final String refQueryName = "find-uri-references";
     private static final Logger logger = LoggerFactory.getLogger(ExploreDataTable.class);
 
     private ExploreDataTable(String id, String ref, ApiResponse response) {
@@ -198,7 +198,7 @@ public class ExploreDataTable extends Panel {
      * @return a new ExploreDataTable component or an ApiResultComponent if the data is not cached
      */
     public static Component createComponent(final String markupId, final String ref) {
-        QueryRef queryRef = new QueryRef(refQueryName, "ref", ref);
+        QueryRef queryRef = new QueryRef(QueryApiAccess.FIND_URI_REFERENCES, "ref", ref);
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             return new ExploreDataTable(markupId, ref, response);

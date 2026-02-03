@@ -7,6 +7,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -86,11 +87,11 @@ public class ThingListPanel extends Panel {
      * Each mode corresponds to a specific type of thing and defines how to query and display them.
      */
     public enum Mode {
-        CLASSES("get-classes-for-thing", "thing", "class", "class", "classes", "Assigned to"),
-        INSTANCES("get-instances", "class", "instance", "instance", "instances", "Has"),
-        PARTS("get-parts", "thing", "part", "part", "parts", "Has"),
-        TEMPLATES("get-templates-with-uri", "thing", "np", "template", "templates", "Used in"),
-        DESCRIPTIONS("get-term-definitions", "term", "np", "nanopublication", "nanopublications", "Described in");
+        CLASSES(QueryApiAccess.GET_CLASSES_FOR_THING, "thing", "class", "class", "classes", "Assigned to"),
+        INSTANCES(QueryApiAccess.GET_INSTANCES, "class", "instance", "instance", "instances", "Has"),
+        PARTS(QueryApiAccess.GET_PARTS, "thing", "part", "part", "parts", "Has"),
+        TEMPLATES(QueryApiAccess.GET_TEMPLATES_WITH_URI, "thing", "np", "template", "templates", "Used in"),
+        DESCRIPTIONS(QueryApiAccess.GET_TERM_DEFINITIONS, "term", "np", "nanopublication", "nanopublications", "Described in");
 
         /**
          * The name of the query to be used for this mode.
