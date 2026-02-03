@@ -23,7 +23,13 @@ import java.util.*;
 public class View implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(View.class);
-    private static final Set<IRI> supportedViewTypes = Set.of(KPXL_TERMS.TABULAR_VIEW, KPXL_TERMS.LIST_VIEW, KPXL_TERMS.PLAIN_PARAGRAPH_VIEW, KPXL_TERMS.NANOPUB_SET_VIEW);
+    private static final Set<IRI> supportedViewTypes = Set.of(
+            KPXL_TERMS.TABULAR_VIEW,
+            KPXL_TERMS.LIST_VIEW,
+            KPXL_TERMS.PLAIN_PARAGRAPH_VIEW,
+            KPXL_TERMS.NANOPUB_SET_VIEW,
+            KPXL_TERMS.ITEM_LIST_VIEW
+    );
 
     static Map<IRI, Integer> columnWidths = new HashMap<>();
 
