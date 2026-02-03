@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
 
@@ -112,12 +111,17 @@ public class ListPage extends NanodashPage {
         WebMarkupContainer dateFilterContainer = new WebMarkupContainer("dateFilterContainer");
 
         List<StringValue> typeParams = parameters.getValues(TYPE.getValue());
-        if (typeParams != null && !typeParams.isEmpty()) {
-            typeParams.forEach(typeParam -> {
+        if (typeParams.size() > 1) {
+            throw new IllegalArgumentException("Multiple 'type' parameters are not supported. Please provide a single 'type' parameter with space-separated values.");
+        }
+        if (!typeParams.isEmpty()) {
+            StringValue typeParam = parameters.getValues(TYPE.getValue()).getFirst();
+            types.add(Values.iri(typeParam.toString()));
+            /*typeParams.forEach(typeParam -> {
                 if (!typeParam.isNull() && !typeParam.isEmpty()) {
                     types.add(Values.iri(typeParam.toString()));
                 }
-            });
+            });*/
         }
 
         RepeatingView filteredTypes = new RepeatingView("typeNames");
@@ -127,16 +131,16 @@ public class ListPage extends NanodashPage {
             typeContainer.add(new AjaxLink<Void>("removeType") {
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                    List<IRI> updatedTypes = types.stream()
+                    /*List<IRI> updatedTypes = types.stream()
                             .filter(t -> !t.equals(type))
                             .toList();
                     if (!updatedTypes.isEmpty()) {
                         parameters.set(TYPE.getValue(), updatedTypes.stream()
                                 .map(IRI::stringValue)
                                 .collect(Collectors.joining(" ")));
-                    } else {
-                        parameters.remove(TYPE.getValue());
-                    }
+                    } else {*/
+                    parameters.remove(TYPE.getValue());
+                    //}
                     setResponsePage(ListPage.class, parameters);
                 }
             });
@@ -270,12 +274,12 @@ public class ListPage extends NanodashPage {
         added = true;
         final Multimap<String, String> queryParams = ArrayListMultimap.create();
         if (!types.isEmpty()) {
-            queryParams.put("types", types.stream().map(IRI::stringValue).collect(Collectors.joining(" ")));
+            types.forEach(type -> queryParams.put("types", type.stringValue()));
         }
         if (userId != null) {
             List<String> pubkeys = User.getPubkeyhashes(userId, null);
             if (!pubkeys.isEmpty()) {
-                queryParams.put("pubkeys", String.join(" ", pubkeys));
+                pubkeys.forEach(pubKey -> queryParams.put("pubkeys", pubKey));
             }
         }
         if (startDate != null) {
