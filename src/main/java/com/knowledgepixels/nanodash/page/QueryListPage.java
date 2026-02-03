@@ -9,6 +9,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.QueryList;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -58,8 +59,7 @@ public class QueryListPage extends NanodashPage {
 
         form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
-        final String queryName = "get-queries";
-        final QueryRef queryRef = new QueryRef(queryName);
+        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_QUERIES);
         ApiResponse qResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (qResponse != null) {
             add(new QueryList("queries", qResponse));
