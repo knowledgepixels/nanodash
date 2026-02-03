@@ -2,11 +2,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<meta charset="utf-8" />
-<title>nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.11.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <meta charset="utf-8"/>
+  <title>nanodash</title>
+  <link rel="stylesheet" href="style.css?v=4.11.1" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
@@ -14,45 +15,34 @@
 <div wicket:id="titlebar"></div>
 
 <div id="content-pane">
+  <div class="row-section">
+    <div class="col-12">
+      <h2>Nanodash Home</h2>
+      <p><span wicket:id="warning" class="negative"></span></p>
+      <p><span wicket:id="text"></span></p>
+    </div>
+  </div>
 
-<div class="row-section">
-<div class="col-12">
+  <div class="row-section">
+    <div class="col-6">
+      <wicket:container wicket:id="mostrecent">
+        <wicket:container wicket:id="view">...</wicket:container>
+      </wicket:container>
+    </div>
 
-<h2>Nanodash Home</h2>
+    <div class="col-6">
+      <div wicket:id="topcreators" class="users"></div>
+      <div wicket:id="getstarted-templates" class="forms"></div>
+    </div>
+  </div>
 
-<p><span wicket:id="warning" class="negative"></span></p>
-
-<p><span wicket:id="text"></span></p>
-
-</div>
-</div>
-
-<div class="row-section">
-<div class="col-6">
-
-<h4>Latest Nanopublications</h4>
-
-<div wicket:id="mostrecent"></div>
-
-</div>
-
-<div class="col-6">
-
-<div wicket:id="topcreators" class="users"></div>
-
-<div wicket:id="getstarted-templates" class="forms"></div>
-
-</div>
-</div>
-
-<div class="row-section">
-<div class="col-12 home-footer">
-<p><a href="https://github.com/knowledgepixels/nanodash">Nanodash on GitHub</a> · by <a href="https://knowledgepixels.com/">Knowledge Pixels</a>.</p>
-</div>
-</div>
-
+  <div class="row-section">
+    <div class="col-12 home-footer">
+      <p><a href="https://github.com/knowledgepixels/nanodash">Nanodash on GitHub</a> · by <a
+          href="https://knowledgepixels.com/">Knowledge Pixels</a>.</p>
+    </div>
+  </div>
 </div>
 
 </body>
-
 </html>
