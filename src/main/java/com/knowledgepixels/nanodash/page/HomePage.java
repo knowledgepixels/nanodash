@@ -71,7 +71,7 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        final QueryRef rQueryRef = new QueryRef("get-most-recent-nanopubs");
+        final QueryRef rQueryRef = new QueryRef(QueryApiAccess.GET_MOST_RECENT_NANOPUBS);
         View view = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
         add(new DataView<ViewDisplay>("mostrecent", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(view)))) {
 
@@ -85,7 +85,7 @@ public class HomePage extends NanodashPage {
         add(new ItemListPanel<IRI>(
                 "topcreators",
                 "Most Active Nanopublishers Last Month",
-                new QueryRef("get-top-creators-last30d"),
+                new QueryRef(QueryApiAccess.GET_TOP_CREATORS_LAST30D),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
                     for (ApiResponseEntry e : apiResponse.getData()) {
@@ -99,7 +99,7 @@ public class HomePage extends NanodashPage {
         add(new ItemListPanel<Template>(
                 "getstarted-templates",
                 "Suggested Templates to Start Publishing",
-                new QueryRef("get-suggested-templates-to-get-started"),
+                new QueryRef(QueryApiAccess.GET_SUGGESTED_TEMPLATES_TO_GET_STARTED),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
         ));

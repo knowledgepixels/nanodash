@@ -70,7 +70,7 @@ public class ResourcePartPage extends NanodashPage {
             }
         }
 
-        QueryRef getDefQuery = new QueryRef("get-term-definitions", "term", id);
+        QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", id);
         if (resourceWithProfile.getSpace() != null) {
             for (IRI userIri : resourceWithProfile.getSpace().getUsers()) {
                 for (String pubkey : User.getUserData().getPubkeyhashes(userIri, true)) {

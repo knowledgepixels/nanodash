@@ -11,6 +11,8 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
+
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 
 import net.trustyuri.TrustyUriUtils;
@@ -29,7 +31,7 @@ public class StatusLine extends Panel {
      */
     public static Component createComponent(String markupId, String npId) {
         // TODO Use the query cache here but with quicker refresh interval?
-        ApiResultComponent c = new ApiResultComponent("statusline", new QueryRef("get-newer-versions-of-np", "np", npId)) {
+        ApiResultComponent c = new ApiResultComponent("statusline", new QueryRef(QueryApiAccess.GET_NEWER_VERSIONS_OF_NP, "np", npId)) {
 
             @Override
             public Component getApiResultComponent(String markupId, ApiResponse response) {

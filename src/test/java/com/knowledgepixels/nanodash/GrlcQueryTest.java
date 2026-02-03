@@ -41,9 +41,9 @@ class GrlcQueryTest {
 
     @Test
     void getFromQueryRef() {
-        QueryRef ref = new QueryRef("get-most-recent-nanopubs");
+        QueryRef ref = new QueryRef(QueryApiAccess.GET_MOST_RECENT_NANOPUBS);
         GrlcQuery query = GrlcQuery.get(ref);
-        assertEquals("RAYNg6rfvXIVvJY2u8oS0EEjxnVvimLLVZG1rOar_nWIY/get-most-recent-nanopubs", query.getQueryId());
+        assertEquals(QueryApiAccess.GET_MOST_RECENT_NANOPUBS, query.getQueryId());
     }
 
     @Test

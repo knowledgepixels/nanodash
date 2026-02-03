@@ -6,6 +6,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.component.ActivityPanel;
 import com.knowledgepixels.nanodash.component.ApiResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -40,7 +41,7 @@ public class TestPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
 
-        final QueryRef queryRef = new QueryRef("get-monthly-type-overview-by-pubkeys", "pubkey", "1162349fdeaf431e71ab55898cb2a425b971d466150c2aa5b3c1beb498045a37");
+        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS, "pubkey", "1162349fdeaf431e71ab55898cb2a425b971d466150c2aa5b3c1beb498045a37");
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
             add(new ActivityPanel("activity", response));

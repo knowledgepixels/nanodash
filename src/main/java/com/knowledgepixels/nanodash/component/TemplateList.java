@@ -13,6 +13,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
@@ -35,7 +36,7 @@ public class TemplateList extends Panel {
         add(new ItemListPanel<Template>(
                 "popular-templates",
                 "Popular Templates",
-                new QueryRef("get-most-used-templates-last30d"),
+                new QueryRef(QueryApiAccess.GET_MOST_USED_TEMPLATES_LAST30D),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
         ));
@@ -43,7 +44,7 @@ public class TemplateList extends Panel {
         add(new ItemListPanel<Template>(
                 "getstarted-templates",
                 "Suggested Templates to Get Started",
-                new QueryRef("get-suggested-templates-to-get-started"),
+                new QueryRef(QueryApiAccess.GET_SUGGESTED_TEMPLATES_TO_GET_STARTED),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
         ));

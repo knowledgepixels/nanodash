@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
@@ -62,7 +63,7 @@ public class UserListPage extends NanodashPage {
         add(new ItemListPanel<IRI>(
                 "topcreators",
                 "Most Active Nanopublishers Last Month",
-                new QueryRef("get-top-creators-last30d"),
+                new QueryRef(QueryApiAccess.GET_TOP_CREATORS_LAST30D),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
                     for (ApiResponseEntry e : apiResponse.getData()) {
@@ -78,7 +79,7 @@ public class UserListPage extends NanodashPage {
         add(new ItemListPanel<IRI>(
                 "latestusers",
                 "Latest New Users",
-                new QueryRef("get-latest-users"),
+                new QueryRef(QueryApiAccess.GET_LATEST_USERS),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
                     for (ApiResponseEntry e : apiResponse.getData()) {

@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.Project;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
@@ -55,7 +56,7 @@ public class SpaceListPage extends NanodashPage {
         add(new ItemListPanel<Project>(
                 "legacy-projects",
                 "Legacy Projects",
-                new QueryRef("get-projects"),
+                new QueryRef(QueryApiAccess.GET_PROJECTS),
                 (apiResponse) -> {
                     Project.refresh(apiResponse);
                     return Project.getProjectList();
@@ -84,7 +85,7 @@ public class SpaceListPage extends NanodashPage {
         add(new ItemListPanel<Space>(
                 typePl.toLowerCase(),
                 typePl,
-                new QueryRef("get-spaces"),
+                new QueryRef(QueryApiAccess.GET_SPACES),
                 (apiResponse) -> {
                     Space.refresh(apiResponse);
                     return Space.getSpaceList(KPXL_TERMS.NAMESPACE + type);

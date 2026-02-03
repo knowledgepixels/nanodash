@@ -37,7 +37,7 @@ public class GrlcQuery implements Serializable {
      * @return a GrlcQuery instance
      */
     public static GrlcQuery get(QueryRef ref) {
-        return get(QueryApiAccess.getQueryId(ref.getName()));
+        return get(ref.getName());
     }
 
     /**

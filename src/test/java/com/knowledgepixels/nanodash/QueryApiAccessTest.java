@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.extra.services.*;
@@ -13,19 +12,9 @@ import static org.mockito.Mockito.mockStatic;
 
 class QueryApiAccessTest {
 
-    private final String queryName = "get-test-query";
-    private final String queryId = "RAJmZoM0xCGE9L0OEgmQBOd1M58ggNkwZ0IUqHOAPRfvE/" + queryName;
-
-    @BeforeEach
-    void setUp() {
-        QueryApiAccess.load(queryId);
-    }
-
-    @Test
-    void getQueryId() {
-        String result = QueryApiAccess.getQueryId(queryName);
-        assertEquals(queryId, result);
-    }
+    // Use a query that exists as a static field in QueryApiAccess (full ID only)
+    private final String queryId = QueryApiAccess.GET_LATEST_USERS;
+    private final String queryName = "get-latest-users";
 
     @Test
     void getReturnsApiResponseForValidQueryId() throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
@@ -41,19 +30,6 @@ class QueryApiAccessTest {
     }
 
     @Test
-    void getReturnsApiResponseForValidQueryName() throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        ApiResponse expectedResponse = new ApiResponse();
-
-        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
-            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(expectedResponse);
-
-            ApiResponse response = QueryApiAccess.get(new QueryRef(queryName));
-
-            assertEquals(expectedResponse, response);
-        }
-    }
-
-    @Test
     void forcedGetRetriesUntilApiResponseIsNotNull() {
         ApiResponse expectedResponse = new ApiResponse();
 
@@ -63,17 +39,15 @@ class QueryApiAccessTest {
                     .thenReturn(null)
                     .thenReturn(expectedResponse);
 
-            ApiResponse response = QueryApiAccess.forcedGet(new QueryRef(queryName));
+            ApiResponse response = QueryApiAccess.forcedGet(new QueryRef(queryId));
 
             assertEquals(expectedResponse, response);
         }
     }
 
     @Test
-    void getThrowsExceptionForUnknownQueryName() {
-        String queryName = "unknownQueryName";
-
-        assertThrows(IllegalArgumentException.class, () -> QueryApiAccess.get(new QueryRef(queryName)));
+    void getThrowsExceptionWhenNameIsNotFullQueryId() {
+        assertThrows(IllegalArgumentException.class, () -> QueryApiAccess.get(new QueryRef("short-name-only")));
     }
 
     @Test

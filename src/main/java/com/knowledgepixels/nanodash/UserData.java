@@ -119,7 +119,7 @@ public class UserData implements Serializable {
 
         logger.info("Loading user details...");
         // Get latest introductions for all users, including unapproved ones:
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef("get-all-user-intros"), true).getData()) {
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_INTROS), true).getData()) {
             register(entry);
         }
     }

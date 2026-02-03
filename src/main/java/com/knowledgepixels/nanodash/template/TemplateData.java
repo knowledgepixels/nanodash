@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 
 import net.trustyuri.TrustyUriUtils;
 
@@ -67,9 +68,9 @@ public class TemplateData implements Serializable {
         provenanceTemplates = new ArrayList<>();
         pubInfoTemplates = new ArrayList<>();
         templateMap = new ConcurrentHashMap<>();
-        refreshTemplates(assertionTemplates, "get-assertion-templates");
-        refreshTemplates(provenanceTemplates, "get-provenance-templates");
-        refreshTemplates(pubInfoTemplates, "get-pubinfo-templates");
+        refreshTemplates(assertionTemplates, QueryApiAccess.GET_ASSERTION_TEMPLATES);
+        refreshTemplates(provenanceTemplates, QueryApiAccess.GET_PROVENANCE_TEMPLATES);
+        refreshTemplates(pubInfoTemplates, QueryApiAccess.GET_PUBINFO_TEMPLATES);
     }
 
     private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {

@@ -266,7 +266,7 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<MaintainedResource>(
                 "resources",
                 "Resources",
-                new QueryRef("get-maintained-resources"),
+                new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES),
                 (apiResponse) -> {
                     MaintainedResource.ensureLoaded();
                     return MaintainedResource.getResourcesBySpace(space);

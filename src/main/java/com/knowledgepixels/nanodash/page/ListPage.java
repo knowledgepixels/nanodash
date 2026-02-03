@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -40,8 +41,6 @@ import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
  */
 public class ListPage extends NanodashPage {
 
-    private static final long serialVersionUID = 1L;
-    private final String QUERY_NAME = "get-filtered-nanopub-list";
     private final String DATE_FORMAT = "d MMM yyyy";
 
     /**
@@ -285,7 +284,7 @@ public class ListPage extends NanodashPage {
         if (endDate != null) {
             queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
         }
-        final QueryRef queryRef = new QueryRef(QUERY_NAME, queryParams);
+        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_FILTERED_NANOPUB_LIST, queryParams);
         ApiResponse cachedResponse = ApiCache.retrieveResponseAsync(queryRef);
         if (cachedResponse != null) {
             NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20);

@@ -75,7 +75,7 @@ public class MaintainedResource extends ResourceWithProfile {
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
-            refresh(ApiCache.retrieveResponseSync(new QueryRef("get-maintained-resources"), true));
+            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
         }
     }
 
@@ -118,7 +118,7 @@ public class MaintainedResource extends ResourceWithProfile {
     }
 
     public static void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef("get-maintained-resources"), true));
+        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
         for (MaintainedResource resource : resourceList) {
             resource.setDataNeedsUpdate();
         }

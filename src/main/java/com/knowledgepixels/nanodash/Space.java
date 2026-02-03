@@ -131,7 +131,7 @@ public class Space extends ResourceWithProfile {
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
-            refresh(ApiCache.retrieveResponseSync(new QueryRef("get-spaces"), true));
+            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
         }
     }
 
@@ -177,7 +177,7 @@ public class Space extends ResourceWithProfile {
      * Mark all spaces as needing a data update.
      */
     public static void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef("get-spaces"), true));
+        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
         for (Space space : spaceList) {
             space.dataNeedsUpdate = true;
         }
@@ -557,7 +557,7 @@ public class Space extends ResourceWithProfile {
                         resourceIds.put("resource", id);
                     }
 
-                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef("get-admins", spaceIds), false);
+                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), false);
                     boolean continueAddingAdmins = true;
                     while (continueAddingAdmins) {
                         continueAddingAdmins = false;
@@ -576,7 +576,7 @@ public class Space extends ResourceWithProfile {
 
                     Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-space-member-roles", spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
                         newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
@@ -588,13 +588,13 @@ public class Space extends ResourceWithProfile {
                         role.addRoleParams(getSpaceMemberParams);
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-space-members", getSpaceMemberParams), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), false).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                         newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-pinned-templates", spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         Template t = TemplateData.get().getTemplate(r.get("template"));
                         if (t == null) continue;
@@ -605,7 +605,7 @@ public class Space extends ResourceWithProfile {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
                         }
                     }
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef("get-pinned-queries", spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), false).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         GrlcQuery query = GrlcQuery.get(r.get("query"));
                         if (query == null) continue;

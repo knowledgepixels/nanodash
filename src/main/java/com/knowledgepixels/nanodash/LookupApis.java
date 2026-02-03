@@ -71,10 +71,10 @@ public class LookupApis {
         // TODO This method is a mess and needs some serious clean-up and structuring...
         try {
             if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/") || apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
-                String queryName = "find-things";
+                String queryId = QueryApiAccess.FIND_THINGS;
                 if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
-                    queryName = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
-                    if (queryName.contains("?")) queryName = queryName.substring(0, queryName.indexOf("?"));
+                    queryId = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
+                    if (queryId.contains("?")) queryId = queryId.substring(0, queryId.indexOf("?"));
                 }
                 Multimap<String, String> params = ArrayListMultimap.create();
                 if (apiString.contains("?")) {
@@ -82,10 +82,6 @@ public class LookupApis {
                     for (NameValuePair p : urlParams) {
                         params.put(p.getName(), p.getValue());
                     }
-                }
-                String queryId = queryName;
-                if (!queryName.contains("/")) {
-                    queryId = QueryApiAccess.getQueryId(queryName);
                 }
                 GrlcQuery q = GrlcQuery.get(queryId);
                 if (q.getEndpoint().stringValue().endsWith("/text")) {
@@ -96,7 +92,7 @@ public class LookupApis {
                     queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
                 }
                 params.put(queryParamName, searchterm);
-                ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryName, params), false);
+                ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
                 int count = 0;
                 for (ApiResponseEntry r : result.getData()) {
                     String uri = r.get("thing");
