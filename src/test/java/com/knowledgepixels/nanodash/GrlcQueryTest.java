@@ -1,34 +1,26 @@
 package com.knowledgepixels.nanodash;
 
-import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
-import static com.knowledgepixels.nanodash.utils.TestUtils.randomIri;
-import static org.eclipse.rdf4j.model.util.Values.iri;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
+import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.utils.TestUtils;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.nanopub.*;
+import org.nanopub.extra.services.QueryRef;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.NanopubImpl;
-
-import com.knowledgepixels.nanodash.component.QueryParamField;
-import com.knowledgepixels.nanodash.utils.TestUtils;
+import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
+import static com.knowledgepixels.nanodash.utils.TestUtils.randomIri;
+import static org.eclipse.rdf4j.model.util.Values.iri;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 class GrlcQueryTest {
 
@@ -45,6 +37,13 @@ class GrlcQueryTest {
         var field = GrlcQuery.class.getDeclaredField("instanceMap");
         field.setAccessible(true);
         ((java.util.Map<?, ?>) field.get(null)).clear();
+    }
+
+    @Test
+    void getFromQueryRef() {
+        QueryRef ref = new QueryRef("get-most-recent-nanopubs");
+        GrlcQuery query = GrlcQuery.get(ref);
+        assertEquals("RAYNg6rfvXIVvJY2u8oS0EEjxnVvimLLVZG1rOar_nWIY/get-most-recent-nanopubs", query.getQueryId());
     }
 
     @Test
