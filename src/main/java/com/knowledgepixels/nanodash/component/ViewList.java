@@ -76,7 +76,7 @@ public class ViewList extends Panel {
                         }
                     } else if (!QueryParamField.isOptional(p)) {
                         item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
-                        logger.error("Error: Query has non-optional parameter: " + view.getQuery().getQueryId() + " " + p);
+                        logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
                         return;
                     }
                 }

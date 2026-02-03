@@ -2,22 +2,20 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
 </head>
 <body style="margin-left: auto; margin-right: auto; max-width: 1420px">
 
 <wicket:panel>
+  <div class="listview" wicket:id="views">
+    <div wicket:id="view">...</div>
+  </div>
 
-<div class="listview" wicket:id="views">
-<div wicket:id="view">...</div>
-</div>
-
-<div class="col-6" wicket:id="emptynotice">
-<p class="emptynotice"><em>(no views have been added yet)</em></p>
-</div>
-
+  <div class="col-6" wicket:id="emptynotice">
+    <p class="emptynotice"><em>(no views have been added yet)</em></p>
+  </div>
 </wicket:panel>
 
 </body>
-
 </html>
