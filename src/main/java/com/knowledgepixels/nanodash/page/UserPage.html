@@ -2,11 +2,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<meta charset="utf-8" />
-<title wicket:id="pagetitle">... (user) | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.11.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <meta charset="utf-8"/>
+  <title wicket:id="pagetitle">... (user) | nanodash</title>
+  <link rel="stylesheet" href="style.css?v=4.11.1" type="text/css" media="screen" title="Stylesheet"/>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 
 <body>
@@ -24,11 +25,9 @@
 
   <div class="odd">
     <div class="row-section">
-      <div class="col-6">
-        <div wicket:id="views"></div>
-        <div class="col-12 footer">
-          <div wicket:id="view-buttons"></div>
-        </div>
+      <wicket:container wicket:id="views"></wicket:container>
+      <div class="col-12 footer">
+        <div wicket:id="view-buttons"></div>
       </div>
       <div class="col-6">
         <div wicket:id="spaces" class="users">...</div>
