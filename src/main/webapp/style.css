@@ -1832,7 +1832,6 @@ div.navigator .goto a[disabled] {
   border-bottom-style: solid;
   border-width: 1px;
   border-color: #888;
-  margin-bottom: 10px;
   width: 100%;
   position: relative;
 }
