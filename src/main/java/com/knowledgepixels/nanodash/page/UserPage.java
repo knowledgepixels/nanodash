@@ -167,21 +167,6 @@ public class UserPage extends NanodashPage {
             });
         }*/
 
-        Space.triggerAllDataUpdates();
-        add(new ItemListPanel<Space>(
-                "spaces",
-                "Spaces",
-                Space::areAllSpacesInitialized,
-                () -> {
-                    List<Space> spaces = new ArrayList<>();
-                    for (Space space : Space.getSpaceList()) {
-                        if (space.isMember(userIri)) spaces.add(space);
-                    }
-                    return spaces;
-                },
-                (s) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", s.getId()), s.getLabel(), "(" + s.getTypeLabel() + ")", null)
-        ));
-
 //        if (pubkeyHashes.isEmpty()) {
 //            add(new Label("activity", "<span class=\"negative\">Activity cannot be shown for this user due to missing user introduction.</span>").setEscapeModelStrings(false));
 //        } else {
