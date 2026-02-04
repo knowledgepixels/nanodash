@@ -115,8 +115,8 @@ public class QueryApiAccess {
      * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException If there are not enough API instances.
      */
     public static ApiResponse get(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
-        if (!queryRef.getName().matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
-            throw new IllegalArgumentException("QueryRef name must be full query ID: " + queryRef.getName());
+        if (!queryRef.getQueryId().matches("^RA[A-Za-z0-9-_]{43}/.*$")) {
+            throw new IllegalArgumentException("QueryRef name must be full query ID: " + queryRef.getQueryId());
         }
         return QueryAccess.get(queryRef);
     }
