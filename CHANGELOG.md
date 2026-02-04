@@ -1,3 +1,77 @@
+## [4.12.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.11.0...nanodash-4.12.0) (2026-02-04)
+
+### Features
+
+* Add filter fields to views to User and Query pages ([27b6730](https://github.com/knowledgepixels/nanodash/commit/27b673025ed832f6d8dfe6bb6d720650eb45ea1d))
+* Consistently show software agent icon in lists ([06e0232](https://github.com/knowledgepixels/nanodash/commit/06e02325ddc252d82ef28e887dd0ddf0685ad106))
+* **KPXL_TERMS:** add ITEM_LIST_VIEW to supported view types ([9eed027](https://github.com/knowledgepixels/nanodash/commit/9eed027a4e46a9df4a5cba99faff12699456d7da))
+* **KPXL_TERMS:** add NANOPUB_SET_VIEW constant for Nanopublication Set view type ([f47d1e0](https://github.com/knowledgepixels/nanodash/commit/f47d1e0bb534ab4868b1dbdb4f16edee5c668c0d))
+* **NanodashSession:** change default NanopubResults view mode from GRID to LIST ([71f0268](https://github.com/knowledgepixels/nanodash/commit/71f026870b6194380cf155abe7bc89dca20e82ec))
+* **ProfiledResource:** add default view display for latest nanopubs in user profiles ([789d83f](https://github.com/knowledgepixels/nanodash/commit/789d83fc661893d886862058c86d240b88ad7b66))
+* **QueryResultNanopubSet:** add component for displaying NanopubResults list/grid as a View ([329351c](https://github.com/knowledgepixels/nanodash/commit/329351c9825c3bd25d52e333802b79e422f31c48))
+* Recognize software agents ([c609f7e](https://github.com/knowledgepixels/nanodash/commit/c609f7e50670b541c3ff39312261a6373d93639e))
+* Redirect directly to context page after publishing ([7f397c6](https://github.com/knowledgepixels/nanodash/commit/7f397c665375597e30495f76345d2baf4484fa62))
+* Redirect to part-pages after publication ([cade9f0](https://github.com/knowledgepixels/nanodash/commit/cade9f0dbe9488061048efe7d4527641888f1394))
+* Remove Spaces component on user page ([cacdb17](https://github.com/knowledgepixels/nanodash/commit/cacdb17a4ea369cfc8682de74e976849078f14eb))
+* **ResourceView:** add support for NANOPUB_SET_VIEW and improve view type validation ([5642e0a](https://github.com/knowledgepixels/nanodash/commit/5642e0a0e1c6ddd31a8b83dd4c33dc5a23505cea))
+* Show human users and software agents separately ([122edca](https://github.com/knowledgepixels/nanodash/commit/122edca1dcf992aabb0ff1e3dd8a6e795a61a011))
+* Support part-pages for user profiles ([e0ab8d2](https://github.com/knowledgepixels/nanodash/commit/e0ab8d2ce237519443d711595124c73c673b9d49))
+* **ViewList:** implement NANOPUB_SET_VIEW handling in view list ([4eb0ef5](https://github.com/knowledgepixels/nanodash/commit/4eb0ef577551deb7b8d73d77ff50dd504e54615e))
+
+### Dependency updates
+
+* **core-deps:** update com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer dependency to v20260102.1 ([880a6a1](https://github.com/knowledgepixels/nanodash/commit/880a6a18cce15cc7f06c2006b5c8829325666771))
+* **core-deps:** Update nanopub dependency ([a2302f0](https://github.com/knowledgepixels/nanodash/commit/a2302f0b568cd5e9f1c3604f28bb7d06132a603b))
+* **deps:** Update commons-exec dependency ([6485954](https://github.com/knowledgepixels/nanodash/commit/64859546807d3f9f9dd08c83a07d15548f489e06))
+* **deps:** Update commons-text dependency ([5d739b7](https://github.com/knowledgepixels/nanodash/commit/5d739b70d86da084d213bb4344681a8afc94afad))
+* **deps:** update dependency maven to v3.9.12 ([377933d](https://github.com/knowledgepixels/nanodash/commit/377933d0dfbd9e0db19e1bd9f9ee52f86d766ee0))
+* **deps:** Update jackson-dataformat-yaml dependency ([3c5fae1](https://github.com/knowledgepixels/nanodash/commit/3c5fae1a7ac116bd5c624ec04700299aef903eb5))
+* **deps:** Update junit-jupiter dependency ([fcf9afb](https://github.com/knowledgepixels/nanodash/commit/fcf9afb0a8fb9d31b72cb26e55d28e6f24285000))
+* **deps:** Update mockito-core dependency ([aa28102](https://github.com/knowledgepixels/nanodash/commit/aa28102955b2d18e1adf1877499cc9009a8227eb))
+
+### Bug Fixes
+
+* Compile errors when run through script resolved ([66c29af](https://github.com/knowledgepixels/nanodash/commit/66c29af36dfaa14d64dff920a9befecbb2e4c958))
+* **GrlcQuery:** update `get` method to use `QueryApiAccess` for query ID retrieval from QueryRef ([af612e7](https://github.com/knowledgepixels/nanodash/commit/af612e7f5d6263c568ab36173796eab9fd5fcf3c))
+* **HomePage:** add missing 'view' section and update HTML structure ([a615fa0](https://github.com/knowledgepixels/nanodash/commit/a615fa0e1adb52760b4b93b057d6a88ecdd9fab7))
+* **ListPage:** update params injection to accommodate new query syntax and enforce single 'type' parameter ([7d2d5b9](https://github.com/knowledgepixels/nanodash/commit/7d2d5b9eedd45d63345d1c0438f779cfc59c05cc))
+* Only local default values in repeated statements get numbers ([ea2474c](https://github.com/knowledgepixels/nanodash/commit/ea2474ce2769eb26a36ef4f53a17ad5f402b78be))
+* remove external container from `UserPage` views list ([c56aaeb](https://github.com/knowledgepixels/nanodash/commit/c56aaeb5416c1cbc3654027fde7001d4b8901d76))
+* Removing and re-adding repeated statements works with defaults ([8e5f775](https://github.com/knowledgepixels/nanodash/commit/8e5f7757dcc0a6175ba6bcb9b633d73518f687b7))
+* **style:** remove unnecessary margin from table border styling ([ac4451e](https://github.com/knowledgepixels/nanodash/commit/ac4451e403c13fccfb81e7148b70be5b20d3224d))
+* Transform some remaining query names to query IDs ([4d88674](https://github.com/knowledgepixels/nanodash/commit/4d88674234cc1c8aa7538d527dacbd3c88c4c378))
+* User pages AJAX loading works again (without 'wicket:container') ([8552497](https://github.com/knowledgepixels/nanodash/commit/8552497fca8dec1df8f45d91c9d502507bc65452))
+* **UserPage:** group profile and channel links into a single paragraph ([e9c7ccc](https://github.com/knowledgepixels/nanodash/commit/e9c7ccc66262a60dd5a1e93f06bebf16a667bdc6))
+* **ViewList:** add error message when the view type is not supported ([587155c](https://github.com/knowledgepixels/nanodash/commit/587155ca9e9d6e4cd2eafb302cfc0061f353226e))
+
+### Tests
+
+* **GrlcQuery:** add test for retrieving query ID from QueryRef ([8479c2c](https://github.com/knowledgepixels/nanodash/commit/8479c2c440de2d294c7fecc1b0c2e64d56a76ef7))
+
+### General maintenance
+
+* **HomePage:** replace "top creators" and "get started templates" sections to use `View`s and `ViewDisplay` ([835cb34](https://github.com/knowledgepixels/nanodash/commit/835cb34a76f16c76e25623ede7f19bc0396b71c2))
+* move 'Show Full Channel' button from QueryResultNanopubSet to UserPage ([73d8900](https://github.com/knowledgepixels/nanodash/commit/73d89009dcf7d4287b52511b34214ee9d3068321))
+* **QueryApiAccess:** update nanopub list API endpoint `get-filtered-nanopub-list` ([151a74e](https://github.com/knowledgepixels/nanodash/commit/151a74e30f10493ccfbd08572a5ff93bcf418a97))
+* **QueryResultNanopubSet:** enhance UI with title and navigation links, improve component population ([feb44e9](https://github.com/knowledgepixels/nanodash/commit/feb44e90c615ae8644e590014c9c09a394e56923))
+* **QueryResultNanopubSet:** enhance view selector layout and styling for improved usability ([4a5d184](https://github.com/knowledgepixels/nanodash/commit/4a5d18424a6d8f21daf779afeda6860aa6876ec1))
+* setting next snapshot version [skip ci] ([c71f875](https://github.com/knowledgepixels/nanodash/commit/c71f8757db0f6debbdccd47047c241f53aee7223))
+* Update CSS link version ([2c507ba](https://github.com/knowledgepixels/nanodash/commit/2c507ba1db92f4ce355f328c5d27ea01206cc912))
+
+### Style improvements
+
+* Add small home page footer ([280c347](https://github.com/knowledgepixels/nanodash/commit/280c34706fb6658410c25f8542608fb901c20b24))
+* Align padding of user/bot lists ([749c793](https://github.com/knowledgepixels/nanodash/commit/749c7933597e5551670f2bb1800962b54d39bc02))
+* Remove "beta" from logo and "by Knowledge Pixels" link ([f6fd2c5](https://github.com/knowledgepixels/nanodash/commit/f6fd2c5e2e278c1380aa8de114f678996dd8a40d))
+* Simplify user page headings ([4d2263a](https://github.com/knowledgepixels/nanodash/commit/4d2263a1d54bf24f1cb1c2441011d4c9db191929))
+
+### Refactoring
+
+* Only use full query ID instead of query name ([17fd854](https://github.com/knowledgepixels/nanodash/commit/17fd8549f0f3687ecc126b4d713c32fa292b9da2))
+* rename `ProfiledResource` to `ResourceWithProfile` and update references ([4f6de07](https://github.com/knowledgepixels/nanodash/commit/4f6de07bbb294e70fae1560217e5d93bdfb7325c))
+* rename `ResourceView` to `View` and update references ([196b153](https://github.com/knowledgepixels/nanodash/commit/196b1534b65176ee420f680338d1331999367396))
+* **ViewList:** improve HTML structure and update logging format for error messages ([e4a297d](https://github.com/knowledgepixels/nanodash/commit/e4a297d1978898061d1d379be931f3360ab03aa7))
+
 ## [4.11.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.10.0...nanodash-4.11.0) (2026-01-28)
 
 ### Features
