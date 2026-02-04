@@ -1944,6 +1944,10 @@ td div:has(.button-list) {
 
 }
 
+.flex-container {
+  padding: 10px 0;
+}
+
 .flex-container .nanopub-item {
   border: 1px solid #ccc;
   padding: 0 5px;
@@ -1993,6 +1997,10 @@ td div:has(.button-list) {
   border-top: 1px solid #ccc;
   padding: 0;
   margin: 0;
+}
+
+.flex-container.list-view > .nanopub-item:first-child {
+  border-top: none;
 }
 
 .view-selector.with-source {
