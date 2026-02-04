@@ -139,17 +139,21 @@ public class GrlcQuery implements Serializable {
 
         final Set<String> placeholders = new HashSet<>();
         ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
-        query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<>() {
+        try {
+            query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<Exception>() {
 
-            @Override
-            public void meet(Var node) throws RuntimeException {
-                super.meet(node);
-                if (!node.isConstant() && !node.isAnonymous() && node.getName().startsWith("_")) {
-                    placeholders.add(node.getName());
+                @Override
+                public void meet(Var node) throws Exception {
+                    super.meet(node);
+                    if (!node.isConstant() && !node.isAnonymous() && node.getName().startsWith("_")) {
+                        placeholders.add(node.getName());
+                    }
                 }
-            }
 
-        });
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         List<String> placeholdersListPre = new ArrayList<>(placeholders);
         Collections.sort(placeholdersListPre);
         placeholdersList = Collections.unmodifiableList(placeholdersListPre);
