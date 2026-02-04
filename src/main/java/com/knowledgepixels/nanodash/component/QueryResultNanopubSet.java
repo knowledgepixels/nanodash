@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -55,6 +56,7 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getView().getTitle();
         }
         add(new Label("title", titleLabel));
+        add(AttributeModifier.remove("class"));
         setOutputMarkupId(true);
     }
 
