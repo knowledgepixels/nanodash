@@ -215,7 +215,7 @@ p.center {
 
 .title .logo {
   display: inline-block;
-  background-image: url("images/logo.svg");
+  background-image: url("images/logo.svg?v=4.12.1");
   width: 46mm;
   height: 12mm;
   vertical-align: middle;
