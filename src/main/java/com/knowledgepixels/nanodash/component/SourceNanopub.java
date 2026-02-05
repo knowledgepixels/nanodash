@@ -6,7 +6,6 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.util.Values;
 
 /**
  * Component for displaying a link to a source nanopublication. The link navigates to the ExplorePage with the specified nanopublication IRI.
@@ -29,17 +28,14 @@ public class SourceNanopub extends Panel {
     }
 
     /**
-     * Constructor for SourceNanopub with explicit parameters.
+     * Constructor for SourceNanopub with additional CSS classes.
      *
      * @param markupId          the markup ID for the component
      * @param sourceIriAsString the IRI of the source nanopublication as a string
+     * @param additionalClasses additional CSS classes to add to the component
      */
-    public SourceNanopub(String markupId, String sourceIriAsString) {
-        this(markupId, Values.iri(sourceIriAsString));
-    }
-
-    public SourceNanopub(String markupId, String sourceIriAsString, String... additionalClasses) {
-        this(markupId, Values.iri(sourceIriAsString));
+    public SourceNanopub(String markupId, IRI sourceIriAsString, String... additionalClasses) {
+        this(markupId, sourceIriAsString);
         if (additionalClasses != null && additionalClasses.length > 0) {
             String classes = String.join(" ", additionalClasses);
             this.get(ELEMENT_PATH).add(new AttributeAppender("class", " " + classes));

@@ -179,13 +179,15 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     }
 
     /**
-     * Gets the nanopub ID associated with this ViewDisplay.
+     * Gets the nanopub ID associated with this ViewDisplay
      *
      * @return the nanopub ID
      */
-    public String getNanopubId() {
-        if (nanopub == null) return null;
-        return nanopub.getUri().stringValue();
+    public IRI getNanopubId() {
+        if (nanopub == null) {
+            return null;
+        }
+        return nanopub.getUri();
     }
 
     public Integer getPageSize() {

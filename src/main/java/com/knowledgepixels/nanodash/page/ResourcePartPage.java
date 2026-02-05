@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.SourceNanopub;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import org.apache.wicket.Component;
@@ -13,6 +14,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -136,7 +138,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", label)).setBody(Model.of(id)));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", nanopubId == null ? id : nanopubId)));
+        add(new SourceNanopub("np", nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         // TODO Improve this code, e.g. make Space a subclass of MaintainedResource or otherwise refactor:
         // we now use the ProfileResource abstraction, but the code still has to be imprved
