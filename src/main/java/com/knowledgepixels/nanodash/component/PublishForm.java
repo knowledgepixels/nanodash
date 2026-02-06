@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -807,7 +806,7 @@ public class PublishForm extends Panel {
                     Nanopub np = createNanopub();
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
-                    String previewId = UUID.randomUUID().toString();
+                    String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
                             new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
