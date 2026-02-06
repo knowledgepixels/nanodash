@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -17,6 +18,7 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -73,6 +75,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PreviewPage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.page.UserPage;
@@ -796,6 +799,31 @@ public class PublishForm extends Panel {
         refreshPubInfo(null);
 
         form.add(consentCheck);
+
+        form.add(new Button("preview-button") {
+            @Override
+            public void onSubmit() {
+                try {
+                    Nanopub np = createNanopub();
+                    TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
+                    Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
+                    String previewId = UUID.randomUUID().toString();
+                    NanodashSession.get().setPreviewNanopub(previewId,
+                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass));
+                    throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
+                } catch (RestartResponseException ex) {
+                    throw ex;
+                } catch (Exception ex) {
+                    logger.error("Preview failed: {}", ex);
+                    String message = ex.getClass().getName();
+                    if (ex.getMessage() != null) {
+                        message = ex.getMessage();
+                    }
+                    feedbackPanel.error(message);
+                }
+            }
+        });
+
         add(form);
 
         feedbackPanel = new FeedbackPanel("feedback");

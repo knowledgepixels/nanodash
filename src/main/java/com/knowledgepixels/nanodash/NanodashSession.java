@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
@@ -30,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.apache.wicket.markup.html.WebPage;
+import org.nanopub.Nanopub;
 
 /**
  * Represents a session in the Nanodash application.
@@ -464,6 +468,38 @@ public class NanodashSession extends WebSession {
      */
     public NanopubResults.ViewMode getNanopubResultsViewMode() {
         return this.nanopubResultsViewMode;
+    }
+
+    // --- Preview nanopub support ---
+
+    public static class PreviewNanopub implements Serializable {
+        private final Nanopub nanopub;
+        private final PageParameters pageParams;
+        private final Class<? extends WebPage> confirmPageClass;
+
+        public PreviewNanopub(Nanopub nanopub, PageParameters pageParams, Class<? extends WebPage> confirmPageClass) {
+            this.nanopub = nanopub;
+            this.pageParams = pageParams;
+            this.confirmPageClass = confirmPageClass;
+        }
+
+        public Nanopub getNanopub() { return nanopub; }
+        public PageParameters getPageParams() { return pageParams; }
+        public Class<? extends WebPage> getConfirmPageClass() { return confirmPageClass; }
+    }
+
+    private ConcurrentMap<String, PreviewNanopub> previewMap = new ConcurrentHashMap<>();
+
+    public void setPreviewNanopub(String id, PreviewNanopub preview) {
+        previewMap.put(id, preview);
+    }
+
+    public PreviewNanopub getPreviewNanopub(String id) {
+        return previewMap.get(id);
+    }
+
+    public PreviewNanopub removePreviewNanopub(String id) {
+        return previewMap.remove(id);
     }
 
 }

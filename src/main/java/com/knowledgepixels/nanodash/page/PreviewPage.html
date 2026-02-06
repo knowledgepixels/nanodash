@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<meta charset="utf-8" />
+<title>Preview Nanopublication | nanodash</title>
+<link rel="stylesheet" href="style.css?v=4.12.1" type="text/css" media="screen" title="Stylesheet" />
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+</head>
+
+<body>
+
+<div wicket:id="titlebar"></div>
+
+<div id="content-pane">
+
+<div class="row-section">
+<div class="col-12">
+
+<h2>Preview Nanopublication</h2>
+
+<p>Please review the nanopublication below before publishing. Published nanopublications cannot be fully removed (only retracted or superseded).</p>
+
+<div wicket:id="nanopub"></div>
+
+<p class="center">
+<a wicket:id="publish-button" class="button">Publish</a>
+<a wicket:id="discard-button" class="button">Discard</a>
+</p>
+
+<div wicket:id="feedback" class="negative">feedback messages will be put here</div>
+
+</div>
+</div>
+
+</div>
+
+</body>
+
+</html>
