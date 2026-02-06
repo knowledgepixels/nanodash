@@ -79,7 +79,8 @@ public class NanodashPreferences implements Serializable {
      * @return true if in read-only mode, false otherwise
      */
     public boolean isReadOnlyMode() {
-        if ("true".equals(System.getenv("NANODASH_READ_ONLY_MODE"))) return true;
+        if ("true".equals(System.getenv("NANODASH_READ_ONLY_MODE")))
+            return true;
         return readOnlyMode;
     }
 
@@ -120,7 +121,8 @@ public class NanodashPreferences implements Serializable {
      * @return true if in ORCID login mode, false otherwise
      */
     public boolean isOrcidLoginMode() {
-        if ("true".equals(System.getenv("NANODASH_ORCID_LOGIN_MODE"))) return true;
+        if ("true".equals(System.getenv("NANODASH_ORCID_LOGIN_MODE")))
+            return true;
         return orcidLoginMode;
     }
 
@@ -157,7 +159,8 @@ public class NanodashPreferences implements Serializable {
 
     /**
      * Get the ORCID client secret.
-     *
+     * .
+     * 
      * @return the ORCID client secret
      */
     public String getOrcidClientSecret() {

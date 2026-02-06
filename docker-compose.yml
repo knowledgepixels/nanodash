@@ -12,3 +12,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  backup-keys:
+    build: ./backup-keys
+    image: nanodash/backup-keys:latest
+    restart: unless-stopped
+    ports:
+      - "2222:22"
+    volumes:
+      - ~/.nanopub:/root/.nanopub:ro
+      # - ./backup-keys/client_id_rsa:/root/.ssh/id_rsa:ro  # Optional: mount private key
+    environment:
+      - BACKUP_PASSWORD=changeme
+      - SERVER_NAME=nanodash-primary
+      # Example target: user@remote-host:22:/backups
+      # - TARGETS=root@backup.example.com:22:/backups
+      # - SSH_PRIVATE_KEY=... (or mount it)
+      # - AUTHORIZED_KEYS=... (for receiving from others)
