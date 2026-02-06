@@ -56,7 +56,6 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getView().getTitle();
         }
         add(new Label("title", titleLabel));
-        add(AttributeModifier.remove("class"));
         setOutputMarkupId(true);
     }
 
