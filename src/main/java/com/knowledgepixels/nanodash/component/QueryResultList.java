@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
@@ -49,7 +48,7 @@ public class QueryResultList extends QueryResult {
         }
         add(new Label("label", label));
         if (viewDisplay.getNanopubId() != null) {
-            add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+            add(new SourceNanopub("np", viewDisplay.getNanopubId(), "smallbutton"));
         } else {
             add(new Label("np").setVisible(false));
         }

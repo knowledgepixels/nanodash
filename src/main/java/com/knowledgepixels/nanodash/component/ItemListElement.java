@@ -1,11 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -53,7 +52,7 @@ public class ItemListElement extends Panel {
         if (sourceNanopublication == null) {
             add(new Label("np").setVisible(false));
         } else {
-            add(new BookmarkablePageLink<>("np", ExplorePage.class, new PageParameters().add("id", sourceNanopublication.getUri())));
+            add(new SourceNanopub("np", sourceNanopublication.getUri()));
         }
     }
 

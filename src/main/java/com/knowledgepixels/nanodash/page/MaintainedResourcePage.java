@@ -4,10 +4,7 @@ import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.ResourceWithProfile;
 import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.JustPublishedMessagePanel;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.component.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -15,6 +12,7 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.util.Values;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +59,7 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
         add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", resource.getLabel())).setBody(Model.of(resource.getId())));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", resource.getNanopubId())));
+        add(new SourceNanopub("np", Values.iri(resource.getNanopubId())));
 
         String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
         add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
