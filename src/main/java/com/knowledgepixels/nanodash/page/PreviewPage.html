@@ -20,14 +20,25 @@
 
 <h2>Preview Nanopublication</h2>
 
-<p>Please review the nanopublication below before publishing. Published nanopublications cannot be fully removed (only retracted or superseded).</p>
+<p>Please review the nanopublication below before publishing.</p>
 
 <div wicket:id="nanopub"></div>
 
-<p class="center">
-<a wicket:id="publish-button" class="button">Publish</a>
-<a wicket:id="discard-button" class="button light">Discard</a>
+<form wicket:id="form">
+
+<p>
+<input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
+<label for="consentcheck">
+I understand that published data cannot be fully removed (only retracted or superseded by new versions), and is publicly connected to my personal identifier.
+</label>
 </p>
+
+<p class="center">
+<input type="submit" class="button" value="Publish" />
+<button wicket:id="discard-button" type="submit" class="button light">Discard</button>
+</p>
+
+</form>
 
 <div wicket:id="feedback" class="negative">feedback messages will be put here</div>
 

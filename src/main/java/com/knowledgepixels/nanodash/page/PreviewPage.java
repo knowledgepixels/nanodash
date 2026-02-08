@@ -10,9 +10,15 @@ import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.QueryRef;
@@ -55,9 +61,9 @@ public class PreviewPage extends NanodashPage {
         feedbackPanel.setOutputMarkupId(true);
         add(feedbackPanel);
 
-        add(new Link<Void>("publish-button") {
+        Form<Void> form = new Form<Void>("form") {
             @Override
-            public void onClick() {
+            protected void onSubmit() {
                 try {
                     String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
@@ -112,15 +118,32 @@ public class PreviewPage extends NanodashPage {
                     feedbackPanel.error(message);
                 }
             }
-        });
+        };
+        add(form);
 
-        add(new Link<Void>("discard-button") {
+        CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(preview.isConsentChecked()));
+        consentCheck.setRequired(true);
+        consentCheck.add(new IValidator<Boolean>() {
+
             @Override
-            public void onClick() {
+            public void validate(IValidatable<Boolean> validatable) {
+                if (!Boolean.TRUE.equals(validatable.getValue())) {
+                    validatable.error(new ValidationError("You need to check the checkbox that you understand the consequences."));
+                }
+            }
+
+        });
+        form.add(consentCheck);
+
+        Button discardButton = new Button("discard-button") {
+            @Override
+            public void onSubmit() {
                 NanodashSession.get().removePreviewNanopub(previewId);
                 throw new RestartResponseException(PublishPage.class, new PageParameters(pageParams));
             }
-        });
+        };
+        discardButton.setDefaultFormProcessing(false);
+        form.add(discardButton);
     }
 
 }

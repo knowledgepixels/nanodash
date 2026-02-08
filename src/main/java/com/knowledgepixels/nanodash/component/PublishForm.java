@@ -430,18 +430,7 @@ public class PublishForm extends Panel {
         }
 
         final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
-        consentCheck.setRequired(true);
         consentCheck.add(new InvalidityHighlighting());
-        consentCheck.add(new IValidator<Boolean>() {
-
-            @Override
-            public void validate(IValidatable<Boolean> validatable) {
-                if (!Boolean.TRUE.equals(validatable.getValue())) {
-                    validatable.error(new ValidationError("You need to check the checkbox that you understand the consequences."));
-                }
-            }
-
-        });
 
         form = new Form<Void>("form") {
 
@@ -453,6 +442,10 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
+                if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
+                    feedbackPanel.error("You need to check the checkbox that you understand the consequences.");
+                    return;
+                }
                 logger.info("Publish form submitted");
                 Nanopub signedNp = null;
                 try {
@@ -808,7 +801,7 @@ public class PublishForm extends Panel {
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
-                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass));
+                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, Boolean.TRUE.equals(consentCheck.getModelObject())));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
                 } catch (RestartResponseException ex) {
                     throw ex;

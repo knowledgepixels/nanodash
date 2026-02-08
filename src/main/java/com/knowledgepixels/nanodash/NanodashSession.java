@@ -476,16 +476,19 @@ public class NanodashSession extends WebSession {
         private final Nanopub nanopub;
         private final PageParameters pageParams;
         private final Class<? extends WebPage> confirmPageClass;
+        private final boolean consentChecked;
 
-        public PreviewNanopub(Nanopub nanopub, PageParameters pageParams, Class<? extends WebPage> confirmPageClass) {
+        public PreviewNanopub(Nanopub nanopub, PageParameters pageParams, Class<? extends WebPage> confirmPageClass, boolean consentChecked) {
             this.nanopub = nanopub;
             this.pageParams = pageParams;
             this.confirmPageClass = confirmPageClass;
+            this.consentChecked = consentChecked;
         }
 
         public Nanopub getNanopub() { return nanopub; }
         public PageParameters getPageParams() { return pageParams; }
         public Class<? extends WebPage> getConfirmPageClass() { return confirmPageClass; }
+        public boolean isConsentChecked() { return consentChecked; }
     }
 
     private ConcurrentMap<String, PreviewNanopub> previewMap = new ConcurrentHashMap<>();
