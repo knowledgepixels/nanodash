@@ -55,7 +55,7 @@ public class PreviewPage extends NanodashPage {
         PageParameters pageParams = preview.getPageParams();
         Class<? extends org.apache.wicket.markup.html.WebPage> confirmPageClass = preview.getConfirmPageClass();
 
-        add(new NanopubItem("nanopub", NanopubElement.get(signedNp)));
+        add(new NanopubItem("nanopub", NanopubElement.get(signedNp)).noActions());
 
         FeedbackPanel feedbackPanel = new FeedbackPanel("feedback");
         feedbackPanel.setOutputMarkupId(true);
