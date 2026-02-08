@@ -56,7 +56,6 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getView().getTitle();
         }
         add(new Label("title", titleLabel));
-        add(AttributeModifier.remove("class"));
         setOutputMarkupId(true);
     }
 
@@ -68,7 +67,7 @@ public class QueryResultNanopubSet extends QueryResult {
         add(nanopubResults);
 
         if (viewDisplay.getNanopubId() != null) {
-            add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+            add(new SourceNanopub("np", viewDisplay.getNanopubId()));
         } else {
             add(new Label("np").setVisible(false));
         }

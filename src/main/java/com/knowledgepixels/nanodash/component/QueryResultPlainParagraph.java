@@ -7,10 +7,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Component for displaying query results in a list format.
@@ -34,7 +34,7 @@ public class QueryResultPlainParagraph extends QueryResult {
         }
         add(new Label("label", label));
         if (viewDisplay.getNanopubId() != null) {
-            add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", viewDisplay.getNanopubId())));
+            add(new SourceNanopub("np", viewDisplay.getNanopubId(), "smallbutton"));
         } else {
             add(new Label("np").setVisible(false));
         }

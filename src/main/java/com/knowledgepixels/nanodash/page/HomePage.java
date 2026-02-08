@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -78,7 +79,9 @@ public class HomePage extends NanodashPage {
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
                 item.add(QueryResultNanopubSetBuilder.create("view", rQueryRef, item.getModelObject())
-                        .build());
+                        .build()
+                        .add(AttributeModifier.remove("class"))
+                );
             }
         });
 
