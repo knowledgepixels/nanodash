@@ -405,12 +405,15 @@ public class UserData implements Serializable {
             } else if (ids.size() == 1) {
                 return getShortDisplayName(ids.iterator().next());
             } else {
-                return getShortName(userIri) + " (contested identity)";
+                // Not showing "contested identity" for now.
+                return getShortName(userIri);  // + " (contested identity)";
             }
         } else if (ids.size() == 1) {
             return getShortDisplayName(ids.iterator().next());
         } else {
-            return "(contested identity)";
+            // Not showing "contested identity" for now.
+            //return "(contested identity)";
+            return getShortDisplayName(ids.iterator().next());
         }
     }
 
