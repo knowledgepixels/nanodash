@@ -1,3 +1,33 @@
+## [4.13.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.12.0...nanodash-4.13.0) (2026-02-08)
+
+### Features
+
+* add consent checkbox to preview page, require only for publishing ([16572f5](https://github.com/knowledgepixels/nanodash/commit/16572f527e7ac8e37bcac4a19b7ceb4ea2a97c16))
+* add Preview button to review nanopubs before publishing ([6df8cc4](https://github.com/knowledgepixels/nanodash/commit/6df8cc4aae03ce729ad61108c448f87f4a519c43))
+
+### Bug Fixes
+
+* hide action menu on preview page ([9bb7c7b](https://github.com/knowledgepixels/nanodash/commit/9bb7c7b26763b2a982b6f67d74746ae6ac47e260))
+* **QueryResultNanopubSet:** remove unnecessary class attribute from markup ([3a34f41](https://github.com/knowledgepixels/nanodash/commit/3a34f41c52987b86e5a1efabf5ec3636b918b430))
+* **QueryResultNanopubSet:** remove unnecessary class attribute from markup in HomePage and QueryResultNanopubSet ([1e80198](https://github.com/knowledgepixels/nanodash/commit/1e801983712a6cd919a93db1921bf93e53be830b))
+* **style:** add padding to flex-container and adjust border for nanopub-item component ([845e011](https://github.com/knowledgepixels/nanodash/commit/845e011c52afa23106aabfacc5c8936282d985ce))
+* **style:** use light style for Preview and Discard buttons ([febb69d](https://github.com/knowledgepixels/nanodash/commit/febb69d65dd284fc2d6d578a5ce39fe851fc4eba))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([93b4d79](https://github.com/knowledgepixels/nanodash/commit/93b4d7966979ba2cc808573cec49db3c9e67b677))
+* **SourceNanopub:** add component for linking to source nanopublication ([8f8b731](https://github.com/knowledgepixels/nanodash/commit/8f8b7315cb4be983833972361a11c97ac254068f))
+* Update CSS and logo.svg links ([77f7017](https://github.com/knowledgepixels/nanodash/commit/77f7017b23306ab5e163c9bbce2ece3cfda49797))
+
+### Style improvements
+
+* add headings to publish/preview forms and reorder buttons ([1e4db9a](https://github.com/knowledgepixels/nanodash/commit/1e4db9a45bc67d6aecba63ff4caec64fe1bf44be))
+
+### Refactoring
+
+* update nanopub link components to use SourceNanopub ([28f6dc6](https://github.com/knowledgepixels/nanodash/commit/28f6dc626a4cfd190c01840611f3c9a8838206d4))
+* use nanopub URI as preview page id instead of random UUID ([028214c](https://github.com/knowledgepixels/nanodash/commit/028214c754e64623ca58e28dc73caba1004c5fed))
+
 ## [4.12.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.11.0...nanodash-4.12.0) (2026-02-04)
 
 ### Features
