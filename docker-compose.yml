@@ -15,17 +15,13 @@ services:
 
   backup-keys:
     build: ./backup-keys
-    image: nanodash/backup-keys:latest
     restart: unless-stopped
-    ports:
-      - "2222:22"
     volumes:
       - ~/.nanopub:/root/.nanopub:ro
-      # - ./backup-keys/client_id_rsa:/root/.ssh/id_rsa:ro  # Optional: mount private key
+      # SSH private key mount. Ensure 'backup_key_rsa' exists or update path.
+      - ./backup_key_rsa:/home/backup_user/.ssh/id_rsa:ro
     environment:
-      - BACKUP_PASSWORD=changeme
-      - SERVER_NAME=nanodash-primary
-      # Example target: user@remote-host:22:/backups
-      # - TARGETS=root@backup.example.com:22:/backups
-      # - SSH_PRIVATE_KEY=... (or mount it)
-      # - AUTHORIZED_KEYS=... (for receiving from others)
+      - BACKUP_ENCRYPTION_PASSWORD
+      - TARGET_SERVER
+      - TARGET_USER=backup_user
+      - SOURCE_SERVER_NAME

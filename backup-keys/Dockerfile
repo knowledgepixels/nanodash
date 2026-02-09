@@ -1,34 +1,27 @@
 FROM alpine:latest
 
-# Install dependencies
-# bash: for scripts
-# openssh: for sshd and ssh-client
-# openssl: for encryption
-# rsync: for file transfer
-# busybox-suid: for cron (sometimes needed on alpine for crond to work properly with arbitrary users, though usually root is fine)
-RUN apk add --no-cache bash openssh openssl rsync tzdata
+# Install required packages
+RUN apk add --no-cache \
+    openssl \
+    openssh-client \
+    tar \
+    gzip \
+    busybox-suid
 
-# Create directory for backup storage (receiver mode)
-RUN mkdir -p /backups
+# Setup directories
+WORKDIR /root
 
-# Setup SSH for receiver
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-# We will generate host keys in entrypoint if missing to avoid stale keys in image
-
-# Setup backup source directory (mounted volume)
-# We expect /root/.nanopub to be mounted
-RUN mkdir -p /root/.nanopub
-
-# Copy scripts
+# Copy backup script
 COPY backup.sh /usr/local/bin/backup.sh
-COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /usr/local/bin/backup.sh
 
-RUN chmod +x /usr/local/bin/backup.sh /entrypoint.sh
+# Setup Cron
+# Run twice a day: at 03:00 and 15:00
+RUN echo "0 3,15 * * * /usr/local/bin/backup.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
 
-# Setup cron (default schedule: 0 3,15 * * * -> 3am and 3pm)
-# We can make this configurable if needed, but hardcoded for now as per "twice a day"
-RUN echo "0 3,15 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" > /etc/crontabs/root
+# Create logs file
+RUN touch /var/log/cron.log
 
-EXPOSE 22
-
-ENTRYPOINT ["/entrypoint.sh"]
+# Configure Entrypoint
+# Start crond in foreground and log level 8 (default)
+CMD ["crond", "-f", "-d", "8"]
