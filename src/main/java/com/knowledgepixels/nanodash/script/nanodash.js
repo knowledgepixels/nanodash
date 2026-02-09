@@ -160,20 +160,20 @@ function showMore(el) {
   }
 }
 
-$(function () {
+function toggleView() {
   $('.view-selector .list').on('click', function () {
     $('.flex-container').addClass('list-view').removeClass('grid-view');
   });
   $('.view-selector .grid').on('click', function () {
     $('.flex-container').addClass('grid-view').removeClass('list-view');
   });
-});
+}
 
 function toggleMode() {
   var body = document.body;
   var toggleButton = document.getElementById('mode-toggle');
   var toggleText = toggleButton.querySelector('.mode-toggle-text');
-  
+
   if (body.classList.contains('mode-advanced')) {
     body.classList.remove('mode-advanced');
     toggleText.textContent = 'show more';
