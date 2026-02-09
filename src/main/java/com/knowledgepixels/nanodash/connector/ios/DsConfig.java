@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.connector.ios;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.ConnectorOption;
@@ -90,7 +91,7 @@ public class DsConfig extends ConnectorConfig {
      */
     @Override
     public String getCandidateNanopubsApiCall() {
-        return "get-latest-ds-candidates";
+        return QueryApiAccess.GET_LATEST_DS_CANDIDATES;
     }
 
     /**
@@ -98,7 +99,7 @@ public class DsConfig extends ConnectorConfig {
      */
     @Override
     public String getGeneralReactionsApiCall() {
-        return "get-ds-reactions";
+        return QueryApiAccess.GET_DS_REACTIONS;
     }
 
     /**
@@ -106,7 +107,7 @@ public class DsConfig extends ConnectorConfig {
      */
     @Override
     public String getAcceptedNanopubsApiCall() {
-        return "get-latest-accepted-ds";
+        return QueryApiAccess.GET_LATEST_ACCEPTED_DS;
     }
 
     private Set<IRI> technicalEditorIds;

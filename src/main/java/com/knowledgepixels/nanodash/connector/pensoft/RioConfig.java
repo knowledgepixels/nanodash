@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.connector.pensoft;
 
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.ConnectorOption;
@@ -90,7 +91,7 @@ public class RioConfig extends ConnectorConfig {
      */
     @Override
     public String getCandidateNanopubsApiCall() {
-        return "get-latest-rio-candidates";
+        return QueryApiAccess.GET_LATEST_RIO_CANDIDATES;
     }
 
     private Set<IRI> technicalEditorIds;
@@ -128,7 +129,7 @@ public class RioConfig extends ConnectorConfig {
      */
     @Override
     public String getAcceptedNanopubsApiCall() {
-        return "get-latest-accepted-rio";
+        return QueryApiAccess.GET_LATEST_ACCEPTED_RIO;
     }
 
     /**
