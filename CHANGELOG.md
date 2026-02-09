@@ -1,3 +1,18 @@
+## [4.13.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.13.0...nanodash-4.13.1) (2026-02-09)
+
+### Bug Fixes
+
+* Fix broken connector configs ([4a6625f](https://github.com/knowledgepixels/nanodash/commit/4a6625fd679d0240de0ce67a858f16a0808a5f99))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([e18f9e8](https://github.com/knowledgepixels/nanodash/commit/e18f9e84b2f8f70ca6eec5798c436855df8726a8))
+* Update CSS version links ([32696eb](https://github.com/knowledgepixels/nanodash/commit/32696ebfdd0cf9c6b0bd0c100171559fe0c2f325))
+
+### Style improvements
+
+* Not showing 'contested identity' for now ([fd0d317](https://github.com/knowledgepixels/nanodash/commit/fd0d317526cf085c6ccde548432b643d604840c7))
+
 ## [4.13.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.12.0...nanodash-4.13.0) (2026-02-08)
 
 ### Features
