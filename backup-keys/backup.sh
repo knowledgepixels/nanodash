@@ -28,11 +28,7 @@ if [ -z "$TARGET_SERVER" ] || [ -z "$TARGET_USER" ]; then
 fi
 
 # Create staging directory
-<<<<<<< HEAD
-mkdir -p "$BACKUP_DIR"
-=======
 mkdir -p "$TMP_BACKUP_DIR"
->>>>>>> eac66b7d (Backup user-keys #298)
 
 echo "Starting backup at $(date)..."
 
