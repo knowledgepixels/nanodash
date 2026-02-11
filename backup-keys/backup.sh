@@ -5,11 +5,7 @@ set -e
 
 # Configuration
 SOURCE_DIR="${HOME}/.nanopub/nanodash-users"
-<<<<<<< HEAD
-BACKUP_DIR="/tmp/backup_stage"
-=======
 TMP_BACKUP_DIR="/tmp/backup_stage"
->>>>>>> eac66b7d (Backup user-keys #298)
 TIMESTAMP=$(date -Iseconds)
 # Ensure SOURCE_SERVER_NAME is set, default to hostname if not
 SERVER_NAME="${SOURCE_SERVER_NAME:-$(hostname)}"
