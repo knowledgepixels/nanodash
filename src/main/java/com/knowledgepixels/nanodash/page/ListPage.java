@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
+import static com.knowledgepixels.nanodash.page.ListPage.PAGE_PARAMS.*;
 
 /**
  * A page that shows a list of nanopublications filtered by type, public key, and time range.
@@ -62,7 +62,7 @@ public class ListPage extends NanodashPage {
     private Date startDate = null;
     private Date endDate = null;
 
-    enum PARAMS {
+    enum PAGE_PARAMS {
         TYPE("type"),
         USER_ID("userid"),
         START_TIME("starttime"),
@@ -70,7 +70,7 @@ public class ListPage extends NanodashPage {
 
         private final String value;
 
-        PARAMS(String value) {
+        PAGE_PARAMS(String value) {
             this.value = value;
         }
 
@@ -279,14 +279,14 @@ public class ListPage extends NanodashPage {
         if (userId != null) {
             List<String> pubkeys = User.getPubkeyhashes(userId, null);
             if (!pubkeys.isEmpty()) {
-                pubkeys.forEach(pubKey -> queryParams.put("pubkeys", pubKey));
+                pubkeys.forEach(pubKey -> queryParams.put("np_pubkeys", pubKey));
             }
         }
         if (startDate != null) {
-            queryParams.put(START_TIME.getValue(), startDate.toInstant().toString());
+            queryParams.put("np_starttime", startDate.toInstant().toString());
         }
         if (endDate != null) {
-            queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
+            queryParams.put("np_endtime", endDate.toInstant().toString());
         }
         final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_FILTERED_NANOPUB_LIST, queryParams);
         ApiResponse cachedResponse = ApiCache.retrieveResponseAsync(queryRef);
