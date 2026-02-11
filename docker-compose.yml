@@ -6,22 +6,9 @@ services:
     ports:
       - "37373:8080"
     volumes:
-      - ~/.nanopub:/root/.nanopub
+      - ./local-data:/root/.nanopub
       - .:/local
     logging:
       options:
         max-size: "10m"
         max-file: "3"
-
-  backup-keys:
-    build: ./backup-keys
-    restart: unless-stopped
-    volumes:
-      - ~/.nanopub:/root/.nanopub:ro
-      # SSH private key mount. Ensure 'backup_key_rsa' exists or update path.
-      - ./backup_key_rsa:/home/backup_user/.ssh/id_rsa:ro
-    environment:
-      - BACKUP_ENCRYPTION_PASSWORD
-      - TARGET_SERVER
-      - TARGET_USER=backup_user
-      - SOURCE_SERVER_NAME

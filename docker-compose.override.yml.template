@@ -1,7 +1,5 @@
 services:
   nanodash:
-#   volumes:
-#     - ./local-data:/root/.nanopub  # to store local data (config and user keys) in same directory
     environment:
       - CATALINA_OPTS=-Xms1G -Xmx6G
       - NANODASH_WEBSITE_URL=https://your.domain.org/
@@ -10,3 +8,17 @@ services:
       - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
       - NANODASH_MAIN_REGISTRY=https://registry.knowledgepixels.com/
       - NANODASH_MAIN_QUERY=https://query.knowledgepixels.com/
+
+  backup-keys:
+    build: ./backup-keys
+    image: nanopub/nanodash-backup-keys:latest
+    restart: unless-stopped
+    volumes:
+      - ./local-data:/root/.nanopub:ro
+      # SSH private key mount. Ensure 'backup_key_rsa' exists or update path.
+      - /home/backup_user/.ssh/id_rsa:/root/backup_user/.ssh/id_rsa:ro
+    environment:
+      - BACKUP_ENCRYPTION_PASSWORD
+      - TARGET_SERVER
+      - TARGET_USER=backup_user
+      - SOURCE_SERVER_NAME
