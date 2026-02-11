@@ -11,4 +11,6 @@ Env-Variables:
 - TARGET_USER: The user on the target server who will receive the backup file.
 - SOURCE_SERVER_NAME: The name of the source server, used for naming the backup file.
 
+For decryption of the backup file on the target server:
+openssl enc -d -aes-256-cbc -pbkdf2 -in <backup-file.tar.gz.enc> -out backup.tar.gz -k <password>
 
