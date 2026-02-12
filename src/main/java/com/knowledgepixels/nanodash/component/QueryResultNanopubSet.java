@@ -3,14 +3,10 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -71,6 +67,15 @@ public class QueryResultNanopubSet extends QueryResult {
         } else {
             add(new Label("np").setVisible(false));
         }
+    }
+
+    /**
+     * Sets the visibility of the title.
+     *
+     * @param hasTitle true to show the title, false to hide it
+     */
+    public void setTitleVisible(boolean hasTitle) {
+        this.get("title").setVisible(hasTitle);
     }
 
 }

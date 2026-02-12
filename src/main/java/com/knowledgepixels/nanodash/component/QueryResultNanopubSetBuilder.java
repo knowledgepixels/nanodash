@@ -17,6 +17,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     private final ViewDisplay viewDisplay;
     private String contextId = null;
     private final QueryRef queryRef;
+    private boolean hasTitle = true;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -48,6 +49,16 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     }
 
     /**
+     * Removes the title from the QueryResultNanopubSet.
+     *
+     * @return the current QueryResultNanopubSetBuilder instance
+     */
+    public QueryResultNanopubSetBuilder noTitle() {
+        this.hasTitle = false;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultNanopubSet component.
      *
      * @return the QueryResultNanopubSet component
@@ -58,6 +69,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
             QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
             queryResultNanopubSet.setContextId(contextId);
             queryResultNanopubSet.populateComponent();
+            queryResultNanopubSet.setTitleVisible(hasTitle);
             return queryResultNanopubSet;
         } else {
             return new ApiResultComponent(markupId, queryRef) {
@@ -66,6 +78,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
                     QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
                     queryResultNanopubSet.setContextId(contextId);
                     queryResultNanopubSet.populateComponent();
+                    queryResultNanopubSet.setTitleVisible(hasTitle);
                     return queryResultNanopubSet;
                 }
             };
