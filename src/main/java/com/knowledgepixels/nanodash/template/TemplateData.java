@@ -137,6 +137,27 @@ public class TemplateData implements Serializable {
     }
 
     /**
+     * Registers a template from a Nanopub object directly, without fetching it from the registry.
+     * This is useful for previewing templates that have not yet been published.
+     *
+     * @param np the Nanopub containing the template definition
+     * @return the Template object, or null if the nanopub is not a valid template
+     */
+    public Template registerTemplate(Nanopub np) {
+        String id = np.getUri().stringValue();
+        Template template = templateMap.get(id);
+        if (template != null) return template;
+        try {
+            Template t = new Template(np);
+            templateMap.put(id, t);
+            return t;
+        } catch (Exception ex) {
+            logger.error("Exception registering template from nanopub: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Returns a Template object for the template of the given Nanopub.
      *
      * @param np the Nanopub from which to extract the template

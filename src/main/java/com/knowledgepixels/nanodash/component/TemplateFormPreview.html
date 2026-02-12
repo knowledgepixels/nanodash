@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+<script type="text/javascript" src="../../../../../webapp/scripts/jquery.js?for-local-testing-only"></script>
+<script type="text/javascript" src="../script/nanodash.js?for-local-testing-only"></script>
+</head>
+<body style="margin-left: auto; margin-right: auto; max-width: 1400px">
+
+<wicket:panel>
+
+<h4>Template Form Preview</h4>
+
+<p>The form defined by this template nanopublication will look like this:</p>
+
+<form wicket:id="form">
+
+<div class="assertionsection">
+
+<p class="graphheader advanced"><strong>Assertion</strong></p>
+
+<p class="graphsubheader">
+<strong wicket:id="templatename" class="templatename">Assertion template name</strong>
+<a href="#" wicket:id="templatelink">^</a>
+</p>
+
+<div class="message plain collapse-overflow">
+<span class="collapse-content">
+<p wicket:id="templatedesc">
+(assertion template description)
+</p>
+</span>
+<div class="expand" onclick="expandOverflow(this);"></div>
+<div class="collapse" onclick="collapseOverflow(this);"></div>
+</div>
+
+<div class="nanopub">
+<div class="nanopub-assertion nanopub-graph">
+<div wicket:id="statements">
+<div wicket:id="statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="provsection">
+
+<p class="graphheader advanced">
+<strong>Provenance</strong>
+</p>
+<p class="graphsubheader advanced">
+<span wicket:id="prtemplatename" class="templatename">Provenance template name</span>
+<a href="#" wicket:id="prtemplatelink">^</a>
+</p>
+
+<div class="nanopub">
+<div class="nanopub-provenance nanopub-graph">
+<div wicket:id="pr-statements">
+<div wicket:id="pr-statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="pubinfosection">
+
+<p class="graphheader advanced">
+<strong>Publication info</strong>
+</p>
+
+<div wicket:id="pis">
+<p class="graphsubheader advanced">
+<span wicket:id="pitemplatename" class="templatename">Pubinfo template name</span>
+<a href="#" wicket:id="pitemplatelink">^</a>
+</p>
+
+<div class="nanopub">
+<div class="nanopub-pubinfo nanopub-graph">
+<div wicket:id="pi-statements">
+<div wicket:id="pi-statement" class="nanopub-statement"></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<p class="center" style="margin-top: 0;">
+<button type="button" id="mode-toggle" class="mode-toggle-button" onclick="toggleMode()">
+<span class="mode-toggle-arrow mode-toggle-arrow-left"></span>
+<span class="mode-toggle-text">show more</span>
+<span class="mode-toggle-arrow mode-toggle-arrow-right"></span>
+</button>
+</p>
+
+</form>
+
+</wicket:panel>
+
+</body>
+
+</html>

@@ -87,6 +87,11 @@ public class Template implements Serializable {
         processTemplate(nanopub);
     }
 
+    Template(Nanopub np) throws MalformedTemplateException {
+        nanopub = np;
+        processTemplate(nanopub);
+    }
+
     /**
      * Checks if the template is unlisted.
      *

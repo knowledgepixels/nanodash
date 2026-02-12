@@ -7,8 +7,13 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.ResourceWithProfile;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -144,6 +149,20 @@ public class PreviewPage extends NanodashPage {
         };
         discardButton.setDefaultFormProcessing(false);
         form.add(discardButton);
+
+        if (Utils.isNanopubOfClass(signedNp, NTEMPLATE.ASSERTION_TEMPLATE)) {
+            WebMarkupContainer section = new WebMarkupContainer("template-form-preview-section");
+            try {
+                section.add(new TemplateFormPreview("template-form-preview", signedNp));
+            } catch (Exception ex) {
+                logger.error("Failed to generate template form preview: {}", ex.getMessage());
+                String message = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getName();
+                section.add(new Label("template-form-preview", "<p class=\"negative\">Error generating template form preview: " + message + "</p>").setEscapeModelStrings(false));
+            }
+            add(section);
+        } else {
+            add(new WebMarkupContainer("template-form-preview-section").setVisible(false));
+        }
     }
 
 }
