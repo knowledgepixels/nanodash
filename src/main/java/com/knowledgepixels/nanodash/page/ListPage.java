@@ -2,7 +2,10 @@ package com.knowledgepixels.nanodash.page;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -269,9 +272,9 @@ public class ListPage extends NanodashPage {
         if (endDate != null) {
             queryParams.put("np_endtime", endDate.toInstant().toString());
         }
-        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_FILTERED_NANOPUB_LIST, queryParams);
-        View mostRecentNanopubsView = View.get("https://w3id.org/np/RAAxsnXxYLev1_STgHnb2Y-oNRE3DRERXXDoJbELHSnzA/filtered-nanopubs-view");
-        add(new DataView<>("filteredNanopubs", new ListDataProvider<>(List.of(new ViewDisplay(mostRecentNanopubsView)))) {
+        View filteredNanopubsView = View.get("https://w3id.org/np/RAAxsnXxYLev1_STgHnb2Y-oNRE3DRERXXDoJbELHSnzA/filtered-nanopubs-view");
+        final QueryRef queryRef = new QueryRef(filteredNanopubsView.getQuery().getQueryId(), queryParams);
+        add(new DataView<>("filteredNanopubs", new ListDataProvider<>(List.of(new ViewDisplay(filteredNanopubsView)))) {
 
             @Override
             protected void populateItem(Item<ViewDisplay> item) {
