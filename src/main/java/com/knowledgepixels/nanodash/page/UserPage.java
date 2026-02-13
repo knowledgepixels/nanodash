@@ -199,14 +199,14 @@ public class UserPage extends NanodashPage {
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                .set("template", "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g")
                 .set("template-version", "latest")
                 .set("param_resource", userIriString)
                 .set("param_appliesToResource", userIriString)
                 .set("context", userIriString)
                 .set("refresh-upon-publish", userIriString)
         );
-        addViewButton.setBody(Model.of("+ view"));
+        addViewButton.setBody(Model.of("+ view display"));
         viewButtons.add(addViewButton);
 
         IndividualAgent individualAgent = IndividualAgent.get(userIriString);

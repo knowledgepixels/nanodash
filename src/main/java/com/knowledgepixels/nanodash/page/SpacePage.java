@@ -167,14 +167,14 @@ public class SpacePage extends NanodashPage {
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                .set("template", "https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ")
                 .set("template-version", "latest")
                 .set("param_resource", space.getId())
                 .set("param_appliesToResource", space.getId())
                 .set("context", space.getId())
                 .set("refresh-upon-publish", id)
         );
-        addViewButton.setBody(Model.of("+ view"));
+        addViewButton.setBody(Model.of("+ view display"));
         viewButtons.add(addViewButton);
 
         if (space.isDataInitialized()) {
