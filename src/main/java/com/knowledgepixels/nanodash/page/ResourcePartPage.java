@@ -145,13 +145,13 @@ public class ResourcePartPage extends NanodashPage {
         if (resourceWithProfile != null) {
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                    .set("template", "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to")
                     .set("template-version", "latest")
                     .set("param_resource", resourceWithProfile.getId())
                     .set("context", resourceWithProfile.getId())
                     .set("part", id)
             );
-            addViewButton.setBody(Model.of("+ view"));
+            addViewButton.setBody(Model.of("+ view display"));
             viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
@@ -195,13 +195,13 @@ public class ResourcePartPage extends NanodashPage {
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
             AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                    .set("template", "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to")
                     .set("template-version", "latest")
                     .set("param_resource", resourceWithProfile.getSpace().getId())
                     .set("context", resourceWithProfile.getSpace().getId())
                     .set("part", id)
             );
-            addViewButton.setBody(Model.of("+ view"));
+            addViewButton.setBody(Model.of("+ view display"));
             viewButtons.add(addViewButton);
 
             if (resourceWithProfile.getSpace().isDataInitialized()) {

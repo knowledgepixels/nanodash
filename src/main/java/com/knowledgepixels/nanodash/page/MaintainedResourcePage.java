@@ -66,14 +66,14 @@ public class MaintainedResourcePage extends NanodashPage {
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
         AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAPxKWDTDP4neVtRckQcTqKHqCC_GHWWPrs7DESb2BJjo")
+                .set("template", "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU")
                 .set("template-version", "latest")
                 .set("param_resource", resource.getId())
                 .set("param_appliesToResource", resource.getId())
                 .set("context", resource.getId())
                 .set("refresh-upon-publish", resource.getId())
         );
-        addViewButton.setBody(Model.of("+ view"));
+        addViewButton.setBody(Model.of("+ view display"));
         viewButtons.add(addViewButton);
 
         if (resource.isDataInitialized()) {

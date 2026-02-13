@@ -69,6 +69,10 @@
   background: #F3F6F9;
 }
 
+.preview {
+  background: #FFF8E1;
+}
+
 .col-1 {
   width: 8.33%;
 }
