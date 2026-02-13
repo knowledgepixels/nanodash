@@ -3,14 +3,11 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -22,6 +19,7 @@ import org.slf4j.LoggerFactory;
 public class QueryResultNanopubSet extends QueryResult {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryResultNanopubSet.class);
+    private final WebMarkupContainer viewSelector;
 
     /**
      * Constructor for QueryResultList.
@@ -35,7 +33,11 @@ public class QueryResultNanopubSet extends QueryResult {
         super(markupId, queryRef, response, viewDisplay);
 
         logger.info("Rendering {} with '{}' mode.", this.getClass().getName(), NanodashSession.get().getNanopubResultsViewMode().getValue());
-        add(new AjaxLink<>("listEnabler") {
+
+        viewSelector = new WebMarkupContainer("viewSelector");
+        viewSelector.setOutputMarkupId(true);
+
+        viewSelector.add(new AjaxLink<>("listEnabler") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
@@ -43,13 +45,16 @@ public class QueryResultNanopubSet extends QueryResult {
             }
         });
 
-        add(new AjaxLink<>("gridEnabler") {
+        viewSelector.add(new AjaxLink<>("gridEnabler") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
                 logger.info("GridEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
             }
         });
+
+        viewSelector.add(new Label("np"));
+        add(viewSelector);
 
         String titleLabel = grlcQuery.getLabel();
         if (viewDisplay.getView().getTitle() != null) {
@@ -67,9 +72,21 @@ public class QueryResultNanopubSet extends QueryResult {
         add(nanopubResults);
 
         if (viewDisplay.getNanopubId() != null) {
-            add(new SourceNanopub("np", viewDisplay.getNanopubId()));
+            viewSelector.addOrReplace(new SourceNanopub("np", viewDisplay.getNanopubId()));
         } else {
-            add(new Label("np").setVisible(false));
+            viewSelector.addOrReplace(new Label("np").setVisible(false));
+        }
+    }
+
+    /**
+     * Sets the visibility of the title.
+     *
+     * @param hasTitle true to show the title, false to hide it
+     */
+    public void setTitleVisible(boolean hasTitle) {
+        this.get("title").setVisible(hasTitle);
+        if (!hasTitle) {
+            viewSelector.add(AttributeAppender.append("class", " no-title"));
         }
     }
 

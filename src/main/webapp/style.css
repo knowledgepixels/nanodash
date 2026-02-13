@@ -2021,6 +2021,10 @@ td div:has(.button-list) {
   margin-top: 0;
 }
 
+.view-selector.no-title {
+  position: unset;
+}
+
 .k-input-inner {
   width: 100% !important;
 }

@@ -2,26 +2,26 @@ package com.knowledgepixels.nanodash.page;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.component.NanopubResults;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +31,8 @@ import org.wicketstuff.kendo.ui.form.datetime.DatePicker;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
-import static com.knowledgepixels.nanodash.page.ListPage.PARAMS.*;
+import static com.knowledgepixels.nanodash.page.ListPage.PAGE_PARAMS.*;
 
 /**
  * A page that shows a list of nanopublications filtered by type, public key, and time range.
@@ -62,7 +61,7 @@ public class ListPage extends NanodashPage {
     private Date startDate = null;
     private Date endDate = null;
 
-    enum PARAMS {
+    enum PAGE_PARAMS {
         TYPE("type"),
         USER_ID("userid"),
         START_TIME("starttime"),
@@ -70,7 +69,7 @@ public class ListPage extends NanodashPage {
 
         private final String value;
 
-        PARAMS(String value) {
+        PAGE_PARAMS(String value) {
             this.value = value;
         }
 
@@ -90,21 +89,6 @@ public class ListPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Nanopublication list | nanodash"));
-        add(new AjaxLink<>("listEnabler") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
-                logger.info("ListEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
-            }
-        });
-
-        add(new AjaxLink<>("gridEnabler") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
-                logger.info("GridEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
-            }
-        });
 
         WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
         WebMarkupContainer userFilterContainer = new WebMarkupContainer("userFilterContainer");
@@ -279,51 +263,27 @@ public class ListPage extends NanodashPage {
         if (userId != null) {
             List<String> pubkeys = User.getPubkeyhashes(userId, null);
             if (!pubkeys.isEmpty()) {
-                pubkeys.forEach(pubKey -> queryParams.put("pubkeys", pubKey));
+                pubkeys.forEach(pubKey -> queryParams.put("np_pubkeys", pubKey));
             }
         }
         if (startDate != null) {
-            queryParams.put(START_TIME.getValue(), startDate.toInstant().toString());
+            queryParams.put("np_starttime", startDate.toInstant().toString());
         }
         if (endDate != null) {
-            queryParams.put(END_TIME.getValue(), endDate.toInstant().toString());
+            queryParams.put("np_endtime", endDate.toInstant().toString());
         }
-        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_FILTERED_NANOPUB_LIST, queryParams);
-        ApiResponse cachedResponse = ApiCache.retrieveResponseAsync(queryRef);
-        if (cachedResponse != null) {
-            NanopubResults cachedResults = NanopubResults.fromApiResponse("nanopubs", cachedResponse, 20);
-            cachedResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
-            add(cachedResults);
-        } else {
-            AjaxLazyLoadPanel<NanopubResults> results = new AjaxLazyLoadPanel<NanopubResults>("nanopubs") {
+        View filteredNanopubsView = View.get("https://w3id.org/np/RAAxsnXxYLev1_STgHnb2Y-oNRE3DRERXXDoJbELHSnzA/filtered-nanopubs-view");
+        final QueryRef queryRef = new QueryRef(filteredNanopubsView.getQuery().getQueryId(), queryParams);
+        add(new DataView<>("filteredNanopubs", new ListDataProvider<>(List.of(new ViewDisplay(filteredNanopubsView)))) {
 
-                @Override
-                public NanopubResults getLazyLoadComponent(String markupId) {
-                    ApiResponse response = null;
-                    while (true) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            logger.error("Interrupted while waiting for API response", ex);
-                        }
-                        if (!ApiCache.isRunning(queryRef)) {
-                            response = ApiCache.retrieveResponseAsync(queryRef);
-                            if (response != null) break;
-                        }
-                    }
-                    return NanopubResults.fromApiResponse(markupId, response, 20);
-                }
-
-                @Override
-                protected void onContentLoaded(NanopubResults content, Optional<AjaxRequestTarget> target) {
-                    super.onContentLoaded(content, target);
-                    target.ifPresent(ajaxRequestTarget -> ajaxRequestTarget.appendJavaScript("updateElements();"));
-                }
-
-            };
-            results.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
-            add(results);
-        }
+            @Override
+            protected void populateItem(Item<ViewDisplay> item) {
+                item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
+                        .noTitle()
+                        .build()
+                );
+            }
+        });
     }
 
 }

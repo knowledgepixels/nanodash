@@ -72,8 +72,8 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        final QueryRef rQueryRef = new QueryRef(QueryApiAccess.GET_MOST_RECENT_NANOPUBS);
         View mostRecentNanopubsView = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
+        final QueryRef rQueryRef = new QueryRef(mostRecentNanopubsView.getQuery().getQueryId());
         add(new DataView<ViewDisplay>("mostrecent", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(mostRecentNanopubsView)))) {
 
             @Override
