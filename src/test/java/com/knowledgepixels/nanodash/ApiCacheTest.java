@@ -25,6 +25,7 @@ class ApiCacheTest {
 
     private ConcurrentMap<String, ApiResponse> cachedResponses;
     private ConcurrentMap<String, Long> runAfter;
+    private ConcurrentMap<String, Long> refreshStart;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -34,15 +35,18 @@ class ApiCacheTest {
 
         cachedResponses = getPrivateStaticField("cachedResponses");
         runAfter = getPrivateStaticField("runAfter");
+        refreshStart = getPrivateStaticField("refreshStart");
 
         cachedResponses.clear();
         runAfter.clear();
+        refreshStart.clear();
     }
 
     @AfterEach
     void tearDown() throws Exception {
         cachedResponses.clear();
         runAfter.clear();
+        refreshStart.clear();
 
         if (mocks != null) {
             mocks.close();
@@ -121,6 +125,106 @@ class ApiCacheTest {
 
         assertThrows(IllegalArgumentException.class, () -> ApiCache.clearCache(mockQueryRef, waitMillis));
         assertFalse(runAfter.containsKey(mockQueryId));
+    }
+
+    @Test
+    @DisplayName("isRunning should return false when refreshStart does not contain the cache ID")
+    void isRunningWhenCacheIdNotInRefreshStart() {
+        assertFalse(refreshStart.containsKey(mockQueryId));
+        boolean result = ApiCache.isRunning(mockQueryRef);
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("isRunning should return true when refresh started less than 60 seconds ago")
+    void isRunningWhenRefreshIsRecent() {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime - 30000);
+
+        boolean result = ApiCache.isRunning(mockQueryRef);
+
+        assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("isRunning should return true when refresh started exactly at current time")
+    void isRunningWhenRefreshJustStarted() {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime);
+
+        boolean result = ApiCache.isRunning(mockQueryRef);
+
+        assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("isRunning should return false when refresh started exactly 60 seconds ago")
+    void isRunningExactlyAtThreshold() throws InterruptedException {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime - 60 * 1000);
+
+        Thread.sleep(10);
+
+        boolean result = ApiCache.isRunning(mockQueryRef);
+
+        assertFalse(result, "isRunning should return false when refresh started exactly 60 seconds ago");
+    }
+
+    @Test
+    @DisplayName("isRunning should return false when refresh started more than 60 seconds ago")
+    void isRunningWhenRefreshIsOld() {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime - 120000);
+
+        boolean result = ApiCache.isRunning(mockQueryRef);
+
+        assertFalse(result, "isRunning should return false when refresh started more than 60 seconds ago");
+    }
+
+    @Test
+    @DisplayName("isRunning should be consistent across multiple calls within timeout window")
+    void isRunningConsistentAcrossMultipleCalls() {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime - 10000); // 10 seconds ago
+
+        boolean result1 = ApiCache.isRunning(mockQueryRef);
+        boolean result2 = ApiCache.isRunning(mockQueryRef);
+        boolean result3 = ApiCache.isRunning(mockQueryRef);
+
+        assertTrue(result1, "First call should return true");
+        assertTrue(result2, "Second call should return true");
+        assertTrue(result3, "Third call should return true");
+    }
+
+    @Test
+    @DisplayName("isRunning should handle null QueryRef gracefully by throwing exception")
+    void isRunningWithNullQueryRef() {
+        assertThrows(NullPointerException.class, () -> ApiCache.isRunning(null));
+    }
+
+    @Test
+    @DisplayName("isRunning should be thread-safe for concurrent access")
+    void isRunningThreadSafety() throws InterruptedException {
+        long currentTime = System.currentTimeMillis();
+        refreshStart.put(mockQueryId, currentTime - 30000); // 30 seconds ago
+
+        int threadCount = 10;
+        Thread[] threads = new Thread[threadCount];
+        boolean[] results = new boolean[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            threads[i] = new Thread(() -> results[index] = ApiCache.isRunning(mockQueryRef));
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        for (int i = 0; i < threadCount; i++) {
+            assertTrue(results[i]);
+        }
     }
 
 }
