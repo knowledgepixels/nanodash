@@ -253,7 +253,16 @@ public class ApiCache {
         }
     }
 
+    /**
+     * Clears the cached response for a specific query reference and sets a delay before the next refresh can occur.
+     *
+     * @param queryRef   The query reference for which to clear the cache.
+     * @param waitMillis The amount of time in milliseconds to wait before allowing the cache to be refreshed again.
+     */
     public static void clearCache(QueryRef queryRef, long waitMillis) {
+        if (waitMillis < 0) {
+            throw new IllegalArgumentException("waitMillis must be non-negative");
+        }
         cachedResponses.remove(queryRef.getAsUrlString());
         runAfter.put(queryRef.getAsUrlString(), System.currentTimeMillis() + waitMillis);
     }
