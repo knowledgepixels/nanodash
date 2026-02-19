@@ -129,7 +129,13 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.21.0</version>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -303,5 +309,6 @@
     <slf4j.version>2.0.17</slf4j.version>
     <jib-maven-plugin.version>3.5.1</jib-maven-plugin.version>
     <tomcat-docker-image>tomcat:11.0.11</tomcat-docker-image>
+    <mockito.version>5.21.0</mockito.version>
   </properties>
 </project>
