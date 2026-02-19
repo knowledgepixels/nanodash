@@ -1,12 +1,12 @@
 package com.knowledgepixels.nanodash;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
@@ -17,12 +17,12 @@ import java.util.concurrent.ConcurrentMap;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ApiCacheTest {
 
     @Mock
     private QueryRef mockQueryRef;
     private final String MOCK_CACHE_ID = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-latest-nanopubs-from-pubkeys";
-    private AutoCloseable mocks;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -33,15 +33,7 @@ class ApiCacheTest {
         resetMap("refreshStart");
         resetMap("runAfter");
 
-        mocks = MockitoAnnotations.openMocks(this);
-        when(mockQueryRef.getAsUrlString()).thenReturn(MOCK_CACHE_ID);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (mocks != null) {
-            mocks.close();
-        }
+        lenient().when(mockQueryRef.getAsUrlString()).thenReturn(MOCK_CACHE_ID);
     }
 
     private void resetMap(String fieldName) throws Exception {
@@ -226,6 +218,7 @@ class ApiCacheTest {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             fail("Test interrupted");
         }
 
@@ -288,9 +281,7 @@ class ApiCacheTest {
 
         Thread.sleep(10);
 
-        boolean result = ApiCache.isRunning(mockQueryRef);
-
-        assertFalse(result, "isRunning should return false when refresh started exactly 60 seconds ago");
+        assertFalse(ApiCache.isRunning(mockQueryRef));
     }
 
     @Test
@@ -300,9 +291,7 @@ class ApiCacheTest {
         ConcurrentMap<String, Long> refreshStart = getMap("refreshStart");
         refreshStart.put(MOCK_CACHE_ID, currentTime - 120000);
 
-        boolean result = ApiCache.isRunning(mockQueryRef);
-
-        assertFalse(result, "isRunning should return false when refresh started more than 60 seconds ago");
+        assertFalse(ApiCache.isRunning(mockQueryRef));
     }
 
     @Test
