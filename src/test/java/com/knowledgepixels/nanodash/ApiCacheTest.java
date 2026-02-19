@@ -71,6 +71,22 @@ class ApiCacheTest {
     }
 
     @Test
+    @DisplayName("retrieveResponseSync should use forcedGet when forced flag is true")
+    void retrieveResponseSync_usesForcedGetWhenForcedFlagIsTrue() {
+        ApiResponse response = mock(ApiResponse.class);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.forcedGet(mockQueryRef)).thenReturn(response);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, true);
+
+            assertSame(response, result);
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+            queryApiAccess.verify(() -> QueryApiAccess.forcedGet(mockQueryRef), times(1));
+        }
+    }
+
+    @Test
     @DisplayName("retrieveResponseSync should return fresh cached response without API call")
     void retrieveResponseSync_returnsFreshCachedResponseWithoutApiCall() throws Exception {
         ApiResponse expected = mock(ApiResponse.class);
