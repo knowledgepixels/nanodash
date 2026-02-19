@@ -63,7 +63,7 @@ public class ApiCache {
             response = QueryApiAccess.get(queryRef);
         }
         String cacheId = queryRef.getAsUrlString();
-        logger.info("updateResponse {}", cacheId);
+        logger.info("Updating cached API response for {}", cacheId);
         cachedResponses.put(cacheId, response);
         lastRefresh.put(cacheId, System.currentTimeMillis());
     }
@@ -71,7 +71,7 @@ public class ApiCache {
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
-        logger.info("retrieveResponseSync {}", cacheId);
+        logger.info("Retrieving cached API response synchronously for {}", cacheId);
         boolean needsRefresh = true;
         if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
@@ -104,21 +104,13 @@ public class ApiCache {
             } catch (Exception ex) {
                 logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                 cachedResponses.remove(cacheId);
-                if (failed.get(cacheId) == null) {
-                    failed.put(cacheId, 1);
-                } else {
-                    failed.put(cacheId, failed.get(cacheId) + 1);
-                }
+                failed.merge(cacheId, 1, Integer::sum);
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
             }
         }
-        if (cachedResponses.containsKey(cacheId)) {
-            return cachedResponses.get(cacheId);
-        } else {
-            return null;
-        }
+        return cachedResponses.getOrDefault(cacheId, null);
     }
 
     /**
@@ -130,6 +122,7 @@ public class ApiCache {
     public static ApiResponse retrieveResponseAsync(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
+        logger.info("Retrieving cached API response asynchronously for {}", cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
@@ -164,11 +157,7 @@ public class ApiCache {
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
                     cachedResponses.remove(cacheId);
-                    if (failed.get(cacheId) == null) {
-                        failed.put(cacheId, 1);
-                    } else {
-                        failed.put(cacheId, failed.get(cacheId) + 1);
-                    }
+                    failed.merge(cacheId, 1, Integer::sum);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
@@ -192,7 +181,7 @@ public class ApiCache {
         Map<String, String> map = new HashMap<>();
         List<ApiResponseEntry> respList = QueryApiAccess.get(queryRef).getData();
         while (respList != null && !respList.isEmpty()) {
-            ApiResponseEntry resultEntry = respList.remove(0);
+            ApiResponseEntry resultEntry = respList.removeFirst();
             map.put(resultEntry.get("key"), resultEntry.get("value"));
         }
         String cacheId = queryRef.getAsUrlString();
