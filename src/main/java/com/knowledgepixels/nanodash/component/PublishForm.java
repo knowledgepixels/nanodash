@@ -1,12 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -32,9 +28,6 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -61,28 +54,8 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.LocalUri;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PreviewPage;
-import com.knowledgepixels.nanodash.page.ResourcePartPage;
-import com.knowledgepixels.nanodash.page.SpacePage;
-import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.template.ValueFiller;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 /**
  * Form for publishing a nanopublication.
@@ -447,7 +420,7 @@ public class PublishForm extends Panel {
                     return;
                 }
                 logger.info("Publish form submitted");
-                Nanopub signedNp = null;
+                Nanopub signedNp;
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
@@ -458,7 +431,7 @@ public class PublishForm extends Panel {
                     logger.info("Nanopublication published: {}", npUrl);
                 } catch (Exception ex) {
                     signedNp = null;
-                    logger.error("Nanopublication publishing failed: {}", ex);
+                    logger.error("Nanopublication publishing failed: {}", ex.getMessage());
                     String message = ex.getClass().getName();
                     if (ex.getMessage() != null) {
                         message = ex.getMessage();
@@ -502,8 +475,6 @@ public class PublishForm extends Panel {
                         }
                     }
                     throw new RestartResponseException(getConfirmPage(signedNp, pageParams));
-                } else {
-                    logger.error("Nanopublication publishing failed");
                 }
             }
 
@@ -806,7 +777,7 @@ public class PublishForm extends Panel {
                 } catch (RestartResponseException ex) {
                     throw ex;
                 } catch (Exception ex) {
-                    logger.error("Preview failed: {}", ex);
+                    logger.error("Preview failed: {}", ex.getMessage());
                     String message = ex.getClass().getName();
                     if (ex.getMessage() != null) {
                         message = ex.getMessage();
@@ -955,7 +926,7 @@ public class PublishForm extends Panel {
             String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
             IRI placeholderIriHash = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
             IRI placeholderIriSlash = vf.createIRI(assertionContext.getTemplateId() + "/" + placeholderPostfix);
-            IRI placeholderIri = null;
+            IRI placeholderIri;
             String placeholderValue = "";
             if (assertionContext.getComponentModels().get(placeholderIriSlash) != null) {
                 placeholderIri = placeholderIriSlash;
