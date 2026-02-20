@@ -9,7 +9,10 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
+import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
+import com.knowledgepixels.nanodash.events.RefreshContext;
 import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -22,6 +25,10 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.apache.wicket.util.lang.Bytes;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +38,9 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.*;
 import java.util.List;
-import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * WicketApplication is the main application class for the Nanodash web application.
@@ -46,6 +54,59 @@ public class WicketApplication extends WebApplication {
      */
     public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
     private static final Logger logger = LoggerFactory.getLogger(WicketApplication.class);
+
+    private final Map<ListenerKey, List<ListenerEntry>> publishListeners = Collections.synchronizedMap(new HashMap<>());
+
+    private record ListenerKey(RefreshContext context, IRI nanopubType) {
+    }
+
+    private record ListenerEntry(NanopubPublishedListener listener, long waitMs) {
+    }
+
+    public void registerListener(RefreshContext contextType, IRI nanopubType, long waitMs, NanopubPublishedListener listener) {
+        publishListeners
+                .computeIfAbsent(new ListenerKey(contextType, nanopubType), k -> Collections.synchronizedList(new ArrayList<>()))
+                .add(new ListenerEntry(listener, waitMs));
+    }
+
+    public void notifyNanopubPublished(Nanopub nanopub, String rawContext, String target) {
+        RefreshContext context = RefreshContext.parse(rawContext);
+        if (context == null) {
+            throw new IllegalArgumentException("Invalid refresh context: " + rawContext);
+        }
+
+        if (context == RefreshContext.RESOURCE) {
+            Set<IRI> types = nanopub.getAssertion().stream()
+                    .filter(st -> st.getPredicate().equals(RDF.TYPE))
+                    .map(st -> (IRI) st.getObject())
+                    .collect(Collectors.toSet());
+
+            for (IRI type : types) {
+                List<ListenerEntry> entries = publishListeners.get(new ListenerKey(context, type));
+                if (entries == null) {
+                    continue;
+                }
+                for (ListenerEntry entry : entries) {
+                    entry.listener().onNanopubPublished(nanopub, target, entry.waitMs());
+                    logger.info("Notifying listener {} for nanopub type {} with context <{}> and target {}", entry.listener().getClass().getName(), type, context, target);
+                }
+            }
+        } else if (context == RefreshContext.QUERY) {
+            List<ListenerEntry> entries = publishListeners.get(new ListenerKey(context, null));
+            if (entries == null) {
+                return;
+            }
+            for (ListenerEntry entry : entries) {
+                entry.listener().onNanopubPublished(nanopub, target, entry.waitMs());
+                logger.info("Notifying listener {} with context <{}> and target {}", entry.listener().getClass().getName(), context, target);
+            }
+        }
+    }
+
+    public static WicketApplication get() {
+        return (WicketApplication) WebApplication.get();
+    }
+
 
     /**
      * Constructor for the WicketApplication.
@@ -146,6 +207,11 @@ public class WicketApplication extends WebApplication {
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.MAX);
+
+        registerListener(RefreshContext.RESOURCE, KPXL_TERMS.SPACE, 3000, (np, target, waitMs) -> Space.forceRootRefresh(waitMs));
+        registerListener(RefreshContext.RESOURCE, KPXL_TERMS.MAINTAINED_RESOURCE, 3000, (np, target, waitMs) -> MaintainedResource.forceRootRefresh(waitMs));
+        registerListener(RefreshContext.RESOURCE, KPXL_TERMS.RESOURCE_WITH_PROFILE, 3000, (np, target, waitMs) -> ResourceWithProfile.forceRefresh(target, waitMs));
+        registerListener(RefreshContext.QUERY, null, 3000, (np, target, waitMs) -> ApiCache.clearCache(QueryRef.parseString(target), waitMs));
     }
 
     /**
