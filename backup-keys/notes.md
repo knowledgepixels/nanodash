@@ -7,7 +7,8 @@ On the source and the target server, the admin initially must create the user na
 
 Source server:
 `sudo adduser backup_user`
-`ssh-keygen -t rsa -b 4096 -C "backup_user@<server>"
+`sudo -H -u backup_user bash`
+`ssh-keygen -t rsa -b 4096 -C "backup_user@<server>"`
 
 Target server:
 `sudo adduser backup_user`
@@ -20,11 +21,18 @@ Create a directory for the backup files:
 `sudo mkdir /var/backup`
 `sudo chown backup_user /var/backup`
 
-Env-Variables:
-- BACKUP_ENCRYPTION_PASSWORD: The password used for encrypting the backup file.
+Starting docker container for source server:
+`cp docker-compose.override.yml.template docker-compose.override.yml`
+
+Fill in the Env-Variables in `docker-compose.override.yml`:
+- BACKUP_ENCRYPTION_PASSWORD: The password used for encrypting the backup file. Ensure to save it on a secure place.
 - TARGET_SERVER: The target server where the backup file will be stored.
 - TARGET_USER: The user on the target server who will receive the backup file.
 - SOURCE_SERVER_NAME: The name of the source server, used for naming the backup file.
+
+Get the images and start the containers (source server):
+`docker compose pull`
+`docker compose down && docker compose up -d`
 
 For decryption of the backup file on the target server:
 openssl enc -d -aes-256-cbc -pbkdf2 -in <backup-file.tar.gz.enc> -out backup.tar.gz -k <password>
