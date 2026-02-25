@@ -26,7 +26,7 @@ Starting docker container for source server:
 
 Fill in the Env-Variables in `docker-compose.override.yml`:
 - BACKUP_ENCRYPTION_PASSWORD: The password used for encrypting the backup file. Ensure to save it on a secure place.
-- TARGET_SERVER: The target server where the backup file will be stored.
+- TARGET_SERVERS: The target servers where the backup file will be stored. Separated by space.
 - TARGET_USER: The user on the target server who will receive the backup file.
 - SOURCE_SERVER_NAME: The name of the source server, used for naming the backup file.
 

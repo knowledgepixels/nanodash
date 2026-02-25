@@ -19,6 +19,6 @@ services:
       - /home/backup_user/.ssh/id_rsa:/root/backup_user/.ssh/id_rsa:ro
     environment:
       - BACKUP_ENCRYPTION_PASSWORD
-      - TARGET_SERVER
+      - TARGET_SERVERS
       - TARGET_USER=backup_user
       - SOURCE_SERVER_NAME

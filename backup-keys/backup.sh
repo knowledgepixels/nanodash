@@ -18,8 +18,8 @@ if [ -z "$BACKUP_ENCRYPTION_PASSWORD" ]; then
     exit 1
 fi
 
-if [ -z "$TARGET_SERVER" ] || [ -z "$TARGET_USER" ]; then
-    echo "Error: TARGET_SERVER and TARGET_USER environment variables must be set."
+if [ -z "$TARGET_SERVERS" ] || [ -z "$TARGET_USER" ]; then
+    echo "Error: TARGET_SERVERS and TARGET_USER environment variables must be set."
     exit 1
 fi
 
@@ -41,18 +41,20 @@ fi
 echo "Encrypting archive..."
 # Using openssl aes-256-cbc. 
 # -pbkdf2 is recommended for newer openssl versions to derive key from password.
-openssl enc -aes-256-cbc -pbkdf2 -salt -in "${TMP_BACKUP_DIR}/${ARCHIVE_NAME}" -out "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" -pass env:BACKUP_ENCRYPTION_PASSWORD
+openssl enc -aes-256-cbc -pbkdf2 -salt -in "${TMP_BACKUP_DIR}/${ARCHIVE_NAME}" -out "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" -pass "$BACKUP_ENCRYPTION_PASSWORD"
 
 # 3. Transfer
-echo "Transferring backup to ${TARGET_USER}@${TARGET_SERVER}..."
 # Ensure target directory hierarchy exists (requires ssh access to execute commands, or assumes it exists)
 TARGET_PATH="/var/backup/${SERVER_NAME}/${ENCRYPTED_NAME}"
 
-# We attempt to create the directory first. This might fail if the user doesn't have permissions to run mkdir,
-# but usually backup users are set up to allow this or the dir is pre-created.
-ssh -o StrictHostKeyChecking=no -i /root/backup_user/.ssh/id_rsa "${TARGET_USER}@${TARGET_SERVER}" "mkdir -p /var/backup/${SERVER_NAME}" || echo "Warning: Could not create remote directory, assuming it exists or SCP will handle it..."
+for TARGET_SERVER in $TARGET_SERVERS; do
+    echo "Transferring backup to ${TARGET_USER}@${TARGET_SERVER}..."
+    # We attempt to create the directory first. This might fail if the user doesn't have permissions to run mkdir,
+    # but usually backup users are set up to allow this or the dir is pre-created.
+    ssh -o StrictHostKeyChecking=no -i /root/backup_user/.ssh/id_rsa "${TARGET_USER}@${TARGET_SERVER}" "mkdir -p /var/backup/${SERVER_NAME}" || echo "Warning: Could not create remote directory, assuming it exists or SCP will handle it..."
 
-scp -o StrictHostKeyChecking=no -i /root/backup_user/.ssh/id_rsa "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" "${TARGET_USER}@${TARGET_SERVER}:${TARGET_PATH}"
+    scp -o StrictHostKeyChecking=no -i /root/backup_user/.ssh/id_rsa "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" "${TARGET_USER}@${TARGET_SERVER}:${TARGET_PATH}"
+done
 
 # 4. Cleanup
 echo "Cleaning up..."
