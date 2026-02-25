@@ -11,6 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class AllAssertionTemplatesLoadingTest {
 
+    /**
+     * All 195 published assertion template URIs as of 2025-02-25.
+     *
+     * Retrieved from the Nanobench SPARQL API:
+     *   https://query.petapico.org/api/RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates
+     *
+     * To refresh this list: fetch the URL above, extract all "np" values, paste them here,
+     * then run printLoadingOverview() to find any newly broken templates and remove them.
+     */
     static Stream<String> allTemplateUris() {
         return Stream.of(
             "https://w3id.org/np/RAPGpEZJ4__5FKspY1G_xs3cAa6aTGfZFLk81dD_YOEN8",
