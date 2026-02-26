@@ -60,6 +60,8 @@ public class Utils {
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
     private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
+    private static final String DEFAULT_MAIN_QUERY_URL = "https://query.knowledgepixels.com/";
+    private static final String DEFAULT_MAIN_REGISTRY_URL = "https://registry.knowledgepixels.com/";
 
     /**
      * Generates a short name from a given IRI object.
@@ -680,26 +682,29 @@ public class Utils {
      *
      * @return Nanopub Registry URL
      */
-    public static String getMainRegistryUrl() {
-        try {
-            return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_REGISTRY", "https://registry.knowledgepixels.com/");
-        } catch (IOException ex) {
-            logger.error("Could not get NANODASH_MAIN_REGISTRY environment variable, using default.", ex);
-            return "https://registry.knowledgepixels.com/";
+    public static String getMainRegistryUrl() throws IOException {
+        String envValue = EnvironmentUtils.getProcEnvironment().get("NANODASH_MAIN_REGISTRY");
+        if (envValue != null) {
+            logger.info("Found environment variable NANODASH_MAIN_REGISTRY with value: {}", envValue);
+        } else {
+            logger.info("Environment variable NANODASH_MAIN_REGISTRY not set, using default: {}", DEFAULT_MAIN_REGISTRY_URL);
         }
+        return envValue != null ? envValue : DEFAULT_MAIN_REGISTRY_URL;
     }
+
     /**
      * Returns the URL of the default Nanopub Query as configured by the given instance.
      *
      * @return Nanopub Query URL
      */
-    public static String getMainQueryUrl() {
-        try {
-            return EnvironmentUtils.getProcEnvironment().getOrDefault("NANODASH_MAIN_QUERY", "https://query.knowledgepixels.com/");
-        } catch (IOException ex) {
-            logger.error("Could not get NANODASH_MAIN_QUERY environment variable, using default.", ex);
-            return "https://query.knowledgepixels.com/";
+    public static String getMainQueryUrl() throws IOException {
+        String envValue = EnvironmentUtils.getProcEnvironment().get("NANODASH_MAIN_QUERY");
+        if (envValue != null) {
+            logger.info("Found environment variable NANODASH_MAIN_QUERY with value: {}", envValue);
+        } else {
+            logger.info("Environment variable NANODASH_MAIN_QUERY not set, using default: {}", DEFAULT_MAIN_QUERY_URL);
         }
+        return envValue != null ? envValue : DEFAULT_MAIN_QUERY_URL;
     }
 
     private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";

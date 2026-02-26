@@ -31,6 +31,7 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -63,13 +64,13 @@ public class ExplorePage extends NanodashPage {
      *
      * @param parameters Page parameters containing the ID of the Nanopublication or Thing to explore.
      */
-    public ExplorePage(final PageParameters parameters) {
+    public ExplorePage(final PageParameters parameters) throws IOException {
         super(parameters);
         add(new Label("publish-confirm-panel").setVisible(false));
         initPage();
     }
 
-    public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
+    public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) throws IOException {
         super(parameters.set("id", publishedNanopub.getUri()));
         this.publishedNanopub = publishedNanopub;
 
@@ -109,7 +110,7 @@ public class ExplorePage extends NanodashPage {
         initPage();
     }
 
-    private void initPage() {
+    private void initPage() throws IOException {
         PageParameters parameters = getPageParameters();
 
         String tempRef = parameters.get("id").toString();
@@ -159,7 +160,7 @@ public class ExplorePage extends NanodashPage {
                 ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_THING_NANOPUB, params), false);
                 if (!resp.getData().isEmpty()) {
                     // TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
-                    npId = resp.getData().get(0).get("latestVersion");
+                    npId = resp.getData().getFirst().get("latestVersion");
                 }
                 np = Utils.getAsNanopub(npId);
             }

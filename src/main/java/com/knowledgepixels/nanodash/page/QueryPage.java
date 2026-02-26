@@ -25,6 +25,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.nanopub.extra.services.QueryRef;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -55,7 +56,7 @@ public class QueryPage extends NanodashPage {
      *
      * @param parameters The page parameters, which should include the query ID and any query parameters.
      */
-    public QueryPage(final PageParameters parameters) {
+    public QueryPage(final PageParameters parameters) throws IOException {
         super(parameters);
         add(new TitleBar("titlebar", this, null));
         add(new Label("pagetitle", "Query Info | nanodash"));
