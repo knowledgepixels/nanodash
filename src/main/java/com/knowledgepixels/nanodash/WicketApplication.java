@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
 import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
+import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
@@ -43,7 +44,7 @@ import java.util.Properties;
  * WicketApplication is the main application class for the Nanodash web application.
  * It initializes the application, mounts pages, and provides version information.
  */
-public class WicketApplication extends WebApplication {
+public class WicketApplication extends WebApplication implements NanopubPublishedPublisher {
 
     /**
      * URL to fetch the latest release information from GitHub.
@@ -54,18 +55,27 @@ public class WicketApplication extends WebApplication {
 
     private final List<NanopubPublishedListener> publishListeners = Collections.synchronizedList(new ArrayList<>());
 
+    private static String latestVersion = null;
+
+    @Override
     public void registerListener(NanopubPublishedListener listener) {
         logger.info("Registering listener {} for nanopub published events", listener.getClass().getName());
         publishListeners.add(listener);
     }
 
+    @Override
     public void notifyNanopubPublished(Nanopub nanopub, String target, long waitMs) {
-        for (NanopubPublishedListener entry : publishListeners) {
-            entry.onNanopubPublished(nanopub, target, waitMs);
-            logger.info("Notifying listener {} with toRefresh target <{}>", entry.getClass().getName(), target);
+        for (NanopubPublishedListener listener : publishListeners) {
+            listener.onNanopubPublished(nanopub, target, waitMs);
+            logger.info("Notifying listener {} with toRefresh target <{}>", listener.getClass().getName(), target);
         }
     }
 
+    /**
+     * Static method to get the current instance of the WicketApplication.
+     *
+     * @return The current instance of WicketApplication.
+     */
     public static WicketApplication get() {
         return (WicketApplication) WebApplication.get();
     }
@@ -182,9 +192,6 @@ public class WicketApplication extends WebApplication {
     public RuntimeConfigurationType getConfigurationType() {
         return RuntimeConfigurationType.DEPLOYMENT;
     }
-
-
-    private static String latestVersion = null;
 
     /**
      * Retrieves the latest version of the application from the GitHub API.
