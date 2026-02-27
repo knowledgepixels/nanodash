@@ -16,3 +16,4 @@
 .run/
 node_modules/
 /nohup.out
+.env
