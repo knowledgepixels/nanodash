@@ -680,6 +680,6 @@ public class StatementItem extends Panel {
     }
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
-    private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Arrays.asList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
+    private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Collections.singletonList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
 
 }

@@ -76,7 +76,7 @@ public class View implements Serializable {
             try {
                 views.put(latestId, new View(latestId, np));
             } catch (Exception ex) {
-                logger.error("Couldn't load nanopub for resource: " + id, ex);
+                logger.error("Couldn't load nanopub for resource: {}", id, ex);
             }
         }
         return views.get(latestId);
@@ -141,7 +141,7 @@ public class View implements Serializable {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
                     } catch (NumberFormatException ex) {
-                        logger.error("Invalid page size value: " + objL.stringValue(), ex);
+                        logger.error("Invalid page size value: {}", objL.stringValue(), ex);
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = columnWidths.get(objIri);

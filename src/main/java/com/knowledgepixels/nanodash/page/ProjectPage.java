@@ -14,7 +14,6 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
@@ -48,9 +47,8 @@ public class ProjectPage extends NanodashPage {
      * Constructor for the ProjectPage.
      *
      * @param parameters the page parameters
-     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails
      */
-    public ProjectPage(final PageParameters parameters) throws FailedApiCallException {
+    public ProjectPage(final PageParameters parameters) {
         super(parameters);
 
         String projectId = parameters.get("id").toString();
@@ -78,7 +76,7 @@ public class ProjectPage extends NanodashPage {
         List<Template> templates = new ArrayList<>(project.getTemplates());
         for (String tag : templateTagList) {
             for (Template t : project.getTemplatesPerTag().get(tag)) {
-                if (templates.contains(t)) templates.remove(t);
+                templates.remove(t);
             }
             templateLists.add(Pair.of(tag, project.getTemplatesPerTag().get(tag)));
         }

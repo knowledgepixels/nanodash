@@ -52,8 +52,7 @@ public class RestrictedChoice implements Serializable {
      * @return A sorted list of possible values.
      */
     public List<String> getPossibleValues() {
-        Set<String> possibleValues = new HashSet<>();
-        possibleValues.addAll(fixedPossibleValues.keySet());
+        Set<String> possibleValues = new HashSet<>(fixedPossibleValues.keySet());
         for (IRI r : possibleRefValues) {
             for (int i = 0; true; i++) {
                 String suffix = "__" + i;

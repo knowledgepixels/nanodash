@@ -24,7 +24,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.server.GetNanopub;
-import org.nanopub.extra.services.*;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,11 +45,8 @@ public class GenNanopubPage extends ConnectorPage {
      * Constructor for the GenNanopubPage.
      *
      * @param parameters Page parameters containing the necessary information to create the nanopublication.
-     * @throws org.nanopub.extra.services.FailedApiCallException         if the API call fails while fetching data for the nanopublication.
-     * @throws org.nanopub.extra.services.APINotReachableException       if the API is not reachable.
-     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException if there are not enough API instances available.
      */
-    public GenNanopubPage(final PageParameters parameters) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+    public GenNanopubPage(final PageParameters parameters) {
         super(parameters);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
 

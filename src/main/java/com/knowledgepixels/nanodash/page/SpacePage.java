@@ -14,7 +14,6 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
 import java.time.LocalDateTime;
@@ -52,9 +51,8 @@ public class SpacePage extends NanodashPage {
      * Constructor for the SpacePage.
      *
      * @param parameters the page parameters
-     * @throws org.nanopub.extra.services.FailedApiCallException if the API call fails
      */
-    public SpacePage(final PageParameters parameters) throws FailedApiCallException {
+    public SpacePage(final PageParameters parameters) {
         super(parameters);
 
         String id = parameters.get("id").toString();

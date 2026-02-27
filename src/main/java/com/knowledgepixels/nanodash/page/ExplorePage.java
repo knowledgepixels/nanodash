@@ -31,7 +31,6 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -64,13 +63,13 @@ public class ExplorePage extends NanodashPage {
      *
      * @param parameters Page parameters containing the ID of the Nanopublication or Thing to explore.
      */
-    public ExplorePage(final PageParameters parameters) throws IOException {
+    public ExplorePage(final PageParameters parameters) {
         super(parameters);
         add(new Label("publish-confirm-panel").setVisible(false));
         initPage();
     }
 
-    public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) throws IOException {
+    public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
         super(parameters.set("id", publishedNanopub.getUri()));
         this.publishedNanopub = publishedNanopub;
 

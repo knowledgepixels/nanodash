@@ -56,7 +56,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
             Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
             return new ViewDisplay(id, np);
         } catch (Exception ex) {
-            logger.error("Couldn't load nanopub for resource: " + id, ex);
+            logger.error("Couldn't load nanopub for resource: {}", id, ex);
             throw new IllegalArgumentException("invalid view value " + id);
         }
     }
@@ -96,7 +96,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     try {
                         pageSize = Integer.parseInt(objL.stringValue());
                     } catch (NumberFormatException ex) {
-                        logger.error("Invalid page size value: " + objL.stringValue(), ex);
+                        logger.error("Invalid page size value: {}", objL.stringValue(), ex);
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = View.columnWidths.get(objIri);
