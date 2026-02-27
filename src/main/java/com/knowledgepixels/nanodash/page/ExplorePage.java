@@ -110,7 +110,7 @@ public class ExplorePage extends NanodashPage {
         initPage();
     }
 
-    private void initPage() throws IOException {
+    private void initPage() {
         PageParameters parameters = getPageParameters();
 
         String tempRef = parameters.get("id").toString();

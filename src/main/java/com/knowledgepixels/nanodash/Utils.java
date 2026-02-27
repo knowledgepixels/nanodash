@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash;
 import com.google.common.hash.Hashing;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
-import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -682,14 +681,15 @@ public class Utils {
      *
      * @return Nanopub Registry URL
      */
-    public static String getMainRegistryUrl() throws IOException {
-        String envValue = EnvironmentUtils.getProcEnvironment().get("NANODASH_MAIN_REGISTRY");
+    public static String getMainRegistryUrl() {
+        String envValue = System.getenv("NANODASH_MAIN_REGISTRY");
         if (envValue != null) {
             logger.info("Found environment variable NANODASH_MAIN_REGISTRY with value: {}", envValue);
+            return envValue;
         } else {
             logger.info("Environment variable NANODASH_MAIN_REGISTRY not set, using default: {}", DEFAULT_MAIN_REGISTRY_URL);
+            return DEFAULT_MAIN_REGISTRY_URL;
         }
-        return envValue != null ? envValue : DEFAULT_MAIN_REGISTRY_URL;
     }
 
     /**
@@ -697,14 +697,15 @@ public class Utils {
      *
      * @return Nanopub Query URL
      */
-    public static String getMainQueryUrl() throws IOException {
-        String envValue = EnvironmentUtils.getProcEnvironment().get("NANODASH_MAIN_QUERY");
+    public static String getMainQueryUrl() {
+        String envValue = System.getenv("NANODASH_MAIN_QUERY");
         if (envValue != null) {
             logger.info("Found environment variable NANODASH_MAIN_QUERY with value: {}", envValue);
+            return envValue;
         } else {
             logger.info("Environment variable NANODASH_MAIN_QUERY not set, using default: {}", DEFAULT_MAIN_QUERY_URL);
+            return DEFAULT_MAIN_QUERY_URL;
         }
-        return envValue != null ? envValue : DEFAULT_MAIN_QUERY_URL;
     }
 
     private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
