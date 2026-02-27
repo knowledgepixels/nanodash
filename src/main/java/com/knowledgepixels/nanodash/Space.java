@@ -371,7 +371,7 @@ public class Space extends ResourceWithProfile {
     /**
      * Get the list of pinned resources in this space.
      *
-     * @return List of pinned resources.
+     * @return Set of pinned resources.
      */
     public Set<Serializable> getPinnedResources() {
         ensureInitialized();

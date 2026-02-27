@@ -64,7 +64,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     /**
      * Constructor for ViewDisplay.
      *
-     * @param entry an ApiResponseEntry containing the view and nanopub ID.
+     * @param id      the ID of the ViewDisplay
+     * @param nanopub the Nanopub containing the data for this ViewDisplay
      */
     private ViewDisplay(String id, Nanopub nanopub) {
         this.id = id;

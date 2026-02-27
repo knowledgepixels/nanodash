@@ -1,8 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.FilteredListDataProvider;
+import com.knowledgepixels.nanodash.GrlcQuery;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
@@ -19,8 +18,8 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.FilteredListDataProvider;
-import com.knowledgepixels.nanodash.GrlcQuery;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A component that displays a list of queries.
@@ -30,16 +29,16 @@ public class QueryList extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryList.class);
 
+    private Model<String> filterModel = Model.of("");
+    private FilteredListDataProvider<GrlcQuery> filteredDataProvider;
+    private DataView<GrlcQuery> dataView;
+
     /**
      * Constructor for QueryList.
      *
      * @param id   the component ID
      * @param resp the API response containing query data
      */
-    private Model<String> filterModel = Model.of("");
-    private FilteredListDataProvider<GrlcQuery> filteredDataProvider;
-    private DataView<GrlcQuery> dataView;
-
     public QueryList(String id, ApiResponse resp) {
         super(id);
         setOutputMarkupId(true);
