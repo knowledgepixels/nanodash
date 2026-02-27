@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.IndividualAgent;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import org.apache.wicket.markup.html.basic.Label;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ButtonList extends Panel {
 
-    public ButtonList(String markupId, ResourceWithProfile resourceWithProfile, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
+    public ButtonList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<AbstractLink> buttons, List<AbstractLink> memberButtons, List<AbstractLink> adminButtons) {
         super(markupId);
         setOutputMarkupId(true);
 

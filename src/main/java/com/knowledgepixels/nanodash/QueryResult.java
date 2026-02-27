@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,7 +28,7 @@ public abstract class QueryResult extends Panel {
     protected final QueryRef queryRef;
     protected final ViewDisplay viewDisplay;
     protected final ApiResponse response;
-    protected ResourceWithProfile resourceWithProfile;
+    protected AbstractResourceWithProfile resourceWithProfile;
     protected final GrlcQuery grlcQuery;
 
     /**
@@ -66,7 +67,7 @@ public abstract class QueryResult extends Panel {
      *
      * @param resourceWithProfile The resource with profile to set.
      */
-    public void setProfiledResource(ResourceWithProfile resourceWithProfile) {
+    public void setProfiledResource(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
     }
 

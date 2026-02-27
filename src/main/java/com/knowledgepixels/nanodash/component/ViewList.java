@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -23,15 +24,15 @@ public class ViewList extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile) {
         this(markupId, resourceWithProfile, null, null, null, null, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
         this(markupId, resourceWithProfile, partId, nanopubId, partClasses, null, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
         super(markupId);
 
         final String id = (partId == null ? resourceWithProfile.getId() : partId);

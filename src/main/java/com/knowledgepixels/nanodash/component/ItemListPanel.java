@@ -26,7 +26,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 
 public class ItemListPanel<T extends Serializable> extends Panel {
@@ -35,7 +35,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private List<AbstractLink> memberButtons = new ArrayList<>();
     private List<AbstractLink> adminButtons = new ArrayList<>();
-    private ResourceWithProfile resourceWithProfile;
+    private AbstractResourceWithProfile resourceWithProfile;
     private boolean finalized = false;
     private boolean lazyLoading = false;
     private ReadyFunction readyFunction;
@@ -186,7 +186,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         return this;
     }
 
-    public ItemListPanel<T> setProfiledResource(ResourceWithProfile resourceWithProfile) {
+    public ItemListPanel<T> setProfiledResource(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
     }

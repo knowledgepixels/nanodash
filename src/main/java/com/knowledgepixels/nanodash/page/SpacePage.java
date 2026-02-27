@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -63,7 +64,7 @@ public class SpacePage extends NanodashPage {
         Nanopub np = space.getNanopub();
         space.triggerDataUpdate();
 
-        List<ResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
+        List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             add(new TitleBar("titlebar", this, null,
                     new NanodashPageRef(SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel())

@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
@@ -21,7 +22,7 @@ public class QueryResultTableBuilder implements Serializable {
     private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
-    private ResourceWithProfile resourceWithProfile = null;
+    private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -48,7 +49,7 @@ public class QueryResultTableBuilder implements Serializable {
      * @param resourceWithProfile the ResourceWithProfile object
      * @return the current QueryResultTableBuilder instance
      */
-    public QueryResultTableBuilder profiledResource(ResourceWithProfile resourceWithProfile) {
+    public QueryResultTableBuilder profiledResource(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
     }

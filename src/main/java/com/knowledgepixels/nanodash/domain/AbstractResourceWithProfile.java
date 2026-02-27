@@ -1,5 +1,6 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
@@ -11,18 +12,18 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.*;
 
-public abstract class ResourceWithProfile implements Serializable {
+public abstract class AbstractResourceWithProfile implements Serializable, ResourceWithProfile {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceWithProfile.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractResourceWithProfile.class);
 
     protected static class ResourceData implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
-    private static Map<String, ResourceWithProfile> instances = new HashMap<>();
+    private static Map<String, AbstractResourceWithProfile> instances = new HashMap<>();
 
     public static void refresh() {
-        for (ResourceWithProfile r : instances.values()) {
+        for (AbstractResourceWithProfile r : instances.values()) {
             r.setDataNeedsUpdate();
         }
     }
@@ -37,7 +38,7 @@ public abstract class ResourceWithProfile implements Serializable {
         return instances.containsKey(id);
     }
 
-    public static ResourceWithProfile get(String id) {
+    public static AbstractResourceWithProfile get(String id) {
         return instances.get(id);
     }
 
@@ -48,7 +49,7 @@ public abstract class ResourceWithProfile implements Serializable {
     private boolean dataNeedsUpdate = true;
     private Long runUpdateAfter = null;
 
-    protected ResourceWithProfile(String id) {
+    protected AbstractResourceWithProfile(String id) {
         this.id = id;
         instances.put(id, this);
     }
@@ -194,15 +195,15 @@ public abstract class ResourceWithProfile implements Serializable {
      *
      * @return the list of superspaces from the given space to the root space
      */
-    public List<ResourceWithProfile> getAllSuperSpacesUntilRoot() {
-        List<ResourceWithProfile> chain = new ArrayList<>();
+    public List<AbstractResourceWithProfile> getAllSuperSpacesUntilRoot() {
+        List<AbstractResourceWithProfile> chain = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         collectAncestors(space, chain, visited);
         Collections.reverse(chain);
         return chain;
     }
 
-    private void collectAncestors(Space current, List<ResourceWithProfile> chain, Set<String> visited) {
+    private void collectAncestors(Space current, List<AbstractResourceWithProfile> chain, Set<String> visited) {
         if (current == null) {
             return;
         }

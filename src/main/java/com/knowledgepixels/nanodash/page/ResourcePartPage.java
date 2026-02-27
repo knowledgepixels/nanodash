@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.SourceNanopub;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,7 +50,7 @@ public class ResourcePartPage extends NanodashPage {
     /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
-    private ResourceWithProfile resourceWithProfile;
+    private AbstractResourceWithProfile resourceWithProfile;
 
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
@@ -119,7 +120,7 @@ public class ResourcePartPage extends NanodashPage {
 
         List<NanodashPageRef> breadCrumb;
         if (resourceWithProfile.getSpace() != null) {
-            List<ResourceWithProfile> superSpaces = resourceWithProfile.getSpace().getAllSuperSpacesUntilRoot();
+            List<AbstractResourceWithProfile> superSpaces = resourceWithProfile.getSpace().getAllSuperSpacesUntilRoot();
             if (resourceWithProfile instanceof MaintainedResource) {
                 superSpaces.add(resourceWithProfile.getSpace());
             }
@@ -155,7 +156,7 @@ public class ResourcePartPage extends NanodashPage {
             viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
-            final ResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
+            final AbstractResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
             if (resourceWithProfile.isDataInitialized()) {
                 add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons));
             } else {

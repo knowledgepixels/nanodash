@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -26,7 +27,7 @@ import java.util.*;
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
-public class Space extends ResourceWithProfile {
+public class Space extends AbstractResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
 

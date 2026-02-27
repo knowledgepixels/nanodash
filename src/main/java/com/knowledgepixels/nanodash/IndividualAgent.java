@@ -4,10 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.eclipse.rdf4j.model.IRI;
 
 // TODO Merge this class with User or otherwise make them aligned.
-public class IndividualAgent extends ResourceWithProfile {
+public class IndividualAgent extends AbstractResourceWithProfile {
 
     private static Map<String,IndividualAgent> instanceMap = new HashMap<>();
 

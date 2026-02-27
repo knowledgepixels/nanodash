@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -14,7 +15,7 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MaintainedResource extends ResourceWithProfile {
+public class MaintainedResource extends AbstractResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(MaintainedResource.class);
 

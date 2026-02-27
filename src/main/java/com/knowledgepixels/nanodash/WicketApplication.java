@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
 import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
@@ -259,8 +260,8 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 Space.forceRootRefresh(waitMs);
             } else if (target.equals("maintainedResources")) {
                 MaintainedResource.forceRootRefresh(waitMs);
-            } else if (ResourceWithProfile.isResourceWithProfile(target)) {
-                ResourceWithProfile.forceRefresh(target, waitMs);
+            } else if (AbstractResourceWithProfile.isResourceWithProfile(target)) {
+                AbstractResourceWithProfile.forceRefresh(target, waitMs);
             } else {
                 QueryRef queryRef = QueryRef.parseString(target);
                 ApiCache.clearCache(queryRef, waitMs);
