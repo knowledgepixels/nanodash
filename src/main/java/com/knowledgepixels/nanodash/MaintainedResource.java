@@ -142,7 +142,6 @@ public class MaintainedResource extends AbstractResourceWithProfile {
         this.nanopub = Utils.getAsNanopub(nanopubId);
     }
 
-    @Override
     public String getNanopubId() {
         return nanopubId;
     }

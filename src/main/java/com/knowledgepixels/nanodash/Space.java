@@ -264,6 +264,12 @@ public class Space extends AbstractResourceWithProfile {
         return rootNanopub;
     }
 
+    @Override
+    public String getNamespace() {
+        // FIXME this will be removed in the future
+        return null;
+    }
+
     /**
      * Get the label of the space.
      *

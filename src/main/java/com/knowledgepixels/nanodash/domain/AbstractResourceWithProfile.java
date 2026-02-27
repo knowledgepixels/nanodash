@@ -12,6 +12,10 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Abstract class representing a resource with a profile in the Nanodash application.
+ * This class provides common functionality for resources that have associated profiles, such as spaces and users.
+ */
 public abstract class AbstractResourceWithProfile implements Serializable, ResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractResourceWithProfile.class);
@@ -58,10 +62,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         this.space = space;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public synchronized Thread triggerDataUpdate() {
         if (dataNeedsUpdate) {
             Thread thread = new Thread(() -> {
@@ -103,43 +109,46 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         runUpdateAfter = System.currentTimeMillis() + waitMillis;
     }
 
+    @Override
     public Long getRunUpdateAfter() {
         return runUpdateAfter;
     }
 
+    @Override
     public Space getSpace() {
         return space;
     }
 
-    public String getNanopubId() {
-        return null;
-    }
+    @Override
+    public abstract String getNanopubId();
 
-    public Nanopub getNanopub() {
-        return null;
-    }
+    @Override
+    public abstract Nanopub getNanopub();
 
-    public String getNamespace() {
-        return null;
-    }
+    public abstract String getNamespace();
 
+    @Override
     public void setDataNeedsUpdate() {
         dataNeedsUpdate = true;
     }
 
+    @Override
     public boolean isDataInitialized() {
         triggerDataUpdate();
         return dataInitialized;
     }
 
+    @Override
     public List<ViewDisplay> getViewDisplays() {
         return data.viewDisplays;
     }
 
+    @Override
     public List<ViewDisplay> getTopLevelViewDisplays() {
         return getViewDisplays(true, getId(), null);
     }
 
+    @Override
     public List<ViewDisplay> getPartLevelViewDisplays(String resourceId, Set<IRI> classes) {
         return getViewDisplays(false, resourceId, classes);
     }
@@ -183,6 +192,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         return viewDisplays;
     }
 
+    @Override
     public abstract String getLabel();
 
     @Override
@@ -195,6 +205,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      *
      * @return the list of superspaces from the given space to the root space
      */
+    @Override
     public List<AbstractResourceWithProfile> getAllSuperSpacesUntilRoot() {
         List<AbstractResourceWithProfile> chain = new ArrayList<>();
         Set<String> visited = new HashSet<>();

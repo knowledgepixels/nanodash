@@ -1,16 +1,17 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import org.eclipse.rdf4j.model.IRI;
-
 // TODO Merge this class with User or otherwise make them aligned.
 public class IndividualAgent extends AbstractResourceWithProfile {
 
-    private static Map<String,IndividualAgent> instanceMap = new HashMap<>();
+    private static Map<String, IndividualAgent> instanceMap = new HashMap<>();
 
     public static IndividualAgent get(String id) {
         if (!instanceMap.containsKey(id)) {
@@ -21,6 +22,24 @@ public class IndividualAgent extends AbstractResourceWithProfile {
 
     private IndividualAgent(String id) {
         super(id);
+    }
+
+    @Override
+    public String getNanopubId() {
+        // FIXME this will be removed in the future
+        return null;
+    }
+
+    @Override
+    public Nanopub getNanopub() {
+        // FIXME this will be removed in the future
+        return null;
+    }
+
+    @Override
+    public String getNamespace() {
+        // FIXME this will be removed in the future
+        return null;
     }
 
     public boolean isCurrentUser() {
