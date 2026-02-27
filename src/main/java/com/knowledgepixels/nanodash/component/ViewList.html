@@ -8,12 +8,24 @@
 <body style="margin-left: auto; margin-right: auto; max-width: 1420px">
 
 <wicket:panel>
-  <div class="listview" wicket:id="views">
-    <div wicket:id="view">...</div>
+  <wicket:container wicket:id="groups">
+    <div class="row-section">
+      <div class="listview" wicket:id="views">
+        <div wicket:id="view">...</div>
+      </div>
+    </div>
+  </wicket:container>
+
+  <div class="row-section" wicket:id="emptynotice">
+    <div class="col-6">
+      <p class="emptynotice"><em>(no views have been added yet)</em></p>
+    </div>
   </div>
 
-  <div class="col-6" wicket:id="emptynotice">
-    <p class="emptynotice"><em>(no views have been added yet)</em></p>
+  <div class="row-section" wicket:id="footer-section">
+    <div class="col-12">
+      <div wicket:id="footer-buttons"></div>
+    </div>
   </div>
 </wicket:panel>
 

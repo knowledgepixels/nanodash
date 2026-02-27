@@ -67,12 +67,18 @@
 
 
 #content-pane > .row-section:nth-child(even),
-#content-pane > div:not(.row-section) > .row-section:nth-child(even) {
+#content-pane > div:not(.row-section):nth-child(odd) > .row-section:nth-child(even),
+#content-pane > div:not(.row-section):nth-child(even) > .row-section:nth-child(odd),
+#content-pane > div:not(.row-section):nth-child(odd) > div > .row-section:nth-child(even),
+#content-pane > div:not(.row-section):nth-child(even) > div > .row-section:nth-child(odd) {
   position: relative;
 }
 
 #content-pane > .row-section:nth-child(even)::before,
-#content-pane > div:not(.row-section) > .row-section:nth-child(even)::before {
+#content-pane > div:not(.row-section):nth-child(odd) > .row-section:nth-child(even)::before,
+#content-pane > div:not(.row-section):nth-child(even) > .row-section:nth-child(odd)::before,
+#content-pane > div:not(.row-section):nth-child(odd) > div > .row-section:nth-child(even)::before,
+#content-pane > div:not(.row-section):nth-child(even) > div > .row-section:nth-child(odd)::before {
   content: '';
   position: absolute;
   top: 0;
