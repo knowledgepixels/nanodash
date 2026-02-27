@@ -65,8 +65,23 @@
   padding: 15px;
 }
 
-.odd {
+
+#content-pane > .row-section:nth-child(even),
+#content-pane > div:not(.row-section) > .row-section:nth-child(even) {
+  position: relative;
+}
+
+#content-pane > .row-section:nth-child(even)::before,
+#content-pane > div:not(.row-section) > .row-section:nth-child(even)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
   background: #F3F6F9;
+  z-index: -1;
 }
 
 .preview {

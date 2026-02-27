@@ -15,15 +15,15 @@
 
 <div id="content-pane">
 
-<div class="row-section">
-
-<div wicket:id="form" class="col-12">
-</div>
-
-</div>
-
 <div wicket:id="templatelist">
 </div>
+
+<wicket:enclosure child="form">
+<div class="row-section">
+<div wicket:id="form" class="col-12">
+</div>
+</div>
+</wicket:enclosure>
 
 </div>
 
