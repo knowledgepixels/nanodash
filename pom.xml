@@ -99,11 +99,6 @@
       <version>20260102.1</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-exec</artifactId>
-      <version>1.6.0</version>
-    </dependency>
-    <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
       <version>1.86.0</version>
