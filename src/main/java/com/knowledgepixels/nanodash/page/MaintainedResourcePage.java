@@ -3,7 +3,7 @@ package com.knowledgepixels.nanodash.page;
 import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.component.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;

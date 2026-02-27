@@ -4,6 +4,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.RestartResponseException;
@@ -184,7 +186,7 @@ public class ExplorePage extends NanodashPage {
                 }
             }
             // TODO Improve this so we have just one check:
-            if (Space.get(contextId) != null && Space.get(contextId).appliesTo(tempRef, classes)) {
+            if (Space.get(contextId) != null && SpaceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);

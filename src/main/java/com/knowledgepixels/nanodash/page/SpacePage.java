@@ -5,6 +5,8 @@ import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -57,7 +59,7 @@ public class SpacePage extends NanodashPage {
         super(parameters);
 
         String id = parameters.get("id").toString();
-        space = Space.get(id);
+        space = SpaceRepository.get().findById(id);
         if (space == null && MaintainedResource.get(id) != null) {
             throw new RestartResponseException(MaintainedResourcePage.class, parameters);
         }
@@ -287,7 +289,7 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         typePl.toLowerCase(),
                         typePl,
-                        space.getSubspaces(KPXL_TERMS.NAMESPACE + type),
+                        SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
                         .setProfiledResource(space)

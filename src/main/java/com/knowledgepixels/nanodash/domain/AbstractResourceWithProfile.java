@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
@@ -218,7 +219,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         if (current == null) {
             return;
         }
-        List<Space> parents = current.getSuperspaces();
+        List<Space> parents = SpaceRepository.get().findSuperspaces(current);
         if (parents == null || parents.isEmpty()) {
             return;
         }

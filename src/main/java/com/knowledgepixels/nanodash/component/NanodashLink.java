@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;

@@ -2,10 +2,11 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.QueryRef;
@@ -87,8 +88,8 @@ public class SpaceListPage extends NanodashPage {
                 typePl,
                 new QueryRef(QueryApiAccess.GET_SPACES),
                 (apiResponse) -> {
-                    Space.refresh(apiResponse);
-                    return Space.getSpaceList(KPXL_TERMS.NAMESPACE + type);
+                    SpaceRepository.get().refresh(apiResponse);
+                    return SpaceRepository.get().findByType(KPXL_TERMS.NAMESPACE + type);
                 },
                 (space) -> {
                     return new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space.getId()), space.getLabel());

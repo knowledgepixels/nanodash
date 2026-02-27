@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
@@ -33,7 +35,7 @@ public class MaintainedResource extends AbstractResourceWithProfile {
         resourcesBySpace = new HashMap<>();
         resourcesByNamespace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
-            Space space = Space.get(entry.get("space"));
+            Space space = SpaceRepository.get().findById(entry.get("space"));
             if (space == null) continue;
             MaintainedResource resource = null;
             if (previousResourcesById != null) {

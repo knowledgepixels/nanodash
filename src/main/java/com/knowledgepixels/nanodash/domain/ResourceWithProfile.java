@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.domain;
 
-import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;

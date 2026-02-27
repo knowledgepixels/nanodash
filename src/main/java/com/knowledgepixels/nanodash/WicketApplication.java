@@ -13,6 +13,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
 import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -257,7 +258,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         registerListener((nanopub, target, waitMs) -> {
             logger.info("Received nanopub published event with target <{}> and waitMs {}", target, waitMs);
             if (target.equals("spaces")) {
-                Space.forceRootRefresh(waitMs);
+                SpaceRepository.get().forceRootRefresh(waitMs);
             } else if (target.equals("maintainedResources")) {
                 MaintainedResource.forceRootRefresh(waitMs);
             } else if (AbstractResourceWithProfile.isResourceWithProfile(target)) {
