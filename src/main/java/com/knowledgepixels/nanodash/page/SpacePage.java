@@ -178,14 +178,13 @@ public class SpacePage extends NanodashPage {
         viewButtons.add(addViewButton);
 
         if (space.isDataInitialized()) {
-            add(new ViewList("views", space));
-            add(new ButtonList("view-buttons", space, null, null, viewButtons));
+            add(new ViewList("views", space, null, null, null, space, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, space);
+                    return new ViewList(markupId, space, null, null, null, space, viewButtons);
                 }
 
                 @Override
@@ -193,21 +192,9 @@ public class SpacePage extends NanodashPage {
                     return space.isDataInitialized();
                 }
 
-            });
-            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-
                 @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ButtonList(markupId, space, null, null, viewButtons);
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return space.isDataInitialized();
-                }
-
                 public Component getLoadingComponent(String id) {
-                    return new Label(id).setVisible(false);
+                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                 }
 
             });

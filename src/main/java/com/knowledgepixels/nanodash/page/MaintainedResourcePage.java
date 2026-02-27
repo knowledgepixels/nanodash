@@ -77,14 +77,13 @@ public class MaintainedResourcePage extends NanodashPage {
         viewButtons.add(addViewButton);
 
         if (resource.isDataInitialized()) {
-            add(new ViewList("views", resource));
-            add(new ButtonList("view-buttons", space, null, null, viewButtons));
+            add(new ViewList("views", resource, null, null, null, space, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resource);
+                    return new ViewList(markupId, resource, null, null, null, space, viewButtons);
                 }
 
                 @Override
@@ -92,21 +91,9 @@ public class MaintainedResourcePage extends NanodashPage {
                     return resource.isDataInitialized();
                 }
 
-            });
-            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-
                 @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ButtonList(markupId, space, null, null, viewButtons);
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return resource.isDataInitialized();
-                }
-
                 public Component getLoadingComponent(String id) {
-                    return new Label(id).setVisible(false);
+                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                 }
 
             });

@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.SourceNanopub;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
@@ -155,15 +155,15 @@ public class ResourcePartPage extends NanodashPage {
             viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
+            final ResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
             if (resourceWithProfile.isDataInitialized()) {
-                add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
-                add(new ButtonList("view-buttons", resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile, null, null, viewButtons));
+                add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
+                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons);
                     }
 
                     @Override
@@ -171,21 +171,9 @@ public class ResourcePartPage extends NanodashPage {
                         return resourceWithProfile.isDataInitialized();
                     }
 
-                });
-                add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-
                     @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ButtonList(markupId, resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile, null, null, viewButtons);
-                    }
-
-                    @Override
-                    protected boolean isContentReady() {
-                        return resourceWithProfile.isDataInitialized();
-                    }
-
                     public Component getLoadingComponent(String id) {
-                        return new Label(id).setVisible(false);
+                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                     }
 
                 });
@@ -205,14 +193,13 @@ public class ResourcePartPage extends NanodashPage {
             viewButtons.add(addViewButton);
 
             if (resourceWithProfile.getSpace().isDataInitialized()) {
-                add(new ViewList("views", resourceWithProfile.getSpace(), id, nanopubId, classes));
-                add(new ButtonList("view-buttons", resourceWithProfile.getSpace(), null, null, viewButtons));
+                add(new ViewList("views", resourceWithProfile.getSpace(), id, nanopubId, classes, resourceWithProfile.getSpace(), viewButtons));
             } else {
                 add(new AjaxLazyLoadPanel<Component>("views") {
 
                     @Override
                     public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile.getSpace(), id, nanopubId, classes);
+                        return new ViewList(markupId, resourceWithProfile.getSpace(), id, nanopubId, classes, resourceWithProfile.getSpace(), viewButtons);
                     }
 
                     @Override
@@ -220,21 +207,9 @@ public class ResourcePartPage extends NanodashPage {
                         return resourceWithProfile.getSpace().isDataInitialized();
                     }
 
-                });
-                add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-
                     @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ButtonList(markupId, resourceWithProfile.getSpace(), null, null, viewButtons);
-                    }
-
-                    @Override
-                    protected boolean isContentReady() {
-                        return resourceWithProfile.getSpace().isDataInitialized();
-                    }
-
                     public Component getLoadingComponent(String id) {
-                        return new Label(id).setVisible(false);
+                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                     }
 
                 });

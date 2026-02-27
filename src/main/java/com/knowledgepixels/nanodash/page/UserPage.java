@@ -211,14 +211,13 @@ public class UserPage extends NanodashPage {
 
         IndividualAgent individualAgent = IndividualAgent.get(userIriString);
         if (individualAgent.isDataInitialized()) {
-            add(new ViewList("views", individualAgent));
-            add(new ButtonList("view-buttons", individualAgent, null, null, viewButtons));
+            add(new ViewList("views", individualAgent, null, null, null, individualAgent, viewButtons));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, individualAgent);
+                    return new ViewList(markupId, individualAgent, null, null, null, individualAgent, viewButtons);
                 }
 
                 @Override
@@ -226,21 +225,9 @@ public class UserPage extends NanodashPage {
                     return individualAgent.isDataInitialized();
                 }
 
-            });
-            add(new AjaxLazyLoadPanel<Component>("view-buttons") {
-
                 @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ButtonList(markupId, individualAgent, null, null, viewButtons);
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return individualAgent.isDataInitialized();
-                }
-
                 public Component getLoadingComponent(String id) {
-                    return new Label(id).setVisible(false);
+                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                 }
 
             });
