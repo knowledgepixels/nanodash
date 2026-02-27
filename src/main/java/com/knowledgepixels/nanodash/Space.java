@@ -1,15 +1,12 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -23,14 +20,8 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-
-import jakarta.xml.bind.DatatypeConverter;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -619,7 +610,7 @@ public class Space extends ResourceWithProfile {
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
-                    logger.error("Error while trying to update space data: {}", ex);
+                    logger.error("Error while trying to update space data: {}", ex.getMessage());
                 }
             });
             thread.start();

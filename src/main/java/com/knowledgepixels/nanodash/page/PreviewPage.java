@@ -98,7 +98,7 @@ public class PreviewPage extends NanodashPage {
                 } catch (RestartResponseException ex) {
                     throw ex;
                 } catch (Exception ex) {
-                    logger.error("Nanopublication publishing from preview failed: {}", ex);
+                    logger.error("Nanopublication publishing from preview failed: {}", ex.getMessage());
                     String message = ex.getClass().getName();
                     if (ex.getMessage() != null) {
                         message = ex.getMessage();

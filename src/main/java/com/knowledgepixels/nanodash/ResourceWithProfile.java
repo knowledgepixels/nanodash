@@ -85,7 +85,7 @@ public abstract class ResourceWithProfile implements Serializable {
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
-                    logger.error("Error while trying to update space data: {}", ex);
+                    logger.error("Error while trying to update space data: {}", ex.getMessage());
                     dataNeedsUpdate = true;
                 }
             });
