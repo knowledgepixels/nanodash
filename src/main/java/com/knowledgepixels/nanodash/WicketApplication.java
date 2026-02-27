@@ -9,6 +9,8 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
+import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
+import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
@@ -22,6 +24,8 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.apache.wicket.util.lang.Bytes;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +35,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -38,7 +44,7 @@ import java.util.Properties;
  * WicketApplication is the main application class for the Nanodash web application.
  * It initializes the application, mounts pages, and provides version information.
  */
-public class WicketApplication extends WebApplication {
+public class WicketApplication extends WebApplication implements NanopubPublishedPublisher {
 
     /**
      * URL to fetch the latest release information from GitHub.
@@ -46,6 +52,33 @@ public class WicketApplication extends WebApplication {
      */
     public static final String LATEST_RELEASE_URL = "https://api.github.com/repos/knowledgepixels/nanodash/releases";
     private static final Logger logger = LoggerFactory.getLogger(WicketApplication.class);
+
+    private final List<NanopubPublishedListener> publishListeners = Collections.synchronizedList(new ArrayList<>());
+
+    private static String latestVersion = null;
+
+    @Override
+    public void registerListener(NanopubPublishedListener listener) {
+        logger.info("Registering listener {} for nanopub published events", listener.getClass().getName());
+        publishListeners.add(listener);
+    }
+
+    @Override
+    public void notifyNanopubPublished(Nanopub nanopub, String target, long waitMs) {
+        for (NanopubPublishedListener listener : publishListeners) {
+            listener.onNanopubPublished(nanopub, target, waitMs);
+            logger.info("Notifying listener {} with toRefresh target <{}>", listener.getClass().getName(), target);
+        }
+    }
+
+    /**
+     * Static method to get the current instance of the WicketApplication.
+     *
+     * @return The current instance of WicketApplication.
+     */
+    public static WicketApplication get() {
+        return (WicketApplication) WebApplication.get();
+    }
 
     /**
      * Constructor for the WicketApplication.
@@ -146,6 +179,8 @@ public class WicketApplication extends WebApplication {
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.MAX);
+
+        registerListeners();
     }
 
     /**
@@ -157,9 +192,6 @@ public class WicketApplication extends WebApplication {
     public RuntimeConfigurationType getConfigurationType() {
         return RuntimeConfigurationType.DEPLOYMENT;
     }
-
-
-    private static String latestVersion = null;
 
     /**
      * Retrieves the latest version of the application from the GitHub API.
@@ -217,6 +249,23 @@ public class WicketApplication extends WebApplication {
     @Override
     public Session newSession(Request request, Response response) {
         return new NanodashSession(request);
+    }
+
+    private void registerListeners() {
+        logger.info("Registering nanopub published event listeners for spaces, maintained resources, resource with profile and query ref refresh");
+        registerListener((nanopub, target, waitMs) -> {
+            logger.info("Received nanopub published event with target <{}> and waitMs {}", target, waitMs);
+            if (target.equals("spaces")) {
+                Space.forceRootRefresh(waitMs);
+            } else if (target.equals("maintainedResources")) {
+                MaintainedResource.forceRootRefresh(waitMs);
+            } else if (ResourceWithProfile.isResourceWithProfile(target)) {
+                ResourceWithProfile.forceRefresh(target, waitMs);
+            } else {
+                QueryRef queryRef = QueryRef.parseString(target);
+                ApiCache.clearCache(queryRef, waitMs);
+            }
+        });
     }
 
 }

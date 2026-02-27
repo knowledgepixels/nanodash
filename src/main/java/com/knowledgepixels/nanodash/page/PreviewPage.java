@@ -1,20 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
-import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.nanopub.vocabulary.NTEMPLATE;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -26,7 +18,7 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.server.PublishNanopub;
-import org.nanopub.extra.services.QueryRef;
+import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,16 +68,7 @@ public class PreviewPage extends NanodashPage {
 
                     if (!pageParams.get("refresh-upon-publish").isEmpty()) {
                         String toRefresh = pageParams.get("refresh-upon-publish").toString();
-                        if (toRefresh.equals("spaces")) {
-                            Space.forceRootRefresh(3 * 1000);
-                        } else if (toRefresh.equals("maintainedResources")) {
-                            MaintainedResource.forceRootRefresh(3 * 1000);
-                        } else if (ResourceWithProfile.isResourceWithProfile(toRefresh)) {
-                            ResourceWithProfile.forceRefresh(toRefresh, 3 * 1000);
-                        } else {
-                            QueryRef queryRef = QueryRef.parseString(toRefresh);
-                            ApiCache.clearCache(queryRef, 3 * 1000);
-                        }
+                        WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 3 * 1000);
                     }
 
                     String contextId = pageParams.get("context").toString("");

@@ -440,18 +440,7 @@ public class PublishForm extends Panel {
                 }
                 if (!pageParams.get("refresh-upon-publish").isEmpty()) {
                     String toRefresh = pageParams.get("refresh-upon-publish").toString();
-                    if (toRefresh.equals("spaces")) {
-                        Space.forceRootRefresh(3 * 1000);
-                    } else if (toRefresh.equals("maintainedResources")) {
-                        MaintainedResource.forceRootRefresh(3 * 1000);
-                    } else if (ResourceWithProfile.isResourceWithProfile(toRefresh)) {
-                        ResourceWithProfile.forceRefresh(toRefresh, 3 * 1000);
-                    } else {
-                        QueryRef queryRef = QueryRef.parseString(toRefresh);
-                        // Make sure the next cache update happens not before 3 seconds from now, at which point the
-                        // published nanopub should show up in the Nanopub Query instances:
-                        ApiCache.clearCache(queryRef, 3 * 1000);
-                    }
+                    WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 3 * 1000);
                 }
                 if (signedNp != null) {
                     String contextId = pageParams.get("context").toString("");
