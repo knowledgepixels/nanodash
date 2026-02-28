@@ -1,3 +1,53 @@
+## [4.14.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.13.1...nanodash-4.14.0) (2026-02-27)
+
+### Features
+
+* Add template form preview on PreviewPage for assertion templates ([86f347c](https://github.com/knowledgepixels/nanodash/commit/86f347c1b430baddda1f2142224adcb6380f1a63))
+* **QueryResultNanopubSet:** add functionality to control title visibility ([dd9e02c](https://github.com/knowledgepixels/nanodash/commit/dd9e02cac0df9f5caf7a26a19a6f33d6e803bf9d))
+* Use different custom "display view" templates per page type ([cffb1c7](https://github.com/knowledgepixels/nanodash/commit/cffb1c7b8dbab235bb957f10a2013b7d26fca56b))
+* **WicketApplication:** implement nanopub published event listener registration and notification ([e9796f5](https://github.com/knowledgepixels/nanodash/commit/e9796f5e4165d797963b2b30d958ed89a640bdda))
+* **WicketApplication:** update nanopub published event handling to use listener pattern ([fee3105](https://github.com/knowledgepixels/nanodash/commit/fee31054f147ef6573f655d6114b2b45d594474a))
+
+### Bug Fixes
+
+* list/grid view selectors working when async loaded ([ef33651](https://github.com/knowledgepixels/nanodash/commit/ef336515accfdb30dc30f0c14baa5486cdcdd866))
+* **UserPage:** adjust margin for 'Show Full Channel' button ([e803110](https://github.com/knowledgepixels/nanodash/commit/e8031109166b1ee60128ab8738abb6e7059c2021))
+
+### Documentation
+
+* Update README; add new demo video link ([37b1f75](https://github.com/knowledgepixels/nanodash/commit/37b1f7535f03554b6a0d987c500b263f0d43eaa5))
+* Work on mock-up ([aab1126](https://github.com/knowledgepixels/nanodash/commit/aab1126a82c21d3896976486349f8345855f292e))
+
+### Tests
+
+* **ApiCache:** add `retrieveResponseSync` unit tests for fresh cached response ([c31553a](https://github.com/knowledgepixels/nanodash/commit/c31553aed97e10520af39cc293d0c9bbce60ed54))
+* **ApiCache:** add unit test for `retrieveResponseSync` with forced flag ([a5af699](https://github.com/knowledgepixels/nanodash/commit/a5af699b26351759f7415825fe353c11c19d035e))
+* **ApiCache:** add unit tests for `clearCache` method with various scenarios ([0855cd2](https://github.com/knowledgepixels/nanodash/commit/0855cd2aa9f439a441d2521835d7598d9c7059e9))
+* **ApiCache:** add unit tests for `isRunning` method with various scenarios ([f371d09](https://github.com/knowledgepixels/nanodash/commit/f371d099489977252a0dab8fb2700710f9a644e8))
+* **ApiCache:** add unit tests for `retrieveResponseSync` method and minor changes ([4f448b0](https://github.com/knowledgepixels/nanodash/commit/4f448b0c26e32306ef63faef9c8c31943d4018f0))
+* **ApiCache:** refactor tests to use MockitoExtension and simplify setup ([7ffc7a8](https://github.com/knowledgepixels/nanodash/commit/7ffc7a8e9e08be9044b172caec78847bdfaab70a))
+* **deps:** add org.mockito:mockito-junit-jupiter dependency to v5.21.0 ([bf1645f](https://github.com/knowledgepixels/nanodash/commit/bf1645f0590f7c0add615240347d584c120c15f4))
+
+### General maintenance
+
+* **ApiCache:** add validation on `waitMillis` parameter for clearing cache (negative values not allowed) ([7149100](https://github.com/knowledgepixels/nanodash/commit/7149100b08b5d1d85751fe82974e388cc1bc426c))
+* enhance logging for values retrieval from environment variables ([92f120f](https://github.com/knowledgepixels/nanodash/commit/92f120fcac0acdf4cdaa4324b8e1c7af0891ab4e))
+* **events:** add NanopubPublishedListener interface ([494cafc](https://github.com/knowledgepixels/nanodash/commit/494cafc0b07c7a6ba57b7ca20edddfa6e76ede4f))
+* **events:** add NanopubPublishedPublisher interface ([82be6a5](https://github.com/knowledgepixels/nanodash/commit/82be6a561eee67333d00b11de0bbf997ec564798))
+* **ListPage:** add default "np_" parameters ([832a7d1](https://github.com/knowledgepixels/nanodash/commit/832a7d11403cabb4c481d39aec7000cbd1bb39c5))
+* **ListPage:** replace nanopubs list with QueryResultNanopubSet ([83cb1b3](https://github.com/knowledgepixels/nanodash/commit/83cb1b3025cc22c15060af91ae8038664a478d0b))
+* **QueryApiAccess:** update GET_FILTERED_NANOPUB_LIST with new query version ([9c47b00](https://github.com/knowledgepixels/nanodash/commit/9c47b00b323192af85f837f8953e2b51ba955b14))
+* **QueryResultNanopubSet:** enhance view selector functionality and styling when the title is not shown ([fd3457d](https://github.com/knowledgepixels/nanodash/commit/fd3457dc6e3939604ca404456bba9f9ae935bd6b))
+* **QueryResultNanopubSet:** remove unnecessary HTML elements ([0950ddd](https://github.com/knowledgepixels/nanodash/commit/0950ddd0a954bca3bba9f7685149b04b8b5492f3))
+* setting next snapshot version [skip ci] ([d4521af](https://github.com/knowledgepixels/nanodash/commit/d4521afd4c5b18adf09dd5b6a312cebd790db5f0))
+
+### Refactoring
+
+* **ApiCache:** improve logging messages and simplify cache handling ([0b8c135](https://github.com/knowledgepixels/nanodash/commit/0b8c135752659358edc387a0d9a22bdb8bc974c7))
+* **HomePage, ListPage:** update QueryRef initialization by using queryId defined in View ([e8e9d2a](https://github.com/knowledgepixels/nanodash/commit/e8e9d2ac1b49a4d0e2ed62339cc7bdfe4568fc38))
+* **PublishForm:** clean up imports and improve error logging ([82044ed](https://github.com/knowledgepixels/nanodash/commit/82044edb2d7fe7af530af9eb220650f6a8e4d3a7))
+* **WicketApplication:** implement NanopubPublishedPublisher interface and enhance event notification ([fc7d39a](https://github.com/knowledgepixels/nanodash/commit/fc7d39a9efe23e4e2a00e5995aa8b79fc58f7c54))
+
 ## [4.13.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.13.0...nanodash-4.13.1) (2026-02-09)
 
 ### Bug Fixes
