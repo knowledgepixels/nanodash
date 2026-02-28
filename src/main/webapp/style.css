@@ -48,8 +48,8 @@
 }
 
 .row-section {
-  width: 1320px;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1320px;
   margin-left: auto;
   margin-right: auto;
   padding-bottom: 20px;
@@ -88,6 +88,28 @@
   transform: translateX(-50%);
   background: #F3F6F9;
   z-index: -1;
+}
+
+@media screen and (max-width: 1419px) {
+  .row-section {
+    max-width: none;
+  }
+
+  #content-pane > .row-section:nth-child(even),
+  #content-pane > div:not(.row-section):nth-child(odd) > .row-section:nth-child(even),
+  #content-pane > div:not(.row-section):nth-child(even) > .row-section:nth-child(odd),
+  #content-pane > div:not(.row-section):nth-child(odd) > div > .row-section:nth-child(even),
+  #content-pane > div:not(.row-section):nth-child(even) > div > .row-section:nth-child(odd) {
+    background-color: #F3F6F9;
+  }
+
+  #content-pane > .row-section:nth-child(even)::before,
+  #content-pane > div:not(.row-section):nth-child(odd) > .row-section:nth-child(even)::before,
+  #content-pane > div:not(.row-section):nth-child(even) > .row-section:nth-child(odd)::before,
+  #content-pane > div:not(.row-section):nth-child(odd) > div > .row-section:nth-child(even)::before,
+  #content-pane > div:not(.row-section):nth-child(even) > div > .row-section:nth-child(odd)::before {
+    display: none;
+  }
 }
 
 .preview {
