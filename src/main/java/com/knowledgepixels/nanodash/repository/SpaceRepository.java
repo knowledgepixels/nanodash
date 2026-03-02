@@ -40,6 +40,8 @@ public class SpaceRepository {
     private boolean loaded = false;
     private Long runRootUpdateAfter = null;
 
+    private final Object loadLock = new Object();
+
     private SpaceRepository() {
     }
 
@@ -81,8 +83,6 @@ public class SpaceRepository {
         loaded = true;
     }
 
-    private static final String ensureLoadedLock = "";
-
     /**
      * Force a refresh of the root spaces after a specified delay, allowing for any ongoing updates to complete before the next refresh.
      *
@@ -99,7 +99,7 @@ public class SpaceRepository {
     public void ensureLoaded() {
         if (spaceList == null) {
             try {
-                synchronized (ensureLoadedLock) {
+                synchronized (loadLock) {
                     if (runRootUpdateAfter != null) {
                         while (System.currentTimeMillis() < runRootUpdateAfter) {
                             Thread.sleep(100);
