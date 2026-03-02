@@ -22,12 +22,12 @@ public class MaintainedResourceRepository {
 
     private static final MaintainedResourceRepository INSTANCE = new MaintainedResourceRepository();
 
-    private static List<MaintainedResource> resourceList;
-    private static Map<String, MaintainedResource> resourcesById;
-    private static Map<String, MaintainedResource> resourcesByNamespace;
-    private static Map<Space, List<MaintainedResource>> resourcesBySpace;
-    private static boolean loaded = false;
-    private static Long runRootUpdateAfter = null;
+    private List<MaintainedResource> resourceList;
+    private Map<String, MaintainedResource> resourcesById;
+    private Map<String, MaintainedResource> resourcesByNamespace;
+    private Map<Space, List<MaintainedResource>> resourcesBySpace;
+    private boolean loaded = false;
+    private Long runRootUpdateAfter = null;
 
     /**
      * Get the singleton instance of MaintainedResourceRepository.
@@ -46,7 +46,7 @@ public class MaintainedResourceRepository {
      *
      * @param resp The API response containing maintained resource data.
      */
-    public static synchronized void refresh(ApiResponse resp) {
+    public synchronized void refresh(ApiResponse resp) {
         resourceList = new ArrayList<>();
         Map<String, MaintainedResource> previousResourcesById = resourcesById;
         resourcesById = new HashMap<>();
@@ -135,7 +135,7 @@ public class MaintainedResourceRepository {
     /**
      * Refresh the maintained resources by fetching the latest data from the API and updating the internal state accordingly.
      */
-    public static void refresh() {
+    public void refresh() {
         refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
         for (MaintainedResource resource : resourceList) {
             resource.setDataNeedsUpdate();
