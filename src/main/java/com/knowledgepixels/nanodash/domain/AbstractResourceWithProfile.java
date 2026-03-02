@@ -25,7 +25,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         List<ViewDisplay> viewDisplays = new ArrayList<>();
     }
 
-    private static Map<String, AbstractResourceWithProfile> instances = new HashMap<>();
+    private static final Map<String, AbstractResourceWithProfile> instances = new HashMap<>();
 
     public static void refresh() {
         for (AbstractResourceWithProfile r : instances.values()) {

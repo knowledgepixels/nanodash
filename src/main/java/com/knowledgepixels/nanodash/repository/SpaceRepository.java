@@ -4,6 +4,7 @@ import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.SpaceFactory;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -53,7 +54,7 @@ public class SpaceRepository {
             if (prevSpacesByCoreInfoPrev.containsKey(id)) {
                 space = prevSpacesByCoreInfoPrev.get(id);
             } else {
-                space = new Space(entry);
+                space = SpaceFactory.create(entry);
             }
             spaceList.add(space);
             spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
@@ -184,7 +185,7 @@ public class SpaceRepository {
     public void refresh() {
         refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
         for (Space space : spaceList) {
-            space.dataNeedsUpdate = true;
+            space.setDataNeedsUpdate();
         }
     }
 
