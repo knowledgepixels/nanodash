@@ -321,7 +321,7 @@ public class Space extends AbstractResourceWithProfile {
         Thread thread = triggerSpaceDataUpdate();
         if (!dataInitialized && thread != null) {
             try {
-                thread.join();
+                thread.join(30_000);
             } catch (InterruptedException ex) {
                 logger.error("failed to join thread", ex);
             }
@@ -329,7 +329,7 @@ public class Space extends AbstractResourceWithProfile {
         thread = super.triggerDataUpdate();
         if (!dataInitialized && thread != null) {
             try {
-                thread.join();
+                thread.join(30_000);
             } catch (InterruptedException ex) {
                 logger.error("failed to join thread", ex);
             }
