@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -85,7 +86,7 @@ public class PreviewPage extends NanodashPage {
                         if (SpaceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(SpacePage.class, redirectParams);
                         }
-                        if (MaintainedResource.get(contextId) != null) {
+                        if (MaintainedResourceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
                         }
                         if (User.isUser(contextId)) {

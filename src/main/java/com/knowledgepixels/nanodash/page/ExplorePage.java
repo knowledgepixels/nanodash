@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import net.trustyuri.TrustyUriUtils;
@@ -123,8 +124,8 @@ public class ExplorePage extends NanodashPage {
 
         if (SpaceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + SpaceRepository.get().findById(contextId).getLabel())));
-        } else if (MaintainedResource.get(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
+        } else if (MaintainedResourceRepository.get().findById(contextId) != null) {
+            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResourceRepository.get().findById(contextId).getLabel())));
         } else if (User.isUser(contextId)) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
         } else {
@@ -176,7 +177,7 @@ public class ExplorePage extends NanodashPage {
                         if (!st.getSubject().stringValue().equals(tempRef)) continue;
                         if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
                             String resourceId = st.getObject().stringValue();
-                            if (MaintainedResource.get(resourceId) == null) continue;
+                            if (MaintainedResourceRepository.get().findById(resourceId) == null) continue;
                             throw new RestartResponseException(ResourcePartPage.class, parameters);
                         } else if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                             classes.add(objIri);
@@ -187,7 +188,7 @@ public class ExplorePage extends NanodashPage {
             // TODO Improve this so we have just one check:
             if (SpaceRepository.get().findById(contextId) != null && SpaceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
+            } else if (MaintainedResourceRepository.get().findById(contextId) != null && MaintainedResourceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             } else if (User.isUser(contextId) && IndividualAgent.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);

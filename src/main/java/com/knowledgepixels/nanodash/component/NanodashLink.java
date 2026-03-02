@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
@@ -14,6 +13,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -172,8 +172,8 @@ public class NanodashLink extends Panel {
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
-        } else if (MaintainedResource.get(uri) != null) {
-            label = MaintainedResource.get(uri).getLabel();
+        } else if (MaintainedResourceRepository.get().findById(uri) != null) {
+            label = MaintainedResourceRepository.get().findById(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
         } else {
             if (!"^".equals(label)) params.set("label", label);
@@ -188,7 +188,7 @@ public class NanodashLink extends Panel {
     private static boolean isPartOfResource(String uri, String contextId) {
         if (contextId == null) return false;
         String uriNamespace = MaintainedResource.getNamespace(uri);
-        MaintainedResource resource = MaintainedResource.getByNamespace(uriNamespace);
+        MaintainedResource resource = MaintainedResourceRepository.get().findByNamespace(uriNamespace);
         if (resource == null) return false;
         return resource.getId().equals(contextId);
     }

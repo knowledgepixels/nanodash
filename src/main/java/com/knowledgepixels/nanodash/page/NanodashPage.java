@@ -1,12 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.Project;
-import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
