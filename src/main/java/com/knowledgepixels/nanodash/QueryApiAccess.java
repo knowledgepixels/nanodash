@@ -87,13 +87,12 @@ public class QueryApiAccess {
      * @return The API response.
      */
     public static ApiResponse forcedGet(QueryRef queryRef) {
-        while (true) {
+        long deadline = System.currentTimeMillis() + 60_000;
+        while (System.currentTimeMillis() < deadline) {
             ApiResponse resp = null;
             try {
                 resp = QueryApiAccess.get(queryRef);
             } catch (Exception ex) {
-                // TODO We should be more specific about which exceptions we catch here
-                //      and generally improve this, as this could hang forever.
                 logger.error("Error while forcing API get for query {}", queryRef, ex);
             }
             if (resp != null) return resp;
@@ -103,6 +102,7 @@ public class QueryApiAccess {
                 logger.error("Interrupted while forcing API get for query {}", queryRef, ex);
             }
         }
+        throw new RuntimeException("Timed out forcing API get for query: " + queryRef);
     }
 
     /**
