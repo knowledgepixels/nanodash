@@ -36,6 +36,7 @@ public class Space extends AbstractResourceWithProfile {
         return dataInitialized && super.isDataInitialized();
     }
 
+    @Override
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
         dataNeedsUpdate = true;
@@ -231,6 +232,12 @@ public class Space extends AbstractResourceWithProfile {
         return data.users.containsKey(userId);
     }
 
+    /**
+     * Check if a public key is associated with an admin of this space.
+     *
+     * @param pubkey The public key hash to check.
+     * @return true if the public key is associated with an admin, false otherwise.
+     */
     public boolean isAdminPubkey(String pubkey) {
         ensureInitialized();
         return data.adminPubkeyMap.containsKey(pubkey);
@@ -331,12 +338,15 @@ public class Space extends AbstractResourceWithProfile {
 
     @Override
     public synchronized Thread triggerDataUpdate() {
+        logger.info("Triggering data update for space {}", getId());
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }
 
     private synchronized Thread triggerSpaceDataUpdate() {
+        logger.info("Triggering data update for space {} core data", getId());
         if (dataNeedsUpdate) {
+            logger.info("Data needs update for space {} core data, starting update thread", getId());
             Thread thread = new Thread(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {

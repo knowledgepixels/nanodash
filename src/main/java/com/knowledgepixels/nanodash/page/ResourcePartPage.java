@@ -6,7 +6,7 @@ import com.knowledgepixels.nanodash.component.SourceNanopub;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -65,8 +65,8 @@ public class ResourcePartPage extends NanodashPage {
 
         resourceWithProfile = MaintainedResource.get(contextId);
         if (resourceWithProfile == null) {
-            if (Space.get(contextId) != null) {
-                resourceWithProfile = Space.get(contextId);
+            if (SpaceRepository.get().findById(contextId) != null) {
+                resourceWithProfile = SpaceRepository.get().findById(contextId);
             } else if (User.isUser(contextId)) {
                 resourceWithProfile = IndividualAgent.get(contextId);
             } else {

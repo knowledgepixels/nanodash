@@ -14,6 +14,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import net.trustyuri.TrustyUriUtils;
@@ -168,8 +169,8 @@ public class NanodashLink extends Panel {
             return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
-        } else if (Space.get(uri) != null) {
-            label = Space.get(uri).getLabel();
+        } else if (SpaceRepository.get().findById(uri) != null) {
+            label = SpaceRepository.get().findById(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
         } else if (MaintainedResource.get(uri) != null) {
             label = MaintainedResource.get(uri).getLabel();

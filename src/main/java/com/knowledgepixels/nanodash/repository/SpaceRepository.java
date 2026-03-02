@@ -13,19 +13,27 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Repository class for managing Space instances, providing methods to refresh, retrieve, and query spaces based on API responses.
+ */
 public class SpaceRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(SpaceRepository.class);
 
     private static final SpaceRepository INSTANCE = new SpaceRepository();
 
+    /**
+     * Get the singleton instance of SpaceRepository.
+     *
+     * @return The singleton instance of SpaceRepository.
+     */
     public static SpaceRepository get() {
         return INSTANCE;
     }
 
     private List<Space> spaceList;
     private Map<String, List<Space>> spaceListByType;
-    private Map<String, Space> spacesByCoreInfo = new HashMap<>();
+    //private Map<String, Space> spacesByCoreInfo = new HashMap<>();
     private Map<String, Space> spacesById;
     private Map<Space, Set<Space>> subspaceMap;
     private Map<Space, Set<Space>> superspaceMap;
@@ -41,26 +49,28 @@ public class SpaceRepository {
      * @param resp The API response containing space data.
      */
     public synchronized void refresh(ApiResponse resp) {
+        logger.info("Refreshing spaces from API response with {} entries", resp.getData().size());
         spaceList = new ArrayList<>();
         spaceListByType = new HashMap<>();
-        Map<String, Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
-        spacesByCoreInfo = new HashMap<>();
+        //Map<String, Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
+        //spacesByCoreInfo = new HashMap<>();
         spacesById = new HashMap<>();
         subspaceMap = new HashMap<>();
         superspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
-            String id = getCoreInfoString(entry);
+            //String id = getCoreInfoString(entry);
             Space space;
-            if (prevSpacesByCoreInfoPrev.containsKey(id)) {
-                space = prevSpacesByCoreInfoPrev.get(id);
-            } else {
-                space = SpaceFactory.create(entry);
-            }
+            //if (prevSpacesByCoreInfoPrev.containsKey(id)) {
+            //    space = prevSpacesByCoreInfoPrev.get(id);
+            //} else {
+            space = SpaceFactory.getOrCreate(entry);
+            //}
             spaceList.add(space);
             spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
-            spacesByCoreInfo.put(space.getCoreInfoString(), space);
+            //spacesByCoreInfo.put(space.getCoreInfoString(), space);
             spacesById.put(space.getId(), space);
         }
+        SpaceFactory.removeStale(spacesById.keySet());
         for (Space space : spaceList) {
             Space superSpace = this.getIdSuperspace(space);
             if (superSpace == null) continue;
@@ -73,28 +83,11 @@ public class SpaceRepository {
 
     private static final String ensureLoadedLock = "";
 
-    public boolean areAllSpacesInitialized() {
-        for (Space space : spaceList) {
-            if (!space.isDataInitialized()) return false;
-        }
-        return true;
-    }
-
-    public void triggerAllDataUpdates() {
-        for (Space space : spaceList) {
-            space.triggerDataUpdate();
-        }
-    }
-
     /**
-     * Check if the spaces have been loaded.
+     * Force a refresh of the root spaces after a specified delay, allowing for any ongoing updates to complete before the next refresh.
      *
-     * @return true if loaded, false otherwise.
+     * @param waitMillis The number of milliseconds to wait before allowing the next refresh to occur.
      */
-    public boolean isLoaded() {
-        return loaded;
-    }
-
     public void forceRootRefresh(long waitMillis) {
         spaceList = null;
         runRootUpdateAfter = System.currentTimeMillis() + waitMillis;
@@ -132,11 +125,12 @@ public class SpaceRepository {
         return spacesById.get(id);
     }
 
-    public List<Space> findAll() {
-        ensureLoaded();
-        return spaceList;
-    }
-
+    /**
+     * Get spaces by their type.
+     *
+     * @param type The type of spaces to retrieve.
+     * @return List of Space objects matching the specified type, or an empty list if none are found.
+     */
     public List<Space> findByType(String type) {
         ensureLoaded();
         return spaceListByType.computeIfAbsent(type, k -> new ArrayList<>());
@@ -157,6 +151,13 @@ public class SpaceRepository {
         return new ArrayList<>();
     }
 
+    /**
+     * Get subspaces of a given space that match a specific type.
+     *
+     * @param space The space for which to find subspaces.
+     * @param type  The type of subspaces to filter by.
+     * @return List of subspaces matching the specified type.
+     */
     public List<Space> findSubspaces(Space space, String type) {
         List<Space> l = new ArrayList<>();
         for (Space s : findSubspaces(space)) {
@@ -189,9 +190,9 @@ public class SpaceRepository {
         }
     }
 
-    private static String getCoreInfoString(ApiResponseEntry entry) {
+    /*private String getCoreInfoString(ApiResponseEntry entry) {
         return entry.get("space") + " " + entry.get("np");
-    }
+    }*/
 
     private Space getIdSuperspace(Space space) {
         String id = space.getId();

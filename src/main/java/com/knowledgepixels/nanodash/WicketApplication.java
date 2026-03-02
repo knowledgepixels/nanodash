@@ -262,7 +262,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
             } else if (target.equals("maintainedResources")) {
                 MaintainedResource.forceRootRefresh(waitMs);
             } else if (AbstractResourceWithProfile.isResourceWithProfile(target)) {
-                AbstractResourceWithProfile.forceRefresh(target, waitMs);
+                AbstractResourceWithProfile.get(target).forceRefresh(waitMs);
             } else {
                 QueryRef queryRef = QueryRef.parseString(target);
                 ApiCache.clearCache(queryRef, waitMs);

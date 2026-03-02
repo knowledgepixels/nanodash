@@ -4,7 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
-import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import net.trustyuri.TrustyUriUtils;
@@ -122,8 +121,8 @@ public class ExplorePage extends NanodashPage {
 
         add(new TitleBar("titlebar", this, null));
 
-        if (Space.get(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + Space.get(contextId).getLabel())));
+        if (SpaceRepository.get().findById(contextId) != null) {
+            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + SpaceRepository.get().findById(contextId).getLabel())));
         } else if (MaintainedResource.get(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResource.get(contextId).getLabel())));
         } else if (User.isUser(contextId)) {
@@ -134,7 +133,7 @@ public class ExplorePage extends NanodashPage {
 
         if (User.getUserData().isUser(tempRef)) {
             add(new BookmarkablePageLink<Void>("to-specific-page-link", UserPage.class, parameters).setBody(Model.of("go to user page")));
-        } else if (Space.get(tempRef) != null) {
+        } else if (SpaceRepository.get().findById(tempRef) != null) {
             add(new BookmarkablePageLink<Void>("to-specific-page-link", SpacePage.class, parameters).setBody(Model.of("go to Space page")));
         } else {
             add(new Label("to-specific-page-link").setVisible(false));
@@ -186,7 +185,7 @@ public class ExplorePage extends NanodashPage {
                 }
             }
             // TODO Improve this so we have just one check:
-            if (Space.get(contextId) != null && SpaceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
+            if (SpaceRepository.get().findById(contextId) != null && SpaceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             } else if (MaintainedResource.get(contextId) != null && MaintainedResource.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
