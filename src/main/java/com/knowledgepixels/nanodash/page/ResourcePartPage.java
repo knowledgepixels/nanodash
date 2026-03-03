@@ -1,10 +1,10 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.ResultComponent;
-import com.knowledgepixels.nanodash.component.SourceNanopub;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -150,15 +150,15 @@ public class ResourcePartPage extends NanodashPage {
         // we now use the ProfileResource abstraction, but the code still has to be imprved
         if (resourceWithProfile != null) {
             final List<AbstractLink> viewButtons = new ArrayList<>();
-            AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to")
-                    .set("template-version", "latest")
-                    .set("param_resource", resourceWithProfile.getId())
-                    .set("context", resourceWithProfile.getId())
-                    .set("part", id)
+            viewButtons.add(new AddViewDisplayButton("button",
+                            "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
+                            "latest",
+                            resourceWithProfile.getId(),
+                            resourceWithProfile.getId(),
+                            new PageParameters()
+                                    .set("part", id)
+                    )
             );
-            addViewButton.setBody(Model.of("+ view display"));
-            viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
             final AbstractResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
@@ -188,15 +188,15 @@ public class ResourcePartPage extends NanodashPage {
             // TODO Ugly code duplication (see above):
 
             final List<AbstractLink> viewButtons = new ArrayList<>();
-            AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                    .set("template", "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to")
-                    .set("template-version", "latest")
-                    .set("param_resource", resourceWithProfile.getSpace().getId())
-                    .set("context", resourceWithProfile.getSpace().getId())
-                    .set("part", id)
+            viewButtons.add(new AddViewDisplayButton("button",
+                            "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
+                            "latest",
+                            resourceWithProfile.getSpace().getId(),
+                            resourceWithProfile.getSpace().getId(),
+                            new PageParameters()
+                                    .set("part", id)
+                    )
             );
-            addViewButton.setBody(Model.of("+ view display"));
-            viewButtons.add(addViewButton);
 
             if (resourceWithProfile.getSpace().isDataInitialized()) {
                 add(new ViewList("views", resourceWithProfile.getSpace(), id, nanopubId, classes, resourceWithProfile.getSpace(), viewButtons));
