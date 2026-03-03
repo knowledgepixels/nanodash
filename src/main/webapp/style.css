@@ -819,6 +819,7 @@ input[type=radio] + label strong {
   min-width: 250px;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
   z-index: 1;
+  text-align: left;
 }
 
 .actionmenu-content a {
@@ -1921,6 +1922,12 @@ div.navigator .goto a[disabled] {
   color: #0B73DA;
 }
 
+.paneltitlerow span.buttons .actionmenu {
+  margin-top: 14px;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
 .paneltitlerow span.buttons a.source:hover {
   background: none;
   color: #0B73DAC0;
@@ -2055,10 +2062,12 @@ td div:has(.button-list) {
   display: inline-block;
   position: absolute;
   right: 0;
+  padding-right: 0;
 }
 
 .view-selector.with-source .buttons {
-  margin: 0;
+  margin: 0 0 0 10px;
+  vertical-align: middle;
 }
 
 .view-selector.with-source .buttons .source {
