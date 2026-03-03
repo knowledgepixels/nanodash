@@ -35,8 +35,11 @@ public class ViewDisplayMenu extends Panel {
     public ViewDisplayMenu(String id, ViewDisplay viewDisplay, QueryRef queryRef, AbstractResourceWithProfile pageResource) {
         super(id);
 
-        add(new BookmarkablePageLink<Void>("showQuery", QueryPage.class,
-                new PageParameters().set("id", queryRef.getQueryId())));
+        PageParameters showQueryParams = new PageParameters().set("id", queryRef.getQueryId());
+        for (var entry : queryRef.getParams().entries()) {
+            showQueryParams.add("queryparam_" + entry.getKey(), entry.getValue());
+        }
+        add(new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams));
 
         IRI nanopubId = viewDisplay.getNanopubId();
 
