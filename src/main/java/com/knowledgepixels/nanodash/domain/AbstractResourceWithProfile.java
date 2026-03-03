@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.domain;
 
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
@@ -240,13 +242,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                 // Deprecated
                 viewDisplays.add(vd);
             }
-        }
-
-        // This is a temporary hack to always show the latest nanopubs view for users by default without needing to create a ViewDisplay for each user
-        // TODO remove this once we have a better system for default views
-        if (IndividualAgent.isUser(resourceId)) {
-            ViewDisplay latestNpsViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
-            viewDisplays.add(latestNpsViewDisplay);
         }
 
         Collections.sort(viewDisplays);
