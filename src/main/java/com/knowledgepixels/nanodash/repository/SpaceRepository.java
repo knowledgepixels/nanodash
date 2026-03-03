@@ -33,7 +33,6 @@ public class SpaceRepository {
 
     private List<Space> spaceList;
     private Map<String, List<Space>> spaceListByType;
-    //private Map<String, Space> spacesByCoreInfo = new HashMap<>();
     private Map<String, Space> spacesById;
     private Map<Space, Set<Space>> subspaceMap;
     private Map<Space, Set<Space>> superspaceMap;
@@ -54,22 +53,14 @@ public class SpaceRepository {
         logger.info("Refreshing spaces from API response with {} entries", resp.getData().size());
         spaceList = new ArrayList<>();
         spaceListByType = new HashMap<>();
-        //Map<String, Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
-        //spacesByCoreInfo = new HashMap<>();
         spacesById = new HashMap<>();
         subspaceMap = new HashMap<>();
         superspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
-            //String id = getCoreInfoString(entry);
             Space space;
-            //if (prevSpacesByCoreInfoPrev.containsKey(id)) {
-            //    space = prevSpacesByCoreInfoPrev.get(id);
-            //} else {
             space = SpaceFactory.getOrCreate(entry);
-            //}
             spaceList.add(space);
             spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
-            //spacesByCoreInfo.put(space.getCoreInfoString(), space);
             spacesById.put(space.getId(), space);
         }
         SpaceFactory.removeStale(spacesById.keySet());
@@ -189,10 +180,6 @@ public class SpaceRepository {
             space.setDataNeedsUpdate();
         }
     }
-
-    /*private String getCoreInfoString(ApiResponseEntry entry) {
-        return entry.get("space") + " " + entry.get("np");
-    }*/
 
     private Space getIdSuperspace(Space space) {
         String id = space.getId();

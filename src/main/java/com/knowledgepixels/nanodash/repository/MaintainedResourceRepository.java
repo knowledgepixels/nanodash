@@ -48,21 +48,18 @@ public class MaintainedResourceRepository {
      */
     public synchronized void refresh(ApiResponse resp) {
         resourceList = new ArrayList<>();
-        Map<String, MaintainedResource> previousResourcesById = resourcesById;
         resourcesById = new HashMap<>();
         resourcesBySpace = new HashMap<>();
         resourcesByNamespace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = SpaceRepository.get().findById(entry.get("space"));
-            if (space == null) continue;
-            MaintainedResource resource = null;
-            if (previousResourcesById != null) {
-                resource = previousResourcesById.get(entry.get("resource"));
+            if (space == null) {
+                continue;
             }
-            if (resource == null) {
-                resource = MaintainedResourceFactory.getOrCreate(entry, space);
+            MaintainedResource resource = MaintainedResourceFactory.getOrCreate(entry, space);
+            if (resourcesById.containsKey(resource.getId())) {
+                continue;
             }
-            if (resourcesById.containsKey(resource.getId())) continue;
             resourceList.add(resource);
             resourcesById.put(resource.getId(), resource);
             resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
@@ -71,6 +68,7 @@ public class MaintainedResourceRepository {
                 resourcesByNamespace.put(resource.getNamespace(), resource);
             }
         }
+        MaintainedResourceFactory.removeStale(resourcesById.keySet());
         loaded = true;
     }
 
