@@ -1,6 +1,9 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 

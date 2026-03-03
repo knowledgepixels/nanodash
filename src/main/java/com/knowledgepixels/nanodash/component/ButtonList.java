@@ -1,6 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
