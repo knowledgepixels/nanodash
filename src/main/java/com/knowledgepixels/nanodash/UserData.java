@@ -1,16 +1,5 @@
 package com.knowledgepixels.nanodash;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -29,6 +18,10 @@ import org.nanopub.extra.setting.NanopubSetting;
 import org.nanopub.vocabulary.NPX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * UserData class manages user-related data.
@@ -274,6 +267,12 @@ public class UserData implements Serializable {
         return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
     }
 
+    /**
+     * Checks if the given IRI is a software identifier.
+     *
+     * @param userIri the IRI to check
+     * @return true if the IRI is a software identifier, false otherwise
+     */
     public boolean isSoftware(IRI userIri) {
         return softwareIdMap.containsKey(userIri) && softwareIdMap.get(userIri);
     }
@@ -285,10 +284,12 @@ public class UserData implements Serializable {
      * @return true if the userId is a valid user identifier, false otherwise
      */
     public boolean isUser(String userId) {
-        if (!userId.startsWith("https://") && !userId.startsWith("http://")) return false;
+        if (!userId.startsWith("https://") && !userId.startsWith("http://")) {
+            return false;
+        }
         try {
             IRI userIri = Utils.vf.createIRI(userId);
-            return approvedIdPubkeyhashMap.containsKey(userIri) || unapprovedIdPubkeyhashMap.containsKey(userIri);
+            return isUser(userIri);
         } catch (IllegalArgumentException ex) {
             return false;
         }

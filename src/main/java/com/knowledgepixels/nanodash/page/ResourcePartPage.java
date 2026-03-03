@@ -70,7 +70,7 @@ public class ResourcePartPage extends NanodashPage {
         if (resourceWithProfile == null) {
             if (SpaceRepository.get().findById(contextId) != null) {
                 resourceWithProfile = SpaceRepository.get().findById(contextId);
-            } else if (User.isUser(contextId)) {
+            } else if (IndividualAgent.isUser(contextId)) {
                 resourceWithProfile = IndividualAgent.get(contextId);
             } else {
                 throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);

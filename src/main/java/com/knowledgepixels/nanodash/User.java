@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.setting.IntroNanopub;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,8 @@ public class User {
     private User() {
     }  // no instances allowed
 
-    private static transient UserData userData;
+    private static final Logger logger = LoggerFactory.getLogger(User.class);
+    private static volatile UserData userData;
     private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
     private static transient long lastRefresh = 0L;
 
@@ -24,15 +27,12 @@ public class User {
      * Refreshes the user data by creating a new UserData instance.
      */
     public static void refreshUsers() {
-        boolean refreshNeeded = (userData == null);
+        logger.info("Refreshing user data...");
         synchronized (User.class) {
-            if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
+            if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
-                refreshNeeded = true;
+                userData = new UserData();
             }
-        }
-        if (refreshNeeded) {
-            userData = new UserData();
         }
     }
 
@@ -40,7 +40,9 @@ public class User {
      * Ensures that the user data is loaded. If not, it refreshes the user data.
      */
     public static void ensureLoaded() {
-        if (userData == null) refreshUsers();
+        if (userData == null) {
+            refreshUsers();
+        }
     }
 
     /**
@@ -177,16 +179,6 @@ public class User {
     }
 
     /**
-     * Checks if a given IRI represents a software agent.
-     *
-     * @param userIri The IRI to check.
-     * @return True if the IRI represents a software agent, false otherwise.
-     */
-    public static boolean isSoftware(IRI userIri) {
-        return getUserData().isSoftware(userIri);
-    }
-
-    /**
      * Checks if a given IRI represents a user.
      *
      * @param userIri The IRI to check.
@@ -194,16 +186,6 @@ public class User {
      */
     public static boolean isUser(IRI userIri) {
         return getUserData().isUser(userIri);
-    }
-
-    /**
-     * Checks if a given string represents a user ID.
-     *
-     * @param userId The string to check.
-     * @return True if the string represents a user ID, false otherwise.
-     */
-    public static boolean isUser(String userId) {
-        return getUserData().isUser(userId);
     }
 
 }

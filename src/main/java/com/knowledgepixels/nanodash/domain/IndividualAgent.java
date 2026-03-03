@@ -14,7 +14,7 @@ import java.util.Set;
 // TODO Merge this class with User or otherwise make them aligned.
 public class IndividualAgent extends AbstractResourceWithProfile {
 
-    private static Map<String, IndividualAgent> instanceMap = new HashMap<>();
+    private static final Map<String, IndividualAgent> instanceMap = new HashMap<>();
 
     public static IndividualAgent get(String id) {
         if (!instanceMap.containsKey(id)) {
@@ -25,6 +25,26 @@ public class IndividualAgent extends AbstractResourceWithProfile {
 
     private IndividualAgent(String id) {
         super(id);
+    }
+
+    /**
+     * Checks if a given string represents a user ID.
+     *
+     * @param userId The string to check.
+     * @return True if the string represents a user ID, false otherwise.
+     */
+    public static boolean isUser(String userId) {
+        return User.getUserData().isUser(userId);
+    }
+
+    /**
+     * Checks if a given IRI represents a software agent.
+     *
+     * @param userIri The IRI to check.
+     * @return True if the IRI represents a software agent, false otherwise.
+     */
+    public static boolean isSoftware(IRI userIri) {
+        return User.getUserData().isSoftware(userIri);
     }
 
     @Override
@@ -45,9 +65,16 @@ public class IndividualAgent extends AbstractResourceWithProfile {
         return null;
     }
 
+    /**
+     * Checks if this user is the currently logged-in user.
+     *
+     * @return True if this user is the currently logged-in user, false otherwise.
+     */
     public boolean isCurrentUser() {
         IRI userIri = NanodashSession.get().getUserIri();
-        if (userIri == null) return false;
+        if (userIri == null) {
+            return false;
+        }
         return getId().equals(userIri.stringValue());
     }
 

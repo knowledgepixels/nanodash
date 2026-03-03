@@ -73,7 +73,7 @@ public class UserPage extends NanodashPage {
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         EmptyPanel userIcon = new EmptyPanel("userIcon");
-        userIcon.add(AttributeModifier.replace("class", User.isSoftware(userIri) ? "bot-icon" : "user-icon"));
+        userIcon.add(AttributeModifier.replace("class", IndividualAgent.isSoftware(userIri) ? "bot-icon" : "user-icon"));
         add(userIcon);
         add(new Label("username", displayName));
 

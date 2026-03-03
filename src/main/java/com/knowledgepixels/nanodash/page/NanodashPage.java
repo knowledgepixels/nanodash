@@ -64,14 +64,14 @@ public abstract class NanodashPage extends WebPage {
 //							logger.error();
 //						}
                     try {
-                        logger.info("Refreshing ...");
+                        logger.info("Refreshing data...");
                         User.refreshUsers();
                         TemplateData.refreshTemplates();
                         Space.refresh();
                         MaintainedResource.refresh();
                         AbstractResourceWithProfile.refresh();
                         Project.refresh();
-                        logger.info("Refreshing done.");
+                        logger.info("Refreshing data... done");
                         lastRefresh = System.currentTimeMillis();
                     } catch (Exception ex) {
                         logger.error("Error during refresh", ex);

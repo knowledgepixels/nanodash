@@ -127,7 +127,7 @@ public class ExplorePage extends NanodashPage {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + SpaceRepository.get().findById(contextId).getLabel())));
         } else if (MaintainedResourceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResourceRepository.get().findById(contextId).getLabel())));
-        } else if (User.isUser(contextId)) {
+        } else if (IndividualAgent.isUser(contextId)) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
@@ -191,7 +191,7 @@ public class ExplorePage extends NanodashPage {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             } else if (MaintainedResourceRepository.get().findById(contextId) != null && MaintainedResourceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (User.isUser(contextId) && IndividualAgent.get(contextId).appliesTo(tempRef, classes)) {
+            } else if (IndividualAgent.isUser(contextId) && IndividualAgent.get(contextId).appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             }
         }

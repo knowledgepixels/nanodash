@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.*;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
@@ -461,7 +462,7 @@ public class PublishForm extends Panel {
                         if (MaintainedResourceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
                         }
-                        if (User.isUser(contextId)) {
+                        if (IndividualAgent.isUser(contextId)) {
                             throw new RestartResponseException(UserPage.class, redirectParams);
                         }
                     }

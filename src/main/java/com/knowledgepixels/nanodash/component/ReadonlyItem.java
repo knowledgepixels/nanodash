@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
@@ -101,7 +102,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             public String getObject() {
                 String prefixLabel = template.getPrefixLabel(iri);
                 String v = getFullValue();
-                if (prefixLabel == null || User.isUser(v) || foafNameMap.containsKey(v)) {
+                if (prefixLabel == null || IndividualAgent.isUser(v) || foafNameMap.containsKey(v)) {
                     return "";
                 } else {
                     if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
@@ -134,7 +135,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                     } else {
                         return "";
                     }
-                } else if (User.isUser(obj)) {
+                } else if (IndividualAgent.isUser(obj)) {
                     return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
                 } else if (obj.matches("https?://.+")) {
                     return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
@@ -161,7 +162,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                         }
                     } else if (isNanopubValue(objIri)) {
                         return "this nanopublication";
-                    } else if (User.isUser(obj)) {
+                    } else if (IndividualAgent.isUser(obj)) {
                         return User.getShortDisplayName(objIri);
                     } else if (foafNameMap.containsKey(obj)) {
                         return foafNameMap.get(obj);
