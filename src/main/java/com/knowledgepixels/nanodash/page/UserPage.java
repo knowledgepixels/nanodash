@@ -2,7 +2,8 @@ package com.knowledgepixels.nanodash.page;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
@@ -11,8 +12,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -200,16 +201,16 @@ public class UserPage extends NanodashPage {
 //        }
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
-        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g")
-                .set("template-version", "latest")
-                .set("param_resource", userIriString)
-                .set("param_appliesToResource", userIriString)
-                .set("context", userIriString)
-                .set("refresh-upon-publish", userIriString)
+        viewButtons.add(new AddViewDisplayButton("button",
+                        "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g",
+                        "latest",
+                        userIriString,
+                        userIriString,
+                        new PageParameters()
+                                .set("refresh-upon-publish", userIriString)
+                                .set("param_appliesToResource", userIriString)
+                )
         );
-        addViewButton.setBody(Model.of("+ view display"));
-        viewButtons.add(addViewButton);
 
         IndividualAgent individualAgent = IndividualAgent.get(userIriString);
         if (individualAgent.isDataInitialized()) {
