@@ -118,7 +118,6 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                 QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
                 resultPlainParagraph.setProfiledResource(space);
                 resultPlainParagraph.setPageResource(pageResource);
-                resultPlainParagraph.setPageResource(pageResource);
                 resultPlainParagraph.setContextId(contextId);
                 addResultButtons(resultPlainParagraph);
                 return resultPlainParagraph;
@@ -147,6 +146,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
+                        resultPlainParagraph.setPageResource(pageResource);
                         resultPlainParagraph.setContextId(contextId);
                         addResultButtons(resultPlainParagraph);
                         return resultPlainParagraph;
