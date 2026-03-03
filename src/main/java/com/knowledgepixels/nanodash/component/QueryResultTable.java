@@ -57,7 +57,7 @@ public class QueryResultTable extends QueryResult {
             }
             add(new Label("label", label));
             if (viewDisplay.getNanopubId() != null) {
-                add(new SourceNanopub("np", viewDisplay.getNanopubId(), "smallbutton"));
+                add(new ViewDisplayMenu("np", viewDisplay, queryRef));
             } else {
                 add(new Label("np").setVisible(false));
             }

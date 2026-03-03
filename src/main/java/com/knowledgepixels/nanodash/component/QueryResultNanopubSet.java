@@ -72,7 +72,7 @@ public class QueryResultNanopubSet extends QueryResult {
         add(nanopubResults);
 
         if (viewDisplay.getNanopubId() != null) {
-            viewSelector.addOrReplace(new SourceNanopub("np", viewDisplay.getNanopubId()));
+            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef));
         } else {
             viewSelector.addOrReplace(new Label("np").setVisible(false));
         }
