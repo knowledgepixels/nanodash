@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,7 +74,7 @@ public class UserPage extends NanodashPage {
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         EmptyPanel userIcon = new EmptyPanel("userIcon");
-        userIcon.add(AttributeModifier.replace("class", User.isSoftware(userIri) ? "bot-icon" : "user-icon"));
+        userIcon.add(AttributeModifier.replace("class", IndividualAgent.isSoftware(userIri) ? "bot-icon" : "user-icon"));
         add(userIcon);
         add(new Label("username", displayName));
 

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.NanopubResults;
 import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 import jakarta.servlet.http.HttpServletRequest;

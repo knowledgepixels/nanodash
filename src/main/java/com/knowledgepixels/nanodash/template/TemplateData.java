@@ -1,14 +1,8 @@
 package com.knowledgepixels.nanodash.template;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.nanopub.Nanopub;
@@ -19,10 +13,10 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Singleton class that manages templates data.
@@ -37,6 +31,7 @@ public class TemplateData implements Serializable {
      * Refreshes the templates data by creating a new instance of TemplateData.
      */
     public static synchronized void refreshTemplates() {
+        logger.info("Refreshing templates...");
         instance = new TemplateData();
     }
 

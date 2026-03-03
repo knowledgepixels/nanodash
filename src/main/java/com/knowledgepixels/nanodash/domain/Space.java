@@ -1,8 +1,8 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -26,70 +26,9 @@ import java.util.*;
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
  */
-public class Space extends ResourceWithProfile {
+public class Space extends AbstractResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
-
-    private static List<Space> spaceList;
-    private static Map<String, List<Space>> spaceListByType;
-    private static Map<String, Space> spacesByCoreInfo = new HashMap<>();
-    private static Map<String, Space> spacesById;
-    private static Map<Space, Set<Space>> subspaceMap;
-    private static Map<Space, Set<Space>> superspaceMap;
-    private static boolean loaded = false;
-    private static Long runRootUpdateAfter = null;
-
-    /**
-     * Refresh the list of spaces from the API response.
-     *
-     * @param resp The API response containing space data.
-     */
-    public static synchronized void refresh(ApiResponse resp) {
-        spaceList = new ArrayList<>();
-        spaceListByType = new HashMap<>();
-        Map<String, Space> prevSpacesByCoreInfoPrev = spacesByCoreInfo;
-        spacesByCoreInfo = new HashMap<>();
-        spacesById = new HashMap<>();
-        subspaceMap = new HashMap<>();
-        superspaceMap = new HashMap<>();
-        for (ApiResponseEntry entry : resp.getData()) {
-            String id = getCoreInfoString(entry);
-            Space space;
-            if (prevSpacesByCoreInfoPrev.containsKey(id)) {
-                space = prevSpacesByCoreInfoPrev.get(id);
-            } else {
-                space = new Space(entry);
-            }
-            spaceList.add(space);
-            spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
-            spacesByCoreInfo.put(space.getCoreInfoString(), space);
-            spacesById.put(space.getId(), space);
-        }
-        for (Space space : spaceList) {
-            Space superSpace = space.getIdSuperspace();
-            if (superSpace == null) continue;
-            subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
-            superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
-            space.setDataNeedsUpdate();
-        }
-        loaded = true;
-    }
-
-    /**
-     * Check if the spaces have been loaded.
-     *
-     * @return true if loaded, false otherwise.
-     */
-    public static boolean isLoaded() {
-        return loaded;
-    }
-
-    public static boolean areAllSpacesInitialized() {
-        for (Space space : spaceList) {
-            if (!space.isDataInitialized()) return false;
-        }
-        return true;
-    }
 
     @Override
     public boolean isDataInitialized() {
@@ -97,83 +36,7 @@ public class Space extends ResourceWithProfile {
         return dataInitialized && super.isDataInitialized();
     }
 
-    public static void triggerAllDataUpdates() {
-        for (Space space : spaceList) {
-            space.triggerDataUpdate();
-        }
-    }
-
-    private static final String ensureLoadedLock = "";
-
-    /**
-     * Ensure that the spaces are loaded, fetching them from the API if necessary.
-     */
-    public static void ensureLoaded() {
-        if (spaceList == null) {
-            try {
-                synchronized (ensureLoadedLock) {
-                    if (runRootUpdateAfter != null) {
-                        while (System.currentTimeMillis() < runRootUpdateAfter) {
-                            Thread.sleep(100);
-                        }
-                        runRootUpdateAfter = null;
-                    }
-                }
-            } catch (InterruptedException ex) {
-                logger.error("Interrupted", ex);
-            }
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
-        }
-    }
-
-    public static void forceRootRefresh(long waitMillis) {
-        spaceList = null;
-        runRootUpdateAfter = System.currentTimeMillis() + waitMillis;
-    }
-
-    /**
-     * Get the list of all spaces.
-     *
-     * @return List of spaces.
-     */
-    public static List<Space> getSpaceList() {
-        ensureLoaded();
-        return spaceList;
-    }
-
-    /**
-     * Get the list of spaces of a specific type.
-     *
-     * @param type The type of spaces to retrieve.
-     *             System.err.println("REFRESH...");
-     * @return List of spaces of the specified type.
-     */
-    public static List<Space> getSpaceList(String type) {
-        ensureLoaded();
-        return spaceListByType.computeIfAbsent(type, k -> new ArrayList<>());
-    }
-
-    /**
-     * Get a space by its id.
-     *
-     * @param id The id of the space.
-     * @return The corresponding Space object, or null if not found.
-     */
-    public static Space get(String id) {
-        ensureLoaded();
-        return spacesById.get(id);
-    }
-
-    /**
-     * Mark all spaces as needing a data update.
-     */
-    public static void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
-        for (Space space : spaceList) {
-            space.dataNeedsUpdate = true;
-        }
-    }
-
+    @Override
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
         dataNeedsUpdate = true;
@@ -224,7 +87,7 @@ public class Space extends ResourceWithProfile {
     private boolean dataInitialized = false;
     private boolean dataNeedsUpdate = true;
 
-    private Space(ApiResponseEntry resp) {
+    Space(ApiResponseEntry resp) {
         super(resp.get("space"));
         initSpace(this);
         this.label = resp.get("label");
@@ -261,6 +124,12 @@ public class Space extends ResourceWithProfile {
     @Override
     public Nanopub getNanopub() {
         return rootNanopub;
+    }
+
+    @Override
+    public String getNamespace() {
+        // FIXME this will be removed in the future
+        return null;
     }
 
     /**
@@ -363,6 +232,12 @@ public class Space extends ResourceWithProfile {
         return data.users.containsKey(userId);
     }
 
+    /**
+     * Check if a public key is associated with an admin of this space.
+     *
+     * @param pubkey The public key hash to check.
+     * @return true if the public key is associated with an admin, false otherwise.
+     */
     public boolean isAdminPubkey(String pubkey) {
         ensureInitialized();
         return data.adminPubkeyMap.containsKey(pubkey);
@@ -434,62 +309,6 @@ public class Space extends ResourceWithProfile {
     }
 
     /**
-     * Get the superspace ID.
-     *
-     * @return The superspace, or null if not applicable.
-     */
-    public Space getIdSuperspace() {
-        if (!getId().matches("https?://[^/]+/.*/[^/]*/?")) return null;
-        String superId = getId().replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
-        if (spacesById.containsKey(superId)) {
-            return spacesById.get(superId);
-        }
-        return null;
-    }
-
-    /**
-     * Get superspaces of this space.
-     *
-     * @return List of superspaces.
-     */
-    public List<Space> getSuperspaces() {
-        if (superspaceMap.containsKey(this)) {
-            List<Space> superspaces = new ArrayList<>(superspaceMap.get(this));
-            Collections.sort(superspaces, Ordering.usingToString());
-            return superspaces;
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * Get subspaces of this space.
-     *
-     * @return List of subspaces.
-     */
-    public List<Space> getSubspaces() {
-        if (subspaceMap.containsKey(this)) {
-            List<Space> subspaces = new ArrayList<>(subspaceMap.get(this));
-            Collections.sort(subspaces, Ordering.usingToString());
-            return subspaces;
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * Get subspaces of a specific type.
-     *
-     * @param type The type of subspaces to retrieve.
-     * @return List of subspaces of the specified type.
-     */
-    public List<Space> getSubspaces(String type) {
-        List<Space> l = new ArrayList<>();
-        for (Space s : getSubspaces()) {
-            if (s.getType().equals(type)) l.add(s);
-        }
-        return l;
-    }
-
-    /**
      * Get alternative IDs for the space.
      *
      * @return List of alternative IDs.
@@ -519,12 +338,15 @@ public class Space extends ResourceWithProfile {
 
     @Override
     public synchronized Thread triggerDataUpdate() {
+        logger.info("Triggering data update for space {}", getId());
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }
 
     private synchronized Thread triggerSpaceDataUpdate() {
         if (dataNeedsUpdate) {
+            logger.info("Data needs update for space {} core data, starting update thread", getId());
+            dataNeedsUpdate = false;
             Thread thread = new Thread(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {
@@ -611,10 +433,10 @@ public class Space extends ResourceWithProfile {
                     dataInitialized = true;
                 } catch (Exception ex) {
                     logger.error("Error while trying to update space data: {}", ex.getMessage());
+                    dataNeedsUpdate = true;
                 }
             });
             thread.start();
-            dataNeedsUpdate = false;
             return thread;
         }
         return null;

@@ -1,9 +1,15 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -80,13 +86,13 @@ public class PreviewPage extends NanodashPage {
                             throw new RestartResponseException(ResourcePartPage.class, redirectParams);
                         }
                         redirectParams.set("id", contextId);
-                        if (Space.get(contextId) != null) {
+                        if (SpaceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(SpacePage.class, redirectParams);
                         }
-                        if (MaintainedResource.get(contextId) != null) {
+                        if (MaintainedResourceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
                         }
-                        if (User.isUser(contextId)) {
+                        if (IndividualAgent.isUser(contextId)) {
                             throw new RestartResponseException(UserPage.class, redirectParams);
                         }
                     }

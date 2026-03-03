@@ -2,7 +2,12 @@ package com.knowledgepixels.nanodash.component;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.ResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -23,31 +28,31 @@ public class ViewList extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile) {
         this(markupId, resourceWithProfile, null, null, null, null, null, true, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
         this(markupId, resourceWithProfile, partId, nanopubId, partClasses, null, null, true, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
         this(markupId, resourceWithProfile, partId, nanopubId, partClasses, footerResource, footerAdminButtons, true, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice) {
         this(markupId, resourceWithProfile, partId, nanopubId, partClasses, footerResource, footerAdminButtons, showEmptyNotice, null);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays) {
         this(markupId, resourceWithProfile, null, null, null, null, null, false, explicitViewDisplays);
     }
 
-    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
         this(markupId, resourceWithProfile, null, null, null, footerResource, footerAdminButtons, false, explicitViewDisplays);
     }
 
-    private ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice, List<ViewDisplay> explicitViewDisplays) {
+    private ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice, List<ViewDisplay> explicitViewDisplays) {
         super(markupId);
 
         final String id = (partId == null ? resourceWithProfile.getId() : partId);

@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.template.Template;
@@ -98,8 +98,8 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (context.hasParam(postfix)) {
             String objId = context.getParam(postfix);
-            if (ResourceWithProfile.get(objId) != null) {
-                labelMap.put(objId, ResourceWithProfile.get(objId).getLabel());
+            if (AbstractResourceWithProfile.get(objId) != null) {
+                labelMap.put(objId, AbstractResourceWithProfile.get(objId).getLabel());
             }
             model.setObject(objId);
         }

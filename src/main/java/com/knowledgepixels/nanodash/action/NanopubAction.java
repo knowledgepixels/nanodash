@@ -64,15 +64,20 @@ public abstract class NanopubAction implements Serializable {
      * @return a list of NanopubAction instances
      */
     public static List<NanopubAction> getActionsFromPreferences(NanodashPreferences pref) {
+        logger.info("Reading NanopubActions from preferences");
         List<NanopubAction> actions = new ArrayList<>();
-        if (pref == null) return actions;
+        if (pref == null) {
+            return actions;
+        }
         for (String s : pref.getNanopubActions()) {
-            if (defaultClassNameMap.containsKey(s)) continue;
+            if (defaultClassNameMap.containsKey(s)) {
+                continue;
+            }
             try {
                 NanopubAction na = (NanopubAction) Class.forName(s).getDeclaredConstructor().newInstance();
                 actions.add(na);
             } catch (Exception ex) {
-                logger.error("Could not instantiate NanopubAction: {}", s, ex);
+                logger.error("Could not instantiate <{}> as NanopubAction", s);
             }
         }
         return actions;

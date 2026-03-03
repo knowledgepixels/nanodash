@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -11,7 +12,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
@@ -96,7 +97,7 @@ public class UserListPage extends NanodashPage {
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
                 "Human Users",
-                User.getUsers(true).stream().filter(iri -> !User.isSoftware(iri)).collect(Collectors.toList()),
+                User.getUsers(true).stream().filter(iri -> !IndividualAgent.isSoftware(iri)).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 },
@@ -106,7 +107,7 @@ public class UserListPage extends NanodashPage {
         add(new ItemListPanel<IRI>(
                 "approved-software-agents",
                 "Software Agents",
-                User.getUsers(true).stream().filter(User::isSoftware).collect(Collectors.toList()),
+                User.getUsers(true).stream().filter(IndividualAgent::isSoftware).collect(Collectors.toList()),
                 (userIri) -> {
                     return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
                 },
