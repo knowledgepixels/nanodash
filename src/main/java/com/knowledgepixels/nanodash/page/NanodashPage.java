@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.MaintainedResource;
+import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.ResourceWithProfile;
 import com.knowledgepixels.nanodash.Project;
 import com.knowledgepixels.nanodash.Space;
@@ -11,6 +12,7 @@ import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
+import org.apache.wicket.markup.head.StringHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -114,6 +116,13 @@ public abstract class NanodashPage extends WebPage {
         super.renderHead(response);
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
+        String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
+        String umamiWebsiteId = NanodashPreferences.get().getUmamiWebsiteId();
+        if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()
+                && umamiWebsiteId != null && !umamiWebsiteId.isBlank()) {
+            response.render(StringHeaderItem.forString(
+                "<script defer src=\"" + umamiScriptUrl + "\" data-website-id=\"" + umamiWebsiteId + "\"></script>\n"));
+        }
     }
 
 }
