@@ -1,7 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -21,7 +26,7 @@ public class QueryResultTableBuilder implements Serializable {
     private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
-    private ResourceWithProfile resourceWithProfile = null;
+    private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -48,7 +53,7 @@ public class QueryResultTableBuilder implements Serializable {
      * @param resourceWithProfile the ResourceWithProfile object
      * @return the current QueryResultTableBuilder instance
      */
-    public QueryResultTableBuilder profiledResource(ResourceWithProfile resourceWithProfile) {
+    public QueryResultTableBuilder profiledResource(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
     }
@@ -120,7 +125,7 @@ public class QueryResultTableBuilder implements Serializable {
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResource.get(contextId);
+                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
                             if (r != null && r.getNamespace() != null) {
                                 params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                             }
@@ -164,7 +169,7 @@ public class QueryResultTableBuilder implements Serializable {
                                 String partField = view.getTemplatePartFieldForAction(actionIri);
                                 if (partField != null) {
                                     // TODO Find a better way to pass the MaintainedResource object to this method:
-                                    MaintainedResource r = MaintainedResource.get(contextId);
+                                    MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
                                     if (r != null && r.getNamespace() != null) {
                                         params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                                     }

@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.GrlcQuery;
-import com.knowledgepixels.nanodash.Space;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.markup.html.WebMarkupContainer;

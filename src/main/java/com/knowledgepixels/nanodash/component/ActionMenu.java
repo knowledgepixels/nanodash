@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.action.NanopubAction;
+import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.domain.UserData;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;

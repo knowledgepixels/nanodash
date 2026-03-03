@@ -5,6 +5,12 @@ import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.SourceNanopub;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,7 +55,7 @@ public class ResourcePartPage extends NanodashPage {
     /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
-    private ResourceWithProfile resourceWithProfile;
+    private AbstractResourceWithProfile resourceWithProfile;
 
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
@@ -61,11 +67,11 @@ public class ResourcePartPage extends NanodashPage {
         String description = null;
         Set<IRI> classes = new HashSet<>();
 
-        resourceWithProfile = MaintainedResource.get(contextId);
+        resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
         if (resourceWithProfile == null) {
-            if (Space.get(contextId) != null) {
-                resourceWithProfile = Space.get(contextId);
-            } else if (User.isUser(contextId)) {
+            if (SpaceRepository.get().findById(contextId) != null) {
+                resourceWithProfile = SpaceRepository.get().findById(contextId);
+            } else if (IndividualAgent.isUser(contextId)) {
                 resourceWithProfile = IndividualAgent.get(contextId);
             } else {
                 throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);
@@ -119,7 +125,7 @@ public class ResourcePartPage extends NanodashPage {
 
         List<NanodashPageRef> breadCrumb;
         if (resourceWithProfile.getSpace() != null) {
-            List<ResourceWithProfile> superSpaces = resourceWithProfile.getSpace().getAllSuperSpacesUntilRoot();
+            List<AbstractResourceWithProfile> superSpaces = resourceWithProfile.getSpace().getAllSuperSpacesUntilRoot();
             if (resourceWithProfile instanceof MaintainedResource) {
                 superSpaces.add(resourceWithProfile.getSpace());
             }
@@ -155,7 +161,7 @@ public class ResourcePartPage extends NanodashPage {
             viewButtons.add(addViewButton);
 
             final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
-            final ResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
+            final AbstractResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
             if (resourceWithProfile.isDataInitialized()) {
                 add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons));
             } else {

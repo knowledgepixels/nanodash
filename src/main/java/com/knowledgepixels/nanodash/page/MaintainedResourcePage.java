@@ -1,10 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
-import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,11 +44,11 @@ public class MaintainedResourcePage extends NanodashPage {
     public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 
-        resource = MaintainedResource.get(parameters.get("id").toString());
+        resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
         Space space = resource.getSpace();
         resource.triggerDataUpdate();
 
-        List<ResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
+        List<AbstractResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());
         superSpaces.add(resource);
         add(new TitleBar("titlebar", this, null,

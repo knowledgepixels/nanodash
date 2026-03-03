@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.google.common.hash.Hashing;
+import com.knowledgepixels.nanodash.domain.User;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
