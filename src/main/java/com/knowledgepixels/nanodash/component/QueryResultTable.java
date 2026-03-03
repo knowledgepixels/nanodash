@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -156,7 +158,7 @@ public class QueryResultTable extends QueryResult {
                         String partField = view.getTemplatePartFieldForAction(actionIri);
                         if (partField != null) {
                             // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResource.get(contextId);
+                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
                             if (r != null && r.getNamespace() != null) {
                                 params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                             }

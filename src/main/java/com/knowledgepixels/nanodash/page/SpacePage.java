@@ -1,9 +1,16 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -56,14 +63,14 @@ public class SpacePage extends NanodashPage {
         super(parameters);
 
         String id = parameters.get("id").toString();
-        space = Space.get(id);
-        if (space == null && MaintainedResource.get(id) != null) {
+        space = SpaceRepository.get().findById(id);
+        if (space == null && MaintainedResourceRepository.get().findById(id) != null) {
             throw new RestartResponseException(MaintainedResourcePage.class, parameters);
         }
         Nanopub np = space.getNanopub();
         space.triggerDataUpdate();
 
-        List<ResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
+        List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             add(new TitleBar("titlebar", this, null,
                     new NanodashPageRef(SpacePage.class, new PageParameters().add("id", space.getId()), space.getLabel())
@@ -164,16 +171,16 @@ public class SpacePage extends NanodashPage {
         }
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
-        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ")
-                .set("template-version", "latest")
-                .set("param_resource", space.getId())
-                .set("param_appliesToResource", space.getId())
-                .set("context", space.getId())
-                .set("refresh-upon-publish", id)
-        );
-        addViewButton.setBody(Model.of("+ view display"));
-        viewButtons.add(addViewButton);
+        viewButtons.add(new AddViewDisplayButton("button",
+                "https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ",
+                "latest",
+                space.getId(),
+                space.getId(),
+                new PageParameters()
+                        .set("param_appliesToResource", space.getId())
+                        .set("refresh-upon-publish", id)
+        ));
+
 
         if (space.isDataInitialized()) {
             add(new ViewList("views", space, null, null, null, space, viewButtons));
@@ -253,8 +260,8 @@ public class SpacePage extends NanodashPage {
                 "Resources",
                 new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES),
                 (apiResponse) -> {
-                    MaintainedResource.ensureLoaded();
-                    return MaintainedResource.getResourcesBySpace(space);
+                    MaintainedResourceRepository.get().ensureLoaded();
+                    return MaintainedResourceRepository.get().findResourcesBySpace(space);
                 },
                 (resource) -> {
                     return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel());
@@ -286,7 +293,7 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         typePl.toLowerCase(),
                         typePl,
-                        space.getSubspaces(KPXL_TERMS.NAMESPACE + type),
+                        SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
                         .setProfiledResource(space)

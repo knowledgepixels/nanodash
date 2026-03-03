@@ -9,9 +9,12 @@ import com.knowledgepixels.nanodash.connector.pensoft.BdjNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjOverviewPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
 import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -263,11 +266,11 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         registerListener((nanopub, target, waitMs) -> {
             logger.info("Received nanopub published event with target <{}> and waitMs {}", target, waitMs);
             if (target.equals("spaces")) {
-                Space.forceRootRefresh(waitMs);
+                SpaceRepository.get().forceRootRefresh(waitMs);
             } else if (target.equals("maintainedResources")) {
-                MaintainedResource.forceRootRefresh(waitMs);
-            } else if (ResourceWithProfile.isResourceWithProfile(target)) {
-                ResourceWithProfile.forceRefresh(target, waitMs);
+                MaintainedResourceRepository.get().forceRootRefresh(waitMs);
+            } else if (AbstractResourceWithProfile.isResourceWithProfile(target)) {
+                AbstractResourceWithProfile.get(target).forceRefresh(waitMs);
             } else {
                 QueryRef queryRef = QueryRef.parseString(target);
                 ApiCache.clearCache(queryRef, waitMs);

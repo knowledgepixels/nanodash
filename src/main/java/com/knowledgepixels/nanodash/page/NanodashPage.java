@@ -1,13 +1,13 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
-import com.knowledgepixels.nanodash.Project;
-import com.knowledgepixels.nanodash.Space;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.Project;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
@@ -65,14 +65,14 @@ public abstract class NanodashPage extends WebPage {
 //							logger.error();
 //						}
                     try {
-                        logger.info("Refreshing ...");
+                        logger.info("Refreshing data...");
                         User.refreshUsers();
                         TemplateData.refreshTemplates();
                         Space.refresh();
                         MaintainedResource.refresh();
-                        ResourceWithProfile.refresh();
+                        AbstractResourceWithProfile.refresh();
                         Project.refresh();
-                        logger.info("Refreshing done.");
+                        logger.info("Refreshing data... done");
                         lastRefresh = System.currentTimeMillis();
                     } catch (Exception ex) {
                         logger.error("Error during refresh", ex);

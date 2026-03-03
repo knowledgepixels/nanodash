@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.page.ProfilePage;

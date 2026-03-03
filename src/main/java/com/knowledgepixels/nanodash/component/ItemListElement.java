@@ -1,6 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,7 +38,7 @@ public class ItemListElement extends Panel {
             icon.setVisible(false);
         } else {
             icon.setVisible(true);
-            boolean isSoftware = User.isSoftware(userIri);
+            boolean isSoftware = IndividualAgent.isSoftware(userIri);
             icon.add(AttributeModifier.replace("class", isSoftware ? "bot-icon" : "user-icon"));
         }
         add(icon);

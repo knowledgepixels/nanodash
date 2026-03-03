@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.Project;
+import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.RestartResponseException;
@@ -52,7 +55,7 @@ public class ProjectPage extends NanodashPage {
         super(parameters);
 
         String projectId = parameters.get("id").toString();
-        if (Space.get(projectId) != null) {
+        if (SpaceRepository.get().findById(projectId) != null) {
             throw new RestartResponseException(SpacePage.class, parameters);
         }
         project = Project.get(projectId);

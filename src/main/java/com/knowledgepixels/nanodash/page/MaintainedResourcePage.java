@@ -1,10 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.MaintainedResource;
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.ResourceWithProfile;
-import com.knowledgepixels.nanodash.Space;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,11 +44,11 @@ public class MaintainedResourcePage extends NanodashPage {
     public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 
-        resource = MaintainedResource.get(parameters.get("id").toString());
+        resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
         Space space = resource.getSpace();
         resource.triggerDataUpdate();
 
-        List<ResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
+        List<AbstractResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());
         superSpaces.add(resource);
         add(new TitleBar("titlebar", this, null,
@@ -65,16 +66,16 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
 
         final List<AbstractLink> viewButtons = new ArrayList<>();
-        AbstractLink addViewButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU")
-                .set("template-version", "latest")
-                .set("param_resource", resource.getId())
-                .set("param_appliesToResource", resource.getId())
-                .set("context", resource.getId())
-                .set("refresh-upon-publish", resource.getId())
+        viewButtons.add(new AddViewDisplayButton("button",
+                        "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU",
+                        "latest",
+                        resource.getId(),
+                        resource.getId(),
+                        new PageParameters()
+                                .set("param_appliesToResource", resource.getId())
+                                .set("refresh-upon-publish", resource.getId())
+                )
         );
-        addViewButton.setBody(Model.of("+ view display"));
-        viewButtons.add(addViewButton);
 
         if (resource.isDataInitialized()) {
             add(new ViewList("views", resource, null, null, null, space, viewButtons));
