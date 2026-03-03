@@ -24,6 +24,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubResults;
@@ -133,10 +134,10 @@ public class ChannelPage extends NanodashPage {
         final String queryName;
         String pubkeyHashes = getPubkeyHashesString();
         if (pubkeyHashes == null) {
-            queryName = "get-latest-nanopubs-from-userid";
+            queryName = QueryApiAccess.GET_LATEST_NANOPUBS_FROM_USERID;
             params.put("userid", userIri.stringValue());
         } else {
-            queryName = "get-latest-nanopubs-from-pubkeys";
+            queryName = QueryApiAccess.GET_LATEST_NANOPUBS_FROM_PUBKEYS;
             params.put("pubkeyhashes", pubkeyHashes);
             params.put("userid", userIri.stringValue());
         }

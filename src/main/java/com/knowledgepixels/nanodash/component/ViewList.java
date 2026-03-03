@@ -24,20 +24,38 @@ public class ViewList extends Panel {
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
     public ViewList(String markupId, ResourceWithProfile resourceWithProfile) {
-        this(markupId, resourceWithProfile, null, null, null, null, null);
+        this(markupId, resourceWithProfile, null, null, null, null, null, true, null);
     }
 
     public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses) {
-        this(markupId, resourceWithProfile, partId, nanopubId, partClasses, null, null);
+        this(markupId, resourceWithProfile, partId, nanopubId, partClasses, null, null, true, null);
     }
 
     public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
+        this(markupId, resourceWithProfile, partId, nanopubId, partClasses, footerResource, footerAdminButtons, true, null);
+    }
+
+    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice) {
+        this(markupId, resourceWithProfile, partId, nanopubId, partClasses, footerResource, footerAdminButtons, showEmptyNotice, null);
+    }
+
+    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays) {
+        this(markupId, resourceWithProfile, null, null, null, null, null, false, explicitViewDisplays);
+    }
+
+    public ViewList(String markupId, ResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
+        this(markupId, resourceWithProfile, null, null, null, footerResource, footerAdminButtons, false, explicitViewDisplays);
+    }
+
+    private ViewList(String markupId, ResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, ResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice, List<ViewDisplay> explicitViewDisplays) {
         super(markupId);
 
         final String id = (partId == null ? resourceWithProfile.getId() : partId);
         final String npId = (nanopubId == null ? resourceWithProfile.getNanopubId() : nanopubId);
         final List<ViewDisplay> viewDisplays;
-        if (partId == null) {
+        if (explicitViewDisplays != null) {
+            viewDisplays = explicitViewDisplays;
+        } else if (partId == null) {
             viewDisplays = resourceWithProfile.getTopLevelViewDisplays();
         } else {
             viewDisplays = resourceWithProfile.getPartLevelViewDisplays(partId, partClasses);
@@ -140,7 +158,7 @@ public class ViewList extends Panel {
             }
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(viewDisplays.isEmpty()));
+        add(new WebMarkupContainer("emptynotice").setVisible(showEmptyNotice && viewDisplays.isEmpty()));
 
         WebMarkupContainer footerSection = new WebMarkupContainer("footer-section");
         if (footerAdminButtons != null) {
