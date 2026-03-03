@@ -31,7 +31,7 @@ public class SpaceRepository {
         return INSTANCE;
     }
 
-    private List<Space> spaceList;
+    private volatile List<Space> spaceList;
     private Map<String, List<Space>> spaceListByType;
     private Map<String, Space> spacesById;
     private Map<Space, Set<Space>> subspaceMap;

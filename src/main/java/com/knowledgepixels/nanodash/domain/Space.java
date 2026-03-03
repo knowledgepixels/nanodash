@@ -344,9 +344,9 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private synchronized Thread triggerSpaceDataUpdate() {
-        logger.info("Triggering data update for space {} core data", getId());
         if (dataNeedsUpdate) {
             logger.info("Data needs update for space {} core data, starting update thread", getId());
+            dataNeedsUpdate = false;
             Thread thread = new Thread(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {
@@ -433,10 +433,10 @@ public class Space extends AbstractResourceWithProfile {
                     dataInitialized = true;
                 } catch (Exception ex) {
                     logger.error("Error while trying to update space data: {}", ex.getMessage());
+                    dataNeedsUpdate = true;
                 }
             });
             thread.start();
-            dataNeedsUpdate = false;
             return thread;
         }
         return null;

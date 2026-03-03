@@ -22,12 +22,13 @@ public class MaintainedResourceRepository {
 
     private static final MaintainedResourceRepository INSTANCE = new MaintainedResourceRepository();
 
-    private List<MaintainedResource> resourceList;
+    private volatile List<MaintainedResource> resourceList;
     private Map<String, MaintainedResource> resourcesById;
     private Map<String, MaintainedResource> resourcesByNamespace;
     private Map<Space, List<MaintainedResource>> resourcesBySpace;
     private boolean loaded = false;
-    private Long runRootUpdateAfter = null;
+    private volatile Long runRootUpdateAfter = null;
+    private final Object loadLock = new Object();
 
     /**
      * Get the singleton instance of MaintainedResourceRepository.
@@ -109,10 +110,14 @@ public class MaintainedResourceRepository {
     public void ensureLoaded() {
         if (resourceList == null) {
             try {
-                while (runRootUpdateAfter != null && System.currentTimeMillis() < runRootUpdateAfter) {
-                    Thread.sleep(100);
+                synchronized (loadLock) {
+                    if (runRootUpdateAfter != null) {
+                        while (runRootUpdateAfter != null && System.currentTimeMillis() < runRootUpdateAfter) {
+                            Thread.sleep(100);
+                        }
+                        runRootUpdateAfter = null;
+                    }
                 }
-                runRootUpdateAfter = null;
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }

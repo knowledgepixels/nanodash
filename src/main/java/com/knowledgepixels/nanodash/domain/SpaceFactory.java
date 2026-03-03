@@ -10,6 +10,9 @@ import java.util.Set;
  */
 public class SpaceFactory {
 
+    private SpaceFactory() {
+    }
+
     /**
      * Retrieves an existing Space instance based on the API response entry or creates a new one if it doesn't exist.
      *

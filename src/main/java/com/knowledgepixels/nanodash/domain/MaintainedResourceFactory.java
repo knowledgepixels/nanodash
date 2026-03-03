@@ -10,6 +10,9 @@ import java.util.Set;
  */
 public class MaintainedResourceFactory {
 
+    private MaintainedResourceFactory() {
+    }
+
     /**
      * Retrieves an existing MaintainedResource instance based on the API response entry and associated space, or creates a new one if it doesn't exist.
      *

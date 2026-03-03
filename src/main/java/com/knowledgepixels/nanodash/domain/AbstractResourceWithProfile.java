@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Abstract class representing a resource with a profile in the Nanodash application.
@@ -21,14 +22,14 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractResourceWithProfile.class);
 
-    private static final Map<Class<?>, Map<String, AbstractResourceWithProfile>> instances = new HashMap<>();
+    private static final Map<Class<?>, Map<String, AbstractResourceWithProfile>> instances = new ConcurrentHashMap<>();
 
     private final String id;
     private Space space;
     private ResourceWithProfile data = new ResourceWithProfile();
-    private boolean dataInitialized = false;
-    private boolean dataNeedsUpdate = true;
-    private Long runUpdateAfter = null;
+    private volatile boolean dataInitialized = false;
+    private volatile boolean dataNeedsUpdate = true;
+    private volatile Long runUpdateAfter = null;
 
     /**
      * Inner class to hold the data associated with a resource, including its view displays.
@@ -69,7 +70,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      */
     protected AbstractResourceWithProfile(String id) {
         this.id = id;
-        instances.computeIfAbsent(getClass(), k -> new HashMap<>()).put(id, this);
+        instances.computeIfAbsent(getClass(), k -> new ConcurrentHashMap<>()).put(id, this);
     }
 
     /**
@@ -112,9 +113,9 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     @Override
     public synchronized Thread triggerDataUpdate() {
-        logger.info("Triggering data update for resource {}", id);
         if (dataNeedsUpdate) {
             logger.info("Data needs update for resource {}, starting update thread", id);
+            dataNeedsUpdate = false;
             Thread thread = new Thread(() -> {
                 try {
                     if (runUpdateAfter != null) {
@@ -144,7 +145,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                 }
             });
             thread.start();
-            dataNeedsUpdate = false;
             return thread;
         }
         return null;
