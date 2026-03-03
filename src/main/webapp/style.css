@@ -2061,13 +2061,15 @@ td div:has(.button-list) {
 .view-selector.with-source {
   display: inline-block;
   position: absolute;
+  top: 0;
   right: 0;
   padding-right: 0;
 }
 
 .view-selector.with-source .buttons {
-  margin: 0 0 0 10px;
+  display: inline-block;
   vertical-align: middle;
+  margin: 0 0 0 10px;
 }
 
 .view-selector.with-source .buttons .source {
