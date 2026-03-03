@@ -12,7 +12,6 @@ import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
-import org.apache.wicket.markup.head.StringHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -120,8 +119,14 @@ public abstract class NanodashPage extends WebPage {
         String umamiWebsiteId = NanodashPreferences.get().getUmamiWebsiteId();
         if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()
                 && umamiWebsiteId != null && !umamiWebsiteId.isBlank()) {
-            response.render(StringHeaderItem.forString(
-                "<script defer src=\"" + umamiScriptUrl + "\" data-website-id=\"" + umamiWebsiteId + "\"></script>\n"));
+            String umamiJs = "(function(){" +
+                "var s=document.createElement('script');" +
+                "s.src='" + umamiScriptUrl + "';" +
+                "s.defer=true;" +
+                "s.setAttribute('data-website-id','" + umamiWebsiteId + "');" +
+                "document.head.appendChild(s);" +
+                "})();";
+            response.render(JavaScriptHeaderItem.forScript(umamiJs, "umami-loader"));
         }
     }
 
