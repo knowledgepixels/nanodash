@@ -1,6 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.Project;
+import com.knowledgepixels.nanodash.domain.Project;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.component.ItemListElement;

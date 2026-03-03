@@ -3,7 +3,7 @@ package com.knowledgepixels.nanodash.page;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;

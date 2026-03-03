@@ -12,7 +12,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;

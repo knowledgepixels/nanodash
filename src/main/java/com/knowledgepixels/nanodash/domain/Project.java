@@ -1,5 +1,8 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;

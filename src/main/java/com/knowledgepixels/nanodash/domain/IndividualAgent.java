@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import org.eclipse.rdf4j.model.IRI;

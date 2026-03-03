@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.RestrictedChoice;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;

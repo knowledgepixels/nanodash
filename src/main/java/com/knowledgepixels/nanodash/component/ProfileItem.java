@@ -2,7 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;

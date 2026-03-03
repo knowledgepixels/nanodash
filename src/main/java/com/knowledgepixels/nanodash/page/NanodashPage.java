@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.Project;
-import com.knowledgepixels.nanodash.User;
+import com.knowledgepixels.nanodash.domain.Project;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;

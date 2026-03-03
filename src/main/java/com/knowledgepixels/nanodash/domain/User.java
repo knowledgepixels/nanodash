@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;

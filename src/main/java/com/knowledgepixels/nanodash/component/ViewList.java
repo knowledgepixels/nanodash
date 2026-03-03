@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;

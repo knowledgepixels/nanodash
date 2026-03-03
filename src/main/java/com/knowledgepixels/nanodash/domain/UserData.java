@@ -1,5 +1,6 @@
-package com.knowledgepixels.nanodash;
+package com.knowledgepixels.nanodash.domain;
 
+import com.knowledgepixels.nanodash.*;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;

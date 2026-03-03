@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.AttributeModifier;

@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.knowledgepixels.nanodash.action.RetractionAction;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.*;
