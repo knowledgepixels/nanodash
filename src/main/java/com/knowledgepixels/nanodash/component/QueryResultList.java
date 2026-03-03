@@ -49,12 +49,6 @@ public class QueryResultList extends QueryResult {
             label = viewDisplay.getView().getTitle();
         }
         add(new Label("label", label));
-        if (viewDisplay.getNanopubId() != null) {
-            add(new ViewDisplayMenu("np", viewDisplay, queryRef));
-        } else {
-            add(new Label("np").setVisible(false));
-        }
-
         setOutputMarkupId(true);
         populateComponent();
     }

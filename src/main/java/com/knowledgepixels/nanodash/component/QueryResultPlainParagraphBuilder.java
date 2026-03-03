@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
@@ -27,6 +28,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
     private QueryRef queryRef;
     private Space space = null;
     private String id = null;
+    private AbstractResourceWithProfile pageResource = null;
 
     // This method is the result of refactoring and copying code from other classes done
     // by Cursor. This should in general be aligned and refactored more with the other classes.
@@ -99,6 +101,11 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
         return this;
     }
 
+    public QueryResultPlainParagraphBuilder pageResource(AbstractResourceWithProfile pageResource) {
+        this.pageResource = pageResource;
+        return this;
+    }
+
     /**
      * Builds the QueryResultPlainParagraph component.
      *
@@ -110,6 +117,8 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
             if (response != null) {
                 QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
                 resultPlainParagraph.setProfiledResource(space);
+                resultPlainParagraph.setPageResource(pageResource);
+                resultPlainParagraph.setPageResource(pageResource);
                 resultPlainParagraph.setContextId(contextId);
                 addResultButtons(resultPlainParagraph);
                 return resultPlainParagraph;
@@ -119,6 +128,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
                         resultPlainParagraph.setProfiledResource(space);
+                        resultPlainParagraph.setPageResource(pageResource);
                         resultPlainParagraph.setContextId(contextId);
                         addResultButtons(resultPlainParagraph);
                         return resultPlainParagraph;
@@ -128,6 +138,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
         } else {
             if (response != null) {
                 QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
+                resultPlainParagraph.setPageResource(pageResource);
                 resultPlainParagraph.setContextId(contextId);
                 addResultButtons(resultPlainParagraph);
                 return resultPlainParagraph;

@@ -106,6 +106,7 @@ public class QueryResultTableBuilder implements Serializable {
                     table.setPartId(id);
                 }
                 table.setProfiledResource(resourceWithProfile);
+                table.setPageResource(resourceWithProfile);
                 View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
@@ -150,6 +151,7 @@ public class QueryResultTableBuilder implements Serializable {
                             table.setPartId(id);
                         }
                         table.setProfiledResource(resourceWithProfile);
+                        table.setPageResource(resourceWithProfile);
                         View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {

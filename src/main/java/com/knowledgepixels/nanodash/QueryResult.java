@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.ButtonList;
+import com.knowledgepixels.nanodash.component.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -29,6 +30,8 @@ public abstract class QueryResult extends Panel {
     protected final ViewDisplay viewDisplay;
     protected final ApiResponse response;
     protected AbstractResourceWithProfile resourceWithProfile;
+    protected AbstractResourceWithProfile pageResource;
+    protected boolean showViewDisplayMenu = true;
     protected final GrlcQuery grlcQuery;
 
     /**
@@ -57,6 +60,13 @@ public abstract class QueryResult extends Panel {
             } else {
                 add(new Label("buttons").setVisible(false));
             }
+            if (showViewDisplayMenu) {
+                if (viewDisplay.getNanopubId() != null) {
+                    add(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
+                } else {
+                    add(new Label("np").setVisible(false));
+                }
+            }
             finalized = true;
         }
         super.onBeforeRender();
@@ -69,6 +79,10 @@ public abstract class QueryResult extends Panel {
      */
     public void setProfiledResource(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
+    }
+
+    public void setPageResource(AbstractResourceWithProfile pageResource) {
+        this.pageResource = pageResource;
     }
 
     /**

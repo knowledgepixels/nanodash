@@ -50,17 +50,13 @@ public class QueryResultTable extends QueryResult {
         if (plain) {
             add(new Label("label").setVisible(false));
             add(new Label("np").setVisible(false));
+            showViewDisplayMenu = false;
         } else {
             String label = grlcQuery.getLabel();
             if (viewDisplay.getTitle() != null) {
                 label = viewDisplay.getTitle();
             }
             add(new Label("label", label));
-            if (viewDisplay.getNanopubId() != null) {
-                add(new ViewDisplayMenu("np", viewDisplay, queryRef));
-            } else {
-                add(new Label("np").setVisible(false));
-            }
         }
 
         errorLabel = new Label("error-messages", errorMessages);
