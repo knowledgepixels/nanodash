@@ -1922,7 +1922,7 @@ div.navigator .goto a[disabled] {
   color: #0B73DA;
 }
 
-.paneltitlerow span.buttons .actionmenu {
+.paneltitlerow > span.buttons .actionmenu {
   margin-top: 14px;
   display: inline-block;
   vertical-align: bottom;
@@ -2069,7 +2069,7 @@ td div:has(.button-list) {
 .view-selector.with-source .buttons {
   display: inline-block;
   vertical-align: middle;
-  margin: 0 0 0 10px;
+  margin: 0 0 0 16px;
 }
 
 .view-selector.with-source .buttons .source {
