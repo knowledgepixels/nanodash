@@ -8,6 +8,8 @@ services:
       - NANOPUB_ORCID_CLIENT_SECRET=your-orcid-client-secret
       - NANODASH_MAIN_REGISTRY=https://registry.knowledgepixels.com/
       - NANODASH_MAIN_QUERY=https://query.knowledgepixels.com/
+      - NANODASH_UMAMI_SCRIPT_URL=https://your.umami.instance/script.js
+      - NANODASH_UMAMI_WEBSITE_ID=your-umami-website-id
 
   backup-keys:
     build: ./backup-keys

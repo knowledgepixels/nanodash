@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.domain.Project;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -114,6 +115,19 @@ public abstract class NanodashPage extends WebPage {
         super.renderHead(response);
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
+        String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
+        String umamiWebsiteId = NanodashPreferences.get().getUmamiWebsiteId();
+        if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()
+                && umamiWebsiteId != null && !umamiWebsiteId.isBlank()) {
+            String umamiJs = "(function(){" +
+                "var s=document.createElement('script');" +
+                "s.src='" + umamiScriptUrl + "';" +
+                "s.defer=true;" +
+                "s.setAttribute('data-website-id','" + umamiWebsiteId + "');" +
+                "document.head.appendChild(s);" +
+                "})();";
+            response.render(JavaScriptHeaderItem.forScript(umamiJs, "umami-loader"));
+        }
     }
 
 }

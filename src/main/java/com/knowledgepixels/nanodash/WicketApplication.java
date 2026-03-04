@@ -184,6 +184,13 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         getStoreSettings().setMaxSizePerSession(Bytes.MAX);
 
         registerListeners();
+
+        String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
+        if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()) {
+            logger.info("Umami analytics configured: {}", umamiScriptUrl);
+        } else {
+            logger.info("Umami analytics not configured (set NANODASH_UMAMI_SCRIPT_URL and NANODASH_UMAMI_WEBSITE_ID)");
+        }
     }
 
     /**
