@@ -33,12 +33,6 @@ public class QueryResultPlainParagraph extends QueryResult {
             label = viewDisplay.getView().getTitle();
         }
         add(new Label("label", label));
-        if (viewDisplay.getNanopubId() != null) {
-            add(new SourceNanopub("np", viewDisplay.getNanopubId(), "smallbutton"));
-        } else {
-            add(new Label("np").setVisible(false));
-        }
-
         setOutputMarkupId(true);
         populateComponent();
     }

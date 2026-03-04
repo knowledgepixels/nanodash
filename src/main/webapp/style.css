@@ -785,8 +785,8 @@ input[type=radio] + label strong {
 .actionmenu-button {
   font-size: 7pt;
   font-weight: 700;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   margin: 1px;
   background-color: #0B73DA;
@@ -819,6 +819,7 @@ input[type=radio] + label strong {
   min-width: 250px;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
   z-index: 1;
+  text-align: left;
 }
 
 .actionmenu-content a {
@@ -1921,6 +1922,12 @@ div.navigator .goto a[disabled] {
   color: #0B73DA;
 }
 
+.paneltitlerow > span.buttons .actionmenu {
+  margin-top: 16px;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
 .paneltitlerow span.buttons a.source:hover {
   background: none;
   color: #0B73DAC0;
@@ -2015,7 +2022,8 @@ td div:has(.button-list) {
   padding: 20px;
 }
 
-.view-selector span {
+.view-selector .list,
+.view-selector .grid {
   display: inline-block;
   margin-left: 10px;
   vertical-align: middle;
@@ -2053,11 +2061,15 @@ td div:has(.button-list) {
 .view-selector.with-source {
   display: inline-block;
   position: absolute;
+  top: 0;
   right: 0;
+  padding-right: 0;
 }
 
 .view-selector.with-source .buttons {
-  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0 0 16px;
 }
 
 .view-selector.with-source .buttons .source {

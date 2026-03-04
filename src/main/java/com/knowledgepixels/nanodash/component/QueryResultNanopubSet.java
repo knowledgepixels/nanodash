@@ -55,6 +55,7 @@ public class QueryResultNanopubSet extends QueryResult {
 
         viewSelector.add(new Label("np"));
         add(viewSelector);
+        showViewDisplayMenu = false; // handled in populateComponent() inside viewSelector
 
         String titleLabel = grlcQuery.getLabel();
         if (viewDisplay.getView().getTitle() != null) {
@@ -72,7 +73,7 @@ public class QueryResultNanopubSet extends QueryResult {
         add(nanopubResults);
 
         if (viewDisplay.getNanopubId() != null) {
-            viewSelector.addOrReplace(new SourceNanopub("np", viewDisplay.getNanopubId()));
+            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
         } else {
             viewSelector.addOrReplace(new Label("np").setVisible(false));
         }

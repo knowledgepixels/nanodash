@@ -128,6 +128,7 @@ public class QueryPage extends NanodashPage {
 
             protected void populateItem(ListItem<QueryParamField> item) {
                 QueryParamField f = item.getModelObject();
+                f.clearValue();
                 for (StringValue parameter : parameters.getValues("queryparam_" + f.getParamName())) {
                     f.putValue(parameter.toString().replaceFirst("\\s*$", ""));
                 }

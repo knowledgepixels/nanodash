@@ -132,6 +132,7 @@ public class ViewList extends Panel {
                             if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                                 item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
                                         .space(resourceWithProfile.getSpace())
+                                        .pageResource(resourceWithProfile)
                                         .id(id)
                                         .contextId(resourceWithProfile.getId())
                                         .build());
@@ -143,11 +144,13 @@ public class ViewList extends Panel {
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
                                 item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
+                                        .pageResource(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .id(id)
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
                                 item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
+                                        .pageResource(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .build());
                             } else {

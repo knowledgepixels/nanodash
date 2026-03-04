@@ -85,12 +85,21 @@ public class QueryParamField extends Panel {
      * @param value the value to be set/added
      */
     public void putValue(String value) {
-        if (value == null) return;
+        if (value == null) {
+            return;
+        }
         if (isMultiPlaceholder()) {
             formComponent.getModel().setObject(formComponent.getModel().getObject() + value + "\n");
         } else {
             formComponent.getModel().setObject(value);
         }
+    }
+
+    /**
+     * Clears the value of the field, setting it to an empty string.
+     */
+    public void clearValue() {
+        formComponent.getModel().setObject("");
     }
 
     /**

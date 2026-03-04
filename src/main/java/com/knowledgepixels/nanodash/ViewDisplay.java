@@ -191,6 +191,15 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return nanopub.getUri();
     }
 
+    /**
+     * Gets the nanopub associated with this ViewDisplay
+     *
+     * @return the nanopub, or null if not available
+     */
+    public Nanopub getNanopub() {
+        return nanopub;
+    }
+
     public Integer getPageSize() {
         if (pageSize != null) return pageSize;
         if (view == null) return 10;

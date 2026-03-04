@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.Component;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
@@ -18,6 +19,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     private String contextId = null;
     private final QueryRef queryRef;
     private boolean hasTitle = true;
+    private AbstractResourceWithProfile pageResource = null;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -48,6 +50,11 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         return this;
     }
 
+    public QueryResultNanopubSetBuilder pageResource(AbstractResourceWithProfile pageResource) {
+        this.pageResource = pageResource;
+        return this;
+    }
+
     /**
      * Removes the title from the QueryResultNanopubSet.
      *
@@ -68,6 +75,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         if (response != null) {
             QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
             queryResultNanopubSet.setContextId(contextId);
+            queryResultNanopubSet.setPageResource(pageResource);
             queryResultNanopubSet.populateComponent();
             queryResultNanopubSet.setTitleVisible(hasTitle);
             return queryResultNanopubSet;
@@ -77,6 +85,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
                     QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
                     queryResultNanopubSet.setContextId(contextId);
+                    queryResultNanopubSet.setPageResource(pageResource);
                     queryResultNanopubSet.populateComponent();
                     queryResultNanopubSet.setTitleVisible(hasTitle);
                     return queryResultNanopubSet;

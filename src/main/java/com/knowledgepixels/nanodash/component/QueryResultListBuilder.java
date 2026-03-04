@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
@@ -25,6 +26,7 @@ public class QueryResultListBuilder implements Serializable {
     private QueryRef queryRef;
     private Space space = null;
     private String id = null;
+    private AbstractResourceWithProfile pageResource = null;
 
     private QueryResultListBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -65,6 +67,11 @@ public class QueryResultListBuilder implements Serializable {
         return this;
     }
 
+    public QueryResultListBuilder pageResource(AbstractResourceWithProfile pageResource) {
+        this.pageResource = pageResource;
+        return this;
+    }
+
     /**
      * Builds the QueryResultList component.
      *
@@ -76,6 +83,7 @@ public class QueryResultListBuilder implements Serializable {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setProfiledResource(space);
+                resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
                 View view = viewDisplay.getView();
                 if (view != null) {
@@ -117,6 +125,7 @@ public class QueryResultListBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setProfiledResource(space);
+                        resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
                         View view = viewDisplay.getView();
                         if (view != null) {
@@ -158,6 +167,7 @@ public class QueryResultListBuilder implements Serializable {
         } else {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
+                resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
                 return resultList;
             } else {
@@ -165,6 +175,7 @@ public class QueryResultListBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
+                        resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
                         return resultList;
                     }
