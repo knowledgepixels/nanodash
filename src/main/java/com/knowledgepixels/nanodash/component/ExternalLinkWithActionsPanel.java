@@ -11,6 +11,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * External link with Actions Panel that allows to copy the link and explore it through the Nanodash ExplorePage.
@@ -19,11 +20,17 @@ public class ExternalLinkWithActionsPanel extends Panel {
 
     private final IModel<String> urlModel;
     private final IModel<String> labelModel;
+    private IRI sourceNanopub;
 
     public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel) {
         super(id);
         this.urlModel = urlModel;
         this.labelModel = labelModel;
+    }
+
+    public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel, IRI sourceNanopub) {
+        this(id, urlModel, labelModel);
+        this.sourceNanopub = sourceNanopub;
     }
 
     @Override
@@ -32,6 +39,12 @@ public class ExternalLinkWithActionsPanel extends Panel {
 
         ExternalLink externalLink = new ExternalLink("externalLink", urlModel, urlModel);
         add(externalLink);
+
+        if (sourceNanopub != null) {
+            add(new SourceNanopub("np", sourceNanopub));
+        } else {
+            add(new Label("np", "").setVisible(false));
+        }
 
         AjaxLink<Void> copyLinkButton = new AjaxLink<>("copyLinkButton") {
             @Override

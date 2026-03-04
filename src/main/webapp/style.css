@@ -2217,12 +2217,21 @@ a.source:hover {
   font-family: sans-serif;
 }
 
+.link-actions-panel > a:first-child {
+  margin-right: 8px;
+}
+
+.link-actions-panel > a:not(:first-child) {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+}
+
 .copy-link-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
-  border: 1px solid #ccc;
   border-radius: 4px;
   padding: 4px;
   cursor: pointer;
