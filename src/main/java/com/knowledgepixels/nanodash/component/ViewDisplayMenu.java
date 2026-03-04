@@ -71,7 +71,7 @@ public class ViewDisplayMenu extends Panel {
         String adjustUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(templateUri)
                 + "&" + adjustParam + "=" + Utils.urlEncode(nanopubId.stringValue())
                 + "&template-version=latest";
-        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "adjust");
+        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display");
         adjustLink.setVisible(showAdjust);
         add(adjustLink);
 
