@@ -88,7 +88,6 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel()), np.getUri()));
-        //add(new SourceNanopub("np", np.getUri()));
 
         add(new ItemListPanel<String>(
                 "altids",

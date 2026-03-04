@@ -8,7 +8,6 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
@@ -40,12 +39,6 @@ public class ExternalLinkWithActionsPanel extends Panel {
         ExternalLink externalLink = new ExternalLink("externalLink", urlModel, urlModel);
         add(externalLink);
 
-        if (sourceNanopub != null) {
-            add(new SourceNanopub("np", sourceNanopub));
-        } else {
-            add(new Label("np", "").setVisible(false));
-        }
-
         AjaxLink<Void> copyLinkButton = new AjaxLink<>("copyLinkButton") {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -61,14 +54,19 @@ public class ExternalLinkWithActionsPanel extends Panel {
         copyLinkButton.add(new Image("copyIcon", new ContextRelativeResourceReference("images/copy-icon.svg", false)));
         add(copyLinkButton);
 
-        AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
-            }
-        };
-        exploreButton.add(new Label("exploreLabel", Model.of("Explore")));
-        add(exploreButton);
+        if (sourceNanopub != null) {
+            add(new Label("exploreButton", "").setVisible(false));
+            add(new ExploreDisplayMenu("np", urlModel.getObject(), labelModel.getObject(), sourceNanopub));
+        } else {
+            add(new Label("np", "").setVisible(false));
+            AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
+                }
+            };
+            add(exploreButton);
+        }
     }
 
     @Override

@@ -3,18 +3,15 @@
 <body>
 <wicket:panel>
   <div class="link-actions-panel">
-    <span>
-      <a wicket:id="externalLink" target="_blank" rel="noopener noreferrer"></a>
-      <a wicket:id="np">[np]</a>
-    </span>
+    <a wicket:id="externalLink" target="_blank" rel="noopener noreferrer"></a>
 
     <a wicket:id="copyLinkButton" class="copy-link-btn">
       <img wicket:id="copyIcon" alt="Copy link" width="16" height="16"/>
     </a>
 
-    <a wicket:id="exploreButton" class="smallbutton button light">
-      <span wicket:id="exploreLabel">Explore</span>
-    </a>
+    <wicket:container wicket:id="np">[np]</wicket:container>
+
+    <a wicket:id="exploreButton" class="smallbutton button light">Explore</a>
   </div>
 </wicket:panel>
 </body>
