@@ -20,6 +20,31 @@ You can use Nanodash by login in via ORCID in one of the online instances:
 
 To use Nanodash locally, see the [installation instructions with Docker](INSTALL-with-Docker.md).
 
+
+### Analytics
+
+Nanodash supports privacy-friendly, cookie-free analytics via [Umami](https://umami.is/).
+Analytics are disabled by default and can be enabled by pointing Nanodash at an existing Umami instance.
+
+**Docker / environment variables** (recommended for server deployments) — add to your `docker-compose.override.yml`:
+
+```yaml
+services:
+  nanodash:
+    environment:
+      - NANODASH_UMAMI_SCRIPT_URL=https://your.umami.instance/script.js
+      - NANODASH_UMAMI_WEBSITE_ID=your-umami-website-id
+```
+
+**YAML preferences file** (convenient for local development) — add to `~/.nanopub/nanodash-preferences.yml`:
+
+```yaml
+umamiScriptUrl: https://your.umami.instance/script.js
+umamiWebsiteId: your-umami-website-id
+```
+
+When configured, Nanodash logs `Umami analytics configured: <url>` at startup to confirm the setting was picked up.
+
 ### Screenshot
 
 This screenshot of Nanodash is showing its publishing feature with auto-complete-powered forms generated from semantic

@@ -49,6 +49,8 @@ public class NanodashPreferences implements Serializable {
     private String orcidClientId;
     private String orcidClientSecret;
     private String settingUri;
+    private String umamiScriptUrl;
+    private String umamiWebsiteId;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -208,6 +210,46 @@ public class NanodashPreferences implements Serializable {
      */
     public void setSettingUri(String settingUri) {
         this.settingUri = settingUri;
+    }
+
+    /**
+     * Get the Umami analytics script URL.
+     *
+     * @return the Umami script URL, or null if not configured
+     */
+    public String getUmamiScriptUrl() {
+        String s = System.getenv("NANODASH_UMAMI_SCRIPT_URL");
+        if (s != null && !s.isBlank()) return s;
+        return umamiScriptUrl;
+    }
+
+    /**
+     * Set the Umami analytics script URL.
+     *
+     * @param umamiScriptUrl the Umami script URL to set
+     */
+    public void setUmamiScriptUrl(String umamiScriptUrl) {
+        this.umamiScriptUrl = umamiScriptUrl;
+    }
+
+    /**
+     * Get the Umami analytics website ID.
+     *
+     * @return the Umami website ID, or null if not configured
+     */
+    public String getUmamiWebsiteId() {
+        String s = System.getenv("NANODASH_UMAMI_WEBSITE_ID");
+        if (s != null && !s.isBlank()) return s;
+        return umamiWebsiteId;
+    }
+
+    /**
+     * Set the Umami analytics website ID.
+     *
+     * @param umamiWebsiteId the Umami website ID to set
+     */
+    public void setUmamiWebsiteId(String umamiWebsiteId) {
+        this.umamiWebsiteId = umamiWebsiteId;
     }
 
 }
