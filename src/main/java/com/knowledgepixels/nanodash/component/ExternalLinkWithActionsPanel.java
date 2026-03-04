@@ -19,12 +19,16 @@ import org.eclipse.rdf4j.model.IRI;
 public class ExternalLinkWithActionsPanel extends Panel {
 
     private final IModel<String> urlModel;
-    private final IModel<String> labelModel;
+    private IModel<String> labelModel;
     private IRI sourceNanopub;
 
-    public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel) {
+    public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel) {
         super(id);
         this.urlModel = urlModel;
+    }
+
+    public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel) {
+        this(id, urlModel);
         this.labelModel = labelModel;
     }
 
@@ -60,13 +64,17 @@ public class ExternalLinkWithActionsPanel extends Panel {
             add(new ExploreDisplayMenu("np", urlModel.getObject(), labelModel.getObject(), sourceNanopub));
         } else {
             add(new Label("np", "").setVisible(false));
-            AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
-                }
-            };
-            add(exploreButton);
+            if (labelModel != null) {
+                AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
+                    }
+                };
+                add(exploreButton);
+            } else {
+                add(new Label("exploreButton", "").setVisible(false));
+            }
         }
     }
 
@@ -74,7 +82,9 @@ public class ExternalLinkWithActionsPanel extends Panel {
     protected void onDetach() {
         super.onDetach();
         urlModel.detach();
-        labelModel.detach();
+        if (labelModel != null) {
+            labelModel.detach();
+        }
     }
 
 }

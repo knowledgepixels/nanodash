@@ -261,7 +261,10 @@ public class ExplorePage extends NanodashPage {
         }
         add(new Label("pagetitle", shortName + " (explore) | nanodash"));
         add(new Label("termname", shortName));
-        add(new ExternalLink("urilink", ref, ref));
+
+        //add(new ExternalLink("urilink", ref, ref));
+        add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
+
         if (publishedNanopub != null) {
             add(new Label("statusline", "<h4>Status</h4><p>Successfully published.</p>").setEscapeModelStrings(false));
         } else if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
