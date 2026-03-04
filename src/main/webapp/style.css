@@ -785,8 +785,8 @@ input[type=radio] + label strong {
 .actionmenu-button {
   font-size: 7pt;
   font-weight: 700;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   margin: 1px;
   background-color: #0B73DA;
@@ -1923,7 +1923,7 @@ div.navigator .goto a[disabled] {
 }
 
 .paneltitlerow > span.buttons .actionmenu {
-  margin-top: 14px;
+  margin-top: 16px;
   display: inline-block;
   vertical-align: bottom;
 }
