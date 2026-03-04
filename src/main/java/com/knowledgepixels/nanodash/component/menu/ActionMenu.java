@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.component;
+package com.knowledgepixels.nanodash.component.menu;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.action.NanopubAction;

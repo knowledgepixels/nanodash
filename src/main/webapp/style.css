@@ -2209,3 +2209,37 @@ a.source:hover {
 .mode-advanced .mode-toggle-arrow {
   transform: scale(1, -1);
 }
+
+.link-actions-panel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: sans-serif;
+}
+
+.link-actions-panel > a:first-child {
+  margin-right: 8px;
+}
+
+.link-actions-panel > a:not(:first-child) {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+}
+
+.copy-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+}
+
+.copy-link-btn:hover {
+  background: #f0f0f0;
+  color: #1a73e8;
+}
