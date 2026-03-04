@@ -30,7 +30,7 @@ public class ExternalLinkWithActionsPanel extends Panel {
     protected void onInitialize() {
         super.onInitialize();
 
-        ExternalLink externalLink = new ExternalLink("externalLink", urlModel, labelModel);
+        ExternalLink externalLink = new ExternalLink("externalLink", urlModel, urlModel);
         add(externalLink);
 
         AjaxLink<Void> copyLinkButton = new AjaxLink<>("copyLinkButton") {
@@ -51,7 +51,7 @@ public class ExternalLinkWithActionsPanel extends Panel {
         AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()));
+                setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
             }
         };
         exploreButton.add(new Label("exploreLabel", Model.of("Explore")));
