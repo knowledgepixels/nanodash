@@ -13,7 +13,6 @@ import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
@@ -22,7 +21,7 @@ import org.nanopub.extra.services.QueryRef;
  * A dropdown menu panel for view displays, replacing the "^" source link.
  * Provides options to show the query, adjust the view display, and see its declaration.
  */
-public class ViewDisplayMenu extends Panel {
+public class ViewDisplayMenu extends BaseDisplayMenu {
 
     /**
      * Constructs a ViewDisplayMenu.
@@ -39,7 +38,7 @@ public class ViewDisplayMenu extends Panel {
         for (var entry : queryRef.getParams().entries()) {
             showQueryParams.add("queryparam_" + entry.getKey(), entry.getValue());
         }
-        add(new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams));
+        addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams));
 
         IRI nanopubId = viewDisplay.getNanopubId();
 
@@ -73,9 +72,9 @@ public class ViewDisplayMenu extends Panel {
                 + "&template-version=latest";
         ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "adjust");
         adjustLink.setVisible(showAdjust);
-        add(adjustLink);
+        addEntry("adjust", adjustLink);
 
-        add(new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
+        addEntry("viewDeclaration", new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
                 new PageParameters().set("id", nanopubId)));
     }
 

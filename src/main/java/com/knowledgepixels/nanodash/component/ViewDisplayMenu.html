@@ -2,20 +2,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 
 <head>
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
 </head>
 <body>
 
-<wicket:panel>
-<span class="actionmenu">
-<button class="actionmenu-button">▼</button>
-<span class="actionmenu-content">
-<a href="#" wicket:id="showQuery">show query</a>
-<a href="#" wicket:id="adjust">adjust</a>
-<a href="#" wicket:id="viewDeclaration">see view display declaration</a>
-</span>
-</span>
-</wicket:panel>
+<wicket:extend>
+  <a wicket:id="showQuery">show query</a>
+  <a wicket:id="adjust">adjust</a>
+  <a wicket:id="viewDeclaration">see view display declaration</a>
+</wicket:extend>
 
 </body>
 
