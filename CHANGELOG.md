@@ -1,3 +1,100 @@
+## [4.15.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.14.0...nanodash-4.15.0) (2026-03-04)
+
+### Features
+
+* add `AddViewDisplayButton` component for linking to PublishPage with pre-filled parameters ([60955a0](https://github.com/knowledgepixels/nanodash/commit/60955a0700d0cd99337953c479b1a42fa4c546e8))
+* add Umami analytics support (closes [#367](https://github.com/knowledgepixels/nanodash/issues/367)) ([9cdf05e](https://github.com/knowledgepixels/nanodash/commit/9cdf05e9bf431410b403f4085619c5ce800e961a))
+* add Umami env vars to docker-compose.override.yml.template ([5fabe1e](https://github.com/knowledgepixels/nanodash/commit/5fabe1e03bf725735dbd1fac0e02f97287c74f7b))
+* **BaseDisplayMenu:** add base menu component to be used as core for other components ([05e4dcf](https://github.com/knowledgepixels/nanodash/commit/05e4dcfed24b096c630b55e227835297f9ba364e))
+* **ExternalLinkWithActionsPanel:** add panel for showing external links and allowing users to navigate/copy/explore them ([e836ded](https://github.com/knowledgepixels/nanodash/commit/e836deda0780d05b2220568c8ef36154ce2428c8))
+* **ExternalLinkWithActionsPanel:** update component so to choose between shown elements (copy icon, explore button, menu) ([62604b6](https://github.com/knowledgepixels/nanodash/commit/62604b6f918ab77e599a5ba6ecd51366fbea6a6f))
+* **ExternalLinkWithActionsPanel:** use now the ExploreDisplayMenu to show the explore button and the source nanopub link ([3cd71a6](https://github.com/knowledgepixels/nanodash/commit/3cd71a603ba214bd1c29aafb0c54853af244747b))
+* log Umami analytics config status at startup ([83abcc8](https://github.com/knowledgepixels/nanodash/commit/83abcc8a73c6c25a81ad838d0b002aa321e22c18))
+* pre-fill query params in ViewDisplayMenu 'show query' link ([7685790](https://github.com/knowledgepixels/nanodash/commit/768579056b43d0f2f26d10ceb85ed1ebdd7d23d8))
+* **QueryPage:** auto-fill Yasgui placeholders with entered parameter values ([#370](https://github.com/knowledgepixels/nanodash/issues/370)) ([dc37f46](https://github.com/knowledgepixels/nanodash/commit/dc37f463a3816af80a5460ee02ec8a33759dc69a))
+* **QueryParamField:** add `clearValue` method ([3eb3fec](https://github.com/knowledgepixels/nanodash/commit/3eb3fec59547f5b56b7d4f058f6e3a7b409aa531))
+* refine ViewDisplayMenu — rename to adjust, supersede/derive logic, admin visibility ([0b7362a](https://github.com/knowledgepixels/nanodash/commit/0b7362ae6f7e55d7d084d72738b464b88e57ed75))
+* replace "^" source link on view displays with dropdown menu ([#364](https://github.com/knowledgepixels/nanodash/issues/364)) ([4eb8211](https://github.com/knowledgepixels/nanodash/commit/4eb821179550a7413071aad0ac074f5e79109a65))
+
+### Dependency updates
+
+* **core-deps:** org.apache.commons:commons-exec dependency ([baff5ae](https://github.com/knowledgepixels/nanodash/commit/baff5ae2978f453981fc29d659228e0fa8fb686d))
+
+### Bug Fixes
+
+* **AbstractResourceWithProfile, MaintainedResourceRepository, Space:** enhance concurrency issues with volatile fields and ConcurrentHashMap ([009aa96](https://github.com/knowledgepixels/nanodash/commit/009aa9608709ce921cb9e02997f2540d68ce6f1d))
+* add 30s timeout to thread.join() in Space.ensureInitialized() ([882917a](https://github.com/knowledgepixels/nanodash/commit/882917a930fcaee499f0ca6311117e945485cfcc))
+* add 30s timeout to thread.join() in Space.ensureInitialized() ([dc08c53](https://github.com/knowledgepixels/nanodash/commit/dc08c53b7756b814bb402bd7ad8696dd11395b94))
+* **css:** align ViewDisplayMenu button with view display buttons ([344684b](https://github.com/knowledgepixels/nanodash/commit/344684b5b7e9020fe72197ee868a7ca87e419d70))
+* **css:** anchor view-selector to top of paneltitlerow ([4d14ff2](https://github.com/knowledgepixels/nanodash/commit/4d14ff2ac2f2b2993ee0f4aef16a99a2f29be70e))
+* **css:** correct ViewDisplayMenu alignment in paneltitlerow and view-selector ([abd1d02](https://github.com/knowledgepixels/nanodash/commit/abd1d026f985ab99312705683b342a8cc8d02493))
+* **css:** fix row-section stripe background on narrow/mobile screens ([552332b](https://github.com/knowledgepixels/nanodash/commit/552332bff8c9c0ed9269c7ab04572023ae8090af))
+* **css:** fix row-section stripe background on narrow/mobile screens ([aed8072](https://github.com/knowledgepixels/nanodash/commit/aed8072180b908c8f38e3a21a2a5a23047ebed08))
+* **css:** isolate paneltitlerow margin-top rule from NanopubSet view-selector ([823812c](https://github.com/knowledgepixels/nanodash/commit/823812c4755ab940988ba1e2d7050fffa2c671c3))
+* **css:** prevent view-selector span rule from unhiding actionmenu-content ([94b5acc](https://github.com/knowledgepixels/nanodash/commit/94b5acc43b04adaf39249152895076d50d53556a))
+* **ExternalLinkWithActionsPanel:** add SourceNanopub component as part of the component (hidden by default) ([03b9e6c](https://github.com/knowledgepixels/nanodash/commit/03b9e6c730bfb2389954a5e9d544320fb976ebe3))
+* **ExternalLinkWithActionsPanel:** pass label as parameter to the ExplorePage ([149478c](https://github.com/knowledgepixels/nanodash/commit/149478cc96f203eb9078061320e0bb9836b21aa8))
+* **logging:** update error logging to include exception messages ([bf0994e](https://github.com/knowledgepixels/nanodash/commit/bf0994e3c37e0a3afcd287c8f1b194359d144e4d))
+* **QueryPage:** clear value of `QueryParamField` before populating to avoid multiple values in textarea after refresh ([a19d3ce](https://github.com/knowledgepixels/nanodash/commit/a19d3ced6d7013067ea31e9c3b16950c75f4729a))
+* replace infinite retry loop in forcedGet() with a 60s deadline ([dae84b8](https://github.com/knowledgepixels/nanodash/commit/dae84b8e1dd779eca8efadb47a7cc168d2dd9136))
+* replace infinite retry loop in forcedGet() with a 60s deadline ([a656995](https://github.com/knowledgepixels/nanodash/commit/a656995ab786897c01b0df6e7b06006caed11b67))
+* set pageResource in async ApiResultComponent paths of list/paragraph builders ([6951bc4](https://github.com/knowledgepixels/nanodash/commit/6951bc4cffda75491f46fd55a6c39328d574f313))
+* **SpaceRepository:** replace lock on String with lock on Object for thread safety ([2b58c86](https://github.com/knowledgepixels/nanodash/commit/2b58c8657c756ec159460af3743a8cf6b0ebd4b6))
+* **style.css:** increase dimensions of action menu button and adjust margin-top for panel title row ([4d793be](https://github.com/knowledgepixels/nanodash/commit/4d793bec9b05eb84617f0e4b699538dcf2dd5200))
+* use JavaScriptHeaderItem instead of StringHeaderItem for Umami ([e6dd3a3](https://github.com/knowledgepixels/nanodash/commit/e6dd3a365ddf7d376e2e10718094db3b2c101abb))
+* **user-page:** conditionally show latest nanopubs for unconfigured users ([6215c67](https://github.com/knowledgepixels/nanodash/commit/6215c67abf9e67a76b246f53abcf554bb0068a32))
+* **ViewDisplayMenu:** improve action menu labels ([a74c657](https://github.com/knowledgepixels/nanodash/commit/a74c6574239f7d35dc831a0fc7c4b2893b095aa6))
+
+### Documentation
+
+* document Umami analytics configuration in README ([1189a1c](https://github.com/knowledgepixels/nanodash/commit/1189a1c2ee11480983d9d04a232e1850c6e40884))
+* update annotations for clarity and consistency ([6b9a8bb](https://github.com/knowledgepixels/nanodash/commit/6b9a8bbdc2bf1a31c161d2f6faacf1d4c57e3b3f))
+
+### Build and continuous integration
+
+* disable Coveralls steps until the service outage is solved (no ETA) ([bcc20f5](https://github.com/knowledgepixels/nanodash/commit/bcc20f5152774035852ea9b48d7c779596db78e1))
+* re-enable Coveralls steps in maven test workflow ([1ee98f6](https://github.com/knowledgepixels/nanodash/commit/1ee98f62079b4b01744afe33599706a16602384d))
+* re-enable Coveralls steps in maven test workflow ([a8c4b4a](https://github.com/knowledgepixels/nanodash/commit/a8c4b4a77df87ae16df7b3119a0bc548b3c18c9b))
+
+### General maintenance
+
+* add `.env` to ignore list ([4aa47d7](https://github.com/knowledgepixels/nanodash/commit/4aa47d7210384c59db84641dc1965aae0b6a80c2))
+* add `SpaceFactory` for creating Space instances from API responses ([23739b4](https://github.com/knowledgepixels/nanodash/commit/23739b483cca7b48882db12ffbf1296f9577f334))
+* add SpaceRepository class for managing spaces in memory ([6b507ee](https://github.com/knowledgepixels/nanodash/commit/6b507ee8150e905257781bc736208e2835f5a8db))
+* cleaning code ([ad4e589](https://github.com/knowledgepixels/nanodash/commit/ad4e58967c716504af515faa9e00f7fa15bad7c9))
+* **domain:** add domain model package ([adbf5d7](https://github.com/knowledgepixels/nanodash/commit/adbf5d76c4b4deb013f45615525ad259e0584c17))
+* **domain:** add ResourceWithProfile interface ([772e7f4](https://github.com/knowledgepixels/nanodash/commit/772e7f49a1b133d91200ff2563f26770132879a4))
+* **domain:** define ResourceWithProfile interface with essential methods ([4c917e9](https://github.com/knowledgepixels/nanodash/commit/4c917e940cb57ca47c5ecaf29c349afde1429060))
+* **ExploreDisplayMenu:** add component for explore menu ([349de4a](https://github.com/knowledgepixels/nanodash/commit/349de4ac8c36e48387d2c737fae6a381b6335070))
+* introduce `MaintainedResourceFactory` and `MaintainedResourceRepository` for managing maintained resources ([82ac53e](https://github.com/knowledgepixels/nanodash/commit/82ac53e7fc45100b0ea33194c2ef9010a628b712))
+* **MaintainedResourceFactory:** enhance resource management with getOrCreate and removeStale methods ([34e8261](https://github.com/knowledgepixels/nanodash/commit/34e8261b8795f23c8b77a2188d719c28f5670681))
+* **NanopubAction:** improve logging messages ([8a28016](https://github.com/knowledgepixels/nanodash/commit/8a280160c91ff1c45811d0e06f0b6dd5773f7bf7))
+* **release:** 4.14.0 [skip ci] ([06a40ee](https://github.com/knowledgepixels/nanodash/commit/06a40ee34e2ca42579ef79b67872ad0849851d75))
+* setting next snapshot version [skip ci] ([07b67c7](https://github.com/knowledgepixels/nanodash/commit/07b67c76deca451ac7ac369e5530d7685234e98a))
+* setting next snapshot version [skip ci] ([5842f89](https://github.com/knowledgepixels/nanodash/commit/5842f8914da662d7583ce900bf6f14f91d953859))
+* Update CSS link version ([6067596](https://github.com/knowledgepixels/nanodash/commit/60675966f75a40600794d9490e1644dd2d0f1ac4))
+
+### Refactoring
+
+* **AbstractResourceWithProfile:** enhance instance management and logging ([15aeb67](https://github.com/knowledgepixels/nanodash/commit/15aeb676a45053ad1fd3078538eac182831cb086))
+* **domain:** rename old ResourceWithProfile class to AbstractResourceWithProfile and update references ([6c25212](https://github.com/knowledgepixels/nanodash/commit/6c25212d56e272b2205f953ef6f28d6d5e938d1f))
+* **domain:** update AbstractResourceWithProfile and related classes ([6652db4](https://github.com/knowledgepixels/nanodash/commit/6652db408dcdfb550019819ccdab5ca386e314a6))
+* **IndividualAgent:** relocate to domain package ([81861aa](https://github.com/knowledgepixels/nanodash/commit/81861aa0e093bf5926d3b2c22fded24ce4cedca5))
+* **MaintainedResourceRepository, SpaceRepository:** streamline resource refresh logic and remove stale entries ([ffeaf24](https://github.com/knowledgepixels/nanodash/commit/ffeaf246d0479090e97706b986623a6a0b87f69d))
+* **MaintainedResourceRepository:** convert static fields and methods to instance variables and methods ([44937c8](https://github.com/knowledgepixels/nanodash/commit/44937c8ff96064594f4674edc5a74df6c51f63ec))
+* **menu:** add a `...component.menu` package and move all the menu components in there ([e36586c](https://github.com/knowledgepixels/nanodash/commit/e36586c9fec208b0cfc360502338dc72c1b27409))
+* relocate `Project`, `User`, and `UserData` to domain package ([10d2b59](https://github.com/knowledgepixels/nanodash/commit/10d2b597d365abdaa28013a36d54270c1447d497))
+* replace add view button implementation with `AddViewDisplayButton` ([d4f274b](https://github.com/knowledgepixels/nanodash/commit/d4f274b5b324ce4b84d7b79b4e9216eadac9fa8d))
+* replace direct Space access with SpaceRepository methods in ExplorePage, NanodashLink, PreviewPage, ProjectPage, PublishForm, and ResourcePartPage ([7a2762b](https://github.com/knowledgepixels/nanodash/commit/7a2762b4382503a79adb5bb20ab7782e2b727886))
+* replace links with `ExternalLinkWithActionsPanel` component ([f48e3db](https://github.com/knowledgepixels/nanodash/commit/f48e3db6edc6220967e765d7e2b69d5abc009ddd))
+* replace MaintainedResource access and creation with MaintainedResourceRepository and MaintainedResourceFactory ([7ed7d0e](https://github.com/knowledgepixels/nanodash/commit/7ed7d0edcf9b139be327344f023dcbfd04e53208))
+* replace User references with IndividualAgent for consistency ([afa2a08](https://github.com/knowledgepixels/nanodash/commit/afa2a0826eaf9c0a2c8cca7d9232995c9b78f975))
+* **Space:** replace direct Space access with SpaceRepository methods ([8cce67d](https://github.com/knowledgepixels/nanodash/commit/8cce67d9db16a28a06fae71ff9a7153f86f0fa0d))
+* update AbstractResourceWithProfile to use a final instances map and utilize SpaceFactory for Space creation ([508821e](https://github.com/knowledgepixels/nanodash/commit/508821ef7250d9f7ab1dd4e8ab3e7ad66aac83f0))
+* **UserPage:** clean up imports ([3d3b286](https://github.com/knowledgepixels/nanodash/commit/3d3b286fd413d46acec8ebaebdd2b59d33af97e6))
+* **Utils:** replace EnvironmentUtils with System.getenv for value retrieval ([124f4c9](https://github.com/knowledgepixels/nanodash/commit/124f4c97a0ce838bf3879ac7cc54a940921fd164))
+* **ViewDisplayMenu:** extend new component BaseDisplayMenu ([a3c9436](https://github.com/knowledgepixels/nanodash/commit/a3c9436f495ed56ec6213ea0d5a5b30dac38a213))
+
 ## [4.14.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.13.1...nanodash-4.14.0) (2026-02-27)
 
 ### Features
