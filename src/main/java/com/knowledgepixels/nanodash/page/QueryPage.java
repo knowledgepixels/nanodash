@@ -15,9 +15,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.request.IRequestParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -124,14 +127,14 @@ public class QueryPage extends NanodashPage {
         WebMarkupContainer paramContainer = new WebMarkupContainer("params");
 
         paramFields = q.createParamFields("paramfield");
+        for (QueryParamField f : paramFields) {
+            for (StringValue parameter : parameters.getValues("queryparam_" + f.getParamName())) {
+                f.putValue(parameter.toString().replaceFirst("\\s*$", ""));
+            }
+        }
         paramContainer.add(new ListView<QueryParamField>("paramfields", paramFields) {
 
             protected void populateItem(ListItem<QueryParamField> item) {
-                QueryParamField f = item.getModelObject();
-                f.clearValue();
-                for (StringValue parameter : parameters.getValues("queryparam_" + f.getParamName())) {
-                    f.putValue(parameter.toString().replaceFirst("\\s*$", ""));
-                }
                 item.add(item.getModelObject());
             }
 
@@ -139,11 +142,29 @@ public class QueryPage extends NanodashPage {
         paramContainer.setVisible(!paramFields.isEmpty());
         form.add(paramContainer);
 
-        // Hack to prevent auto-execution:
-        String sparql = "'auto_execution_blocker: Fill in placeholders below if applicable, then remove this line to run the query'\n\n" + q.getSparql();
-        String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", Utils.getMainQueryUrl() + "tools/") + "/yasgui.html#query=" + URLEncoder.encode(sparql, Charsets.UTF_8);
-        // TODO We also need to replace the nanopub-query placeholder service URLs in the query above.
-        form.add(new ExternalLink("yasgui", editLink));
+        form.add(new Button("yasgui") {
+
+            @Override
+            public void onSubmit() {
+                IRequestParameters params = getRequest().getPostParameters();
+                for (QueryParamField f : paramFields) {
+                    StringValue input = params.getParameterValue(f.getFormComponent().getInputName());
+                    f.clearValue();
+                    if (!input.isNull() && !input.isEmpty()) {
+                        f.putValue(input.toString());
+                    }
+                }
+                String sparql = q.expandQuery(paramFields);
+                boolean allSet = GrlcQuery.allMandatoryFieldsSet(paramFields);
+                if (!allSet) {
+                    sparql = "'auto_execution_blocker: Fill in placeholders below, then remove this line to run the query'\n\n" + sparql;
+                }
+                String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", Utils.getMainQueryUrl() + "tools/")
+                    + "/yasgui.html#query=" + URLEncoder.encode(sparql, Charsets.UTF_8);
+                throw new RedirectToUrlException(editLink);
+            }
+
+        }.setDefaultFormProcessing(false));
 
         add(form);
 

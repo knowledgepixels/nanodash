@@ -263,4 +263,84 @@ public class GrlcQuery implements Serializable {
         return l;
     }
 
+    // NOTE: The following methods are duplicated from nanopub-query's GrlcSpec.java.
+    // They should eventually be moved to nanopub-java to avoid duplication.
+
+    /**
+     * Expands the SPARQL query by substituting placeholder values from the given param fields.
+     * Unlike the server-side version in nanopub-query, missing mandatory params are simply skipped
+     * (not thrown as errors) to support partial substitution for the Yasgui link.
+     *
+     * @param paramFields the list of query parameter fields with user-entered values
+     * @return the expanded SPARQL query string
+     */
+    public String expandQuery(List<QueryParamField> paramFields) {
+        Map<String, QueryParamField> fieldMap = new HashMap<>();
+        for (QueryParamField f : paramFields) {
+            fieldMap.put(f.getParamName(), f);
+        }
+        String expandedQueryContent = sparql;
+        for (String ph : placeholdersList) {
+            String paramName = QueryParamField.getParamName(ph);
+            QueryParamField field = fieldMap.get(paramName);
+            if (field == null || !field.isSet()) continue;
+            if (QueryParamField.isMultiPlaceholder(ph)) {
+                String[] values = field.getValues();
+                StringBuilder valueList = new StringBuilder();
+                for (String v : values) {
+                    if (isIriPlaceholder(ph)) {
+                        valueList.append(serializeIri(v)).append(" ");
+                    } else {
+                        valueList.append(serializeLiteral(v)).append(" ");
+                    }
+                }
+                expandedQueryContent = expandedQueryContent.replaceAll(
+                    "values\\s*\\?" + ph + "\\s*\\{\\s*\\}",
+                    "values ?" + ph + " { " + escapeSlashes(valueList.toString()) + "}"
+                );
+            } else {
+                String val = field.getValues()[0];
+                if (isIriPlaceholder(ph)) {
+                    expandedQueryContent = expandedQueryContent.replaceAll("\\?" + ph + "(?![A-Za-z0-9_])", escapeSlashes(serializeIri(val)));
+                } else {
+                    expandedQueryContent = expandedQueryContent.replaceAll("\\?" + ph + "(?![A-Za-z0-9_])", escapeSlashes(serializeLiteral(val)));
+                }
+            }
+        }
+        return expandedQueryContent;
+    }
+
+    /**
+     * Returns true if all mandatory (non-optional) param fields have values set.
+     *
+     * @param paramFields the list of query parameter fields
+     * @return true if all mandatory fields are set
+     */
+    public static boolean allMandatoryFieldsSet(List<QueryParamField> paramFields) {
+        for (QueryParamField f : paramFields) {
+            if (!f.isOptional() && !f.isSet()) return false;
+        }
+        return true;
+    }
+
+    private static boolean isIriPlaceholder(String placeholder) {
+        return placeholder.endsWith("_iri");
+    }
+
+    private static String escapeLiteral(String s) {
+        return s.replace("\\", "\\\\").replace("\n", "\\n").replace("\"", "\\\"");
+    }
+
+    private static String serializeIri(String iriString) {
+        return "<" + iriString + ">";
+    }
+
+    private static String serializeLiteral(String literalString) {
+        return "\"" + escapeLiteral(literalString) + "\"";
+    }
+
+    private static String escapeSlashes(String string) {
+        return string.replace("\\", "\\\\");
+    }
+
 }
