@@ -59,7 +59,7 @@ public class MaintainedResourcePage extends NanodashPage {
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
-        add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", resource.getLabel())).setBody(Model.of(resource.getId())));
+        add(new ExternalLinkWithActionsPanel("id", Model.of(resource.getId()), Model.of(resource.getLabel())));
         add(new SourceNanopub("np", Values.iri(resource.getNanopubId())));
 
         String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();

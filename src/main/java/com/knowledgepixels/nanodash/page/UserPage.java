@@ -81,8 +81,7 @@ public class UserPage extends NanodashPage {
         add(userIcon);
         add(new Label("username", displayName));
 
-        add(new BookmarkablePageLink<Void>("fullid", ExplorePage.class, parameters.set("label", displayName)).setBody(Model.of(userIriString)));
-
+        add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
         add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(userIri.equals(NanodashSession.get().getUserIri())));
         add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
 

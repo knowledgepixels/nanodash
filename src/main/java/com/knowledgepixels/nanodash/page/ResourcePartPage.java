@@ -143,7 +143,7 @@ public class ResourcePartPage extends NanodashPage {
 
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
-        add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", label)).setBody(Model.of(id)));
+        add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label)));
         add(new SourceNanopub("np", nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         // TODO Improve this code, e.g. make Space a subclass of MaintainedResource or otherwise refactor:

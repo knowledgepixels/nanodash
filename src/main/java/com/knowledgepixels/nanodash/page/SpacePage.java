@@ -87,7 +87,7 @@ public class SpacePage extends NanodashPage {
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));
-        add(new BookmarkablePageLink<Void>("id", ExplorePage.class, parameters.set("label", space.getLabel())).setBody(Model.of(space.getId())));
+        add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
         add(new SourceNanopub("np", np.getUri()));
 
         add(new ItemListPanel<String>(
