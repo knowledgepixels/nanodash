@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.component;
+package com.knowledgepixels.nanodash.component.menu;
 
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;

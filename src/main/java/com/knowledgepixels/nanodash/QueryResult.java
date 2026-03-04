@@ -1,7 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.ButtonList;
-import com.knowledgepixels.nanodash.component.ViewDisplayMenu;
+import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.behavior.AttributeAppender;

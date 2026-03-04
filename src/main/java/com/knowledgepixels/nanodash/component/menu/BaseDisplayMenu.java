@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.component;
+package com.knowledgepixels.nanodash.component.menu;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
