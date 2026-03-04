@@ -1923,7 +1923,7 @@ div.navigator .goto a[disabled] {
 }
 
 .paneltitlerow > span.buttons .actionmenu {
-  margin-top: 14px;
+  margin-top: 16px;
   display: inline-block;
   vertical-align: bottom;
 }
