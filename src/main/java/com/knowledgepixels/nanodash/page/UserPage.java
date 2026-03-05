@@ -7,19 +7,20 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,8 +83,14 @@ public class UserPage extends NanodashPage {
             ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
             add(userIcon);
         } else {
-            EmptyPanel userIcon = new EmptyPanel("userIcon");
-            userIcon.add(AttributeModifier.replace("class", IndividualAgent.isSoftware(userIri) ? "bot-icon" : "user-icon"));
+            boolean isSoftware = IndividualAgent.isSoftware(userIri);
+            Image userIcon;
+            if (isSoftware) {
+                userIcon = new Image("userIcon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
+            } else {
+                userIcon = new Image("userIcon", new ContextRelativeResourceReference("images/user-icon.svg", false));
+
+            }
             add(userIcon);
         }
 

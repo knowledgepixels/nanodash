@@ -471,28 +471,30 @@ img.thirdparty {
 
 .user-icon {
   display: inline-block;
-  background-image: url("images/user-icon.svg");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
   vertical-align: middle;
   margin-top: 0;
   margin-right: 0.3em;
-  width: 1em;
-  height: 1em;
+  width: 1.5em;
+  border: 1px solid lightblue;
+  border-radius: 50px;
 }
 
 .bot-icon {
   display: inline-block;
-  background-image: url("images/bot-icon.svg");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
   vertical-align: middle;
   margin-top: 0;
   margin-right: 0.3em;
-  width: 1em;
-  height: 1em;
+  width: 1.5em;
+  border: 1px solid lightblue;
+  border-radius: 50px;
+}
+
+.user-profile-pic {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-top: 0;
+  margin-right: 0.3em;
+  height: 2em;
 }
 
 .api-icon {
@@ -2242,12 +2244,4 @@ a.source:hover {
 .copy-link-btn:hover {
   background: #f0f0f0;
   color: #1a73e8;
-}
-
-.user-profile-pic {
-  display: inline-block;
-  vertical-align: bottom;
-  margin-top: 0;
-  margin-right: 0.3em;
-  height: 2em;
 }
