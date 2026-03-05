@@ -1,3 +1,15 @@
+## [4.15.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.0...nanodash-4.15.1) (2026-03-05)
+
+### Bug Fixes
+
+* Fix earlier issue (this is to trigger release) ([384ba90](https://github.com/knowledgepixels/nanodash/commit/384ba907a1eee000da71913b2dd8dc6fd1853ea8))
+* Previous commit was actually fixing a bug, so tagging it here ([cc0d86f](https://github.com/knowledgepixels/nanodash/commit/cc0d86fe4487395be153a542bc63424f1d3451d6))
+
+### General maintenance
+
+* Make inner record serializable, resolving error messages ([8010e5d](https://github.com/knowledgepixels/nanodash/commit/8010e5d8a8d9290cbe44b557d7036ca2cbecd312))
+* setting next snapshot version [skip ci] ([a462c09](https://github.com/knowledgepixels/nanodash/commit/a462c096eb08d4bf42c9d64c661d6369e8b85510))
+
 ## [4.15.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.14.0...nanodash-4.15.0) (2026-03-04)
 
 ### Features
