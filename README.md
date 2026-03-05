@@ -4,9 +4,7 @@
 
 ![logo](nanodash.png)
 
-Nanodash was previously called Nanobench.
-
-Nanodash is a client to browse and publish nanopublications.
+Nanodash was previously called Nanobench. Nanodash is a client to browse and publish nanopublications.
 
 ### Online Instances
 
