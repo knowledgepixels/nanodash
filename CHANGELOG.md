@@ -1,3 +1,13 @@
+## [4.15.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.1...nanodash-4.15.2) (2026-03-05)
+
+### Bug Fixes
+
+* Fix race conditions in repository refresh and Space field visibility ([5ba420c](https://github.com/knowledgepixels/nanodash/commit/5ba420c2a60264da0c3b210d2fb01cddda2f85b5)), closes [#374](https://github.com/knowledgepixels/nanodash/issues/374)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([996c6b1](https://github.com/knowledgepixels/nanodash/commit/996c6b18412788348577fbb24fc15e7120775a24))
+
 ## [4.15.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.0...nanodash-4.15.1) (2026-03-05)
 
 ### Bug Fixes
