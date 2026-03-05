@@ -84,8 +84,8 @@ public class Space extends AbstractResourceWithProfile {
         return id + " " + rootNanopubId;
     }
 
-    private boolean dataInitialized = false;
-    private boolean dataNeedsUpdate = true;
+    private volatile boolean dataInitialized = false;
+    private volatile boolean dataNeedsUpdate = true;
 
     Space(ApiResponseEntry resp) {
         super(resp.get("space"));

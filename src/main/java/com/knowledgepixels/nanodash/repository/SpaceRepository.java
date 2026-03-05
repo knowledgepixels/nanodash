@@ -37,7 +37,7 @@ public class SpaceRepository {
     private Map<Space, Set<Space>> subspaceMap;
     private Map<Space, Set<Space>> superspaceMap;
     private boolean loaded = false;
-    private Long runRootUpdateAfter = null;
+    private volatile Long runRootUpdateAfter = null;
 
     private final Object loadLock = new Object();
 
@@ -51,27 +51,35 @@ public class SpaceRepository {
      */
     public synchronized void refresh(ApiResponse resp) {
         logger.info("Refreshing spaces from API response with {} entries", resp.getData().size());
-        spaceList = new ArrayList<>();
-        spaceListByType = new HashMap<>();
-        spacesById = new HashMap<>();
-        subspaceMap = new HashMap<>();
-        superspaceMap = new HashMap<>();
+        List<Space> newSpaceList = new ArrayList<>();
+        Map<String, List<Space>> newSpaceListByType = new HashMap<>();
+        Map<String, Space> newSpacesById = new HashMap<>();
+        Map<Space, Set<Space>> newSubspaceMap = new HashMap<>();
+        Map<Space, Set<Space>> newSuperspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space;
             space = SpaceFactory.getOrCreate(entry);
-            spaceList.add(space);
-            spaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
-            spacesById.put(space.getId(), space);
+            newSpaceList.add(space);
+            newSpaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
+            newSpacesById.put(space.getId(), space);
         }
-        SpaceFactory.removeStale(spacesById.keySet());
-        for (Space space : spaceList) {
-            Space superSpace = this.getIdSuperspace(space);
+        SpaceFactory.removeStale(newSpacesById.keySet());
+        for (Space space : newSpaceList) {
+            String id = space.getId();
+            if (!id.matches("https?://[^/]+/.*/[^/]*/?")) continue;
+            String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
+            Space superSpace = newSpacesById.get(superId);
             if (superSpace == null) continue;
-            subspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
-            superspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
+            newSubspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
+            newSuperspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
             space.setDataNeedsUpdate();
         }
+        spacesById = newSpacesById;
+        spaceListByType = newSpaceListByType;
+        subspaceMap = newSubspaceMap;
+        superspaceMap = newSuperspaceMap;
         loaded = true;
+        spaceList = newSpaceList; // volatile write last — establishes happens-before for all above
     }
 
     /**
@@ -101,7 +109,9 @@ public class SpaceRepository {
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+            if (spaceList == null) { // double-check after potential wait
+                refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+            }
         }
     }
 

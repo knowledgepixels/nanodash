@@ -48,29 +48,33 @@ public class MaintainedResourceRepository {
      * @param resp The API response containing maintained resource data.
      */
     public synchronized void refresh(ApiResponse resp) {
-        resourceList = new ArrayList<>();
-        resourcesById = new HashMap<>();
-        resourcesBySpace = new HashMap<>();
-        resourcesByNamespace = new HashMap<>();
+        List<MaintainedResource> newResourceList = new ArrayList<>();
+        Map<String, MaintainedResource> newResourcesById = new HashMap<>();
+        Map<Space, List<MaintainedResource>> newResourcesBySpace = new HashMap<>();
+        Map<String, MaintainedResource> newResourcesByNamespace = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
             Space space = SpaceRepository.get().findById(entry.get("space"));
             if (space == null) {
                 continue;
             }
             MaintainedResource resource = MaintainedResourceFactory.getOrCreate(entry, space);
-            if (resourcesById.containsKey(resource.getId())) {
+            if (newResourcesById.containsKey(resource.getId())) {
                 continue;
             }
-            resourceList.add(resource);
-            resourcesById.put(resource.getId(), resource);
-            resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
+            newResourceList.add(resource);
+            newResourcesById.put(resource.getId(), resource);
+            newResourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
             if (resource.getNamespace() != null) {
                 // TODO Handle conflicts when two resources claim the same namespace:
-                resourcesByNamespace.put(resource.getNamespace(), resource);
+                newResourcesByNamespace.put(resource.getNamespace(), resource);
             }
         }
-        MaintainedResourceFactory.removeStale(resourcesById.keySet());
+        MaintainedResourceFactory.removeStale(newResourcesById.keySet());
+        resourcesById = newResourcesById;
+        resourcesBySpace = newResourcesBySpace;
+        resourcesByNamespace = newResourcesByNamespace;
         loaded = true;
+        resourceList = newResourceList; // volatile write last — establishes happens-before for all above
     }
 
     /**
@@ -121,7 +125,9 @@ public class MaintainedResourceRepository {
             } catch (InterruptedException ex) {
                 logger.error("Interrupted", ex);
             }
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
+            if (resourceList == null) { // double-check after potential wait
+                refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
+            }
         }
     }
 
