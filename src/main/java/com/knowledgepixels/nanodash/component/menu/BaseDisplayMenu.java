@@ -3,12 +3,13 @@ package com.knowledgepixels.nanodash.component.menu;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BaseDisplayMenu extends Panel {
 
-    public record Entry(String wicketId, Component component) {
+    public record Entry(String wicketId, Component component) implements Serializable {
     }
 
     private final List<Entry> entries = new ArrayList<>();
