@@ -2243,3 +2243,11 @@ a.source:hover {
   background: #f0f0f0;
   color: #1a73e8;
 }
+
+.user-profile-pic {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-top: 0;
+  margin-right: 0.3em;
+  height: 2em;
+}

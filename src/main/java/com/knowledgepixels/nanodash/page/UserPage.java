@@ -13,6 +13,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -62,7 +63,6 @@ public class UserPage extends NanodashPage {
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
         userIri = Utils.vf.createIRI(userIriString);
-        //NanodashSession session = NanodashSession.get();
 
         for (String pk : User.getPubkeyhashes(userIri, null)) {
             pubkeyHashes += " " + pk;
@@ -76,9 +76,17 @@ public class UserPage extends NanodashPage {
 
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
-        EmptyPanel userIcon = new EmptyPanel("userIcon");
-        userIcon.add(AttributeModifier.replace("class", IndividualAgent.isSoftware(userIri) ? "bot-icon" : "user-icon"));
-        add(userIcon);
+
+        IRI profilePictureIri = User.getProfilePicture(userIri);
+        if (profilePictureIri != null) {
+            ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
+            add(userIcon);
+        } else {
+            EmptyPanel userIcon = new EmptyPanel("userIcon");
+            userIcon.add(AttributeModifier.replace("class", IndividualAgent.isSoftware(userIri) ? "bot-icon" : "user-icon"));
+            add(userIcon);
+        }
+
         add(new Label("username", displayName));
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
