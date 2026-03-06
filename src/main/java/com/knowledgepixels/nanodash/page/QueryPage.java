@@ -3,12 +3,17 @@ package com.knowledgepixels.nanodash.page;
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.component.QueryResultRdf;
 import com.knowledgepixels.nanodash.component.QueryResultTableBuilder;
+import com.knowledgepixels.nanodash.component.RdfResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.Component;
+import org.eclipse.rdf4j.model.Model;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -174,6 +179,19 @@ public class QueryPage extends NanodashPage {
 
         if (queryId == null) {
             add(new Label("resulttable").setVisible(false));
+        } else if (q.isConstructQuery()) {
+            QueryRef constructQueryRef = new QueryRef(queryId, queryParams);
+            Model rdfModel = ApiCache.retrieveRdfModelAsync(constructQueryRef);
+            if (rdfModel != null) {
+                add(new QueryResultRdf("resulttable", rdfModel));
+            } else {
+                add(new RdfResultComponent("resulttable", constructQueryRef) {
+                    @Override
+                    public Component getRdfResultComponent(String markupId, Model model) {
+                        return new QueryResultRdf(markupId, model);
+                    }
+                });
+            }
         } else {
             add(QueryResultTableBuilder.create("resulttable", new QueryRef(queryId, queryParams), new ViewDisplay(20)).plain(true).build());
         }
