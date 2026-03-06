@@ -475,8 +475,12 @@ img.thirdparty {
   margin-top: 0;
   margin-right: 0.3em;
   width: 1.5em;
-  border: 1px solid lightblue;
-  border-radius: 50px;
+  mask-image: url("images/mask.svg");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("images/mask.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
 }
 
 .bot-icon {
@@ -493,8 +497,13 @@ img.thirdparty {
   display: inline-block;
   margin-top: 0;
   margin-right: 0.3em;
-  height: 2em;
-  border-radius: 30px;
+  height: 3em;
+  mask-image: url("images/mask.svg");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("images/mask.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
 }
 
 .api-icon {
