@@ -208,7 +208,7 @@ public class SpacePage extends NanodashPage {
                         r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getRole().getId()), r.getRole().getName(), null, Utils.getAsNanopub(r.getNanopubUri()))
                 )
                         .makeInline()
-                        .setProfiledResource(space)
+                        .setResourceWithProfile(space)
                         .addAdminButton("+", PublishPage.class, new PageParameters()
                                 .set("template", "https://w3id.org/np/RARBzGkEqiQzeiHk0EXFcv9Ol1d-17iOh9MoFJzgfVQDc")
                                 .set("param_space", space.getId())
@@ -260,7 +260,7 @@ public class SpacePage extends NanodashPage {
                 },
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         )
-                .setProfiledResource(space)
+                .setResourceWithProfile(space)
                 .setReadyFunction(space::isDataInitialized)
                 .addMemberButton("+", PublishPage.class, new PageParameters()
                         .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
@@ -289,7 +289,7 @@ public class SpacePage extends NanodashPage {
                         SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
-                        .setProfiledResource(space)
+                        .setResourceWithProfile(space)
                         .setReadyFunction(space::isDataInitialized)
                         .addMemberButton("+", PublishPage.class, new PageParameters()
                                 .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")

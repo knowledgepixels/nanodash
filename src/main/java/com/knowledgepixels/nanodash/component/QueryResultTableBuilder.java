@@ -1,10 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -53,7 +53,7 @@ public class QueryResultTableBuilder implements Serializable {
      * @param resourceWithProfile the ResourceWithProfile object
      * @return the current QueryResultTableBuilder instance
      */
-    public QueryResultTableBuilder profiledResource(AbstractResourceWithProfile resourceWithProfile) {
+    public QueryResultTableBuilder resourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
     }
@@ -105,7 +105,7 @@ public class QueryResultTableBuilder implements Serializable {
                 if (id != null && contextId != null && !id.equals(contextId)) {
                     table.setPartId(id);
                 }
-                table.setProfiledResource(resourceWithProfile);
+                table.setResourceWithProfile(resourceWithProfile);
                 table.setPageResource(resourceWithProfile);
                 View view = viewDisplay.getView();
                 if (view != null) {
@@ -150,7 +150,7 @@ public class QueryResultTableBuilder implements Serializable {
                         if (id != null && contextId != null && !id.equals(contextId)) {
                             table.setPartId(id);
                         }
-                        table.setProfiledResource(resourceWithProfile);
+                        table.setResourceWithProfile(resourceWithProfile);
                         table.setPageResource(resourceWithProfile);
                         View view = viewDisplay.getView();
                         if (view != null) {

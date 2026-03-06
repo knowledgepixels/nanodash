@@ -77,7 +77,7 @@ public abstract class QueryResult extends Panel {
      *
      * @param resourceWithProfile The resource with profile to set.
      */
-    public void setProfiledResource(AbstractResourceWithProfile resourceWithProfile) {
+    public void setResourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
     }
 
