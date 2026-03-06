@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractSimpleQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.nanopub.Nanopub;
@@ -85,6 +86,7 @@ public class GrlcQuery implements Serializable {
     private String label;
     private String description;
     private final List<String> placeholdersList;
+    private boolean constructQuery;
 
     /**
      * Constructs a GrlcQuery object by parsing the provided query ID or URI.
@@ -139,6 +141,7 @@ public class GrlcQuery implements Serializable {
 
         final Set<String> placeholders = new HashSet<>();
         ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
+        constructQuery = query instanceof ParsedGraphQuery;
         try {
             query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<Exception>() {
 
@@ -247,6 +250,15 @@ public class GrlcQuery implements Serializable {
      */
     public List<String> getPlaceholdersList() {
         return placeholdersList;
+    }
+
+    /**
+     * Returns true if this is a CONSTRUCT query (returns RDF graph data instead of tabular data).
+     *
+     * @return true if CONSTRUCT query
+     */
+    public boolean isConstructQuery() {
+        return constructQuery;
     }
 
     /**

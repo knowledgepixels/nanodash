@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import org.eclipse.rdf4j.model.Model;
 import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ public class ApiCache {
     } // no instances allowed
 
     private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, Model> cachedRdfModels = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Integer> failed = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
@@ -237,6 +239,85 @@ public class ApiCache {
                 throw new RuntimeException("Query failed: " + cacheId);
             }
             return cachedMaps.get(cacheId);
+        } else {
+            return null;
+        }
+    }
+
+    private static void updateRdfModel(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        final Model[] modelRef = new Model[1];
+        QueryAccess qa = new QueryAccess() {
+            @Override
+            protected void processHeader(String[] line) {}
+            @Override
+            protected void processLine(String[] line) {}
+            @Override
+            protected void processRdfContent(Model model) {
+                modelRef[0] = model;
+            }
+        };
+        qa.call(queryRef);
+        if (modelRef[0] == null) {
+            throw new FailedApiCallException(new Exception("No RDF content in response for query: " + queryRef.getQueryId()));
+        }
+        String cacheId = queryRef.getAsUrlString();
+        logger.info("Updating cached RDF model for {}", cacheId);
+        cachedRdfModels.put(cacheId, modelRef[0]);
+        lastRefresh.put(cacheId, System.currentTimeMillis());
+    }
+
+    /**
+     * Retrieves a cached RDF model for a CONSTRUCT query, triggering a background fetch if needed.
+     *
+     * @param queryRef The QueryRef for the CONSTRUCT query.
+     * @return The cached RDF Model, or null if not yet available.
+     */
+    public static Model retrieveRdfModelAsync(QueryRef queryRef) {
+        long timeNow = System.currentTimeMillis();
+        String cacheId = queryRef.getAsUrlString();
+        logger.info("Retrieving cached RDF model asynchronously for {}", cacheId);
+        boolean isCached = false;
+        boolean needsRefresh = true;
+        if (cachedRdfModels.containsKey(cacheId) && cachedRdfModels.get(cacheId) != null) {
+            long cacheAge = timeNow - lastRefresh.get(cacheId);
+            isCached = cacheAge < 24 * 60 * 60 * 1000;
+            needsRefresh = cacheAge > 60 * 1000;
+        }
+        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
+            failed.remove(cacheId);
+            throw new RuntimeException("Query failed: " + cacheId);
+        }
+        if (needsRefresh && !isRunning(cacheId)) {
+            refreshStart.put(cacheId, timeNow);
+            new Thread(() -> {
+                try {
+                    if (runAfter.containsKey(cacheId)) {
+                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                            Thread.sleep(100);
+                        }
+                        runAfter.remove(cacheId);
+                    }
+                    if (failed.get(cacheId) != null) {
+                        Thread.sleep(1000);
+                    }
+                    Thread.sleep(100 + new Random().nextLong(400));
+                } catch (InterruptedException ex) {
+                    logger.error("Interrupted while waiting to refresh RDF cache: {}", ex.getMessage());
+                }
+                try {
+                    updateRdfModel(queryRef);
+                } catch (Exception ex) {
+                    logger.error("Failed to update RDF cache for {}: {}", cacheId, ex.getMessage());
+                    cachedRdfModels.remove(cacheId);
+                    failed.merge(cacheId, 1, Integer::sum);
+                    lastRefresh.put(cacheId, System.currentTimeMillis());
+                } finally {
+                    refreshStart.remove(cacheId);
+                }
+            }).start();
+        }
+        if (isCached) {
+            return cachedRdfModels.get(cacheId);
         } else {
             return null;
         }
