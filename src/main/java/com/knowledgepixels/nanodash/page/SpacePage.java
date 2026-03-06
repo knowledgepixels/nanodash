@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The ProjectPage class represents a space page in the Nanodash application.
+ * The SpacePage class represents a space page in the Nanodash application.
  */
 public class SpacePage extends NanodashPage {
 
@@ -50,7 +50,7 @@ public class SpacePage extends NanodashPage {
     /**
      * Space object with the data shown on this page.
      */
-    private Space space;
+    private final Space space;
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -207,8 +207,8 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         "roles",
                         "Roles:",
-                        () -> space.isDataInitialized(),
-                        () -> space.getRoles(),
+                        space::isDataInitialized,
+                        space::getRoles,
                         r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getRole().getId()), r.getRole().getName(), null, Utils.getAsNanopub(r.getNanopubUri()))
                 )
                         .makeInline()
@@ -262,9 +262,7 @@ public class SpacePage extends NanodashPage {
                     MaintainedResourceRepository.get().ensureLoaded();
                     return MaintainedResourceRepository.get().findResourcesBySpace(space);
                 },
-                (resource) -> {
-                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel());
-                }
+                (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         )
                 .setProfiledResource(space)
                 .setReadyFunction(space::isDataInitialized)

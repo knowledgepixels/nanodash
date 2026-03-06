@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.UserPage;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -41,19 +42,17 @@ public class ItemListElement extends Panel {
             ExternalImage profilePic = new ExternalImage("user-icon", profilePicIri.stringValue());
             add(profilePic);
         } else {
+            Component userIcon;
             if (userIri == null) {
-                new WebMarkupContainer("user-icon").setVisible(false);
+                userIcon = new WebMarkupContainer("user-icon").setVisible(false);
             } else {
-                boolean isSoftware = IndividualAgent.isSoftware(userIri);
-                Image icon;
-                if (isSoftware) {
-                    icon = new Image("user-icon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
+                if (IndividualAgent.isSoftware(userIri)) {
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
                 } else {
-                    icon = new Image("user-icon", new ContextRelativeResourceReference("images/user-icon.svg", false));
-
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/user-icon.svg", false));
                 }
-                add(icon);
             }
+            add(userIcon);
         }
 
         add(new BookmarkablePageLink<>("link", pageClass, parameters).setBody(Model.of(linkText)));
