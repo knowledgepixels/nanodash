@@ -1,39 +1,36 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-  <meta charset="utf-8"/>
-  <title wicket:id="pagetitle">... (user) | nanodash</title>
-  <link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet"/>
   <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
         title="Stylesheet"/>
-  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
-
 <body>
 
-<div wicket:id="titlebar"></div>
-<div id="content-pane">
+<wicket:extend>
   <div class="row-section">
     <div class="col-6">
-      <h2><img class="user-profile-pic" wicket:id="userIcon" /><span wicket:id="username">User Name</span></h2>
+      <h2>
+        <img class="user-profile-pic" wicket:id="userIcon"/>
+        <span wicket:id="username">User Name</span></h2>
       <span wicket:id="fullid"></span>
       <p>
-        <a href="." wicket:id="showprofile" class="button light">See Your Profile Details</a>
-        <a href="." wicket:id="showchannel" class="button" style="margin: 0">Show Full Channel</a>
+        <a wicket:id="showprofile" class="button light">See Your Profile Details</a>
+        <a wicket:id="showchannel" class="button" style="margin: 0">Show Full Channel</a>
       </p>
     </div>
   </div>
 
   <div wicket:id="views"></div>
+
   <div class="row-section" wicket:id="unconfigured-notice">
     <div class="col-6">
-      <p><em>This user hasn't configured their profile yet, but below you can find their latest nanopublications.</em></p>
+      <p><em>This user hasn't configured their profile yet, but below you can find their latest nanopublications.</em>
+      </p>
     </div>
   </div>
-  <div wicket:id="latestnanopubsview"></div>
 
-</div>
+  <div wicket:id="latestnanopubsview"></div>
+</wicket:extend>
 
 </body>
 </html>
