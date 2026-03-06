@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The ProjectPage class represents a space page in the Nanodash application.
+ * The SpacePage class represents a space page in the Nanodash application.
  */
 public class SpacePage extends NanodashPage {
 
@@ -50,9 +50,8 @@ public class SpacePage extends NanodashPage {
     /**
      * Space object with the data shown on this page.
      */
-    private Space space;
-
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final Space space;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
      * Constructor for the SpacePage.
@@ -62,13 +61,10 @@ public class SpacePage extends NanodashPage {
     public SpacePage(final PageParameters parameters) {
         super(parameters);
 
-        String id = parameters.get("id").toString();
-        space = SpaceRepository.get().findById(id);
-        if (space == null && MaintainedResourceRepository.get().findById(id) != null) {
-            throw new RestartResponseException(MaintainedResourcePage.class, parameters);
-        }
-        Nanopub np = space.getNanopub();
+        space = resolveSpace(parameters);
         space.triggerDataUpdate();
+
+        Nanopub np = space.getNanopub();
 
         List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
@@ -99,10 +95,10 @@ public class SpacePage extends NanodashPage {
         if (space.getStartDate() != null) {
             String dateString;
             LocalDateTime dt = LocalDateTime.ofInstant(space.getStartDate().toInstant(), ZoneId.systemDefault());
-            dateString = dateTimeFormatter.format(dt);
+            dateString = DATE_FORMATTER.format(dt);
             if (space.getEndDate() != null) {
                 dt = LocalDateTime.ofInstant(space.getEndDate().toInstant(), ZoneId.systemDefault());
-                String endDate = dateTimeFormatter.format(dt);
+                String endDate = DATE_FORMATTER.format(dt);
                 if (!dateString.equals(endDate)) {
                     dateString += " - " + endDate;
                 }
@@ -177,7 +173,7 @@ public class SpacePage extends NanodashPage {
                 space.getId(),
                 new PageParameters()
                         .set("param_appliesToResource", space.getId())
-                        .set("refresh-upon-publish", id)
+                        .set("refresh-upon-publish", space.getId())
         ));
 
 
@@ -207,8 +203,8 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         "roles",
                         "Roles:",
-                        () -> space.isDataInitialized(),
-                        () -> space.getRoles(),
+                        space::isDataInitialized,
+                        space::getRoles,
                         r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getRole().getId()), r.getRole().getName(), null, Utils.getAsNanopub(r.getNanopubUri()))
                 )
                         .makeInline()
@@ -262,9 +258,7 @@ public class SpacePage extends NanodashPage {
                     MaintainedResourceRepository.get().ensureLoaded();
                     return MaintainedResourceRepository.get().findResourcesBySpace(space);
                 },
-                (resource) -> {
-                    return new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel());
-                }
+                (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         )
                 .setProfiledResource(space)
                 .setReadyFunction(space::isDataInitialized)
@@ -313,6 +307,27 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * Resolves the {@link Space} from the repository, or redirects as needed.
+     *
+     * @param parameters page parameters containing the space {@code id}
+     * @return the resolved {@link Space}; never {@code null}
+     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource}
+     * @throws IllegalArgumentException if the id cannot be resolved to any known resource
+     */
+    private Space resolveSpace(PageParameters parameters) {
+        String id = parameters.get("id").toString();
+        Space resolved = SpaceRepository.get().findById(id);
+        if (resolved == null) {
+            if (MaintainedResourceRepository.get().findById(id) != null) {
+                throw new RestartResponseException(MaintainedResourcePage.class, parameters);
+            }
+            throw new IllegalArgumentException("No space or resource found for id: " + id);
+        }
+
+        return resolved;
     }
 
 }

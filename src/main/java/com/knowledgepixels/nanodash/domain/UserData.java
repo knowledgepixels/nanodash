@@ -5,6 +5,7 @@ import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.SimpleTimestampPattern;
@@ -44,6 +45,7 @@ public class UserData implements Serializable {
     private Set<IRI> approvedIntros = new HashSet<>();
     private HashMap<IRI, String> idNameMap = new HashMap<>();
     private HashMap<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
+    private final HashMap<IRI, IRI> profilePictures = new HashMap<>();
 
     /**
      * Default constructor for UserData.
@@ -116,6 +118,10 @@ public class UserData implements Serializable {
         for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_INTROS), true).getData()) {
             register(entry);
         }
+
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_PROFILE_PICS), true).getData()) {
+            profilePictures.put(Values.iri(entry.get("user")), Values.iri(entry.get("imageUrl")));
+        }
     }
 
     private IntroNanopub toIntroNanopub(IRI iri) {
@@ -179,6 +185,8 @@ public class UserData implements Serializable {
         if ("true".equals(entry.get("isSoftware"))) {
             softwareIdMap.put(userIri, true);
         }
+
+
     }
 
 /*
@@ -571,6 +579,10 @@ public class UserData implements Serializable {
             return unapprovedPubkeyhashLocationMap.get(pubkeyhash).iterator().next();
         }
         return null;
+    }
+
+    public IRI getProfilePicture(IRI userIri) {
+        return profilePictures.get(userIri);
     }
 
 }

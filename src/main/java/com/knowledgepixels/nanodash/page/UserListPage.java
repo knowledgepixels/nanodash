@@ -1,22 +1,21 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.ItemListElement;
+import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.domain.User;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Page that lists all users and groups.
@@ -72,10 +71,8 @@ public class UserListPage extends NanodashPage {
                     }
                     return users;
                 },
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                }
-            ));
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri))
+        ));
 
         add(new ItemListPanel<IRI>(
                 "latestusers",
@@ -88,41 +85,33 @@ public class UserListPage extends NanodashPage {
                     }
                     return users;
                 },
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                },
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
-            ));
+        ));
 
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
                 "Human Users",
                 User.getUsers(true).stream().filter(iri -> !IndividualAgent.isSoftware(iri)).collect(Collectors.toList()),
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                },
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
-            ));
+        ));
 
         add(new ItemListPanel<IRI>(
                 "approved-software-agents",
                 "Software Agents",
                 User.getUsers(true).stream().filter(IndividualAgent::isSoftware).collect(Collectors.toList()),
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                },
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
-            ));
+        ));
 
         add(new ItemListPanel<IRI>(
                 "other-users",
                 "Non-Approved Users",
                 User.getUsers(false),
-                (userIri) -> {
-                    return new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri));
-                },
+                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
-            ));
+        ));
 
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else"));
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));

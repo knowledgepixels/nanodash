@@ -188,4 +188,8 @@ public class User {
         return getUserData().isUser(userIri);
     }
 
+    public static IRI getProfilePicture(IRI userIri) {
+        return getUserData().getProfilePicture(userIri);
+    }
+
 }
