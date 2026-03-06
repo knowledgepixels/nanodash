@@ -1,80 +1,67 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Spaces | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:head>
+    <title>Spaces | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
 
-<div id="content-pane">
+    <div class="col-12 header">
+      <h2>Spaces</h2>
+    </div>
 
-<div class="row-section">
+    <div class="col-6">
 
-<div class="col-12 header">
-<h2>Spaces</h2>
-</div>
+      <div wicket:id="alliances" class="hide-if-empty"></div>
 
-<div class="col-6">
+      <div wicket:id="organizations"></div>
 
-<div wicket:id="alliances" class="hide-if-empty"></div>
+      <div wicket:id="divisions" class="hide-if-empty"></div>
 
-<div wicket:id="organizations"></div>
+      <div wicket:id="groups"></div>
 
-<div wicket:id="divisions" class="hide-if-empty"></div>
+      <div wicket:id="programs"></div>
 
-<div wicket:id="groups"></div>
+      <div wicket:id="outlets"></div>
 
-<div wicket:id="programs"></div>
+      <div wicket:id="communities"></div>
 
-<div wicket:id="outlets"></div>
+    </div>
 
-<div wicket:id="communities"></div>
+    <div class="col-6">
 
-</div>
+      <div wicket:id="consortiums" class="hide-if-empty"></div>
 
-<div class="col-6">
+      <div wicket:id="taskforces" class="hide-if-empty"></div>
 
-<div wicket:id="consortiums" class="hide-if-empty"></div>
+      <div wicket:id="taskunits" class="hide-if-empty"></div>
 
-<div wicket:id="taskforces" class="hide-if-empty"></div>
+      <div wicket:id="projects" class="hide-if-empty"></div>
 
-<div wicket:id="taskunits" class="hide-if-empty"></div>
+      <div wicket:id="initiatives" class="hide-if-empty"></div>
 
-<div wicket:id="projects" class="hide-if-empty"></div>
+      <div wicket:id="campaigns" class="hide-if-empty"></div>
 
-<div wicket:id="initiatives" class="hide-if-empty"></div>
+      <div wicket:id="events" class="hide-if-empty"></div>
 
-<div wicket:id="campaigns" class="hide-if-empty"></div>
+    </div>
 
-<div wicket:id="events" class="hide-if-empty"></div>
+  </div>
 
-</div>
+  <div class="row-section">
 
+    <div class="col-6">
 
-</div>
+      <div wicket:id="legacy-projects"></div>
 
-<div class="row-section">
+    </div>
 
+  </div>
 
-<div class="col-6">
-
-<div wicket:id="legacy-projects"></div>
-
-</div>
-
-
-</div>
-
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

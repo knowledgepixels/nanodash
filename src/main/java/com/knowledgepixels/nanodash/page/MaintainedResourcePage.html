@@ -1,33 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-  <meta charset="utf-8"/>
-  <title wicket:id="pagetitle">... (resource) | nanodash</title>
-  <link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet"/>
-  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
-        title="Stylesheet"/>
-  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:head>
+    <title wicket:id="pagetitle">... (resource) | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
-
-<div id="content-pane">
   <div wicket:id="justPublishedMessage"></div>
   <div class="row-section">
     <div class="col-12 header">
       <h2><span wicket:id="resourcename">Resource ABC</span></h2>
       <p><span wicket:id="id"></span></p>
-      <p class="hide-if-empty">Namespace: <a wicket:id="namespace" href="." class="hide-if-empty-trigger"></a></p>
+      <p class="hide-if-empty">Namespace: <a wicket:id="namespace" class="hide-if-empty-trigger"></a></p>
     </div>
   </div>
 
   <div wicket:id="views"></div>
 
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

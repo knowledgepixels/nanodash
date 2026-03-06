@@ -1,67 +1,59 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Linking your ORCID Account | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:head>
+    <title>Linking your ORCID Account | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
+    <div class="col-12">
 
-<div id="content-pane">
+      <h2>Linking your ORCID Account</h2>
 
-<div class="row-section">
-<div class="col-12">
+      <p class="widthlimit">
+        To prove that you are the one who has control of the given ORCID account, you can link your introduction
+        nanopublication from your public ORCID profile.
+      </p>
 
-<h2>Linking your ORCID Account</h2>
+      <p class="widthlimit">
+        To do this, login to ORCID and go to your <a href="https://orcid.org/my-orcid" target="_blank">ORCID record</a>.
+        There, click on the small pencil icon next to "Websites" on the left side bar:
+      </p>
 
-<p class="widthlimit">
-To prove that you are the one who has control of the given ORCID account, you can link your introduction nanopublication from your public ORCID profile.
-</p>
+      <img src="images/orcid-linking-1.png" alt="step 1" height="560" width="975" class="figure">
 
-<p class="widthlimit">
-To do this, login to ORCID and go to your <a href="https://orcid.org/my-orcid" target="_blank">ORCID record</a>.
-There, click on the small pencil icon next to "Websites" on the left side bar:
-</p>
+      <p class="widthlimit">
+        Click then on the plus icon at the bottom of the internal window that comes up:
+      </p>
 
-<img src="images/orcid-linking-1.png" alt="step 1" height="560" width="975" class="figure">
+      <img src="images/orcid-linking-2.png" alt="step 2" height="560" width="975" class="figure">
 
-<p class="widthlimit">
-Click then on the plus icon at the bottom of the internal window that comes up:
-</p>
+      <p class="widthlimit">
+        Two new text fields show up. In the first one, labeled "Description", put <code>intro-nanopub</code>.
+        In the second one, labeled "URL", paste the URL of your introduction nanopublication:
+        <span wicket:id="introuri"></span>.
+      </p>
 
-<img src="images/orcid-linking-2.png" alt="step 2" height="560" width="975" class="figure">
+      <img src="images/orcid-linking-3.png" alt="step 3" height="560" width="975" class="figure">
 
-<p class="widthlimit">
-Two new text fields show up. In the first one, labeled "Description", put <code>intro-nanopub</code>.
-In the second one, labeled "URL", paste the URL of your introduction nanopublication:
-<span wicket:id="introuri"></span>.
-</p>
+      <p class="widthlimit">
+        Then press "Save changes".
+        As a last check, you only need to ensure that the visibility of your profile is set to "Everyone" in
+        <a href="https://orcid.org/account" target="_blank">your ORCID account settings</a>:
+      </p>
 
-<img src="images/orcid-linking-3.png" alt="step 3" height="560" width="975" class="figure">
+      <img src="images/orcid-linking-4.png" alt="step 4" height="560" width="975" class="figure">
 
-<p class="widthlimit">
-Then press "Save changes".
-As a last check, you only need to ensure that the visibility of your profile is set to "Everyone" in
-<a href="https://orcid.org/account" target="_blank">your ORCID account settings</a>:
-</p>
+      <p class="widthlimit">
+        That's all. Your ORCID account is now linked.
+      </p>
 
-<img src="images/orcid-linking-4.png" alt="step 4" height="560" width="975" class="figure">
+    </div>
+  </div>
 
-<p class="widthlimit">
-That's all. Your ORCID account is now linked.
-</p>
-
-</div>
-</div>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

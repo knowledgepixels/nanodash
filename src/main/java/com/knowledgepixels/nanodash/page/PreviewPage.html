@@ -1,56 +1,45 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Preview Nanopublication | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:head>
+    <title>Preview Nanopublication | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
+    <div class="col-12">
+      <h4>Preview Nanopublication</h4>
+      <div wicket:id="nanopub"></div>
 
-<div id="content-pane">
+      <form wicket:id="form">
+        <p>
+          <input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
+          <label for="consentcheck">
+            I understand that published data cannot be fully removed (only retracted or superseded by new versions), and
+            is publicly connected to my personal identifier.
+          </label>
+        </p>
 
-<div class="row-section">
-<div class="col-12">
+        <p class="center">
+          <input type="submit" class="button" value="Publish"/>
+          <button wicket:id="discard-button" type="submit" class="button light">Back</button>
+        </p>
+      </form>
 
-<h4>Preview Nanopublication</h4>
+      <div wicket:id="feedback" class="negative">feedback messages will be put here</div>
+    </div>
+  </div>
 
-<div wicket:id="nanopub"></div>
+  <div wicket:id="template-form-preview-section" class="preview">
+    <div class="row-section">
+      <div class="col-12">
+        <div wicket:id="template-form-preview"></div>
+      </div>
+    </div>
+  </div>
 
-<form wicket:id="form">
-
-<p>
-<input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
-<label for="consentcheck">
-I understand that published data cannot be fully removed (only retracted or superseded by new versions), and is publicly connected to my personal identifier.
-</label>
-</p>
-
-<p class="center">
-<input type="submit" class="button" value="Publish" />
-<button wicket:id="discard-button" type="submit" class="button light">Back</button>
-</p>
-
-</form>
-
-<div wicket:id="feedback" class="negative">feedback messages will be put here</div>
-
-</div>
-</div>
-
-<div wicket:id="template-form-preview-section" class="preview"><div class="row-section">
-<div class="col-12">
-<div wicket:id="template-form-preview"></div>
-</div>
-</div></div>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>
