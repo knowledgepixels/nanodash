@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.ResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -138,7 +137,7 @@ public class ViewList extends Panel {
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                                 item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                                        .profiledResource(resourceWithProfile)
+                                        .resourceWithProfile(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .id(id)
                                         .build());
