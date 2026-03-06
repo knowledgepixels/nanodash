@@ -491,10 +491,10 @@ img.thirdparty {
 
 .user-profile-pic {
   display: inline-block;
-  vertical-align: bottom;
   margin-top: 0;
   margin-right: 0.3em;
   height: 2em;
+  border-radius: 30px;
 }
 
 .api-icon {
