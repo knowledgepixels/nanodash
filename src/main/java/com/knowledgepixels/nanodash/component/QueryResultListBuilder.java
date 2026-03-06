@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -24,7 +23,7 @@ public class QueryResultListBuilder implements Serializable {
     private ViewDisplay viewDisplay;
     private String contextId = null;
     private QueryRef queryRef;
-    private Space space = null;
+    private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
 
@@ -46,8 +45,8 @@ public class QueryResultListBuilder implements Serializable {
         return new QueryResultListBuilder(markupId, queryRef, viewDisplay);
     }
 
-    public QueryResultListBuilder space(Space space) {
-        this.space = space;
+    public QueryResultListBuilder resourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
+        this.resourceWithProfile = resourceWithProfile;
         return this;
     }
 
@@ -79,10 +78,10 @@ public class QueryResultListBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        if (space != null) {
+        if (resourceWithProfile != null) {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                resultList.setProfiledResource(space);
+                resultList.setProfiledResource(resourceWithProfile);
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
                 View view = viewDisplay.getView();
@@ -124,7 +123,7 @@ public class QueryResultListBuilder implements Serializable {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                        resultList.setProfiledResource(space);
+                        resultList.setProfiledResource(resourceWithProfile);
                         resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
                         View view = viewDisplay.getView();

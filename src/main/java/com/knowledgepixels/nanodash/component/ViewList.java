@@ -131,7 +131,7 @@ public class ViewList extends Panel {
                         if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
                             if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                                 item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                                        .space(resourceWithProfile.getSpace())
+                                        .resourceWithProfile(resourceWithProfile)
                                         .pageResource(resourceWithProfile)
                                         .id(id)
                                         .contextId(resourceWithProfile.getId())
