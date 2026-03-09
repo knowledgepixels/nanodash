@@ -110,13 +110,13 @@ public class ViewList extends Panel {
                                 }
                             } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                                 for (IRI userId : space.getUsers()) {
-                                    for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
+                                    for (String memberHash : User.getUserData().getPubkeyHashes(userId, true)) {
                                         queryRefParams.put("user_pubkey", memberHash);
                                     }
                                 }
                             } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                                 for (IRI adminId : space.getAdmins()) {
-                                    for (String adminHash : User.getUserData().getPubkeyhashes(adminId, true)) {
+                                    for (String adminHash : User.getUserData().getPubkeyHashes(adminId, true)) {
                                         queryRefParams.put("admin_pubkey", adminHash);
                                     }
                                 }

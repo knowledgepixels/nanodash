@@ -48,7 +48,7 @@ public class ActionMenu extends Panel {
                 String sigkeyParam = "";
                 if (action.isApplicableToOwnNanopubs() && !action.isApplicableToOthersNanopubs()) {
                     if (userIri != null && pubkey != null && !session.getPubkeyString().equals(pubkey)) {
-                        IRI keyLocation = userData.getKeyLocationForPubkeyhash(pubkeyhash);
+                        IRI keyLocation = userData.getKeyLocationForPubkeyHash(pubkeyhash);
                         if (keyLocation == null) {
                             location = "http://localhost:37373";
                             extraLabel = " at localhost";
