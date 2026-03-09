@@ -2,9 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.component.ProfileIntroItem;
-import com.knowledgepixels.nanodash.component.ProfileSigItem;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -142,8 +140,13 @@ public class ProfilePage extends NanodashPage {
 
         if (session.getUserIri() != null && session.getKeyPair() != null) {
             add(new ProfileIntroItem("intropart"));
+            add(new ProfileImageItem("imagepart"));
+            add(new ProfileLicenseItem("licensepart"));
+
         } else {
             add(new Label("intropart"));
+            add(new Label("imagepart"));
+            add(new Label("licensepart"));
         }
     }
 

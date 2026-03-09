@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body>
+
+<wicket:panel>
+  <h3>Profile License</h3>
+
+  <p>Your profile license defines the default license under which your nanopublications are shared.</p>
+
+  <p><em>After changes, you may have to wait a few minutes and <a href="./profile">refresh this page</a> for this to
+    update.</em></p>
+
+  <p wicket:id="no-license-note"></p>
+
+  <p wicket:id="license-container">License URL: <a wicket:id="license-url-link"></a></p>
+
+  <h3>Actions</h3>
+
+  <ul>
+    <li wicket:id="publish-license-item"><a wicket:id="publish-license-link" class="smallbutton"></a></li>
+  </ul>
+</wicket:panel>
+
+</body>
+
+</html>
