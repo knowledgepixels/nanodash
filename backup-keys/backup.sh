@@ -41,7 +41,7 @@ fi
 echo "Encrypting archive..."
 # Using openssl aes-256-cbc. 
 # -pbkdf2 is recommended for newer openssl versions to derive key from password.
-openssl enc -aes-256-cbc -pbkdf2 -salt -in "${TMP_BACKUP_DIR}/${ARCHIVE_NAME}" -out "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" -pass "$BACKUP_ENCRYPTION_PASSWORD"
+openssl enc -aes-256-cbc -pbkdf2 -salt -in "${TMP_BACKUP_DIR}/${ARCHIVE_NAME}" -out "${TMP_BACKUP_DIR}/${ENCRYPTED_NAME}" -pass env:BACKUP_ENCRYPTION_PASSWORD
 
 # 3. Transfer
 # Ensure target directory hierarchy exists (requires ssh access to execute commands, or assumes it exists)
