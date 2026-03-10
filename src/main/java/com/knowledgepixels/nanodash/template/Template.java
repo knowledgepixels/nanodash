@@ -1,18 +1,13 @@
 package com.knowledgepixels.nanodash.template;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.knowledgepixels.nanodash.LookupApis;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.domain.User;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -25,17 +20,15 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.knowledgepixels.nanodash.LookupApis;
-import com.knowledgepixels.nanodash.Utils;
-
-import net.trustyuri.TrustyUriUtils;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Represents a template for creating nanopublications.
  */
 public class Template implements Serializable {
 
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Template.class);
 
     /**
@@ -46,7 +39,7 @@ public class Template implements Serializable {
     // TODO Move this to the other ntemplate vocabulary terms in nanopub-java:
     private static final IRI ADVANCED_STATEMENT = vf.createIRI("https://w3id.org/np/o/ntemplate/AdvancedStatement");
 
-    private Nanopub nanopub;
+    private final Nanopub nanopub;
     private String label;
     private String description;
 
@@ -68,7 +61,7 @@ public class Template implements Serializable {
     private Map<IRI, Value> statementObjects = new HashMap<>();
     private Map<IRI, Integer> statementOrder = new HashMap<>();
     private IRI defaultProvenance;
-    private List<IRI> requiredPubinfoElements = new ArrayList<>();
+    private List<IRI> requiredPubInfoElements = new ArrayList<>();
     private String tag = null;
     private Map<IRI, Value> defaultValues = new HashMap<>();
     private String targetNamespace = null;
@@ -83,10 +76,15 @@ public class Template implements Serializable {
      * @throws MalformedTemplateException if the template is malformed or not a valid nanopub template.
      */
     Template(String templateId) throws RDF4JException, MalformedTemplateException {
-        nanopub = Utils.getNanopub(templateId);
-        processTemplate(nanopub);
+        this(Utils.getNanopub(templateId));
     }
 
+    /**
+     * Creates a Template object from a Nanopub object.
+     *
+     * @param np the Nanopub object containing the template definition.
+     * @throws MalformedTemplateException if the template is malformed or not a valid nanopub template.
+     */
     Template(Nanopub np) throws MalformedTemplateException {
         nanopub = np;
         processTemplate(nanopub);
@@ -157,7 +155,7 @@ public class Template implements Serializable {
      * @param iri the IRI to transform.
      * @return the transformed IRI, or the original IRI if no transformation is needed.
      */
-    public IRI getFirstOccurence(IRI iri) {
+    public IRI getFirstOccurrence(IRI iri) {
         for (IRI i : getStatementIris()) {
             if (statementMap.containsKey(i)) {
                 // grouped statement
@@ -606,29 +604,29 @@ public class Template implements Serializable {
     }
 
     /**
-     * Returns the list of the required pubinfo elements for the template.
+     * Returns the list of the required pubInfo elements for the template.
      *
-     * @return a list of IRI objects representing the required pubinfo elements.
+     * @return a list of IRI objects representing the required pubInfo elements.
      */
-    public List<IRI> getRequiredPubinfoElements() {
-        return requiredPubinfoElements;
+    public List<IRI> getRequiredPubInfoElements() {
+        return requiredPubInfoElements;
     }
 
     /**
      * Returns the possible values from an API for a given IRI and search term.
      *
      * @param iri        the IRI for which to get possible values from the API.
-     * @param searchterm the search term to filter the possible values.
+     * @param searchTerm the search term to filter the possible values.
      * @param labelMap   a map to store labels for the possible values.
      * @return a list of possible values from the API, filtered by the search term.
      */
-    public List<String> getPossibleValuesFromApi(IRI iri, String searchterm, Map<String, String> labelMap) {
+    public List<String> getPossibleValuesFromApi(IRI iri, String searchTerm, Map<String, String> labelMap) {
         iri = transform(iri);
         List<String> values = new ArrayList<>();
         List<String> apiList = apiMap.get(iri);
         if (apiList != null) {
             for (String apiString : apiList) {
-                LookupApis.getPossibleValues(apiString, searchterm, labelMap, values);
+                LookupApis.getPossibleValues(apiString, searchTerm, labelMap, values);
             }
         }
         return values;
@@ -679,7 +677,7 @@ public class Template implements Serializable {
                     if (pred.equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE)) {
                         defaultProvenance = objIri;
                     } else if (pred.equals(NTEMPLATE.HAS_REQUIRED_PUBINFO_ELEMENT)) {
-                        requiredPubinfoElements.add(objIri);
+                        requiredPubInfoElements.add(objIri);
                     } else if (pred.equals(NTEMPLATE.HAS_TARGET_NAMESPACE)) {
                         targetNamespace = objS;
                     } else if (pred.equals(NTEMPLATE.HAS_TARGET_NANOPUB_TYPE)) {
@@ -760,6 +758,9 @@ public class Template implements Serializable {
                     statementOrder.put(subj, Integer.valueOf(objS));
                 }
             }
+            if (subj.equals(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "#license"))) {
+                processDefaultLicense();
+            }
         }
 //		List<IRI> assertionTypes = typeMap.get(templateIri);
 //		if (assertionTypes == null || (!assertionTypes.contains(NTEMPLATE.ASSERTION_TEMPLATE) &&
@@ -775,6 +776,16 @@ public class Template implements Serializable {
         }
         for (List<IRI> l : statementMap.values()) {
             l.sort(statementComparator);
+        }
+    }
+
+    /**
+     * Processes the default license for the template by retrieving it from the user's profile and adding it to the default values if it exists.
+     */
+    private void processDefaultLicense() {
+        IRI licenseUrl = User.getDefaultLicense(NanodashSession.get().getUserIri());
+        if (licenseUrl != null) {
+            defaultValues.put(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "#license"), licenseUrl);
         }
     }
 
@@ -812,7 +823,7 @@ public class Template implements Serializable {
                     if (pred.equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE)) {
                         defaultProvenance = objIri;
                     } else if (pred.equals(NTEMPLATE.HAS_REQUIRED_PUBINFO_ELEMENT)) {
-                        requiredPubinfoElements.add(objIri);
+                        requiredPubInfoElements.add(objIri);
                     } else if (pred.equals(NTEMPLATE.HAS_TARGET_NAMESPACE)) {
                         targetNamespace = objS;
                     } else if (pred.equals(NTEMPLATE.HAS_TARGET_NANOPUB_TYPE)) {
@@ -961,15 +972,6 @@ public class Template implements Serializable {
     }
 
     private void addType(IRI thing, IRI type) {
-        List<IRI> l = typeMap.get(thing);
-        if (l == null) {
-            l = new ArrayList<>();
-            typeMap.put(thing, l);
-        }
-        l.add(type);
-    }
-
-    private void addStatement(IRI thing, IRI type) {
         List<IRI> l = typeMap.get(thing);
         if (l == null) {
             l = new ArrayList<>();

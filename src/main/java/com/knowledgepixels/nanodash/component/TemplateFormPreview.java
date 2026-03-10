@@ -70,7 +70,7 @@ public class TemplateFormPreview extends Panel {
         List<TemplateContext> pubInfoContexts = new ArrayList<>();
         pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement", targetNamespace));
         pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, licensePubinfoTemplateId, "pi-statement", targetNamespace));
-        for (IRI r : template.getRequiredPubinfoElements()) {
+        for (IRI r : template.getRequiredPubInfoElements()) {
             String rId = r.stringValue();
             boolean alreadyAdded = false;
             for (TemplateContext c : pubInfoContexts) {

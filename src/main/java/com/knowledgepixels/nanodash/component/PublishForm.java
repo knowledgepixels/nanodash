@@ -71,12 +71,12 @@ public class PublishForm extends Panel {
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final String creatorPubInfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
-    private static final String licensePubInfoTemplateId = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
+    public static final String LICENSE_PUB_INFO_TEMPLATE = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
     private static final String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
     private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
     private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
 
-    private static final String[] fixedPubInfoTemplates = new String[]{creatorPubInfoTemplateId, licensePubInfoTemplateId};
+    private static final String[] fixedPubInfoTemplates = new String[]{creatorPubInfoTemplateId, LICENSE_PUB_INFO_TEMPLATE};
 
     /**
      * Fill modes for the nanopublication to be created.
@@ -220,7 +220,7 @@ public class PublishForm extends Panel {
             pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
         }
-        for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
+        for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
             String latestId = QueryApiAccess.getLatestVersionId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
             TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
