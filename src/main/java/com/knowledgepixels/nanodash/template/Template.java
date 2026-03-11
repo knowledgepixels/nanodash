@@ -758,7 +758,7 @@ public class Template implements Serializable {
                     statementOrder.put(subj, Integer.valueOf(objS));
                 }
             }
-            if (subj.equals(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "#license"))) {
+            if (subj.equals(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "/license"))) {
                 processDefaultLicense();
             }
         }
@@ -785,7 +785,7 @@ public class Template implements Serializable {
     private void processDefaultLicense() {
         IRI licenseUrl = User.getDefaultLicense(NanodashSession.get().getUserIri());
         if (licenseUrl != null) {
-            defaultValues.put(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "#license"), licenseUrl);
+            defaultValues.put(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "/license"), licenseUrl);
         }
     }
 

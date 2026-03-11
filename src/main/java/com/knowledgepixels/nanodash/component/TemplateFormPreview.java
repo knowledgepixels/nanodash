@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateContext;
+import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -13,11 +15,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.TemplateData;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A preview panel that shows what the template form will look like when used,
@@ -26,13 +25,12 @@ import com.knowledgepixels.nanodash.template.TemplateData;
 public class TemplateFormPreview extends Panel {
 
     private static final String creatorPubinfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
-    private static final String licensePubinfoTemplateId = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
     private static final String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
 
     /**
      * Creates a form preview for a template nanopub that may not yet be published.
      *
-     * @param id the Wicket component ID
+     * @param id              the Wicket component ID
      * @param templateNanopub the nanopub that defines the assertion template to preview
      */
     public TemplateFormPreview(String id, Nanopub templateNanopub) {
@@ -69,7 +67,7 @@ public class TemplateFormPreview extends Panel {
         // Pubinfo contexts
         List<TemplateContext> pubInfoContexts = new ArrayList<>();
         pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement", targetNamespace));
-        pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, licensePubinfoTemplateId, "pi-statement", targetNamespace));
+        pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, PublishForm.LICENSE_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace));
         for (IRI r : template.getRequiredPubInfoElements()) {
             String rId = r.stringValue();
             boolean alreadyAdded = false;
