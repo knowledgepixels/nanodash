@@ -4,17 +4,13 @@
   <wicket:remove>
     <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 </wicket:remove>
-  <wicket:head>
-    <title>Error | nanodash</title>
-  </wicket:head>
+  <meta charset="utf-8"/>
+  <link rel="icon" type="application/svg+xml" href="images/favicon.svg">
 </head>
 <body>
-<wicket:extend>
-  <div class="row-section">
-    <div class="col-12">
-      <h2>An error has happened... :(</h2>
-    </div>
-  </div>
-</wicket:extend>
+<div wicket:id="titlebar"></div>
+<div id="content-pane">
+  <wicket:child/>
+</div>
 </body>
 </html>

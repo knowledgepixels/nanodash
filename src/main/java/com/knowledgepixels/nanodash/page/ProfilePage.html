@@ -1,49 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Profile | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title>Profile | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
+    <div class="col-12">
+      <h2>Your Profile Details</h2>
+      <p wicket:id="message" class="widthlimit"></p>
+      <p>
+        <a wicket:id="loginout" class="button">logout</a>
+      </p>
+      <p class="negative" wicket:id="orcidmessage"></p>
 
-<div id="content-pane">
+      <form wicket:id="form">
+        <code>https://orcid.org/</code><input wicket:id="orcidfield" type="text" size="20"/>
+        <input type="submit" wicket:id="submit" class="button" value="set"/>
+        <span wicket:id="orcidname"></span>
+      </form>
+      <div wicket:id="feedback" class="negative">feedbackmessages will be put here</div>
 
-<div class="row-section">
-<div class="col-12">
+      <div wicket:id="sigpart"></div>
 
-<h2>Your Profile Details</h2>
+      <div wicket:id="intropart"></div>
+    </div>
+  </div>
 
-<p wicket:id="message" class="widthlimit"></p>
-
-<p>
-<a wicket:id="loginout" class="button" href=".">logout</a>
-</p>
-
-<p class="negative" wicket:id="orcidmessage"></p>
-
-<form wicket:id="form">
-<code>https://orcid.org/</code><input wicket:id="orcidfield" type="text" size="20" />
-<input type="submit" wicket:id="submit" class="button" value="set" />
-<span wicket:id="orcidname" ></span>
-</form>
-<div wicket:id="feedback" class="negative">feedbackmessages will be put here</div>
-
-<div wicket:id="sigpart"></div>
-
-<div wicket:id="intropart"></div>
-
-</div>
-</div>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>
