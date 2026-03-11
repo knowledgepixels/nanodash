@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
@@ -187,12 +188,11 @@ public class ExplorePage extends NanodashPage {
                     }
                 }
             }
-            // TODO Improve this so we have just one check:
-            if (SpaceRepository.get().findById(contextId) != null && SpaceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
-                throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (MaintainedResourceRepository.get().findById(contextId) != null && MaintainedResourceRepository.get().findById(contextId).appliesTo(tempRef, classes)) {
-                throw new RestartResponseException(ResourcePartPage.class, parameters);
-            } else if (IndividualAgent.isUser(contextId) && IndividualAgent.get(contextId).appliesTo(tempRef, classes)) {
+            AbstractResourceWithProfile contextResource = AbstractResourceWithProfile.get(contextId);
+            if (contextResource instanceof IndividualAgent && !IndividualAgent.isUser(contextId)) {
+                contextResource = null;
+            }
+            if (contextResource != null && contextResource.appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
             }
         }
