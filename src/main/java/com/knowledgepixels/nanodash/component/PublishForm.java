@@ -279,8 +279,7 @@ public class PublishForm extends Panel {
             if (k.matches("piparam[1-9][0-9]*_.*")) {
                 Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
                 if (!piParamIdMap.containsKey(i)) {
-                    // TODO: handle this error better
-                    logger.error("ERROR: pitemplate param identifier not found: {}", i);
+                    logger.error("Parameter {} of the publication info template not found", i);
                     continue;
                 }
                 String n = k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1");
