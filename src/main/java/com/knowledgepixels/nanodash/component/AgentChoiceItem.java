@@ -2,9 +2,10 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -13,10 +14,13 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -187,6 +191,34 @@ public class AgentChoiceItem extends AbstractContextComponent {
         tooltipLink.setOutputMarkupId(true);
         add(tooltipLink);
 
+        final WebMarkupContainer userIcon = new WebMarkupContainer("user-icon") {
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                String selectedValue = model.getObject();
+                IRI selectedIri;
+                if (selectedValue != null && !selectedValue.isEmpty()) {
+                    try {
+                        selectedIri = vf.createIRI(selectedValue);
+                    } catch (IllegalArgumentException e) {
+                        selectedIri = NanodashSession.get().getUserIri();
+                    }
+                } else {
+                    selectedIri = NanodashSession.get().getUserIri();
+                }
+                IRI profilePicIri = (selectedIri != null) ? User.getProfilePicture(selectedIri) : null;
+                if (profilePicIri != null) {
+                    tag.put("src", profilePicIri.stringValue());
+                } else if (selectedIri != null && IndividualAgent.isSoftware(selectedIri)) {
+                    tag.put("src", urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString());
+                } else {
+                    tag.put("src", urlFor(new ContextRelativeResourceReference("images/user-icon.svg", false), null).toString());
+                }
+            }
+        };
+        userIcon.setOutputMarkupId(true);
+        add(userIcon);
+
         textfield.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -200,6 +232,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
                 }
                 target.add(tooltipLink);
                 target.add(tooltipDescription);
+                target.add(userIcon);
             }
 
         });

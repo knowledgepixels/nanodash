@@ -224,7 +224,7 @@ public class Utils {
      * @return the name of the public key location or the fallback name
      */
     public static String getPubkeyLocationName(String pubkeyhash, String fallback) {
-        IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
+        IRI keyLocation = User.getUserData().getKeyLocationForPubkeyHash(pubkeyhash);
         if (keyLocation == null) return fallback;
         if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
         return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
@@ -256,7 +256,7 @@ public class Utils {
      * @return true if the public key has a Nanodash location, false otherwise
      */
     public static boolean hasNanodashLocation(String pubkeyhash) {
-        IRI keyLocation = User.getUserData().getKeyLocationForPubkeyhash(pubkeyhash);
+        IRI keyLocation = User.getUserData().getKeyLocationForPubkeyHash(pubkeyhash);
         if (keyLocation == null) return true; // potentially a Nanodash location
         if (keyLocation.stringValue().contains("nanodash")) return true;
         if (keyLocation.stringValue().contains("nanobench")) return true;

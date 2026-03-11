@@ -15,7 +15,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -81,12 +80,12 @@ public class ResourcePartPage extends NanodashPage {
         QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", id);
         if (resourceWithProfile.getSpace() != null) {
             for (IRI userIri : resourceWithProfile.getSpace().getUsers()) {
-                for (String pubkey : User.getUserData().getPubkeyhashes(userIri, true)) {
+                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
                     getDefQuery.getParams().put("pubkey", pubkey);
                 }
             }
         } else {
-            for (String pubkey : User.getUserData().getPubkeyhashes(Utils.vf.createIRI(contextId), true)) {
+            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
                 getDefQuery.getParams().put("pubkey", pubkey);
             }
         }

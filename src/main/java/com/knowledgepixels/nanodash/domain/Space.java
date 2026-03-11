@@ -70,8 +70,8 @@ public class Space extends AbstractResourceWithProfile {
             if (admins.contains(admin)) return;
             admins.add(admin);
             UserData ud = User.getUserData();
-            for (String pubkeyhash : ud.getPubkeyhashes(admin, true)) {
-                adminPubkeyMap.put(pubkeyhash, admin);
+            for (String pubkeyHash : ud.getPubkeyHashes(admin, true)) {
+                adminPubkeyMap.put(pubkeyHash, admin);
             }
             users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
         }
@@ -373,8 +373,8 @@ public class Space extends AbstractResourceWithProfile {
                     while (continueAddingAdmins) {
                         continueAddingAdmins = false;
                         for (ApiResponseEntry r : getAdminsResponse.getData()) {
-                            String pubkeyhash = r.get("pubkey");
-                            if (newData.adminPubkeyMap.containsKey(pubkeyhash)) {
+                            String pubkeyHash = r.get("pubkey");
+                            if (newData.adminPubkeyMap.containsKey(pubkeyHash)) {
                                 IRI adminId = Utils.vf.createIRI(r.get("admin"));
                                 if (!newData.admins.contains(adminId)) {
                                     continueAddingAdmins = true;

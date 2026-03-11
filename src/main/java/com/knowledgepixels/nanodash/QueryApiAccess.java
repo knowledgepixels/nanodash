@@ -32,6 +32,7 @@ public class QueryApiAccess {
     public static final String GET_LATEST_VERSION_OF_NP = "RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np";
     public static final String GET_ALL_USER_INTROS = "RAjHh6P11QFUaoPiMRBavdAnTq4YMJW4PB85oVFSBfYjU/get-all-user-intros";
     public static final String GET_ALL_USER_PROFILE_PICS= "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
+    public static final String GET_ALL_USER_DEFAULT_LICENSE = "RA-_IwzReR2_HfTLz4YcNM6Mh3Vt16y0RUS12tpJTN9FI/get-all-user-default-license";
     public static final String GET_SUGGESTED_TEMPLATES_TO_GET_STARTED = "RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started";
     public static final String GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS = "RAhI-C2KsqS_IvnxwyBrbMFsoj65dhLWE_CBo_KtcVEVA/get-monthly-type-overview-by-pubkeys";
     public static final String GET_APPROVED_NANOPUBS = "RAn3agwsH2yk-8132RJApGYxdPSHHCXDAIYiCaSBBo6tg/get-approved-nanopubs";

@@ -70,13 +70,13 @@ public class PublishForm extends Panel {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
-    private static String creatorPubinfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
-    private static String licensePubinfoTempalteId = "https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw";
-    private static String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
-    private static String supersedesPubinfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
-    private static String derivesFromPubinfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
+    public static final String CREATOR_PUB_INFO_TEMPLATE = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
+    public static final String LICENSE_PUB_INFO_TEMPLATE = "https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8";
+    public static final String DEFAULT_PROV_TEMPLATE = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
+    private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
+    private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
 
-    private static String[] fixedPubInfoTemplates = new String[]{creatorPubinfoTemplateId, licensePubinfoTempalteId};
+    private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
     /**
      * Fill modes for the nanopublication to be created.
@@ -100,11 +100,11 @@ public class PublishForm extends Panel {
     protected FeedbackPanel feedbackPanel;
     private final TemplateContext assertionContext;
     private TemplateContext provenanceContext;
-    private List<TemplateContext> pubInfoContexts = new ArrayList<>();
-    private Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
-    private List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
+    private final List<TemplateContext> pubInfoContexts = new ArrayList<>();
+    private final Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
+    private final List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
     private String targetNamespace;
-    private Class<? extends WebPage> confirmPageClass;
+    private final Class<? extends WebPage> confirmPageClass;
 
     /**
      * Constructor for the PublishForm.
@@ -197,7 +197,7 @@ public class PublishForm extends Panel {
             } else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
                 prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
             } else {
-                prTemplateId = defaultProvTemplateId;
+                prTemplateId = DEFAULT_PROV_TEMPLATE;
             }
         }
         provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
@@ -209,18 +209,18 @@ public class PublishForm extends Panel {
             requiredPubInfoContexts.add(c);
         }
         if (fillMode == FillMode.SUPERSEDE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubinfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubInfoTemplateId, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
-            pubInfoContextMap.put(supersedesPubinfoTemplateId, c);
+            pubInfoContextMap.put(supersedesPubInfoTemplateId, c);
             //requiredPubInfoContexts.add(c);
             c.setParam("np", fillNp.getUri().stringValue());
         } else if (fillMode == FillMode.DERIVE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubinfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubInfoTemplateId, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
-            pubInfoContextMap.put(derivesFromPubinfoTemplateId, c);
+            pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
         }
-        for (IRI r : assertionContext.getTemplate().getRequiredPubinfoElements()) {
+        for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
             String latestId = QueryApiAccess.getLatestVersionId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
             TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
@@ -234,21 +234,21 @@ public class PublishForm extends Panel {
             Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
             String tid = pageParams.get(k).toString();
             // TODO Allow for automatically using latest template version:
-            //String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(tid);
-            TemplateContext c = createPubinfoContext(tid);
+            //String piTemplateIdLatest = QueryApiAccess.getLatestVersionId(tid);
+            TemplateContext c = createPubInfoContext(tid);
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
-                logger.error("ERROR: pitemplate param identifier assigned multiple times: {}", i);
+                logger.error("Publication Info template param identifier defined multiple times: {}", i);
             }
             piParamIdMap.put(i, c);
         }
         if (fillNp != null && !fillOnlyAssertion) {
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
-                String piTempalteIdLatest = QueryApiAccess.getLatestVersionId(piTemplateId.stringValue());
-                if (piTempalteIdLatest.equals(supersedesPubinfoTemplateId)) continue;
-                if (!pubInfoContextMap.containsKey(piTempalteIdLatest)) {
+                String piTemplateIdLatest = QueryApiAccess.getLatestVersionId(piTemplateId.stringValue());
+                if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) continue;
+                if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
                     // TODO Allow for automatically using latest template version
-                    createPubinfoContext(piTemplateId.stringValue());
+                    createPubInfoContext(piTemplateId.stringValue());
                 }
             }
         }
@@ -279,8 +279,7 @@ public class PublishForm extends Panel {
             if (k.matches("piparam[1-9][0-9]*_.*")) {
                 Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
                 if (!piParamIdMap.containsKey(i)) {
-                    // TODO: handle this error better
-                    logger.error("ERROR: pitemplate param identifier not found: {}", i);
+                    logger.error("Parameter {} of the publication info template not found", i);
                     continue;
                 }
                 String n = k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1");
@@ -347,7 +346,7 @@ public class PublishForm extends Panel {
                 if (piFiller.hasUnusedStatements()) {
                     final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
                     if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
-                        TemplateContext c = createPubinfoContext(handcodedStatementsTemplateId);
+                        TemplateContext c = createPubInfoContext(handcodedStatementsTemplateId);
                         c.initStatements();
                         piFiller.fill(c);
                     }
@@ -504,7 +503,6 @@ public class PublishForm extends Panel {
         form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().set("id", assertionContext.getTemplate().getId())));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
-        if (description == null) description = "";
         form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()).setEscapeModelStrings(false));
 
         form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
@@ -527,7 +525,7 @@ public class PublishForm extends Panel {
         final List<String> provTemplateOptionIds = new ArrayList<>();
         if (pageParams.get("prtemplate-options").isNull()) {
             // TODO Make this dynamic and consider updated templates:
-            recommendedProvTemplateOptionIds.add("https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU");
+            recommendedProvTemplateOptionIds.add(DEFAULT_PROV_TEMPLATE);
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
@@ -847,7 +845,7 @@ public class PublishForm extends Panel {
         }
     }
 
-    private TemplateContext createPubinfoContext(String piTemplateId) {
+    private TemplateContext createPubInfoContext(String piTemplateId) {
         TemplateContext c;
         if (pubInfoContextMap.containsKey(piTemplateId)) {
             c = pubInfoContextMap.get(piTemplateId);

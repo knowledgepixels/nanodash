@@ -96,7 +96,7 @@ public class NanopubItem extends Panel {
             header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString, null));
             if (!hideActionMenu && (actions == null || !actions.isEmpty())) {
                 NanodashSession session = NanodashSession.get();
-                final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIriForPubkeyhash(pubkeyhash, false))) ||
+                final boolean isOwnNanopub = (session.getUserIri() != null && session.getUserIri().equals(User.getUserData().getUserIriForPubkeyHash(pubkeyhash, false))) ||
                                              ((pubkey != null) && pubkey.equals(session.getPubkeyString()));
                 final boolean hasLocalPubkey = session.getUserIri() != null && session.getPubkeyString() != null && session.getPubkeyString().equals(pubkey);
                 final List<NanopubAction> actionList = new ArrayList<>();

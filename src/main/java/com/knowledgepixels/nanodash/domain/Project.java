@@ -148,7 +148,7 @@ public class Project implements Serializable {
         if (owners.contains(owner)) return;
         owners.add(owner);
         UserData ud = User.getUserData();
-        for (String pubkeyhash : ud.getPubkeyhashes(owner, true)) {
+        for (String pubkeyhash : ud.getPubkeyHashes(owner, true)) {
             ownerPubkeyMap.put(pubkeyhash, owner);
         }
     }
