@@ -24,9 +24,6 @@ import java.util.List;
  */
 public class TemplateFormPreview extends Panel {
 
-    private static final String creatorPubinfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
-    private static final String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
-
     /**
      * Creates a form preview for a template nanopub that may not yet be published.
      *
@@ -58,7 +55,7 @@ public class TemplateFormPreview extends Panel {
         if (template.getDefaultProvenance() != null) {
             prTemplateId = template.getDefaultProvenance().stringValue();
         } else {
-            prTemplateId = defaultProvTemplateId;
+            prTemplateId = PublishForm.DEFAULT_PROV_TEMPLATE;
         }
         TemplateContext provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
         provenanceContext.initStatements();
@@ -66,7 +63,7 @@ public class TemplateFormPreview extends Panel {
 
         // Pubinfo contexts
         List<TemplateContext> pubInfoContexts = new ArrayList<>();
-        pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, creatorPubinfoTemplateId, "pi-statement", targetNamespace));
+        pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, PublishForm.CREATOR_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace));
         pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, PublishForm.LICENSE_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace));
         for (IRI r : template.getRequiredPubInfoElements()) {
             String rId = r.stringValue();

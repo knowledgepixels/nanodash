@@ -70,13 +70,13 @@ public class PublishForm extends Panel {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
-    private static final String creatorPubInfoTemplateId = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
+    public static final String CREATOR_PUB_INFO_TEMPLATE = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
     public static final String LICENSE_PUB_INFO_TEMPLATE = "https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8";
-    private static final String defaultProvTemplateId = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
+    public static final String DEFAULT_PROV_TEMPLATE = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
     private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
     private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
 
-    private static final String[] fixedPubInfoTemplates = new String[]{creatorPubInfoTemplateId, LICENSE_PUB_INFO_TEMPLATE};
+    private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
     /**
      * Fill modes for the nanopublication to be created.
@@ -197,7 +197,7 @@ public class PublishForm extends Panel {
             } else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
                 prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
             } else {
-                prTemplateId = defaultProvTemplateId;
+                prTemplateId = DEFAULT_PROV_TEMPLATE;
             }
         }
         provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
@@ -525,7 +525,7 @@ public class PublishForm extends Panel {
         final List<String> provTemplateOptionIds = new ArrayList<>();
         if (pageParams.get("prtemplate-options").isNull()) {
             // TODO Make this dynamic and consider updated templates:
-            recommendedProvTemplateOptionIds.add("https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU");
+            recommendedProvTemplateOptionIds.add(DEFAULT_PROV_TEMPLATE);
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
             recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
