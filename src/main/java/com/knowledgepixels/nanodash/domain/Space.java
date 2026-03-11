@@ -273,12 +273,10 @@ public class Space extends AbstractResourceWithProfile {
         return data.pinnedResourceMap;
     }
 
+    @Override
     public boolean appliesTo(String elementId, Set<IRI> classes) {
-        triggerDataUpdate();
-        for (ViewDisplay v : getViewDisplays()) {
-            if (v.appliesTo(elementId, classes)) return true;
-        }
-        return false;
+        triggerSpaceDataUpdate();
+        return super.appliesTo(elementId, classes);
     }
 
     /**
