@@ -17,12 +17,13 @@ import static com.knowledgepixels.nanodash.Utils.urlEncode;
 public class ProfileLicenseItem extends Panel {
 
     private final NanodashSession session = NanodashSession.get();
+    private static final String DEFAULT_LICENSE_TEMPLATE = "https://w3id.org/np/RAFmIDts27rRMUzK1HVdrVQTig4bJyr8mqzgzR5ulB2T0";
 
     public ProfileLicenseItem(String id) {
         super(id);
 
         String publishLicenseLinkString = PublishPage.MOUNT_PATH +
-                                          "?template=https://w3id.org/np/RAsbRB10T4F11shUx13g7EON1xcOiRUTzC809S8rVVI98&" +
+                                          "?template=" + DEFAULT_LICENSE_TEMPLATE + "&" +
                                           "param_user=" + urlEncode(session.getUserIri()) + "&" +
                                           "link-message=" + urlEncode("Enter the URL of your preferred license below, check the checkbox at the end of this page and press 'Publish' to publish it.");
 
