@@ -1,3 +1,63 @@
+## [4.16.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.2...nanodash-4.16.0) (2026-03-11)
+
+### Features
+
+* **AgentChoiceItem:** implement dynamic user icon rendering based on user selection ([c90d867](https://github.com/knowledgepixels/nanodash/commit/c90d8679eb1663835c103a4a74c71ac21256caa7))
+* **ItemListElement:** add profile pic rendering when available ([f3b3294](https://github.com/knowledgepixels/nanodash/commit/f3b32944b86a27a21e343698d621219cf6b8a3a3))
+* **Profile:** add profile image and license components to user profile page ([9befdaf](https://github.com/knowledgepixels/nanodash/commit/9befdaf3fd3f4130147735843eb12697b9e574ae))
+* **QueryApiAccess:** add endpoint constant for retrieving user default license ([2ce6cdb](https://github.com/knowledgepixels/nanodash/commit/2ce6cdbc34a89c4d74951059964bef5318bfb601))
+* **QueryPage:** support CONSTRUCT queries ([#380](https://github.com/knowledgepixels/nanodash/issues/380)) ([eade858](https://github.com/knowledgepixels/nanodash/commit/eade858ece492b1d6fb4ccd47585f6367928aced))
+* **Template:** add user default license processing ([dec8967](https://github.com/knowledgepixels/nanodash/commit/dec896758aa3db0891686163b262446b7e97dfa1))
+* **UserData:** add method to retrieve default license for a user ([2f6a42f](https://github.com/knowledgepixels/nanodash/commit/2f6a42f9ad1135fdd0a4d3d2c70c54bee44a2216))
+* **UserPage:** add retrieval and url rendering for user that have a profile picture defined ([6eb1fae](https://github.com/knowledgepixels/nanodash/commit/6eb1fae278bf2254f53b1641379b73daefd9cc64))
+
+### Bug Fixes
+
+* **AgentChoiceItem:** update user icon handling ([33fb6ed](https://github.com/knowledgepixels/nanodash/commit/33fb6edea6dbf2816189f429285a020072b60124))
+* Forgotten word in documentation of backup keys. ([a91b2c1](https://github.com/knowledgepixels/nanodash/commit/a91b2c16194d67b85681cd1fd28182ff16f9c00b))
+* Issue with passing the encryption password to openssl ([8c12173](https://github.com/knowledgepixels/nanodash/commit/8c12173dce41ca7c0a4da931b59ff45d4b0c0d53))
+* **ItemListElement:** userIcon was never added to the page with a null userIri ([986af9a](https://github.com/knowledgepixels/nanodash/commit/986af9afa49721990c973ace331af4d9f5330282))
+* **NanodashPage:** remove pagetitle to allow it to be dynamic ([84698cc](https://github.com/knowledgepixels/nanodash/commit/84698cca6f8039e74795667315b46387f4abbb03))
+* **PublishForm:** update license template URL and adjust related references ([46b9f47](https://github.com/knowledgepixels/nanodash/commit/46b9f47a3f261627cf9580d218696b3a081b04f5))
+* Show view action buttons on list views for resources without a space ([6d60802](https://github.com/knowledgepixels/nanodash/commit/6d608029f9a5fd9b3c1648051a5b6bbe69e0a1b5)), closes [#376](https://github.com/knowledgepixels/nanodash/issues/376)
+* **style:** add light gray background color to user-icon element ([2844266](https://github.com/knowledgepixels/nanodash/commit/284426655a0eee7ceb517c1c39bfd6b78397e160))
+* **style:** add light gray background color to user-profile-pic element ([d40fde1](https://github.com/knowledgepixels/nanodash/commit/d40fde147c786a70a8f4e9fbf9fb44109dd9ee18))
+* **style:** add mask to profile pictures as done on knowledgepixels.com ([fb271a7](https://github.com/knowledgepixels/nanodash/commit/fb271a7b67827c5fa6f899204c3c2693788b183d))
+* **style:** show profile pics as rounded images in the user page ([609f87a](https://github.com/knowledgepixels/nanodash/commit/609f87a9252182ad6e8572fcbcd849c603a07db7))
+
+### Documentation
+
+* Added info for building the backup-keys docker image ([2f0a2a6](https://github.com/knowledgepixels/nanodash/commit/2f0a2a6bcdbc6e2209e300e0defbe98cc7990518))
+* minor fix in documentation of the backup-keys feature ([45247de](https://github.com/knowledgepixels/nanodash/commit/45247de7b80e54385f8ed1a00016b3046cf1b9b8))
+
+### Build and continuous integration
+
+* **deps:** update actions/checkout action to v6.0.2 ([42d916f](https://github.com/knowledgepixels/nanodash/commit/42d916ffa7e92a538c81380f69376fb6210cb84b))
+
+### General maintenance
+
+* **KPXL_TERMS:** add `HAS_DEFAULT_LICENSE` constant to KPXL_TERMS for default license handling ([0178834](https://github.com/knowledgepixels/nanodash/commit/0178834811b9a581e623532efe898ed11a00ca28))
+* **NanodashPage:** add stylesheet link in the page header rendering method with current version for cache busting ([9681021](https://github.com/knowledgepixels/nanodash/commit/96810211fb067a0a68bd7a21f9639ad0d8722468))
+* **NanodashPage:** create base HTML NanodashPage ([65b7d1d](https://github.com/knowledgepixels/nanodash/commit/65b7d1d081d1e8012f1826d6f084a38f2f62b62f))
+* **pages:** add style.css link for local static preview ([02d79f6](https://github.com/knowledgepixels/nanodash/commit/02d79f6504f2bc580a90c82553b8d2cb27e24274))
+* remove `update-css-version.sh` script - not needed anymore ([8059209](https://github.com/knowledgepixels/nanodash/commit/8059209d10f251b1d5820764b2b12332b1f0e899))
+* setting next snapshot version [skip ci] ([fc78737](https://github.com/knowledgepixels/nanodash/commit/fc78737c16d6cf86ebc02061e18e5efe79c176a4))
+* **UserPage, UserListPage:** update code and style for user icon rendering ([7938c37](https://github.com/knowledgepixels/nanodash/commit/7938c370856d3aaf3bbb51eccea48ddc10e66ee0))
+
+### Refactoring
+
+* consolidate appliesTo method across resource classes for improved consistency ([a8c52ca](https://github.com/knowledgepixels/nanodash/commit/a8c52ca6083dfcb09967a64ce7c215f3ea5815d0))
+* **PublishForm, TemplateFormPreview:** replace string constants with public static final fields for template URLs ([1ac7fc5](https://github.com/knowledgepixels/nanodash/commit/1ac7fc55ba9f1fa9a59caa0cd8e8222b5f6b083f))
+* **PublishForm:** improve error logging for missing publication info template parameters ([6358df4](https://github.com/knowledgepixels/nanodash/commit/6358df41478029d784a08c5dbdeaef25aab27c02))
+* **PublishForm:** standardize variable naming for publication info templates ([8fc430f](https://github.com/knowledgepixels/nanodash/commit/8fc430fc3a971c6036efc07f29ee30aa8ee9fec6))
+* rename old references to `profiledResource` with new term `resourceWithProfile` for consistency ([e0cab78](https://github.com/knowledgepixels/nanodash/commit/e0cab788d15bb8ab0b6ebfb78e6be2b231d3dd67))
+* simplify context resource checks by utilizing AbstractResourceWithProfile ([6fa5481](https://github.com/knowledgepixels/nanodash/commit/6fa5481c11f80aa05d34058992bb343057067a3d))
+* **SpacePage:** update constructor ([0a1e075](https://github.com/knowledgepixels/nanodash/commit/0a1e075b832224082de0d6f2adf393f8931f2d21))
+* update HTML pages by using wicket extend ([242d0a4](https://github.com/knowledgepixels/nanodash/commit/242d0a4c778de9369d058ad71c80a512612138c1))
+* update links in HTML files to use relative paths ([4babb00](https://github.com/knowledgepixels/nanodash/commit/4babb00c4fcc116c0e9438bfd606ad6d6478bfbd))
+* update method name casing for pubkey hash retrieval across multiple files ([fa9c2e7](https://github.com/knowledgepixels/nanodash/commit/fa9c2e7daa378c99b9ca34b6527c91bed2a142a6))
+* **UserPage:** update HTML page by using wicket extend ([5fdfd1e](https://github.com/knowledgepixels/nanodash/commit/5fdfd1eeb90868bf62f988651825051f6b95c555))
+
 ## [4.15.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.1...nanodash-4.15.2) (2026-03-05)
 
 ### Bug Fixes
