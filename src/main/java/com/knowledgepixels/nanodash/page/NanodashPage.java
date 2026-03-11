@@ -1,14 +1,11 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.domain.Project;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
@@ -18,6 +15,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ResourceBundle;
 
 /**
  * Abstract base class for Nanodash pages.
@@ -113,19 +112,21 @@ public abstract class NanodashPage extends WebPage {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
+        String version = ResourceBundle.getBundle("nanodash").getString("nanodash.version");
+        response.render(CssHeaderItem.forUrl("style.css?v=" + version));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
         String umamiWebsiteId = NanodashPreferences.get().getUmamiWebsiteId();
         if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()
-                && umamiWebsiteId != null && !umamiWebsiteId.isBlank()) {
+            && umamiWebsiteId != null && !umamiWebsiteId.isBlank()) {
             String umamiJs = "(function(){" +
-                "var s=document.createElement('script');" +
-                "s.src='" + umamiScriptUrl + "';" +
-                "s.defer=true;" +
-                "s.setAttribute('data-website-id','" + umamiWebsiteId + "');" +
-                "document.head.appendChild(s);" +
-                "})();";
+                             "var s=document.createElement('script');" +
+                             "s.src='" + umamiScriptUrl + "';" +
+                             "s.defer=true;" +
+                             "s.setAttribute('data-website-id','" + umamiWebsiteId + "');" +
+                             "document.head.appendChild(s);" +
+                             "})();";
             response.render(JavaScriptHeaderItem.forScript(umamiJs, "umami-loader"));
         }
     }

@@ -75,9 +75,6 @@ public class UserPage extends NanodashPage {
 
         add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
 
-        final String displayName = User.getShortDisplayName(userIri);
-        add(new Label("pagetitle", displayName + " (user) | nanodash"));
-
         IRI profilePictureIri = User.getProfilePicture(userIri);
         if (profilePictureIri != null) {
             ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
@@ -94,6 +91,8 @@ public class UserPage extends NanodashPage {
             add(userIcon);
         }
 
+        final String displayName = User.getShortDisplayName(userIri);
+        add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));

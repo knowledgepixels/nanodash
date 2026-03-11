@@ -1,34 +1,28 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>nanodash | Test page</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title>nanodash | Test page</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
+    <div class="col-12">
 
-<div id="content-pane">
+      <h2>Test page</h2>
 
-<div class="row-section">
-<div class="col-12">
+      <h3>Activity panel</h3>
 
-<h2>Test page</h2>
+      <div wicket:id="activity"></div>
 
-<h3>Activity panel</h3>
+    </div>
+  </div>
 
-<div wicket:id="activity"></div>
-
-</div>
-</div>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

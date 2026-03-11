@@ -26,7 +26,7 @@ Starting docker container for source server:
 
 Fill in the Env-Variables in `docker-compose.override.yml`:
 - BACKUP_ENCRYPTION_PASSWORD: The password used for encrypting the backup file. Ensure to save it on a secure place.
-- TARGET_SERVERS: The target servers where the backup file will be stored. Separated by
+- TARGET_SERVERS: The target servers where the backup file will be stored. Separated by space.
 - TARGET_USER: The user on the target server who will receive the backup file.
 - SOURCE_SERVER_NAME: The name of the source server, used for naming the backup file.
 
@@ -37,3 +37,7 @@ Get the images and start the containers (source server):
 For decryption of the backup file on the target server:
 openssl enc -d -aes-256-cbc -pbkdf2 -in <backup-file.tar.gz.enc> -out backup.tar.gz -k <password>
 
+Building and pushing the docker image for backup-keys:
+`cd <.../nanodash/backup-keys>` 
+`docker build -t nanopub/nanodash-backup-keys:latest .`
+`docker push nanopub/nanodash-backup-keys:latest`
