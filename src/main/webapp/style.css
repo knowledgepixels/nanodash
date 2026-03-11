@@ -499,6 +499,7 @@ img.thirdparty {
   margin-top: 0;
   margin-right: 0.3em;
   height: 3em;
+  background-color: lightgray;
   mask-image: url("images/mask.svg");
   mask-repeat: no-repeat;
   mask-size: contain;
