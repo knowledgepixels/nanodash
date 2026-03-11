@@ -186,7 +186,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         return this;
     }
 
-    public ItemListPanel<T> setProfiledResource(AbstractResourceWithProfile resourceWithProfile) {
+    public ItemListPanel<T> setResourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
     }

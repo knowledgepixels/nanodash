@@ -86,15 +86,4 @@ public class IndividualAgent extends AbstractResourceWithProfile {
         return getId();
     }
 
-    /**
-     * Returns whether any view display of this user applies to the given element.
-     */
-    public boolean appliesTo(String elementId, Set<IRI> classes) {
-        triggerDataUpdate();
-        for (ViewDisplay v : getViewDisplays()) {
-            if (v.appliesTo(elementId, classes)) return true;
-        }
-        return false;
-    }
-
 }

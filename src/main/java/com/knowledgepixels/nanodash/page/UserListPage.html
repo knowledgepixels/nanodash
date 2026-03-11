@@ -1,83 +1,67 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Users | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title>Users | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div class="row-section">
 
-<div id="content-pane">
+    <div class="col-12 header">
+      <h2>Users</h2>
+    </div>
 
-<div class="row-section">
+    <div class="col-6">
 
-<div class="col-12 header">
-<h2>Users</h2>
-</div>
+      <div wicket:id="topcreators" class="users"></div>
 
-<div class="col-6">
+    </div>
 
-<div wicket:id="topcreators" class="users"></div>
+    <div class="col-6">
 
-</div>
+      <div wicket:id="latestusers" class="users"></div>
 
-<div class="col-6">
+    </div>
 
-<div wicket:id="latestusers" class="users"></div>
+  </div>
 
-</div>
+  <div class="row-section gap-above">
 
-</div>
+    <div class="col-6">
 
-<!--
-<h2>Groups</h2>
+      <div wicket:id="approved-human-users" class="users"></div>
 
-<ul>
-<li wicket:id="groups"><a wicket:id="grouplink"><span wicket:id="linktext"></span></a></li>
-</ul>
+      <p>
+        If you are yourself approved, approving of somebody else's introduction will make them approved too:
+        <a wicket:id="approve" class="smallbutton">approve somebody else</a>
+      </p>
 
-<p><a wicket:id="newgroup" class="smallbutton">new group</a></p>
- -->
- 
-<div class="row-section gap-above">
+    </div>
 
-<div class="col-6">
+    <div class="col-6">
 
-<div wicket:id="approved-human-users" class="users"></div>
+      <div wicket:id="approved-software-agents" class="users"></div>
 
-<p>
-If you are yourself approved, approving of somebody else's introduction will make them approved too:
-<a wicket:id="approve" class="smallbutton">approve somebody else</a>
-</p>
+    </div>
 
-</div>
+  </div>
 
-<div class="col-6">
+  <div class="row-section gap-above">
 
-<div wicket:id="approved-software-agents" class="users"></div>
+    <div class="col-6">
 
-</div>
+      <div wicket:id="other-users" class="users"></div>
 
-</div>
+    </div>
 
-<div class="row-section gap-above">
+  </div>
 
-<div class="col-6">
-
-<div wicket:id="other-users" class="users"></div>
-
-</div>
-
-</div>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

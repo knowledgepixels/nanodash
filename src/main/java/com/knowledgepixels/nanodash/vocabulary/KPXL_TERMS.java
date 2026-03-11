@@ -85,4 +85,6 @@ public class KPXL_TERMS {
      */
     public static final IRI HAS_ADMIN_PREDICATE = VocabUtils.createIRI(NAMESPACE, "hasAdmin");
 
+    public static final IRI HAS_DEFAULT_LICENSE = VocabUtils.createIRI(NAMESPACE, "hasDefaultLicense");
+
 }

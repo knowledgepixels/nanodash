@@ -1,32 +1,26 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-
 <head>
-<meta charset="utf-8" />
-<title>Publish a new Nanopublication | nanodash</title>
-<link rel="stylesheet" href="style.css?v=4.14.1" type="text/css" media="screen" title="Stylesheet" />
-<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
-<link rel="icon" type="application/svg+xml" href="images/favicon.svg">
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title>Publish a new Nanopublication | nanodash</title>
+  </wicket:head>
 </head>
-
 <body>
+<wicket:extend>
 
-<div wicket:id="titlebar"></div>
+  <div wicket:id="templatelist">
+  </div>
 
-<div id="content-pane">
+  <wicket:enclosure child="form">
+    <div class="row-section">
+      <div wicket:id="form" class="col-12">
+      </div>
+    </div>
+  </wicket:enclosure>
 
-<div wicket:id="templatelist">
-</div>
-
-<wicket:enclosure child="form">
-<div class="row-section">
-<div wicket:id="form" class="col-12">
-</div>
-</div>
-</wicket:enclosure>
-
-</div>
-
+</wicket:extend>
 </body>
-
 </html>

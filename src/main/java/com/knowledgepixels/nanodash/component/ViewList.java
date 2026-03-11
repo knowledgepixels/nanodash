@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.ResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -111,13 +110,13 @@ public class ViewList extends Panel {
                                 }
                             } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                                 for (IRI userId : space.getUsers()) {
-                                    for (String memberHash : User.getUserData().getPubkeyhashes(userId, true)) {
+                                    for (String memberHash : User.getUserData().getPubkeyHashes(userId, true)) {
                                         queryRefParams.put("user_pubkey", memberHash);
                                     }
                                 }
                             } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                                 for (IRI adminId : space.getAdmins()) {
-                                    for (String adminHash : User.getUserData().getPubkeyhashes(adminId, true)) {
+                                    for (String adminHash : User.getUserData().getPubkeyHashes(adminId, true)) {
                                         queryRefParams.put("admin_pubkey", adminHash);
                                     }
                                 }
@@ -131,14 +130,14 @@ public class ViewList extends Panel {
                         if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
                             if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
                                 item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                                        .space(resourceWithProfile.getSpace())
+                                        .resourceWithProfile(resourceWithProfile)
                                         .pageResource(resourceWithProfile)
                                         .id(id)
                                         .contextId(resourceWithProfile.getId())
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                                 item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                                        .profiledResource(resourceWithProfile)
+                                        .resourceWithProfile(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .id(id)
                                         .build());

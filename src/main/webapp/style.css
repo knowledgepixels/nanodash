@@ -471,28 +471,41 @@ img.thirdparty {
 
 .user-icon {
   display: inline-block;
-  background-image: url("images/user-icon.svg");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
   vertical-align: middle;
   margin-top: 0;
   margin-right: 0.3em;
-  width: 1em;
-  height: 1em;
+  width: 1.5em;
+  background-color: lightgray;
+  mask-image: url("images/mask.svg");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("images/mask.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
 }
 
 .bot-icon {
   display: inline-block;
-  background-image: url("images/bot-icon.svg");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
   vertical-align: middle;
   margin-top: 0;
   margin-right: 0.3em;
-  width: 1em;
-  height: 1em;
+  width: 1.5em;
+  border: 1px solid lightblue;
+  border-radius: 50px;
+}
+
+.user-profile-pic {
+  display: inline-block;
+  margin-top: 0;
+  margin-right: 0.3em;
+  height: 3em;
+  background-color: lightgray;
+  mask-image: url("images/mask.svg");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("images/mask.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
 }
 
 .api-icon {
@@ -505,9 +518,8 @@ img.thirdparty {
 }
 
 .textfield-icon {
-  margin-left: 7px;
-  margin-top: 7px;
-  margin-bottom: 7px;
+  margin-left: 10px;
+  margin-top: 2px;
 }
 
 ul.users {

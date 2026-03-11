@@ -63,7 +63,7 @@ public class User {
      * @return True if the key is approved, false otherwise.
      */
     public static boolean isApprovedPubkeyhashForUser(String pubkeyhash, IRI user) {
-        return getUserData().isApprovedPubkeyhashForUser(pubkeyhash, user);
+        return getUserData().isApprovedPubkeyHashForUser(pubkeyhash, user);
     }
 
     /**
@@ -114,7 +114,7 @@ public class User {
      * @return The short display name of the user.
      */
     public static String getShortDisplayNameForPubkeyhash(IRI userIri, String pubkeyhash) {
-        return getUserData().getShortDisplayNameForPubkeyhash(userIri, pubkeyhash);
+        return getUserData().getShortDisplayNameForPubkeyHash(userIri, pubkeyhash);
     }
 
     /**
@@ -124,7 +124,7 @@ public class User {
      * @return The IRI of the user.
      */
     public static IRI findSingleIdForPubkeyhash(String pubkeyhash) {
-        return getUserData().findSingleIdForPubkeyhash(pubkeyhash);
+        return getUserData().findSingleIdForPubkeyHash(pubkeyhash);
     }
 
     /**
@@ -145,7 +145,7 @@ public class User {
      * @return A list of public keys.
      */
     public static List<String> getPubkeyhashes(IRI user, Boolean approved) {
-        return getUserData().getPubkeyhashes(user, approved);
+        return getUserData().getPubkeyHashes(user, approved);
     }
 
     /**
@@ -186,6 +186,26 @@ public class User {
      */
     public static boolean isUser(IRI userIri) {
         return getUserData().isUser(userIri);
+    }
+
+    /**
+     * Retrieves the profile picture IRI for a user based on their IRI.
+     *
+     * @param userIri The IRI of the user.
+     * @return The IRI of the user's profile picture, or null if not set.
+     */
+    public static IRI getProfilePicture(IRI userIri) {
+        return getUserData().getProfilePicture(userIri);
+    }
+
+    /**
+     * Retrieves the default license for a user based on their IRI.
+     *
+     * @param userIri The IRI of the user.
+     * @return The IRI of the default license for the user.
+     */
+    public static IRI getDefaultLicense(IRI userIri) {
+        return getUserData().getDefaultLicense(userIri);
     }
 
 }

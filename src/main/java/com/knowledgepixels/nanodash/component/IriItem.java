@@ -60,7 +60,7 @@ public class IriItem extends AbstractContextComponent {
         } else if (labelString == null) {
             labelString = Utils.getShortNameFromURI(iri.stringValue());
         }
-        if (!statementPartId.equals(template.getFirstOccurence(iri))) {
+        if (!statementPartId.equals(template.getFirstOccurrence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");
         }
         if (!labelString.isEmpty() && parentId.equals("subj") && !labelString.matches("https?://.*")) {

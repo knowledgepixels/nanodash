@@ -72,21 +72,4 @@ public class MaintainedResource extends AbstractResourceWithProfile {
         return namespace;
     }
 
-    /**
-     * Check if this maintained resource applies to a given element ID and set of classes by triggering a data update and checking each view display for applicability.
-     *
-     * @param elementId the ID of the element to check for applicability
-     * @param classes   the set of classes to check for applicability
-     * @return true if this maintained resource applies to the given element ID and set of classes, false otherwise
-     */
-    public boolean appliesTo(String elementId, Set<IRI> classes) {
-        triggerDataUpdate();
-        for (ViewDisplay v : getViewDisplays()) {
-            if (v.appliesTo(elementId, classes)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

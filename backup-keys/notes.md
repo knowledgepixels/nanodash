@@ -37,3 +37,7 @@ Get the images and start the containers (source server):
 For decryption of the backup file on the target server:
 openssl enc -d -aes-256-cbc -pbkdf2 -in <backup-file.tar.gz.enc> -out backup.tar.gz -k <password>
 
+Building and pushing the docker image for backup-keys:
+`cd <.../nanodash/backup-keys>` 
+`docker build -t nanopub/nanodash-backup-keys:latest .`
+`docker push nanopub/nanodash-backup-keys:latest`

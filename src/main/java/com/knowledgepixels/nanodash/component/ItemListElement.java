@@ -1,15 +1,19 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.UserPage;
-import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.Nanopub;
@@ -31,17 +35,25 @@ public class ItemListElement extends Panel {
     public ItemListElement(String markupId, Class<? extends WebPage> pageClass, final PageParameters parameters, String linkText, String note, Nanopub sourceNanopublication) {
         super(markupId);
 
-        // Optional inline icon for user lists: user vs bot
-        WebMarkupContainer icon = new WebMarkupContainer("user-icon");
         IRI userIri = getUserIri(pageClass, parameters);
-        if (userIri == null) {
-            icon.setVisible(false);
+        IRI profilePicIri = (userIri != null) ? User.getProfilePicture(userIri) : null;
+
+        if (profilePicIri != null) {
+            ExternalImage profilePic = new ExternalImage("user-icon", profilePicIri.stringValue());
+            add(profilePic);
         } else {
-            icon.setVisible(true);
-            boolean isSoftware = IndividualAgent.isSoftware(userIri);
-            icon.add(AttributeModifier.replace("class", isSoftware ? "bot-icon" : "user-icon"));
+            Component userIcon;
+            if (userIri == null) {
+                userIcon = new WebMarkupContainer("user-icon").setVisible(false);
+            } else {
+                if (IndividualAgent.isSoftware(userIri)) {
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
+                } else {
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/user-icon.svg", false));
+                }
+            }
+            add(userIcon);
         }
-        add(icon);
 
         add(new BookmarkablePageLink<>("link", pageClass, parameters).setBody(Model.of(linkText)));
         if (note == null) {
