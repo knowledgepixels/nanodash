@@ -2,9 +2,10 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -13,10 +14,14 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -204,6 +209,26 @@ public class AgentChoiceItem extends AbstractContextComponent {
 
         });
         add(textfield);
+
+        IRI userIri = NanodashSession.get().getUserIri();
+        IRI profilePicIri = (userIri != null) ? User.getProfilePicture(userIri) : null;
+
+        if (profilePicIri != null) {
+            ExternalImage profilePic = new ExternalImage("user-icon", profilePicIri.stringValue());
+            add(profilePic);
+        } else {
+            Component userIcon;
+            if (userIri == null) {
+                userIcon = new WebMarkupContainer("user-icon").setVisible(false);
+            } else {
+                if (IndividualAgent.isSoftware(userIri)) {
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
+                } else {
+                    userIcon = new Image("user-icon", new ContextRelativeResourceReference("images/user-icon.svg", false));
+                }
+            }
+            add(userIcon);
+        }
     }
 
     /**
