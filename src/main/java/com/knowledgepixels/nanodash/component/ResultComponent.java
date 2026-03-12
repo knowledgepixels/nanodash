@@ -75,7 +75,7 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
      *
      * @return a string containing the HTML for the loading icon
      */
-    public final static String getWaitIconHtml() {
+    public static String getWaitIconHtml() {
         IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
         return "<img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/>";
     }
@@ -86,7 +86,7 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
      * @param waitMessage the message to display while waiting
      * @return a string containing the HTML for the waiting message
      */
-    public final static String getWaitComponentHtml(String waitMessage) {
+    public static String getWaitComponentHtml(String waitMessage) {
         if (waitMessage == null || waitMessage.isBlank()) {
             return "<p class=\"waiting nomessage\">" + getWaitIconHtml() + "</p>";
         }

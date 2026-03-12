@@ -18,10 +18,10 @@ class StatusLineTest {
 
     @Test
     void createComponentReturnsNonNullComponent() throws InterruptedException {
-        Component component = StatusLine.createComponent("statusline", "https://w3id.org/np/RA58YcJyv1h-UmS8jI6UfFP6_LTAh59GTgpU_4lvBv7a4");
+        Component component = StatusLine.createComponent("statusLine", "https://w3id.org/np/RA58YcJyv1h-UmS8jI6UfFP6_LTAh59GTgpU_4lvBv7a4");
         assertNotNull(component);
 
-        ((ApiResultComponent) component).getLazyLoadComponent("statusline");
+        ((ApiResultComponent) component).getLazyLoadComponent("statusLine");
         wicketTester.startComponentInPage((ApiResultComponent) component);
         while (!((ApiResultComponent) component).isContentReady()) {
             Thread.sleep(50);

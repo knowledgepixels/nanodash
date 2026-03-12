@@ -1,21 +1,21 @@
 package com.knowledgepixels.nanodash.component;
 
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-
-import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
-
-import net.trustyuri.TrustyUriUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A component that displays the status of a nanopublication.
@@ -31,7 +31,7 @@ public class StatusLine extends Panel {
      */
     public static Component createComponent(String markupId, String npId) {
         // TODO Use the query cache here but with quicker refresh interval?
-        ApiResultComponent c = new ApiResultComponent("statusline", new QueryRef(QueryApiAccess.GET_NEWER_VERSIONS_OF_NP, "np", npId)) {
+        ApiResultComponent c = new ApiResultComponent(markupId, new QueryRef(QueryApiAccess.GET_NEWER_VERSIONS_OF_NP, "np", npId)) {
 
             @Override
             public Component getApiResultComponent(String markupId, ApiResponse response) {
@@ -50,7 +50,7 @@ public class StatusLine extends Panel {
      * @param npId     the nanopublication ID to check for newer versions
      * @param response the API response containing data about newer versions or retractions
      */
-    public StatusLine(String markupId, String npId, ApiResponse response) {
+    StatusLine(String markupId, String npId, ApiResponse response) {
         super(markupId);
         List<String> latest = new ArrayList<>();
         List<String> retractions = new ArrayList<>();
@@ -64,35 +64,42 @@ public class StatusLine extends Panel {
                 retractions.add(retractedBy);
             }
         }
-        String text = null;
-        // TODO Improve HTML/link generation below (do it with Wicket Java code):
+
+        String statusText;
+        List<String> links = List.of();
+
         if (latest.isEmpty() && retractions.isEmpty()) {
-            text = "<em>This nanopublication doesn't seem to be properly published (yet). This can take a minute or two for new nanopublications.</em>";
-        } else if (latest.size() == 1) {
-            String l = latest.getFirst();
-            if (l.equals(npId)) {
-                text = "This is the latest version.";
+            statusText = "<em>This nanopublication doesn't seem to be properly published (yet). This can take a minute or two for new nanopublications.</em>";
+        } else if (!latest.isEmpty()) {
+            if (latest.size() == 1 && latest.getFirst().equals(npId)) {
+                statusText = "This is the latest version.";
+            } else if (latest.size() == 1) {
+                statusText = "This nanopublication has a <strong>newer version</strong>:";
+                links = latest;
             } else {
-                text = "This nanopublication has a <strong>newer version</strong>: " + getLink(l);
-            }
-        } else if (latest.size() > 1) {
-            text = "This nanopublication has <strong>newer versions</strong>:";
-            for (String l : latest) {
-                text += " " + getLink(l);
+                statusText = "This nanopublication has <strong>newer versions</strong>:";
+                links = latest;
             }
         } else {
-            text = "This nanopublication has been <strong>retracted</strong>:";
-            for (String r : retractions) {
-                text += " " + getLink(r);
-            }
+            statusText = "This nanopublication has been <strong>retracted</strong>:";
+            links = retractions;
         }
-        add(new Label("statusline", text).setEscapeModelStrings(false));
-    }
 
-    private static String getLink(String npId) {
-        String shortLabel = TrustyUriUtils.getArtifactCode(npId).substring(0, 10);
-        String encodedLink = URLEncoder.encode(npId, Charsets.UTF_8);
-        return "<a href=\"/explore?id=" + encodedLink + "\">" + shortLabel + "</a>";
+        final List<String> finalLinks = links;
+        //WebMarkupContainer statusContainer = new WebMarkupContainer("statusLine");
+        add(new Label("statusText", statusText).setEscapeModelStrings(false));
+        add(new ListView<>("linkList", finalLinks) {
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                String id = item.getModelObject();
+                String shortLabel = TrustyUriUtils.getArtifactCode(id).substring(0, 10);
+                BookmarkablePageLink<Void> link = new BookmarkablePageLink<>("npLink",
+                        ExplorePage.class,
+                        new PageParameters().add("id", id));
+                link.add(new Label("npLabel", shortLabel));
+                item.add(link);
+            }
+        });
     }
 
 }

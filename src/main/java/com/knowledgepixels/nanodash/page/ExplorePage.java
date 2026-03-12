@@ -266,11 +266,11 @@ public class ExplorePage extends NanodashPage {
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
 
         if (publishedNanopub != null) {
-            add(new Label("statusline", "<h4>Status</h4><p>Successfully published.</p>").setEscapeModelStrings(false));
+            add(new Label("statusLine", "<h4>Status</h4><p>Successfully published.</p>").setEscapeModelStrings(false));
         } else if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
-            add(StatusLine.createComponent("statusline", ref));
+            add(StatusLine.createComponent("statusLine", ref));
         } else {
-            add(new Label("statusline").setVisible(false));
+            add(new Label("statusLine").setVisible(false));
         }
         if (publishedNanopub != null) {
             add(new Label("classes-panel").setVisible(false));
