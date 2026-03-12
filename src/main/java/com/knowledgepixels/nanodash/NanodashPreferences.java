@@ -1,12 +1,12 @@
 package com.knowledgepixels.nanodash;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,10 +31,10 @@ public class NanodashPreferences implements Serializable {
             if (!prefFile.exists()) {
                 return new NanodashPreferences();
             }
-            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            ObjectMapper mapper = new YAMLMapper();
             try {
                 obj = mapper.readValue(prefFile, NanodashPreferences.class);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 obj = new NanodashPreferences();
                 logger.error("Could not read preferences file at '{}' using defaults", DEFAULT_SETTING_PATH, ex);
             }
