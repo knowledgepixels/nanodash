@@ -2234,7 +2234,7 @@ a.source:hover {
 }
 
 .link-actions-panel > a:not(:first-child) {
-  align-self: stretch;
+  align-self: center;
   display: inline-flex;
   align-items: center;
 }
