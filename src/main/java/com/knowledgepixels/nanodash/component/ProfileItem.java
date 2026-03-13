@@ -4,11 +4,15 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 
 /**
@@ -35,20 +39,29 @@ public class ProfileItem extends Panel {
                 redirectPageParams = ((NanodashPage) page).getPageParameters();
             }
             ExternalLink l = new ExternalLink("profilelink", OrcidLoginPage.getOrcidLoginUrl(redirectMountPath, redirectPageParams));
-            l.add(new Label("profiletext", "Login with ORCID"));
+            l.add(new WebMarkupContainer("profileimage").setVisible(false));
+            l.add(new Label("profiletext", "Login"));
             add(l);
         } else if (prefs.isReadOnlyMode()) {
             BookmarkablePageLink<HomePage> l = new BookmarkablePageLink<>("profilelink", HomePage.class);
+            l.add(new WebMarkupContainer("profileimage").setVisible(false));
             l.add(new Label("profiletext", ""));
             add(l);
         } else {
             if (userId != null) {
                 BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", UserPage.class, new PageParameters().set("id", userId.stringValue()));
-                l.add(new Label("profiletext", User.getShortDisplayName(userId)));
+                IRI profilePictureIri = User.getProfilePicture(userId);
+                if (profilePictureIri != null) {
+                    l.add(new ExternalImage("profileimage", profilePictureIri.stringValue()));
+                } else {
+                    l.add(new Image("profileimage", new ContextRelativeResourceReference("images/user-icon.svg", false)));
+                }
+                l.add(new Label("profiletext", "").setVisible(false));
                 add(l);
             } else {
                 BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", ProfilePage.class);
-                l.add(new Label("profiletext", "incomplete profile"));
+                l.add(new Image("profileimage", new ContextRelativeResourceReference("images/user-icon.svg", false)));
+                l.add(new Label("profiletext", "").setVisible(false));
                 add(l);
             }
         }
