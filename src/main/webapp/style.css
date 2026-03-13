@@ -475,6 +475,8 @@ img.thirdparty {
   margin-top: 0;
   margin-right: 0.3em;
   width: 1.5em;
+  height: 1.5em;
+  object-fit: cover;
   background-color: lightgray;
   mask-image: url("images/mask.svg");
   mask-repeat: no-repeat;
@@ -496,9 +498,12 @@ img.thirdparty {
 
 .user-profile-pic {
   display: inline-block;
+  vertical-align: middle;
   margin-top: 0;
   margin-right: 0.3em;
+  width: 3em;
   height: 3em;
+  object-fit: cover;
   background-color: lightgray;
   mask-image: url("images/mask.svg");
   mask-repeat: no-repeat;
