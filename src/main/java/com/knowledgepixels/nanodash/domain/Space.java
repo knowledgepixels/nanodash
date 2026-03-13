@@ -342,7 +342,6 @@ public class Space extends AbstractResourceWithProfile {
 
     @Override
     public synchronized Thread triggerDataUpdate() {
-        logger.info("Triggering data update for space {}", getId());
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }
