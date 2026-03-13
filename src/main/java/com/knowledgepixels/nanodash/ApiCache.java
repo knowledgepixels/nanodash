@@ -83,7 +83,7 @@ public class ApiCache {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
-        if (needsRefresh && !isRunning(cacheId)) {
+        if ((needsRefresh || forced) && !isRunning(cacheId)) {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {

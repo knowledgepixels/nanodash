@@ -81,7 +81,8 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("template-version", "latest")
                         .set("param_resource", pageResource.getId())
                         .set("param_view", viewDisplay.getView().getId())
-                        .set("context", pageResource.getId()));
+                        .set("context", pageResource.getId())
+                        .set("refresh-upon-publish", pageResource.getId()));
         deactivateLink.setVisible(showAdjust);
         addEntry("deactivate", deactivateLink);
 
