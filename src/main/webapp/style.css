@@ -2291,3 +2291,102 @@ a.source:hover {
   background: #f0f0f0;
   color: #1a73e8;
 }
+
+/* ===== Responsive: mobile-first overrides ===== */
+@media screen and (max-width: 768px) {
+
+  /* 1. Column stacking */
+  [class*="col-"] {
+    width: 100% !important;
+    float: none;
+  }
+
+  /* 2. Columncontainer (flex 2-col layout, used in TemplateList) */
+  .columncontainer {
+    column-gap: 15px;
+  }
+  .columnelement {
+    width: 100%;
+  }
+
+  /* 3. Nanopub grid (4-col → 2-col) */
+  .flex-container .nanopub-item {
+    flex: 0 0 calc(50% - 20px);
+  }
+
+  /* 4. Fixed-width form elements */
+  select {
+    width: 100%;
+    max-width: 350px;
+  }
+  select.provselect {
+    width: 100%;
+    max-width: 600px;
+  }
+  .nanopub-textfield,
+  .nanopub-textfield.wide {
+    width: 100%;
+    max-width: 350px;
+  }
+
+  /* 5. Tooltips */
+  .tooltip .tooltiptext {
+    min-width: unset;
+    max-width: 90vw;
+  }
+  .expltooltip .expltooltiptext {
+    width: auto;
+    max-width: 90vw;
+    left: 0;
+    margin-left: 0;
+  }
+
+  /* 6. Select2 dropdown */
+  .select2-dropdown.select2-dropdown--below {
+    min-width: unset !important;
+  }
+
+  /* 7. Overflow-prone elements */
+  .uri {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  span.internal {
+    max-width: 100%;
+  }
+  span.internal img {
+    max-width: 100%;
+  }
+  .widthlimit {
+    width: 100%;
+  }
+  .actionmenu-content {
+    min-width: unset;
+    max-width: 90vw;
+  }
+
+  /* 8. Tables */
+  div.large-table {
+    overflow-x: auto;
+  }
+
+  /* 9. Progress stepper */
+  .progress .progress-item:first-child {
+    margin-left: 0;
+  }
+  .progress .progress-item:last-child {
+    margin-right: 0;
+  }
+  .progress-item .step-name {
+    white-space: normal;
+    text-align: center;
+    font-size: 8pt;
+  }
+
+  /* 10. Filter section (flex on narrow screens) */
+  .filter-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+}
