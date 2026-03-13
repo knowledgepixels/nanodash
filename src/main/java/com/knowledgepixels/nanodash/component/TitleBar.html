@@ -13,16 +13,16 @@
 <div wicket:id="profile"></div>
 
 <div class="alignleft">
-<span class="title">
-<a href="."><span class="logo"/></a>
-</span>
-<span class="menu">
-<span wicket:id="mychannel"><a href="./mychannel">My Channel</a></span>
-<span wicket:id="users"><a href="./userlist">Users</a></span>
-<span wicket:id="connectors"><a href="./spaces">Spaces</a></span>
-<span wicket:id="query"><a href="./queries">Query</a></span>
-<span wicket:id="publish"><a href="./publish">Publish</a></span>
-</span>
+<div class="logo-menu">
+<span class="logo"></span>
+<div class="logo-dropdown">
+<a href=".">Home</a>
+<a wicket:id="users" href="./userlist">Users</a>
+<a wicket:id="connectors" href="./spaces">Spaces</a>
+<a wicket:id="query" href="./queries">Query</a>
+<a wicket:id="publish" href="./publish">Publish</a>
+</div>
+</div>
 </div>
 
 </div>

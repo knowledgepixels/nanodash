@@ -38,7 +38,6 @@ public class TitleBar extends Panel {
         this.highlight = highlight;
         add(new ProfileItem("profile", page));
 
-        createContainer("mychannel").setVisible(!NanodashPreferences.get().isReadOnlyMode());
         createContainer("users");
         createContainer("connectors");
         createContainer("publish").setVisible(!NanodashPreferences.get().isReadOnlyMode());
