@@ -80,7 +80,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("template", "https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4")
                         .set("template-version", "latest")
                         .set("param_resource", pageResource.getId())
-                        .set("param_view", viewDisplay.getView().getId())
+                        .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
                         .set("context", pageResource.getId())
                         .set("refresh-upon-publish", pageResource.getId()));
         deactivateLink.setVisible(showAdjust);
