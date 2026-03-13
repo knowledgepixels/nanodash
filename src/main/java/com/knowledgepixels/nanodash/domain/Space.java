@@ -37,6 +37,12 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     @Override
+    public void setDataNeedsUpdate() {
+        super.setDataNeedsUpdate();
+        dataNeedsUpdate = true;
+    }
+
+    @Override
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
         dataNeedsUpdate = true;
