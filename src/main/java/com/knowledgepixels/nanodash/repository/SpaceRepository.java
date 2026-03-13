@@ -34,6 +34,7 @@ public class SpaceRepository {
     private volatile List<Space> spaceList;
     private Map<String, List<Space>> spaceListByType;
     private Map<String, Space> spacesById;
+    private Map<String, Space> spacesByAltId;
     private Map<Space, Set<Space>> subspaceMap;
     private Map<Space, Set<Space>> superspaceMap;
     private boolean loaded = false;
@@ -54,6 +55,7 @@ public class SpaceRepository {
         List<Space> newSpaceList = new ArrayList<>();
         Map<String, List<Space>> newSpaceListByType = new HashMap<>();
         Map<String, Space> newSpacesById = new HashMap<>();
+        Map<String, Space> newSpacesByAltId = new HashMap<>();
         Map<Space, Set<Space>> newSubspaceMap = new HashMap<>();
         Map<Space, Set<Space>> newSuperspaceMap = new HashMap<>();
         for (ApiResponseEntry entry : resp.getData()) {
@@ -62,6 +64,9 @@ public class SpaceRepository {
             newSpaceList.add(space);
             newSpaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             newSpacesById.put(space.getId(), space);
+            for (String altId : space.getAltIDs()) {
+                newSpacesByAltId.put(altId, space);
+            }
         }
         SpaceFactory.removeStale(newSpacesById.keySet());
         for (Space space : newSpaceList) {
@@ -75,6 +80,7 @@ public class SpaceRepository {
             space.setDataNeedsUpdate();
         }
         spacesById = newSpacesById;
+        spacesByAltId = newSpacesByAltId;
         spaceListByType = newSpaceListByType;
         subspaceMap = newSubspaceMap;
         superspaceMap = newSuperspaceMap;
@@ -124,6 +130,17 @@ public class SpaceRepository {
     public Space findById(String id) {
         ensureLoaded();
         return spacesById.get(id);
+    }
+
+    /**
+     * Get a space by one of its alternative IDs.
+     *
+     * @param altId The alternative ID of the space.
+     * @return The corresponding Space object, or null if not found.
+     */
+    public Space findByAltId(String altId) {
+        ensureLoaded();
+        return spacesByAltId.get(altId);
     }
 
     /**
