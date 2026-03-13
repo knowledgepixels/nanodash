@@ -262,9 +262,12 @@ p.center {
 
 .title .logo {
   display: inline-block;
-  background-image: url("images/logo.svg?v=4.12.1");
-  width: 46mm;
-  height: 12mm;
+  background-image: url("images/logo-icon.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 8mm;
+  height: 8mm;
+  margin: 2mm 2mm 2mm 0;
   vertical-align: middle;
 }
 
@@ -1362,7 +1365,23 @@ a[href=""] {
 
 .profilelink {
   float: right;
-  padding: 12px 20px;
+  padding: 2mm 0 2mm 2mm;
+}
+
+.titlebar-user-icon {
+  width: 8mm;
+  height: 8mm;
+  object-fit: cover;
+  vertical-align: middle;
+  position: relative;
+  top: 2px;
+  mask-image: url("images/mask.svg");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("images/mask.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  background-color: lightgray;
 }
 
 .figure {
