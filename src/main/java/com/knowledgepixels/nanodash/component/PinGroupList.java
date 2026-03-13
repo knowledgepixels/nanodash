@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -74,7 +73,7 @@ public class PinGroupList extends Panel {
             }
         });
 
-        add(new WebMarkupContainer("emptynotice").setVisible(pinnedResourcesList.isEmpty()));
+        setVisible(!pinnedResourcesList.isEmpty());
     }
 
     private static String getName(Serializable s) {

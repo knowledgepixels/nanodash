@@ -17,7 +17,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -27,7 +26,6 @@ import org.nanopub.extra.services.QueryRef;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -122,30 +120,10 @@ public class SpacePage extends NanodashPage {
 
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
-        final List<AbstractLink> pinButtons = new ArrayList<>();
-
-        AbstractLink addPinnedTemplateButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RA2YwreWrGW9HkzWls8jgwaIINKUB5ZTli1aFKQt13dUk")
-                .set("template-version", "latest")
-                .set("param_space", space.getId())
-                .set("context", space.getId())
-        );
-        addPinnedTemplateButton.setBody(Model.of("+ template..."));
-        pinButtons.add(addPinnedTemplateButton);
-
-        AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
-                .set("template", "https://w3id.org/np/RAuLESdeRUlk1GcTwvzVXShiBMI0ntJs2DL2Bm5DzW_ZQ")
-                .set("template-version", "latest")
-                .set("param_space", space.getId())
-        );
-        addPinnedQueryButton.setBody(Model.of("+ query..."));
-        pinButtons.add(addPinnedQueryButton);
-
         if (space.isDataInitialized()) {
-            add(new PinGroupList("pin-groups", space));
-            add(new ButtonList("pin-buttons", space, null, null, pinButtons));
+            add(new PinGroupList("pinned-section", space));
         } else {
-            add(new AjaxLazyLoadPanel<Component>("pin-groups") {
+            add(new AjaxLazyLoadPanel<Component>("pinned-section") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
@@ -157,19 +135,7 @@ public class SpacePage extends NanodashPage {
                     return space.isDataInitialized();
                 }
 
-            });
-            add(new AjaxLazyLoadPanel<Component>("pin-buttons") {
-
                 @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ButtonList(markupId, space, null, null, pinButtons);
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return space.isDataInitialized();
-                }
-
                 public Component getLoadingComponent(String id) {
                     return new Label(id).setVisible(false);
                 }
