@@ -1,3 +1,43 @@
+## [4.17.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.16.0...nanodash-4.17.0) (2026-03-13)
+
+### Features
+
+* replace title bar nav with logo dropdown menu ([#293](https://github.com/knowledgepixels/nanodash/issues/293)) ([caafcef](https://github.com/knowledgepixels/nanodash/commit/caafcefe6c9ce809375e62bf789d07946cc4b83f))
+* show user profile image icon in title bar ([#293](https://github.com/knowledgepixels/nanodash/issues/293)) ([323377b](https://github.com/knowledgepixels/nanodash/commit/323377bdc8db3ca8bd9410f09f59b3b331a3555b))
+* use icon logo in title bar and full logo on home page ([#293](https://github.com/knowledgepixels/nanodash/issues/293)) ([fd779e1](https://github.com/knowledgepixels/nanodash/commit/fd779e14f7f9435e061d9aa29386673d95dde0ba))
+* **UserPage:** add dropdown menu with Explore and Show Full Channel ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([ebef061](https://github.com/knowledgepixels/nanodash/commit/ebef0612f0b7bf1ebca88ba956306f5667282b1f))
+* **UserPage:** move "+ view display" button to top section ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([cb51957](https://github.com/knowledgepixels/nanodash/commit/cb51957933e4682a8481baa6fd77e8b5534d8f88))
+* **ViewDisplayMenu:** add deactivate option and post-publish redirect ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([716b23d](https://github.com/knowledgepixels/nanodash/commit/716b23d6b1e7d60dd623b8e680af510ac776386d))
+
+### Dependency updates
+
+* **core-deps:** update tools.jackson.dataformat:jackson-dataformat-yaml dependency to v3.1.0 ([4f0382e](https://github.com/knowledgepixels/nanodash/commit/4f0382ea3ae7537d93344aebaf26f132aae9f221))
+* **deps:** bump release dependencies ([522ce36](https://github.com/knowledgepixels/nanodash/commit/522ce36ffa5d6517977d3ce707dba82f2cf4843e))
+
+### Bug Fixes
+
+* **ApiCache:** honor forced flag and refresh view list on deactivate ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([bebea58](https://github.com/knowledgepixels/nanodash/commit/bebea58212ddee916468e069237957a866eab09e))
+* **ProfileLicenseItem:** update default license template ([e1f5d50](https://github.com/knowledgepixels/nanodash/commit/e1f5d50f62817cbaf91b8af790945fba85b03e0e))
+* restrict view action buttons to admins and own profile ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([9707c37](https://github.com/knowledgepixels/nanodash/commit/9707c371488ea78cd315ae1febf65faeb88a96e8))
+* **style:** fix URI and Explore button layout on user page ([#385](https://github.com/knowledgepixels/nanodash/issues/385)) ([0940234](https://github.com/knowledgepixels/nanodash/commit/09402345829f09780a15266f4019e7afd745097e))
+* **style:** prevent extra whitespace on non-square profile images ([64c4b65](https://github.com/knowledgepixels/nanodash/commit/64c4b65524153d6fc9ee3ea6e70721a768e97db9))
+* **ViewDisplay:** fix deactivation filtering for all views ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([2596828](https://github.com/knowledgepixels/nanodash/commit/259682845b2ebc5cd4d773cb0349597c6d9cb857))
+
+### General maintenance
+
+* **chore-deps:** update org.wicketstuff:* dependency to v10.8.0 ([5897703](https://github.com/knowledgepixels/nanodash/commit/5897703887ca29ec091f35fd8923091890282088))
+* setting next snapshot version [skip ci] ([ad1adb7](https://github.com/knowledgepixels/nanodash/commit/ad1adb7ecae2aa8ad3e6947fff48b52bc777293b))
+
+### Style improvements
+
+* append "..." to all publish-page button and menu labels ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([28ee2c5](https://github.com/knowledgepixels/nanodash/commit/28ee2c5d280f789b312de9c1ef77fc2d3f05bd23))
+
+### Refactoring
+
+* move "+ view display" button to top section on all pages ([#387](https://github.com/knowledgepixels/nanodash/issues/387)) ([c30fa10](https://github.com/knowledgepixels/nanodash/commit/c30fa10b60bcdb8b82bef30102edccab12791a35))
+* **NanodashPreferences:** update to use YAMLMapper and handle JacksonException ([66d885d](https://github.com/knowledgepixels/nanodash/commit/66d885d999faa7a06b158dbd23804d73344f08fd))
+* **StatusLine:** standardize status line identifiers and improve HTML structure ([7a3ddda](https://github.com/knowledgepixels/nanodash/commit/7a3ddda1251d0e997b0890f9c058e13b86a66787))
+
 ## [4.16.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.15.2...nanodash-4.16.0) (2026-03-11)
 
 ### Features
