@@ -23,8 +23,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.QueryRef;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -51,6 +51,7 @@ public class SpacePage extends NanodashPage {
      */
     private final Space space;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     /**
      * Constructor for the SpacePage.
@@ -103,14 +104,18 @@ public class SpacePage extends NanodashPage {
         ));
 
         if (space.getStartDate() != null) {
-            String dateString;
-            LocalDateTime dt = LocalDateTime.ofInstant(space.getStartDate().toInstant(), ZoneId.systemDefault());
-            dateString = DATE_FORMATTER.format(dt);
+            ZoneId startZone = space.getStartDate().getTimeZone().toZoneId();
+            ZonedDateTime startDt = ZonedDateTime.ofInstant(space.getStartDate().toInstant(), startZone);
+            String dateString = DATE_FORMATTER.format(startDt);
             if (space.getEndDate() != null) {
-                dt = LocalDateTime.ofInstant(space.getEndDate().toInstant(), ZoneId.systemDefault());
-                String endDate = DATE_FORMATTER.format(dt);
-                if (!dateString.equals(endDate)) {
-                    dateString += " - " + endDate;
+                ZoneId endZone = space.getEndDate().getTimeZone().toZoneId();
+                ZonedDateTime endDt = ZonedDateTime.ofInstant(space.getEndDate().toInstant(), endZone);
+                String endDateStr = DATE_FORMATTER.format(endDt);
+                if (dateString.equals(endDateStr)) {
+                    String tzAbbr = startDt.getZone().getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH);
+                    dateString += " " + TIME_FORMATTER.format(startDt) + " - " + TIME_FORMATTER.format(endDt) + " " + tzAbbr;
+                } else {
+                    dateString += " - " + endDateStr;
                 }
             }
             add(new Label("date", dateString));
