@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.component.menu.UserPageMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.Component;
@@ -95,9 +96,9 @@ public class UserPage extends NanodashPage {
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));
 
-        add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
+        add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName),
+                new UserPageMenu("np", userIriString, displayName)));
         add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(userIri.equals(NanodashSession.get().getUserIri())));
-        add(new BookmarkablePageLink<Void>("showchannel", ListPage.class, new PageParameters().add("userid", userIriString)));
 
 
 //		final Map<String,String> statsParams = new HashMap<>();
