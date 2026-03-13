@@ -15,7 +15,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
@@ -26,7 +25,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -98,8 +96,17 @@ public class UserPage extends NanodashPage {
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName),
                 new UserPageMenu("np", userIriString, displayName)));
-        add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(userIri.equals(NanodashSession.get().getUserIri())));
-
+        boolean isOwnPage = userIri.equals(NanodashSession.get().getUserIri());
+        add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(isOwnPage));
+        add(new AddViewDisplayButton("addviewdisplay",
+                "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g",
+                "latest",
+                userIriString,
+                userIriString,
+                new PageParameters()
+                        .set("refresh-upon-publish", userIriString)
+                        .set("param_appliesToResource", userIriString)
+        ).setVisible(isOwnPage));
 
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;
@@ -143,30 +150,18 @@ public class UserPage extends NanodashPage {
 //			});
 //		}
 
-        final List<AbstractLink> viewButtons = new ArrayList<>();
-        viewButtons.add(new AddViewDisplayButton("button",
-                        "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g",
-                        "latest",
-                        userIriString,
-                        userIriString,
-                        new PageParameters()
-                                .set("refresh-upon-publish", userIriString)
-                                .set("param_appliesToResource", userIriString)
-                )
-        );
-
         IndividualAgent individualAgent = IndividualAgent.get(userIriString);
         if (individualAgent.isDataInitialized()) {
             boolean empty = individualAgent.getTopLevelViewDisplays().isEmpty();
             if (empty) {
                 add(new WebMarkupContainer("views").setVisible(false));
             } else {
-                add(new ViewList("views", individualAgent, null, null, null, individualAgent, viewButtons, false));
+                add(new ViewList("views", individualAgent));
             }
             add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
             if (empty) {
                 ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
-                add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay), individualAgent, viewButtons));
+                add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
             } else {
                 add(new EmptyPanel("latestnanopubsview").setVisible(false));
             }
@@ -177,7 +172,7 @@ public class UserPage extends NanodashPage {
             add(unconfiguredNotice);
 
             ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
-            final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay), individualAgent, viewButtons);
+            final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
             latestNanopubsView.setVisible(false);
             latestNanopubsView.setOutputMarkupPlaceholderTag(true);
             add(latestNanopubsView);
@@ -186,10 +181,7 @@ public class UserPage extends NanodashPage {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    if (individualAgent.getTopLevelViewDisplays().isEmpty()) {
-                        return new ViewList(markupId, individualAgent, null, null, null, null, null, false);
-                    }
-                    return new ViewList(markupId, individualAgent, null, null, null, individualAgent, viewButtons, false);
+                    return new ViewList(markupId, individualAgent);
                 }
 
                 @Override
