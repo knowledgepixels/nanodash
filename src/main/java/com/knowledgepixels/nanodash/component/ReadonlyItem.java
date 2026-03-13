@@ -7,7 +7,6 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -135,10 +134,8 @@ public class ReadonlyItem extends AbstractContextComponent {
                     } else {
                         return "";
                     }
-                } else if (IndividualAgent.isUser(obj)) {
-                    return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
                 } else if (obj.matches("https?://.+")) {
-                    return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(obj, Charsets.UTF_8);
+                    return NanodashLink.getPageUrl(obj);
                 } else {
                     return "";
                 }

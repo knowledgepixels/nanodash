@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
@@ -13,6 +15,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -169,8 +172,16 @@ public class NanodashLink extends Panel {
             return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
+        } else if (IndividualAgent.isUser(uri)) {
+            label = User.getShortDisplayName(vf.createIRI(uri));
+            return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(label));
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
+            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
+        } else if (SpaceRepository.get().findByAltId(uri) != null) {
+            Space space = SpaceRepository.get().findByAltId(uri);
+            label = space.getLabel();
+            params.set("id", space.getId());
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
         } else if (MaintainedResourceRepository.get().findById(uri) != null) {
             label = MaintainedResourceRepository.get().findById(uri).getLabel();
@@ -182,6 +193,25 @@ public class NanodashLink extends Panel {
             } else {
                 return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true")).setBody(Model.of(label));
             }
+        }
+    }
+
+    /**
+     * Returns the best page URL for a given URI, routing to user/space/resource pages when applicable,
+     * falling back to the Explore page otherwise.
+     */
+    public static String getPageUrl(String uri) {
+        if (IndividualAgent.isUser(uri)) {
+            return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+        } else if (SpaceRepository.get().findById(uri) != null) {
+            return SpacePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+        } else if (SpaceRepository.get().findByAltId(uri) != null) {
+            String spaceId = SpaceRepository.get().findByAltId(uri).getId();
+            return SpacePage.MOUNT_PATH + "?id=" + URLEncoder.encode(spaceId, java.nio.charset.StandardCharsets.UTF_8);
+        } else if (MaintainedResourceRepository.get().findById(uri) != null) {
+            return MaintainedResourcePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+        } else {
+            return ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
         }
     }
 

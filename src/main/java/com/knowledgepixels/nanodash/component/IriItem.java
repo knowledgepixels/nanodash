@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -17,9 +16,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.PROV;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.net.URLEncoder;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * A panel that displays an IRI with a label and a link to explore it.
@@ -105,7 +101,7 @@ public class IriItem extends AbstractContextComponent {
         if (Utils.isLocalURI(iriString)) {
             href = "";
         } else {
-            href = ExplorePage.MOUNT_PATH + "?id=" + URLEncoder.encode(iriString, UTF_8);
+            href = NanodashLink.getPageUrl(iriString);
         }
         ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
