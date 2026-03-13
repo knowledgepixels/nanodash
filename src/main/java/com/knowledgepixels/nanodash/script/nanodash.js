@@ -160,6 +160,10 @@ function showMore(el) {
   }
 }
 
+function toggleMobileNav() {
+  $('#titlebar').toggleClass('nav-open');
+}
+
 function toggleView() {
   $('.view-selector .list').on('click', function () {
     $('.flex-container').addClass('list-view').removeClass('grid-view');
