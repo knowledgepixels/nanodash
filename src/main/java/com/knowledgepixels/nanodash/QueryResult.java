@@ -56,7 +56,7 @@ public abstract class QueryResult extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", resourceWithProfile, buttons, null, null));
+                add(new ButtonList("buttons", resourceWithProfile, null, null, buttons));
             } else {
                 add(new Label("buttons").setVisible(false));
             }
