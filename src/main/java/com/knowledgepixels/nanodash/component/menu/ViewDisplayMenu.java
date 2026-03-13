@@ -71,7 +71,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                 + "&" + adjustParam + "=" + Utils.urlEncode(nanopubId.stringValue())
                 + "&template-version=latest"
                 + "&context=" + Utils.urlEncode(pageResource.getId());
-        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display");
+        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
         adjustLink.setVisible(showAdjust);
         addEntry("adjust", adjustLink);
 

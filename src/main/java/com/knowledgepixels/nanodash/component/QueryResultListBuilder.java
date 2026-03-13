@@ -93,6 +93,7 @@ public class QueryResultListBuilder implements Serializable {
                         if (targetField == null) targetField = "resource";
                         String label = view.getLabelForAction(actionIri);
                         if (label == null) label = "action...";
+                        if (!label.endsWith("...")) label += "...";
                         PageParameters params = new PageParameters().set("template", t.getId())
                                 .set("param_" + targetField, id)
                                 .set("context", contextId)

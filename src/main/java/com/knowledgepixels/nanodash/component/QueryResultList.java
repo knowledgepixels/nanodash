@@ -91,6 +91,7 @@ public class QueryResultList extends QueryResult {
                         if (targetField == null) targetField = "resource";
                         String labelForAction = view.getLabelForAction(actionIri);
                         if (labelForAction == null) labelForAction = "action...";
+                        if (!labelForAction.endsWith("...")) labelForAction += "...";
                         PageParameters params = new PageParameters().set("template", t.getId())
                                 .set("param_" + targetField, contextId)
                                 .set("context", contextId)

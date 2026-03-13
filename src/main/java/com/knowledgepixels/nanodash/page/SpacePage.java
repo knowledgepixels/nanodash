@@ -130,7 +130,7 @@ public class SpacePage extends NanodashPage {
                 .set("param_space", space.getId())
                 .set("context", space.getId())
         );
-        addPinnedTemplateButton.setBody(Model.of("+ template"));
+        addPinnedTemplateButton.setBody(Model.of("+ template..."));
         pinButtons.add(addPinnedTemplateButton);
 
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
@@ -138,7 +138,7 @@ public class SpacePage extends NanodashPage {
                 .set("template-version", "latest")
                 .set("param_space", space.getId())
         );
-        addPinnedQueryButton.setBody(Model.of("+ query"));
+        addPinnedQueryButton.setBody(Model.of("+ query..."));
         pinButtons.add(addPinnedQueryButton);
 
         if (space.isDataInitialized()) {
