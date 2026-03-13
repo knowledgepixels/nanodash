@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -9,13 +10,11 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.util.Values;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,26 +63,25 @@ public class MaintainedResourcePage extends NanodashPage {
         String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
         add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
 
-        final List<AbstractLink> viewButtons = new ArrayList<>();
-        viewButtons.add(new AddViewDisplayButton("button",
-                        "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU",
-                        "latest",
-                        resource.getId(),
-                        resource.getId(),
-                        new PageParameters()
-                                .set("param_appliesToResource", resource.getId())
-                                .set("refresh-upon-publish", resource.getId())
-                )
-        );
+        boolean isAdmin = SpaceMemberRole.isCurrentUserAdmin(space);
+        add(new AddViewDisplayButton("addviewdisplay",
+                "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU",
+                "latest",
+                resource.getId(),
+                resource.getId(),
+                new PageParameters()
+                        .set("param_appliesToResource", resource.getId())
+                        .set("refresh-upon-publish", resource.getId())
+        ).setVisible(isAdmin));
 
         if (resource.isDataInitialized()) {
-            add(new ViewList("views", resource, null, null, null, space, viewButtons));
+            add(new ViewList("views", resource));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resource, null, null, null, space, viewButtons);
+                    return new ViewList(markupId, resource);
                 }
 
                 @Override
