@@ -224,6 +224,7 @@ body {
   font-size: 12pt;
   margin: 0;
   height: 100%;
+  min-width: 360px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1026,9 +1027,10 @@ a.meta:hover, a.meta:active, .meta a:hover, .meta a:active {
 
 .fullstop {
   margin: 2px;
-  padding: 4px 0;
-  display: inline-block;
-  vertical-align: top;
+  display: inline;
+  vertical-align: middle;
+  position: relative;
+  top: 2px;
 }
 
 .quote {
@@ -2295,6 +2297,10 @@ a.source:hover {
 @media screen and (max-width: 768px) {
 
   /* 1. Column stacking */
+  .breadcrumbpath .row-section {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
   [class*="col-"] {
     width: 100% !important;
     float: none;
@@ -2315,34 +2321,33 @@ a.source:hover {
 
   /* 4. Fixed-width form elements */
   select {
-    width: 100%;
-    max-width: 350px;
+    width: 300px;
   }
   select.provselect {
-    width: 100%;
-    max-width: 600px;
+    width: 300px;
   }
   .nanopub-textfield,
   .nanopub-textfield.wide {
-    width: 100%;
-    max-width: 350px;
+    width: 300px;
+  }
+  .nanopub-statement textarea {
+    width: 300px;
   }
 
   /* 5. Tooltips */
   .tooltip .tooltiptext {
-    min-width: unset;
-    max-width: 90vw;
+    min-width: 0;
+    max-width: none;
   }
   .expltooltip .expltooltiptext {
-    width: auto;
-    max-width: 90vw;
-    left: 0;
+    min-width: 0;
+    max-width: none;
     margin-left: 0;
   }
 
   /* 6. Select2 dropdown */
   .select2-dropdown.select2-dropdown--below {
-    min-width: unset !important;
+    min-width: 300px !important;
   }
 
   /* 7. Overflow-prone elements */
@@ -2350,8 +2355,29 @@ a.source:hover {
     white-space: normal;
     overflow-wrap: anywhere;
   }
+  span.term {
+    overflow-wrap: anywhere;
+  }
+  .nanopub-statement {
+    overflow-wrap: anywhere;
+  }
+  code, pre {
+    overflow-wrap: anywhere;
+  }
+  .long-literal {
+    overflow-wrap: anywhere;
+  }
+  .link-actions-panel {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .link-actions-panel > a:first-child {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
   span.internal {
     max-width: 100%;
+    overflow-wrap: anywhere;
   }
   span.internal img {
     max-width: 100%;
@@ -2360,13 +2386,14 @@ a.source:hover {
     width: 100%;
   }
   .actionmenu-content {
-    min-width: unset;
-    max-width: 90vw;
+    min-width: 0;
   }
 
   /* 8. Tables */
-  div.large-table {
+  table {
+    display: block;
     overflow-x: auto;
+    overflow-y: visible;
   }
 
   /* 9. Progress stepper */
