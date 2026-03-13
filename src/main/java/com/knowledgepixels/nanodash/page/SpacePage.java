@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
@@ -85,6 +86,17 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel()), np.getUri()));
 
+        boolean isAdmin = SpaceMemberRole.isCurrentUserAdmin(space);
+        add(new AddViewDisplayButton("addviewdisplay",
+                "https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ",
+                "latest",
+                space.getId(),
+                space.getId(),
+                new PageParameters()
+                        .set("param_appliesToResource", space.getId())
+                        .set("refresh-upon-publish", space.getId())
+        ).setVisible(isAdmin));
+
         add(new ItemListPanel<String>(
                 "altids",
                 "Alternative IDs:",
@@ -118,7 +130,7 @@ public class SpacePage extends NanodashPage {
                 .set("param_space", space.getId())
                 .set("context", space.getId())
         );
-        addPinnedTemplateButton.setBody(Model.of("+ template"));
+        addPinnedTemplateButton.setBody(Model.of("+ template..."));
         pinButtons.add(addPinnedTemplateButton);
 
         AbstractLink addPinnedQueryButton = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, new PageParameters()
@@ -126,7 +138,7 @@ public class SpacePage extends NanodashPage {
                 .set("template-version", "latest")
                 .set("param_space", space.getId())
         );
-        addPinnedQueryButton.setBody(Model.of("+ query"));
+        addPinnedQueryButton.setBody(Model.of("+ query..."));
         pinButtons.add(addPinnedQueryButton);
 
         if (space.isDataInitialized()) {
@@ -165,26 +177,14 @@ public class SpacePage extends NanodashPage {
             });
         }
 
-        final List<AbstractLink> viewButtons = new ArrayList<>();
-        viewButtons.add(new AddViewDisplayButton("button",
-                "https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ",
-                "latest",
-                space.getId(),
-                space.getId(),
-                new PageParameters()
-                        .set("param_appliesToResource", space.getId())
-                        .set("refresh-upon-publish", space.getId())
-        ));
-
-
         if (space.isDataInitialized()) {
-            add(new ViewList("views", space, null, null, null, space, viewButtons));
+            add(new ViewList("views", space));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, space, null, null, null, space, viewButtons);
+                    return new ViewList(markupId, space);
                 }
 
                 @Override

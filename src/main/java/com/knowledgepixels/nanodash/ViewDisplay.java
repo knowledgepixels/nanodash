@@ -24,6 +24,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private String id;
     private Nanopub nanopub;
     private View view;
+    private IRI viewIri;
     private String title;
     private Integer pageSize;
     private Integer displayWidth;
@@ -75,9 +76,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         for (Statement st : nanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(id)) {
                 if (st.getPredicate().equals(RDF.TYPE)) {
-                    if (st.getObject().equals(KPXL_TERMS.VIEW_DISPLAY)) {
+                    if (st.getObject().equals(KPXL_TERMS.VIEW_DISPLAY) || st.getObject().equals(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) {
                         viewDisplayTypeFound = true;
-                    } else if (st.getObject() instanceof IRI objIri) {
+                    }
+                    if (st.getObject() instanceof IRI objIri && !st.getObject().equals(KPXL_TERMS.VIEW_DISPLAY)) {
                         types.add(objIri);
                     }
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
@@ -86,6 +88,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     if (view != null) {
                         throw new IllegalArgumentException("View already set: " + objIri);
                     }
+                    viewIri = objIri;
                     view = View.get(objIri.stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_FOR) && st.getObject() instanceof IRI objIri) {
                     if (resource != null) {
@@ -141,8 +144,14 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return view;
     }
 
+    public IRI getViewIri() {
+        return viewIri;
+    }
+
     public IRI getViewKindIri() {
-        return view.getViewKindIri();
+        IRI kind = view.getViewKindIri();
+        if (kind != null) return kind;
+        return viewIri;
     }
 
     public boolean appliesTo(String resourceId, Set<IRI> classes) {

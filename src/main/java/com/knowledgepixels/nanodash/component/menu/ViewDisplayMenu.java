@@ -69,10 +69,22 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                 : "http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA";
         String adjustUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(templateUri)
                 + "&" + adjustParam + "=" + Utils.urlEncode(nanopubId.stringValue())
-                + "&template-version=latest";
-        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display");
+                + "&template-version=latest"
+                + "&context=" + Utils.urlEncode(pageResource.getId());
+        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
         adjustLink.setVisible(showAdjust);
         addEntry("adjust", adjustLink);
+
+        BookmarkablePageLink<Void> deactivateLink = new BookmarkablePageLink<>("deactivate", PublishPage.class,
+                new PageParameters()
+                        .set("template", "https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4")
+                        .set("template-version", "latest")
+                        .set("param_resource", pageResource.getId())
+                        .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
+                        .set("context", pageResource.getId())
+                        .set("refresh-upon-publish", pageResource.getId()));
+        deactivateLink.setVisible(showAdjust);
+        addEntry("deactivate", deactivateLink);
 
         addEntry("viewDeclaration", new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
                 new PageParameters().set("id", nanopubId)));

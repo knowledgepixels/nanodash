@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.component.menu.BaseDisplayMenu;
 import com.knowledgepixels.nanodash.component.menu.ExploreDisplayMenu;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,6 +22,7 @@ public class ExternalLinkWithActionsPanel extends Panel {
     private final IModel<String> urlModel;
     private IModel<String> labelModel;
     private IRI sourceNanopub;
+    private BaseDisplayMenu customMenu;
 
     public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel) {
         super(id);
@@ -35,6 +37,11 @@ public class ExternalLinkWithActionsPanel extends Panel {
     public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel, IRI sourceNanopub) {
         this(id, urlModel, labelModel);
         this.sourceNanopub = sourceNanopub;
+    }
+
+    public ExternalLinkWithActionsPanel(String id, IModel<String> urlModel, IModel<String> labelModel, BaseDisplayMenu customMenu) {
+        this(id, urlModel, labelModel);
+        this.customMenu = customMenu;
     }
 
     @Override
@@ -59,7 +66,10 @@ public class ExternalLinkWithActionsPanel extends Panel {
         copyLinkButton.add(new Image("copyIcon", new ContextRelativeResourceReference("images/copy-icon.svg", false)));
         add(copyLinkButton);
 
-        if (sourceNanopub != null) {
+        if (customMenu != null) {
+            add(new Label("exploreButton", "").setVisible(false));
+            add(customMenu);
+        } else if (sourceNanopub != null) {
             add(new Label("exploreButton", "").setVisible(false));
             add(new ExploreDisplayMenu("np", urlModel.getObject(), labelModel.getObject(), sourceNanopub));
         } else {

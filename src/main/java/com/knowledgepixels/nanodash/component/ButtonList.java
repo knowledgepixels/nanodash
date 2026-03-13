@@ -35,6 +35,14 @@ public class ButtonList extends Panel {
             if (ia.isCurrentUser() && adminButtons != null) {
                 allButtons.addAll(adminButtons);
             }
+        } else if (resourceWithProfile != null && resourceWithProfile.getSpace() != null) {
+            Space space = resourceWithProfile.getSpace();
+            if (SpaceMemberRole.isCurrentUserMember(space) && memberButtons != null) {
+                allButtons.addAll(memberButtons);
+            }
+            if (SpaceMemberRole.isCurrentUserAdmin(space) && adminButtons != null) {
+                allButtons.addAll(adminButtons);
+            }
         }
         if (allButtons.isEmpty()) {
             add(new Label("buttons").setVisible(false));

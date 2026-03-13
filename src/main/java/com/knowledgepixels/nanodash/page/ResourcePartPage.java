@@ -3,18 +3,19 @@ package com.knowledgepixels.nanodash.page;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -140,84 +141,52 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ));
 
+        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
+
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
-        // TODO Improve this code, e.g. make Space a subclass of MaintainedResource or otherwise refactor:
-        // we now use the ProfileResource abstraction, but the code still has to be imprved
-        if (resourceWithProfile != null) {
-            final List<AbstractLink> viewButtons = new ArrayList<>();
-            viewButtons.add(new AddViewDisplayButton("button",
-                            "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
-                            "latest",
-                            resourceWithProfile.getId(),
-                            resourceWithProfile.getId(),
-                            new PageParameters()
-                                    .set("part", id)
-                    )
-            );
+        boolean showButton = false;
+        if (resourceWithProfile instanceof IndividualAgent ia) {
+            showButton = ia.isCurrentUser();
+        } else if (resourceWithProfile.getSpace() != null) {
+            showButton = SpaceMemberRole.isCurrentUserAdmin(resourceWithProfile.getSpace());
+        } else if (resourceWithProfile instanceof Space s) {
+            showButton = SpaceMemberRole.isCurrentUserAdmin(s);
+        }
+        add(new AddViewDisplayButton("addviewdisplay",
+                "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
+                "latest",
+                resourceWithProfile.getId(),
+                resourceWithProfile.getId(),
+                new PageParameters()
+                        .set("part", id)
+                        .set("refresh-upon-publish", resourceWithProfile.getId())
+        ).setVisible(showButton));
 
-            final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
-            final AbstractResourceWithProfile footerResource = resourceWithProfile.getSpace() != null ? resourceWithProfile.getSpace() : resourceWithProfile;
-            if (resourceWithProfile.isDataInitialized()) {
-                add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons));
-            } else {
-                add(new AjaxLazyLoadPanel<Component>("views") {
-
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes, footerResource, viewButtons);
-                    }
-
-                    @Override
-                    protected boolean isContentReady() {
-                        return resourceWithProfile.isDataInitialized();
-                    }
-
-                    @Override
-                    public Component getLoadingComponent(String id) {
-                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                    }
-
-                });
-            }
+        final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
+        if (resourceWithProfile.isDataInitialized()) {
+            add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
         } else {
-            // TODO Ugly code duplication (see above):
+            add(new AjaxLazyLoadPanel<Component>("views") {
 
-            final List<AbstractLink> viewButtons = new ArrayList<>();
-            viewButtons.add(new AddViewDisplayButton("button",
-                            "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
-                            "latest",
-                            resourceWithProfile.getSpace().getId(),
-                            resourceWithProfile.getSpace().getId(),
-                            new PageParameters()
-                                    .set("part", id)
-                    )
-            );
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
+                }
 
-            if (resourceWithProfile.getSpace().isDataInitialized()) {
-                add(new ViewList("views", resourceWithProfile.getSpace(), id, nanopubId, classes, resourceWithProfile.getSpace(), viewButtons));
-            } else {
-                add(new AjaxLazyLoadPanel<Component>("views") {
+                @Override
+                protected boolean isContentReady() {
+                    return resourceWithProfile.isDataInitialized();
+                }
 
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile.getSpace(), id, nanopubId, classes, resourceWithProfile.getSpace(), viewButtons);
-                    }
+                @Override
+                public Component getLoadingComponent(String id) {
+                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                }
 
-                    @Override
-                    protected boolean isContentReady() {
-                        return resourceWithProfile.getSpace().isDataInitialized();
-                    }
-
-                    @Override
-                    public Component getLoadingComponent(String id) {
-                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                    }
-
-                });
-            }
+            });
         }
     }
 

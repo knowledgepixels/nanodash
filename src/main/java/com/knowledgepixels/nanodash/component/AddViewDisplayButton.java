@@ -23,7 +23,7 @@ public class AddViewDisplayButton extends BookmarkablePageLink<NanodashPage> {
             getPageParameters().set(param.getKey(), param.getValue());
         }
 
-        setBody(Model.of("+ view display"));
+        setBody(Model.of("+ view display..."));
     }
 
 }

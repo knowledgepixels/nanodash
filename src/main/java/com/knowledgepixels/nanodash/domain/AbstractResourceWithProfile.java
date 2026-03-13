@@ -221,14 +221,16 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
+        // Results are sorted by date (most recent first); only the most recent per view-kind is considered
         for (ViewDisplay vd : getViewDisplays()) {
             IRI kind = vd.getViewKindIri();
             if (kind != null) {
                 if (viewKinds.contains(kind)) {
                     continue;
                 }
-                viewKinds.add(vd.getViewKindIri());
+                viewKinds.add(kind);
             }
+
             if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) {
                 continue;
             }
