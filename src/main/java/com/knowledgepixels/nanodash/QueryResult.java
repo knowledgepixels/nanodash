@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.component.ButtonList;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -56,7 +57,12 @@ public abstract class QueryResult extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             if (!buttons.isEmpty()) {
-                add(new ButtonList("buttons", resourceWithProfile, null, null, buttons));
+                // TODO: Add more flexible ways to restrict button visibility (e.g. per-view or per-action permissions)
+                if (resourceWithProfile instanceof IndividualAgent) {
+                    add(new ButtonList("buttons", resourceWithProfile, null, null, buttons));
+                } else {
+                    add(new ButtonList("buttons", resourceWithProfile, buttons, null, null));
+                }
             } else {
                 add(new Label("buttons").setVisible(false));
             }
