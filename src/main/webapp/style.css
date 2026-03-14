@@ -400,6 +400,7 @@ table.activitypanel td.high {
 
 table.paramtable {
   width: unset;
+  max-width: 100%;
 }
 
 table.paramtable td {
@@ -2330,12 +2331,17 @@ a.source:hover {
   select.provselect {
     width: 300px;
   }
+  .textfield {
+    max-width: 100%;
+  }
   .nanopub-textfield,
   .nanopub-textfield.wide {
     width: 300px;
+    max-width: 100%;
   }
   .nanopub-statement textarea {
     width: 300px;
+    max-width: 100%;
   }
 
   /* 5. Tooltips */
