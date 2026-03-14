@@ -1,3 +1,31 @@
+## [4.18.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.17.0...nanodash-4.18.0) (2026-03-14)
+
+### Features
+
+* add mobile navigation toggle using logo icon ([#83](https://github.com/knowledgepixels/nanodash/issues/83)) ([2f0aa1b](https://github.com/knowledgepixels/nanodash/commit/2f0aa1bf324f4e3783caba1b26c1100a19a57086))
+* add responsive CSS rules behind max-width 768px breakpoint ([#83](https://github.com/knowledgepixels/nanodash/issues/83)) ([15453a6](https://github.com/knowledgepixels/nanodash/commit/15453a637477f12ae9769464de0c96b61e8845e6))
+* enable responsive layout — add viewport meta tag, remove min-width ([#83](https://github.com/knowledgepixels/nanodash/issues/83)) ([98f9b4c](https://github.com/knowledgepixels/nanodash/commit/98f9b4ceecf0a1728940017cdd56f146f0fc44b5))
+* make Pinned section read-only and hide when empty ([#393](https://github.com/knowledgepixels/nanodash/issues/393)) ([8df01f0](https://github.com/knowledgepixels/nanodash/commit/8df01f0704c1a6d4ebf26284b2f6036458790f52))
+* navigate directly to user/space/resource pages for their URIs ([#396](https://github.com/knowledgepixels/nanodash/issues/396)) ([ea9cf9d](https://github.com/knowledgepixels/nanodash/commit/ea9cf9dc2edb3f7745cc1534c2c8e344941e4edf))
+* show start and end time for single-day Spaces ([#390](https://github.com/knowledgepixels/nanodash/issues/390)) ([5b75041](https://github.com/knowledgepixels/nanodash/commit/5b7504117f6677942ee610246b5c94b18b9ed817))
+
+### Bug Fixes
+
+* align paneltitlerow buttons with flex layout ([cc422f5](https://github.com/knowledgepixels/nanodash/commit/cc422f5254ad31bb2dab13391f848ac73c58fd65))
+* ensure periodic refresh triggers recalculation of Space roles and members ([#391](https://github.com/knowledgepixels/nanodash/issues/391)) ([584ede6](https://github.com/knowledgepixels/nanodash/commit/584ede6a619acfba6afb8b5ff1a036179099e0b0))
+* remove noisy unconditional log in Space.triggerDataUpdate() ([e53308c](https://github.com/knowledgepixels/nanodash/commit/e53308c26e646d49058f97e9e5ac98017d8f9d1a))
+* responsive polish — dropdowns, tooltips, tables, form elements ([#83](https://github.com/knowledgepixels/nanodash/issues/83)) ([4d8635b](https://github.com/knowledgepixels/nanodash/commit/4d8635b7eb04c37c036720ccaada351ee9627e67))
+* responsive table vertical scroll and panel title dropdown alignment ([0bc284a](https://github.com/knowledgepixels/nanodash/commit/0bc284a52b61bdf35a263f6fbeb17b9a621e958c))
+* show view action buttons to all users, restrict to owner on user pages ([3b2c8e5](https://github.com/knowledgepixels/nanodash/commit/3b2c8e57cc7fffa16adbd13875196dba5a6e5888))
+
+### Documentation
+
+* Added important note for docker-compose.yml ([6c58f7f](https://github.com/knowledgepixels/nanodash/commit/6c58f7f7cf5bf2bd6c9232aee8ed367c35ab2e2c))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([685794c](https://github.com/knowledgepixels/nanodash/commit/685794c3736145f081f3b97616fd9d42e9fbc22c))
+
 ## [4.17.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.16.0...nanodash-4.17.0) (2026-03-13)
 
 ### Features
