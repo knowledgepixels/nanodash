@@ -1931,6 +1931,9 @@ div.navigator .goto a[disabled] {
   border-color: #888;
   width: 100%;
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
 }
 
 .inline * {
@@ -1955,7 +1958,7 @@ div.navigator .goto a[disabled] {
 
 .paneltitlerow h4 {
   margin: 22px 0 8px 0;
-  display: inline-block;
+  flex: 1;
 }
 
 .paneltitlerow span.buttons a.smallbutton {
@@ -1984,7 +1987,7 @@ div.navigator .goto a[disabled] {
 
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
-  float: right;
+  margin-left: auto;
 }
 
 .paragraph-header {
@@ -2393,7 +2396,7 @@ a.source:hover {
   table {
     display: block;
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
   }
 
   /* 9. Progress stepper */
