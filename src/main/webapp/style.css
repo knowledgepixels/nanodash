@@ -1963,21 +1963,17 @@ div.navigator .goto a[disabled] {
 
 .paneltitlerow span.buttons a.smallbutton {
   margin-left: 5px;
-  margin-top: 20px;
 }
 
 .paneltitlerow span.buttons a.source {
   margin-left: 5px;
-  margin-top: 20px;
   display: inline-block;
   background: none;
   color: #0B73DA;
 }
 
 .paneltitlerow > span.buttons .actionmenu {
-  margin-top: 16px;
   display: inline-block;
-  vertical-align: bottom;
 }
 
 .paneltitlerow span.buttons a.source:hover {
@@ -1988,6 +1984,11 @@ div.navigator .goto a[disabled] {
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   margin-left: auto;
+}
+
+.paneltitlerow > span.buttons:has(~ span.buttons) {
+  order: 1;
+  margin-left: 0;
 }
 
 .paragraph-header {
