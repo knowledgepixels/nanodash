@@ -411,6 +411,11 @@ div.large-table table {
   max-width: 100%;
 }
 
+#content-pane.full > div.large-table {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .box {
   background: #F3F6F9;
   padding: 25px;
@@ -2302,6 +2307,11 @@ a.source:hover {
 @media screen and (max-width: 768px) {
 
   /* 1. Column stacking */
+  #content-pane.full {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 10px 10px;
+  }
   .breadcrumbpath .row-section {
     padding-left: 15px;
     padding-right: 15px;
@@ -2405,7 +2415,6 @@ a.source:hover {
     overflow-x: auto;
     overflow-y: hidden;
   }
-
   /* 9. Progress stepper */
   .progress .progress-item:first-child {
     margin-left: 0;
