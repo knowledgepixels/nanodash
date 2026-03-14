@@ -17,7 +17,46 @@ function updateElements() {
   collapseNanopubAssertions();
 };
 
+$(document).on('mouseenter', '.tooltip, .expltooltip', function () {
+  var tip = $(this).children('.tooltiptext, .expltooltiptext');
+  if (!tip.length) return;
+  if (window.innerWidth > 768) return;
+  var parent = this.getBoundingClientRect();
+  var el = tip[0];
+  el.style.position = 'fixed';
+  el.style.left = '5px';
+  el.style.right = '5px';
+  el.style.top = Math.min(parent.bottom + 2, window.innerHeight - 200) + 'px';
+  el.style.width = 'auto';
+  el.style.maxWidth = 'none';
+  el.style.minWidth = '0';
+});
+
+$(document).on('mouseenter', '.actionmenu', function () {
+  var content = $(this).children('.actionmenu-content');
+  if (!content.length) return;
+  var el = content[0];
+  el.style.left = '';
+  el.style.right = '';
+  var rect = this.getBoundingClientRect();
+  var spaceRight = window.innerWidth - rect.left;
+  var spaceLeft = rect.right;
+  if (spaceRight >= 250) {
+    el.style.left = '0';
+    el.style.right = 'auto';
+  } else if (spaceLeft >= 250) {
+    el.style.left = 'auto';
+    el.style.right = '0';
+  } else {
+    el.style.position = 'fixed';
+    el.style.left = '5px';
+    el.style.right = '5px';
+    el.style.top = rect.bottom + 'px';
+  }
+});
+
 function adjustValueWidths() {
+  if (window.innerWidth <= 768) return;
   limit = 251;
   $(".nanopub-graph").each(function () {
     updateNanopubGraph(this);
@@ -158,6 +197,10 @@ function showMore(el) {
     $longLiteral.removeClass('expanded').addClass('collapsed');
     $(el).css('transform', 'scale(1, 1)');
   }
+}
+
+function toggleMobileNav() {
+  $('#titlebar').toggleClass('nav-open');
 }
 
 function toggleView() {
