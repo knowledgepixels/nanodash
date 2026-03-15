@@ -35,7 +35,9 @@ public class RegistryAccountInfo {
      * @throws URISyntaxException  if the URL is not valid
      */
     public static List<RegistryAccountInfo> fromUrl(String url) throws JsonIOException, JsonSyntaxException, IOException, URISyntaxException {
-        return g.fromJson(new InputStreamReader(new URI(url).toURL().openStream()), listType);
+        try (InputStreamReader reader = new InputStreamReader(new URI(url).toURL().openStream())) {
+            return g.fromJson(reader, listType);
+        }
     }
 
     private String agent;

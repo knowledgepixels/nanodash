@@ -13,6 +13,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
@@ -125,6 +126,7 @@ public class LookupApis {
                 HttpResponse resp = client.execute(get);
                 if (resp.getStatusLine().getStatusCode() == 405) {
                     // Method not allowed, trying POST
+                    EntityUtils.consume(resp.getEntity());
                     HttpPost post = new HttpPost(apiString + URLEncoder.encode(searchterm, StandardCharsets.UTF_8.toString()));
                     resp = client.execute(post);
                 }

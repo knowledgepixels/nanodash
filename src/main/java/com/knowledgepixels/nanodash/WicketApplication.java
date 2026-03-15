@@ -221,9 +221,11 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
             Type nanopubReleasesType = new TypeToken<List<NanodashRelease>>() {
             }.getType();
 
-            List<NanodashRelease> releases = gson.fromJson(new InputStreamReader(resp.getEntity().getContent()), nanopubReleasesType);
-            if (!releases.isEmpty()) {
-                latestVersion = releases.getFirst().getVersionNumber();
+            try (InputStreamReader reader = new InputStreamReader(resp.getEntity().getContent())) {
+                List<NanodashRelease> releases = gson.fromJson(reader, nanopubReleasesType);
+                if (!releases.isEmpty()) {
+                    latestVersion = releases.getFirst().getVersionNumber();
+                }
             }
         } catch (Exception ex) {
             logger.error("Error in fetching latest version", ex);
