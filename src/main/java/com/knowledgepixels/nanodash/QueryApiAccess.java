@@ -89,19 +89,21 @@ public class QueryApiAccess {
      * @return The API response.
      */
     public static ApiResponse forcedGet(QueryRef queryRef) {
-        long deadline = System.currentTimeMillis() + 60_000;
+        long deadline = System.currentTimeMillis() + 30_000;
+        long sleepMs = 1000;
         while (System.currentTimeMillis() < deadline) {
-            ApiResponse resp = null;
             try {
-                resp = QueryApiAccess.get(queryRef);
+                ApiResponse resp = QueryApiAccess.get(queryRef);
+                if (resp != null) return resp;
             } catch (Exception ex) {
                 logger.error("Error while forcing API get for query {}", queryRef, ex);
             }
-            if (resp != null) return resp;
             try {
-                Thread.sleep(5000);
+                Thread.sleep(Math.min(sleepMs, Math.max(0, deadline - System.currentTimeMillis())));
+                sleepMs = Math.min(sleepMs * 2, 16_000);
             } catch (InterruptedException ex) {
-                logger.error("Interrupted while forcing API get for query {}", queryRef, ex);
+                Thread.currentThread().interrupt();
+                break;
             }
         }
         throw new RuntimeException("Timed out forcing API get for query: " + queryRef);
