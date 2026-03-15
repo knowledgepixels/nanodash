@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +89,12 @@ public class NanodashSession extends WebSession {
     // We should store here some sort of form model and not the forms themselves, but I couldn't figure
     // how to do it, so doing it like this for the moment...
     private static final int MAX_FORMS = 20;
-    private final Map<String, PublishForm> formMap = new LinkedHashMap<>(16, 0.75f, true) {
+    private final Map<String, PublishForm> formMap = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, PublishForm> eldest) {
             return size() > MAX_FORMS;
         }
-    };
+    });
 
     /**
      * Associates a form object with a specific ID.
