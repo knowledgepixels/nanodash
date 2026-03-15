@@ -18,8 +18,12 @@ import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a GRLC query extracted from a nanopublication.
@@ -29,7 +33,10 @@ public class GrlcQuery implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(GrlcQuery.class);
 
-    private static Map<String, GrlcQuery> instanceMap = new HashMap<>();
+    private static final Cache<String, GrlcQuery> instanceMap = CacheBuilder.newBuilder()
+        .maximumSize(5_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
 
     /**
      * Returns a singleton instance of GrlcQuery for the given QueryRef.
@@ -48,17 +55,20 @@ public class GrlcQuery implements Serializable {
      * @return a GrlcQuery instance
      */
     public static GrlcQuery get(String id) {
-        if (!instanceMap.containsKey(id)) {
+        GrlcQuery cached = instanceMap.getIfPresent(id);
+        if (cached == null) {
             try {
                 GrlcQuery q = new GrlcQuery(id);
                 id = q.getQueryId();
-                if (instanceMap.containsKey(id)) return instanceMap.get(id);
+                cached = instanceMap.getIfPresent(id);
+                if (cached != null) return cached;
                 instanceMap.put(id, q);
+                cached = q;
             } catch (Exception ex) {
                 logger.error("Could not load query: {}", id, ex);
             }
         }
-        return instanceMap.get(id);
+        return cached;
     }
 
     /**

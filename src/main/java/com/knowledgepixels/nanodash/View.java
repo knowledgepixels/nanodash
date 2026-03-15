@@ -14,8 +14,12 @@ import org.nanopub.NanopubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A class representing a Resource View.
@@ -48,7 +52,10 @@ public class View implements Serializable {
         columnWidths.put(KPXL_TERMS.COLUMN_WIDTH_12_OF_12, 12);
     }
 
-    private static Map<String, View> views = new HashMap<>();
+    private static final Cache<String, View> views = CacheBuilder.newBuilder()
+        .maximumSize(5_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
 
     /**
      * Get a View by its ID.
@@ -72,14 +79,16 @@ public class View implements Serializable {
                 np = Utils.getAsNanopub(npId);
             }
         }
-        if (!views.containsKey(latestId)) {
+        View cached = views.getIfPresent(latestId);
+        if (cached == null) {
             try {
-                views.put(latestId, new View(latestId, np));
+                cached = new View(latestId, np);
+                views.put(latestId, cached);
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: {}", id, ex);
             }
         }
-        return views.get(latestId);
+        return cached;
     }
 
     private String id;

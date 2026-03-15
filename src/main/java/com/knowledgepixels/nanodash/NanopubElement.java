@@ -12,9 +12,13 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a wrapper for a Nanopub object, providing additional metadata and utility methods.
@@ -22,7 +26,10 @@ import java.util.*;
  */
 public class NanopubElement implements Serializable {
 
-    private static Map<String, NanopubElement> nanopubCache = new HashMap<>();
+    private static final Cache<String, NanopubElement> nanopubCache = CacheBuilder.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
     private static final Logger logger = LoggerFactory.getLogger(NanopubElement.class);
 
     /**
@@ -33,10 +40,12 @@ public class NanopubElement implements Serializable {
      * @return The NanopubElement instance.
      */
     public static NanopubElement get(String uri) {
-        if (!nanopubCache.containsKey(uri)) {
-            nanopubCache.put(uri, new NanopubElement(uri));
+        NanopubElement cached = nanopubCache.getIfPresent(uri);
+        if (cached == null) {
+            cached = new NanopubElement(uri);
+            nanopubCache.put(uri, cached);
         }
-        return nanopubCache.get(uri);
+        return cached;
     }
 
     /**
@@ -51,10 +60,12 @@ public class NanopubElement implements Serializable {
             throw new IllegalArgumentException("Nanopub cannot be null");
         }
         String uri = nanopub.getUri().stringValue();
-        if (!nanopubCache.containsKey(uri)) {
-            nanopubCache.put(uri, new NanopubElement(nanopub));
+        NanopubElement cached = nanopubCache.getIfPresent(uri);
+        if (cached == null) {
+            cached = new NanopubElement(nanopub);
+            nanopubCache.put(uri, cached);
         }
-        return nanopubCache.get(uri);
+        return cached;
     }
 
     private Nanopub nanopub;
