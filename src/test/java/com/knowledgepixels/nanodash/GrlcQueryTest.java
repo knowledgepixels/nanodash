@@ -36,7 +36,7 @@ class GrlcQueryTest {
         // Using reflection to clear the instance map to ensure a fresh start for each test
         var field = GrlcQuery.class.getDeclaredField("instanceMap");
         field.setAccessible(true);
-        ((java.util.Map<?, ?>) field.get(null)).clear();
+        ((com.google.common.cache.Cache<?, ?>) field.get(null)).invalidateAll();
     }
 
     @Test

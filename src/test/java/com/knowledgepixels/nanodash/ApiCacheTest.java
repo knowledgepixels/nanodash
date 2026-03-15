@@ -11,6 +11,8 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
 
+import com.google.common.cache.Cache;
+
 import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentMap;
 
@@ -39,15 +41,23 @@ class ApiCacheTest {
     private void resetMap(String fieldName) throws Exception {
         Field f = ApiCache.class.getDeclaredField(fieldName);
         f.setAccessible(true);
-        ConcurrentMap<?, ?> map = (ConcurrentMap<?, ?>) f.get(null);
-        map.clear();
+        Object obj = f.get(null);
+        if (obj instanceof Cache<?, ?> cache) {
+            cache.invalidateAll();
+        } else if (obj instanceof ConcurrentMap<?, ?> map) {
+            map.clear();
+        }
     }
 
     @SuppressWarnings("unchecked")
     private <K, V> ConcurrentMap<K, V> getMap(String fieldName) throws Exception {
         Field f = ApiCache.class.getDeclaredField(fieldName);
         f.setAccessible(true);
-        return (ConcurrentMap<K, V>) f.get(null);
+        Object obj = f.get(null);
+        if (obj instanceof Cache<?, ?> cache) {
+            return (ConcurrentMap<K, V>) cache.asMap();
+        }
+        return (ConcurrentMap<K, V>) obj;
     }
 
     private void putCachedResponse(ApiResponse response, long ageMillis) throws Exception {

@@ -55,6 +55,7 @@ public class GrlcQuery implements Serializable {
      * @return a GrlcQuery instance
      */
     public static GrlcQuery get(String id) {
+        if (id == null) return null;
         GrlcQuery cached = instanceMap.getIfPresent(id);
         if (cached == null) {
             try {
