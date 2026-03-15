@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
  * Abstract class representing a resource with a profile in the Nanodash application.
@@ -114,11 +116,11 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     }
 
     @Override
-    public synchronized Thread triggerDataUpdate() {
+    public synchronized Future<?> triggerDataUpdate() {
         if (dataNeedsUpdate) {
             logger.info("Data needs update for resource {}, starting update thread", id);
             dataNeedsUpdate = false;
-            Thread thread = new Thread(() -> {
+            return NanodashThreadPool.submit(() -> {
                 try {
                     if (runUpdateAfter != null) {
                         while (System.currentTimeMillis() < runUpdateAfter) {
@@ -146,8 +148,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     dataNeedsUpdate = true;
                 }
             });
-            thread.start();
-            return thread;
         }
         return null;
     }

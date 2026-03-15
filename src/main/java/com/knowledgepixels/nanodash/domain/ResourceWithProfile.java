@@ -6,6 +6,7 @@ import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * Interface representing a resource that has an associated profile.
@@ -26,7 +27,7 @@ public interface ResourceWithProfile {
 
     List<ViewDisplay> getPartLevelViewDisplays(String resourceId, Set<IRI> classes);
 
-    Thread triggerDataUpdate();
+    Future<?> triggerDataUpdate();
 
     void setDataNeedsUpdate();
 

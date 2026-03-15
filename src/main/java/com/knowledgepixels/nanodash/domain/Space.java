@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -322,35 +324,35 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private synchronized void ensureInitialized() {
-        Thread thread = triggerSpaceDataUpdate();
-        if (!dataInitialized && thread != null) {
+        Future<?> future = triggerSpaceDataUpdate();
+        if (!dataInitialized && future != null) {
             try {
-                thread.join(30_000);
-            } catch (InterruptedException ex) {
-                logger.error("failed to join thread", ex);
+                future.get(30, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                logger.error("failed to await space data update", ex);
             }
         }
-        thread = super.triggerDataUpdate();
-        if (!dataInitialized && thread != null) {
+        future = super.triggerDataUpdate();
+        if (!dataInitialized && future != null) {
             try {
-                thread.join(30_000);
-            } catch (InterruptedException ex) {
-                logger.error("failed to join thread", ex);
+                future.get(30, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                logger.error("failed to await data update", ex);
             }
         }
     }
 
     @Override
-    public synchronized Thread triggerDataUpdate() {
+    public synchronized Future<?> triggerDataUpdate() {
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }
 
-    private synchronized Thread triggerSpaceDataUpdate() {
+    private synchronized Future<?> triggerSpaceDataUpdate() {
         if (dataNeedsUpdate) {
             logger.info("Data needs update for space {} core data, starting update thread", getId());
             dataNeedsUpdate = false;
-            Thread thread = new Thread(() -> {
+            return NanodashThreadPool.submit(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {
                         while (System.currentTimeMillis() < getRunUpdateAfter()) {
@@ -439,8 +441,6 @@ public class Space extends AbstractResourceWithProfile {
                     dataNeedsUpdate = true;
                 }
             });
-            thread.start();
-            return thread;
         }
         return null;
     }

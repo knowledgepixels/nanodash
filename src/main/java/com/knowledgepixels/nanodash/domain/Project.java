@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
@@ -284,7 +285,7 @@ public class Project implements Serializable {
 
     private synchronized void triggerDataUpdate() {
         if (dataNeedsUpdate) {
-            new Thread(() -> {
+            NanodashThreadPool.submit(() -> {
                 for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_OWNERS, "unit", id), true).getData()) {
                     String pubkeyhash = r.get("pubkeyhash");
                     if (ownerPubkeyMap.containsKey(pubkeyhash)) {
@@ -302,7 +303,7 @@ public class Project implements Serializable {
                 owners.sort(User.getUserData().userComparator);
                 members.sort(User.getUserData().userComparator);
                 dataInitialized = true;
-            }).start();
+            });
             dataNeedsUpdate = false;
         }
     }

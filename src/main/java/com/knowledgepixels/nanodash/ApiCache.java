@@ -161,7 +161,7 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread(() -> {
+            NanodashThreadPool.submit(() -> {
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {
@@ -187,7 +187,7 @@ public class ApiCache {
                 } finally {
                     refreshStart.remove(cacheId);
                 }
-            }).start();
+            });
         }
         if (isCached) {
             return cachedResponses.getIfPresent(cacheId);
@@ -233,7 +233,7 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread(() -> {
+            NanodashThreadPool.submit(() -> {
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {
@@ -254,7 +254,7 @@ public class ApiCache {
                 }  finally {
                     refreshStart.remove(cacheId);
                 }
-            }).start();
+            });
         }
         if (isCached) {
             if (cachedResponses.getIfPresent(cacheId) == null) {
@@ -312,7 +312,7 @@ public class ApiCache {
         }
         if (needsRefresh && !isRunning(cacheId)) {
             refreshStart.put(cacheId, timeNow);
-            new Thread(() -> {
+            NanodashThreadPool.submit(() -> {
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {
@@ -337,7 +337,7 @@ public class ApiCache {
                 } finally {
                     refreshStart.remove(cacheId);
                 }
-            }).start();
+            });
         }
         if (isCached) {
             return cachedRdfModels.getIfPresent(cacheId);
