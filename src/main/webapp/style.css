@@ -2423,8 +2423,12 @@ a.source:hover {
     max-width: 100%;
     overflow-wrap: anywhere;
   }
-  span.internal img {
-    max-width: 100%;
+  span.internal:has(img) {
+    display: block;
+    overflow-x: auto;
+  }
+  #content-pane :has(> img) {
+    overflow-x: auto;
   }
   .widthlimit {
     width: 100%;
