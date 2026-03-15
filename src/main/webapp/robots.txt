@@ -1,0 +1,21 @@
+User-agent: *
+Crawl-delay: 2
+
+Disallow: /search
+Disallow: /query
+Disallow: /resulttable
+Disallow: /publish
+Disallow: /preview
+Disallow: /profile
+Disallow: /mychannel
+Disallow: /orcidlogin
+Disallow: /orcidlinking
+Disallow: /connector/
+Disallow: /test
+Disallow: /groupdemo
+Disallow: /get-name
+Disallow: /get-view
+Disallow: /fdo
+Disallow: /term
+Disallow: /wicket/
+Disallow: /error
