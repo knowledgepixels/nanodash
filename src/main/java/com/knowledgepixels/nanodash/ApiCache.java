@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.eclipse.rdf4j.model.Model;
 import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A utility class for caching API responses and maps to reduce redundant API calls.
@@ -21,14 +24,34 @@ public class ApiCache {
     private ApiCache() {
     } // no instances allowed
 
-    private transient static ConcurrentMap<String, ApiResponse> cachedResponses = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String, Model> cachedRdfModels = new ConcurrentHashMap<>();
+    private static final int MAX_CACHE_ENTRIES = 10_000;
+
+    private static final Cache<String, ApiResponse> cachedResponses = CacheBuilder.newBuilder()
+        .maximumSize(MAX_CACHE_ENTRIES)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .build();
+    private static final Cache<String, Model> cachedRdfModels = CacheBuilder.newBuilder()
+        .maximumSize(MAX_CACHE_ENTRIES)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .build();
     private transient static ConcurrentMap<String, Integer> failed = new ConcurrentHashMap<>();
-    private transient static ConcurrentMap<String, Map<String, String>> cachedMaps = new ConcurrentHashMap<>();
+    private static final Cache<String, Map<String, String>> cachedMaps = CacheBuilder.newBuilder()
+        .maximumSize(MAX_CACHE_ENTRIES)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .build();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> runAfter = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
+
+    private static void cleanupMetadata(String cacheId) {
+        lastRefresh.remove(cacheId);
+        failed.remove(cacheId);
+        runAfter.remove(cacheId);
+    }
 
     /**
      * Checks if a cache refresh is currently running for the given cache ID.
@@ -75,7 +98,7 @@ public class ApiCache {
         String cacheId = queryRef.getAsUrlString();
         logger.info("Retrieving cached API response synchronously for {}", cacheId);
         boolean needsRefresh = true;
-        if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
+        if (cachedResponses.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
             needsRefresh = cacheAge > 60 * 1000;
         }
@@ -105,14 +128,14 @@ public class ApiCache {
                 ApiCache.updateResponse(queryRef, forced);
             } catch (Exception ex) {
                 logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                cachedResponses.remove(cacheId);
+                cachedResponses.invalidate(cacheId);
                 failed.merge(cacheId, 1, Integer::sum);
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
             }
         }
-        return cachedResponses.getOrDefault(cacheId, null);
+        return cachedResponses.getIfPresent(cacheId);
     }
 
     /**
@@ -127,7 +150,7 @@ public class ApiCache {
         logger.info("Retrieving cached API response asynchronously for {}", cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
-        if (cachedResponses.containsKey(cacheId) && cachedResponses.get(cacheId) != null) {
+        if (cachedResponses.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
             isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
@@ -158,7 +181,7 @@ public class ApiCache {
                     ApiCache.updateResponse(queryRef, false);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedResponses.remove(cacheId);
+                    cachedResponses.invalidate(cacheId);
                     failed.merge(cacheId, 1, Integer::sum);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
@@ -167,7 +190,7 @@ public class ApiCache {
             }).start();
         }
         if (isCached) {
-            return cachedResponses.get(cacheId);
+            return cachedResponses.getIfPresent(cacheId);
         } else {
             return null;
         }
@@ -203,7 +226,7 @@ public class ApiCache {
         String cacheId = queryRef.getAsUrlString();
         boolean isCached = false;
         boolean needsRefresh = true;
-        if (cachedMaps.containsKey(cacheId)) {
+        if (cachedMaps.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
             isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
@@ -226,19 +249,19 @@ public class ApiCache {
                     ApiCache.updateMap(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedResponses.put(cacheId, null);
+                    cachedResponses.invalidate(cacheId);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
-                } finally {
+                }  finally {
                     refreshStart.remove(cacheId);
                 }
             }).start();
         }
         if (isCached) {
-            if (cachedResponses.get(cacheId) == null) {
-                cachedResponses.remove(cacheId);
+            if (cachedResponses.getIfPresent(cacheId) == null) {
+                cachedResponses.invalidate(cacheId);
                 throw new RuntimeException("Query failed: " + cacheId);
             }
-            return cachedMaps.get(cacheId);
+            return cachedMaps.getIfPresent(cacheId);
         } else {
             return null;
         }
@@ -278,7 +301,7 @@ public class ApiCache {
         logger.info("Retrieving cached RDF model asynchronously for {}", cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
-        if (cachedRdfModels.containsKey(cacheId) && cachedRdfModels.get(cacheId) != null) {
+        if (cachedRdfModels.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
             isCached = cacheAge < 24 * 60 * 60 * 1000;
             needsRefresh = cacheAge > 60 * 1000;
@@ -308,7 +331,7 @@ public class ApiCache {
                     updateRdfModel(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update RDF cache for {}: {}", cacheId, ex.getMessage());
-                    cachedRdfModels.remove(cacheId);
+                    cachedRdfModels.invalidate(cacheId);
                     failed.merge(cacheId, 1, Integer::sum);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
@@ -317,7 +340,7 @@ public class ApiCache {
             }).start();
         }
         if (isCached) {
-            return cachedRdfModels.get(cacheId);
+            return cachedRdfModels.getIfPresent(cacheId);
         } else {
             return null;
         }
@@ -333,7 +356,7 @@ public class ApiCache {
         if (waitMillis < 0) {
             throw new IllegalArgumentException("waitMillis must be non-negative");
         }
-        cachedResponses.remove(queryRef.getAsUrlString());
+        cachedResponses.invalidate(queryRef.getAsUrlString());
         runAfter.put(queryRef.getAsUrlString(), System.currentTimeMillis() + waitMillis);
     }
 
