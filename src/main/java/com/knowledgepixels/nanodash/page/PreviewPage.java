@@ -71,6 +71,10 @@ public class PreviewPage extends NanodashPage {
                     String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     NanodashSession.get().removePreviewNanopub(previewId);
+                    String formObjId = pageParams.get("formobj").toString(null);
+                    if (formObjId != null) {
+                        NanodashSession.get().removeForm(formObjId);
+                    }
 
                     if (!pageParams.get("refresh-upon-publish").isEmpty()) {
                         String toRefresh = pageParams.get("refresh-upon-publish").toString();
