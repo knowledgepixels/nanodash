@@ -1,3 +1,32 @@
+## [4.19.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.18.0...nanodash-4.19.0) (2026-03-16)
+
+### Features
+
+* auto-merge release branch back into master after publishing ([39c6ac1](https://github.com/knowledgepixels/nanodash/commit/39c6ac11c9d8326233fa1a6ada9f63ac77897c3a))
+
+### Bug Fixes
+
+* add robots.txt to reduce bot-driven cache pollution ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([2fe9541](https://github.com/knowledgepixels/nanodash/commit/2fe9541115dd7489162395f7a6cab74d1e3bc9d9))
+* add viewport meta tag to QueryPage for correct mobile rendering ([732b1b9](https://github.com/knowledgepixels/nanodash/commit/732b1b9d775f7fdb977f47922afe53d53128a708))
+* bound ApiCache with Guava Cache to prevent unbounded memory growth ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([56c6fa0](https://github.com/knowledgepixels/nanodash/commit/56c6fa0ed4318f9e291ddd4af3a67af4ee96950a))
+* bound remaining static caches with Guava Cache ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([b58e926](https://github.com/knowledgepixels/nanodash/commit/b58e926b5b840d18b30092cf9d96ff78d34d2894))
+* clean up session forms after publish and cap at 20 ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([a8f86ed](https://github.com/knowledgepixels/nanodash/commit/a8f86ed7d0935515fe0bd71d13b46876b6dcda32))
+* close leaked streams and HTTP entities ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([94d9669](https://github.com/knowledgepixels/nanodash/commit/94d966973d5737aa7f08fce9c857e1ae09db5f02))
+* constrain form fields to viewport width on narrow screens ([041503b](https://github.com/knowledgepixels/nanodash/commit/041503b4a2763b7fa6a708ae860ecb6dbe5489d2))
+* force API cache refresh in Space data update ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([b981083](https://github.com/knowledgepixels/nanodash/commit/b9810835b5100313178f3f9275e5bb9507d9035b))
+* make images horizontally scrollable on narrow screens ([7b51058](https://github.com/knowledgepixels/nanodash/commit/7b510582a67469c70e1eb44661b45306e25a6fb3))
+* reduce excess whitespace on query page in narrow screen mode ([33e4060](https://github.com/knowledgepixels/nanodash/commit/33e40605114ac0fe6bcb74924a5237d5d2a03e39))
+* reduce forcedGet timeout and use exponential backoff ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([d486a61](https://github.com/knowledgepixels/nanodash/commit/d486a61f23ad01fbcc866802eb4607fa900ea38e))
+* replace unbounded thread creation with shared thread pool ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([a068d1b](https://github.com/knowledgepixels/nanodash/commit/a068d1bbeb16b79f7fb83eb38ad8b2a3c8c771e3))
+* responsive form fields and fullstop in nanopub statements ([4f8268c](https://github.com/knowledgepixels/nanodash/commit/4f8268cb0e7828920f929bdc7f151688787cdb65))
+* update tests for Guava Cache and handle null query ID ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([b1ffd3d](https://github.com/knowledgepixels/nanodash/commit/b1ffd3d2fa94cab6d11f9f43e9717e43d302fa79))
+* use ONE_PASS_RENDER so browser refresh creates fresh pages ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([e03c615](https://github.com/knowledgepixels/nanodash/commit/e03c61594ad17ffe4d6c1361cc9ab757f6c45afb))
+* wrap session formMap with synchronizedMap for thread safety ([#401](https://github.com/knowledgepixels/nanodash/issues/401)) ([9f928f8](https://github.com/knowledgepixels/nanodash/commit/9f928f838d6969a7bc6aa9cb256e96c8f184822f))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([71e6e5b](https://github.com/knowledgepixels/nanodash/commit/71e6e5b9378508b891ce125a5aa23dbfa8211d0b))
+
 ## [4.18.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.17.0...nanodash-4.18.0) (2026-03-14)
 
 ### Features
