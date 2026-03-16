@@ -53,3 +53,12 @@ jobs:
         run: |
           npm ci
           npx semantic-release
+      - name: Update master branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --unshallow origin || true
+          git fetch origin master
+          git checkout -B master FETCH_HEAD
+          git merge release --no-edit
+          git push origin master
