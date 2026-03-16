@@ -26,6 +26,7 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.settings.ExceptionSettings;
+import org.apache.wicket.settings.RequestCycleSettings;
 import org.apache.wicket.util.lang.Bytes;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.QueryRef;
@@ -133,6 +134,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         WicketWebjars.install(this);
 
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
+        getRequestCycleSettings().setRenderStrategy(RequestCycleSettings.RenderStrategy.ONE_PASS_RENDER);
 
         getExceptionSettings().setUnexpectedExceptionDisplay(ExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
 
@@ -221,9 +223,11 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
             Type nanopubReleasesType = new TypeToken<List<NanodashRelease>>() {
             }.getType();
 
-            List<NanodashRelease> releases = gson.fromJson(new InputStreamReader(resp.getEntity().getContent()), nanopubReleasesType);
-            if (!releases.isEmpty()) {
-                latestVersion = releases.getFirst().getVersionNumber();
+            try (InputStreamReader reader = new InputStreamReader(resp.getEntity().getContent())) {
+                List<NanodashRelease> releases = gson.fromJson(reader, nanopubReleasesType);
+                if (!releases.isEmpty()) {
+                    latestVersion = releases.getFirst().getVersionNumber();
+                }
             }
         } catch (Exception ex) {
             logger.error("Error in fetching latest version", ex);

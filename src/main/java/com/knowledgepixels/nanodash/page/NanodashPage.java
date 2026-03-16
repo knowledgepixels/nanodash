@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.*;
@@ -57,12 +58,7 @@ public abstract class NanodashPage extends WebPage {
             if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
                 refreshRunning = true;
-                new Thread(() -> {
-//						try {
-//							Thread.sleep(2000);
-//						} catch (InterruptedException ex) {
-//							logger.error();
-//						}
+                NanodashThreadPool.submit(() -> {
                     try {
                         logger.info("Refreshing data...");
                         User.refreshUsers();
@@ -78,7 +74,7 @@ public abstract class NanodashPage extends WebPage {
                     } finally {
                         refreshRunning = false;
                     }
-                }).start();
+                });
             }
         }
     }

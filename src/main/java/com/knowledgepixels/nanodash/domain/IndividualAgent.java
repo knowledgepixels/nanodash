@@ -6,20 +6,27 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 // TODO Merge this class with User or otherwise make them aligned.
 public class IndividualAgent extends AbstractResourceWithProfile {
 
-    private static final Map<String, IndividualAgent> instanceMap = new HashMap<>();
+    private static final Cache<String, IndividualAgent> instanceMap = CacheBuilder.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
 
     public static IndividualAgent get(String id) {
-        if (!instanceMap.containsKey(id)) {
-            instanceMap.put(id, new IndividualAgent(id));
+        IndividualAgent cached = instanceMap.getIfPresent(id);
+        if (cached == null) {
+            cached = new IndividualAgent(id);
+            instanceMap.put(id, cached);
         }
-        return instanceMap.get(id);
+        return cached;
     }
 
     private IndividualAgent(String id) {

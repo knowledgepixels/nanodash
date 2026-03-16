@@ -19,11 +19,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This page handles the login process with ORCID.
@@ -51,8 +53,10 @@ public class OrcidLoginPage extends WebPage {
     /**
      * A map to store redirect URLs temporarily.
      */
-    // TODO Make sure the entries of this map get removed again at some point:
-    public static Map<String, String> redirectHashMap = new HashMap<>();
+    private static final Cache<String, String> redirectCache = CacheBuilder.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(1, TimeUnit.HOURS)
+        .build();
 
     /**
      * Generates the ORCID login URL with a final redirect URL.
@@ -64,7 +68,7 @@ public class OrcidLoginPage extends WebPage {
     public static String getOrcidLoginUrl(String finalRedirectUrl) {
         NanodashPreferences prefs = NanodashPreferences.get();
         String finalRedirectUrlHash = Utils.createSha256HexHash(finalRedirectUrl);
-        redirectHashMap.put(finalRedirectUrlHash, finalRedirectUrl);
+        redirectCache.put(finalRedirectUrlHash, finalRedirectUrl);
         // orcid.org gives errors if redirect URL is too long, so we need to store
         String redirectUrl = prefs.getWebsiteUrl() + "/orcidlogin?redirect-hash=" + finalRedirectUrlHash;
         return "https://orcid.org/oauth/authorize?" +
@@ -113,7 +117,12 @@ public class OrcidLoginPage extends WebPage {
         } catch (UnsupportedOperationException | IOException ex) {
             logger.error("Error during ORCID login", ex);
         }
-        throw new RedirectToUrlException(redirectHashMap.get(parameters.get("redirect-hash").toString()));
+        String redirectHash = parameters.get("redirect-hash").toString();
+        String redirectUrl = redirectCache.getIfPresent(redirectHash);
+        if (redirectUrl != null) {
+            redirectCache.invalidate(redirectHash);
+        }
+        throw new RedirectToUrlException(redirectUrl);
     }
 
 

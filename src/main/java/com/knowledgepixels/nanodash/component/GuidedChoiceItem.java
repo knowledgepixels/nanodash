@@ -24,7 +24,11 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A guided choice item that allows users to select from a list of predefined values.
@@ -42,7 +46,11 @@ public class GuidedChoiceItem extends AbstractContextComponent {
 
     // TODO: This map being static could mix up labels if the same URI is described at different places:
     // TODO: This should maybe go into a different class?
-    private static Map<String, String> labelMap = new HashMap<>();
+    private static final Cache<String, String> labelCache = CacheBuilder.newBuilder()
+        .maximumSize(50_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
+    private static final Map<String, String> labelMap = labelCache.asMap();
 
     /**
      * Get the label for a given value.
@@ -98,7 +106,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (context.hasParam(postfix)) {
             String objId = context.getParam(postfix);
-            if (AbstractResourceWithProfile.get(objId) != null) {
+            if (AbstractResourceWithProfile.get(objId) != null && AbstractResourceWithProfile.get(objId).getLabel() != null) {
                 labelMap.put(objId, AbstractResourceWithProfile.get(objId).getLabel());
             }
             model.setObject(objId);

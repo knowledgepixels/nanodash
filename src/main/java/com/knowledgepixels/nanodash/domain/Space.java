@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -322,35 +324,35 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private synchronized void ensureInitialized() {
-        Thread thread = triggerSpaceDataUpdate();
-        if (!dataInitialized && thread != null) {
+        Future<?> future = triggerSpaceDataUpdate();
+        if (!dataInitialized && future != null) {
             try {
-                thread.join(30_000);
-            } catch (InterruptedException ex) {
-                logger.error("failed to join thread", ex);
+                future.get(30, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                logger.error("failed to await space data update", ex);
             }
         }
-        thread = super.triggerDataUpdate();
-        if (!dataInitialized && thread != null) {
+        future = super.triggerDataUpdate();
+        if (!dataInitialized && future != null) {
             try {
-                thread.join(30_000);
-            } catch (InterruptedException ex) {
-                logger.error("failed to join thread", ex);
+                future.get(30, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                logger.error("failed to await data update", ex);
             }
         }
     }
 
     @Override
-    public synchronized Thread triggerDataUpdate() {
+    public synchronized Future<?> triggerDataUpdate() {
         triggerSpaceDataUpdate();
         return super.triggerDataUpdate();
     }
 
-    private synchronized Thread triggerSpaceDataUpdate() {
+    private synchronized Future<?> triggerSpaceDataUpdate() {
         if (dataNeedsUpdate) {
             logger.info("Data needs update for space {} core data, starting update thread", getId());
             dataNeedsUpdate = false;
-            Thread thread = new Thread(() -> {
+            return NanodashThreadPool.submit(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {
                         while (System.currentTimeMillis() < getRunUpdateAfter()) {
@@ -373,7 +375,7 @@ public class Space extends AbstractResourceWithProfile {
                         resourceIds.put("resource", id);
                     }
 
-                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), false);
+                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), true);
                     boolean continueAddingAdmins = true;
                     while (continueAddingAdmins) {
                         continueAddingAdmins = false;
@@ -392,7 +394,7 @@ public class Space extends AbstractResourceWithProfile {
 
                     Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
                         newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
@@ -404,13 +406,13 @@ public class Space extends AbstractResourceWithProfile {
                         role.addRoleParams(getSpaceMemberParams);
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), true).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                         newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         Template t = TemplateData.get().getTemplate(r.get("template"));
                         if (t == null) continue;
@@ -421,7 +423,7 @@ public class Space extends AbstractResourceWithProfile {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
                         }
                     }
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         GrlcQuery query = GrlcQuery.get(r.get("query"));
                         if (query == null) continue;
@@ -439,8 +441,6 @@ public class Space extends AbstractResourceWithProfile {
                     dataNeedsUpdate = true;
                 }
             });
-            thread.start();
-            return thread;
         }
         return null;
     }

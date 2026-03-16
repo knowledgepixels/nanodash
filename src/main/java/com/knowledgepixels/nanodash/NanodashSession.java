@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,7 +88,13 @@ public class NanodashSession extends WebSession {
 
     // We should store here some sort of form model and not the forms themselves, but I couldn't figure
     // how to do it, so doing it like this for the moment...
-    private ConcurrentMap<String, PublishForm> formMap = new ConcurrentHashMap<>();
+    private static final int MAX_FORMS = 20;
+    private final Map<String, PublishForm> formMap = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, PublishForm> eldest) {
+            return size() > MAX_FORMS;
+        }
+    });
 
     /**
      * Associates a form object with a specific ID.
@@ -116,6 +124,15 @@ public class NanodashSession extends WebSession {
      */
     public PublishForm getForm(String formObjId) {
         return formMap.get(formObjId);
+    }
+
+    /**
+     * Removes the form object associated with the given ID.
+     *
+     * @param formObjId The ID of the form object to remove.
+     */
+    public void removeForm(String formObjId) {
+        formMap.remove(formObjId);
     }
 
     /**
