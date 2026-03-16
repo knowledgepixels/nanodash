@@ -375,7 +375,7 @@ public class Space extends AbstractResourceWithProfile {
                         resourceIds.put("resource", id);
                     }
 
-                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), false);
+                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), true);
                     boolean continueAddingAdmins = true;
                     while (continueAddingAdmins) {
                         continueAddingAdmins = false;
@@ -394,7 +394,7 @@ public class Space extends AbstractResourceWithProfile {
 
                     Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         SpaceMemberRole role = new SpaceMemberRole(r);
                         newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
@@ -406,13 +406,13 @@ public class Space extends AbstractResourceWithProfile {
                         role.addRoleParams(getSpaceMemberParams);
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), true).getData()) {
                         IRI memberId = Utils.vf.createIRI(r.get("member"));
                         SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
                         newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
                     }
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         Template t = TemplateData.get().getTemplate(r.get("template"));
                         if (t == null) continue;
@@ -423,7 +423,7 @@ public class Space extends AbstractResourceWithProfile {
                             newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
                         }
                     }
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), false).getData()) {
+                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
                         GrlcQuery query = GrlcQuery.get(r.get("query"));
                         if (query == null) continue;
