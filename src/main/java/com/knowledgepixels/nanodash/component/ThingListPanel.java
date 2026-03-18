@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.ApiResponse;
@@ -29,17 +30,21 @@ public class ThingListPanel extends Panel {
         super(markupId);
         // TODO Not copying the table here, which can lead to problems if at some point the same result list is sorted differently at different places:
         response.getData().sort(new Utils.ApiResponseEntrySorter("date", true));
+        WebMarkupContainer messageRow = new WebMarkupContainer("message-row");
         if (response.getData().isEmpty()) {
             setVisible(false);
+            messageRow.add(new Label("message", ""));
         } else if (mode == Mode.TEMPLATES) {
-            add(new Label("message").setVisible(false));
+            messageRow.setVisible(false);
+            messageRow.add(new Label("message", ""));
         } else if (response.getData().size() == 1) {
-            add(new Label("message", mode.messageStart + " 1 " + mode.wordSg + ":"));
+            messageRow.add(new Label("message", mode.messageStart + " 1 " + mode.wordSg + ":"));
         } else if (response.getData().size() == 1000) {
-            add(new Label("message", mode.messageStart + " more " + mode.wordPl + " (>999) than what can be shown here:"));
+            messageRow.add(new Label("message", mode.messageStart + " more " + mode.wordPl + " (>999) than what can be shown here:"));
         } else {
-            add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl + ":"));
+            messageRow.add(new Label("message", mode.messageStart + " " + response.getData().size() + " " + mode.wordPl + ":"));
         }
+        add(messageRow);
         if (mode == Mode.TEMPLATES) {
             add(new ItemListPanel<Template>(
                     "templates",

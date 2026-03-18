@@ -42,7 +42,13 @@
         <a class="button" href="." wicket:id="back-to-context-link">back to context</a>
         <a class="button" href="." wicket:id="to-specific-page-link">to specific page</a>
       </p>
+    </div>
+  </div>
+
+  <div wicket:id="status-section" class="row-section">
+    <div class="col-12">
       <div wicket:id="statusLine">[Status]</div>
+      <a class="button light" href="." wicket:id="references-link">🔗 References</a>
     </div>
   </div>
 
@@ -51,7 +57,6 @@
       <div wicket:id="nanopub-header"></div>
       <span wicket:id="nanopub"></span>
       <p>
-        <a class="button light" href="." wicket:id="references-link">🔗 References</a>
         <span wicket:id="use-template">
           <a class="button" href="." wicket:id="template-link">use this template...</a>
         </span>
@@ -72,15 +77,13 @@
   </div>
 
   <div wicket:id="discover-section" class="row-section">
-    <div class="col-12">
-      <div wicket:id="classes-panel"></div>
-      <div wicket:id="definitions-panel"></div>
-    </div>
     <div class="col-6">
+      <div wicket:id="classes-panel"></div>
       <div wicket:id="instances-panel"></div>
       <div wicket:id="parts-panel"></div>
     </div>
     <div class="col-6">
+      <div wicket:id="definitions-panel"></div>
       <div wicket:id="templates-panel"></div>
     </div>
   </div>

@@ -203,7 +203,6 @@ public class ExplorePage extends NanodashPage {
             nanopubSection.setVisible(false);
             nanopubSection.add(new Label("nanopub-header", ""));
             nanopubSection.add(new Label("nanopub", ""));
-            nanopubSection.add(new Label("references-link").setVisible(false));
             raw.setVisible(false);
             nanopubSection.add(raw);
             nanopubSection.add(new WebMarkupContainer("use-template").setVisible(false));
@@ -244,7 +243,6 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
             nanopubSection.add(raw);
-            nanopubSection.add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", tempRef)));
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
                 nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
             } else {
@@ -273,13 +271,16 @@ public class ExplorePage extends NanodashPage {
         //add(new ExternalLink("urilink", ref, ref));
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
 
+        WebMarkupContainer statusSection = new WebMarkupContainer("status-section");
         if (publishedNanopub != null) {
-            add(new Label("statusLine").setVisible(false));
+            statusSection.add(new Label("statusLine").setVisible(false));
         } else if (np != null && SignatureUtils.seemsToHaveSignature(np)) {
-            add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
+            statusSection.add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
         } else {
-            add(new Label("statusLine").setVisible(false));
+            statusSection.add(new Label("statusLine").setVisible(false));
         }
+        statusSection.add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", ref)));
+        add(statusSection);
         WebMarkupContainer discoverSection = new WebMarkupContainer("discover-section");
         if (publishedNanopub != null) {
             discoverSection.add(new Label("classes-panel").setVisible(false));
