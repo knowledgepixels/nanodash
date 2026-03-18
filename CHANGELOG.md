@@ -1,3 +1,29 @@
+## [4.20.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.19.0...nanodash-4.20.0) (2026-03-18)
+
+### Features
+
+* add emoji icons to section headers across the app ([8d528fd](https://github.com/knowledgepixels/nanodash/commit/8d528fd970e642f13bba3b123789d7de88f444e9))
+* add Noto Emoji monochrome font for consistent emoji rendering ([6b9190f](https://github.com/knowledgepixels/nanodash/commit/6b9190f0f12f8acbf0c986f470a5c82eb6492ea2))
+* auto-wrap leading emoji in headings via JS ([118e77d](https://github.com/knowledgepixels/nanodash/commit/118e77d94919225f2d1786f1c135887382076dbb))
+* style emoji spans with blue gradient and larger size ([2c3a3e2](https://github.com/knowledgepixels/nanodash/commit/2c3a3e2710c95df63cce3e4a2c0c115c5be988dd))
+* support nanopub preview via base64url-encoded TriG in URL ([#403](https://github.com/knowledgepixels/nanodash/issues/403)) ([42f1dab](https://github.com/knowledgepixels/nanodash/commit/42f1dabc59694c58e18ca02b3b9f392b1e1c5d97))
+* use flat theme blue for emoji instead of gradient ([8c2ed26](https://github.com/knowledgepixels/nanodash/commit/8c2ed26e4ba85118d34265e1de05b268a8561a64)), closes [#0B73DA](https://github.com/knowledgepixels/nanodash/issues/0B73DA)
+
+### Bug Fixes
+
+* move references/status to own row, fix stray paneltitlerow bars ([6a84408](https://github.com/knowledgepixels/nanodash/commit/6a844084dcb0b5365fec1964452836e2305ddd7b))
+* rename "Resources" to "Maintained Resources" on space page ([399d749](https://github.com/knowledgepixels/nanodash/commit/399d749bf584d6615921064a424178c1dba64638))
+* simplify info panel layout, add URI to references page, tweak icons ([50e7060](https://github.com/knowledgepixels/nanodash/commit/50e7060f427f1898ddac3e09279d68fe26fc838b))
+* use WicketApplication in ViewPageTest for NanodashSession support ([5f918f0](https://github.com/knowledgepixels/nanodash/commit/5f918f07c60c44eb4d32ae60b7de28b4a9036a2c))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([301768e](https://github.com/knowledgepixels/nanodash/commit/301768e5f74b504c52eb23472bc4b4eacc2a6202))
+
+### Refactoring
+
+* redesign Explore page layout and extract References page ([eeb1e15](https://github.com/knowledgepixels/nanodash/commit/eeb1e159d8bcb3b33e065a2dd5e700ca63efdadd))
+
 ## [4.19.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.18.0...nanodash-4.19.0) (2026-03-16)
 
 ### Features
