@@ -227,9 +227,9 @@ public class ExplorePage extends NanodashPage {
 
             String nanopubHeaderLabel = "<h4>%s</h4>";
             if (isNanopubId) {
-                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "📄 Nanopublication");
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "📌 Nanopublication");
             } else {
-                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "📄 Minted in Nanopublication");
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "🚩 Minted in Nanopublication");
             }
             nanopubSection.add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
             nanopubSection.add(new NanopubItem("nanopub", NanopubElement.get(np)));
@@ -271,34 +271,32 @@ public class ExplorePage extends NanodashPage {
         //add(new ExternalLink("urilink", ref, ref));
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
 
-        WebMarkupContainer statusSection = new WebMarkupContainer("status-section");
+        add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", ref)));
         if (publishedNanopub != null) {
-            statusSection.add(new Label("statusLine").setVisible(false));
+            add(new Label("statusLine").setVisible(false));
         } else if (np != null && SignatureUtils.seemsToHaveSignature(np)) {
-            statusSection.add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
+            add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
         } else {
-            statusSection.add(new Label("statusLine").setVisible(false));
+            add(new Label("statusLine").setVisible(false));
         }
-        statusSection.add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", ref)));
-        add(statusSection);
-        WebMarkupContainer discoverSection = new WebMarkupContainer("discover-section");
+        WebMarkupContainer infoSection = new WebMarkupContainer("info-section");
         if (publishedNanopub != null) {
-            discoverSection.add(new Label("classes-panel").setVisible(false));
+            infoSection.add(new Label("classes-panel").setVisible(false));
         } else {
-            discoverSection.add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
+            infoSection.add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
         }
         if (isNanopubId) {
-            discoverSection.add(new Label("definitions-panel").setVisible(false));
-            discoverSection.add(new Label("instances-panel").setVisible(false));
-            discoverSection.add(new Label("parts-panel").setVisible(false));
-            discoverSection.add(new Label("templates-panel").setVisible(false));
+            infoSection.add(new Label("definitions-panel").setVisible(false));
+            infoSection.add(new Label("instances-panel").setVisible(false));
+            infoSection.add(new Label("parts-panel").setVisible(false));
+            infoSection.add(new Label("templates-panel").setVisible(false));
         } else {
-            discoverSection.add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
-            discoverSection.add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
-            discoverSection.add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
-            discoverSection.add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
+            infoSection.add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
+            infoSection.add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
+            infoSection.add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
+            infoSection.add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
         }
-        add(discoverSection);
+        add(infoSection);
     }
 
     @Override

@@ -6,7 +6,7 @@ function wrapLeadingEmoji() {
     var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     var node = walker.nextNode();
     if (!node) return;
-    var match = node.textContent.match(/^\s*(\p{Extended_Pictographic}\uFE0F?)/u);
+    var match = node.textContent.match(/^\s*((?:\p{Extended_Pictographic}|[\u{13000}-\u{1342F}])\uFE0F?)/u);
     if (!match) return;
     var span = document.createElement("span");
     span.className = "emoji";

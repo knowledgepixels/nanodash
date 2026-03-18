@@ -38,6 +38,8 @@
     <div class="col-12">
       <h2><span wicket:id="termname"></span></h2>
       <span wicket:id="urilink"></span>
+      <a class="smallbutton button light" href="." wicket:id="references-link">show references</a>
+      <div wicket:id="statusLine">[Status]</div>
       <p>
         <a class="button" href="." wicket:id="back-to-context-link">back to context</a>
         <a class="button" href="." wicket:id="to-specific-page-link">to specific page</a>
@@ -45,10 +47,13 @@
     </div>
   </div>
 
-  <div wicket:id="status-section" class="row-section">
+  <div wicket:id="info-section" class="row-section">
     <div class="col-12">
-      <div wicket:id="statusLine">[Status]</div>
-      <a class="button light" href="." wicket:id="references-link">🔗 References</a>
+      <div wicket:id="classes-panel"></div>
+      <div wicket:id="definitions-panel"></div>
+      <div wicket:id="instances-panel"></div>
+      <div wicket:id="templates-panel"></div>
+      <div wicket:id="parts-panel"></div>
     </div>
   </div>
 
@@ -73,18 +78,6 @@
           <a href="#" target="_blank" wicket:id="xml">XML</a>(<a href="#" target="_blank" wicket:id="xml-txt">txt</a>)
         </p>
       </details>
-    </div>
-  </div>
-
-  <div wicket:id="discover-section" class="row-section">
-    <div class="col-6">
-      <div wicket:id="classes-panel"></div>
-      <div wicket:id="instances-panel"></div>
-      <div wicket:id="parts-panel"></div>
-    </div>
-    <div class="col-6">
-      <div wicket:id="definitions-panel"></div>
-      <div wicket:id="templates-panel"></div>
     </div>
   </div>
 
