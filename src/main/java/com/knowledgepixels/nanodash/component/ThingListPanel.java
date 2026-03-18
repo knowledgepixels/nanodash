@@ -43,7 +43,7 @@ public class ThingListPanel extends Panel {
         if (mode == Mode.TEMPLATES) {
             add(new ItemListPanel<Template>(
                     "templates",
-                    "Related Templates",
+                    "📝 Related Templates",
                     TemplateData.getTemplateList(response),
                     (template) -> new TemplateItem("item", template)
                 ));
@@ -87,11 +87,11 @@ public class ThingListPanel extends Panel {
      * Each mode corresponds to a specific type of thing and defines how to query and display them.
      */
     public enum Mode {
-        CLASSES(QueryApiAccess.GET_CLASSES_FOR_THING, "thing", "class", "class", "classes", "Assigned to"),
-        INSTANCES(QueryApiAccess.GET_INSTANCES, "class", "instance", "instance", "instances", "Has"),
-        PARTS(QueryApiAccess.GET_PARTS, "thing", "part", "part", "parts", "Has"),
+        CLASSES(QueryApiAccess.GET_CLASSES_FOR_THING, "thing", "class", "class", "classes", "🏷 Assigned to"),
+        INSTANCES(QueryApiAccess.GET_INSTANCES, "class", "instance", "instance", "instances", "📦 Has"),
+        PARTS(QueryApiAccess.GET_PARTS, "thing", "part", "part", "parts", "🧩 Has"),
         TEMPLATES(QueryApiAccess.GET_TEMPLATES_WITH_URI, "thing", "np", "template", "templates", "Used in"),
-        DESCRIPTIONS(QueryApiAccess.GET_TERM_DEFINITIONS, "term", "np", "nanopublication", "nanopublications", "Described in");
+        DESCRIPTIONS(QueryApiAccess.GET_TERM_DEFINITIONS, "term", "np", "nanopublication", "nanopublications", "📄 Described in");
 
         /**
          * The name of the query to be used for this mode.

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  </wicket:remove>
+  <wicket:head>
+    <title wicket:id="pagetitle">... (references) | nanodash</title>
+  </wicket:head>
+</head>
+<body>
+<wicket:extend>
+
+  <div class="row-section">
+    <div class="col-12">
+      <h2>🔗 References for <span wicket:id="termname"></span></h2>
+      <p><a class="button" href="." wicket:id="back-link">back to explore</a></p>
+      <div wicket:id="reftable"></div>
+    </div>
+  </div>
+
+</wicket:extend>
+</body>
+</html>

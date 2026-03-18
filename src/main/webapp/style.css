@@ -43,6 +43,13 @@
   vertical-align: -0.1em;
 }
 
+details summary {
+  cursor: pointer;
+  color: #0B73DA;
+  font-weight: 700;
+  margin-top: 0.5em;
+}
+
 :root {
   --gap: 1.5em;
 }

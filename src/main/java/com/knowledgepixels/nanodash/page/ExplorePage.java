@@ -197,12 +197,17 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
+        WebMarkupContainer nanopubSection = new WebMarkupContainer("nanopub-section");
+
         if (np == null) {
+            nanopubSection.setVisible(false);
+            nanopubSection.add(new Label("nanopub-header", ""));
+            nanopubSection.add(new Label("nanopub", ""));
+            nanopubSection.add(new Label("references-link").setVisible(false));
             raw.setVisible(false);
-            add(new Label("nanopub-header", ""));
-            add(new Label("nanopub", ""));
-            add(new WebMarkupContainer("use-template").setVisible(false));
-            add(new WebMarkupContainer("run-query").setVisible(false));
+            nanopubSection.add(raw);
+            nanopubSection.add(new WebMarkupContainer("use-template").setVisible(false));
+            nanopubSection.add(new WebMarkupContainer("run-query").setVisible(false));
         } else {
 
             // Check whether we should redirect to Nanopub Registry for machine-friendly formats:
@@ -223,12 +228,12 @@ public class ExplorePage extends NanodashPage {
 
             String nanopubHeaderLabel = "<h4>%s</h4>";
             if (isNanopubId) {
-                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "Nanopublication");
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "📄 Nanopublication");
             } else {
-                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "Minted in Nanopublication");
+                nanopubHeaderLabel = String.format(nanopubHeaderLabel, "📄 Minted in Nanopublication");
             }
-            add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
-            add(new NanopubItem("nanopub", NanopubElement.get(np)));
+            nanopubSection.add(new Label("nanopub-header", nanopubHeaderLabel).setEscapeModelStrings(false));
+            nanopubSection.add(new NanopubItem("nanopub", NanopubElement.get(np)));
             String url = Utils.getMainRegistryUrl() + "np/" + TrustyUriUtils.getArtifactCode(np.getUri().stringValue());
             raw.add(new ExternalLink("trig-txt", url + ".trig.txt"));
             raw.add(new ExternalLink("jsonld-txt", url + ".jsonld.txt"));
@@ -238,17 +243,20 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("jsonld", url + ".jsonld"));
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
+            nanopubSection.add(raw);
+            nanopubSection.add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", tempRef)));
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
-                add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
+                nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
             } else {
-                add(new WebMarkupContainer("use-template").setVisible(false));
+                nanopubSection.add(new WebMarkupContainer("use-template").setVisible(false));
             }
             if (Utils.isNanopubOfClass(np, GrlcQuery.GRLC_QUERY_CLASS)) {
-                add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().set("id", np.getUri()))));
+                nanopubSection.add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().set("id", np.getUri()))));
             } else {
-                add(new WebMarkupContainer("run-query").setVisible(false));
+                nanopubSection.add(new WebMarkupContainer("run-query").setVisible(false));
             }
         }
+        add(nanopubSection);
 
         final String ref = tempRef;
         final String shortName;
@@ -266,29 +274,30 @@ public class ExplorePage extends NanodashPage {
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
 
         if (publishedNanopub != null) {
-            add(new Label("statusLine", "<h4>Status</h4><p>Successfully published.</p>").setEscapeModelStrings(false));
-        } else if (isNanopubId && SignatureUtils.seemsToHaveSignature(np)) {
-            add(StatusLine.createComponent("statusLine", ref));
+            add(new Label("statusLine").setVisible(false));
+        } else if (np != null && SignatureUtils.seemsToHaveSignature(np)) {
+            add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
         } else {
             add(new Label("statusLine").setVisible(false));
         }
+        WebMarkupContainer discoverSection = new WebMarkupContainer("discover-section");
         if (publishedNanopub != null) {
-            add(new Label("classes-panel").setVisible(false));
+            discoverSection.add(new Label("classes-panel").setVisible(false));
         } else {
-            add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
+            discoverSection.add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
         }
         if (isNanopubId) {
-            add(new Label("definitions-panel").setVisible(false));
-            add(new Label("instances-panel").setVisible(false));
-            add(new Label("parts-panel").setVisible(false));
-            add(new Label("templates-panel").setVisible(false));
+            discoverSection.add(new Label("definitions-panel").setVisible(false));
+            discoverSection.add(new Label("instances-panel").setVisible(false));
+            discoverSection.add(new Label("parts-panel").setVisible(false));
+            discoverSection.add(new Label("templates-panel").setVisible(false));
         } else {
-            add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
-            add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
-            add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
-            add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
+            discoverSection.add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
+            discoverSection.add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
+            discoverSection.add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
+            discoverSection.add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
         }
-        add(ExploreDataTable.createComponent("reftable", ref));
+        add(discoverSection);
     }
 
     @Override
