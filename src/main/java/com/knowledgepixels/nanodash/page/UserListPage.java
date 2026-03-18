@@ -62,7 +62,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "topcreators",
-                "Most Active Nanopublishers Last Month",
+                "🔥 Most Active Nanopublishers Last Month",
                 new QueryRef(QueryApiAccess.GET_TOP_CREATORS_LAST30D),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
@@ -76,7 +76,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "latestusers",
-                "Latest New Users",
+                "🆕 Latest New Users",
                 new QueryRef(QueryApiAccess.GET_LATEST_USERS),
                 (apiResponse) -> {
                     List<IRI> users = new ArrayList<>();
@@ -91,7 +91,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
-                "Human Users",
+                "👤 Human Users",
                 User.getUsers(true).stream().filter(iri -> !IndividualAgent.isSoftware(iri)).collect(Collectors.toList()),
                 (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
@@ -99,7 +99,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "approved-software-agents",
-                "Software Agents",
+                "🤖 Software Agents",
                 User.getUsers(true).stream().filter(IndividualAgent::isSoftware).collect(Collectors.toList()),
                 (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName
@@ -107,7 +107,7 @@ public class UserListPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "other-users",
-                "Non-Approved Users",
+                "❓ Non-Approved Users",
                 User.getUsers(false),
                 (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
                 User::getShortDisplayName

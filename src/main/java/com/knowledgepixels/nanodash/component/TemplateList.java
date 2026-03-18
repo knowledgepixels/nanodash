@@ -35,7 +35,7 @@ public class TemplateList extends Panel {
 
         add(new ItemListPanel<Template>(
                 "popular-templates",
-                "Popular Templates",
+                "⭐ Popular Templates",
                 new QueryRef(QueryApiAccess.GET_MOST_USED_TEMPLATES_LAST30D),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)
@@ -43,7 +43,7 @@ public class TemplateList extends Panel {
 
         add(new ItemListPanel<Template>(
                 "getstarted-templates",
-                "Suggested Templates to Get Started",
+                "🚀 Suggested Templates to Get Started",
                 new QueryRef(QueryApiAccess.GET_SUGGESTED_TEMPLATES_TO_GET_STARTED),
                 TemplateData::getTemplateList,
                 (template) -> new TemplateItem("item", template)

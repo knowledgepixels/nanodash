@@ -102,14 +102,14 @@ public class ProjectPage extends NanodashPage {
         });
         add(new ItemListPanel<Template>(
                 "templates",
-                "Templates",
+                "📝 Templates",
                 templates,
                 (template) -> new TemplateItem("item", template, params, false)
         ));
 
         add(new ItemListPanel<IRI>(
                 "owners",
-                "Owners",
+                "👤 Owners",
                 () -> project.isDataInitialized(),
                 () -> project.getOwners(),
                 (userIri) -> {
@@ -119,7 +119,7 @@ public class ProjectPage extends NanodashPage {
 
         add(new ItemListPanel<IRI>(
                 "members",
-                "Members",
+                "👥 Members",
                 () -> project.isDataInitialized(),
                 () -> project.getMembers(),
                 (userIri) -> {
