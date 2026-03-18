@@ -37,9 +37,13 @@
 }
 
 .emoji {
-  color: #0b73da;
-  -webkit-text-stroke: 0.7px #222;
-  paint-order: stroke fill;
+  background: linear-gradient(to top right, #042e6e, #1a8cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.3em;
+  line-height: 1;
+  vertical-align: -0.1em;
 }
 
 :root {
