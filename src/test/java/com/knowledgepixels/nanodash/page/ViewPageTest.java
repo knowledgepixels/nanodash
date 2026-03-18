@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
@@ -21,7 +22,7 @@ class ViewPageTest {
 
     @BeforeEach
     void setUp() {
-        tester = new WicketTester();
+        tester = new WicketTester(new WicketApplication());
     }
 
     @Test

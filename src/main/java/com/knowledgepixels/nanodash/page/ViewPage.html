@@ -15,20 +15,26 @@
 </head>
 
 <body>
-
-
-<div id="content-pane">
+<wicket:extend>
 
 <div class="row-section">
 <div class="col-12">
 
+<h4 wicket:id="heading"></h4>
 <div wicket:id="nanopub"></div>
 
 </div>
 </div>
 
+<div wicket:id="template-form-preview-section" class="preview">
+<div class="row-section">
+<div class="col-12">
+<div wicket:id="template-form-preview"></div>
+</div>
+</div>
 </div>
 
+</wicket:extend>
 </body>
 
 </html>
