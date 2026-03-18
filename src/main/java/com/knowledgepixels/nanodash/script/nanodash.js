@@ -10,12 +10,18 @@ function wrapLeadingEmoji() {
     if (!match) return;
     var span = document.createElement("span");
     span.className = "emoji";
-    span.textContent = match[1];
+    span.textContent = match[1].replace(/\uFE0F/g, "");
     node.textContent = node.textContent.slice(match[0].indexOf(match[1]) + match[1].length);
     node.parentNode.insertBefore(span, node);
   });
 }
-document.addEventListener("DOMContentLoaded", wrapLeadingEmoji);
+document.addEventListener("DOMContentLoaded", function() {
+  wrapLeadingEmoji();
+  // Re-run after Wicket AJAX calls complete (dynamically loaded content)
+  if (typeof Wicket !== "undefined" && Wicket.Event) {
+    Wicket.Event.subscribe("/ajax/call/complete", wrapLeadingEmoji);
+  }
+});
 
 function getMaxWidth(el, type, limit) {
   max = 0;

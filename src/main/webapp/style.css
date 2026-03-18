@@ -452,6 +452,7 @@ div.large-table table {
 ul {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
+  padding-left: 20px;
 }
 
 ul:has(li) + .emptynotice {
@@ -567,12 +568,12 @@ img.thirdparty {
 
 ul.users {
   list-style: none;
-  padding-left: 20.8px;
+  padding-left: 10px;
 }
 
 .users ul {
   list-style: none;
-  padding-left: 20.8px;
+  padding-left: 10px;
 }
 
 .form-icon {

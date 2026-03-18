@@ -56,7 +56,7 @@ public class SpaceListPage extends NanodashPage {
 
         add(new ItemListPanel<Project>(
                 "legacy-projects",
-                "Legacy Projects",
+                "📁 Legacy Projects",
                 new QueryRef(QueryApiAccess.GET_PROJECTS),
                 (apiResponse) -> {
                     Project.refresh(apiResponse);
