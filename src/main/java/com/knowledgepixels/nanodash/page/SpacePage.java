@@ -223,7 +223,7 @@ public class SpacePage extends NanodashPage {
 
         add(new ItemListPanel<MaintainedResource>(
                 "resources",
-                "📦 Resources",
+                "📦 Maintained Resources",
                 new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES),
                 (apiResponse) -> {
                     MaintainedResourceRepository.get().ensureLoaded();
