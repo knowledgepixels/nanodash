@@ -39,7 +39,7 @@ public class StatusLine extends Panel {
             }
 
         };
-        c.setWaitComponentHtml("<h4>Status</h4><div>" + ApiResultComponent.getWaitIconHtml() + "</div>");
+        c.setWaitComponentHtml("<p><strong>Status:</strong> " + ApiResultComponent.getWaitIconHtml() + "</p>");
         return c;
     }
 
