@@ -1,3 +1,22 @@
+/* Emoji wrapping — no jQuery dependency, runs on DOMContentLoaded and
+   also called from updateElements() for AJAX-loaded content. */
+function wrapLeadingEmoji() {
+  document.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach(function (el) {
+    if (el.querySelector(".emoji")) return;
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var node = walker.nextNode();
+    if (!node) return;
+    var match = node.textContent.match(/^\s*(\p{Extended_Pictographic}\uFE0F?)/u);
+    if (!match) return;
+    var span = document.createElement("span");
+    span.className = "emoji";
+    span.textContent = match[1];
+    node.textContent = node.textContent.slice(match[0].indexOf(match[1]) + match[1].length);
+    node.parentNode.insertBefore(span, node);
+  });
+}
+document.addEventListener("DOMContentLoaded", wrapLeadingEmoji);
+
 function getMaxWidth(el, type, limit) {
   max = 0;
   $(el).find(type).each(function () {
@@ -12,6 +31,7 @@ function getMaxWidth(el, type, limit) {
 $(window).on('load', updateElements);
 
 function updateElements() {
+  wrapLeadingEmoji();
   adjustValueWidths();
   setCollapseOverflow();
   collapseNanopubAssertions();
