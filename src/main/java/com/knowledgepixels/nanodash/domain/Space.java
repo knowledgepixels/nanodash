@@ -100,7 +100,7 @@ public class Space extends AbstractResourceWithProfile {
             Map.entry("Outlet", "\uD83D\uDCF0"),
             Map.entry("Campaign", "\uD83D\uDCE3"),
             Map.entry("Community", "\uD83C\uDF10"),
-            Map.entry("Event", "\uD83D\uDCC5")
+            Map.entry("Event", "\uD83C\uDFAA")
     );
 
     /**
