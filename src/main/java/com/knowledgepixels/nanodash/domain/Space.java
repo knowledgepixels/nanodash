@@ -86,6 +86,33 @@ public class Space extends AbstractResourceWithProfile {
 
     }
 
+    private static final Map<String, String> TYPE_EMOJIS = Map.ofEntries(
+            Map.entry("Alliance", "\uD83E\uDD1D"),
+            Map.entry("Consortium", "\uD83C\uDFDB\uFE0F"),
+            Map.entry("Organization", "\uD83C\uDFE2"),
+            Map.entry("Taskforce", "\uD83C\uDFAF"),
+            Map.entry("Division", "\uD83C\uDFD7\uFE0F"),
+            Map.entry("Taskunit", "\u2699\uFE0F"),
+            Map.entry("Group", "\uD83D\uDC65"),
+            Map.entry("Project", "\uD83D\uDD28"),
+            Map.entry("Program", "\uD83D\uDCCB"),
+            Map.entry("Initiative", "\uD83D\uDE80"),
+            Map.entry("Outlet", "\uD83D\uDCF0"),
+            Map.entry("Campaign", "\uD83D\uDCE3"),
+            Map.entry("Community", "\uD83C\uDF10"),
+            Map.entry("Event", "\uD83D\uDCC5")
+    );
+
+    /**
+     * Get the emoji associated with a space type name.
+     *
+     * @param typeName The short type name (e.g., "Alliance").
+     * @return The emoji string, or an empty string if not found.
+     */
+    public static String getTypeEmoji(String typeName) {
+        return TYPE_EMOJIS.getOrDefault(typeName, "");
+    }
+
     private static String getCoreInfoString(ApiResponseEntry resp) {
         String id = resp.get("space");
         String rootNanopubId = resp.get("np");

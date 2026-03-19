@@ -256,7 +256,7 @@ public class SpacePage extends NanodashPage {
 
         add(new ItemListPanel<>(
                         typePl.toLowerCase(),
-                        typePl,
+                        Space.getTypeEmoji(type) + " " + typePl,
                         SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
