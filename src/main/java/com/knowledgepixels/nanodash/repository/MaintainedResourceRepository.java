@@ -28,6 +28,7 @@ public class MaintainedResourceRepository {
     private Map<Space, List<MaintainedResource>> resourcesBySpace;
     private boolean loaded = false;
     private volatile Long runRootUpdateAfter = null;
+    private volatile long lastRefreshTime = 0;
     private final Object loadLock = new Object();
 
     /**
@@ -74,6 +75,7 @@ public class MaintainedResourceRepository {
         resourcesBySpace = newResourcesBySpace;
         resourcesByNamespace = newResourcesByNamespace;
         loaded = true;
+        lastRefreshTime = System.currentTimeMillis();
         resourceList = newResourceList; // volatile write last — establishes happens-before for all above
     }
 
@@ -128,6 +130,8 @@ public class MaintainedResourceRepository {
             if (resourceList == null) { // double-check after potential wait
                 refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
             }
+        } else if (System.currentTimeMillis() - lastRefreshTime > 60_000) {
+            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
         }
     }
 

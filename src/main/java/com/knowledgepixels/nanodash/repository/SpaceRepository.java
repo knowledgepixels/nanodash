@@ -39,6 +39,7 @@ public class SpaceRepository {
     private Map<Space, Set<Space>> superspaceMap;
     private boolean loaded = false;
     private volatile Long runRootUpdateAfter = null;
+    private volatile long lastRefreshTime = 0;
 
     private final Object loadLock = new Object();
 
@@ -85,6 +86,7 @@ public class SpaceRepository {
         subspaceMap = newSubspaceMap;
         superspaceMap = newSuperspaceMap;
         loaded = true;
+        lastRefreshTime = System.currentTimeMillis();
         spaceList = newSpaceList; // volatile write last — establishes happens-before for all above
     }
 
@@ -118,6 +120,8 @@ public class SpaceRepository {
             if (spaceList == null) { // double-check after potential wait
                 refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
             }
+        } else if (System.currentTimeMillis() - lastRefreshTime > 60_000) {
+            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
         }
     }
 
