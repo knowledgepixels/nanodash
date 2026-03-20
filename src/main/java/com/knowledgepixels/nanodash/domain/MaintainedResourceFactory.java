@@ -24,6 +24,7 @@ public class MaintainedResourceFactory {
         String id = apiResponseEntry.get("resource");
         AbstractResourceWithProfile existing = AbstractResourceWithProfile.get(id);
         if (existing instanceof MaintainedResource resource) {
+            resource.updateFromApi(apiResponseEntry, space);
             return resource;
         }
         return new MaintainedResource(apiResponseEntry, space);

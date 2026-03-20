@@ -132,6 +132,17 @@ public class Space extends AbstractResourceWithProfile {
         setCoreData(data);
     }
 
+    void updateFromApi(ApiResponseEntry resp) {
+        String newNpId = resp.get("np");
+        if (!newNpId.equals(this.rootNanopubId)) {
+            this.label = resp.get("label");
+            this.type = resp.get("type");
+            this.rootNanopubId = newNpId;
+            this.rootNanopub = Utils.getAsNanopub(newNpId);
+            setDataNeedsUpdate();
+        }
+    }
+
     /**
      * Get the root nanopublication ID of the space.
      *

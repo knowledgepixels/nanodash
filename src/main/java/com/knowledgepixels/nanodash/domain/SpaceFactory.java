@@ -23,6 +23,7 @@ public class SpaceFactory {
         String id = apiResponseEntry.get("space");
         AbstractResourceWithProfile existing = AbstractResourceWithProfile.get(id);
         if (existing instanceof Space space) {
+            space.updateFromApi(apiResponseEntry);
             return space;
         }
         return new Space(apiResponseEntry);
