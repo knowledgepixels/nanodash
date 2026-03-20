@@ -100,7 +100,7 @@ public class SpacePage extends NanodashPage {
                 "altids",
                 "Alternative IDs:",
                 space.getAltIDs(),
-                i -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", i), i)
+                i -> new ExternalLinkWithActionsPanel("item", Model.of(i), Model.of(i))
         ));
 
         if (space.getStartDate() != null) {
