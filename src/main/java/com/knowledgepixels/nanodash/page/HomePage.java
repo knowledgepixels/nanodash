@@ -74,17 +74,19 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         View mostRecentNanopubsView = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
-        final QueryRef rQueryRef = new QueryRef(mostRecentNanopubsView.getQuery().getQueryId());
-        add(new DataView<ViewDisplay>("mostrecent", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(mostRecentNanopubsView)))) {
+        QueryRef rQueryRef = new QueryRef(mostRecentNanopubsView.getQuery().getQueryId());
+        add(QueryResultNanopubSetBuilder.create("mostrecent", rQueryRef, new ViewDisplay(mostRecentNanopubsView))
+                .setItemsPerPage(5)
+                .build()
+                .add(AttributeModifier.remove("class"))
+        );
 
-            @Override
-            protected void populateItem(Item<ViewDisplay> item) {
-                item.add(QueryResultNanopubSetBuilder.create("view", rQueryRef, item.getModelObject())
-                        .build()
-                        .add(AttributeModifier.remove("class"))
-                );
-            }
-        });
+        View upcomingEventsView = View.get("https://w3id.org/np/RAq5EwXCcCUsBEc7bMUgrT5oeLvX7khfqhA4hKzCjjBwk/upcoming-events-view");
+        QueryRef eQueryRef = new QueryRef(upcomingEventsView.getQuery().getQueryId());
+        add(QueryResultTableBuilder.create("upcomingevents", eQueryRef, new ViewDisplay(upcomingEventsView))
+                .build()
+                .add(AttributeModifier.remove("class"))
+        );
 
         View topCreatorsView = View.get("https://w3id.org/np/RAuv15ISgaPadgIj_LCSQNd2QRKmMcPulun6NyiblzEOs/top-creators-last-30days");
         add(new DataView<ViewDisplay>("topCreators", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(topCreatorsView)))) {

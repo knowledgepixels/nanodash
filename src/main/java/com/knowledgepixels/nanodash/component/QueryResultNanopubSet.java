@@ -21,6 +21,7 @@ public class QueryResultNanopubSet extends QueryResult {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryResultNanopubSet.class);
     private final WebMarkupContainer viewSelector;
+    private final long itemsPerPage;
 
     /**
      * Constructor for QueryResultList.
@@ -30,8 +31,9 @@ public class QueryResultNanopubSet extends QueryResult {
      * @param response    the API response
      * @param viewDisplay the view display
      */
-    QueryResultNanopubSet(String markupId, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay) {
+    QueryResultNanopubSet(String markupId, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, long itemsPerPage) {
         super(markupId, queryRef, response, viewDisplay);
+        this.itemsPerPage = itemsPerPage;
 
         logger.info("Rendering {} with '{}' mode.", this.getClass().getName(), NanodashSession.get().getNanopubResultsViewMode().getValue());
 
@@ -69,7 +71,7 @@ public class QueryResultNanopubSet extends QueryResult {
     @Override
     protected void populateComponent() {
         logger.info("Populating the component with nanopub results.");
-        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", response, 10);
+        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", response, itemsPerPage);
         nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
         add(nanopubResults);
 

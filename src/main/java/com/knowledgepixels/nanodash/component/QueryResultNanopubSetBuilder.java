@@ -20,6 +20,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     private final QueryRef queryRef;
     private boolean hasTitle = true;
     private AbstractResourceWithProfile pageResource = null;
+    private long itemsPerPage = 10;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -55,6 +56,11 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         return this;
     }
 
+    public QueryResultNanopubSetBuilder setItemsPerPage(long itemsPerPage) {
+        this.itemsPerPage = itemsPerPage;
+        return this;
+    }
+
     /**
      * Removes the title from the QueryResultNanopubSet.
      *
@@ -73,7 +79,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         if (response != null) {
-            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, itemsPerPage);
             queryResultNanopubSet.setContextId(contextId);
             queryResultNanopubSet.setPageResource(pageResource);
             queryResultNanopubSet.populateComponent();
@@ -83,7 +89,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
             return new ApiResultComponent(markupId, queryRef) {
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay);
+                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, itemsPerPage);
                     queryResultNanopubSet.setContextId(contextId);
                     queryResultNanopubSet.setPageResource(pageResource);
                     queryResultNanopubSet.populateComponent();
