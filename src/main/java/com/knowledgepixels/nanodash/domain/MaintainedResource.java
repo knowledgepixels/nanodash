@@ -49,6 +49,14 @@ public class MaintainedResource extends AbstractResourceWithProfile {
         this.nanopub = Utils.getAsNanopub(nanopubId);
     }
 
+    void updateFromApi(ApiResponseEntry resp, Space space) {
+        String newNpId = resp.get("np");
+        if (!newNpId.equals(this.nanopubId)) {
+            initialize(resp, space);
+            setDataNeedsUpdate();
+        }
+    }
+
     /**
      * Get the ID of the nanopub that defines this maintained resource.
      *
