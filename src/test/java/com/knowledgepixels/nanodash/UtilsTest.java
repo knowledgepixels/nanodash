@@ -786,4 +786,41 @@ class UtilsTest {
         assertFalse(Utils.isLocalURI((IRI) null));
     }
 
+    @Test
+    void unescapeMultiValueReturnsPlainStringUnchanged() {
+        assertEquals("hello world", Utils.unescapeMultiValue("hello world"));
+    }
+
+    @Test
+    void unescapeMultiValueHandlesEmptyString() {
+        assertEquals("", Utils.unescapeMultiValue(""));
+    }
+
+    @Test
+    void unescapeMultiValueUnescapesNewline() {
+        assertEquals("line1\nline2", Utils.unescapeMultiValue("line1\\nline2"));
+    }
+
+    @Test
+    void unescapeMultiValueUnescapesBackslash() {
+        assertEquals("back\\slash", Utils.unescapeMultiValue("back\\\\slash"));
+    }
+
+    @Test
+    void unescapeMultiValueUnescapesBackslashFollowedByN() {
+        // \\n in input = escaped backslash + literal n → \n (backslash + n, not a newline)
+        assertEquals("\\n", Utils.unescapeMultiValue("\\\\n"));
+    }
+
+    @Test
+    void unescapeMultiValueHandlesMultipleEscapes() {
+        assertEquals("a\nb\\c", Utils.unescapeMultiValue("a\\nb\\\\c"));
+    }
+
+    @Test
+    void unescapeMultiValueHandlesTrailingBackslash() {
+        // Lone trailing backslash with no following character is preserved as-is
+        assertEquals("trailing\\", Utils.unescapeMultiValue("trailing\\"));
+    }
+
 }

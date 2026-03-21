@@ -804,4 +804,30 @@ public class Utils {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
     }
 
+    /**
+     * Unescape a multi-value entry where backslashes and newlines are escaped with backslash.
+     *
+     * @param s the escaped string
+     * @return the unescaped string
+     */
+    public static String unescapeMultiValue(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '\\' && i + 1 < s.length()) {
+                char next = s.charAt(i + 1);
+                if (next == 'n') {
+                    sb.append('\n');
+                } else if (next == '\\') {
+                    sb.append('\\');
+                } else {
+                    sb.append(next);
+                }
+                i++;
+            } else {
+                sb.append(s.charAt(i));
+            }
+        }
+        return sb.toString();
+    }
+
 }
