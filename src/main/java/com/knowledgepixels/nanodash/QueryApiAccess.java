@@ -137,15 +137,16 @@ public class QueryApiAccess {
             // Re-fetch if existing value is older than 1 minute
             try {
                 ApiResponse r = ApiCache.retrieveResponseSync(new QueryRef(GET_LATEST_VERSION_OF_NP, "np", nanopubId), false);
-                if (r.getData().size() != 1) return nanopubId;
-                String l = r.getData().get(0).get("latest");
-                latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
+                if (r != null && r.getData().size() == 1) {
+                    String l = r.getData().get(0).get("latest");
+                    latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
+                }
             } catch (Exception ex) {
                 logger.error("Error while getting latest version of nanopub '{}'", nanopubId, ex);
-                return nanopubId;
             }
         }
-        return latestVersionMap.get(nanopubId).getRight();
+        Pair<Long, String> cached = latestVersionMap.get(nanopubId);
+        return cached != null ? cached.getRight() : nanopubId;
     }
 
     /**

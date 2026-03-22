@@ -126,10 +126,13 @@ public class ApiCache {
             }
             try {
                 ApiCache.updateResponse(queryRef, forced);
+                failed.remove(cacheId);
             } catch (Exception ex) {
                 logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                cachedResponses.invalidate(cacheId);
-                failed.merge(cacheId, 1, Integer::sum);
+                // Keep stale cached data if available, only invalidate if nothing was cached
+                if (cachedResponses.getIfPresent(cacheId) == null) {
+                    failed.merge(cacheId, 1, Integer::sum);
+                }
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
@@ -179,10 +182,12 @@ public class ApiCache {
                 }
                 try {
                     ApiCache.updateResponse(queryRef, false);
+                    failed.remove(cacheId);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedResponses.invalidate(cacheId);
-                    failed.merge(cacheId, 1, Integer::sum);
+                    if (cachedResponses.getIfPresent(cacheId) == null) {
+                        failed.merge(cacheId, 1, Integer::sum);
+                    }
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
@@ -329,10 +334,12 @@ public class ApiCache {
                 }
                 try {
                     updateRdfModel(queryRef);
+                    failed.remove(cacheId);
                 } catch (Exception ex) {
                     logger.error("Failed to update RDF cache for {}: {}", cacheId, ex.getMessage());
-                    cachedRdfModels.invalidate(cacheId);
-                    failed.merge(cacheId, 1, Integer::sum);
+                    if (cachedRdfModels.getIfPresent(cacheId) == null) {
+                        failed.merge(cacheId, 1, Integer::sum);
+                    }
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);

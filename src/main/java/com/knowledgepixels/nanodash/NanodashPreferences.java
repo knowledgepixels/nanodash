@@ -82,10 +82,10 @@ public class NanodashPreferences implements Serializable {
      */
     public boolean isReadOnlyMode() {
         if ("true".equals(System.getenv("NANODASH_READ_ONLY_MODE"))) {
-            logger.info("Found environment variable NANODASH_READ_ONLY_MODE with value: {}", true);
+            logger.debug("Found environment variable NANODASH_READ_ONLY_MODE with value: {}", true);
             return true;
         }
-        logger.info("Environment variable NANODASH_READ_ONLY_MODE not set, using default: {}", readOnlyMode);
+        logger.debug("Environment variable NANODASH_READ_ONLY_MODE not set, using default: {}", readOnlyMode);
         return readOnlyMode;
     }
 
@@ -106,10 +106,10 @@ public class NanodashPreferences implements Serializable {
     public String getWebsiteUrl() {
         String s = System.getenv("NANODASH_WEBSITE_URL");
         if (s != null && !s.isBlank()) {
-            logger.info("Found environment variable NANODASH_WEBSITE_URL with value: {}", s);
+            logger.debug("Found environment variable NANODASH_WEBSITE_URL with value: {}", s);
             return s;
         }
-        logger.info("Environment variable NANODASH_WEBSITE_URL not set, using default: {}", websiteUrl);
+        logger.debug("Environment variable NANODASH_WEBSITE_URL not set, using default: {}", websiteUrl);
         return websiteUrl;
     }
 
@@ -129,10 +129,10 @@ public class NanodashPreferences implements Serializable {
      */
     public boolean isOrcidLoginMode() {
         if ("true".equals(System.getenv("NANODASH_ORCID_LOGIN_MODE"))) {
-            logger.info("Found environment variable NANODASH_ORCID_LOGIN_MODE with value: {}", true);
+            logger.debug("Found environment variable NANODASH_ORCID_LOGIN_MODE with value: {}", true);
             return true;
         }
-        logger.info("Environment variable NANODASH_ORCID_LOGIN_MODE not set, using default: {}", orcidLoginMode);
+        logger.debug("Environment variable NANODASH_ORCID_LOGIN_MODE not set, using default: {}", orcidLoginMode);
         return orcidLoginMode;
     }
 
@@ -153,10 +153,10 @@ public class NanodashPreferences implements Serializable {
     public String getOrcidClientId() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_ID");
         if (s != null && !s.isBlank()) {
-            logger.info("Found environment variable NANOPUB_ORCID_CLIENT_ID with value: {}", s);
+            logger.debug("Found environment variable NANOPUB_ORCID_CLIENT_ID with value: {}", s);
             return s;
         }
-        logger.info("Environment variable NANOPUB_ORCID_CLIENT_ID not set, using default: {}", orcidClientId);
+        logger.debug("Environment variable NANOPUB_ORCID_CLIENT_ID not set, using default: {}", orcidClientId);
         return orcidClientId;
     }
 
@@ -178,10 +178,10 @@ public class NanodashPreferences implements Serializable {
     public String getOrcidClientSecret() {
         String s = System.getenv("NANOPUB_ORCID_CLIENT_SECRET");
         if (s != null && !s.isBlank()) {
-            logger.info("Found environment variable NANOPUB_ORCID_CLIENT_SECRET");
+            logger.debug("Found environment variable NANOPUB_ORCID_CLIENT_SECRET");
             return s;
         }
-        logger.info("Environment variable NANOPUB_ORCID_CLIENT_SECRET not set, using default");
+        logger.debug("Environment variable NANOPUB_ORCID_CLIENT_SECRET not set, using default");
         return orcidClientSecret;
     }
 
