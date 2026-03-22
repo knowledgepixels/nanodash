@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
+import com.knowledgepixels.nanodash.component.menu.SpaceExploreMenu;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -83,7 +84,8 @@ public class SpacePage extends NanodashPage {
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("spacetype", space.getTypeLabel()));
-        add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel()), np.getUri()));
+        add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel()),
+                new SpaceExploreMenu("np", space.getId(), space.getLabel(), np.getUri(), space)));
 
         boolean isAdmin = SpaceMemberRole.isCurrentUserAdmin(space);
         add(new AddViewDisplayButton("addviewdisplay",
@@ -206,20 +208,20 @@ public class SpacePage extends NanodashPage {
             });
         }
 
-        addSubspacePanel("Alliance", true);
-        addSubspacePanel("Consortium", false);
-        addSubspacePanel("Organization", true);
-        addSubspacePanel("Taskforce", false);
-        addSubspacePanel("Division", true);
-        addSubspacePanel("Taskunit", false);
-        addSubspacePanel("Group", true);
-        addSubspacePanel("Project", false);
-        addSubspacePanel("Program", true);
-        addSubspacePanel("Initiative", false);
-        addSubspacePanel("Outlet", true);
-        addSubspacePanel("Campaign", false);
-        addSubspacePanel("Community", true);
-        addSubspacePanel("Event", false);
+        addSubspacePanel("Alliance");
+        addSubspacePanel("Consortium");
+        addSubspacePanel("Organization");
+        addSubspacePanel("Taskforce");
+        addSubspacePanel("Division");
+        addSubspacePanel("Taskunit");
+        addSubspacePanel("Group");
+        addSubspacePanel("Project");
+        addSubspacePanel("Program");
+        addSubspacePanel("Initiative");
+        addSubspacePanel("Outlet");
+        addSubspacePanel("Campaign");
+        addSubspacePanel("Community");
+        addSubspacePanel("Event");
 
         add(new ItemListPanel<MaintainedResource>(
                 "resources",
@@ -232,14 +234,7 @@ public class SpacePage extends NanodashPage {
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         )
                 .setResourceWithProfile(space)
-                .setReadyFunction(space::isDataInitialized)
-                .addMemberButton("+", PublishPage.class, new PageParameters()
-                        .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
-                        .set("param_space", space.getId())
-                        .set("context", space.getId())
-                        .set("refresh-upon-publish", "maintainedResources")
-                        .set("template-version", "latest")
-                ));
+                .setReadyFunction(space::isDataInitialized));
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
@@ -250,7 +245,7 @@ public class SpacePage extends NanodashPage {
         }
     }
 
-    private void addSubspacePanel(String type, boolean openEnded) {
+    private void addSubspacePanel(String type) {
         String typePl = type + "s";
         typePl = typePl.replaceFirst("ys$", "ies");
 
@@ -262,12 +257,6 @@ public class SpacePage extends NanodashPage {
                 )
                         .setResourceWithProfile(space)
                         .setReadyFunction(space::isDataInitialized)
-                        .addMemberButton("+", PublishPage.class, new PageParameters()
-                                .set("template", openEnded ? "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ" : "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
-                                .set("param_type", KPXL_TERMS.NAMESPACE + type)
-                                .set("param_space", space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>")
-                                .set("refresh-upon-publish", "spaces")
-                                .set("template-version", "latest"))
         );
     }
 
