@@ -232,9 +232,7 @@ public class SpacePage extends NanodashPage {
                     return MaintainedResourceRepository.get().findResourcesBySpace(space);
                 },
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
-        )
-                .setResourceWithProfile(space)
-                .setReadyFunction(space::isDataInitialized));
+        ));
 
         String shortId = space.getId().replace("https://w3id.org/spaces/", "");
         ConnectorConfig cc = ConnectorConfig.get(shortId);
@@ -255,8 +253,6 @@ public class SpacePage extends NanodashPage {
                         SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
                         (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
                 )
-                        .setResourceWithProfile(space)
-                        .setReadyFunction(space::isDataInitialized)
         );
     }
 
