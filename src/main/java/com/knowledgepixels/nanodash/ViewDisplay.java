@@ -156,8 +156,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
     public boolean appliesTo(String resourceId, Set<IRI> classes) {
         if (appliesTo.contains(resourceId)) return true;
-        if (!appliesTo.isEmpty()) return false;
         if (appliesToNamespaces.isEmpty() && appliesToClasses.isEmpty()) {
+            if (!appliesTo.isEmpty()) return false;
             return view.appliesTo(resourceId, classes);
         } else {
             for (IRI namespace : appliesToNamespaces) {
