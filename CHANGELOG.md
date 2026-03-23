@@ -1,3 +1,36 @@
+## [4.21.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.20.0...nanodash-4.21.0) (2026-03-23)
+
+### Features
+
+* add emojis to space type section titles ([fceaf9f](https://github.com/knowledgepixels/nanodash/commit/fceaf9fc0d46936fce356763ef96271b7744576f))
+* add upcoming events table view to home page and make nanopub set items-per-page configurable ([2065cb1](https://github.com/knowledgepixels/nanodash/commit/2065cb12328fbbe002e37c35c3c6fce7a731e7f1))
+* move space admin actions into URI dropdown menu and hide empty maintained resources ([459321f](https://github.com/knowledgepixels/nanodash/commit/459321fbc056b09626d1a8b685f456219166b107))
+* refresh cache and redirect to new space/resource after publish ([bc3c3b1](https://github.com/knowledgepixels/nanodash/commit/bc3c3b1e13e99e93fc44dd1fbc18aaef01ef142a))
+* support multi-value columns in SPARQL query results ([#412](https://github.com/knowledgepixels/nanodash/issues/412)) ([a653d74](https://github.com/knowledgepixels/nanodash/commit/a653d74a25027f8f2f2a8c32ab78015be6352e66))
+
+### Bug Fixes
+
+* accept admin pubkeys regardless of approval status ([19ab7cf](https://github.com/knowledgepixels/nanodash/commit/19ab7cfe18ed9c1ff135dff7f6e218dc5442d20d))
+* adjust paragraph-header spacing ([4247c12](https://github.com/knowledgepixels/nanodash/commit/4247c12592ae5956667a94f39fce6ae340b41f4c))
+* allow appliesTo and appliesToInstancesOf to work together in view displays ([3c05707](https://github.com/knowledgepixels/nanodash/commit/3c057071abfd02b168bfe29ad552744de9da3361))
+* avoid premature redirect and spinners during background refresh ([4fc02be](https://github.com/knowledgepixels/nanodash/commit/4fc02be90b715ff228f4504d54298ca1887cc9df))
+* clean up ProfilePage with consistent styling and better layout ([147231b](https://github.com/knowledgepixels/nanodash/commit/147231b0194ef3c339e30fa35efaad9eacea3c2c))
+* improve resilience to API outages and reduce log noise ([46029cb](https://github.com/knowledgepixels/nanodash/commit/46029cba8ab9668c98a3bda67096a8797d1f0efc))
+* increase max URI/header size to 64 KB for large nanopub TriG URLs ([0ba746b](https://github.com/knowledgepixels/nanodash/commit/0ba746b4b9ad26dece55c9d988e3dc36747734b4))
+* increase post-publish refresh delay from 3s to 5s ([1a06b21](https://github.com/knowledgepixels/nanodash/commit/1a06b21d8e0d916aa678661259cea616ee3fdfe6))
+* periodically refresh repository data and propagate publish events ([a84d7b4](https://github.com/knowledgepixels/nanodash/commit/a84d7b4d52809c233f034ddb111ac9d99b9c54a6))
+* remove unnecessary lazy-loading spinners from space lists ([fd0aa46](https://github.com/knowledgepixels/nanodash/commit/fd0aa462d1afc5834f2f81b4d456085ec5528352))
+* resolve view displays to latest version and fix stale data on refresh ([b4a2c27](https://github.com/knowledgepixels/nanodash/commit/b4a2c277c1e390b6936fb799dd989ec3406bc882))
+* show space and maintained resource labels instead of URI suffixes when linked ([e505a84](https://github.com/knowledgepixels/nanodash/commit/e505a8463132af38362f7bd50794bbca0582933f))
+* update emojis for Event space type and instances list ([ae9fc20](https://github.com/knowledgepixels/nanodash/commit/ae9fc209bbaae9de9778aee46084cd947c7e2e78))
+* update Space and MaintainedResource data when root nanopub changes ([2e8bc31](https://github.com/knowledgepixels/nanodash/commit/2e8bc313130faef44f0414ebbf8c92698d3d7679)), closes [#408](https://github.com/knowledgepixels/nanodash/issues/408)
+* update space type emojis for project, initiative, and consortium ([ba100e2](https://github.com/knowledgepixels/nanodash/commit/ba100e24d197aa3b7fea7611c251f219e2fb0f50))
+* use ExternalLinkWithActionsPanel for alternative ID links ([95b44ce](https://github.com/knowledgepixels/nanodash/commit/95b44cecc4eea9719e4a457ad4ebdfb4ce203248)), closes [#407](https://github.com/knowledgepixels/nanodash/issues/407)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([e465191](https://github.com/knowledgepixels/nanodash/commit/e4651910647f5534d7f45adcfe6ef7502fc456f8))
+
 ## [4.20.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.19.0...nanodash-4.20.0) (2026-03-18)
 
 ### Features
