@@ -78,7 +78,8 @@ public class Space extends AbstractResourceWithProfile {
             if (admins.contains(admin)) return;
             admins.add(admin);
             UserData ud = User.getUserData();
-            for (String pubkeyHash : ud.getPubkeyHashes(admin, true)) {
+            // TODO Add approval measures for admin pubkeys in the future
+            for (String pubkeyHash : ud.getPubkeyHashes(admin, null)) {
                 adminPubkeyMap.put(pubkeyHash, admin);
             }
             users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
