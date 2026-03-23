@@ -55,7 +55,7 @@ public class ProfilePage extends NanodashPage {
 
         if (session.isProfileComplete()) {
             if ("publish-intro".equals(parameters.get("message").toString())) {
-                add(new Label("message", "<span class=\"negative\">Follow the Recommended Actions below to publish an introduction with your local key.</span>")
+                add(new Label("message", "<span class=\"negative\">Follow the recommended actions below to publish an introduction.</span>")
                         .setEscapeModelStrings(false));
             } else {
                 add(new Label("message", ""));

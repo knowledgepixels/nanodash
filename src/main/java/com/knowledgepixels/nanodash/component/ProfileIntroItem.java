@@ -80,7 +80,7 @@ public class ProfileIntroItem extends Panel {
         }
 
         WebMarkupContainer publishIntroItem = new WebMarkupContainer("publish-intro-item");
-        publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "new introduction..."));
+        publishIntroItem.add(new ExternalLink("publish-intro-link", publishIntroLinkString, "Create Introduction"));
         add(publishIntroItem);
         publishIntroItem.setVisible(session.getLocalIntroCount() == 0);
         if (publishIntroItem.isVisible()) recommendedActionsCount++;

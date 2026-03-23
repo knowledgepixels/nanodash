@@ -13,12 +13,12 @@
 
   <div class="row-section">
     <div class="col-12">
-      <h2>👤 Your Profile Details</h2>
+      <h2>Your Profile</h2>
       <p wicket:id="message" class="widthlimit"></p>
       <p>
         <a wicket:id="loginout" class="button">logout</a>
       </p>
-      
+
       <p class="negative" wicket:id="orcidmessage"></p>
 
       <form wicket:id="form">
@@ -27,18 +27,32 @@
         <span wicket:id="orcidname"></span>
       </form>
       <div wicket:id="feedback" class="negative">feedbackmessages will be put here</div>
-
-      <div wicket:id="sigpart"></div>
-
-      <div wicket:id="intropart"></div>
-
-      <div wicket:id="imagepart"></div>
-
-      <div wicket:id="licensepart"></div>
-
     </div>
   </div>
 
+  <div class="row-section">
+    <div class="col-12">
+      <div wicket:id="intropart"></div>
+    </div>
+  </div>
+
+  <div class="row-section">
+    <div class="col-12">
+      <div wicket:id="sigpart"></div>
+    </div>
+  </div>
+
+  <div class="row-section">
+    <div class="col-12">
+      <div wicket:id="imagepart"></div>
+    </div>
+  </div>
+
+  <div class="row-section">
+    <div class="col-12">
+      <div wicket:id="licensepart"></div>
+    </div>
+  </div>
 
 </wicket:extend>
 
