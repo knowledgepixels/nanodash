@@ -443,7 +443,7 @@ public class PublishForm extends Panel {
                 }
                 if (!pageParams.get("refresh-upon-publish").isEmpty()) {
                     String toRefresh = pageParams.get("refresh-upon-publish").toString();
-                    WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 3 * 1000);
+                    WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                 }
                 if (signedNp != null) {
                     String contextId = pageParams.get("context").toString("");
