@@ -448,7 +448,7 @@ public class PublishForm extends Panel {
                 if (signedNp != null) {
                     String contextId = pageParams.get("context").toString("");
                     String partId = pageParams.get("part").toString("");
-                    if (!contextId.isEmpty()) {
+                    if (!contextId.isEmpty() && pageParams.get("postpub-redirect-url").isEmpty()) {
                         PageParameters redirectParams = new PageParameters().set("just-published", signedNp.getUri().stringValue());
                         if (!partId.isEmpty()) {
                             // User was on a part page (e.g. paper collection); redirect back to the part page

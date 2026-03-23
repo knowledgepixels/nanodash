@@ -281,6 +281,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 resource.forceRefresh(waitMs);
                 if (resource instanceof Space) {
                     SpaceRepository.get().forceRootRefresh(waitMs);
+                    MaintainedResourceRepository.get().forceRootRefresh(waitMs);
                 } else if (resource instanceof MaintainedResource) {
                     MaintainedResourceRepository.get().forceRootRefresh(waitMs);
                 }

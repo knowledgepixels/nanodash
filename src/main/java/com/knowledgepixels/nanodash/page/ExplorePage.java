@@ -307,7 +307,9 @@ public class ExplorePage extends NanodashPage {
                 // TODO: Add here URI of created nanopublication too?
                 throw new RedirectToUrlException(forwardUrl);
             } else {
-                String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", publishedNanopub.getUri()));
+                Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(publishedNanopub);
+                String redirectId = introducedIds.size() == 1 ? introducedIds.iterator().next() : publishedNanopub.getUri().stringValue();
+                String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", redirectId));
                 throw new RedirectToUrlException(forwardUrl + "?" + paramString);
             }
         }

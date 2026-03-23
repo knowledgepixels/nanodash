@@ -76,7 +76,7 @@ public class SpaceListPage extends NanodashPage {
                 .set("param_type", KPXL_TERMS.NAMESPACE + type)
                 .set("template-version", "latest")
                 .set("refresh-upon-publish", "spaces")
-                .set("postpub-redirect-url", MOUNT_PATH);
+                .set("postpub-redirect-url", SpacePage.MOUNT_PATH);
         if (openEnded) {
             newLinkParams.set("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ");
         } else {

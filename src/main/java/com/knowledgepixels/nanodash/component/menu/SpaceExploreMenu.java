@@ -3,7 +3,9 @@ package com.knowledgepixels.nanodash.component.menu;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.SpacePage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -27,7 +29,8 @@ public class SpaceExploreMenu extends BaseDisplayMenu {
                         .set("template", "https://w3id.org/np/RA25VaVFxSOgKEuZ70gFINn-N3QV4Pf62-IMK_SWkg-c8")
                         .set("param_space", space.getId())
                         .set("context", space.getId())
-                        .set("refresh-upon-publish", "maintainedResources")
+                        .set("refresh-upon-publish", space.getId())
+                        .set("postpub-redirect-url", MaintainedResourcePage.MOUNT_PATH)
                         .set("template-version", "latest"));
         addResource.setVisible(isAdmin);
         addEntry("addMaintainedResource", addResource);
@@ -37,7 +40,8 @@ public class SpaceExploreMenu extends BaseDisplayMenu {
                         .set("template", "https://w3id.org/np/RAaE7NP9RNIx03AHZxanFMdtUuaTfe50ns5tHhpEVloQ4")
                         .set("param_space", spacePrefix)
                         .set("context", space.getId())
-                        .set("refresh-upon-publish", "spaces")
+                        .set("refresh-upon-publish", space.getId())
+                        .set("postpub-redirect-url", SpacePage.MOUNT_PATH)
                         .set("template-version", "latest"));
         addTimeLimited.setVisible(isAdmin);
         addEntry("addTimeLimitedSpace", addTimeLimited);
@@ -47,7 +51,8 @@ public class SpaceExploreMenu extends BaseDisplayMenu {
                         .set("template", "https://w3id.org/np/RA7dQfmndqKmooQ4PlHyQsAql9i2tg_8GLHf_dqtxsGEQ")
                         .set("param_space", spacePrefix)
                         .set("context", space.getId())
-                        .set("refresh-upon-publish", "spaces")
+                        .set("refresh-upon-publish", space.getId())
+                        .set("postpub-redirect-url", SpacePage.MOUNT_PATH)
                         .set("template-version", "latest"));
         addOpenEnded.setVisible(isAdmin);
         addEntry("addOpenEndedSpace", addOpenEnded);
