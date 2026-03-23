@@ -56,11 +56,7 @@ public abstract class NanodashPage extends WebPage {
         synchronized (getClass()) {
             state = lastRefresh;
             if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
-                lastRefresh = System.currentTimeMillis();
                 refreshRunning = true;
-                // Mark resource profiles as needing update synchronously, so page
-                // constructors see dataInitialized=false before the redirect:
-                AbstractResourceWithProfile.refresh();
                 NanodashThreadPool.submit(() -> {
                     try {
                         logger.info("Refreshing data...");
@@ -68,6 +64,7 @@ public abstract class NanodashPage extends WebPage {
                         TemplateData.refreshTemplates();
                         Space.refresh();
                         MaintainedResource.refresh();
+                        AbstractResourceWithProfile.refresh();
                         Project.refresh();
                         logger.info("Refreshing data... done");
                         lastRefresh = System.currentTimeMillis();

@@ -120,7 +120,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         if (dataNeedsUpdate) {
             logger.info("Data needs update for resource {}, starting update thread", id);
             dataNeedsUpdate = false;
-            dataInitialized = false;
             return NanodashThreadPool.submit(() -> {
                 try {
                     if (runUpdateAfter != null) {
