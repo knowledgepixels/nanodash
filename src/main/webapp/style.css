@@ -2027,7 +2027,12 @@ div.navigator .goto a[disabled] {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.paragraph-header + p {
+  margin-top: 8px;
 }
 
 .paragraph-header h5 {
