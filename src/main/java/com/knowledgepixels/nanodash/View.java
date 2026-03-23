@@ -67,23 +67,33 @@ public class View implements Serializable {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
         // Automatically selecting latest version of view definition:
         // TODO This should be made configurable at some point, so one can make it a fixed version.
-        String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-        String latestId = id;
-        Nanopub np = Utils.getAsNanopub(latestNpId);
-        if (!latestNpId.equals(npId)) {
-            Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-            if (embeddedIris.size() == 1) {
-                latestId = embeddedIris.iterator().next();
-            } else {
-                latestNpId = npId;
-                np = Utils.getAsNanopub(npId);
+        try {
+            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+            if (!latestNpId.equals(npId)) {
+                Nanopub np = Utils.getAsNanopub(latestNpId);
+                if (np != null) {
+                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                    if (embeddedIris.size() == 1) {
+                        String latestId = embeddedIris.iterator().next();
+                        View cached = views.getIfPresent(latestId);
+                        if (cached == null) {
+                            cached = new View(latestId, np);
+                            views.put(latestId, cached);
+                        }
+                        return cached;
+                    }
+                }
             }
+        } catch (Exception ex) {
+            logger.error("Error resolving latest version for view: {}", id, ex);
         }
-        View cached = views.getIfPresent(latestId);
+        // Fall back to loading the nanopub as given:
+        Nanopub np = Utils.getAsNanopub(npId);
+        View cached = views.getIfPresent(id);
         if (cached == null) {
             try {
-                cached = new View(latestId, np);
-                views.put(latestId, cached);
+                cached = new View(id, np);
+                views.put(id, cached);
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: {}", id, ex);
             }

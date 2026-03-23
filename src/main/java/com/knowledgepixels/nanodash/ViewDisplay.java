@@ -7,6 +7,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,23 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @return the View object
      */
     public static ViewDisplay get(String id) throws IllegalArgumentException {
+        // Try to resolve to the latest version (same pattern as View.get()):
+        try {
+            String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+            if (!latestNpId.equals(npId)) {
+                Nanopub np = Utils.getAsNanopub(latestNpId);
+                if (np != null) {
+                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                    if (embeddedIris.size() == 1) {
+                        return new ViewDisplay(embeddedIris.iterator().next(), np);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("Error resolving latest version for view display: {}", id, ex);
+        }
+        // Fall back to loading the nanopub as given:
         try {
             Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
             return new ViewDisplay(id, np);
