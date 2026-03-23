@@ -125,6 +125,12 @@ public class NanodashLink extends Panel {
                     label = User.getShortDisplayName(iriObj);
                 } else if (User.getName(iriObj) != null) {
                     label = User.getShortDisplayName(iriObj);
+                } else if (SpaceRepository.get().findById(uri) != null) {
+                    label = SpaceRepository.get().findById(uri).getLabel();
+                } else if (SpaceRepository.get().findByAltId(uri) != null) {
+                    label = SpaceRepository.get().findByAltId(uri).getLabel();
+                } else if (MaintainedResourceRepository.get().findById(uri) != null) {
+                    label = MaintainedResourceRepository.get().findById(uri).getLabel();
                 } else {
                     for (Template template : templates) {
                         // TODO For pubinfo templates, we don't consider which triple came from which template (which is non-trivial):

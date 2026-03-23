@@ -3,6 +3,10 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -54,7 +58,17 @@ public class IriItem extends AbstractContextComponent {
             // temporary solution until we have full provenance graph support
             labelString = "is attributed to";
         } else if (labelString == null) {
-            labelString = Utils.getShortNameFromURI(iri.stringValue());
+            String iriString = iri.stringValue();
+            Space space = SpaceRepository.get().findById(iriString);
+            if (space != null) {
+                labelString = space.getLabel();
+            } else if (SpaceRepository.get().findByAltId(iriString) != null) {
+                labelString = SpaceRepository.get().findByAltId(iriString).getLabel();
+            } else if (MaintainedResourceRepository.get().findById(iriString) != null) {
+                labelString = MaintainedResourceRepository.get().findById(iriString).getLabel();
+            } else {
+                labelString = Utils.getShortNameFromURI(iriString);
+            }
         }
         if (!statementPartId.equals(template.getFirstOccurrence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");

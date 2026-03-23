@@ -6,7 +6,11 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -164,6 +168,12 @@ public class ReadonlyItem extends AbstractContextComponent {
                     } else if (foafNameMap.containsKey(obj)) {
                         return foafNameMap.get(obj);
                     }
+                    Space space = SpaceRepository.get().findById(obj);
+                    if (space != null) return space.getLabel();
+                    space = SpaceRepository.get().findByAltId(obj);
+                    if (space != null) return space.getLabel();
+                    MaintainedResource mr = MaintainedResourceRepository.get().findById(obj);
+                    if (mr != null) return mr.getLabel();
                     return getLabelString(objIri);
                 }
                 return obj;
