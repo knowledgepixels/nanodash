@@ -101,6 +101,9 @@ public class LiteralDateItem extends AbstractContextComponent {
      */
     protected DatePicker initDateComponent(IModel<Date> model) {
         datePicker = new AjaxDatePicker("date", model, DATE_PATTERN);
+        // Prevent Edge's autofill from overwriting the Kendo-formatted date value with a mismatched format:
+        datePicker.add(new AttributeModifier("autocomplete", "off"));
+        datePicker.add(new AttributeModifier("data-form-type", "other"));
         return datePicker;
     }
 

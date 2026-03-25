@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
@@ -168,6 +169,9 @@ public class ListPage extends NanodashPage {
                 }
             }
         };
+        // Prevent Edge's autofill from overwriting the Kendo-formatted date value with a mismatched format:
+        startDatePicker.add(new AttributeModifier("autocomplete", "off"));
+        startDatePicker.add(new AttributeModifier("data-form-type", "other"));
 
         WebMarkupContainer clearStartDate = new AjaxLink<Void>("clearStartDate") {
             @Override
@@ -203,6 +207,9 @@ public class ListPage extends NanodashPage {
                 }
             }
         };
+        // Prevent Edge's autofill from overwriting the Kendo-formatted date value with a mismatched format:
+        endDatePicker.add(new AttributeModifier("autocomplete", "off"));
+        endDatePicker.add(new AttributeModifier("data-form-type", "other"));
 
         WebMarkupContainer clearEndDate = new AjaxLink<Void>("clearEndDate") {
             @Override

@@ -40,6 +40,15 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         this.timePattern = timePattern;
         this.dateTimePicker = new AjaxDateTimePicker("datetime", dateModel, datePattern, timePattern) {
             @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                // Prevent Edge's autofill from overwriting the Kendo-formatted date/time values with a mismatched format:
+                datePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
+                datePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
+                timePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
+                timePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
+            }
+            @Override
             public void onValueChanged(IPartialPageRequestHandler handler) {
                 Date selectedDate = this.getModelObject();
                 if (zoneIdModel.getObject() == null) {
