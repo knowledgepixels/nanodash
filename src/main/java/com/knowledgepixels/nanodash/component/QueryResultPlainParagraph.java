@@ -29,8 +29,8 @@ public class QueryResultPlainParagraph extends QueryResult {
         super(markupId, queryRef, response, viewDisplay);
 
         String label = grlcQuery.getLabel();
-        if (viewDisplay.getView() != null && viewDisplay.getView().getTitle() != null) {
-            label = viewDisplay.getView().getTitle();
+        if (viewDisplay.getTitle() != null) {
+            label = viewDisplay.getTitle();
         }
         add(new Label("label", label));
         setOutputMarkupId(true);

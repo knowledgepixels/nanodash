@@ -61,8 +61,8 @@ public class QueryResultNanopubSet extends QueryResult {
         showViewDisplayMenu = false; // handled in populateComponent() inside viewSelector
 
         String titleLabel = grlcQuery.getLabel();
-        if (viewDisplay.getView().getTitle() != null) {
-            titleLabel = viewDisplay.getView().getTitle();
+        if (viewDisplay.getTitle() != null) {
+            titleLabel = viewDisplay.getTitle();
         }
         add(new Label("title", titleLabel));
         setOutputMarkupId(true);

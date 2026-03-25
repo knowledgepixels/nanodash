@@ -121,7 +121,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof IRI objIri) {
                     displayWidth = View.columnWidths.get(objIri);
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_DISPLAY_WIDTH) && st.getObject() instanceof Literal objL) {
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO_NAMESPACE) && st.getObject() instanceof IRI objIri) {
                     appliesToNamespaces.add(objIri);
