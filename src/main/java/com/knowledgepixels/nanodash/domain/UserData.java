@@ -459,7 +459,16 @@ public class UserData implements Serializable {
     /**
      * Comparator for sorting users by their display names in a case-insensitive manner.
      */
-    public final transient Comparator<IRI> userComparator = (iri1, iri2) -> getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
+    public final transient Comparator<IRI> userComparator = (iri1, iri2) -> {
+        String name1 = getName(iri1);
+        String name2 = getName(iri2);
+        boolean hasName1 = name1 != null && !name1.isEmpty();
+        boolean hasName2 = name2 != null && !name2.isEmpty();
+        if (hasName1 != hasName2) {
+            return hasName1 ? -1 : 1;
+        }
+        return getDisplayName(iri1).toLowerCase().compareTo(getDisplayName(iri2).toLowerCase());
+    };
 
     /**
      * Retrieves a list of users, either approved or unapproved.
