@@ -60,8 +60,9 @@ public class ApiCache {
      * @return True if a refresh is running, false otherwise.
      */
     private static boolean isRunning(String cacheId) {
-        if (!refreshStart.containsKey(cacheId)) return false;
-        return System.currentTimeMillis() - refreshStart.get(cacheId) < 60 * 1000;
+        Long start = refreshStart.get(cacheId);
+        if (start == null) return false;
+        return System.currentTimeMillis() - start < 60 * 1000;
     }
 
     /**
@@ -163,8 +164,8 @@ public class ApiCache {
             throw new RuntimeException("Query failed: " + cacheId);
         }
         if (needsRefresh && !isRunning(cacheId)) {
-            refreshStart.put(cacheId, timeNow);
             NanodashThreadPool.submit(() -> {
+                refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {
@@ -226,7 +227,7 @@ public class ApiCache {
      * @param queryRef The query reference
      * @return The cached map, or null if not cached.
      */
-    public static synchronized Map<String, String> retrieveMap(QueryRef queryRef) {
+    public static Map<String, String> retrieveMap(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         boolean isCached = false;
@@ -237,8 +238,8 @@ public class ApiCache {
             needsRefresh = cacheAge > 60 * 1000;
         }
         if (needsRefresh && !isRunning(cacheId)) {
-            refreshStart.put(cacheId, timeNow);
             NanodashThreadPool.submit(() -> {
+                refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {
@@ -254,7 +255,7 @@ public class ApiCache {
                     ApiCache.updateMap(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedResponses.invalidate(cacheId);
+                    cachedMaps.invalidate(cacheId);
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 }  finally {
                     refreshStart.remove(cacheId);
@@ -262,10 +263,6 @@ public class ApiCache {
             });
         }
         if (isCached) {
-            if (cachedResponses.getIfPresent(cacheId) == null) {
-                cachedResponses.invalidate(cacheId);
-                throw new RuntimeException("Query failed: " + cacheId);
-            }
             return cachedMaps.getIfPresent(cacheId);
         } else {
             return null;
@@ -316,8 +313,8 @@ public class ApiCache {
             throw new RuntimeException("Query failed: " + cacheId);
         }
         if (needsRefresh && !isRunning(cacheId)) {
-            refreshStart.put(cacheId, timeNow);
             NanodashThreadPool.submit(() -> {
+                refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
                     if (runAfter.containsKey(cacheId)) {
                         while (System.currentTimeMillis() < runAfter.get(cacheId)) {

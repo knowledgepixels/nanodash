@@ -33,9 +33,12 @@ public abstract class ApiResultComponent extends ResultComponent {
     /**
      * {@inheritDoc}
      */
+    private static final long LAZY_LOAD_TIMEOUT_MS = 60_000;
+
     @Override
     public Component getLazyLoadComponent(String markupId) {
-        while (true) {
+        long deadline = System.currentTimeMillis() + LAZY_LOAD_TIMEOUT_MS;
+        while (System.currentTimeMillis() < deadline) {
             if (!ApiCache.isRunning(queryRef)) {
                 try {
                     response = ApiCache.retrieveResponseAsync(queryRef);
@@ -47,8 +50,14 @@ public abstract class ApiResultComponent extends ResultComponent {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
                 logger.error("Interrupted while waiting for API response", ex);
+                break;
             }
+        }
+        if (response == null) {
+            logger.error("Timed out waiting for API response for {}", queryRef);
+            return new Label(markupId, "<span class=\"negative\">Loading timed out. Please reload the page.</span>").setEscapeModelStrings(false);
         }
         return getApiResultComponent(markupId, response);
     }

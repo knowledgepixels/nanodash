@@ -28,9 +28,12 @@ public abstract class RdfResultComponent extends ResultComponent {
         this.queryRef = queryRef;
     }
 
+    private static final long LAZY_LOAD_TIMEOUT_MS = 60_000;
+
     @Override
     public Component getLazyLoadComponent(String markupId) {
-        while (true) {
+        long deadline = System.currentTimeMillis() + LAZY_LOAD_TIMEOUT_MS;
+        while (System.currentTimeMillis() < deadline) {
             if (!ApiCache.isRunning(queryRef)) {
                 try {
                     model = ApiCache.retrieveRdfModelAsync(queryRef);
@@ -42,8 +45,14 @@ public abstract class RdfResultComponent extends ResultComponent {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
                 logger.error("Interrupted while waiting for RDF response", ex);
+                break;
             }
+        }
+        if (model == null) {
+            logger.error("Timed out waiting for RDF response for {}", queryRef);
+            return new Label(markupId, "<span class=\"negative\">Loading timed out. Please reload the page.</span>").setEscapeModelStrings(false);
         }
         return getRdfResultComponent(markupId, model);
     }

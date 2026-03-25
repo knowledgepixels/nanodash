@@ -150,16 +150,23 @@ public class ChannelPage extends NanodashPage {
                 @Override
                 public NanopubResults getLazyLoadComponent(String markupId) {
                     ApiResponse r = null;
-                    while (true) {
+                    long deadline = System.currentTimeMillis() + 60_000;
+                    while (System.currentTimeMillis() < deadline) {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
                             logger.error("Interrupted while waiting for API response", ex);
+                            break;
                         }
                         if (!ApiCache.isRunning(queryRef)) {
                             r = ApiCache.retrieveResponseAsync(queryRef);
                             if (r != null) break;
                         }
+                    }
+                    if (r == null) {
+                        logger.error("Timed out waiting for channel API response");
+                        return NanopubResults.fromApiResponse(markupId, new ApiResponse(), 20);
                     }
                     return NanopubResults.fromApiResponse(markupId, r, 20);
                 }
