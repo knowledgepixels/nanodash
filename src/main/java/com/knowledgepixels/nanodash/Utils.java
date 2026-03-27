@@ -227,7 +227,7 @@ public class Utils {
         IRI keyLocation = User.getUserData().getKeyLocationForPubkeyHash(pubkeyhash);
         if (keyLocation == null) return fallback;
         if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
-        return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.)?(.*[^/])/?$", "$3");
+        return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.(?=.*\\..))?(.*[^/])/?$", "$3");
     }
 
     /**
