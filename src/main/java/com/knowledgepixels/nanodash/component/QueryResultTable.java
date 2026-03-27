@@ -217,7 +217,13 @@ public class QueryResultTable extends QueryResult {
                                 } else {
                                     display = Utils.unescapeMultiValue(parts[i]);
                                 }
-                                components.add(new Label("component", display));
+                                if (Utils.looksLikeHtml(display)) {
+                                    components.add(new Label("component", Utils.sanitizeHtml(display))
+                                            .setEscapeModelStrings(false)
+                                            .add(new AttributeAppender("class", "cell-data-html")));
+                                } else {
+                                    components.add(new Label("component", display));
+                                }
                             }
                             cellItem.add(new ComponentSequence(componentId, ", ", components));
                         }
@@ -234,7 +240,13 @@ public class QueryResultTable extends QueryResult {
                             } else {
                                 display = Utils.unescapeMultiValue(parts[i]);
                             }
-                            components.add(new Label("component", display));
+                            if (Utils.looksLikeHtml(display)) {
+                                components.add(new Label("component", Utils.sanitizeHtml(display))
+                                        .setEscapeModelStrings(false)
+                                        .add(new AttributeAppender("class", "cell-data-html")));
+                            } else {
+                                components.add(new Label("component", display));
+                            }
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (value.matches("https?://.+")) {
