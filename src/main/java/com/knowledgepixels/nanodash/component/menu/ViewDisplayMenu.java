@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component.menu;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
@@ -13,6 +14,7 @@ import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
@@ -85,6 +87,16 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("refresh-upon-publish", pageResource.getId()));
         deactivateLink.setVisible(showAdjust);
         addEntry("deactivate", deactivateLink);
+
+        Link<Void> refreshLink = new Link<>("refreshNow") {
+            @Override
+            public void onClick() {
+                ApiCache.clearCache(queryRef, 0);
+                setResponsePage(getPage().getClass(), getPage().getPageParameters());
+            }
+        };
+        refreshLink.setVisible(session.getUserIri() != null);
+        addEntry("refreshNow", refreshLink);
 
         addEntry("viewDeclaration", new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
                 new PageParameters().set("id", nanopubId)));
