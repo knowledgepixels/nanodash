@@ -103,6 +103,8 @@ public class QueryResultTable extends QueryResult {
                 String displayLabel = h;
                 if (displayLabel.endsWith("_multi_iri")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi_iri".length());
+                } else if (displayLabel.endsWith("_multi_val")) {
+                    displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi_val".length());
                 } else if (displayLabel.endsWith("_multi")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi".length());
                 }
@@ -192,6 +194,33 @@ public class QueryResultTable extends QueryResult {
                             links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
+                    } else if (key.endsWith("_multi_val")) {
+                        String labelKey = key.substring(0, key.length() - "_multi_val".length()) + "_label_multi";
+                        String labelValue = rowModel.getObject().get(labelKey);
+                        if (Utils.looksLikeSpaceSeparatedIris(value)) {
+                            String[] uris = value.split(" ");
+                            String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
+                            List<Component> links = new ArrayList<>();
+                            for (int i = 0; i < uris.length; i++) {
+                                String label = (labels != null && i < labels.length) ? Utils.unescapeMultiValue(labels[i]) : null;
+                                links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
+                            }
+                            cellItem.add(new ComponentSequence(componentId, ", ", links));
+                        } else {
+                            String[] parts = value.split("\n", -1);
+                            String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
+                            List<Component> components = new ArrayList<>();
+                            for (int i = 0; i < parts.length; i++) {
+                                String display;
+                                if (labels != null && i < labels.length) {
+                                    display = Utils.unescapeMultiValue(labels[i]);
+                                } else {
+                                    display = Utils.unescapeMultiValue(parts[i]);
+                                }
+                                components.add(new Label("component", display));
+                            }
+                            cellItem.add(new ComponentSequence(componentId, ", ", components));
+                        }
                     } else if (key.endsWith("_multi")) {
                         String[] parts = value.split("\n", -1);
                         String labelKey = key.substring(0, key.length() - "_multi".length()) + "_label_multi";

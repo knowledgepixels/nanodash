@@ -187,7 +187,7 @@ public class QueryParamField extends Panel {
      * @return true if the parameter ID indicates a multi parameter, false otherwise
      */
     public static boolean isMultiPlaceholder(String p) {
-        return p.endsWith("_multi") || p.endsWith("_multi_iri");
+        return p.endsWith("_multi") || p.endsWith("_multi_iri") || p.endsWith("_multi_val");
     }
 
     public static boolean isOptional(String p) {
@@ -218,7 +218,7 @@ public class QueryParamField extends Panel {
      * @return the parameter name, stripped of leading underscores and "_iri"/"_multi" suffixes
      */
     public static String getParamName(String placeholderId) {
-        return placeholderId.replaceFirst("^_+", "").replaceFirst("_iri$", "").replaceFirst("_multi$", "");
+        return placeholderId.replaceFirst("^_+", "").replaceFirst("_multi_val$", "").replaceFirst("_iri$", "").replaceFirst("_multi$", "");
     }
 
 }
