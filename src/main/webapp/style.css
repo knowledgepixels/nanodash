@@ -43,6 +43,11 @@
   vertical-align: -0.1em;
 }
 
+pre {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 details summary {
   cursor: pointer;
   color: #0B73DA;

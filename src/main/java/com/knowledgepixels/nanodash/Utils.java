@@ -58,7 +58,7 @@ public class Utils {
      */
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
-    private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img|pre)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
     private static final String DEFAULT_MAIN_QUERY_URL = "https://query.knowledgepixels.com/";
     private static final String DEFAULT_MAIN_REGISTRY_URL = "https://registry.knowledgepixels.com/";
 
@@ -365,6 +365,7 @@ public class Utils {
             .allowAttributes("href").onElements("a")
             .allowElements("img")
             .allowAttributes("src").onElements("img")
+            .allowElements("pre")
             .requireRelNofollowOnLinks()
             .toFactory();
 

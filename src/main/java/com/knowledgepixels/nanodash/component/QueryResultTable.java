@@ -197,26 +197,16 @@ public class QueryResultTable extends QueryResult {
                     } else if (key.endsWith("_multi_val")) {
                         String labelKey = key.substring(0, key.length() - "_multi_val".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
-                        if (Utils.looksLikeSpaceSeparatedIris(value)) {
-                            String[] uris = value.split(" ");
-                            String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
-                            List<Component> links = new ArrayList<>();
-                            for (int i = 0; i < uris.length; i++) {
-                                String label = (labels != null && i < labels.length) ? Utils.unescapeMultiValue(labels[i]) : null;
-                                links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
-                            }
-                            cellItem.add(new ComponentSequence(componentId, ", ", links));
-                        } else {
-                            String[] parts = value.split("\n", -1);
-                            String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
-                            List<Component> components = new ArrayList<>();
-                            for (int i = 0; i < parts.length; i++) {
-                                String display;
-                                if (labels != null && i < labels.length) {
-                                    display = Utils.unescapeMultiValue(labels[i]);
-                                } else {
-                                    display = Utils.unescapeMultiValue(parts[i]);
-                                }
+                        String[] parts = value.split("\n", -1);
+                        String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
+                        List<Component> components = new ArrayList<>();
+                        for (int i = 0; i < parts.length; i++) {
+                            String part = parts[i];
+                            String label = (labels != null && i < labels.length) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            if (part.matches("https?://.+")) {
+                                components.add(new NanodashLink("component", part, null, null, label, contextId));
+                            } else {
+                                String display = label != null ? label : Utils.unescapeMultiValue(part);
                                 if (Utils.looksLikeHtml(display)) {
                                     components.add(new Label("component", Utils.sanitizeHtml(display))
                                             .setEscapeModelStrings(false)
@@ -225,8 +215,8 @@ public class QueryResultTable extends QueryResult {
                                     components.add(new Label("component", display));
                                 }
                             }
-                            cellItem.add(new ComponentSequence(componentId, ", ", components));
                         }
+                        cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("_multi")) {
                         String[] parts = value.split("\n", -1);
                         String labelKey = key.substring(0, key.length() - "_multi".length()) + "_label_multi";
