@@ -805,20 +805,6 @@ public class Utils {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
     }
 
-    /**
-     * Unescape a multi-value entry where backslashes and newlines are escaped with backslash.
-     *
-     * @param s the escaped string
-     * @return the unescaped string
-     */
-    public static boolean looksLikeSpaceSeparatedIris(String value) {
-        if (value == null || value.isBlank()) return false;
-        for (String part : value.split(" ")) {
-            if (!part.matches("https?://.+")) return false;
-        }
-        return true;
-    }
-
     public static String unescapeMultiValue(String s) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
