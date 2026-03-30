@@ -77,7 +77,7 @@ public class QueryResultList extends QueryResult {
                             String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                             List<Component> links = new ArrayList<>();
                             for (int i = 0; i < uris.length; i++) {
-                                String label = (labels != null && i < labels.length) ? Utils.unescapeMultiValue(labels[i]) : null;
+                                String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
                             }
                             components.add(new ComponentSequence("component", ", ", links));
@@ -89,7 +89,7 @@ public class QueryResultList extends QueryResult {
                             List<Component> multiComponents = new ArrayList<>();
                             for (int i = 0; i < parts.length; i++) {
                                 String part = parts[i];
-                                String label = (labels != null && i < labels.length) ? Utils.unescapeMultiValue(labels[i]) : null;
+                                String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 if (part.matches("https?://.+")) {
                                     multiComponents.add(new NanodashLink("component", part, null, null, label, contextId));
                                 } else {
@@ -110,7 +110,7 @@ public class QueryResultList extends QueryResult {
                             List<Component> multiComponents = new ArrayList<>();
                             for (int i = 0; i < parts.length; i++) {
                                 String display;
-                                if (labels != null && i < labels.length) {
+                                if (labels != null && i < labels.length && !labels[i].isBlank()) {
                                     display = Utils.unescapeMultiValue(labels[i]);
                                 } else {
                                     display = Utils.unescapeMultiValue(parts[i]);
