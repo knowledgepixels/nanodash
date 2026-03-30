@@ -184,7 +184,7 @@ public class QueryResultTable extends QueryResult {
                 } else {
                     String value = rowModel.getObject().get(key);
                     if (key.endsWith("_multi_iri")) {
-                        String[] uris = value.split(" ");
+                        String[] uris = value.split("\\s+");
                         String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;

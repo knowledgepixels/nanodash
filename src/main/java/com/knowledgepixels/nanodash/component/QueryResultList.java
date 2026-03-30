@@ -71,7 +71,7 @@ public class QueryResultList extends QueryResult {
                     String entryValue = entry.get(key);
                     if (entryValue != null && !entryValue.isBlank()) {
                         if (key.endsWith("_multi_iri")) {
-                            String[] uris = entryValue.split(" ");
+                            String[] uris = entryValue.split("\\s+");
                             String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                             String labelValue = entry.get(labelKey);
                             String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
