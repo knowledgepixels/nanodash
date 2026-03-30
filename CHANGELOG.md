@@ -1,3 +1,35 @@
+## [4.22.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.21.0...nanodash-4.22.0) (2026-03-30)
+
+### Features
+
+* add _multi_val SPARQL result pattern for mixed literal/IRI values ([808b39a](https://github.com/knowledgepixels/nanodash/commit/808b39ab99d4c80b0e2fdff119ab56259999376c))
+* add "refresh now" to view display dropdown menu for logged-in users ([3554c58](https://github.com/knowledgepixels/nanodash/commit/3554c58073dae894fc59037c4279cd6fe2193a50))
+* recognize HTML in _multi and _multi_val literal table cells ([ee02e5d](https://github.com/knowledgepixels/nanodash/commit/ee02e5dac8a306a3135228c66b38ab9e9c109c25))
+* support <pre> in HTML sanitization and improve _multi_val handling ([946648c](https://github.com/knowledgepixels/nanodash/commit/946648ce9be4d4e31b7bc2680c97fe41ec356369))
+
+### Bug Fixes
+
+* let view display declarations override titles and structural position ([92d7fcd](https://github.com/knowledgepixels/nanodash/commit/92d7fcd13a7d48fab3e8bbd0291170ac1c82a6f8))
+* preserve "nanodash.net" in pubkey location name instead of stripping to "net" ([5f9d078](https://github.com/knowledgepixels/nanodash/commit/5f9d078ffbb3ef4717fb0252f9e6b71167b45d5e))
+* prevent Edge autofill from breaking Kendo date pickers ([d60b2aa](https://github.com/knowledgepixels/nanodash/commit/d60b2aa03afabda0fcab22ccaedea3bb8da4f73c))
+* prevent query hangs from thread pool exhaustion and unbounded busy-wait loops ([9496483](https://github.com/knowledgepixels/nanodash/commit/94964839e0bc48f755c01f8934f3a7f5f65e493a))
+* read 'label' URL parameter on ResourcePartPage ([6587a9d](https://github.com/knowledgepixels/nanodash/commit/6587a9d96e2c18b5a1bce2dc7482c6ed0e45f113))
+* sort named users before ID-only users in space user lists ([c8f0b63](https://github.com/knowledgepixels/nanodash/commit/c8f0b634de25d0319e0559e179bba9da90d19d6e))
+* switch to nanopub-java snapshot with connection pool fix ([5d6cd34](https://github.com/knowledgepixels/nanodash/commit/5d6cd349aa4e0957b30455e54dadbcccdc6b61c0))
+
+### Documentation
+
+* add plan for custom domain support ([73fe216](https://github.com/knowledgepixels/nanodash/commit/73fe216b934d6ec8c863a9bc0607232f618f0012))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([0039623](https://github.com/knowledgepixels/nanodash/commit/0039623afac5cedf812a3e4a5f48e8457f2b02c6))
+* update nanopub dependency to 1.86.2 ([a2c2a3e](https://github.com/knowledgepixels/nanodash/commit/a2c2a3e2b2f75b124af715ad73f203fac6ea36cf))
+
+### Refactoring
+
+* remove unused looksLikeSpaceSeparatedIris method ([d25e3d4](https://github.com/knowledgepixels/nanodash/commit/d25e3d4443f45fb5797907c19bb8d5896f315ba4))
+
 ## [4.21.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.20.0...nanodash-4.21.0) (2026-03-23)
 
 ### Features
