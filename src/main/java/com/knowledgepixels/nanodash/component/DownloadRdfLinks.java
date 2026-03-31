@@ -6,8 +6,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
- * A reusable panel that renders "Raw formats" download links for RDF formats,
- * matching the style used on ExplorePage for individual nanopubs.
+ * A reusable panel that renders "Raw page content" download links for RDF formats,
+ * used on user/space/resource pages to download all nanopubs on the page.
  * Each format has a native-type link and a text/plain link (txt) that always displays in the browser.
  */
 public class DownloadRdfLinks extends Panel {
