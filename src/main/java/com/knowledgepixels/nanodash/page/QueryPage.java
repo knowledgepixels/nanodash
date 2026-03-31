@@ -20,12 +20,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.IRequestParameters;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -147,10 +147,10 @@ public class QueryPage extends NanodashPage {
         paramContainer.setVisible(!paramFields.isEmpty());
         form.add(paramContainer);
 
-        form.add(new Button("yasgui") {
+        form.add(new AjaxButton("yasgui", form) {
 
             @Override
-            public void onSubmit() {
+            protected void onSubmit(AjaxRequestTarget target) {
                 IRequestParameters params = getRequest().getPostParameters();
                 for (QueryParamField f : paramFields) {
                     StringValue input = params.getParameterValue(f.getFormComponent().getInputName());
@@ -166,7 +166,7 @@ public class QueryPage extends NanodashPage {
                 }
                 String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", Utils.getMainQueryUrl() + "tools/")
                     + "/yasgui.html#query=" + URLEncoder.encode(sparql, Charsets.UTF_8);
-                throw new RedirectToUrlException(editLink);
+                target.appendJavaScript("window.location.href='" + editLink.replace("\\", "\\\\").replace("'", "\\'") + "';");
             }
 
         }.setDefaultFormProcessing(false));
