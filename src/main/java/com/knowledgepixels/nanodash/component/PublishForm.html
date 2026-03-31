@@ -134,7 +134,7 @@ I understand that published data cannot be fully removed (only retracted or supe
 </p>
 
 <p class="center">
-<input type="submit" class="button" value="Publish" />
+<input type="submit" class="button" value="Publish" onclick="this.value='Publishing\u2026'; this.disabled=true; this.form.submit();" />
 <button wicket:id="preview-button" type="submit" class="button light">Preview</button>
 </p>
 
