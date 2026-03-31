@@ -97,6 +97,7 @@ public class SpacePage extends NanodashPage {
                         .set("param_appliesToResource", space.getId())
                         .set("refresh-upon-publish", space.getId())
         ).setVisible(isAdmin));
+        add(new DownloadRdfLinks("download-rdf", "space", space.getId()));
 
         add(new ItemListPanel<String>(
                 "altids",

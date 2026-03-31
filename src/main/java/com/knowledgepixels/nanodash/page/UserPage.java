@@ -107,6 +107,7 @@ public class UserPage extends NanodashPage {
                         .set("refresh-upon-publish", userIriString)
                         .set("param_appliesToResource", userIriString)
         ).setVisible(isOwnPage));
+        add(new DownloadRdfLinks("download-rdf", "user", userIriString));
 
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;

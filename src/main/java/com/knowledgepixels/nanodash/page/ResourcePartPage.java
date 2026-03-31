@@ -165,6 +165,8 @@ public class ResourcePartPage extends NanodashPage {
                         .set("refresh-upon-publish", resourceWithProfile.getId())
         ).setVisible(showButton));
 
+        add(new DownloadRdfLinks("download-rdf", "part", id, resourceWithProfile.getId()));
+
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
         if (resourceWithProfile.isDataInitialized()) {
             add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
