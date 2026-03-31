@@ -467,7 +467,12 @@ public class PublishForm extends Panel {
                             throw new RestartResponseException(UserPage.class, redirectParams);
                         }
                     }
-                    throw new RestartResponseException(getConfirmPage(signedNp, pageParams));
+                    NanodashPage confirmPage = getConfirmPage(signedNp, pageParams);
+                    if (confirmPage != null) {
+                        throw new RestartResponseException(confirmPage);
+                    }
+                    throw new RestartResponseException(ExplorePage.class,
+                            new PageParameters(pageParams).set("id", signedNp.getUri().stringValue()));
                 }
             }
 
