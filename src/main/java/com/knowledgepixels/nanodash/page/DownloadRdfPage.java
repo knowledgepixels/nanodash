@@ -213,12 +213,21 @@ public class DownloadRdfPage extends WebPage {
                 for (ApiResponseEntry entry : response.getData()) {
                     if (collected.size() >= MAX_NANOPUBS) break;
 
+                    // Single-valued "np" column
                     String npUri = entry.get("np");
-                    if (npUri == null) continue;
+                    if (npUri != null) {
+                        fetchAndAdd(collected, npUri);
+                    }
 
-                    Nanopub np = Utils.getAsNanopub(npUri);
-                    if (np != null) {
-                        addNanopub(collected, np);
+                    // Multi-valued "np_multi_iri" column (space-separated URIs)
+                    String npMulti = entry.get("np_multi_iri");
+                    if (npMulti != null) {
+                        for (String uri : npMulti.split("\\s+")) {
+                            if (collected.size() >= MAX_NANOPUBS) break;
+                            if (!uri.isBlank()) {
+                                fetchAndAdd(collected, uri);
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -278,6 +287,13 @@ public class DownloadRdfPage extends WebPage {
         String uri = np.getUri().stringValue();
         if (!collected.containsKey(uri)) {
             collected.put(uri, np);
+        }
+    }
+
+    private void fetchAndAdd(Map<String, Nanopub> collected, String npUri) {
+        Nanopub np = Utils.getAsNanopub(npUri);
+        if (np != null) {
+            addNanopub(collected, np);
         }
     }
 
