@@ -112,12 +112,16 @@ public class DownloadRdfPage extends WebPage {
         AbstractResourceStreamWriter stream = new AbstractResourceStreamWriter() {
             @Override
             public void write(OutputStream output) throws IOException {
-                for (Nanopub np : nanopubs) {
-                    try {
-                        NanopubUtils.writeToStream(np, output, rdfFormat);
-                        output.write('\n');
-                    } catch (Exception ex) {
-                        logger.error("Error serializing nanopub {}: {}", np.getUri(), ex.getMessage());
+                if (rdfFormat == RDFFormat.JSONLD) {
+                    writeJsonLdArray(output, nanopubs);
+                } else {
+                    for (Nanopub np : nanopubs) {
+                        try {
+                            NanopubUtils.writeToStream(np, output, rdfFormat);
+                            output.write('\n');
+                        } catch (Exception ex) {
+                            logger.error("Error serializing nanopub {}: {}", np.getUri(), ex.getMessage());
+                        }
                     }
                 }
             }
@@ -281,6 +285,30 @@ public class DownloadRdfPage extends WebPage {
             }
         }
         return new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+    }
+
+    /**
+     * Writes multiple nanopubs as a JSON array of JSON-LD objects.
+     */
+    private void writeJsonLdArray(OutputStream output, List<Nanopub> nanopubs) throws IOException {
+        output.write('[');
+        output.write('\n');
+        boolean first = true;
+        for (Nanopub np : nanopubs) {
+            try {
+                if (!first) {
+                    output.write(',');
+                    output.write('\n');
+                }
+                NanopubUtils.writeToStream(np, output, RDFFormat.JSONLD);
+                first = false;
+            } catch (Exception ex) {
+                logger.error("Error serializing nanopub {}: {}", np.getUri(), ex.getMessage());
+            }
+        }
+        output.write('\n');
+        output.write(']');
+        output.write('\n');
     }
 
     private void addNanopub(Map<String, Nanopub> collected, Nanopub np) {
