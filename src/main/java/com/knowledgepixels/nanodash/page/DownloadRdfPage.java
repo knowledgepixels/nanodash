@@ -79,6 +79,7 @@ public class DownloadRdfPage extends WebPage {
         String type = parameters.get("type").toString();
         String id = parameters.get("id").toString();
         String format = parameters.get("format").toString("trig");
+        boolean asText = !parameters.get("txt").isNull();
 
         if (type == null || id == null) {
             throw new IllegalArgumentException("Parameters 'type' and 'id' are required");
@@ -102,9 +103,11 @@ public class DownloadRdfPage extends WebPage {
         // Build filename from the resource label or ID
         String safeId = id.replaceAll("[^a-zA-Z0-9_-]", "_");
         if (safeId.length() > 60) safeId = safeId.substring(safeId.length() - 60);
-        String filename = type + "_" + safeId + EXTENSION_MAP.get(format);
+        String extension = EXTENSION_MAP.get(format) + (asText ? ".txt" : "");
+        String filename = type + "_" + safeId + extension;
 
-        String contentType = rdfFormat.getDefaultMIMEType();
+        // When txt parameter is present, serve as text/plain so it always displays in browser
+        String contentType = asText ? "text/plain" : rdfFormat.getDefaultMIMEType();
 
         AbstractResourceStreamWriter stream = new AbstractResourceStreamWriter() {
             @Override
@@ -126,7 +129,7 @@ public class DownloadRdfPage extends WebPage {
         };
 
         ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(stream, filename);
-        handler.setContentDisposition(ContentDisposition.ATTACHMENT);
+        handler.setContentDisposition(ContentDisposition.INLINE);
         getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);
     }
 
