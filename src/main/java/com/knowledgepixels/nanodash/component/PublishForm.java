@@ -442,11 +442,11 @@ public class PublishForm extends Panel {
                     }
                     feedbackPanel.error(message);
                 }
-                if (!pageParams.get("refresh-upon-publish").isEmpty()) {
-                    String toRefresh = pageParams.get("refresh-upon-publish").toString();
-                    WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
-                }
                 if (signedNp != null) {
+                    if (!pageParams.get("refresh-upon-publish").isEmpty()) {
+                        String toRefresh = pageParams.get("refresh-upon-publish").toString();
+                        WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
+                    }
                     String contextId = pageParams.get("context").toString("");
                     String partId = pageParams.get("part").toString("");
                     if (!contextId.isEmpty() && pageParams.get("postpub-redirect-url").isEmpty()) {
