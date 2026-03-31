@@ -109,6 +109,17 @@ public class Utils {
     private static Map<String, Nanopub> nanopubs = new HashMap<>();
 
     /**
+     * Adds a nanopublication to the local cache so it can be retrieved immediately
+     * without needing to fetch it from the registry.
+     *
+     * @param np the nanopublication to cache
+     */
+    public static void cacheNanopub(Nanopub np) {
+        String artifactCode = GetNanopub.getArtifactCode(np.getUri().stringValue());
+        nanopubs.put(artifactCode, np);
+    }
+
+    /**
      * Retrieves a Nanopub object based on the given URI or artifact code.
      *
      * @param uriOrArtifactCode the URI or artifact code of the nanopublication

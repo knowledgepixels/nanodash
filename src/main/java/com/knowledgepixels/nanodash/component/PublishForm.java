@@ -432,6 +432,7 @@ public class PublishForm extends Panel {
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
                     String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published: {}", npUrl);
+                    Utils.cacheNanopub(signedNp);
                 } catch (Exception ex) {
                     signedNp = null;
                     logger.error("Nanopublication publishing failed: {}", ex.getMessage());
