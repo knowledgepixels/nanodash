@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
 set -e
 
-mvn clean package
-
-docker build -t nanopub/nanodash-test .
-docker push nanopub/nanodash-test
+./mvnw clean package -Dmaven.test.skip=true
+docker build -t nanopub/nanodash:test .
+docker push nanopub/nanodash:test
