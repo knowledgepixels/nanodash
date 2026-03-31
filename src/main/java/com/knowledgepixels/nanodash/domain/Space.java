@@ -122,6 +122,7 @@ public class Space extends AbstractResourceWithProfile {
 
     private volatile boolean dataInitialized = false;
     private volatile boolean dataNeedsUpdate = true;
+    private transient volatile Future<?> spaceDataFuture = null;
 
     Space(ApiResponseEntry resp) {
         super(resp.get("space"));
@@ -363,15 +364,15 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private synchronized void ensureInitialized() {
-        Future<?> future = triggerSpaceDataUpdate();
-        if (!dataInitialized && future != null) {
+        triggerSpaceDataUpdate();
+        if (!dataInitialized && spaceDataFuture != null) {
             try {
-                future.get(30, TimeUnit.SECONDS);
+                spaceDataFuture.get(30, TimeUnit.SECONDS);
             } catch (Exception ex) {
                 logger.error("failed to await space data update", ex);
             }
         }
-        future = super.triggerDataUpdate();
+        Future<?> future = super.triggerDataUpdate();
         if (!dataInitialized && future != null) {
             try {
                 future.get(30, TimeUnit.SECONDS);
@@ -391,7 +392,7 @@ public class Space extends AbstractResourceWithProfile {
         if (dataNeedsUpdate) {
             logger.info("Data needs update for space {} core data, starting update thread", getId());
             dataNeedsUpdate = false;
-            return NanodashThreadPool.submit(() -> {
+            spaceDataFuture = NanodashThreadPool.submit(() -> {
                 try {
                     if (getRunUpdateAfter() != null) {
                         while (System.currentTimeMillis() < getRunUpdateAfter()) {
@@ -480,8 +481,9 @@ public class Space extends AbstractResourceWithProfile {
                     dataNeedsUpdate = true;
                 }
             });
+            return spaceDataFuture;
         }
-        return null;
+        return spaceDataFuture;
     }
 
     private void setCoreData(SpaceData data) {
