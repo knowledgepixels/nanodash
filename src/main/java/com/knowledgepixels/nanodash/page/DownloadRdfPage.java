@@ -209,6 +209,11 @@ public class DownloadRdfPage extends WebPage {
                 partId = id;
                 partClasses = resolvePartClasses(id, contextId, resource);
                 nanopubRef = resolvePartNanopubRef(id, contextId, resource);
+                // Include the part definition nanopub
+                String partNpId = resolvePartNanopubId(partId, contextId, resource);
+                if (partNpId != null) {
+                    fetchAndAdd(collected, partNpId);
+                }
             }
             case "list" -> {
                 collectListNanopubs(collected, parameters);
