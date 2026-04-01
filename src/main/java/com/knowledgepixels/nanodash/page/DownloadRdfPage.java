@@ -94,8 +94,11 @@ public class DownloadRdfPage extends WebPage {
         boolean asText = !parameters.get("txt").isNull();
         boolean assertionsOnly = !parameters.get("assertions").isNull();
 
-        if (type == null || id == null) {
-            throw new IllegalArgumentException("Parameters 'type' and 'id' are required");
+        if (type == null) {
+            throw new IllegalArgumentException("Parameter 'type' is required");
+        }
+        if (id == null && !"list".equals(type)) {
+            throw new IllegalArgumentException("Parameter 'id' is required for type: " + type);
         }
 
         RDFFormat rdfFormat = FORMAT_MAP.get(format);
@@ -115,11 +118,16 @@ public class DownloadRdfPage extends WebPage {
                 nanopubs.size(), format, assertionsOnly ? "assertions only" : "full", type, id);
 
         // Build filename from the resource label or ID
-        String safeId = id.replaceAll("[^a-zA-Z0-9_-]", "_");
-        if (safeId.length() > 60) safeId = safeId.substring(safeId.length() - 60);
         String extension = EXTENSION_MAP.get(format) + (asText ? ".txt" : "");
         String prefix = assertionsOnly ? "assertions_" : "";
-        String filename = prefix + type + "_" + safeId + extension;
+        String filename;
+        if (id != null) {
+            String safeId = id.replaceAll("[^a-zA-Z0-9_-]", "_");
+            if (safeId.length() > 60) safeId = safeId.substring(safeId.length() - 60);
+            filename = prefix + type + "_" + safeId + extension;
+        } else {
+            filename = prefix + type + extension;
+        }
 
         // When txt parameter is present, serve as text/plain so it always displays in browser
         String contentType = asText ? "text/plain; charset=utf-8" : rdfFormat.getDefaultMIMEType();
@@ -201,7 +209,11 @@ public class DownloadRdfPage extends WebPage {
                 partClasses = resolvePartClasses(id, contextId, resource);
                 nanopubRef = resolvePartNanopubRef(id, contextId, resource);
             }
-            default -> throw new IllegalArgumentException("Unknown type: " + type + ". Supported: user, space, resource, part");
+            case "list" -> {
+                collectListNanopubs(collected, parameters);
+                return new ArrayList<>(collected.values());
+            }
+            default -> throw new IllegalArgumentException("Unknown type: " + type + ". Supported: user, space, resource, part, list");
         }
 
         // Collect nanopubs from view query results (but not the view display definitions themselves)
@@ -275,6 +287,50 @@ public class DownloadRdfPage extends WebPage {
     private void collectResourceNanopubs(Map<String, Nanopub> collected, MaintainedResource resource) {
         if (resource.getNanopub() != null) {
             addNanopub(collected, resource.getNanopub());
+        }
+    }
+
+    /**
+     * Collects nanopubs from the filtered nanopublication list (mirrors ListPage query logic).
+     */
+    private void collectListNanopubs(Map<String, Nanopub> collected, PageParameters parameters) {
+        Multimap<String, String> queryParams = ArrayListMultimap.create();
+
+        String typeParam = parameters.get("filtertype").toString();
+        if (typeParam != null) {
+            queryParams.put("types", typeParam);
+        }
+
+        String userIdParam = parameters.get("userid").toString();
+        if (userIdParam != null) {
+            IRI userIri = Utils.vf.createIRI(userIdParam);
+            for (String pubkey : User.getPubkeyhashes(userIri, null)) {
+                queryParams.put("np_pubkeys", pubkey);
+            }
+        }
+
+        String startTime = parameters.get("starttime").toString();
+        if (startTime != null) {
+            queryParams.put("np_starttime", startTime);
+        }
+
+        String endTime = parameters.get("endtime").toString();
+        if (endTime != null) {
+            queryParams.put("np_endtime", endTime);
+        }
+
+        View filteredNanopubsView = View.get("https://w3id.org/np/RAAxsnXxYLev1_STgHnb2Y-oNRE3DRERXXDoJbELHSnzA/filtered-nanopubs-view");
+        QueryRef queryRef = new QueryRef(filteredNanopubsView.getQuery().getQueryId(), queryParams);
+
+        ApiResponse response = retrieveResponseWithWait(queryRef);
+        if (response == null) return;
+
+        for (ApiResponseEntry entry : response.getData()) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            String npUri = entry.get("np");
+            if (npUri != null) {
+                fetchAndAdd(collected, npUri);
+            }
         }
     }
 

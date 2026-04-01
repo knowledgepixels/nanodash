@@ -32,38 +32,53 @@ public class DownloadRdfLinks extends Panel {
      * @param contextId the context resource ID (required for type=part)
      */
     public DownloadRdfLinks(String markupId, String type, String id, String contextId) {
+        this(markupId, baseParams(type, id, contextId));
+    }
+
+    /**
+     * Creates download links with arbitrary base parameters (e.g. for list page filters).
+     *
+     * @param markupId   the Wicket markup ID
+     * @param baseParams parameters common to all links (type, id, filters, etc.)
+     */
+    public DownloadRdfLinks(String markupId, PageParameters baseParams) {
         super(markupId);
 
         // Full nanopublication links (graph-aware formats)
-        add(createLink("trig", type, id, contextId, "trig", false, false));
-        add(createLink("trig-txt", type, id, contextId, "trig", true, false));
-        add(createLink("jsonld", type, id, contextId, "jsonld", false, false));
-        add(createLink("jsonld-txt", type, id, contextId, "jsonld", true, false));
-        add(createLink("nq", type, id, contextId, "nq", false, false));
-        add(createLink("nq-txt", type, id, contextId, "nq", true, false));
-        add(createLink("trix", type, id, contextId, "trix", false, false));
-        add(createLink("trix-txt", type, id, contextId, "trix", true, false));
+        add(createLink("trig", baseParams, "trig", false, false));
+        add(createLink("trig-txt", baseParams, "trig", true, false));
+        add(createLink("jsonld", baseParams, "jsonld", false, false));
+        add(createLink("jsonld-txt", baseParams, "jsonld", true, false));
+        add(createLink("nq", baseParams, "nq", false, false));
+        add(createLink("nq-txt", baseParams, "nq", true, false));
+        add(createLink("trix", baseParams, "trix", false, false));
+        add(createLink("trix-txt", baseParams, "trix", true, false));
 
         // Assertions-only links (triple-based formats)
-        add(createLink("turtle", type, id, contextId, "turtle", false, true));
-        add(createLink("turtle-txt", type, id, contextId, "turtle", true, true));
-        add(createLink("a-jsonld", type, id, contextId, "jsonld", false, true));
-        add(createLink("a-jsonld-txt", type, id, contextId, "jsonld", true, true));
-        add(createLink("nt", type, id, contextId, "nt", false, true));
-        add(createLink("nt-txt", type, id, contextId, "nt", true, true));
-        add(createLink("rdfxml", type, id, contextId, "rdfxml", false, true));
-        add(createLink("rdfxml-txt", type, id, contextId, "rdfxml", true, true));
+        add(createLink("turtle", baseParams, "turtle", false, true));
+        add(createLink("turtle-txt", baseParams, "turtle", true, true));
+        add(createLink("a-jsonld", baseParams, "jsonld", false, true));
+        add(createLink("a-jsonld-txt", baseParams, "jsonld", true, true));
+        add(createLink("nt", baseParams, "nt", false, true));
+        add(createLink("nt-txt", baseParams, "nt", true, true));
+        add(createLink("rdfxml", baseParams, "rdfxml", false, true));
+        add(createLink("rdfxml-txt", baseParams, "rdfxml", true, true));
     }
 
-    private BookmarkablePageLink<Void> createLink(String wicketId, String type, String id, String contextId,
-            String format, boolean txt, boolean assertionsOnly) {
+    private static PageParameters baseParams(String type, String id, String contextId) {
         PageParameters params = new PageParameters()
                 .set("type", type)
-                .set("id", id)
-                .set("format", format);
+                .set("id", id);
         if (contextId != null) {
             params.set("context", contextId);
         }
+        return params;
+    }
+
+    private BookmarkablePageLink<Void> createLink(String wicketId, PageParameters baseParams,
+            String format, boolean txt, boolean assertionsOnly) {
+        PageParameters params = new PageParameters(baseParams)
+                .set("format", format);
         if (txt) {
             params.set("txt", "");
         }
