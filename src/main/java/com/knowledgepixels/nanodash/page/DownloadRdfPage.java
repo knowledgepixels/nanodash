@@ -30,6 +30,7 @@ import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.NanopubWithNs;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -459,20 +460,60 @@ public class DownloadRdfPage extends WebPage {
 
     /**
      * Writes only the assertion statements from all nanopubs as a single RDF document.
+     * Collects all used IRIs first, then declares only the matching namespace prefixes.
      */
     private void writeAssertions(OutputStream output, List<Nanopub> nanopubs, RDFFormat format) throws IOException {
+        // Collect all available namespace prefixes from default + nanopub-specific
+        Map<String, String> allNamespaces = new LinkedHashMap<>();
+        for (var entry : NanopubUtils.getDefaultNamespaces()) {
+            allNamespaces.put(entry.getLeft(), entry.getRight());
+        }
+        for (Nanopub np : nanopubs) {
+            if (np instanceof NanopubWithNs npNs) {
+                npNs.getNs().forEach((prefix, ns) -> {
+                    // Skip nanopub-internal prefixes (they refer to the nanopub's own URI space)
+                    if (!"this".equals(prefix) && !"sub".equals(prefix)) {
+                        allNamespaces.put(prefix, ns);
+                    }
+                });
+            }
+        }
+
+        // First pass: collect all IRIs used across all assertions
+        Set<String> usedIris = new HashSet<>();
+        for (Nanopub np : nanopubs) {
+            for (Statement st : np.getAssertion()) {
+                collectIris(usedIris, st);
+            }
+        }
+
         RDFWriter writer = Rio.createWriter(format, output);
         writer.startRDF();
-        for (Nanopub np : nanopubs) {
-            try {
-                for (Statement st : np.getAssertion()) {
-                    writer.handleStatement(st);
+
+        // Declare only namespaces that match at least one used IRI
+        for (var entry : allNamespaces.entrySet()) {
+            String ns = entry.getValue();
+            for (String iri : usedIris) {
+                if (iri.startsWith(ns)) {
+                    writer.handleNamespace(entry.getKey(), ns);
+                    break;
                 }
-            } catch (Exception ex) {
-                logger.error("Error extracting assertions from nanopub {}: {}", np.getUri(), ex.getMessage());
+            }
+        }
+
+        // Second pass: write all assertion statements
+        for (Nanopub np : nanopubs) {
+            for (Statement st : np.getAssertion()) {
+                writer.handleStatement(st);
             }
         }
         writer.endRDF();
+    }
+
+    private void collectIris(Set<String> iris, Statement st) {
+        if (st.getSubject() instanceof IRI iri) iris.add(iri.stringValue());
+        iris.add(st.getPredicate().stringValue());
+        if (st.getObject() instanceof IRI iri) iris.add(iri.stringValue());
     }
 
     private void addNanopub(Map<String, Nanopub> collected, Nanopub np) {
