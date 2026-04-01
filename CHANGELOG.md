@@ -1,3 +1,44 @@
+## [4.23.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.22.0...nanodash-4.23.0) (2026-04-01)
+
+### Features
+
+* add assertion-only download links to explore page ([d0ed547](https://github.com/knowledgepixels/nanodash/commit/d0ed5478713981e3324b726676959ee9396a852b))
+* add assertions-only download and RDF/XML format ([5a20e69](https://github.com/knowledgepixels/nanodash/commit/5a20e69ba4fada0ad5805617378b1160f5257ed9))
+* add Download RDF feature for pages ([#422](https://github.com/knowledgepixels/nanodash/issues/422)) ([815521f](https://github.com/knowledgepixels/nanodash/commit/815521f318d414a20686bf528b988eadc011d08e))
+* add namespace prefixes to assertion-only output ([73a1b98](https://github.com/knowledgepixels/nanodash/commit/73a1b986b12c55299c1ea06fe47f6ccc74456f94))
+* add raw page content download to list page ([5ec8013](https://github.com/knowledgepixels/nanodash/commit/5ec801365ec64358dba405e49f642827a1198b94))
+* include np_multi_iri results in RDF download ([9ce707a](https://github.com/knowledgepixels/nanodash/commit/9ce707af3d68a2c31a342ea5f71fbc2aee6c5653))
+* include page-specific nanopubs and fix sync loading in RDF download ([be85e35](https://github.com/knowledgepixels/nanodash/commit/be85e35ea298e2da66382dab2c063e394e62b22b))
+* include part definition nanopub in RDF download ([cd53872](https://github.com/knowledgepixels/nanodash/commit/cd5387297b74182b0348930b6453022a4e462702))
+* match ExplorePage "Raw formats" style for RDF download links ([c4e0549](https://github.com/knowledgepixels/nanodash/commit/c4e054918eab858ae9c865daa807cae467e281b8))
+* rename RDF download label to "Raw page content" ([ca61938](https://github.com/knowledgepixels/nanodash/commit/ca619384f07dea12ee0f49e44f72fb58b22af047))
+
+### Bug Fixes
+
+* cache nanopub locally after publishing to avoid registry race condition ([50a5526](https://github.com/knowledgepixels/nanodash/commit/50a5526136f8867f7588a633dfeb6e2233a2a1ad)), closes [#423](https://github.com/knowledgepixels/nanodash/issues/423)
+* disable Publish button after click to prevent double submissions ([89229bf](https://github.com/knowledgepixels/nanodash/commit/89229bfd65e928d0af0d2f5b5270185f61780ec5)), closes [#419](https://github.com/knowledgepixels/nanodash/issues/419)
+* ensure space admin data is loaded before filtering view displays ([ed84846](https://github.com/knowledgepixels/nanodash/commit/ed8484680959a278b3f598a4245584ed3c5cefbb)), closes [#418](https://github.com/knowledgepixels/nanodash/issues/418)
+* fall back to ExplorePage when confirm page instantiation fails ([ff2368e](https://github.com/knowledgepixels/nanodash/commit/ff2368e073295862c922c23d2404e42ec7f92d5c)), closes [#423](https://github.com/knowledgepixels/nanodash/issues/423)
+* fall back to raw value when _label query result is empty ([933c44b](https://github.com/knowledgepixels/nanodash/commit/933c44be8aaaa4f0a9d5033a131dec4b03eb335d))
+* harmonize PreviewPage post-publish refresh delay to 5s ([f3213b6](https://github.com/knowledgepixels/nanodash/commit/f3213b669a7be03d1ed6b44afa9f4610c34c05b0)), closes [#423](https://github.com/knowledgepixels/nanodash/issues/423)
+* skip notifyNanopubPublished when publishing failed ([59a93e2](https://github.com/knowledgepixels/nanodash/commit/59a93e2add4534e6048bce8664091cd87f05744e)), closes [#423](https://github.com/knowledgepixels/nanodash/issues/423)
+* skip null queries to prevent NPE on Query page ([6bb5029](https://github.com/knowledgepixels/nanodash/commit/6bb502904c03137014f20fa3e6fdccbbbb072750)), closes [#426](https://github.com/knowledgepixels/nanodash/issues/426)
+* use Ajax for Yasgui redirect to avoid 502 from large Location header ([09bb687](https://github.com/knowledgepixels/nanodash/commit/09bb687ed41fd3775dc4c84b8703a67b94459633))
+* wrap multiple nanopubs in JSON array for JSON-LD format ([e71623c](https://github.com/knowledgepixels/nanodash/commit/e71623c69833de2bf6af5f34fd1e81060df58200))
+
+### Tests
+
+* add unit tests for DownloadRdfPage ([36c0a8f](https://github.com/knowledgepixels/nanodash/commit/36c0a8fc46f00cc89b1bbdb60950d91b4ac38c54))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([b8a69af](https://github.com/knowledgepixels/nanodash/commit/b8a69affe8e37822e9449f9ea61f5bf31e12a50e))
+* update push-nanopub-test.sh script ([cde5840](https://github.com/knowledgepixels/nanodash/commit/cde58401eeeef780f8bdbc71dc8ff4a66950f5f6))
+
+### Refactoring
+
+* split _multi_iri URIs on any whitespace sequence ([226e450](https://github.com/knowledgepixels/nanodash/commit/226e450a4d63f3ec5298b7ab155eeca160c9ae40))
+
 ## [4.22.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.21.0...nanodash-4.22.0) (2026-03-30)
 
 ### Features
