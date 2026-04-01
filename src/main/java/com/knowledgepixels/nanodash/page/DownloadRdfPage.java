@@ -4,16 +4,19 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.SpaceMemberRoleRef;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -28,6 +31,7 @@ import org.nanopub.NanopubUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +40,7 @@ import java.io.OutputStream;
 import java.util.*;
 
 /**
- * Page that serves a bulk RDF download of all nanopublications displayed on a given page.
+ * Page that serves a bulk RDF download of all nanopublications shown on a given page.
  * Supports TriG, TriX, JSON-LD, and N-Quads formats.
  *
  * Parameters:
@@ -107,7 +111,7 @@ public class DownloadRdfPage extends WebPage {
         String filename = type + "_" + safeId + extension;
 
         // When txt parameter is present, serve as text/plain so it always displays in browser
-        String contentType = asText ? "text/plain" : rdfFormat.getDefaultMIMEType();
+        String contentType = asText ? "text/plain; charset=utf-8" : rdfFormat.getDefaultMIMEType();
 
         AbstractResourceStreamWriter stream = new AbstractResourceStreamWriter() {
             @Override
@@ -139,10 +143,10 @@ public class DownloadRdfPage extends WebPage {
 
     /**
      * Collects all nanopubs for the given page type and resource.
-     * This includes view display nanopubs and the nanopubs returned by each view's query.
+     * Includes declarations, approved intros, roles, role assignments, and view query results.
+     * Does not include the view display definition nanopubs themselves.
      */
     private List<Nanopub> collectNanopubs(String type, String id, PageParameters parameters) {
-        // Use LinkedHashSet to preserve order and deduplicate by URI
         Map<String, Nanopub> collected = new LinkedHashMap<>();
 
         AbstractResourceWithProfile resource;
@@ -156,21 +160,23 @@ public class DownloadRdfPage extends WebPage {
                 if (resource == null) {
                     throw new IllegalArgumentException("User not found: " + id);
                 }
-                waitForData(resource);
+                collectUserNanopubs(collected, id);
             }
             case "space" -> {
                 resource = SpaceRepository.get().findById(id);
                 if (resource == null) {
                     throw new IllegalArgumentException("Space not found: " + id);
                 }
-                waitForData(resource);
+                // Space-specific data is waited for inside collectSpaceNanopubs via
+                // space.getUsers() which calls ensureInitialized() and blocks until ready.
+                collectSpaceNanopubs(collected, (Space) resource);
             }
             case "resource" -> {
                 resource = MaintainedResourceRepository.get().findById(id);
                 if (resource == null) {
                     throw new IllegalArgumentException("Resource not found: " + id);
                 }
-                waitForData(resource);
+                collectResourceNanopubs(collected, (MaintainedResource) resource);
             }
             case "part" -> {
                 String contextId = parameters.get("context").toString();
@@ -178,7 +184,6 @@ public class DownloadRdfPage extends WebPage {
                     throw new IllegalArgumentException("Parameter 'context' is required for type=part");
                 }
                 resource = resolveContextResource(contextId);
-                waitForData(resource);
                 partId = id;
                 partClasses = resolvePartClasses(id, contextId, resource);
                 nanopubRef = resolvePartNanopubRef(id, contextId, resource);
@@ -186,32 +191,102 @@ public class DownloadRdfPage extends WebPage {
             default -> throw new IllegalArgumentException("Unknown type: " + type + ". Supported: user, space, resource, part");
         }
 
-        // Get view displays
-        List<ViewDisplay> viewDisplays;
-        if (partId != null) {
-            viewDisplays = resource.getPartLevelViewDisplays(partId, partClasses);
-        } else {
-            viewDisplays = resource.getTopLevelViewDisplays();
+        // Collect nanopubs from view query results (but not the view display definitions themselves)
+        collectViewQueryResults(collected, resource, partId, partClasses, nanopubRef);
+
+        return new ArrayList<>(collected.values());
+    }
+
+    /**
+     * Collects all approved introduction nanopubs for a user.
+     */
+    private void collectUserNanopubs(Map<String, Nanopub> collected, String id) {
+        IRI userIri = Utils.vf.createIRI(id);
+        for (IntroNanopub intro : User.getIntroNanopubs(userIri)) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            if (User.isApproved(intro)) {
+                addNanopub(collected, intro.getNanopub());
+            }
         }
+    }
+
+    /**
+     * Collects nanopubs for a space: declaration, role definitions, user role assignments,
+     * sub-space declarations, and maintained resource declarations.
+     */
+    private void collectSpaceNanopubs(Map<String, Nanopub> collected, Space space) {
+        // Space declaration
+        if (space.getNanopub() != null) {
+            addNanopub(collected, space.getNanopub());
+        }
+
+        // Ensure space data is loaded (getUsers calls ensureInitialized which blocks until ready)
+        List<IRI> users = space.getUsers();
+
+        // Role definition nanopubs (must be accessed after ensureInitialized)
+        for (SpaceMemberRoleRef roleRef : space.getRoles()) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            fetchAndAdd(collected, roleRef.getNanopubUri());
+        }
+
+        // User role assignment nanopubs
+        for (IRI userId : users) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            for (SpaceMemberRoleRef memberRole : space.getMemberRoles(userId)) {
+                if (collected.size() >= MAX_NANOPUBS) break;
+                fetchAndAdd(collected, memberRole.getNanopubUri());
+            }
+        }
+
+        // Sub-space declarations
+        for (Space subspace : SpaceRepository.get().findSubspaces(space)) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            if (subspace.getNanopub() != null) {
+                addNanopub(collected, subspace.getNanopub());
+            }
+        }
+
+        // Maintained resource declarations
+        MaintainedResourceRepository.get().ensureLoaded();
+        for (MaintainedResource resource : MaintainedResourceRepository.get().findResourcesBySpace(space)) {
+            if (collected.size() >= MAX_NANOPUBS) break;
+            if (resource.getNanopub() != null) {
+                addNanopub(collected, resource.getNanopub());
+            }
+        }
+    }
+
+    /**
+     * Collects the declaration nanopub for a maintained resource.
+     */
+    private void collectResourceNanopubs(Map<String, Nanopub> collected, MaintainedResource resource) {
+        if (resource.getNanopub() != null) {
+            addNanopub(collected, resource.getNanopub());
+        }
+    }
+
+    /**
+     * Executes view display queries and collects nanopubs from results.
+     * Does not include the view display definition nanopubs themselves.
+     * Fetches view displays directly from the API to avoid depending on async state.
+     */
+    private void collectViewQueryResults(Map<String, Nanopub> collected, AbstractResourceWithProfile resource,
+            String partId, Set<IRI> partClasses, String nanopubRef) {
+        List<ViewDisplay> viewDisplays = fetchViewDisplays(resource, partId, partClasses);
 
         String targetId = partId != null ? partId : resource.getId();
         String targetNpId = nanopubRef != null ? nanopubRef : resource.getNanopubId();
 
         for (ViewDisplay vd : viewDisplays) {
-            // Add the view display nanopub itself
-            if (vd.getNanopub() != null) {
-                addNanopub(collected, vd.getNanopub());
-            }
-
             if (collected.size() >= MAX_NANOPUBS) break;
 
             // Build query parameters (mirrors ViewList logic)
             QueryRef queryRef = buildQueryRef(vd, resource, targetId, targetNpId);
             if (queryRef == null) continue;
 
-            // Execute the query synchronously and collect result nanopubs
+            // Retrieve synchronously, retrying while another thread is fetching the same query
             try {
-                ApiResponse response = ApiCache.retrieveResponseSync(queryRef, false);
+                ApiResponse response = retrieveResponseWithWait(queryRef);
                 if (response == null) continue;
 
                 for (ApiResponseEntry entry : response.getData()) {
@@ -238,8 +313,6 @@ public class DownloadRdfPage extends WebPage {
                 logger.error("Error executing query for view display {}: {}", vd.getId(), ex.getMessage());
             }
         }
-
-        return new ArrayList<>(collected.values());
     }
 
     /**
@@ -326,12 +399,15 @@ public class DownloadRdfPage extends WebPage {
     }
 
     /**
-     * Waits for the resource's async data loading to complete (up to 30 seconds).
+     * Retrieves a query response, retrying while another thread is fetching the same query.
+     * Returns null only if the query genuinely has no cached result and no fetch is in progress.
      */
-    private void waitForData(AbstractResourceWithProfile resource) {
-        resource.triggerDataUpdate();
+    private ApiResponse retrieveResponseWithWait(QueryRef queryRef) {
         int waited = 0;
-        while (!resource.isDataInitialized() && waited < 30_000) {
+        while (waited < 30_000) {
+            ApiResponse response = ApiCache.retrieveResponseSync(queryRef, false);
+            if (response != null) return response;
+            if (!ApiCache.isRunning(queryRef)) return null;
             try {
                 Thread.sleep(200);
                 waited += 200;
@@ -340,9 +416,63 @@ public class DownloadRdfPage extends WebPage {
                 break;
             }
         }
-        if (!resource.isDataInitialized()) {
-            logger.warn("Data not initialized for resource {} after {}ms", resource.getId(), waited);
+        return null;
+    }
+
+    /**
+     * Fetches view displays synchronously from the API, bypassing async resource state.
+     * Mirrors the logic of AbstractResourceWithProfile.triggerDataUpdate() and getTopLevelViewDisplays().
+     */
+    private List<ViewDisplay> fetchViewDisplays(AbstractResourceWithProfile resource, String partId, Set<IRI> partClasses) {
+        // For spaces, ensure core data is loaded first (needed for isAdminPubkey check)
+        if (resource instanceof Space space) {
+            space.getUsers(); // triggers ensureInitialized
         }
+
+        ApiResponse response = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", resource.getId()), false);
+        if (response == null) {
+            logger.warn("No view display response for resource {}", resource.getId());
+            return Collections.emptyList();
+        }
+
+        // Build raw view display list (same logic as AbstractResourceWithProfile.triggerDataUpdate)
+        List<ViewDisplay> allDisplays = new ArrayList<>();
+        for (ApiResponseEntry r : response.getData()) {
+            if (resource.getSpace() != null && !resource.getSpace().isAdminPubkey(r.get("pubkey"))) {
+                continue;
+            }
+            try {
+                allDisplays.add(ViewDisplay.get(r.get("display")));
+            } catch (IllegalArgumentException ex) {
+                logger.error("Couldn't generate view display object", ex);
+            }
+        }
+
+        // Filter (same logic as AbstractResourceWithProfile.getViewDisplays)
+        String resourceId = partId != null ? partId : resource.getId();
+        boolean toplevel = (partId == null);
+
+        List<ViewDisplay> filtered = new ArrayList<>();
+        Set<IRI> viewKinds = new HashSet<>();
+        for (ViewDisplay vd : allDisplays) {
+            IRI kind = vd.getViewKindIri();
+            if (kind != null) {
+                if (viewKinds.contains(kind)) continue;
+                viewKinds.add(kind);
+            }
+            if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) continue;
+
+            if (!toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                // skip (deprecated top-level-only display in part context)
+            } else if (vd.appliesTo(resourceId, partClasses)) {
+                filtered.add(vd);
+            } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
+                filtered.add(vd); // deprecated fallback
+            }
+        }
+        Collections.sort(filtered);
+        return filtered;
     }
 
     /**
