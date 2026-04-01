@@ -225,7 +225,7 @@ class DownloadRdfPageTest {
     class FormatMapsTest {
 
         @Test
-        @DisplayName("FORMAT_MAP should contain all four supported formats")
+        @DisplayName("FORMAT_MAP should contain all supported formats")
         void formatMapComplete() throws Exception {
             var field = DownloadRdfPage.class.getDeclaredField("FORMAT_MAP");
             field.setAccessible(true);
@@ -236,7 +236,10 @@ class DownloadRdfPageTest {
             assertEquals(RDFFormat.TRIX, map.get("trix"));
             assertEquals(RDFFormat.JSONLD, map.get("jsonld"));
             assertEquals(RDFFormat.NQUADS, map.get("nq"));
-            assertEquals(4, map.size());
+            assertEquals(RDFFormat.TURTLE, map.get("turtle"));
+            assertEquals(RDFFormat.NTRIPLES, map.get("nt"));
+            assertEquals(RDFFormat.RDFXML, map.get("rdfxml"));
+            assertEquals(7, map.size());
         }
 
         @Test
@@ -251,7 +254,10 @@ class DownloadRdfPageTest {
             assertEquals(".xml", map.get("trix"));
             assertEquals(".jsonld", map.get("jsonld"));
             assertEquals(".nq", map.get("nq"));
-            assertEquals(4, map.size());
+            assertEquals(".ttl", map.get("turtle"));
+            assertEquals(".nt", map.get("nt"));
+            assertEquals(".rdf", map.get("rdfxml"));
+            assertEquals(7, map.size());
         }
     }
 

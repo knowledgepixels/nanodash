@@ -26,6 +26,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFWriter;
+import org.eclipse.rdf4j.rio.Rio;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.services.ApiResponse;
@@ -67,14 +69,20 @@ public class DownloadRdfPage extends WebPage {
             "trig", RDFFormat.TRIG,
             "trix", RDFFormat.TRIX,
             "jsonld", RDFFormat.JSONLD,
-            "nq", RDFFormat.NQUADS
+            "nq", RDFFormat.NQUADS,
+            "turtle", RDFFormat.TURTLE,
+            "nt", RDFFormat.NTRIPLES,
+            "rdfxml", RDFFormat.RDFXML
     );
 
     private static final Map<String, String> EXTENSION_MAP = Map.of(
             "trig", ".trig",
             "trix", ".xml",
             "jsonld", ".jsonld",
-            "nq", ".nq"
+            "nq", ".nq",
+            "turtle", ".ttl",
+            "nt", ".nt",
+            "rdfxml", ".rdf"
     );
 
     public DownloadRdfPage(final PageParameters parameters) {
@@ -84,6 +92,7 @@ public class DownloadRdfPage extends WebPage {
         String id = parameters.get("id").toString();
         String format = parameters.get("format").toString("trig");
         boolean asText = !parameters.get("txt").isNull();
+        boolean assertionsOnly = !parameters.get("assertions").isNull();
 
         if (type == null || id == null) {
             throw new IllegalArgumentException("Parameters 'type' and 'id' are required");
@@ -91,7 +100,7 @@ public class DownloadRdfPage extends WebPage {
 
         RDFFormat rdfFormat = FORMAT_MAP.get(format);
         if (rdfFormat == null) {
-            throw new IllegalArgumentException("Unsupported format: " + format + ". Supported: trig, trix, jsonld, nq");
+            throw new IllegalArgumentException("Unsupported format: " + format);
         }
 
         // Resolve the resource and collect nanopubs
@@ -102,13 +111,15 @@ public class DownloadRdfPage extends WebPage {
                     type, id, MAX_NANOPUBS);
         }
 
-        logger.info("Serving RDF download: {} nanopubs in {} format for {} {}", nanopubs.size(), format, type, id);
+        logger.info("Serving RDF download: {} nanopubs in {} format ({}) for {} {}",
+                nanopubs.size(), format, assertionsOnly ? "assertions only" : "full", type, id);
 
         // Build filename from the resource label or ID
         String safeId = id.replaceAll("[^a-zA-Z0-9_-]", "_");
         if (safeId.length() > 60) safeId = safeId.substring(safeId.length() - 60);
         String extension = EXTENSION_MAP.get(format) + (asText ? ".txt" : "");
-        String filename = type + "_" + safeId + extension;
+        String prefix = assertionsOnly ? "assertions_" : "";
+        String filename = prefix + type + "_" + safeId + extension;
 
         // When txt parameter is present, serve as text/plain so it always displays in browser
         String contentType = asText ? "text/plain; charset=utf-8" : rdfFormat.getDefaultMIMEType();
@@ -116,7 +127,9 @@ public class DownloadRdfPage extends WebPage {
         AbstractResourceStreamWriter stream = new AbstractResourceStreamWriter() {
             @Override
             public void write(OutputStream output) throws IOException {
-                if (rdfFormat == RDFFormat.JSONLD) {
+                if (assertionsOnly) {
+                    writeAssertions(output, nanopubs, rdfFormat);
+                } else if (rdfFormat == RDFFormat.JSONLD) {
                     writeJsonLdArray(output, nanopubs);
                 } else {
                     for (Nanopub np : nanopubs) {
@@ -382,6 +395,24 @@ public class DownloadRdfPage extends WebPage {
         output.write('\n');
         output.write(']');
         output.write('\n');
+    }
+
+    /**
+     * Writes only the assertion statements from all nanopubs as a single RDF document.
+     */
+    private void writeAssertions(OutputStream output, List<Nanopub> nanopubs, RDFFormat format) throws IOException {
+        RDFWriter writer = Rio.createWriter(format, output);
+        writer.startRDF();
+        for (Nanopub np : nanopubs) {
+            try {
+                for (Statement st : np.getAssertion()) {
+                    writer.handleStatement(st);
+                }
+            } catch (Exception ex) {
+                logger.error("Error extracting assertions from nanopub {}: {}", np.getUri(), ex.getMessage());
+            }
+        }
+        writer.endRDF();
     }
 
     private void addNanopub(Map<String, Nanopub> collected, Nanopub np) {
