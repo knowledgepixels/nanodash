@@ -46,7 +46,10 @@ public class QueryList extends Panel {
         List<GrlcQuery> queries = new ArrayList<>();
         for (ApiResponseEntry e : resp.getData()) {
             try {
-                queries.add(GrlcQuery.get(e.get("np")));
+                GrlcQuery q = GrlcQuery.get(e.get("np"));
+                if (q != null) {
+                    queries.add(q);
+                }
             } catch (Exception ex) {
                 logger.error("Error processing query nanopub: {}", ex.getMessage());
             }
