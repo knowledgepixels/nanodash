@@ -73,6 +73,7 @@ public class MaintainedResourcePage extends NanodashPage {
                         .set("param_appliesToResource", resource.getId())
                         .set("refresh-upon-publish", resource.getId())
         ).setVisible(isAdmin));
+        add(new DownloadRdfLinks("download-rdf", "resource", resource.getId()));
 
         if (resource.isDataInitialized()) {
             add(new ViewList("views", resource));

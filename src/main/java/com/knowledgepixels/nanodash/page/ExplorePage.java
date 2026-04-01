@@ -242,6 +242,15 @@ public class ExplorePage extends NanodashPage {
             raw.add(new ExternalLink("jsonld", url + ".jsonld"));
             raw.add(new ExternalLink("nq", url + ".nq"));
             raw.add(new ExternalLink("xml", url + ".xml"));
+            String npUri = np.getUri().stringValue();
+            raw.add(createAssertionLink("a-turtle", npUri, "turtle", false));
+            raw.add(createAssertionLink("a-turtle-txt", npUri, "turtle", true));
+            raw.add(createAssertionLink("a-jsonld", npUri, "jsonld", false));
+            raw.add(createAssertionLink("a-jsonld-txt", npUri, "jsonld", true));
+            raw.add(createAssertionLink("a-nt", npUri, "nt", false));
+            raw.add(createAssertionLink("a-nt-txt", npUri, "nt", true));
+            raw.add(createAssertionLink("a-rdfxml", npUri, "rdfxml", false));
+            raw.add(createAssertionLink("a-rdfxml-txt", npUri, "rdfxml", true));
             nanopubSection.add(raw);
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
                 nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
@@ -314,6 +323,18 @@ public class ExplorePage extends NanodashPage {
             }
         }
         super.onBeforeRender();
+    }
+
+    private BookmarkablePageLink<Void> createAssertionLink(String wicketId, String npUri, String format, boolean txt) {
+        PageParameters params = new PageParameters()
+                .set("type", "np")
+                .set("id", npUri)
+                .set("format", format)
+                .set("assertions", "");
+        if (txt) {
+            params.set("txt", "");
+        }
+        return new BookmarkablePageLink<>(wicketId, DownloadRdfPage.class, params);
     }
 
 }

@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.component.DownloadRdfLinks;
 import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.AttributeModifier;
@@ -245,6 +246,22 @@ public class ListPage extends NanodashPage {
         dateFilterContainer.add(clearStartDate, clearEndDate, startDatePicker, endDatePicker);
 
         add(typeFilterContainer, userFilterContainer, dateFilterContainer);
+
+        // Build download link parameters from current filters
+        PageParameters downloadParams = new PageParameters().set("type", "list");
+        if (!types.isEmpty()) {
+            downloadParams.set("filtertype", types.getFirst().stringValue());
+        }
+        if (userId != null) {
+            downloadParams.set("userid", userId.stringValue());
+        }
+        if (startDate != null) {
+            downloadParams.set("starttime", startDate.toInstant().toString());
+        }
+        if (endDate != null) {
+            downloadParams.set("endtime", endDate.toInstant().toString());
+        }
+        add(new DownloadRdfLinks("download-rdf", downloadParams));
 
         refresh();
     }
