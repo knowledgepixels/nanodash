@@ -213,7 +213,11 @@ public class DownloadRdfPage extends WebPage {
                 collectListNanopubs(collected, parameters);
                 return new ArrayList<>(collected.values());
             }
-            default -> throw new IllegalArgumentException("Unknown type: " + type + ". Supported: user, space, resource, part, list");
+            case "np" -> {
+                fetchAndAdd(collected, id);
+                return new ArrayList<>(collected.values());
+            }
+            default -> throw new IllegalArgumentException("Unknown type: " + type);
         }
 
         // Collect nanopubs from view query results (but not the view display definitions themselves)
