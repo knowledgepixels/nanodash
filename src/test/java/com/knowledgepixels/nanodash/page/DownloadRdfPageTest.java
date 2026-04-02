@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
@@ -317,6 +318,54 @@ class DownloadRdfPageTest {
         @DisplayName("MOUNT_PATH should be /download-rdf")
         void mountPath() {
             assertEquals("/download-rdf", DownloadRdfPage.MOUNT_PATH);
+        }
+    }
+
+    @Nested
+    @DisplayName("UTF-8 encoding")
+    class Utf8EncodingTest {
+
+        @Test
+        @DisplayName("all format content types should include charset=utf-8")
+        void allFormatsIncludeUtf8Charset() throws Exception {
+            var field = DownloadRdfPage.class.getDeclaredField("FORMAT_MAP");
+            field.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, RDFFormat> formatMap = (Map<String, RDFFormat>) field.get(null);
+
+            for (var entry : formatMap.entrySet()) {
+                String format = entry.getKey();
+                RDFFormat rdfFormat = entry.getValue();
+                // Mirrors content type construction from the constructor
+                String contentType = rdfFormat.getDefaultMIMEType() + "; charset=utf-8";
+                assertTrue(contentType.toLowerCase().contains("charset=utf-8"),
+                        "Format '" + format + "' content type should specify UTF-8 charset but got: " + contentType);
+            }
+        }
+
+        @Test
+        @DisplayName("writeAssertions should preserve non-ASCII characters like em dash")
+        void writeAssertionsPreservesNonAscii() throws Exception {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            NanopubCreator creator = TestUtils.getNanopubCreator();
+            IRI subject = TestUtils.vf.createIRI("http://example.org/s");
+            IRI predicate = TestUtils.vf.createIRI("http://example.org/p");
+            creator.addAssertionStatements(TestUtils.vf.createStatement(
+                    subject, predicate, TestUtils.vf.createLiteral("before \u2014 after")));
+            TestUtils.fillProvenanceGraph(creator);
+            TestUtils.fillPubInfoGraph(creator);
+            Nanopub np = creator.finalizeNanopub();
+
+            invokePrivate("writeAssertions",
+                    new Class[]{OutputStream.class, List.class, RDFFormat.class},
+                    out, List.of(np), RDFFormat.TURTLE);
+
+            String result = out.toString("UTF-8");
+            assertTrue(result.contains("\u2014"),
+                    "Output should contain the em dash character (\u2014)");
+            assertFalse(result.contains("\u00E2\u0080\u0094"),
+                    "Output should not contain UTF-8 bytes misinterpreted as Latin-1");
         }
     }
 }

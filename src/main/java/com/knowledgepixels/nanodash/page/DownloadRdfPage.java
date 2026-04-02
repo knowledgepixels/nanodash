@@ -131,7 +131,7 @@ public class DownloadRdfPage extends WebPage {
         }
 
         // When txt parameter is present, serve as text/plain so it always displays in browser
-        String contentType = asText ? "text/plain; charset=utf-8" : rdfFormat.getDefaultMIMEType();
+        String contentType = asText ? "text/plain; charset=utf-8" : rdfFormat.getDefaultMIMEType() + "; charset=utf-8";
 
         AbstractResourceStreamWriter stream = new AbstractResourceStreamWriter() {
             @Override
