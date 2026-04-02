@@ -160,6 +160,7 @@ public class DownloadRdfPage extends WebPage {
 
         ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(stream, filename);
         handler.setContentDisposition(ContentDisposition.INLINE);
+        handler.setCacheDuration(java.time.Duration.ZERO);
         getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);
     }
 
