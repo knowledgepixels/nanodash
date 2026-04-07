@@ -1,3 +1,15 @@
+## [4.23.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.23.0...nanodash-4.23.1) (2026-04-07)
+
+### Bug Fixes
+
+* add charset=utf-8 to RDF download content type ([f5cb026](https://github.com/knowledgepixels/nanodash/commit/f5cb026e95afdaa414020d4bcdbc000d532f9e38))
+* prevent browser caching of RDF download responses ([f4789b8](https://github.com/knowledgepixels/nanodash/commit/f4789b889b95ae7d368b21b5b5b739f690590247))
+* update get-newer-versions-of-np query to latest version ([ef5ffed](https://github.com/knowledgepixels/nanodash/commit/ef5ffed76572ee0faaf2eb577c9405c82d79b36b))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([b8bf1de](https://github.com/knowledgepixels/nanodash/commit/b8bf1ded152959ec6603029d1bcc1cd92c4c9435))
+
 ## [4.23.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.22.0...nanodash-4.23.0) (2026-04-01)
 
 ### Features
