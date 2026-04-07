@@ -46,7 +46,7 @@ public class QueryApiAccess {
     public static final String FIND_REFERENCING_NANOPUBS = "RAJStXEm1wZcg34ZLPqe00VPSzIVCwC2rrxdj_JR8v5DY/find-referencing-nanopubs";
     public static final String GET_LABELS_FOR_THING = "RAtftxAXJubB4rlm9fOvvHNVIkXvWQLC6Ag_MiV7HL0ow/get-labels-for-thing";
     public static final String GET_TEMPLATES_WITH_URI = "RARtWHRzNY5hh31X2VB5eOCJAdp9Cjv4CakA0Idqz69MI/get-templates-with-uri";
-    public static final String GET_NEWER_VERSIONS_OF_NP = "RAIn9NTsWE0qrpKiK3nOmZRXVzwv0qnfbm7dR_CUnp4aA/get-newer-versions-of-np";
+    public static final String GET_NEWER_VERSIONS_OF_NP = "RAqmmNSxQaRNWRYH0o4Da3GSOwvoFLObhXfAGUCOqEtfw/get-newer-versions-of-np";
     public static final String GET_QUERIES = "RAQqjXQYlxYQeI4Y3UQy9OrD5Jx1E3PJ8KwKKQlWbiYSw/get-queries";
     public static final String GET_LATEST_THING_NANOPUB = "RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub";
     public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
