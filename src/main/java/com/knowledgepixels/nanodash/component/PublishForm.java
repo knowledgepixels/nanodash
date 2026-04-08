@@ -430,7 +430,7 @@ public class PublishForm extends Panel {
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
-                    String npUrl = PublishNanopub.publish(signedNp);
+                    String npUrl = PublishNanopub.publish(signedNp, Utils.getMainRegistryUrl());
                     logger.info("Nanopublication published: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                 } catch (Exception ex) {
