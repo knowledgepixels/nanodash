@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -87,6 +88,27 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("refresh-upon-publish", pageResource.getId()));
         deactivateLink.setVisible(showAdjust);
         addEntry("deactivate", deactivateLink);
+
+        boolean showAddToOwn = session.getUserIri() != null
+                && pageResource instanceof IndividualAgent ia && !ia.isCurrentUser();
+        String addToOwnUrl = "";
+        if (showAddToOwn) {
+            String userIri = session.getUserIri().stringValue();
+            String viewIri = viewDisplay.getViewIri().stringValue();
+            if (viewDisplay.getView() != null && viewDisplay.getView().getLabel() != null) {
+                GuidedChoiceItem.setLabel(viewIri, viewDisplay.getView().getLabel());
+            }
+            addToOwnUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode("https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g")
+                    + "&template-version=latest"
+                    + "&param_resource=" + Utils.urlEncode(userIri)
+                    + "&param_view=" + Utils.urlEncode(viewIri)
+                    + "&context=" + Utils.urlEncode(userIri)
+                    + "&refresh-upon-publish=" + Utils.urlEncode(userIri)
+                    + "&param_appliesToResource=" + Utils.urlEncode(userIri);
+        }
+        ExternalLink addToOwnLink = new ExternalLink("addToOwn", addToOwnUrl, "add to my own profile...");
+        addToOwnLink.setVisible(showAddToOwn);
+        addEntry("addToOwn", addToOwnLink);
 
         Link<Void> refreshLink = new Link<>("refreshNow") {
             @Override

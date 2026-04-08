@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -46,6 +47,7 @@ public class ProfileIntroItem extends Panel {
     public ProfileIntroItem(String id) {
         super(id);
 
+        String userPageUrl = UserPage.MOUNT_PATH + "?id=" + urlEncode(session.getUserIri());
         String publishIntroLinkString = PublishPage.MOUNT_PATH +
                                         "?template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
                                         "param_user=" + urlEncode(session.getUserIri()) + "&" +
@@ -54,6 +56,7 @@ public class ProfileIntroItem extends Panel {
                                         "param_key-declaration=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
                                         "param_key-declaration-ref=" + urlEncode(Utils.getShortPubkeyName(session.getPubkeyString())) + "&" +
                                         "param_key-location=" + urlEncode(prefs.getWebsiteUrl()) + "&" +
+                                        "postpub-redirect-url=" + urlEncode(userPageUrl) + "&" +
                                         "link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
                                                                     "introduction linking your ORCID identifier to the local key used on this site.");
 

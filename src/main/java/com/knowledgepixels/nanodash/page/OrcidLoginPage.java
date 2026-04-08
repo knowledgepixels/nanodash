@@ -122,6 +122,10 @@ public class OrcidLoginPage extends WebPage {
         if (redirectUrl != null) {
             redirectCache.invalidate(redirectHash);
         }
+        NanodashSession session = NanodashSession.get();
+        if (session.getLocalIntroCount() == 0 && redirectUrl == null) {
+            redirectUrl = ProfilePage.MOUNT_PATH;
+        }
         throw new RedirectToUrlException(redirectUrl);
     }
 
