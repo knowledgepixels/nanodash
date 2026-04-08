@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.page;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -119,11 +117,8 @@ public class SearchPage extends NanodashPage {
 
         form.add(ownFilter);
 
-        // TODO: Progress bar doesn't update at the moment:
         progress = new Model<>();
         final Label progressLabel = new Label("progress", progress);
-        progressLabel.setOutputMarkupId(true);
-        progressLabel.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(1000)));
         add(progressLabel);
 
         if (searchText == null || searchText.isEmpty()) {
