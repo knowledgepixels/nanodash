@@ -146,6 +146,10 @@ public class DownloadRdfPage extends WebPage {
                             NanopubUtils.writeToStream(np, output, rdfFormat);
                             output.write('\n');
                         } catch (Exception ex) {
+                            if (ex.toString().contains("ClientAbortException") || ex.toString().contains("Broken pipe")) {
+                                logger.debug("Client disconnected during RDF download");
+                                break;
+                            }
                             logger.error("Error serializing nanopub {}: {}", np.getUri(), ex.getMessage());
                         }
                     }
@@ -456,6 +460,10 @@ public class DownloadRdfPage extends WebPage {
                 NanopubUtils.writeToStream(np, output, RDFFormat.JSONLD);
                 first = false;
             } catch (Exception ex) {
+                if (ex.toString().contains("ClientAbortException") || ex.toString().contains("Broken pipe")) {
+                    logger.debug("Client disconnected during JSON-LD download");
+                    break;
+                }
                 logger.error("Error serializing nanopub {}: {}", np.getUri(), ex.getMessage());
             }
         }
