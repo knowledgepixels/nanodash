@@ -1,3 +1,17 @@
+## [4.24.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.23.1...nanodash-4.24.0) (2026-04-08)
+
+### Features
+
+* redirect to profile page after login if no intro published, add "add to my own profile" to view display menus ([92e5bd1](https://github.com/knowledgepixels/nanodash/commit/92e5bd111fdf119dbe7abf373fdeeae04b199ad5))
+
+### Bug Fixes
+
+* remove AjaxSelfUpdatingTimerBehavior causing repeated GET requests on search page ([6853efd](https://github.com/knowledgepixels/nanodash/commit/6853efdf85629621582a20141fc6082fe89813f5)), closes [#432](https://github.com/knowledgepixels/nanodash/issues/432)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([4cecf6d](https://github.com/knowledgepixels/nanodash/commit/4cecf6d5359afc6e3fec4cdf81997dd3507023b1))
+
 ## [4.23.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.23.0...nanodash-4.23.1) (2026-04-07)
 
 ### Bug Fixes
