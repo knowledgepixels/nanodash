@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
@@ -64,7 +66,12 @@ public class TemplateFormPreview extends Panel {
         // Pubinfo contexts
         List<TemplateContext> pubInfoContexts = new ArrayList<>();
         pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, PublishForm.CREATOR_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace));
-        pubInfoContexts.add(new TemplateContext(ContextType.PUBINFO, PublishForm.LICENSE_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace));
+        TemplateContext licenseContext = new TemplateContext(ContextType.PUBINFO, PublishForm.LICENSE_PUB_INFO_TEMPLATE, "pi-statement", targetNamespace);
+        IRI defaultLicense = User.getDefaultLicense(NanodashSession.get().getUserIri());
+        if (defaultLicense != null) {
+            licenseContext.setParam("license", defaultLicense.stringValue());
+        }
+        pubInfoContexts.add(licenseContext);
         for (IRI r : template.getRequiredPubInfoElements()) {
             String rId = r.stringValue();
             boolean alreadyAdded = false;

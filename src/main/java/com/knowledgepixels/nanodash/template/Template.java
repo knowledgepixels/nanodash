@@ -1,10 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.LookupApis;
-import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.PublishForm;
-import com.knowledgepixels.nanodash.domain.User;
 import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.model.*;
@@ -758,9 +755,6 @@ public class Template implements Serializable {
                     statementOrder.put(subj, Integer.valueOf(objS));
                 }
             }
-            if (subj.equals(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "/license"))) {
-                processDefaultLicense();
-            }
         }
 //		List<IRI> assertionTypes = typeMap.get(templateIri);
 //		if (assertionTypes == null || (!assertionTypes.contains(NTEMPLATE.ASSERTION_TEMPLATE) &&
@@ -776,16 +770,6 @@ public class Template implements Serializable {
         }
         for (List<IRI> l : statementMap.values()) {
             l.sort(statementComparator);
-        }
-    }
-
-    /**
-     * Processes the default license for the template by retrieving it from the user's profile and adding it to the default values if it exists.
-     */
-    private void processDefaultLicense() {
-        IRI licenseUrl = User.getDefaultLicense(NanodashSession.get().getUserIri());
-        if (licenseUrl != null) {
-            defaultValues.put(vf.createIRI(PublishForm.LICENSE_PUB_INFO_TEMPLATE + "/license"), licenseUrl);
         }
     }
 
