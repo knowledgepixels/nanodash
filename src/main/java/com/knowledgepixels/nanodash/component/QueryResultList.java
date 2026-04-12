@@ -15,7 +15,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -94,10 +93,10 @@ public class QueryResultList extends QueryResult {
                             String templateLabel = entry.get(key + "_label");
                             String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
                             String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
-                            ExternalLink templateLink = new ExternalLink("component", templateUrl, displayLabel);
+                            String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
-                                    templateLink)));
+                                    new Label("component", linkHtml).setEscapeModelStrings(false))));
                         } else if (key.endsWith("_multi_iri")) {
                             String[] uris = entryValue.split("\\s+");
                             String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
