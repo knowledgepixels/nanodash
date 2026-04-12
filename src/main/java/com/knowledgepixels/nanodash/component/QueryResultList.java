@@ -90,9 +90,15 @@ public class QueryResultList extends QueryResult {
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
                                     new NanodashLink("component", entryValue, null, null, entry.get(key + "_label"), contextId))));
                         } else if (key.endsWith("template_iri")) {
+                            String templateLabel = entry.get(key + "_label");
+                            PageParameters tParams = new PageParameters()
+                                    .set("template", entryValue)
+                                    .set("template-version", "latest");
+                            BookmarkablePageLink<NanodashPage> templateLink = new BookmarkablePageLink<>("component", PublishPage.class, tParams);
+                            templateLink.setBody(Model.of(templateLabel != null ? templateLabel : entryValue));
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
-                                    new NanodashLink("component", entryValue, null, null, entry.get(key + "_label"), contextId))));
+                                    templateLink)));
                         } else if (key.endsWith("_multi_iri")) {
                             String[] uris = entryValue.split("\\s+");
                             String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
