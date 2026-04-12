@@ -15,6 +15,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -91,11 +92,9 @@ public class QueryResultList extends QueryResult {
                                     new NanodashLink("component", entryValue, null, null, entry.get(key + "_label"), contextId))));
                         } else if (key.endsWith("template_iri")) {
                             String templateLabel = entry.get(key + "_label");
-                            PageParameters tParams = new PageParameters()
-                                    .set("template", entryValue)
-                                    .set("template-version", "latest");
-                            BookmarkablePageLink<NanodashPage> templateLink = new BookmarkablePageLink<>("component", PublishPage.class, tParams);
-                            templateLink.setBody(Model.of(templateLabel != null ? templateLabel : entryValue));
+                            String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
+                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
+                            ExternalLink templateLink = new ExternalLink("component", templateUrl, displayLabel);
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
                                     templateLink)));
