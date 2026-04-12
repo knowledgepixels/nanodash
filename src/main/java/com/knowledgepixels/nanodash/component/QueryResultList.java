@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
@@ -86,9 +87,13 @@ public class QueryResultList extends QueryResult {
                             } else {
                                 imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/user-icon.svg", false), null).toString();
                             }
+                            String userLabel = entry.get(key + "_label");
+                            String displayLabel = userLabel != null && !userLabel.isBlank() ? userLabel : User.getShortDisplayName(userIri);
+                            String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            String linkHtml = "<a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
-                                    new NanodashLink("component", entryValue, null, null, entry.get(key + "_label"), contextId))));
+                                    new Label("component", linkHtml).setEscapeModelStrings(false))));
                         } else if (key.endsWith("template_iri")) {
                             String templateLabel = entry.get(key + "_label");
                             String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
