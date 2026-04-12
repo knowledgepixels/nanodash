@@ -97,6 +97,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         addEntry("deactivate", deactivateLink);
 
         boolean showAddToOwn = session.getUserIri() != null
+                && viewDisplay.getViewIri() != null
                 && pageResource instanceof IndividualAgent ia && !ia.isCurrentUser();
         String addToOwnUrl = "";
         if (showAddToOwn) {
