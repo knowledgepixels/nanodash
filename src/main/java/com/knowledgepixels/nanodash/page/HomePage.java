@@ -2,21 +2,10 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
-import com.knowledgepixels.nanodash.domain.User;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The home page of Nanodash, which shows the most recent nanopublications
@@ -88,41 +77,19 @@ public class HomePage extends NanodashPage {
                 .add(AttributeModifier.remove("class"))
         );
 
-        View topCreatorsView = View.get("https://w3id.org/np/RAuv15ISgaPadgIj_LCSQNd2QRKmMcPulun6NyiblzEOs/top-creators-last-30days");
-        add(new DataView<ViewDisplay>("topCreators", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(topCreatorsView)))) {
+        View topCreatorsView = View.get("https://w3id.org/np/RACcywnbkn6OAd_6E25qZL9-vdO-UwmpO1vXVWzNWJYLo/top-creators-last-30days");
+        QueryRef cQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("topCreators", cQueryRef, new ViewDisplay(topCreatorsView))
+                .build()
+                .add(AttributeModifier.remove("class"))
+        );
 
-            @Override
-            protected void populateItem(Item<ViewDisplay> item) {
-                item.add(new ItemListPanel<IRI>(
-                        "creatorsView",
-                        topCreatorsView.getTitle(),
-                        new QueryRef(topCreatorsView.getQuery().getQueryId()),
-                        (apiResponse) -> {
-                            List<IRI> users = new ArrayList<>();
-                            for (ApiResponseEntry e : apiResponse.getData()) {
-                                users.add(Utils.vf.createIRI(e.get("userid")));
-                            }
-                            return users;
-                        },
-                        (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri))
-                ));
-            }
-        });
-
-        View getStartedView = View.get("https://w3id.org/np/RAx2ljM4FrwsW9evtQj5LJWlL21tJR3Z-b__PdOpws2lY/suggested-templates-get-started");
-        add(new DataView<ViewDisplay>("getStartedTemplates", new ListDataProvider<ViewDisplay>(List.of(new ViewDisplay(topCreatorsView)))) {
-
-            @Override
-            protected void populateItem(Item<ViewDisplay> item) {
-                item.add(new ItemListPanel<Template>(
-                        "getStartedTemplatesView",
-                        getStartedView.getTitle(),
-                        new QueryRef(getStartedView.getQuery().getQueryId()),
-                        TemplateData::getTemplateList,
-                        (template) -> new TemplateItem("item", template)
-                ));
-            }
-        });
+        View getStartedView = View.get("https://w3id.org/np/RAxs0UPoSkbNM-BZg15PeqClvXDFYOFFA4uCTUmoJR04U/suggested-templates-get-started");
+        QueryRef gQueryRef = new QueryRef(getStartedView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("getStartedTemplates", gQueryRef, new ViewDisplay(getStartedView))
+                .build()
+                .add(AttributeModifier.remove("class"))
+        );
 
     }
 

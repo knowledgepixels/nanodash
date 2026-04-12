@@ -43,6 +43,9 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         }
         addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams));
 
+        addEntry("showView", new BookmarkablePageLink<Void>("showView", ExplorePage.class,
+                new PageParameters().set("id", viewDisplay.getView().getNanopub().getUri())));
+
         IRI nanopubId = viewDisplay.getNanopubId();
 
         // Determine whether "adjust" should be visible for this user on this page
@@ -61,19 +64,23 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
             }
         }
 
-        // Determine supersede vs derive based on whether this user's pubkey matches the nanopub's
-        String nanopubPubkey = NanopubElement.get(viewDisplay.getNanopub()).getPubkey();
-        String sessionPubkey = session.getPubkeyString();
-        String adjustParam = (nanopubPubkey != null && nanopubPubkey.equals(sessionPubkey))
-                ? "supersede" : "derive";
-
-        IRI templateId = TemplateData.get().getTemplateId(viewDisplay.getNanopub());
-        String templateUri = templateId != null ? templateId.stringValue()
-                : "http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA";
-        String adjustUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(templateUri)
-                + "&" + adjustParam + "=" + Utils.urlEncode(nanopubId.stringValue())
-                + "&template-version=latest"
-                + "&context=" + Utils.urlEncode(pageResource.getId());
+        // Determine supersede vs derive based on whether this user's pubkey matches the nanopub's.
+        // These are only needed when showAdjust is true (i.e. pageResource is non-null).
+        String adjustUrl = "";
+        String pageResourceId = pageResource != null ? pageResource.getId() : "";
+        if (showAdjust) {
+            String nanopubPubkey = NanopubElement.get(viewDisplay.getNanopub()).getPubkey();
+            String sessionPubkey = session.getPubkeyString();
+            String adjustParam = (nanopubPubkey != null && nanopubPubkey.equals(sessionPubkey))
+                    ? "supersede" : "derive";
+            IRI templateId = TemplateData.get().getTemplateId(viewDisplay.getNanopub());
+            String templateUri = templateId != null ? templateId.stringValue()
+                    : "http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA";
+            adjustUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(templateUri)
+                    + "&" + adjustParam + "=" + Utils.urlEncode(nanopubId.stringValue())
+                    + "&template-version=latest"
+                    + "&context=" + Utils.urlEncode(pageResourceId);
+        }
         ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
         adjustLink.setVisible(showAdjust);
         addEntry("adjust", adjustLink);
@@ -82,10 +89,10 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                 new PageParameters()
                         .set("template", "https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4")
                         .set("template-version", "latest")
-                        .set("param_resource", pageResource.getId())
+                        .set("param_resource", pageResourceId)
                         .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
-                        .set("context", pageResource.getId())
-                        .set("refresh-upon-publish", pageResource.getId()));
+                        .set("context", pageResourceId)
+                        .set("refresh-upon-publish", pageResourceId));
         deactivateLink.setVisible(showAdjust);
         addEntry("deactivate", deactivateLink);
 
@@ -120,8 +127,10 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         refreshLink.setVisible(session.getUserIri() != null);
         addEntry("refreshNow", refreshLink);
 
-        addEntry("viewDeclaration", new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
-                new PageParameters().set("id", nanopubId)));
+        BookmarkablePageLink<Void> viewDeclarationLink = new BookmarkablePageLink<>("viewDeclaration", ExplorePage.class,
+                new PageParameters().set("id", nanopubId));
+        viewDeclarationLink.setVisible(viewDisplay.getId() != null);
+        addEntry("viewDeclaration", viewDeclarationLink);
     }
 
 }
