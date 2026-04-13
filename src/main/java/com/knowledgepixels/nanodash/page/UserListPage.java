@@ -1,19 +1,18 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.ItemListElement;
 import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.QueryResultListBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,34 +59,13 @@ public class UserListPage extends NanodashPage {
 //
 //		});
 
-        add(new ItemListPanel<IRI>(
-                "topcreators",
-                "🔥 Most Active Nanopublishers Last Month",
-                new QueryRef(QueryApiAccess.GET_TOP_CREATORS_LAST30D),
-                (apiResponse) -> {
-                    List<IRI> users = new ArrayList<>();
-                    for (ApiResponseEntry e : apiResponse.getData()) {
-                        users.add(Utils.vf.createIRI(e.get("userid")));
-                    }
-                    return users;
-                },
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri))
-        ));
+        View topCreatorsView = View.get("https://w3id.org/np/RACcywnbkn6OAd_6E25qZL9-vdO-UwmpO1vXVWzNWJYLo/top-creators-last-30days");
+        QueryRef tcQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("topcreators", tcQueryRef, new ViewDisplay(topCreatorsView)).build());
 
-        add(new ItemListPanel<IRI>(
-                "latestusers",
-                "🆕 Latest New Users",
-                new QueryRef(QueryApiAccess.GET_LATEST_USERS),
-                (apiResponse) -> {
-                    List<IRI> users = new ArrayList<>();
-                    for (ApiResponseEntry e : apiResponse.getData()) {
-                        users.add(Utils.vf.createIRI(e.get("user")));
-                    }
-                    return users;
-                },
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
-                User::getShortDisplayName
-        ));
+        View latestUsersView = View.get("https://w3id.org/np/RAVWBxoYLQk7sa-STHN63vqUSMVZ9oiwEy6ye5rlbXGwU/latest-users");
+        QueryRef luQueryRef = new QueryRef(latestUsersView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView)).build());
 
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
