@@ -84,7 +84,7 @@ public class HomePage extends NanodashPage {
                 .add(AttributeModifier.remove("class"))
         );
 
-        View getStartedView = View.get("https://w3id.org/np/RARrw7fbTehd1bzIGQY-C9iEIFpL-0t7iURZx1whcgiGU/suggested-templates-get-started");
+        View getStartedView = View.get("https://w3id.org/np/RAeFTjDGTQ-bdulJy4tUlWzRlK8EucXFCxqLrb7Qj35SM/suggested-templates-get-started");
         QueryRef gQueryRef = new QueryRef(getStartedView.getQuery().getQueryId());
         add(QueryResultListBuilder.create("getStartedTemplates", gQueryRef, new ViewDisplay(getStartedView))
                 .build()
