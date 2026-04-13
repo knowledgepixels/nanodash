@@ -161,7 +161,7 @@ public class UserPage extends NanodashPage {
             }
             add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
             if (empty) {
-                ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
+                ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
                 add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
             } else {
                 add(new EmptyPanel("latestnanopubsview").setVisible(false));
@@ -172,7 +172,7 @@ public class UserPage extends NanodashPage {
             unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
             add(unconfiguredNotice);
 
-            ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAjYa33Z3H1whRl486AW3LMnV11WQqkTqvuHROhKbmtlE/latest-nanopubs-example"));
+            ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
             final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
             latestNanopubsView.setVisible(false);
             latestNanopubsView.setOutputMarkupPlaceholderTag(true);
