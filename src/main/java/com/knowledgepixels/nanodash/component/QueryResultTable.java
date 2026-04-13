@@ -240,6 +240,13 @@ public class QueryResultTable extends QueryResult {
                             }
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
+                    } else if (key.endsWith("template_iri")) {
+                        String label = rowModel.getObject().get(key + "_label");
+                        if (label == null || label.isBlank()) label = value;
+                        PageParameters params = new PageParameters()
+                                .set("template", value)
+                                .set("template-version", "latest");
+                        cellItem.add(new BookmarkablePageLink<NanodashPage>(componentId, PublishPage.class, params).setBody(Model.of(label)));
                     } else if (value.matches("https?://.+")) {
                         String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
