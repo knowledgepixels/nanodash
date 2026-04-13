@@ -149,6 +149,13 @@ public class Utils {
         return URLEncoder.encode((o == null ? "" : o.toString()), Charsets.UTF_8);
     }
 
+    public static String truncateLabel(String label) {
+        if (label != null && label.length() > 120) {
+            return label.substring(0, 100) + "...";
+        }
+        return label;
+    }
+
     /**
      * URL-decodes the string representation of the given object using UTF-8 encoding.
      *

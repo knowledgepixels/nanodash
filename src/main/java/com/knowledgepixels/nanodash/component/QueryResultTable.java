@@ -276,10 +276,7 @@ public class QueryResultTable extends QueryResult {
     }
 
     private static String truncateLabel(String label) {
-        if (label != null && label.length() > 120) {
-            return label.substring(0, 100) + "...";
-        }
-        return label;
+        return Utils.truncateLabel(label);
     }
 
 }
