@@ -18,6 +18,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -243,10 +244,9 @@ public class QueryResultTable extends QueryResult {
                     } else if (key.endsWith("template_iri")) {
                         String label = rowModel.getObject().get(key + "_label");
                         if (label == null || label.isBlank()) label = value;
-                        PageParameters params = new PageParameters()
-                                .set("template", value)
-                                .set("template-version", "latest");
-                        cellItem.add(new BookmarkablePageLink<NanodashPage>(componentId, PublishPage.class, params).setBody(Model.of(label)));
+                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                        String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
+                        cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                     } else if (value.matches("https?://.+")) {
                         String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
