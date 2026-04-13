@@ -61,11 +61,11 @@ public class UserListPage extends NanodashPage {
 
         View topCreatorsView = View.get("https://w3id.org/np/RACcywnbkn6OAd_6E25qZL9-vdO-UwmpO1vXVWzNWJYLo/top-creators-last-30days");
         QueryRef tcQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("topcreators", tcQueryRef, new ViewDisplay(topCreatorsView)).build());
+        add(QueryResultListBuilder.create("topcreators", tcQueryRef, new ViewDisplay(topCreatorsView).withDisplayWidth(6)).build());
 
         View latestUsersView = View.get("https://w3id.org/np/RAtwNLvsJbz3pk_UxdKSydsghbX6D_60ivTZpDQhK-9zA/latest-users");
         QueryRef luQueryRef = new QueryRef(latestUsersView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView)).build());
+        add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView).withDisplayWidth(6)).build());
 
         add(new ItemListPanel<IRI>(
                 "approved-human-users",
