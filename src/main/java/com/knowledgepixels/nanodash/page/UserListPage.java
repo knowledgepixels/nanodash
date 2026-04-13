@@ -63,7 +63,7 @@ public class UserListPage extends NanodashPage {
         QueryRef tcQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
         add(QueryResultListBuilder.create("topcreators", tcQueryRef, new ViewDisplay(topCreatorsView)).build());
 
-        View latestUsersView = View.get("https://w3id.org/np/RAVWBxoYLQk7sa-STHN63vqUSMVZ9oiwEy6ye5rlbXGwU/latest-users");
+        View latestUsersView = View.get("https://w3id.org/np/RAYTXpoo3YtYYzzJn56fdS0g1odA7zLtwpuY8-GSncklA/latest-users");
         QueryRef luQueryRef = new QueryRef(latestUsersView.getQuery().getQueryId());
         add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView)).build());
 
