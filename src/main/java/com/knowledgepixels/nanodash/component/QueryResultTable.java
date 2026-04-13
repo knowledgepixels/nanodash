@@ -10,6 +10,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
@@ -119,7 +120,7 @@ public class QueryResultTable extends QueryResult {
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
-            table.addTopToolbar(new HeadersToolbar<String>(table, dataProvider));
+            table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             add(table);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
@@ -266,32 +267,5 @@ public class QueryResultTable extends QueryResult {
         }
 
     }
-
-//    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
-//
-//        private SortParam<String> sortParam;
-//
-//        public ApiResponseComparator(SortParam<String> sortParam) {
-//            this.sortParam = sortParam;
-//        }
-//
-//        @Override
-//        public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
-//            String p = sortParam.getProperty();
-//            int result;
-//            if (o1.get(p) == null && o2.get(p) == null) {
-//                result = 0;
-//            } else if (o1.get(p) == null) {
-//                result = 1;
-//            } else if (o2.get(p) == null) {
-//                result = -1;
-//            } else {
-//                result = o1.get(p).compareTo(o2.get(p));
-//            }
-//            if (!sortParam.isAscending()) result = -result;
-//            return result;
-//        }
-//
-//    }
 
 }
