@@ -13,8 +13,8 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.template.TemplateData;
 
 import jakarta.xml.bind.DatatypeConverter;
@@ -33,21 +33,13 @@ public class TemplateList extends Panel {
         super(id);
         setOutputMarkupId(true);
 
-        add(new ItemListPanel<Template>(
-                "popular-templates",
-                "⭐ Popular Templates",
-                new QueryRef(QueryApiAccess.GET_MOST_USED_TEMPLATES_LAST30D),
-                TemplateData::getTemplateList,
-                (template) -> new TemplateItem("item", template)
-        ));
+        View popularTemplatesView = View.get("https://w3id.org/np/RAYMZEdmvjIS5QGFASa8L5hygapUlvK3feZBpG6quMYqc/popular-templates");
+        QueryRef ptQueryRef = new QueryRef(popularTemplatesView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("popular-templates", ptQueryRef, new ViewDisplay(popularTemplatesView)).build());
 
-        add(new ItemListPanel<Template>(
-                "getstarted-templates",
-                "🚀 Suggested Templates to Get Started",
-                new QueryRef(QueryApiAccess.GET_SUGGESTED_TEMPLATES_TO_GET_STARTED),
-                TemplateData::getTemplateList,
-                (template) -> new TemplateItem("item", template)
-        ));
+        View getStartedView = View.get("https://w3id.org/np/RAeFTjDGTQ-bdulJy4tUlWzRlK8EucXFCxqLrb7Qj35SM/suggested-templates-get-started");
+        QueryRef gsQueryRef = new QueryRef(getStartedView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("getstarted-templates", gsQueryRef, new ViewDisplay(getStartedView)).build());
 
         ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
         templateList.sort((t1, t2) -> {

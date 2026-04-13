@@ -35,7 +35,7 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
         }
     }
 
-    private List<ApiResponseEntry> getFilteredData() {
+    public List<ApiResponseEntry> getFilteredData() {
         if (filteredData != null) {
             return filteredData;
         }

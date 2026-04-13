@@ -62,7 +62,7 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        View mostRecentNanopubsView = View.get("https://w3id.org/np/RA85WirEeiXnxKdoL5IJMgnz9J5KcQLivapXLzTrupT6k/most-recent-nanopubs");
+        View mostRecentNanopubsView = View.get("https://w3id.org/np/RAawFcLhQOJfA9Ke1spCNkXWA68J1O-wOJrSmBdNFsAtI/most-recent-nanopubs");
         QueryRef rQueryRef = new QueryRef(mostRecentNanopubsView.getQuery().getQueryId());
         add(QueryResultNanopubSetBuilder.create("mostrecent", rQueryRef, new ViewDisplay(mostRecentNanopubsView))
                 .setItemsPerPage(5)
