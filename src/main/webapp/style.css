@@ -609,6 +609,17 @@ li:has(.templateref) {
   list-style-image: url('images/form-icon.svg');
 }
 
+li:has(.user-icon),
+li:has(.form-icon) {
+  list-style: none;
+  margin-left: -1em;
+}
+
+.users li:has(.user-icon),
+.users li:has(.form-icon) {
+  margin-left: -0.5em;
+}
+
 .sidelogo {
   margin-bottom: 50px;
 }

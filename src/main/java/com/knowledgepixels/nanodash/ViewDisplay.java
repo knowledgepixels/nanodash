@@ -43,7 +43,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      */
     public ViewDisplay(View view) {
         this.id = null;
-        this.nanopub = null;
+        this.nanopub = view.getNanopub();
         this.view = view;
     }
 

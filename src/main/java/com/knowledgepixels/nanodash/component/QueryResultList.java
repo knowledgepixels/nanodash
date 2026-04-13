@@ -1,9 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
@@ -17,7 +20,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ContextRelativeResourceReference;
+import org.apache.wicket.util.string.Strings;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -70,7 +76,33 @@ public class QueryResultList extends QueryResult {
                     }
                     String entryValue = entry.get(key);
                     if (entryValue != null && !entryValue.isBlank()) {
-                        if (key.endsWith("_multi_iri")) {
+                        if (key.endsWith("user_iri")) {
+                            IRI userIri = Utils.vf.createIRI(entryValue);
+                            IRI profilePicIri = User.getProfilePicture(userIri);
+                            String imgSrc;
+                            if (profilePicIri != null) {
+                                imgSrc = Strings.escapeMarkup(profilePicIri.stringValue()).toString();
+                            } else if (IndividualAgent.isSoftware(userIri)) {
+                                imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString();
+                            } else {
+                                imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/user-icon.svg", false), null).toString();
+                            }
+                            String userLabel = entry.get(key + "_label");
+                            String displayLabel = userLabel != null && !userLabel.isBlank() ? userLabel : User.getShortDisplayName(userIri);
+                            String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            String linkHtml = "<a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
+                            components.add(new ComponentSequence("component", " ", List.of(
+                                    new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
+                                    new Label("component", linkHtml).setEscapeModelStrings(false))));
+                        } else if (key.endsWith("template_iri")) {
+                            String templateLabel = entry.get(key + "_label");
+                            String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
+                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
+                            String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
+                            components.add(new ComponentSequence("component", " ", List.of(
+                                    new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
+                                    new Label("component", linkHtml).setEscapeModelStrings(false))));
+                        } else if (key.endsWith("_multi_iri")) {
                             String[] uris = entryValue.split("\\s+");
                             String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                             String labelValue = entry.get(labelKey);
