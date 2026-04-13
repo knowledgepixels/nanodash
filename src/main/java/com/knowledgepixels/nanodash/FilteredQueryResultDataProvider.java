@@ -8,6 +8,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -70,14 +71,16 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
         SortParam<String> sortParam = baseProvider.getSortParam();
         if (sortParam != null) {
             String prop = sortParam.getProperty();
+            String labelProp = prop + "_label";
+            String sortProp = Arrays.asList(response.getHeader()).contains(labelProp) ? labelProp : prop;
             data.sort((o1, o2) -> {
-                String v1 = o1.get(prop);
-                String v2 = o2.get(prop);
+                String v1 = o1.get(sortProp);
+                String v2 = o2.get(sortProp);
                 int result;
                 if (v1 == null && v2 == null) result = 0;
                 else if (v1 == null) result = 1;
                 else if (v2 == null) result = -1;
-                else result = v1.compareTo(v2);
+                else result = v1.compareToIgnoreCase(v2);
                 if (!sortParam.isAscending()) result = -result;
                 return result;
             });
