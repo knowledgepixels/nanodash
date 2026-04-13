@@ -10,6 +10,9 @@ services:
       - NANODASH_MAIN_QUERY=https://query.knowledgepixels.com/
       - NANODASH_UMAMI_SCRIPT_URL=https://your.umami.instance/script.js
       - NANODASH_UMAMI_WEBSITE_ID=your-umami-website-id
+      # The maintained resource whose view displays are shown on the home page.
+      # Default: https://w3id.org/spaces/knowledgepixels/nanodash/r/home
+      #- NANODASH_HOME_RESOURCE=https://w3id.org/spaces/your/resource/r/home
 
   backup-keys:
     build: ./backup-keys

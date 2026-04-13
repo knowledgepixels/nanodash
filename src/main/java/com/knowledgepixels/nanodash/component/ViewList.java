@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -184,6 +185,12 @@ public class ViewList extends Panel {
             footerSection.add(new Label("footer-buttons").setVisible(false));
         }
         add(footerSection);
+
+        add(new WebMarkupContainer("page-footer").setVisible(false));
+    }
+
+    public void setPageFooter(Component footer) {
+        replace(footer);
     }
 
 }

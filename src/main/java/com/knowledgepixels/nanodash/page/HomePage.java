@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
+import org.apache.wicket.markup.html.panel.Fragment;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
@@ -71,13 +72,17 @@ public class HomePage extends NanodashPage {
         homeResource.triggerDataUpdate();
 
         if (homeResource.isDataInitialized()) {
-            add(new ViewList("views", homeResource));
+            ViewList viewList = new ViewList("views", homeResource);
+            viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", this));
+            add(viewList);
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, homeResource);
+                    ViewList viewList = new ViewList(markupId, homeResource);
+                    viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
+                    return viewList;
                 }
 
                 @Override
