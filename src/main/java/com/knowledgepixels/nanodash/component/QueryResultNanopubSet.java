@@ -1,14 +1,19 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.FilteredQueryResultDataProvider;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.QueryResult;
+import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -22,6 +27,9 @@ public class QueryResultNanopubSet extends QueryResult {
     private static final Logger logger = LoggerFactory.getLogger(QueryResultNanopubSet.class);
     private final WebMarkupContainer viewSelector;
     private final long itemsPerPage;
+    private FilteredQueryResultDataProvider filteredDataProvider;
+    private Model<String> filterModel = Model.of("");
+    private WebMarkupContainer nanopubsContainer;
 
     /**
      * Constructor for QueryResultList.
@@ -65,21 +73,45 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getTitle();
         }
         add(new Label("title", titleLabel));
+
+        TextField<String> filterField = new TextField<>("filter", filterModel);
+        filterField.setOutputMarkupId(true);
+        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (filteredDataProvider != null && nanopubsContainer != null) {
+                    filteredDataProvider.setFilterText(filterModel.getObject());
+                    nanopubsContainer.addOrReplace(buildNanopubResults());
+                    target.add(nanopubsContainer);
+                }
+            }
+        });
+        viewSelector.add(filterField);
+
         setOutputMarkupId(true);
     }
 
     @Override
     protected void populateComponent() {
         logger.info("Populating the component with nanopub results.");
-        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", response, itemsPerPage);
-        nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
-        add(nanopubResults);
+        filteredDataProvider = new FilteredQueryResultDataProvider(new QueryResultDataProvider(response.getData()), response);
+
+        nanopubsContainer = new WebMarkupContainer("nanopubs-container");
+        nanopubsContainer.setOutputMarkupId(true);
+        nanopubsContainer.add(buildNanopubResults());
+        add(nanopubsContainer);
 
         if (viewDisplay.getNanopubId() != null) {
             viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
         } else {
             viewSelector.addOrReplace(new Label("np").setVisible(false));
         }
+    }
+
+    private NanopubResults buildNanopubResults() {
+        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
+        nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+        return nanopubResults;
     }
 
     /**

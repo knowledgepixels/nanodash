@@ -10,7 +10,10 @@ import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,6 +42,10 @@ public class QueryResultList extends QueryResult {
 
     private static final String SEPARATOR = " · ";
 
+    private FilteredQueryResultDataProvider filteredDataProvider;
+    private Model<String> filterModel = Model.of("");
+    private WebMarkupContainer itemsContainer;
+
     /**
      * Constructor for QueryResultList.
      *
@@ -56,13 +63,28 @@ public class QueryResultList extends QueryResult {
         }
         add(new Label("label", label));
         setOutputMarkupId(true);
+
+        TextField<String> filterField = new TextField<>("filter", filterModel);
+        filterField.setOutputMarkupId(true);
+        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (filteredDataProvider != null && itemsContainer != null) {
+                    filteredDataProvider.setFilterText(filterModel.getObject());
+                    target.add(itemsContainer);
+                }
+            }
+        });
+        add(filterField);
+
         populateComponent();
     }
 
     @Override
     protected void populateComponent() {
         QueryResultDataProvider dataProvider = new QueryResultDataProvider(response.getData());
-        DataView<ApiResponseEntry> dataView = new DataView<>("items", dataProvider) {
+        filteredDataProvider = new FilteredQueryResultDataProvider(dataProvider, response);
+        DataView<ApiResponseEntry> dataView = new DataView<>("items", filteredDataProvider) {
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {
@@ -205,7 +227,6 @@ public class QueryResultList extends QueryResult {
             }
         };
         dataView.setItemsPerPage(10);
-        dataView.setOutputMarkupId(true);
 
         WebMarkupContainer navigation = new WebMarkupContainer("navigation");
         navigation.add(new NavigatorLabel("navigatorLabel", dataView));
@@ -213,8 +234,11 @@ public class QueryResultList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
-        add(navigation);
-        add(dataView);
+        itemsContainer = new WebMarkupContainer("items-container");
+        itemsContainer.setOutputMarkupId(true);
+        itemsContainer.add(dataView);
+        itemsContainer.add(navigation);
+        add(itemsContainer);
     }
 
 }

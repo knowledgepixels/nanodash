@@ -58,8 +58,12 @@ public class NanopubResults extends Panel {
      * @return a new NanopubResults panel
      */
     public static NanopubResults fromApiResponse(String id, ApiResponse apiResponse, long itemPerPage) {
+        return fromApiResponse(id, apiResponse.getData(), itemPerPage);
+    }
+
+    public static NanopubResults fromApiResponse(String id, List<ApiResponseEntry> data, long itemPerPage) {
         NanopubResults r = new NanopubResults(id);
-        DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(apiResponse.getData())) {
+        DataView<ApiResponseEntry> dataView = new DataView<ApiResponseEntry>("nanopubs", new ListDataProvider<ApiResponseEntry>(data)) {
 
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {
