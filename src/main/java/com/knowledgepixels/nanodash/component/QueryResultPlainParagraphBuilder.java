@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
@@ -114,6 +115,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
+        String colClass = " col-" + viewDisplay.getDisplayWidth();
         if (space != null) {
             if (response != null) {
                 QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
@@ -121,9 +123,10 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                 resultPlainParagraph.setPageResource(pageResource);
                 resultPlainParagraph.setContextId(contextId);
                 addResultButtons(resultPlainParagraph);
+                resultPlainParagraph.add(new AttributeAppender("class", colClass));
                 return resultPlainParagraph;
             } else {
-                return new ApiResultComponent(markupId, queryRef) {
+                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
@@ -134,6 +137,8 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                         return resultPlainParagraph;
                     }
                 };
+                comp.add(new AttributeAppender("class", colClass));
+                return comp;
             }
         } else {
             if (response != null) {
@@ -141,9 +146,10 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                 resultPlainParagraph.setPageResource(pageResource);
                 resultPlainParagraph.setContextId(contextId);
                 addResultButtons(resultPlainParagraph);
+                resultPlainParagraph.add(new AttributeAppender("class", colClass));
                 return resultPlainParagraph;
             } else {
-                return new ApiResultComponent(markupId, queryRef) {
+                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
@@ -153,6 +159,8 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
                         return resultPlainParagraph;
                     }
                 };
+                comp.add(new AttributeAppender("class", colClass));
+                return comp;
             }
         }
     }

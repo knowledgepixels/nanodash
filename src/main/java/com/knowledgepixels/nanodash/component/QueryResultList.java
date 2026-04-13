@@ -226,7 +226,7 @@ public class QueryResultList extends QueryResult {
                 item.add(listItem);
             }
         };
-        dataView.setItemsPerPage(10);
+        dataView.setItemsPerPage(viewDisplay.getPageSize());
 
         WebMarkupContainer navigation = new WebMarkupContainer("navigation");
         navigation.add(new NavigatorLabel("navigatorLabel", dataView));

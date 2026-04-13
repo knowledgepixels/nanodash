@@ -152,6 +152,13 @@ public class ViewList extends Panel {
                                         .pageResource(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .build());
+                            } else if (view.getViewType().equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
+                                item.add(QueryResultItemListBuilder.create("view", queryRef, item.getModelObject())
+                                        .resourceWithProfile(resourceWithProfile)
+                                        .pageResource(resourceWithProfile)
+                                        .id(id)
+                                        .contextId(resourceWithProfile.getId())
+                                        .build());
                             } else {
                                 item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
                                 logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());

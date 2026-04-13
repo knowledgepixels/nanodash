@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import org.apache.wicket.behavior.AttributeAppender;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.Component;
 import org.nanopub.extra.services.ApiResponse;
@@ -20,7 +21,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     private final QueryRef queryRef;
     private boolean hasTitle = true;
     private AbstractResourceWithProfile pageResource = null;
-    private long itemsPerPage = 10;
+    private Long itemsPerPage = null;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -78,18 +79,21 @@ public class QueryResultNanopubSetBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
+        String colClass = " col-" + viewDisplay.getDisplayWidth();
+        long resolvedItemsPerPage = itemsPerPage != null ? itemsPerPage : viewDisplay.getPageSize();
         if (response != null) {
-            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, itemsPerPage);
+            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, resolvedItemsPerPage);
             queryResultNanopubSet.setContextId(contextId);
             queryResultNanopubSet.setPageResource(pageResource);
             queryResultNanopubSet.populateComponent();
             queryResultNanopubSet.setTitleVisible(hasTitle);
+            queryResultNanopubSet.add(new AttributeAppender("class", colClass));
             return queryResultNanopubSet;
         } else {
-            return new ApiResultComponent(markupId, queryRef) {
+            ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, itemsPerPage);
+                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, resolvedItemsPerPage);
                     queryResultNanopubSet.setContextId(contextId);
                     queryResultNanopubSet.setPageResource(pageResource);
                     queryResultNanopubSet.populateComponent();
@@ -97,6 +101,8 @@ public class QueryResultNanopubSetBuilder implements Serializable {
                     return queryResultNanopubSet;
                 }
             };
+            comp.add(new AttributeAppender("class", colClass));
+            return comp;
         }
     }
 
