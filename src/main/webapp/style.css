@@ -612,6 +612,7 @@ li:has(.templateref) {
 li:has(.user-icon),
 li:has(.form-icon) {
   list-style: none;
+  margin-left: -1.3em;
 }
 
 .sidelogo {
