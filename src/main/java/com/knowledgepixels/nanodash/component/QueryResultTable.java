@@ -192,7 +192,7 @@ public class QueryResultTable extends QueryResult {
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> links = new ArrayList<>();
                         for (int i = 0; i < uris.length; i++) {
-                            String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
                             links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
@@ -204,7 +204,7 @@ public class QueryResultTable extends QueryResult {
                         List<Component> components = new ArrayList<>();
                         for (int i = 0; i < parts.length; i++) {
                             String part = parts[i];
-                            String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
                             if (part.matches("https?://.+")) {
                                 components.add(new NanodashLink("component", part, null, null, label, contextId));
                             } else {
@@ -242,13 +242,13 @@ public class QueryResultTable extends QueryResult {
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("template_iri")) {
-                        String label = rowModel.getObject().get(key + "_label");
-                        if (label == null || label.isBlank()) label = value;
+                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
+                        if (label == null || label.isBlank()) label = truncateLabel(value);
                         String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
                         String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
                         cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                     } else if (value.matches("https?://.+")) {
-                        String label = rowModel.getObject().get(key + "_label");
+                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {
                         if (key.startsWith("pubkey")) {
@@ -273,6 +273,13 @@ public class QueryResultTable extends QueryResult {
             }
         }
 
+    }
+
+    private static String truncateLabel(String label) {
+        if (label != null && label.length() > 120) {
+            return label.substring(0, 100) + "...";
+        }
+        return label;
     }
 
 }
