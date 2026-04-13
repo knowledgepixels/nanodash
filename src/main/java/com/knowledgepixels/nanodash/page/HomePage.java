@@ -1,15 +1,20 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.*;
-import org.apache.wicket.AttributeModifier;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.ResultComponent;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.component.ViewList;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.QueryRef;
 
 /**
- * The home page of Nanodash, which shows the most recent nanopublications
- * and the latest accepted nanopublications.
+ * The home page of Nanodash, showing the views defined for the configured home resource.
  */
 public class HomePage extends NanodashPage {
 
@@ -62,35 +67,40 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        View mostRecentNanopubsView = View.get("https://w3id.org/np/RAawFcLhQOJfA9Ke1spCNkXWA68J1O-wOJrSmBdNFsAtI/most-recent-nanopubs");
-        QueryRef rQueryRef = new QueryRef(mostRecentNanopubsView.getQuery().getQueryId());
-        add(QueryResultNanopubSetBuilder.create("mostrecent", rQueryRef, new ViewDisplay(mostRecentNanopubsView))
-                .setItemsPerPage(5)
-                .build()
-                .add(AttributeModifier.remove("class"))
-        );
+        MaintainedResource homeResource = MaintainedResourceRepository.get().findById(NanodashPreferences.get().getHomeResource());
+        homeResource.triggerDataUpdate();
 
-        View upcomingEventsView = View.get("https://w3id.org/np/RAq5EwXCcCUsBEc7bMUgrT5oeLvX7khfqhA4hKzCjjBwk/upcoming-events-view");
-        QueryRef eQueryRef = new QueryRef(upcomingEventsView.getQuery().getQueryId());
-        add(QueryResultTableBuilder.create("upcomingevents", eQueryRef, new ViewDisplay(upcomingEventsView))
-                .build()
-                .add(AttributeModifier.remove("class"))
-        );
+        if (homeResource.isDataInitialized()) {
+            add(new ViewList("views", homeResource));
+        } else {
+            add(new AjaxLazyLoadPanel<Component>("views") {
 
-        View topCreatorsView = View.get("https://w3id.org/np/RACcywnbkn6OAd_6E25qZL9-vdO-UwmpO1vXVWzNWJYLo/top-creators-last-30days");
-        QueryRef cQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("topCreators", cQueryRef, new ViewDisplay(topCreatorsView))
-                .build()
-                .add(AttributeModifier.remove("class"))
-        );
+                @Override
+                public Component getLazyLoadComponent(String markupId) {
+                    return new ViewList(markupId, homeResource);
+                }
 
-        View getStartedView = View.get("https://w3id.org/np/RAeFTjDGTQ-bdulJy4tUlWzRlK8EucXFCxqLrb7Qj35SM/suggested-templates-get-started");
-        QueryRef gQueryRef = new QueryRef(getStartedView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("getStartedTemplates", gQueryRef, new ViewDisplay(getStartedView))
-                .build()
-                .add(AttributeModifier.remove("class"))
-        );
+                @Override
+                protected boolean isContentReady() {
+                    return homeResource.isDataInitialized();
+                }
 
+                @Override
+                public Component getLoadingComponent(String id) {
+                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                }
+
+            });
+        }
+    }
+
+    /**
+     * <p>hasAutoRefreshEnabled.</p>
+     *
+     * @return a boolean
+     */
+    protected boolean hasAutoRefreshEnabled() {
+        return true;
     }
 
 }

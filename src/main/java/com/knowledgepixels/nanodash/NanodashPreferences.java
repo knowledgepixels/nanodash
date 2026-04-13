@@ -51,6 +51,7 @@ public class NanodashPreferences implements Serializable {
     private String settingUri;
     private String umamiScriptUrl;
     private String umamiWebsiteId;
+    private String homeResource = "https://w3id.org/spaces/knowledgepixels/nanodash/r/home";
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -250,6 +251,20 @@ public class NanodashPreferences implements Serializable {
      */
     public void setUmamiWebsiteId(String umamiWebsiteId) {
         this.umamiWebsiteId = umamiWebsiteId;
+    }
+
+    public String getHomeResource() {
+        String s = System.getenv("NANODASH_HOME_RESOURCE");
+        if (s != null && !s.isBlank()) {
+            logger.debug("Found environment variable NANODASH_HOME_RESOURCE with value: {}", s);
+            return s;
+        }
+        logger.debug("Environment variable NANODASH_HOME_RESOURCE not set, using default: {}", homeResource);
+        return homeResource;
+    }
+
+    public void setHomeResource(String homeResource) {
+        this.homeResource = homeResource;
     }
 
 }
