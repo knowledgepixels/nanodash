@@ -89,13 +89,27 @@ public class NanodashPageRef implements Serializable {
      * @return The created WebMarkupContainer.
      */
     public WebMarkupContainer createComponent(String id) {
+        return createComponent(id, label);
+    }
+
+    /**
+     * Creates a WebMarkupContainer component for the page reference, using the
+     * given text as the displayed label instead of this reference's own label.
+     * The link target is still determined by this reference's page class and
+     * parameters.
+     *
+     * @param id           The Wicket ID for the component.
+     * @param displayLabel The text to display on the link.
+     * @return The created WebMarkupContainer.
+     */
+    public WebMarkupContainer createComponent(String id, String displayLabel) {
         if (pageClass == null) {
             ExternalLink l = new ExternalLink(id, "#");
-            l.add(new Label(id + "-label", label));
+            l.add(new Label(id + "-label", displayLabel));
             return l;
         } else {
             BookmarkablePageLink<Void> l = new BookmarkablePageLink<>(id, pageClass, parameters);
-            l.add(new Label(id + "-label", label));
+            l.add(new Label(id + "-label", displayLabel));
             return l;
         }
     }

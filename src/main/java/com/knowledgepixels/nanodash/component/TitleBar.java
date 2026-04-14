@@ -46,14 +46,16 @@ public class TitleBar extends Panel {
         WebMarkupContainer breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
         breadcrumbPath.setVisible(pathRefs.length > 0);
         if (pathRefs.length > 0) {
-            breadcrumbPath.add(pathRefs[0].createComponent("firstpathelement"));
+            final String[] displayLabels = simplifyBreadcrumbLabels(pathRefs);
+            breadcrumbPath.add(pathRefs[0].createComponent("firstpathelement", displayLabels[0]));
             // Getting serialization exception if not using 'new ArrayList<...>(...)' here:
             List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Utils.subList(pathRefs, 1, pathRefs.length));
             breadcrumbPath.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
 
                 @Override
                 protected void populateItem(Item<NanodashPageRef> item) {
-                    item.add(item.getModelObject().createComponent("furtherpathelement"));
+                    int index = (int) item.getIndex() + 1;
+                    item.add(item.getModelObject().createComponent("furtherpathelement", displayLabels[index]));
                 }
 
             });
@@ -61,6 +63,44 @@ public class TitleBar extends Panel {
             breadcrumbPath.setVisible(false);
         }
         add(breadcrumbPath);
+    }
+
+    /**
+     * Computes shortened display labels for a breadcrumb path.
+     *
+     * Two simplifications are applied:
+     * <ul>
+     *   <li>If a non-root crumb's label starts with the previous crumb's label
+     *       followed by a space (e.g. parent "Knowledge Pixels", child
+     *       "Knowledge Pixels Incubator"), the shared prefix is stripped so
+     *       only "Incubator" is shown.</li>
+     *   <li>Any ": " in a label and everything after it is removed (e.g.
+     *       "Incubator 1: Some title" becomes "Incubator 1"). Applied to all
+     *       crumbs, including the first.</li>
+     * </ul>
+     *
+     * The parent-prefix comparison uses the original (un-simplified) labels,
+     * so that simplifications on the parent don't interfere with the child.
+     */
+    static String[] simplifyBreadcrumbLabels(NanodashPageRef[] pathRefs) {
+        String[] displayLabels = new String[pathRefs.length];
+        for (int i = 0; i < pathRefs.length; i++) {
+            String label = pathRefs[i].getLabel();
+            if (label != null) {
+                if (i > 0) {
+                    String parent = pathRefs[i - 1].getLabel();
+                    if (parent != null && !parent.isEmpty() && label.startsWith(parent + " ")) {
+                        label = label.substring(parent.length() + 1);
+                    }
+                }
+                int colonIdx = label.indexOf(": ");
+                if (colonIdx >= 0) {
+                    label = label.substring(0, colonIdx);
+                }
+            }
+            displayLabels[i] = label;
+        }
+        return displayLabels;
     }
 
     private WebMarkupContainer createContainer(String id) {
