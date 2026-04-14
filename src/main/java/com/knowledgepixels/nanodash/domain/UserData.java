@@ -416,12 +416,12 @@ public class UserData implements Serializable {
         if (ids == null || ids.isEmpty()) {
             ids = unapprovedPubkeyhashIdMap.get(pubkeyHash);
             if (ids == null || ids.isEmpty()) {
-                return getShortName(userIri);
+                return getShortDisplayName(userIri);
             } else if (ids.size() == 1) {
                 return getShortDisplayName(ids.iterator().next());
             } else {
                 // Not showing "contested identity" for now.
-                return getShortName(userIri);  // + " (contested identity)";
+                return getShortDisplayName(userIri);  // + " (contested identity)";
             }
         } else if (ids.size() == 1) {
             return getShortDisplayName(ids.iterator().next());

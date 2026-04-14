@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body style="margin-left: auto; margin-right: auto; max-width: 1420px">
+
+<wicket:panel>
+  <div class="paneltitlerow listpanel">
+    <h4 wicket:id="label">Query</h4>
+    <input type="text" wicket:id="filter" placeholder="Filter..." style="margin: 5px 10px; padding: 2px 5px; font-size: 12px; width: 150px;"/>
+    <span class="buttons"><wicket:container wicket:id="np">[np]</wicket:container></span>
+    <span wicket:id="buttons" class="buttons"></span>
+  </div>
+
+  <div wicket:id="items-container">
+    <ul wicket:id="items">
+      <li wicket:id="listItem"></li>
+    </ul>
+    <div class="navigation" wicket:id="navigation">
+      <div class="navigatorLabel" wicket:id="navigatorLabel"></div>
+      <div class="navigator" wicket:id="navigator"></div>
+    </div>
+  </div>
+</wicket:panel>
+
+</body>
+
+</html>

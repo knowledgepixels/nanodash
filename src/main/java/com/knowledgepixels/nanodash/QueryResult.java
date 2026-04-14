@@ -5,7 +5,6 @@ import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.NanodashPage;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -49,8 +48,6 @@ public abstract class QueryResult extends Panel {
         this.viewDisplay = viewDisplay;
         this.response = response;
         this.grlcQuery = GrlcQuery.get(queryRef);
-
-        add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
     }
 
     @Override

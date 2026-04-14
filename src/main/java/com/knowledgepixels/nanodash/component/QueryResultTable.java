@@ -10,6 +10,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
@@ -17,6 +18,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -119,7 +121,7 @@ public class QueryResultTable extends QueryResult {
             table.setOutputMarkupId(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addBottomToolbar(new NoRecordsToolbar(table));
-            table.addTopToolbar(new HeadersToolbar<String>(table, dataProvider));
+            table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             add(table);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
@@ -190,7 +192,7 @@ public class QueryResultTable extends QueryResult {
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> links = new ArrayList<>();
                         for (int i = 0; i < uris.length; i++) {
-                            String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
                             links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
@@ -202,7 +204,7 @@ public class QueryResultTable extends QueryResult {
                         List<Component> components = new ArrayList<>();
                         for (int i = 0; i < parts.length; i++) {
                             String part = parts[i];
-                            String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
                             if (part.matches("https?://.+")) {
                                 components.add(new NanodashLink("component", part, null, null, label, contextId));
                             } else {
@@ -239,8 +241,14 @@ public class QueryResultTable extends QueryResult {
                             }
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
+                    } else if (key.endsWith("template_iri")) {
+                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
+                        if (label == null || label.isBlank()) label = truncateLabel(value);
+                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                        String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
+                        cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                     } else if (value.matches("https?://.+")) {
-                        String label = rowModel.getObject().get(key + "_label");
+                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {
                         if (key.startsWith("pubkey")) {
@@ -267,31 +275,8 @@ public class QueryResultTable extends QueryResult {
 
     }
 
-//    private class ApiResponseComparator implements Comparator<ApiResponseEntry>, Serializable {
-//
-//        private SortParam<String> sortParam;
-//
-//        public ApiResponseComparator(SortParam<String> sortParam) {
-//            this.sortParam = sortParam;
-//        }
-//
-//        @Override
-//        public int compare(ApiResponseEntry o1, ApiResponseEntry o2) {
-//            String p = sortParam.getProperty();
-//            int result;
-//            if (o1.get(p) == null && o2.get(p) == null) {
-//                result = 0;
-//            } else if (o1.get(p) == null) {
-//                result = 1;
-//            } else if (o2.get(p) == null) {
-//                result = -1;
-//            } else {
-//                result = o1.get(p).compareTo(o2.get(p));
-//            }
-//            if (!sortParam.isAscending()) result = -result;
-//            return result;
-//        }
-//
-//    }
+    private static String truncateLabel(String label) {
+        return Utils.truncateLabel(label);
+    }
 
 }

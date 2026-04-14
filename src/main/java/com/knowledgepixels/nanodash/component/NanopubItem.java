@@ -91,7 +91,7 @@ public class NanopubItem extends Panel {
             add(new Label("header", "").setVisible(false));
         } else {
             WebMarkupContainer header = new WebMarkupContainer("header");
-            String labelString = n.getLabel();
+            String labelString = Utils.truncateLabel(n.getLabel());
             if (labelString == null || labelString.isBlank()) labelString = Utils.getShortNanopubId(n.getUri());
             header.add(NanodashLink.createLink("nanopub-id-link", n.getUri(), labelString, null));
             if (!hideActionMenu && (actions == null || !actions.isEmpty())) {

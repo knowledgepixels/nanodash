@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
@@ -78,6 +79,7 @@ public class QueryResultListBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
+        String colClass = " col-" + viewDisplay.getDisplayWidth();
         if (resourceWithProfile != null) {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
@@ -118,9 +120,10 @@ public class QueryResultListBuilder implements Serializable {
                         resultList.addButton(label, PublishPage.class, params);
                     }
                 }
+                resultList.add(new AttributeAppender("class", colClass));
                 return resultList;
             } else {
-                return new ApiResultComponent(markupId, queryRef) {
+                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
@@ -163,15 +166,18 @@ public class QueryResultListBuilder implements Serializable {
                         return resultList;
                     }
                 };
+                comp.add(new AttributeAppender("class", colClass));
+                return comp;
             }
         } else {
             if (response != null) {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
+                resultList.add(new AttributeAppender("class", colClass));
                 return resultList;
             } else {
-                return new ApiResultComponent(markupId, queryRef) {
+                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                     @Override
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
@@ -180,6 +186,8 @@ public class QueryResultListBuilder implements Serializable {
                         return resultList;
                     }
                 };
+                comp.add(new AttributeAppender("class", colClass));
+                return comp;
             }
         }
     }

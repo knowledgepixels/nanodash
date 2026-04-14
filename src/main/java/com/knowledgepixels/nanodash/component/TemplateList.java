@@ -35,11 +35,11 @@ public class TemplateList extends Panel {
 
         View popularTemplatesView = View.get("https://w3id.org/np/RAYMZEdmvjIS5QGFASa8L5hygapUlvK3feZBpG6quMYqc/popular-templates");
         QueryRef ptQueryRef = new QueryRef(popularTemplatesView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("popular-templates", ptQueryRef, new ViewDisplay(popularTemplatesView)).build());
+        add(QueryResultItemListBuilder.create("popular-templates", ptQueryRef, new ViewDisplay(popularTemplatesView).withDisplayWidth(6)).build());
 
         View getStartedView = View.get("https://w3id.org/np/RAeFTjDGTQ-bdulJy4tUlWzRlK8EucXFCxqLrb7Qj35SM/suggested-templates-get-started");
         QueryRef gsQueryRef = new QueryRef(getStartedView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("getstarted-templates", gsQueryRef, new ViewDisplay(getStartedView)).build());
+        add(QueryResultListBuilder.create("getstarted-templates", gsQueryRef, new ViewDisplay(getStartedView).withDisplayWidth(6)).build());
 
         ArrayList<ApiResponseEntry> templateList = new ArrayList<>(TemplateData.get().getAssertionTemplates());
         templateList.sort((t1, t2) -> {

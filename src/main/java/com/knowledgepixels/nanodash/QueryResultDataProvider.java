@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -53,6 +54,10 @@ public class QueryResultDataProvider implements ISortableDataProvider<ApiRespons
     @Override
     public ISortState<String> getSortState() {
         return sortState;
+    }
+
+    public SortParam<String> getSortParam() {
+        return sortState.getSort();
     }
 
     @Override

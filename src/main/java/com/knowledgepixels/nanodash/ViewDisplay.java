@@ -241,6 +241,11 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return 12;
     }
 
+    public ViewDisplay withDisplayWidth(int width) {
+        this.displayWidth = width;
+        return this;
+    }
+
     public String getStructuralPosition() {
         if (structuralPosition != null) return structuralPosition;
         if (view == null) return "5.5.default";

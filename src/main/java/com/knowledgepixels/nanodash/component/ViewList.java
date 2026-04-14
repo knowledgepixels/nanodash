@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -152,6 +153,13 @@ public class ViewList extends Panel {
                                         .pageResource(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .build());
+                            } else if (view.getViewType().equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
+                                item.add(QueryResultItemListBuilder.create("view", queryRef, item.getModelObject())
+                                        .resourceWithProfile(resourceWithProfile)
+                                        .pageResource(resourceWithProfile)
+                                        .id(id)
+                                        .contextId(resourceWithProfile.getId())
+                                        .build());
                             } else {
                                 item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
                                 logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
@@ -177,6 +185,12 @@ public class ViewList extends Panel {
             footerSection.add(new Label("footer-buttons").setVisible(false));
         }
         add(footerSection);
+
+        add(new WebMarkupContainer("page-footer").setVisible(false));
+    }
+
+    public void setPageFooter(Component footer) {
+        replace(footer);
     }
 
 }
