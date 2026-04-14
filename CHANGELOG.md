@@ -1,3 +1,48 @@
+## [4.25.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.24.0...nanodash-4.25.0) (2026-04-14)
+
+### Features
+
+* add creator and date to suggested-templates-get-started view ([7e38120](https://github.com/knowledgepixels/nanodash/commit/7e38120f9c011f8d195831cb22f4bc38d62cc39f))
+* add filter field to list/nanopubset/paragraph views, convert publish page panels to proper views ([9153923](https://github.com/knowledgepixels/nanodash/commit/91539235a73729e8b8a4d641b8d222f2a6448185))
+* convert home page fixed lists to proper views with dropdown menus ([#435](https://github.com/knowledgepixels/nanodash/issues/435)) ([c87bff3](https://github.com/knowledgepixels/nanodash/commit/c87bff3ec078103d88bf10853e85fe555f605b90))
+* convert topcreators and latestusers on /userlist to proper views ([c7b22ab](https://github.com/knowledgepixels/nanodash/commit/c7b22ab0dde1b23bd5011496f69c48a17607bf78))
+* drive home page views from configurable maintained resource ([419aacd](https://github.com/knowledgepixels/nanodash/commit/419aacdbdcf55bac0cdee194572a7a85136f74c6))
+* enable sortable column headers in tabular views ([4ab16c4](https://github.com/knowledgepixels/nanodash/commit/4ab16c49b28e9ddd8dbecb9fa3d58110b74f0fd2))
+* implement ItemListView, fix async col class and page size propagation ([2505d21](https://github.com/knowledgepixels/nanodash/commit/2505d21456e546dc9f8360ee79e3bab670637d38))
+* link template_iri columns to /publish page in tabular views ([0ef2179](https://github.com/knowledgepixels/nanodash/commit/0ef2179995ee74e7e418df02ed7ee44841c329b0))
+* revert creator/date from get-started view, add rocket icon to title ([3ecf58e](https://github.com/knowledgepixels/nanodash/commit/3ecf58e2166c8cd478851d54418ce94db4560b77))
+* truncate link labels longer than 120 chars to 100 chars in table cells ([252a21b](https://github.com/knowledgepixels/nanodash/commit/252a21b28073dcbe99c252dada0d12fdc10397d5))
+* update default user profile view to latest-nanopubs-by-user ([269a789](https://github.com/knowledgepixels/nanodash/commit/269a789077a12f65c6ae22186c497661f526d939))
+
+### Bug Fixes
+
+* apply user's default license per-request instead of caching it globally ([c5ae22a](https://github.com/knowledgepixels/nanodash/commit/c5ae22a7ed1ff1249e69460b74f9749bb53ee9b0)), closes [#429](https://github.com/knowledgepixels/nanodash/issues/429)
+* downgrade ClientAbortException to debug log in RDF downloads ([2919a53](https://github.com/knowledgepixels/nanodash/commit/2919a538adc918c4c03a69d4c7957b7496806c78))
+* guard against null viewIri in ViewDisplayMenu showAddToOwn condition ([55c9b12](https://github.com/knowledgepixels/nanodash/commit/55c9b12ecdb5569180ce881ccf64683ef6e49c0c))
+* move home-footer inside ViewList so it participates in alternating row-section backgrounds ([dea9665](https://github.com/knowledgepixels/nanodash/commit/dea9665518e5a5a2058f856023619fc1e2af99cb))
+* pass configured registry URL to PublishNanopub to avoid null server URL ([23060f3](https://github.com/knowledgepixels/nanodash/commit/23060f3d579316084ae166ab1b9f10d4fd11aa79))
+* remove col wrapper nesting for topcreators and latestusers on /userlist ([476babf](https://github.com/knowledgepixels/nanodash/commit/476babfaed2bc6d11b1db495d760f15b3cf5d3a5))
+* remove col wrapper nesting in TemplateList and use item-list for popular templates ([638fe35](https://github.com/knowledgepixels/nanodash/commit/638fe35ec8db308c774f275ba8706d3f7d6a2422))
+* render template_iri cell as proper <a> link ([6eb3352](https://github.com/knowledgepixels/nanodash/commit/6eb3352ee00617dddc39de030479e209d686bc18))
+* render template_iri links as raw HTML <a> labels ([3e337d4](https://github.com/knowledgepixels/nanodash/commit/3e337d4d338ef86679f64ae53937c9ffe993316e))
+* render user_iri links as raw HTML <a> always pointing to UserPage ([4fc0937](https://github.com/knowledgepixels/nanodash/commit/4fc0937c532602f4628638de098ec35d17799916))
+* route template_iri links to publish page instead of explore page ([ef6d757](https://github.com/knowledgepixels/nanodash/commit/ef6d757f03f4d5d4f9bffdd80304c4750a10a614))
+* sort tabular view columns by display label when available ([d337a9d](https://github.com/knowledgepixels/nanodash/commit/d337a9d6788e5d077ef4ce5b13add058d392b9dd))
+* truncate long labels in nanopub set view header links ([61b58ae](https://github.com/knowledgepixels/nanodash/commit/61b58ae108b50e85ba1fb63da9a74e7697d46845))
+* update latestusers view URI to corrected nanopub with template refs ([911cf22](https://github.com/knowledgepixels/nanodash/commit/911cf22bf2cf8708f2c17424c961feb32b61895e))
+* use ExternalLink for template_iri links so body text renders correctly ([571c469](https://github.com/knowledgepixels/nanodash/commit/571c46933fcb144798f809ab34b90c0041968803))
+* use getShortDisplayName for unapproved/unknown pubkey agent links ([376f3d8](https://github.com/knowledgepixels/nanodash/commit/376f3d8254d20004b22e8792fb4a891f55798fb3))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([5169732](https://github.com/knowledgepixels/nanodash/commit/5169732b3ddfd058b5356e18e2ed79c876bceb18))
+
+### Style improvements
+
+* fix icon indent for .users context, reduce global indent to -1em ([df9ab03](https://github.com/knowledgepixels/nanodash/commit/df9ab034ca325e2e48de60491ad472322d6cebc0))
+* hide bullet for list items with inline user or form icons ([174a310](https://github.com/knowledgepixels/nanodash/commit/174a3100a6f36e2275d4a012e7f715d60424db46))
+* negative indent so user/form icons occupy the bullet space ([92196b6](https://github.com/knowledgepixels/nanodash/commit/92196b6203a079fd52f3724b2b65027adec47e01))
+
 ## [4.24.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.23.1...nanodash-4.24.0) (2026-04-08)
 
 ### Features
