@@ -13,6 +13,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.Strings;
 
 /**
  * The home page of Nanodash, showing the views defined for the configured home resource.
@@ -68,7 +69,14 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        MaintainedResource homeResource = MaintainedResourceRepository.get().findById(NanodashPreferences.get().getHomeResource());
+        String homeResourceId = NanodashPreferences.get().getHomeResource();
+        MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
+        if (homeResource == null) {
+            String msg = "Configured home resource <code>" + Strings.escapeMarkup(homeResourceId) + "</code> could not be found. " +
+                    "Set the <code>NANODASH_HOME_RESOURCE</code> environment variable to a valid maintained-resource IRI.";
+            add(new Label("views", "<div class=\"row-section\"><div class=\"col-12\"><p class=\"negative\">" + msg + "</p></div></div>").setEscapeModelStrings(false));
+            return;
+        }
         homeResource.triggerDataUpdate();
 
         if (homeResource.isDataInitialized()) {
