@@ -70,10 +70,13 @@ public class TitleBar extends Panel {
      *
      * Two simplifications are applied:
      * <ul>
-     *   <li>If a non-root crumb's label starts with the previous crumb's label
-     *       followed by a space (e.g. parent "Knowledge Pixels", child
-     *       "Knowledge Pixels Incubator"), the shared prefix is stripped so
-     *       only "Incubator" is shown.</li>
+     *   <li>For each non-root crumb, the part it shares with its parent label
+     *       is stripped (e.g. parent "Knowledge Pixels", child "Knowledge
+     *       Pixels Incubator" renders as "Incubator"). The shared part is the
+     *       longest common character prefix, but only stripped when it covers
+     *       (almost) all of the parent and ends on a non-letter/digit boundary
+     *       in the child — this also catches singular/plural variations like
+     *       parent "Nano Sessions", child "Nano Session #30" → "#30".</li>
      *   <li>Any ": " in a label and everything after it is removed (e.g.
      *       "Incubator 1: Some title" becomes "Incubator 1"). Applied to all
      *       crumbs, including the first.</li>
@@ -88,19 +91,38 @@ public class TitleBar extends Panel {
             String label = pathRefs[i].getLabel();
             if (label != null) {
                 if (i > 0) {
-                    String parent = pathRefs[i - 1].getLabel();
-                    if (parent != null && !parent.isEmpty() && label.startsWith(parent + " ")) {
-                        label = label.substring(parent.length() + 1);
-                    }
+                    label = stripParentPrefix(pathRefs[i - 1].getLabel(), label);
                 }
                 int colonIdx = label.indexOf(": ");
-                if (colonIdx >= 0) {
+                if (colonIdx > 0) {
                     label = label.substring(0, colonIdx);
                 }
             }
             displayLabels[i] = label;
         }
         return displayLabels;
+    }
+
+    /**
+     * If the child label appears to restate the parent's "topic" at the start,
+     * strips that shared prefix and returns the remainder. Otherwise returns
+     * the child label unchanged.
+     */
+    private static String stripParentPrefix(String parent, String child) {
+        if (parent == null || parent.isEmpty() || child == null) return child;
+        int lcp = 0;
+        int max = Math.min(parent.length(), child.length());
+        while (lcp < max && parent.charAt(lcp) == child.charAt(lcp)) lcp++;
+        // Require a substantial match: at least 3 chars, and within 2 chars of
+        // the full parent length (so things like "Sessions" vs "Session" still
+        // match, but "Nanopublication Sessions" vs "Nano Session #30" doesn't).
+        if (lcp < 3 || lcp < parent.length() - 2) return child;
+        // The boundary in the child must not fall mid-word, otherwise we'd be
+        // chopping off a partial word like "Foo Bar" -> "Foo Baz Quux" -> "z Quux".
+        if (lcp >= child.length() || Character.isLetterOrDigit(child.charAt(lcp))) return child;
+        String remainder = child.substring(lcp).replaceAll("^\\s+", "");
+        if (remainder.isEmpty()) return child;
+        return remainder;
     }
 
     private WebMarkupContainer createContainer(String id) {
