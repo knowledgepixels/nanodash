@@ -186,28 +186,37 @@ public class QueryResultTable extends QueryResult {
                 } else {
                     String value = rowModel.getObject().get(key);
                     if (key.endsWith("_multi_iri")) {
-                        String[] uris = value.split("\\s+");
                         String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
+                        String[] uris = (value == null || value.isBlank()) ? new String[0] : value.split("\\s+");
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> links = new ArrayList<>();
                         for (int i = 0; i < uris.length; i++) {
-                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
-                            links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
+                            String uri = uris[i];
+                            if (uri.isBlank()) continue;
+                            String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
+                            // SPARQL coalesce often falls back to the URI string itself; treat that as no label
+                            // so NanodashLink can derive a short name from the URI.
+                            if (rawLabel != null && rawLabel.equals(uri)) rawLabel = null;
+                            String label = truncateLabel(rawLabel);
+                            links.add(new NanodashLink("component", uri, null, null, label, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
                     } else if (key.endsWith("_multi_val")) {
                         String labelKey = key.substring(0, key.length() - "_multi_val".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
-                        String[] parts = value.split("\n", -1);
+                        String[] parts = (value == null) ? new String[0] : value.split("\n", -1);
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> components = new ArrayList<>();
                         for (int i = 0; i < parts.length; i++) {
                             String part = parts[i];
-                            String label = truncateLabel((labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null);
+                            String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                             if (part.matches("https?://.+")) {
+                                if (rawLabel != null && rawLabel.equals(part)) rawLabel = null;
+                                String label = truncateLabel(rawLabel);
                                 components.add(new NanodashLink("component", part, null, null, label, contextId));
                             } else {
+                                String label = truncateLabel(rawLabel);
                                 String display = label != null ? label : Utils.unescapeMultiValue(part);
                                 if (Utils.looksLikeHtml(display)) {
                                     components.add(new Label("component", Utils.sanitizeHtml(display))
@@ -220,9 +229,9 @@ public class QueryResultTable extends QueryResult {
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("_multi")) {
-                        String[] parts = value.split("\n", -1);
                         String labelKey = key.substring(0, key.length() - "_multi".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
+                        String[] parts = (value == null) ? new String[0] : value.split("\n", -1);
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> components = new ArrayList<>();
                         for (int i = 0; i < parts.length; i++) {

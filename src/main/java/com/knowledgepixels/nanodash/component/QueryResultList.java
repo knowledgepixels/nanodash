@@ -131,8 +131,13 @@ public class QueryResultList extends QueryResult {
                             String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                             List<Component> links = new ArrayList<>();
                             for (int i = 0; i < uris.length; i++) {
+                                String uri = uris[i];
+                                if (uri.isBlank()) continue;
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                                links.add(new NanodashLink("component", uris[i], null, null, label, contextId));
+                                // SPARQL coalesce often falls back to the URI string itself; treat that as no label
+                                // so NanodashLink can derive a short name from the URI.
+                                if (label != null && label.equals(uri)) label = null;
+                                links.add(new NanodashLink("component", uri, null, null, label, contextId));
                             }
                             components.add(new ComponentSequence("component", ", ", links));
                         } else if (key.endsWith("_multi_val")) {
@@ -145,6 +150,7 @@ public class QueryResultList extends QueryResult {
                                 String part = parts[i];
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 if (part.matches("https?://.+")) {
+                                    if (label != null && label.equals(part)) label = null;
                                     multiComponents.add(new NanodashLink("component", part, null, null, label, contextId));
                                 } else {
                                     String display = label != null ? label : Utils.unescapeMultiValue(part);
