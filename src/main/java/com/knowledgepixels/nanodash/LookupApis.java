@@ -106,16 +106,7 @@ public class LookupApis {
             // System.out.println(respString);
 
             if (apiString.startsWith("https://w3id.org/np/l/nanopub-query") || apiString.startsWith("https://grlc.") || apiString.contains("/sparql?")) {
-                JSONArray resultsArray = new JSONObject(respString).getJSONObject("results").getJSONArray("bindings");
-                for (int i = 0; i < resultsArray.length(); i++) {
-                    JSONObject resultObject = resultsArray.getJSONObject(i);
-                    // Get the nanopub URI
-                    String uri = resultObject.getJSONObject("thing").getString("value");
-                    // Get the string which matched with the search term
-                    String label = resultObject.getJSONObject("label").getString("value");
-                    values.add(uri);
-                    labelMap.put(uri, label);
-                }
+                parseNanopubGrlcApi(new JSONObject(respString), labelMap, values);
             } else if (apiString.startsWith("https://www.ebi.ac.uk/ols/api/select")) {
                 // Resolve EBI Ontology Lookup Service
                 // e.g. https://www.ebi.ac.uk/ols/api/select?q=interacts%20with
