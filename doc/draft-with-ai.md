@@ -28,7 +28,9 @@ work and a real operational footprint (key management, cost, rate limiting).
 Both Tier 1 (#434, hand-off to external AI) and Tier 3 (this design,
 server-side AI) share the same user-facing surface for collecting requests.
 The only difference is the dispatch mechanism: #434 copies to clipboard / opens
-a URL; this design calls the backend and streams a response.
+a URL; this design calls the backend and streams a response. The spec below is
+duplicated in #434's issue body; if the two drift, #434 is the source of truth
+for the shared surface.
 
 ### Entry points
 
@@ -119,16 +121,18 @@ official Java SDK (first-party but Claude-only). LangChain4j is the pragmatic
 default unless the team has prior experience with another option or a specific
 provider's caching/streaming is poorly supported.
 
-Each implementation handles: auth (API key + optional base URL), prompt-caching
-markers (Anthropic uses `cache_control`, OpenAI uses input reuse, Gemini uses
-an explicit cache API), streaming, token accounting (for quotas), and error
-translation (rate limit, auth failure, provider outage).
+Each implementation handles: auth (API key + optional base URL), prompt
+caching (Anthropic uses explicit `cache_control` markers, OpenAI caches common
+input prefixes automatically, Gemini uses an explicit cache API), streaming,
+token accounting (for quotas), and error translation (rate limit, auth failure,
+provider outage).
 
 ### Shared authoring-rules file
 
 Same as #434: extract the authoring best-practice rules from [nanopub-skill][]'s
 `SKILL.md` into a standalone `nanopub-authoring-rules.md`, vendor it in
-Nanodash, and embed it as a stable cached prefix in every prompt.
+Nanodash (copy committed to this repo, kept in sync with nanopub-skill by
+periodic manual pull), and embed it as a stable cached prefix in every prompt.
 
 Benefits:
 
@@ -206,7 +210,9 @@ Stored against the user profile.
 
 For instances using an operator key, log aggregate usage per user -- request
 count, token count, estimated cost -- **not** prompt/response content. Surfaces
-in a simple admin view later.
+in a simple admin view later. An opt-in per-user "debug log" that captures
+prompts/responses can be added for troubleshooting, gated on explicit user
+consent.
 
 ## Cost expectations
 
@@ -215,20 +221,20 @@ follow-ups):
 
 | Model      | Fresh request | Cached follow-up |
 |------------|---------------|------------------|
-| Haiku 4.5  | ~$0.015       | ~$0.009          |
-| Sonnet 4.5 | ~$0.045       | ~$0.025          |
-| Opus 4     | ~$0.23        | ~$0.13           |
+| Haiku 4.5  | ~$0.015       | ~$0.006          |
+| Sonnet 4.6 | ~$0.045       | ~$0.020          |
+| Opus 4.6   | ~$0.23        | ~$0.09           |
 
-A typical iterative session (1 fresh + 3 follow-ups) runs ~$0.04 on Haiku,
-~$0.12 on Sonnet, ~$0.60 on Opus.
+A typical iterative session (1 fresh + 3 follow-ups) runs ~$0.03 on Haiku,
+~$0.11 on Sonnet, ~$0.50 on Opus.
 
 Scaling for operator-paid instances:
 
 | Daily active sessions | Haiku/month | Sonnet/month | Opus/month |
 |-----------------------|-------------|--------------|------------|
-| 10                    | ~$12        | ~$36         | ~$180      |
-| 100                   | ~$120       | ~$360        | ~$1,800    |
-| 1,000                 | ~$1,200     | ~$3,600      | ~$18,000   |
+| 10                    | ~$9         | ~$33         | ~$150      |
+| 100                   | ~$90        | ~$330        | ~$1,500    |
+| 1,000                 | ~$900       | ~$3,300      | ~$15,000   |
 
 Cost-control levers: prompt caching (5-10x cheaper on follow-ups), model
 tiering (default Haiku, upgrade Sonnet on opt-in), per-user daily caps, and
@@ -296,8 +302,10 @@ The two designs are largely compatible, not alternatives:
   official Java SDK (first-party, Claude-only) vs hand-rolled HTTP (most
   control, most maintenance)?
 - **Streaming in Wicket.** Wicket is server-side component-based; streaming LLM
-  output usually means SSE or a WebSocket. Does the codebase have a preferred
-  pattern for server-push, or does this need new infrastructure?
+  output usually means SSE or a WebSocket. Wicket has first-class WebSocket
+  support via `wicket-native-websocket-*`, and SSE can be served via a plain
+  `AbstractResource` / servlet. Pick one; either should work without new
+  infrastructure.
 - **Key encryption scheme.** Single instance master key in config? Per-user key
   derived from ORCID login? Integrate with existing secret-handling?
 - **Default model for operator-paid instances.** Haiku (cheapest) vs Sonnet
