@@ -107,8 +107,11 @@ public class ReadonlyItem extends AbstractContextComponent {
                 String v = getFullValue();
                 if (prefixLabel == null || IndividualAgent.isUser(v) || foafNameMap.containsKey(v)) {
                     return "";
+                } else if (prefixLabel.matches("https?://.*")) {
+                    // Hide prefix label that leaks through as a raw URL.
+                    return "";
                 } else {
-                    if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+                    if (!prefixLabel.isEmpty() && parentId.equals("subj")) {
                         // Capitalize first letter of label if at subject position:
                         prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
                     }
