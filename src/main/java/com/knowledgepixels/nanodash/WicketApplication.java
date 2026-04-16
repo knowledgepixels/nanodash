@@ -187,7 +187,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(DownloadRdfPage.MOUNT_PATH, DownloadRdfPage.class);
 
         getCspSettings().blocking().disabled();
-        getStoreSettings().setMaxSizePerSession(Bytes.MAX);
+        getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));
 
         registerListeners();
 
