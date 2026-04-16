@@ -1,3 +1,42 @@
+## [4.26.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.25.0...nanodash-4.26.0) (2026-04-16)
+
+### Features
+
+* add "show view display query" entry to entity dropdown menus ([1b083e9](https://github.com/knowledgepixels/nanodash/commit/1b083e9614166672f5b2a7a2f37a0a653899310a))
+* also strip near-matching parent prefixes from breadcrumb labels ([59608a4](https://github.com/knowledgepixels/nanodash/commit/59608a4207a6dd3e7056d4ac5a95c66a114b4f29))
+* simplify breadcrumb labels by stripping parent prefix and colon suffix ([5acef29](https://github.com/knowledgepixels/nanodash/commit/5acef2945ba507b970cd5bfb0c3728dd3a3927be))
+
+### Dependency updates
+
+* **deps:** bump guava 33.5.0-jre -> 33.6.0-jre ([9647ab2](https://github.com/knowledgepixels/nanodash/commit/9647ab22d85d9e0bb374aa4216691bfdb828a971))
+* **deps:** bump jackson-dataformat-yaml 3.1.0 -> 3.1.2 ([b2cc696](https://github.com/knowledgepixels/nanodash/commit/b2cc69617a469304d7c08b7e97d1c50c9c799b9b))
+* **deps:** bump lodash from 4.17.23 to 4.18.1 ([790a418](https://github.com/knowledgepixels/nanodash/commit/790a418a23123c125060f91851ced9914a91cbbd))
+* **deps:** bump mockito 5.21.0 -> 5.23.0 ([606d7b3](https://github.com/knowledgepixels/nanodash/commit/606d7b34239603f44b0628eea9fc1f719fb6357d))
+* **deps:** bump org.json 20250517 -> 20251224 ([bf568de](https://github.com/knowledgepixels/nanodash/commit/bf568dea47d3067bfd40df53be3a637dbd873d67))
+* **deps:** bump owasp-java-html-sanitizer 20260102.1 -> 20260313.1 ([fa1a6e2](https://github.com/knowledgepixels/nanodash/commit/fa1a6e21658f29a2255738636943795afdbb3683))
+* **deps:** bump picomatch ([5710b1b](https://github.com/knowledgepixels/nanodash/commit/5710b1bec843c8513f5a75941fb70b1c1a0fda8a))
+* **deps:** bump undici ([a1a5e49](https://github.com/knowledgepixels/nanodash/commit/a1a5e49d861b5acd2754e2df36054089c01cf039))
+* **deps:** bump undici from 5.29.0 to 7.24.2 ([d8cc554](https://github.com/knowledgepixels/nanodash/commit/d8cc554ee5e0e53cdb5d36e97f60b81333f24320))
+* **deps:** refresh package-lock.json ([8c7e366](https://github.com/knowledgepixels/nanodash/commit/8c7e366f3313cf70257e832c77e709f55f76bd6a))
+
+### Bug Fixes
+
+* align breadcrumb text with page content ([ab2c511](https://github.com/knowledgepixels/nanodash/commit/ab2c5111182e1e5fd4fd0c478131fc859f0f915a))
+* cap page store size to avoid long-overflow in DiskPageStore ([0ac0f6f](https://github.com/knowledgepixels/nanodash/commit/0ac0f6fe2384b3237a5d99d99b84896a5e188e7a))
+* guard HomePage against missing configured home resource ([62a797a](https://github.com/knowledgepixels/nanodash/commit/62a797a8e1094ce93848e60ee4d8b6d7069c2990))
+* handle empty and URI-as-label cases in multi-valued query columns ([e7bb64e](https://github.com/knowledgepixels/nanodash/commit/e7bb64e700272ee0d1a8c893944fbaf25c87eb93))
+* hide prefix label on read-only items when it is a raw URL ([d56fd32](https://github.com/knowledgepixels/nanodash/commit/d56fd3275be8c97e45ac2d8a4bb2249f409f1ec4))
+
+### Documentation
+
+* refresh draft-with-ai design notes ([0cb1b82](https://github.com/knowledgepixels/nanodash/commit/0cb1b825ab7aeeb272b50d534ef81797e76baa2c)), closes [#434](https://github.com/knowledgepixels/nanodash/issues/434)
+
+### General maintenance
+
+* **deps-dev:** bump handlebars from 4.7.8 to 4.7.9 ([1631442](https://github.com/knowledgepixels/nanodash/commit/16314421d0c1dcd2a608b0f53972d1f23fec05ef))
+* **deps-dev:** bump lodash-es from 4.17.23 to 4.18.1 ([04c8a73](https://github.com/knowledgepixels/nanodash/commit/04c8a73242c980080881836bb1ece29a469aca57))
+* setting next snapshot version [skip ci] ([d24c854](https://github.com/knowledgepixels/nanodash/commit/d24c8545c6876809936f17204fccb3dab52dd0a7))
+
 ## [4.25.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.24.0...nanodash-4.25.0) (2026-04-14)
 
 ### Features
