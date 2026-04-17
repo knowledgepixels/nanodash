@@ -72,40 +72,7 @@ public class LookupApis {
         // TODO This method is a mess and needs some serious clean-up and structuring...
         try {
             if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/") || apiString.startsWith("http://purl.org/nanopub/api/find_signed_things?")) {
-                String queryId = QueryApiAccess.FIND_THINGS;
-                if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
-                    queryId = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
-                    if (queryId.contains("?")) queryId = queryId.substring(0, queryId.indexOf("?"));
-                }
-                Multimap<String, String> params = ArrayListMultimap.create();
-                if (apiString.contains("?")) {
-                    List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
-                    for (NameValuePair p : urlParams) {
-                        params.put(p.getName(), p.getValue());
-                    }
-                }
-                GrlcQuery q = GrlcQuery.get(queryId);
-                if (q.getEndpoint().stringValue().endsWith("/text")) {
-                    searchterm = expandSearchTerm(searchterm);
-                }
-                String queryParamName = "query";
-                if (q.getPlaceholdersList().size() == 1) {
-                    queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
-                }
-                params.put(queryParamName, searchterm);
-                ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
-                int count = 0;
-                for (ApiResponseEntry r : result.getData()) {
-                    String uri = r.get("thing");
-                    values.add(uri);
-                    String desc = r.get("description");
-                    if (desc == null) desc = "";
-                    if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
-                    if (!desc.isEmpty()) desc = " - " + desc;
-                    labelMap.put(uri, r.get("label") + desc);
-                    count++;
-                    if (count > 9) return;
-                }
+                lookupNanopubNetwork(apiString, searchterm, labelMap, values);
                 return;
             }
 
@@ -139,16 +106,7 @@ public class LookupApis {
             // System.out.println(respString);
 
             if (apiString.startsWith("https://w3id.org/np/l/nanopub-query") || apiString.startsWith("https://grlc.") || apiString.contains("/sparql?")) {
-                JSONArray resultsArray = new JSONObject(respString).getJSONObject("results").getJSONArray("bindings");
-                for (int i = 0; i < resultsArray.length(); i++) {
-                    JSONObject resultObject = resultsArray.getJSONObject(i);
-                    // Get the nanopub URI
-                    String uri = resultObject.getJSONObject("thing").getString("value");
-                    // Get the string which matched with the search term
-                    String label = resultObject.getJSONObject("label").getString("value");
-                    values.add(uri);
-                    labelMap.put(uri, label);
-                }
+                parseNanopubGrlcApi(new JSONObject(respString), labelMap, values);
             } else if (apiString.startsWith("https://www.ebi.ac.uk/ols/api/select")) {
                 // Resolve EBI Ontology Lookup Service
                 // e.g. https://www.ebi.ac.uk/ols/api/select?q=interacts%20with
@@ -307,6 +265,43 @@ public class LookupApis {
             }
         } catch (Exception ex) {
             logger.error("Error fetching possible values from API: {}", apiString, ex);
+        }
+    }
+
+    private static void lookupNanopubNetwork(String apiString, String searchterm, Map<String, String> labelMap, List<String> values) {
+        String queryId = QueryApiAccess.FIND_THINGS;
+        if (apiString.startsWith("https://w3id.org/np/l/nanopub-query-1.1/api/")) {
+            queryId = apiString.replace("https://w3id.org/np/l/nanopub-query-1.1/api/", "");
+            if (queryId.contains("?")) queryId = queryId.substring(0, queryId.indexOf("?"));
+        }
+        Multimap<String, String> params = ArrayListMultimap.create();
+        if (apiString.contains("?")) {
+            List<NameValuePair> urlParams = URLEncodedUtils.parse(apiString.substring(apiString.indexOf("?") + 1), StandardCharsets.UTF_8);
+            for (NameValuePair p : urlParams) {
+                params.put(p.getName(), p.getValue());
+            }
+        }
+        GrlcQuery q = GrlcQuery.get(queryId);
+        if (q.getEndpoint().stringValue().endsWith("/text")) {
+            searchterm = expandSearchTerm(searchterm);
+        }
+        String queryParamName = "query";
+        if (q.getPlaceholdersList().size() == 1) {
+            queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
+        }
+        params.put(queryParamName, searchterm);
+        ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
+        int count = 0;
+        for (ApiResponseEntry r : result.getData()) {
+            String uri = r.get("thing");
+            values.add(uri);
+            String desc = r.get("description");
+            if (desc == null) desc = "";
+            if (desc.length() > 80) desc = desc.substring(0, 77) + "...";
+            if (!desc.isEmpty()) desc = " - " + desc;
+            labelMap.put(uri, r.get("label") + desc);
+            count++;
+            if (count > 9) return;
         }
     }
 

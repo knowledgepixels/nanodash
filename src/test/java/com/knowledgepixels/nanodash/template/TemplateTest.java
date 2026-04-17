@@ -1,10 +1,15 @@
 package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.Utils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class TemplateTest {
 
@@ -46,6 +51,15 @@ class TemplateTest {
         Template template = new Template(templateUri);
         String nanopubLabelPattern = "Class: ${name}";
         assertEquals(nanopubLabelPattern, template.getNanopubLabelPattern());
+    }
+
+    @Test
+    void invokeLookupApiForWikidata() throws Exception {
+        Template template = new Template(templateUri);
+        IRI relatedIdentity = SimpleValueFactory.getInstance().createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak/relatedentity");
+        Map<String, String> resultMap = new HashMap<>();
+        template.getPossibleValuesFromApi(relatedIdentity, "dog", resultMap);
+        assertFalse(resultMap.isEmpty());
     }
 
 }
