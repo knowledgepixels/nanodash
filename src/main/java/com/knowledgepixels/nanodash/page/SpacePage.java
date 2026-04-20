@@ -271,7 +271,7 @@ public class SpacePage extends NanodashPage {
      *
      * @param parameters page parameters containing the space {@code id}
      * @return the resolved {@link Space}; never {@code null}
-     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource}
+     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one
      * @throws IllegalArgumentException if the id cannot be resolved to any known resource
      */
     private Space resolveSpace(PageParameters parameters) {
@@ -280,6 +280,12 @@ public class SpacePage extends NanodashPage {
         if (resolved == null) {
             if (MaintainedResourceRepository.get().findById(id) != null) {
                 throw new RestartResponseException(MaintainedResourcePage.class, parameters);
+            }
+            MaintainedResource containingResource = MaintainedResourceRepository.get().findByNamespace(MaintainedResource.getNamespace(id));
+            if (containingResource != null) {
+                PageParameters partParameters = new PageParameters(parameters);
+                partParameters.set("context", containingResource.getId());
+                throw new RestartResponseException(ResourcePartPage.class, partParameters);
             }
             throw new IllegalArgumentException("No space or resource found for id: " + id);
         }
