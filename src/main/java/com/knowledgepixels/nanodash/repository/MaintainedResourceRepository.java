@@ -86,6 +86,7 @@ public class MaintainedResourceRepository {
      * @return The MaintainedResource with the given namespace, or null if not found.
      */
     public MaintainedResource findByNamespace(String namespace) {
+        ensureLoaded();
         return resourcesByNamespace.get(namespace);
     }
 
