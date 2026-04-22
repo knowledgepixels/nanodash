@@ -10,6 +10,8 @@ import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import org.apache.wicket.Page;
+import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -72,10 +74,6 @@ public class PreviewPage extends NanodashPage {
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                     NanodashSession.get().removePreviewNanopub(previewId);
-                    String formObjId = pageParams.get("formobj").toString(null);
-                    if (formObjId != null) {
-                        NanodashSession.get().removeForm(formObjId);
-                    }
 
                     if (!pageParams.get("refresh-upon-publish").isEmpty()) {
                         String toRefresh = pageParams.get("refresh-upon-publish").toString();
@@ -138,7 +136,13 @@ public class PreviewPage extends NanodashPage {
             @Override
             public void onSubmit() {
                 NanodashSession.get().removePreviewNanopub(previewId);
-                throw new RestartResponseException(PublishPage.class, new PageParameters(pageParams));
+                PageReference ref = preview.getSourcePageRef();
+                Page sourcePage = (ref != null) ? ref.getPage() : null;
+                if (sourcePage != null) {
+                    setResponsePage(sourcePage);
+                } else {
+                    throw new RestartResponseException(PublishPage.class, new PageParameters(pageParams));
+                }
             }
         };
         discardButton.setDefaultFormProcessing(false);

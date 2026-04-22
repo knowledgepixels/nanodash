@@ -305,7 +305,7 @@ public class PublishForm extends Panel {
         if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
             add(new Label("newversion", "There is a new version of this assertion template:"));
             PageParameters params = new PageParameters(pageParams);
-            params.set("template", latestAssertionId).remove("formobj");
+            params.set("template", latestAssertionId);
             add(new BookmarkablePageLink<Void>("newversionlink", publishPageClass, params));
             if ("latest".equals(pageParams.get("template-version").toString())) {
                 throw new RestartResponseException(publishPageClass, params);
@@ -775,7 +775,7 @@ public class PublishForm extends Panel {
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
-                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, Boolean.TRUE.equals(consentCheck.getModelObject())));
+                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, Boolean.TRUE.equals(consentCheck.getModelObject()), getPage().getPageReference()));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
                 } catch (RestartResponseException ex) {
                     throw ex;
