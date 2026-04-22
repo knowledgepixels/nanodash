@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -14,6 +16,10 @@ import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.QueryListPage;
+import com.knowledgepixels.nanodash.page.SpaceListPage;
+import com.knowledgepixels.nanodash.page.UserListPage;
 
 /**
  * TitleBar is the top bar of the Nanodash application, which contains
@@ -38,10 +44,10 @@ public class TitleBar extends Panel {
         this.highlight = highlight;
         add(new ProfileItem("profile", page));
 
-        createContainer("users");
-        createContainer("connectors");
-        createContainer("publish").setVisible(!NanodashPreferences.get().isReadOnlyMode());
-        createContainer("query");
+        createNavLink("users", UserListPage.class);
+        createNavLink("connectors", SpaceListPage.class);
+        createNavLink("publish", PublishPage.class).setVisible(!NanodashPreferences.get().isReadOnlyMode());
+        createNavLink("query", QueryListPage.class);
 
         WebMarkupContainer breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
         breadcrumbPath.setVisible(pathRefs.length > 0);
@@ -125,13 +131,13 @@ public class TitleBar extends Panel {
         return remainder;
     }
 
-    private WebMarkupContainer createContainer(String id) {
-        WebMarkupContainer c = new WebMarkupContainer(id);
+    private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass) {
+        BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, pageClass);
         if (id.equals(highlight)) {
-            c.add(new AttributeAppender("class", "selected"));
+            link.add(new AttributeAppender("class", "selected"));
         }
-        add(c);
-        return c;
+        add(link);
+        return link;
     }
 
 }
