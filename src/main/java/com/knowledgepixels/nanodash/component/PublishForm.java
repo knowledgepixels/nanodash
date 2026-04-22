@@ -207,7 +207,7 @@ public class PublishForm extends Panel {
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplate().getId(), c);
             requiredPubInfoContexts.add(c);
-            if (t.equals(LICENSE_PUB_INFO_TEMPLATE)) {
+            if (t.equals(LICENSE_PUB_INFO_TEMPLATE) && fillMode != FillMode.SUPERSEDE && fillMode != FillMode.DERIVE) {
                 IRI defaultLicense = User.getDefaultLicense(NanodashSession.get().getUserIri());
                 if (defaultLicense != null) {
                     c.setParam("license", defaultLicense.stringValue());
