@@ -5,23 +5,16 @@ import com.knowledgepixels.nanodash.component.DifferentKeyErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TemplateList;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Random;
 
 /**
  * The PublishPage class is responsible for rendering the application's publish page.
  * It allows users to publish content based on templates and manage forms.
  */
 public class PublishPage extends NanodashPage {
-
-    private static final Logger logger = LoggerFactory.getLogger(PublishPage.class);
 
     /**
      * The mount path for the PublishPage.
@@ -41,7 +34,7 @@ public class PublishPage extends NanodashPage {
     /**
      * Constructs a new PublishPage with the given parameters.
      *
-     * @param parameters The parameters for the page, which may include template and form object identifiers.
+     * @param parameters The parameters for the page, which may include a template identifier.
      */
     public PublishPage(final PageParameters parameters) {
         super(parameters);
@@ -53,17 +46,7 @@ public class PublishPage extends NanodashPage {
             if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
                 add(new DifferentKeyErrorItem("form", parameters));
             } else {
-                if (!parameters.contains("formobj")) {
-                    throw new RestartResponseException(getClass(), parameters.set("formobj", Math.abs(new Random().nextLong()) + ""));
-                }
-                String formObjId = parameters.get("formobj").toString();
-                if (!session.hasForm(formObjId)) {
-                    logger.warn("Form object not found in session (formobj={}, template={}); creating new form",
-                            formObjId, parameters.get("template"));
-                    PublishForm publishForm = new PublishForm("form", parameters, getClass(), ExplorePage.class);
-                    session.setForm(formObjId, publishForm);
-                }
-                add(session.getForm(formObjId));
+                add(new PublishForm("form", parameters, getClass(), ExplorePage.class));
             }
             add(new Label("templatelist").setVisible(false));
         } else {

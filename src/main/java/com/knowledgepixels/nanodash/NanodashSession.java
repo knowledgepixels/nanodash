@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.NanopubResults;
-import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.OrcidLoginPage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
@@ -9,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.xml.bind.DatatypeConverter;
 import org.apache.commons.io.FileUtils;
+import org.apache.wicket.PageReference;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
@@ -28,8 +28,6 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,59 +83,6 @@ public class NanodashSession extends WebSession {
     private IntroNanopub localIntro = null;
 
     private Date lastTimeIntroPublished = null;
-
-    // We should store here some sort of form model and not the forms themselves, but I couldn't figure
-    // how to do it, so doing it like this for the moment...
-    private static final int MAX_FORMS = 20;
-    private final Map<String, PublishForm> formMap = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, PublishForm> eldest) {
-            boolean evict = size() > MAX_FORMS;
-            if (evict) {
-                logger.info("Evicting form from session LRU (formobj={}, cap={})", eldest.getKey(), MAX_FORMS);
-            }
-            return evict;
-        }
-    });
-
-    /**
-     * Associates a form object with a specific ID.
-     *
-     * @param formObjId The ID of the form object.
-     * @param formObj   The form object to associate.
-     */
-    public void setForm(String formObjId, PublishForm formObj) {
-        formMap.put(formObjId, formObj);
-    }
-
-    /**
-     * Checks if a form object with the given ID exists.
-     *
-     * @param formObjId The ID of the form object.
-     * @return True if the form object exists, false otherwise.
-     */
-    public boolean hasForm(String formObjId) {
-        return formMap.containsKey(formObjId);
-    }
-
-    /**
-     * Retrieves the form object associated with the given ID.
-     *
-     * @param formObjId The ID of the form object.
-     * @return The associated form object, or null if not found.
-     */
-    public PublishForm getForm(String formObjId) {
-        return formMap.get(formObjId);
-    }
-
-    /**
-     * Removes the form object associated with the given ID.
-     *
-     * @param formObjId The ID of the form object to remove.
-     */
-    public void removeForm(String formObjId) {
-        formMap.remove(formObjId);
-    }
 
     /**
      * Loads profile information for the user.
@@ -499,18 +444,21 @@ public class NanodashSession extends WebSession {
         private final PageParameters pageParams;
         private final Class<? extends WebPage> confirmPageClass;
         private final boolean consentChecked;
+        private final PageReference sourcePageRef;
 
-        public PreviewNanopub(Nanopub nanopub, PageParameters pageParams, Class<? extends WebPage> confirmPageClass, boolean consentChecked) {
+        public PreviewNanopub(Nanopub nanopub, PageParameters pageParams, Class<? extends WebPage> confirmPageClass, boolean consentChecked, PageReference sourcePageRef) {
             this.nanopub = nanopub;
             this.pageParams = pageParams;
             this.confirmPageClass = confirmPageClass;
             this.consentChecked = consentChecked;
+            this.sourcePageRef = sourcePageRef;
         }
 
         public Nanopub getNanopub() { return nanopub; }
         public PageParameters getPageParams() { return pageParams; }
         public Class<? extends WebPage> getConfirmPageClass() { return confirmPageClass; }
         public boolean isConsentChecked() { return consentChecked; }
+        public PageReference getSourcePageRef() { return sourcePageRef; }
     }
 
     private ConcurrentMap<String, PreviewNanopub> previewMap = new ConcurrentHashMap<>();

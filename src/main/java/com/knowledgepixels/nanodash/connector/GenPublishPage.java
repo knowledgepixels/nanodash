@@ -1,10 +1,8 @@
 package com.knowledgepixels.nanodash.connector;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
@@ -13,17 +11,11 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Random;
 
 /**
  * Page for publishing a nanopublication.
  */
 public class GenPublishPage extends ConnectorPage {
-
-    private static final Logger logger = LoggerFactory.getLogger(GenPublishPage.class);
 
     /**
      * Mount path for this page.
@@ -47,7 +39,6 @@ public class GenPublishPage extends ConnectorPage {
         super(parameters);
         add(new Label("pagetitle", getConfig().getJournalName() + ": Publish Nanopublication | nanodash"));
 
-        final NanodashSession session = NanodashSession.get();
         PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this, "connectors",
                 new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),
@@ -57,18 +48,8 @@ public class GenPublishPage extends ConnectorPage {
         add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
 
         if (parameters.get("template").toString() != null) {
-            if (!parameters.contains("formobj")) {
-                throw new RestartResponseException(getClass(), parameters.set("formobj", Math.abs(new Random().nextLong()) + ""));
-            }
             parameters.set("template-version", "latest");
-            String formObjId = parameters.get("formobj").toString();
-            if (!session.hasForm(formObjId)) {
-                logger.warn("Form object not found in session (formobj={}, template={}); creating new form",
-                        formObjId, parameters.get("template"));
-                PublishForm publishForm = new PublishForm("form", parameters, getClass(), GenConnectPage.class);
-                session.setForm(formObjId, publishForm);
-            }
-            add(session.getForm(formObjId));
+            add(new PublishForm("form", parameters, getClass(), GenConnectPage.class));
         } else {
             throw new RuntimeException("no template parameter");
         }
