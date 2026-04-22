@@ -5,11 +5,13 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -465,15 +467,16 @@ public class StatementItem extends Panel {
                     for (int i = getRepeatIndex() + 1; i < repetitionGroups.size(); i++) {
                         IModel swapModel2 = (IModel) context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
                         if (swapModel1 != null && swapModel2 != null) {
-                            // TODO check how to fix this -- maybe a function that does the swap?
                             swapModel1.setObject(swapModel2.getObject());
                         }
+                        // Drop any retained rawInput so the shifted model value is rendered
+                        // instead of the user's previous (post-validation-error) entry.
+                        clearInputForModel(swapModel1);
                         swapModel1 = swapModel2;
                     }
-                    // Clear last object:
                     if (swapModel1 != null) {
-                        // FIXME check if this is fine now
                         swapModel1.setObject(null);
+                        clearInputForModel(swapModel1);
                     }
                 }
             }
@@ -483,6 +486,15 @@ public class StatementItem extends Panel {
                 vi.removeFromContext();
             }
             repetitionGroupsChanged = true;
+        }
+
+        private void clearInputForModel(IModel<?> model) {
+            if (model == null) return;
+            for (Component c : context.getComponents()) {
+                if (c instanceof FormComponent && c.getDefaultModel() == model) {
+                    ((FormComponent<?>) c).clearInput();
+                }
+            }
         }
 
         private String getRepeatSuffix() {
