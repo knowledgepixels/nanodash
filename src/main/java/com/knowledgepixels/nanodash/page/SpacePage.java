@@ -129,29 +129,6 @@ public class SpacePage extends NanodashPage {
         add(new Label("description", "<span>" + Utils.sanitizeHtml(space.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         if (space.isDataInitialized()) {
-            add(new PinGroupList("pinned-section", space));
-        } else {
-            add(new AjaxLazyLoadPanel<Component>("pinned-section") {
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new PinGroupList(markupId, space);
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return space.isDataInitialized();
-                }
-
-                @Override
-                public Component getLoadingComponent(String id) {
-                    return new Label(id).setVisible(false);
-                }
-
-            });
-        }
-
-        if (space.isDataInitialized()) {
             add(new ViewList("views", space));
         } else {
             add(new AjaxLazyLoadPanel<Component>("views") {
