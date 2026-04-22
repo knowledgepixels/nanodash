@@ -10,6 +10,8 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
@@ -18,6 +20,8 @@ import java.util.Random;
  * It allows users to publish content based on templates and manage forms.
  */
 public class PublishPage extends NanodashPage {
+
+    private static final Logger logger = LoggerFactory.getLogger(PublishPage.class);
 
     /**
      * The mount path for the PublishPage.
@@ -54,6 +58,8 @@ public class PublishPage extends NanodashPage {
                 }
                 String formObjId = parameters.get("formobj").toString();
                 if (!session.hasForm(formObjId)) {
+                    logger.warn("Form object not found in session (formobj={}, template={}); creating new form",
+                            formObjId, parameters.get("template"));
                     PublishForm publishForm = new PublishForm("form", parameters, getClass(), ExplorePage.class);
                     session.setForm(formObjId, publishForm);
                 }

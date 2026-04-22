@@ -92,7 +92,11 @@ public class NanodashSession extends WebSession {
     private final Map<String, PublishForm> formMap = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, PublishForm> eldest) {
-            return size() > MAX_FORMS;
+            boolean evict = size() > MAX_FORMS;
+            if (evict) {
+                logger.info("Evicting form from session LRU (formobj={}, cap={})", eldest.getKey(), MAX_FORMS);
+            }
+            return evict;
         }
     });
 

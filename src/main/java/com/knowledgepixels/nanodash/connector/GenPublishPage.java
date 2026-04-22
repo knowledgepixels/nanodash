@@ -13,6 +13,8 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
@@ -20,6 +22,8 @@ import java.util.Random;
  * Page for publishing a nanopublication.
  */
 public class GenPublishPage extends ConnectorPage {
+
+    private static final Logger logger = LoggerFactory.getLogger(GenPublishPage.class);
 
     /**
      * Mount path for this page.
@@ -59,6 +63,8 @@ public class GenPublishPage extends ConnectorPage {
             parameters.set("template-version", "latest");
             String formObjId = parameters.get("formobj").toString();
             if (!session.hasForm(formObjId)) {
+                logger.warn("Form object not found in session (formobj={}, template={}); creating new form",
+                        formObjId, parameters.get("template"));
                 PublishForm publishForm = new PublishForm("form", parameters, getClass(), GenConnectPage.class);
                 session.setForm(formObjId, publishForm);
             }
