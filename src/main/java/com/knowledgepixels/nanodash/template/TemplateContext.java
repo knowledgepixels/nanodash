@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.LiteralDateItem;
@@ -42,6 +43,7 @@ public class TemplateContext implements Serializable {
     private Map<IRI, StatementItem> narrowScopeMap = new HashMap<>();
     private String targetNamespace = Template.DEFAULT_TARGET_NAMESPACE;
     private Nanopub existingNanopub;
+    private Nanopub fillSource;
     private Map<IRI, String> labels;
     private FillMode fillMode = null;
 
@@ -291,6 +293,22 @@ public class TemplateContext implements Serializable {
             iri = vf.createIRI(targetNamespace + "assertion");
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             iri = vf.createIRI(targetNamespace);
+        } else if (template.isRootNanopubPlaceholder(iri)) {
+            IModel<?> rootModel = componentModels.get(iri);
+            String rootValue = (rootModel == null || rootModel.getObject() == null) ? "" : rootModel.getObject().toString();
+            if (rootValue.equals(LocalUri.of("nanopub").stringValue())) {
+                // Sentinel: in supersede/derive mode this means the existing nanopub was the root
+                Nanopub ref = getReferenceNanopub();
+                if (ref != null && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.DERIVE)) {
+                    iri = vf.createIRI(ref.getUri().stringValue());
+                } else {
+                    iri = vf.createIRI(targetNamespace);
+                }
+            } else if (rootValue.isEmpty()) {
+                iri = vf.createIRI(targetNamespace);
+            } else {
+                iri = vf.createIRI(rootValue);
+            }
         }
         // TODO: Move this code below to the respective placeholder classes:
         IModel<?> tf = componentModels.get(iri);
@@ -468,6 +486,36 @@ public class TemplateContext implements Serializable {
      */
     public Nanopub getExistingNanopub() {
         return existingNanopub;
+    }
+
+    /**
+     * Returns the nanopub being used to fill this context (e.g. in supersede/derive
+     * mode), if any. Unlike {@link #getExistingNanopub()} this does not imply the
+     * context is read-only.
+     *
+     * @return the fill source nanopub, or null if none
+     */
+    public Nanopub getFillSource() {
+        return fillSource;
+    }
+
+    /**
+     * Sets the nanopub used to fill this context (e.g. in supersede/derive mode).
+     *
+     * @param fillSource the nanopub providing the values, or null to clear
+     */
+    public void setFillSource(Nanopub fillSource) {
+        this.fillSource = fillSource;
+    }
+
+    /**
+     * Returns the existing or fill-source nanopub for this context, preferring the
+     * existing nanopub if set.
+     *
+     * @return the reference nanopub, or null if none
+     */
+    public Nanopub getReferenceNanopub() {
+        return existingNanopub != null ? existingNanopub : fillSource;
     }
 
     /**
