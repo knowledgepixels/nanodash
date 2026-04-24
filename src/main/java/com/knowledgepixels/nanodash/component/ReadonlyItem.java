@@ -86,7 +86,7 @@ public class ReadonlyItem extends AbstractContextComponent {
         if (context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
-        if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getExistingNanopub() == null) {
+        if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getReferenceNanopub() == null) {
             model.setObject(LocalUri.of("nanopub").stringValue());
         }
 
@@ -319,13 +319,15 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isNanopubValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("nanopub").stringValue())) return true;
-        if (context.getExistingNanopub() == null) return false;
-        return obj.toString().equals(context.getExistingNanopub().getUri().stringValue());
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref == null) return false;
+        return obj.toString().equals(ref.getUri().stringValue());
     }
 
     private String getNanopubValue() {
-        if (context.getExistingNanopub() != null) {
-            return context.getExistingNanopub().getUri().stringValue();
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref != null) {
+            return ref.getUri().stringValue();
         } else {
             return LocalUri.of("nanopub").stringValue();
         }
@@ -334,13 +336,15 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isAssertionValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("assertion").stringValue())) return true;
-        if (context.getExistingNanopub() == null) return false;
-        return obj.toString().equals(context.getExistingNanopub().getAssertionUri().stringValue());
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref == null) return false;
+        return obj.toString().equals(ref.getAssertionUri().stringValue());
     }
 
     private String getAssertionValue() {
-        if (context.getExistingNanopub() != null) {
-            return context.getExistingNanopub().getAssertionUri().stringValue();
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref != null) {
+            return ref.getAssertionUri().stringValue();
         } else {
             return LocalUri.of("assertion").stringValue();
         }
