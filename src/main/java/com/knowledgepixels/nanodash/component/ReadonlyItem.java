@@ -153,6 +153,12 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
+                if (obj != null && obj.equals(LocalUri.of("nanopub").stringValue())) {
+                    return "this nanopublication";
+                }
+                if (obj != null && obj.equals(LocalUri.of("assertion").stringValue())) {
+                    return context.getType() == ContextType.ASSERTION ? "this assertion" : "the assertion above";
+                }
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
                     if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {

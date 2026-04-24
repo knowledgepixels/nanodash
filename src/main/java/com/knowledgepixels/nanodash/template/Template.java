@@ -468,6 +468,17 @@ public class Template implements Serializable {
     }
 
     /**
+     * Checks if the IRI is a root nanopub placeholder.
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a root nanopub placeholder, false otherwise.
+     */
+    public boolean isRootNanopubPlaceholder(IRI iri) {
+        iri = transform(iri);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER);
+    }
+
+    /**
      * Checks if the IRI is a placeholder of any type.
      *
      * @param iri the IRI to check.
@@ -488,6 +499,7 @@ public class Template implements Serializable {
             if (t.equals(NTEMPLATE.LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.SEQUENCE_ELEMENT_PLACEHOLDER)) return true;
+            if (t.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) return true;
         }
         return false;
     }

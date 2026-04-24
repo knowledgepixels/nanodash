@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.LiteralDateItem;
@@ -80,6 +81,9 @@ public class TemplateContext implements Serializable {
         this.existingNanopub = existingNanopub;
         if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
             componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
+        }
+        if (existingNanopub == null) {
+            componentModels.put(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER, Model.of(LocalUri.of("nanopub").stringValue()));
         }
     }
 
@@ -291,6 +295,14 @@ public class TemplateContext implements Serializable {
             iri = vf.createIRI(targetNamespace + "assertion");
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             iri = vf.createIRI(targetNamespace);
+        } else if (iri.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) {
+            IModel<?> rootModel = componentModels.get(iri);
+            String rootValue = (rootModel == null || rootModel.getObject() == null) ? "" : rootModel.getObject().toString();
+            if (rootValue.isEmpty() || rootValue.equals(LocalUri.of("nanopub").stringValue())) {
+                iri = vf.createIRI(targetNamespace);
+            } else {
+                iri = vf.createIRI(rootValue);
+            }
         }
         // TODO: Move this code below to the respective placeholder classes:
         IModel<?> tf = componentModels.get(iri);
