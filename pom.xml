@@ -98,17 +98,17 @@
       <artifactId>owasp-java-html-sanitizer</artifactId>
       <version>20260313.1</version>
     </dependency>
-    <!-- <dependency>
+    <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.86.2</version>
-    </dependency> -->
+      <version>1.87.0</version>
+    </dependency>
     <!-- Temporary: dependency on Jitpack for snapshot builds -->
-    <dependency>
+    <!-- <dependency>
       <groupId>com.github.Nanopublication</groupId>
       <artifactId>nanopub-java</artifactId>
       <version>b80512b</version>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>

@@ -115,7 +115,7 @@ public class Utils {
      * @param np the nanopublication to cache
      */
     public static void cacheNanopub(Nanopub np) {
-        String artifactCode = GetNanopub.getArtifactCode(np.getUri().stringValue());
+        String artifactCode = GetNanopub.getArtifactCode(np.getUri().stringValue()).toString();
         nanopubs.put(artifactCode, np);
     }
 
@@ -126,7 +126,7 @@ public class Utils {
      * @return the Nanopub object, or null if not found
      */
     public static Nanopub getNanopub(String uriOrArtifactCode) {
-        String artifactCode = GetNanopub.getArtifactCode(uriOrArtifactCode);
+        String artifactCode = GetNanopub.getArtifactCode(uriOrArtifactCode).toString();
         if (!nanopubs.containsKey(artifactCode)) {
             for (int i = 0; i < 3; i++) {  // Try 3 times to get nanopub
                 Nanopub np = GetNanopub.get(artifactCode);
