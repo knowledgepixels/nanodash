@@ -319,9 +319,9 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isNanopubValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("nanopub").stringValue())) return true;
-        Nanopub ref = context.getReferenceNanopub();
-        if (ref == null) return false;
-        return obj.toString().equals(ref.getUri().stringValue());
+        // A fillSource match means a *prior* nanopub (supersede/derive), not "this" one — don't label it as such.
+        if (context.getExistingNanopub() == null) return false;
+        return obj.toString().equals(context.getExistingNanopub().getUri().stringValue());
     }
 
     private String getNanopubValue() {
@@ -336,9 +336,9 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isAssertionValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("assertion").stringValue())) return true;
-        Nanopub ref = context.getReferenceNanopub();
-        if (ref == null) return false;
-        return obj.toString().equals(ref.getAssertionUri().stringValue());
+        // A fillSource match means a *prior* assertion (supersede/derive), not "this" one.
+        if (context.getExistingNanopub() == null) return false;
+        return obj.toString().equals(context.getExistingNanopub().getAssertionUri().stringValue());
     }
 
     private String getAssertionValue() {
