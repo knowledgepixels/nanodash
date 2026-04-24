@@ -86,6 +86,9 @@ public class ReadonlyItem extends AbstractContextComponent {
         if (context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
+        if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getExistingNanopub() == null) {
+            model.setObject(LocalUri.of("nanopub").stringValue());
+        }
 
         final Map<String, String> foafNameMap;
         if (context.getExistingNanopub() == null) {

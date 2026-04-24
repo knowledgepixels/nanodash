@@ -82,9 +82,6 @@ public class TemplateContext implements Serializable {
         if (existingNanopub == null && NanodashSession.get().getUserIri() != null) {
             componentModels.put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(NanodashSession.get().getUserIri().stringValue()));
         }
-        if (existingNanopub == null) {
-            componentModels.put(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER, Model.of(LocalUri.of("nanopub").stringValue()));
-        }
     }
 
     /**
@@ -295,7 +292,7 @@ public class TemplateContext implements Serializable {
             iri = vf.createIRI(targetNamespace + "assertion");
         } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
             iri = vf.createIRI(targetNamespace);
-        } else if (iri.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) {
+        } else if (template.isRootNanopubPlaceholder(iri)) {
             IModel<?> rootModel = componentModels.get(iri);
             String rootValue = (rootModel == null || rootModel.getObject() == null) ? "" : rootModel.getObject().toString();
             if (rootValue.isEmpty() || rootValue.equals(LocalUri.of("nanopub").stringValue())) {
