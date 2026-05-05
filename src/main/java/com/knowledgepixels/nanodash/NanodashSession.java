@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -61,9 +62,15 @@ public class NanodashSession extends WebSession {
      */
     public NanodashSession(Request request) {
         super(request);
+        setLocale(Locale.US);
         httpSession = ((HttpServletRequest) request.getContainerRequest()).getSession();
         bind();
         loadProfileInfo();
+    }
+
+    @Override
+    public Session setLocale(Locale locale) {
+        return super.setLocale(Locale.US);
     }
 
     private static ValueFactory vf = SimpleValueFactory.getInstance();
