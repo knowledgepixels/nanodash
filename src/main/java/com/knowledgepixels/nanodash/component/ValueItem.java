@@ -37,8 +37,8 @@ public class ValueItem extends AbstractContextComponent {
             IRI iri = (IRI) value;
             if (template.isSequenceElementPlaceholder(iri)) {
                 component = new SequenceElementItem("value", iri, rg.getRepeatIndex() + 1, this.context);
-            } else if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
-                // This is a special placeholder that is always read-only
+            } else if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) || template.isRootNanopubPlaceholder(iri)) {
+                // These are special placeholders that are always read-only
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (this.context.isReadOnly()) {
                 if (template.isPlaceholder(iri) || template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {

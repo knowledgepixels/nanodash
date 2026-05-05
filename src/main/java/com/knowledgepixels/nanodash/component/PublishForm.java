@@ -294,6 +294,24 @@ public class PublishForm extends Panel {
             }
         }
 
+        final Nanopub improveNp;
+        if (!pageParams.get("improve").isNull()) {
+            improveNp = Utils.getNanopub(pageParams.get("improve").toString());
+        } else {
+            improveNp = null;
+        }
+
+        // Propagate fill source (supersede/derive/improve) so contexts can resolve
+        // the `local:nanopub`/`local:assertion` sentinels to the fill nanopub's URIs.
+        Nanopub fillSource = fillNp != null ? fillNp : improveNp;
+        if (fillSource != null) {
+            assertionContext.setFillSource(fillSource);
+            provenanceContext.setFillSource(fillSource);
+            for (TemplateContext c : pubInfoContexts) {
+                c.setFillSource(fillSource);
+            }
+        }
+
         // Init statements only now, in order to pick up parameter values:
         assertionContext.initStatements();
         provenanceContext.initStatements();
@@ -313,13 +331,6 @@ public class PublishForm extends Panel {
         } else {
             add(new Label("newversion", "").setVisible(false));
             add(new Label("newversionlink", "").setVisible(false));
-        }
-
-        final Nanopub improveNp;
-        if (!pageParams.get("improve").isNull()) {
-            improveNp = Utils.getNanopub(pageParams.get("improve").toString());
-        } else {
-            improveNp = null;
         }
 
         final List<Statement> unusedStatementList = new ArrayList<>();
@@ -353,6 +364,7 @@ public class PublishForm extends Panel {
                     final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
                     if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
                         TemplateContext c = createPubInfoContext(handcodedStatementsTemplateId);
+                        c.setFillSource(fillNp);
                         c.initStatements();
                         piFiller.fill(c);
                     }

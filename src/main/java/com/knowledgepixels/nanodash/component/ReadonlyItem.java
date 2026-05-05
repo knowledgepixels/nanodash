@@ -86,6 +86,9 @@ public class ReadonlyItem extends AbstractContextComponent {
         if (context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
+        if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getReferenceNanopub() == null) {
+            model.setObject(LocalUri.of("nanopub").stringValue());
+        }
 
         final Map<String, String> foafNameMap;
         if (context.getExistingNanopub() == null) {
@@ -153,6 +156,12 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
+                if (obj != null && obj.equals(LocalUri.of("nanopub").stringValue())) {
+                    return "this nanopublication";
+                }
+                if (obj != null && obj.equals(LocalUri.of("assertion").stringValue())) {
+                    return context.getType() == ContextType.ASSERTION ? "this assertion" : "the assertion above";
+                }
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
                     if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
@@ -310,13 +319,15 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isNanopubValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("nanopub").stringValue())) return true;
+        // A fillSource match means a *prior* nanopub (supersede/derive), not "this" one — don't label it as such.
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getUri().stringValue());
     }
 
     private String getNanopubValue() {
-        if (context.getExistingNanopub() != null) {
-            return context.getExistingNanopub().getUri().stringValue();
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref != null) {
+            return ref.getUri().stringValue();
         } else {
             return LocalUri.of("nanopub").stringValue();
         }
@@ -325,13 +336,15 @@ public class ReadonlyItem extends AbstractContextComponent {
     private boolean isAssertionValue(Object obj) {
         if (obj == null) return false;
         if (obj.toString().equals(LocalUri.of("assertion").stringValue())) return true;
+        // A fillSource match means a *prior* assertion (supersede/derive), not "this" one.
         if (context.getExistingNanopub() == null) return false;
         return obj.toString().equals(context.getExistingNanopub().getAssertionUri().stringValue());
     }
 
     private String getAssertionValue() {
-        if (context.getExistingNanopub() != null) {
-            return context.getExistingNanopub().getAssertionUri().stringValue();
+        Nanopub ref = context.getReferenceNanopub();
+        if (ref != null) {
+            return ref.getAssertionUri().stringValue();
         } else {
             return LocalUri.of("assertion").stringValue();
         }
