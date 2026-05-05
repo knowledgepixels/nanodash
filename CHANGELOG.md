@@ -1,3 +1,40 @@
+## [4.27.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.26.0...nanodash-4.27.0) (2026-05-05)
+
+### Features
+
+* support RootNanopubPlaceholder in templates ([d4e336f](https://github.com/knowledgepixels/nanodash/commit/d4e336f20e0cedee20f8d1018e7997bac922a3ca)), closes [#452](https://github.com/knowledgepixels/nanodash/issues/452)
+
+### Bug Fixes
+
+* clear rawInput when removing repetition groups ([a0579a7](https://github.com/knowledgepixels/nanodash/commit/a0579a70cc2bae373e2ceef7d84f2549e718330f)), closes [#445](https://github.com/knowledgepixels/nanodash/issues/445)
+* don't label fillSource URIs as "this nanopublication" ([4924a7a](https://github.com/knowledgepixels/nanodash/commit/4924a7a2fa67078d66d78ee4e9f7c2f036fd0603))
+* inherit license from superseded/derived nanopub ([0a2afbb](https://github.com/knowledgepixels/nanodash/commit/0a2afbb052199afb163af9f2aec083962e3cf1c5))
+* pin session locale to en_US ([787d7c1](https://github.com/knowledgepixels/nanodash/commit/787d7c1cac422d0f172f42896bffbd9125cf6608))
+* recognize RootNanopubPlaceholder via type assertion ([8d15487](https://github.com/knowledgepixels/nanodash/commit/8d15487a1435a5ec3497dcf735d194548453274a))
+* redirect resource-part URIs from SpacePage to ResourcePartPage ([a4d241a](https://github.com/knowledgepixels/nanodash/commit/a4d241a69a8120be3ba42dfa0428b225d0c9e3c4))
+* resolve LocalUri sentinels during supersede/derive fill ([df8b6a4](https://github.com/knowledgepixels/nanodash/commit/df8b6a41db242acd15a100e14486c7ff5d7cc0b4))
+* use absolute nav links in TitleBar ([bdfc693](https://github.com/knowledgepixels/nanodash/commit/bdfc69357fbe61c5be1372166337ebccb3ce34aa)), closes [#450](https://github.com/knowledgepixels/nanodash/issues/450)
+
+### Tests
+
+* cover RootNanopubPlaceholder recognition and resolution ([ac76708](https://github.com/knowledgepixels/nanodash/commit/ac76708965628976083fb4b24ac0d65f9ca93732))
+
+### General maintenance
+
+* Added much more tests for LookupApis ([ab05b60](https://github.com/knowledgepixels/nanodash/commit/ab05b60e35659dbd78b2ddc29327cbde32d2c75f))
+* Added tests for LookupApi ([6c53514](https://github.com/knowledgepixels/nanodash/commit/6c53514d3d2b0faca7f4ab3f613650858db4b653))
+* bump gson to 2.14.0 ([d36d20f](https://github.com/knowledgepixels/nanodash/commit/d36d20f14a9a7345976ffd58b3b267a894d0d993))
+* bump nanopub library to 1.87.0 ([f752baa](https://github.com/knowledgepixels/nanodash/commit/f752baa7aabb62f074194f3b830c466fd00698a4))
+* log form-object loss and LRU eviction ([29e1f40](https://github.com/knowledgepixels/nanodash/commit/29e1f4035374c50240158a11e02f67e29813ed41)), closes [#373](https://github.com/knowledgepixels/nanodash/issues/373)
+* Mocked away all http calls in LookupApisTest ([1ea3f65](https://github.com/knowledgepixels/nanodash/commit/1ea3f65b3ff5ac4336a8744b36c1bb2abcb692d6))
+* remove code duplication ([4f10c5f](https://github.com/knowledgepixels/nanodash/commit/4f10c5f7634630ade46b938d512726e194de2fce))
+* setting next snapshot version [skip ci] ([a7687be](https://github.com/knowledgepixels/nanodash/commit/a7687be2b02c33a757124e5431f2bd08a4453375))
+
+### Refactoring
+
+* drop formobj, use PageReference for preview Back ([063c82c](https://github.com/knowledgepixels/nanodash/commit/063c82c20e8cf73ad2a5d2fd0e365fdf1364261c))
+* drop the Pinned section from spaces ([2484c71](https://github.com/knowledgepixels/nanodash/commit/2484c714f22fded64028c3ebb425629118c07f79))
+
 ## [4.26.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.25.0...nanodash-4.26.0) (2026-04-16)
 
 ### Features
