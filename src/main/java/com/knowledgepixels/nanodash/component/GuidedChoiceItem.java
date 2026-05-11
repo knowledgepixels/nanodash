@@ -99,12 +99,14 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         this.iri = iriP;
         final Template template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             String objId = context.getParam(postfix);
             if (AbstractResourceWithProfile.get(objId) != null && AbstractResourceWithProfile.get(objId).getLabel() != null) {
                 labelMap.put(objId, AbstractResourceWithProfile.get(objId).getLabel());

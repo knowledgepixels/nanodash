@@ -78,12 +78,14 @@ public class ReadonlyItem extends AbstractContextComponent {
         this.iri = iriP;
         template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
         if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getReferenceNanopub() == null) {

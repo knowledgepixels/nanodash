@@ -57,12 +57,14 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
         this.iri = iri;
         Template template = context.getTemplate();
         model = (IModel<String>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
         restrictedChoice = new RestrictedChoice(iri, context);
