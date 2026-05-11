@@ -54,12 +54,14 @@ public class IriTextfieldItem extends AbstractContextComponent {
         this.iri = iriP;
         final Template template = context.getTemplate();
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
         prefix = template.getPrefix(iri);

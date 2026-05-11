@@ -48,12 +48,14 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         this.iri = iri;
         regex = template.getRegex(iri);
         IModel<ZonedDateTime> model = (IModel<ZonedDateTime>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of((ZonedDateTime) null);
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             String zoncontext = context.getParam(postfix);
             if (zoncontext != null) {
                 model.setObject(ZonedDateTime.parse(zoncontext));

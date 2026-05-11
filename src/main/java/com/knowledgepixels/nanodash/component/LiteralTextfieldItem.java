@@ -49,12 +49,14 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         this.iri = iri;
         regex = template.getRegex(iri);
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of("");
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
         AbstractTextComponent<String> tc = initTextComponent(model);

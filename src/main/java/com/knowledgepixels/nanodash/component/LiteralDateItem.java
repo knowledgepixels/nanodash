@@ -52,12 +52,14 @@ public class LiteralDateItem extends AbstractContextComponent {
         this.iri = iri;
         regex = template.getRegex(iri);
         IModel<Date> model = (IModel<Date>) context.getComponentModels().get(iri);
+        boolean modelIsNew = false;
         if (model == null) {
             model = Model.of((Date) null);
             context.getComponentModels().put(iri, model);
+            modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (context.hasParam(postfix)) {
+        if (modelIsNew && context.hasParam(postfix)) {
             try {
                 model.setObject(format.parse(context.getParam(postfix)));
             } catch (ParseException e) {
