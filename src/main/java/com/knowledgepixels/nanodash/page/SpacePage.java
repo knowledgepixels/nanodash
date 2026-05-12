@@ -19,6 +19,8 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
@@ -48,9 +50,18 @@ public class SpacePage extends NanodashPage {
     }
 
     /**
-     * Space object with the data shown on this page.
+     * Id of the space shown on this page. Only the id is held in the page
+     * state; the {@link Space} itself is re-fetched from the repository on
+     * every render via {@link #spaceModel}, so the page tree never carries
+     * a serialized snapshot of singleton data.
      */
-    private final Space space;
+    private final String spaceId;
+
+    /**
+     * LDM that resolves {@link #spaceId} to the live {@link Space} singleton.
+     */
+    private final IModel<Space> spaceModel;
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -62,7 +73,14 @@ public class SpacePage extends NanodashPage {
     public SpacePage(final PageParameters parameters) {
         super(parameters);
 
-        space = resolveSpace(parameters);
+        Space space = resolveSpace(parameters);
+        spaceId = space.getId();
+        spaceModel = new LoadableDetachableModel<Space>() {
+            @Override
+            protected Space load() {
+                return SpaceRepository.get().findById(spaceId);
+            }
+        };
         space.triggerDataUpdate();
 
         Nanopub np = space.getNanopub();
@@ -135,12 +153,12 @@ public class SpacePage extends NanodashPage {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, space);
+                    return new ViewList(markupId, spaceModel.getObject());
                 }
 
                 @Override
                 protected boolean isContentReady() {
-                    return space.isDataInitialized();
+                    return spaceModel.getObject().isDataInitialized();
                 }
 
                 @Override
@@ -154,8 +172,8 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         "roles",
                         "Roles:",
-                        space::isDataInitialized,
-                        space::getRoles,
+                        () -> spaceModel.getObject().isDataInitialized(),
+                        () -> spaceModel.getObject().getRoles(),
                         r -> new ItemListElement("item", ExplorePage.class, new PageParameters().set("id", r.getRole().getId()), r.getRole().getName(), null, Utils.getAsNanopub(r.getNanopubUri()))
                 )
                         .makeInline()
@@ -175,12 +193,12 @@ public class SpacePage extends NanodashPage {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new SpaceUserList(markupId, space);
+                    return new SpaceUserList(markupId, spaceModel.getObject());
                 }
 
                 @Override
                 protected boolean isContentReady() {
-                    return space.isDataInitialized();
+                    return spaceModel.getObject().isDataInitialized();
                 }
 
             });
@@ -207,7 +225,7 @@ public class SpacePage extends NanodashPage {
                 new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES),
                 (apiResponse) -> {
                     MaintainedResourceRepository.get().ensureLoaded();
-                    return MaintainedResourceRepository.get().findResourcesBySpace(space);
+                    return MaintainedResourceRepository.get().findResourcesBySpace(spaceModel.getObject());
                 },
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         ));
@@ -228,8 +246,8 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<>(
                         typePl.toLowerCase(),
                         Space.getTypeEmoji(type) + " " + typePl,
-                        SpaceRepository.get().findSubspaces(space, KPXL_TERMS.NAMESPACE + type),
-                        (space) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space), space.getLabel())
+                        SpaceRepository.get().findSubspaces(spaceModel.getObject(), KPXL_TERMS.NAMESPACE + type),
+                        (subspace) -> new ItemListElement("item", SpacePage.class, new PageParameters().set("id", subspace), subspace.getLabel())
                 )
         );
     }
@@ -241,6 +259,15 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDetach() {
+        spaceModel.detach();
+        super.onDetach();
     }
 
     /**

@@ -11,6 +11,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.util.Values;
@@ -36,14 +38,29 @@ public class MaintainedResourcePage extends NanodashPage {
     }
 
     /**
-     * Maintained resource object with the data shown on this page.
+     * Id of the maintained resource shown on this page. Only the id is held in
+     * the page state; the {@link MaintainedResource} itself is re-fetched from
+     * the repository on every render via {@link #resourceModel}, so the page
+     * tree never carries a serialized snapshot of singleton data.
      */
-    private final MaintainedResource resource;
+    private final String resourceId;
+
+    /**
+     * LDM that resolves {@link #resourceId} to the live {@link MaintainedResource} singleton.
+     */
+    private final IModel<MaintainedResource> resourceModel;
 
     public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 
-        resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
+        MaintainedResource resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
+        resourceId = resource.getId();
+        resourceModel = new LoadableDetachableModel<MaintainedResource>() {
+            @Override
+            protected MaintainedResource load() {
+                return MaintainedResourceRepository.get().findById(resourceId);
+            }
+        };
         Space space = resource.getSpace();
         resource.triggerDataUpdate();
 
@@ -82,12 +99,12 @@ public class MaintainedResourcePage extends NanodashPage {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resource);
+                    return new ViewList(markupId, resourceModel.getObject());
                 }
 
                 @Override
                 protected boolean isContentReady() {
-                    return resource.isDataInitialized();
+                    return resourceModel.getObject().isDataInitialized();
                 }
 
                 @Override
@@ -106,6 +123,15 @@ public class MaintainedResourcePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDetach() {
+        resourceModel.detach();
+        super.onDetach();
     }
 
 }
