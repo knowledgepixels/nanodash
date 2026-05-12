@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.page.HomePage;
+import org.apache.wicket.settings.RequestCycleSettings;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +45,15 @@ class WicketApplicationTest {
     void getLatestVersionWhenFetchSucceeds() {
         String result = WicketApplication.getLatestVersion();
         assertTrue(result.matches("\\d+.\\d+(.\\d+)*"));
+    }
+
+    // Guards #456: ONE_PASS_RENDER must not be re-introduced — it breaks F5 form-state preservation.
+    @Test
+    void initUsesDefaultRedirectToBufferRenderStrategy() {
+        assertEquals(
+                RequestCycleSettings.RenderStrategy.REDIRECT_TO_BUFFER,
+                tester.getApplication().getRequestCycleSettings().getRenderStrategy()
+        );
     }
 
 }
