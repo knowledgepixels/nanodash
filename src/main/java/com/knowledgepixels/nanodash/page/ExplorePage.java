@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
@@ -126,11 +127,17 @@ public class ExplorePage extends NanodashPage {
         add(new TitleBar("titlebar", this, null));
 
         if (SpaceRepository.get().findById(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + SpaceRepository.get().findById(contextId).getLabel())));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
+                var space = SpaceRepository.get().findById(contextId);
+                return "back to " + (space == null ? contextId : space.getLabel());
+            })));
         } else if (MaintainedResourceRepository.get().findById(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + MaintainedResourceRepository.get().findById(contextId).getLabel())));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
+                var resource = MaintainedResourceRepository.get().findById(contextId);
+                return "back to " + (resource == null ? contextId : resource.getLabel());
+            })));
         } else if (IndividualAgent.isUser(contextId)) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(Model.of("back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> "back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
         }

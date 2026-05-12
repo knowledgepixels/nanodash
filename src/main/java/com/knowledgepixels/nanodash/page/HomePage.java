@@ -12,6 +12,8 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.Strings;
 
@@ -69,7 +71,7 @@ public class HomePage extends NanodashPage {
 
         setOutputMarkupId(true);
 
-        String homeResourceId = NanodashPreferences.get().getHomeResource();
+        final String homeResourceId = NanodashPreferences.get().getHomeResource();
         MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
         if (homeResource == null) {
             String msg = "Configured home resource <code>" + Strings.escapeMarkup(homeResourceId) + "</code> could not be found. " +
@@ -78,6 +80,13 @@ public class HomePage extends NanodashPage {
             return;
         }
         homeResource.triggerDataUpdate();
+
+        final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
+            @Override
+            protected MaintainedResource load() {
+                return MaintainedResourceRepository.get().findById(homeResourceId);
+            }
+        };
 
         if (homeResource.isDataInitialized()) {
             ViewList viewList = new ViewList("views", homeResource);
@@ -88,19 +97,25 @@ public class HomePage extends NanodashPage {
 
                 @Override
                 public Component getLazyLoadComponent(String markupId) {
-                    ViewList viewList = new ViewList(markupId, homeResource);
+                    ViewList viewList = new ViewList(markupId, homeResourceModel.getObject());
                     viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
                     return viewList;
                 }
 
                 @Override
                 protected boolean isContentReady() {
-                    return homeResource.isDataInitialized();
+                    return homeResourceModel.getObject().isDataInitialized();
                 }
 
                 @Override
                 public Component getLoadingComponent(String id) {
                     return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                }
+
+                @Override
+                protected void onDetach() {
+                    homeResourceModel.detach();
+                    super.onDetach();
                 }
 
             });
