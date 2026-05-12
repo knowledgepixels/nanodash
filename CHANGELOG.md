@@ -1,3 +1,24 @@
+## [4.27.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.27.0...nanodash-4.27.1) (2026-05-12)
+
+### Bug Fixes
+
+* don't reseed shared component model from URL param on repetition ([e0269b3](https://github.com/knowledgepixels/nanodash/commit/e0269b3ce86c2357509570df9a84249349acfbfa))
+* restore F5 form-state preservation by replacing singleton fields with LDMs ([f6fde0f](https://github.com/knowledgepixels/nanodash/commit/f6fde0f9b17636b740d7fc31d0257c832828a664)), closes [#401](https://github.com/knowledgepixels/nanodash/issues/401) [#401](https://github.com/knowledgepixels/nanodash/issues/401)
+
+### Tests
+
+* guard [#456](https://github.com/knowledgepixels/nanodash/issues/456) against re-introducing ONE_PASS_RENDER or direct singleton fields ([9abc490](https://github.com/knowledgepixels/nanodash/commit/9abc490939da22626684b4e15b1c54bc067f49f7))
+
+### General maintenance
+
+* bump jackson-dataformat-yaml to 3.1.3 ([42f6d88](https://github.com/knowledgepixels/nanodash/commit/42f6d88b623ba5e14c4820e3ac393edef37a531d))
+* bump junit-jupiter to 6.0.3 ([fd899f1](https://github.com/knowledgepixels/nanodash/commit/fd899f17793adc80f7679442db0d70c29db77b1b))
+* bump maven-dependency-plugin to 3.10.0 ([e4cf916](https://github.com/knowledgepixels/nanodash/commit/e4cf9166defaca61413c6c2104c21faf79f86b1b))
+* bump maven-surefire-plugin to 3.5.5 ([03b2850](https://github.com/knowledgepixels/nanodash/commit/03b28505055a9dad596d6d1c0f68dccf3c33740a))
+* bump maven-war-plugin to 3.5.1 ([1a80b2e](https://github.com/knowledgepixels/nanodash/commit/1a80b2ecbe205e4c6fe82529152a062db2eea483))
+* bump nanopub library to 1.88.0 ([0e0eaa6](https://github.com/knowledgepixels/nanodash/commit/0e0eaa6e23a5721066ca1421e17cc835f5c4159a))
+* setting next snapshot version [skip ci] ([97b051e](https://github.com/knowledgepixels/nanodash/commit/97b051e87d28146df76d12baa83b0468579f21a4))
+
 ## [4.27.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.26.0...nanodash-4.27.0) (2026-05-05)
 
 ### Features
