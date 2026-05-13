@@ -70,7 +70,7 @@ public class PreviewPage extends NanodashPage {
             @Override
             protected void onSubmit() {
                 try {
-                    String npUrl = PublishNanopub.publish(signedNp, Utils.getMainRegistryUrl());
+                    String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                     NanodashSession.get().removePreviewNanopub(previewId);
