@@ -20,15 +20,19 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 public class PreviewPage extends NanodashPage {
 
@@ -80,6 +84,19 @@ public class PreviewPage extends NanodashPage {
                         WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                     }
 
+                    if (!pageParams.get("postpub-redirect-url").isNull()) {
+                        String forwardUrl = pageParams.get("postpub-redirect-url").toString();
+                        if (forwardUrl.contains("?")) {
+                            throw new RedirectToUrlException(forwardUrl);
+                        }
+                        Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(signedNp);
+                        String redirectId = introducedIds.size() == 1
+                                ? introducedIds.iterator().next()
+                                : signedNp.getUri().stringValue();
+                        String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", redirectId));
+                        throw new RedirectToUrlException(forwardUrl + "?" + paramString);
+                    }
+
                     String contextId = pageParams.get("context").toString("");
                     String partId = pageParams.get("part").toString("");
                     if (!contextId.isEmpty()) {
@@ -104,7 +121,7 @@ public class PreviewPage extends NanodashPage {
                             confirmPageClass,
                             new PageParameters(pageParams).set("id", signedNp.getUri().stringValue())
                     );
-                } catch (RestartResponseException ex) {
+                } catch (RestartResponseException | RedirectToUrlException ex) {
                     throw ex;
                 } catch (Exception ex) {
                     logger.error("Nanopublication publishing from preview failed: {}", ex.getMessage());
