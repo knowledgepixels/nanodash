@@ -1,3 +1,14 @@
+## [4.28.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.27.1...nanodash-4.28.0) (2026-05-13)
+
+### Features
+
+* auto-update StatusLine until newly-published nanopub is verified ([b1a5b16](https://github.com/knowledgepixels/nanodash/commit/b1a5b16a3a3524e9cf36a1fc33b112e817f1cb21))
+* validate main registry/query URLs against library instance list ([2c2d08f](https://github.com/knowledgepixels/nanodash/commit/2c2d08fdc4876d208df545edbcf22f7a079db17c))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([3f25218](https://github.com/knowledgepixels/nanodash/commit/3f2521841e72c61d6f212fda09ffcf8583e5b644))
+
 ## [4.27.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.27.0...nanodash-4.27.1) (2026-05-12)
 
 ### Bug Fixes
