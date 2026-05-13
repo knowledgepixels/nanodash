@@ -25,7 +25,10 @@ import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
+import org.nanopub.extra.server.NanopubServerUtils;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.NotEnoughAPIInstancesException;
+import org.nanopub.extra.services.QueryCall;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
@@ -695,36 +698,131 @@ public class Utils {
      */
     public static final List<String> SUPPORTED_TYPES_LIST = Arrays.asList(StringUtils.split(SUPPORTED_TYPES, ','));
 
+    private static volatile String resolvedMainRegistryUrl;
+    private static volatile String resolvedMainQueryUrl;
+
     /**
-     * Returns the URL of the default Nanopub Registry as configured by the given instance.
-     *
-     * @return Nanopub Registry URL
+     * Eagerly resolves the main registry and query URLs. Call at application startup
+     * so the (potentially slow) first-time discovery does not happen during a user request.
      */
-    public static String getMainRegistryUrl() {
-        String envValue = System.getenv("NANODASH_MAIN_REGISTRY");
-        if (envValue != null) {
-            logger.info("Found environment variable NANODASH_MAIN_REGISTRY with value: {}", envValue);
-            return envValue;
-        } else {
-            logger.info("Environment variable NANODASH_MAIN_REGISTRY not set, using default: {}", DEFAULT_MAIN_REGISTRY_URL);
-            return DEFAULT_MAIN_REGISTRY_URL;
-        }
+    public static void initMainUrls() {
+        getMainRegistryUrl();
+        getMainQueryUrl();
     }
 
     /**
-     * Returns the URL of the default Nanopub Query as configured by the given instance.
+     * Returns the URL of the main Nanopub Registry for this nanodash instance.
+     * <p>
+     * If {@code NANODASH_MAIN_REGISTRY} is set and matches an entry in the library's
+     * discovered registry instance list, that URL is used. Otherwise the first entry
+     * of the library list is used. If the library list is empty, the env var value
+     * (or built-in default) is used unvalidated. The result is cached for the JVM lifetime.
      *
-     * @return Nanopub Query URL
+     * @return Nanopub Registry URL (with trailing slash)
+     */
+    public static String getMainRegistryUrl() {
+        if (resolvedMainRegistryUrl == null) {
+            synchronized (Utils.class) {
+                if (resolvedMainRegistryUrl == null) {
+                    resolvedMainRegistryUrl = resolveMainRegistryUrl();
+                }
+            }
+        }
+        return resolvedMainRegistryUrl;
+    }
+
+    /**
+     * Returns the URL of the main Nanopub Query API for this nanodash instance.
+     * <p>
+     * If {@code NANODASH_MAIN_QUERY} is set and matches an entry in the library's
+     * discovered query instance list, that URL is used. Otherwise the first entry
+     * of the library list is used. If the library list is empty, the env var value
+     * (or built-in default) is used unvalidated. The result is cached for the JVM lifetime.
+     *
+     * @return Nanopub Query URL (with trailing slash)
      */
     public static String getMainQueryUrl() {
-        String envValue = System.getenv("NANODASH_MAIN_QUERY");
-        if (envValue != null) {
-            logger.info("Found environment variable NANODASH_MAIN_QUERY with value: {}", envValue);
-            return envValue;
-        } else {
-            logger.info("Environment variable NANODASH_MAIN_QUERY not set, using default: {}", DEFAULT_MAIN_QUERY_URL);
-            return DEFAULT_MAIN_QUERY_URL;
+        if (resolvedMainQueryUrl == null) {
+            synchronized (Utils.class) {
+                if (resolvedMainQueryUrl == null) {
+                    resolvedMainQueryUrl = resolveMainQueryUrl();
+                }
+            }
         }
+        return resolvedMainQueryUrl;
+    }
+
+    private static String resolveMainRegistryUrl() {
+        String envValue = trimToNull(System.getenv("NANODASH_MAIN_REGISTRY"));
+        List<String> instances;
+        try {
+            instances = NanopubServerUtils.getRegistryServerList();
+        } catch (Exception ex) {
+            logger.warn("Could not retrieve registry instance list from nanopub library: {}", ex.toString());
+            instances = Collections.emptyList();
+        }
+        return resolveMainUrl("NANODASH_MAIN_REGISTRY", envValue, instances, DEFAULT_MAIN_REGISTRY_URL);
+    }
+
+    private static String resolveMainQueryUrl() {
+        String envValue = trimToNull(System.getenv("NANODASH_MAIN_QUERY"));
+        List<String> instances;
+        try {
+            instances = QueryCall.getApiInstances();
+        } catch (NotEnoughAPIInstancesException ex) {
+            logger.warn("Nanopub library reports not enough query API instances available: {}", ex.toString());
+            instances = Collections.emptyList();
+        } catch (Exception ex) {
+            logger.warn("Could not retrieve query instance list from nanopub library: {}", ex.toString());
+            instances = Collections.emptyList();
+        }
+        return resolveMainUrl("NANODASH_MAIN_QUERY", envValue, instances, DEFAULT_MAIN_QUERY_URL);
+    }
+
+    private static String resolveMainUrl(String envVarName, String envValue, List<String> instances, String builtInDefault) {
+        if (envValue != null) {
+            if (containsNormalized(instances, envValue)) {
+                logger.info("Using main URL from {} (validated against library instance list): {}", envVarName, envValue);
+                return ensureTrailingSlash(envValue);
+            }
+            if (instances.isEmpty()) {
+                logger.warn("Library instance list is empty; using {} unvalidated: {}", envVarName, envValue);
+                return ensureTrailingSlash(envValue);
+            }
+            logger.warn("{}={} is not in the library instance list {}; falling back to first library instance",
+                    envVarName, envValue, instances);
+            return ensureTrailingSlash(instances.get(0));
+        }
+        if (!instances.isEmpty()) {
+            String first = instances.get(0);
+            logger.info("{} not set; using first library instance: {}", envVarName, first);
+            return ensureTrailingSlash(first);
+        }
+        logger.warn("{} not set and library instance list is empty; using built-in default: {}", envVarName, builtInDefault);
+        return builtInDefault;
+    }
+
+    private static boolean containsNormalized(List<String> urls, String target) {
+        String normTarget = normalizeUrl(target);
+        for (String url : urls) {
+            if (normalizeUrl(url).equals(normTarget)) return true;
+        }
+        return false;
+    }
+
+    private static String normalizeUrl(String url) {
+        if (url == null) return "";
+        return url.trim().replaceFirst("/+$", "").toLowerCase(Locale.ROOT);
+    }
+
+    private static String ensureTrailingSlash(String url) {
+        return url.endsWith("/") ? url : url + "/";
+    }
+
+    private static String trimToNull(String s) {
+        if (s == null) return null;
+        s = s.trim();
+        return s.isEmpty() ? null : s;
     }
 
     private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";

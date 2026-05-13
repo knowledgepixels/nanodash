@@ -134,6 +134,8 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         super.init();
         WicketWebjars.install(this);
 
+        Utils.initMainUrls();
+
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 
         getExceptionSettings().setUnexpectedExceptionDisplay(ExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
