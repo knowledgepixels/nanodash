@@ -6,6 +6,15 @@
 <!-- This configuration must be used in conjunction with jetty.xml -->
 <!-- ============================================================= -->
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
+  <!-- Raise the default form-post limits so large publish forms don't 500 with "Form too large". -->
+  <Call name="setAttribute">
+    <Arg>org.eclipse.jetty.server.Request.maxFormContentSize</Arg>
+    <Arg type="long">10000000</Arg>
+  </Call>
+  <Call name="setAttribute">
+    <Arg>org.eclipse.jetty.server.Request.maxFormKeys</Arg>
+    <Arg type="int">100000</Arg>
+  </Call>
   <!-- =========================================================== -->
   <!-- Add an HTTP Connector.                                      -->
   <!-- Configure an o.e.j.server.ServerConnector with a single     -->
