@@ -27,6 +27,9 @@ import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.request.cycle.IRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.apache.wicket.util.lang.Bytes;
 import org.nanopub.Nanopub;
@@ -188,6 +191,16 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));
+
+        getRequestCycleListeners().add(new IRequestCycleListener() {
+            @Override
+            public void onBeginRequest(RequestCycle cycle) {
+                Response response = cycle.getResponse();
+                if (response instanceof WebResponse) {
+                    ((WebResponse) response).setHeader("Nanodash-Version", getThisVersion());
+                }
+            }
+        });
 
         registerListeners();
 
