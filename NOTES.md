@@ -34,6 +34,19 @@ Report is then generated here: target/site/dependencies.html
     $ mvn versions:use-latest-versions && mvn versions:update-properties
 
 
+## Pin to a single Nanopub Query instance
+
+To make a local run use only one query instance (e.g. `https://query.nanodash.net/`):
+
+    $ NANOPUB_QUERY_INSTANCES=https://query.nanodash.net/ \
+      NANODASH_MAIN_QUERY=https://query.nanodash.net/ \
+      ./run-dev.sh
+
+`NANOPUB_QUERY_INSTANCES` (whitespace-separated, from the `nanopub` library) restricts which
+instances queries are dispatched to. `NANODASH_MAIN_QUERY` pins the URL nanodash uses when
+building query-related links.
+
+
 ## Backup archive of user data
 
 Make password-protected backup file of user data (private keys):
