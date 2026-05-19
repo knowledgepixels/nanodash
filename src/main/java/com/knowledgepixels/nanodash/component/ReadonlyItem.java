@@ -158,6 +158,12 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
+                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
+                    // No prior value migrated (e.g. supersede with a newer template that added this slot).
+                    // The empty model already resolves to the new nanopub in TemplateContext.processValue,
+                    // so surface that to the user in the form.
+                    return "this nanopublication";
+                }
                 if (obj != null && obj.equals(LocalUri.of("nanopub").stringValue())) {
                     return "this nanopublication";
                 }
@@ -203,6 +209,9 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
+                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
+                    return "This is the identifier for this whole nanopublication.";
+                }
                 if (obj != null && obj.matches("https?://.+")) {
                     IRI objIri = vf.createIRI(obj);
                     if (isAssertionValue(objIri)) {
@@ -228,6 +237,9 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
+                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
+                    return LocalUri.of("nanopub").stringValue();
+                }
                 if (obj != null && obj.startsWith("\"")) return "";
                 if (isAssertionValue(obj)) {
                     return getAssertionValue();
