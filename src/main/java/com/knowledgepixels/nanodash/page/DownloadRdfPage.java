@@ -425,16 +425,17 @@ public class DownloadRdfPage extends WebPage {
                     queryRefParams.put(view.getQueryField() + "Np", targetNpId);
                 }
             } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resource instanceof Space space) {
-                for (IRI userId : space.getUsers()) {
-                    for (String memberHash : User.getUserData().getPubkeyHashes(userId, true)) {
-                        queryRefParams.put("user_pubkey", memberHash);
-                    }
+                // TODO Push this per-view pubkey filter server-side (a published
+                // grlc query that gates by user-of-space) so nanodash doesn't
+                // have to expand the placeholder client-side; see
+                // Space.getUserPubkeyHashes.
+                for (String hash : space.getUserPubkeyHashes()) {
+                    queryRefParams.put("user_pubkey", hash);
                 }
             } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resource instanceof Space space) {
-                for (IRI adminId : space.getAdmins()) {
-                    for (String adminHash : User.getUserData().getPubkeyHashes(adminId, true)) {
-                        queryRefParams.put("admin_pubkey", adminHash);
-                    }
+                // TODO Same as above for admin-of-space filtering.
+                for (String hash : space.getAdminPubkeyHashes()) {
+                    queryRefParams.put("admin_pubkey", hash);
                 }
             } else if (!QueryParamField.isOptional(p)) {
                 logger.error("Query has non-optional parameter that cannot be filled: {} {}", view.getQuery().getQueryId(), p);

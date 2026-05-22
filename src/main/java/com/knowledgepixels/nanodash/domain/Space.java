@@ -62,6 +62,7 @@ public class Space extends AbstractResourceWithProfile {
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
+        Map<String, IRI> userPubkeyMap = new HashMap<>();
 
         void addAdmin(IRI admin, String npId) {
             // TODO This isn't efficient for long owner lists:
@@ -279,6 +280,27 @@ public class Space extends AbstractResourceWithProfile {
         return data.adminPubkeyMap.containsKey(pubkey);
     }
 
+    /**
+     * Get the trust-state-validated pubkey hashes of this space's admins.
+     *
+     * @return Set of admin pubkey hashes, sourced from the spaces repo.
+     */
+    public Set<String> getAdminPubkeyHashes() {
+        ensureInitialized();
+        return data.adminPubkeyMap.keySet();
+    }
+
+    /**
+     * Get the trust-state-validated pubkey hashes of this space's users
+     * (admins + members).
+     *
+     * @return Set of user pubkey hashes, sourced from the spaces repo.
+     */
+    public Set<String> getUserPubkeyHashes() {
+        ensureInitialized();
+        return data.userPubkeyMap.keySet();
+    }
+
     @Override
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerSpaceDataUpdate();
@@ -373,6 +395,7 @@ public class Space extends AbstractResourceWithProfile {
 
                     loadRolesFromSpacesRepo(newData, spaceIris);
                     loadMembersFromSpacesRepo(newData, spaceIris);
+                    loadUserPubkeyHashesFromSpacesRepo(newData);
 
                     data = newData;
                     dataInitialized = true;
@@ -544,6 +567,45 @@ public class Space extends AbstractResourceWithProfile {
             }
             data.users.computeIfAbsent(memberId, k -> new HashSet<>())
                     .add(new SpaceMemberRoleRef(role, np));
+            return null;
+        });
+    }
+
+    private static void loadUserPubkeyHashesFromSpacesRepo(SpaceData data) {
+        // TODO Replace this programmatically-built SPARQL with a published grlc
+        // query template (like the constants in QueryApiAccess), so all Nanopub
+        // Query access goes through the same query-template pipeline. The
+        // long-term direction is to push the per-view pubkey filtering server
+        // side too, so view queries gate by user-of-space without nanodash
+        // having to expand the placeholder client-side at all — see callers
+        // of Space.getUserPubkeyHashes / getAdminPubkeyHashes in ViewList and
+        // DownloadRdfPage.
+        //
+        // Source: trust-state-validated (agent, pubkey-hash) pairs from
+        // npa:AccountState for every user agent (admin or admin-gated member)
+        // already loaded into data.users. Stricter than the prior
+        // UserData.getPubkeyHashes source — pubkey hashes of users not in
+        // the current trust state are not returned.
+        if (data.users.isEmpty()) return;
+        StringBuilder values = new StringBuilder("  VALUES ?agent { ");
+        for (IRI agent : data.users.keySet()) {
+            values.append('<').append(agent.stringValue()).append("> ");
+        }
+        values.append("}\n");
+        String sparql = SpacesRepoAccess.PREFIXES
+                + "SELECT DISTINCT ?agent ?pkh WHERE {\n"
+                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + values
+                + "  GRAPH ?g {\n"
+                + "    ?acct a npa:AccountState ;\n"
+                + "          npa:agent ?agent ;\n"
+                + "          npa:pubkey ?pkh .\n"
+                + "  }\n"
+                + "}";
+        SpacesRepoAccess.get().select(sparql, null, b -> {
+            IRI agentId = Utils.vf.createIRI(b.getValue("agent").stringValue());
+            String pkh = b.getValue("pkh").stringValue();
+            data.userPubkeyMap.put(pkh, agentId);
             return null;
         });
     }
