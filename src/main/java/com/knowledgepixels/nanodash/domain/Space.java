@@ -529,23 +529,25 @@ public class Space extends AbstractResourceWithProfile {
         // query template (like the constants in QueryApiAccess), so all Nanopub
         // Query access goes through the same query-template pipeline.
         // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
-        // than the validated state graph. The spaces-repo materialiser's
-        // per-tier admit query can time out on some spaces (a planner blow-up
-        // in RDF4J, observed on fdo-connect), leaving member RIs extracted but
-        // never validated. To keep parity with the pre-migration behaviour
-        // (legacy GET_SPACE_MEMBERS gated rows client-side by admin pubkey),
-        // we read the universe of candidates here and apply the same client-side
-        // admin-pubkey gate via data.adminPubkeyMap. Invalidated rows are
-        // filtered out via the npx:invalidates triple in npa:graph.
+        // than the validated state graph. The materialiser is correctly stricter
+        // (e.g., it stops admitting RIs when their role declaration is
+        // invalidated, even if the role assignment still points at the old IRI;
+        // and the design admits non-admin-published observer-tier RIs only via
+        // AccountState self-evidence, dropping any whose agents aren't in the
+        // trust state). Nanodash matches the looser pre-migration semantic of
+        // GET_SPACE_MEMBERS: any RI whose predicate corresponds to a role
+        // attached to the space (the admin-gating happens server-side on the
+        // role attachment, not on the per-member nanopub) is admitted,
+        // regardless of who signed the member RI. Invalidated rows are filtered
+        // via the npx:invalidates triple in npa:graph.
         String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT ?member ?np ?pkh ?regProp ?invProp WHERE {\n"
+                + "SELECT ?member ?np ?regProp ?invProp WHERE {\n"
                 + spaceValuesClause(spaceIris)
                 + "  GRAPH npa:spacesGraph {\n"
                 + "    ?ri a gen:RoleInstantiation ;\n"
                 + "        npa:forSpace ?space ;\n"
                 + "        npa:forAgent ?member ;\n"
-                + "        npa:viaNanopub ?np ;\n"
-                + "        npa:pubkeyHash ?pkh .\n"
+                + "        npa:viaNanopub ?np .\n"
                 + "    OPTIONAL { ?ri npa:regularProperty ?regProp }\n"
                 + "    OPTIONAL { ?ri npa:inverseProperty ?invProp }\n"
                 + "    FILTER NOT EXISTS { ?ri npa:inverseProperty gen:hasAdmin }\n"
@@ -553,10 +555,6 @@ public class Space extends AbstractResourceWithProfile {
                 + "  FILTER NOT EXISTS { GRAPH npa:graph { ?invNp npx:invalidates ?np . } }\n"
                 + "}";
         SpacesRepoAccess.get().select(sparql, null, b -> {
-            String pkh = b.getValue("pkh") == null ? null : b.getValue("pkh").stringValue();
-            if (pkh == null || !data.adminPubkeyMap.containsKey(pkh)) return null;
-            IRI memberId = Utils.vf.createIRI(b.getValue("member").stringValue());
-            String np = b.getValue("np").stringValue();
             SpaceMemberRole role = null;
             for (String key : new String[] {"regProp", "invProp"}) {
                 if (b.getValue(key) != null) {
@@ -565,6 +563,13 @@ public class Space extends AbstractResourceWithProfile {
                     if (candidate != null) { role = candidate; break; }
                 }
             }
+            // Gate by role-predicate match: only admit members whose predicate
+            // corresponds to a role that was attached to this space by an admin
+            // (data.roleMap is populated from validated gen:RoleAssignment rows
+            // in loadRolesFromSpacesRepo).
+            if (role == null) return null;
+            IRI memberId = Utils.vf.createIRI(b.getValue("member").stringValue());
+            String np = b.getValue("np").stringValue();
             data.users.computeIfAbsent(memberId, k -> new HashSet<>())
                     .add(new SpaceMemberRoleRef(role, np));
             return null;
