@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.repository;
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.SpacesRepoAccess;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.SpaceFactory;
 import org.nanopub.extra.services.ApiResponse;
@@ -70,14 +71,8 @@ public class SpaceRepository {
             }
         }
         SpaceFactory.removeStale(newSpacesById.keySet());
+        populateSubspaceRelations(newSpacesById, newSubspaceMap, newSuperspaceMap);
         for (Space space : newSpaceList) {
-            String id = space.getId();
-            if (!id.matches("https?://[^/]+/.*/[^/]*/?")) continue;
-            String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
-            Space superSpace = newSpacesById.get(superId);
-            if (superSpace == null) continue;
-            newSubspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
-            newSuperspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
             space.setDataNeedsUpdate();
         }
         spacesById = newSpacesById;
@@ -212,11 +207,24 @@ public class SpaceRepository {
         }
     }
 
-    private Space getIdSuperspace(Space space) {
-        String id = space.getId();
-        if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
-        String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
-        return spacesById.get(superId);
+    private static final String SUBSPACE_LINKS_QUERY = SpacesRepoAccess.PREFIXES
+            + "SELECT ?child ?parent WHERE {\n"
+            + SpacesRepoAccess.CURRENT_STATE_POINTER
+            + "  GRAPH ?g { ?child npa:isSubSpaceOf ?parent . }\n"
+            + "}";
+
+    private static void populateSubspaceRelations(
+            Map<String, Space> spacesById,
+            Map<Space, Set<Space>> subspaceMap,
+            Map<Space, Set<Space>> superspaceMap) {
+        SpacesRepoAccess.get().select(SUBSPACE_LINKS_QUERY, null, b -> {
+            Space child = spacesById.get(b.getValue("child").stringValue());
+            Space parent = spacesById.get(b.getValue("parent").stringValue());
+            if (child == null || parent == null) return null;
+            subspaceMap.computeIfAbsent(parent, k -> new HashSet<>()).add(child);
+            superspaceMap.computeIfAbsent(child, k -> new HashSet<>()).add(parent);
+            return null;
+        });
     }
 
 }

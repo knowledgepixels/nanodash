@@ -405,52 +405,19 @@ public class Space extends AbstractResourceWithProfile {
                     newData.roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
                     newData.roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
-                    // TODO Improve this:
-                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
-                    Multimap<String, String> resourceIds = ArrayListMultimap.create();
-                    spaceIds.put("space", getId());
-                    resourceIds.put("resource", getId());
-                    for (String id : newData.altIds) {
-                        spaceIds.put("space", id);
-                        resourceIds.put("resource", id);
-                    }
+                    List<String> spaceIris = new ArrayList<>();
+                    spaceIris.add(getId());
+                    spaceIris.addAll(newData.altIds);
 
-                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), true);
-                    boolean continueAddingAdmins = true;
-                    while (continueAddingAdmins) {
-                        continueAddingAdmins = false;
-                        for (ApiResponseEntry r : getAdminsResponse.getData()) {
-                            String pubkeyHash = r.get("pubkey");
-                            if (newData.adminPubkeyMap.containsKey(pubkeyHash)) {
-                                IRI adminId = Utils.vf.createIRI(r.get("admin"));
-                                if (!newData.admins.contains(adminId)) {
-                                    continueAddingAdmins = true;
-                                    newData.addAdmin(adminId, r.get("np"));
-                                }
-                            }
-                        }
-                    }
+                    loadAdminsFromSpacesRepo(newData, spaceIris);
                     newData.admins.sort(User.getUserData().userComparator);
 
-                    Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
+                    loadRolesFromSpacesRepo(newData, spaceIris);
+                    loadMembersFromSpacesRepo(newData, spaceIris);
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        SpaceMemberRole role = new SpaceMemberRole(r);
-                        newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
-
-                        // TODO Handle cases of overlapping properties:
-                        for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);
-                        for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
-
-                        role.addRoleParams(getSpaceMemberParams);
-                    }
-
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), true).getData()) {
-                        IRI memberId = Utils.vf.createIRI(r.get("member"));
-                        SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
-                    }
+                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
+                    spaceIds.put("space", getId());
+                    for (String id : newData.altIds) spaceIds.put("space", id);
 
                     for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), true).getData()) {
                         if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
@@ -484,6 +451,114 @@ public class Space extends AbstractResourceWithProfile {
             return spaceDataFuture;
         }
         return spaceDataFuture;
+    }
+
+    private static String spaceValuesClause(List<String> spaceIris) {
+        StringBuilder sb = new StringBuilder("  VALUES ?space { ");
+        for (String iri : spaceIris) sb.append('<').append(iri).append("> ");
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    private static void loadAdminsFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        String sparql = SpacesRepoAccess.PREFIXES
+                + "SELECT DISTINCT ?agent ?np WHERE {\n"
+                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + spaceValuesClause(spaceIris)
+                + "  GRAPH ?g {\n"
+                + "    ?ri a gen:RoleInstantiation ;\n"
+                + "        npa:inverseProperty gen:hasAdmin ;\n"
+                + "        npa:forSpace ?space ;\n"
+                + "        npa:forAgent ?agent ;\n"
+                + "        npa:viaNanopub ?np .\n"
+                + "  }\n"
+                + "}";
+        SpacesRepoAccess.get().select(sparql, null, b -> {
+            IRI adminId = Utils.vf.createIRI(b.getValue("agent").stringValue());
+            String np = b.getValue("np").stringValue();
+            if (!data.admins.contains(adminId)) data.addAdmin(adminId, np);
+            return null;
+        });
+    }
+
+    private static void loadRolesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        String sparql = SpacesRepoAccess.PREFIXES
+                + "SELECT ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate\n"
+                + "       (GROUP_CONCAT(DISTINCT ?reg; separator=\" \") AS ?regularProperties)\n"
+                + "       (GROUP_CONCAT(DISTINCT ?inv; separator=\" \") AS ?inverseProperties)\n"
+                + "       ?ra_np WHERE {\n"
+                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + spaceValuesClause(spaceIris)
+                + "  GRAPH ?g {\n"
+                + "    ?ra a gen:RoleAssignment ;\n"
+                + "        npa:forSpace ?space ;\n"
+                + "        gen:hasRole ?role ;\n"
+                + "        npa:viaNanopub ?ra_np .\n"
+                + "  }\n"
+                + "  GRAPH npa:spacesGraph {\n"
+                + "    ?roleDecl a npa:RoleDeclaration ;\n"
+                + "              npa:role ?role ;\n"
+                + "              npa:viaNanopub ?role_np .\n"
+                + "    OPTIONAL { ?roleDecl gen:hasRegularProperty ?reg }\n"
+                + "    OPTIONAL { ?roleDecl gen:hasInverseProperty ?inv }\n"
+                + "  }\n"
+                + "  GRAPH npa:graph { ?role_np np:hasAssertion ?role_a . }\n"
+                + "  GRAPH ?role_a {\n"
+                + "    OPTIONAL { ?role rdfs:label ?roleLabel }\n"
+                + "    OPTIONAL { ?role dct:title ?roleTitle }\n"
+                + "    OPTIONAL { ?role schema:name ?roleName }\n"
+                + "    OPTIONAL { ?role gen:hasRoleAssignmentTemplate ?roleAssignmentTemplate }\n"
+                + "  }\n"
+                + "}\n"
+                + "GROUP BY ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate ?ra_np";
+        SpacesRepoAccess.get().select(sparql, null, b -> {
+            ApiResponseEntry entry = new ApiResponseEntry();
+            for (String k : List.of("role", "roleLabel", "roleName", "roleTitle",
+                    "roleAssignmentTemplate", "regularProperties", "inverseProperties")) {
+                if (b.getValue(k) != null) entry.add(k, b.getValue(k).stringValue());
+            }
+            SpaceMemberRole role = new SpaceMemberRole(entry);
+            String raNp = b.getValue("ra_np") == null ? null : b.getValue("ra_np").stringValue();
+            data.roles.add(new SpaceMemberRoleRef(role, raNp));
+            for (IRI p : role.getRegularProperties()) data.roleMap.put(p, role);
+            for (IRI p : role.getInverseProperties()) data.roleMap.put(p, role);
+            return null;
+        });
+    }
+
+    private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // Tier predicate per RI: admin-tier RIs pin npa:inverseProperty in the state graph
+        // (see design-space-repositories.md); other tiers carry the predicate in
+        // npa:spacesGraph only. We return both candidates and pick admin-pin first.
+        String sparql = SpacesRepoAccess.PREFIXES
+                + "SELECT ?member ?np ?adminPred ?regProp ?invProp WHERE {\n"
+                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + spaceValuesClause(spaceIris)
+                + "  GRAPH ?g {\n"
+                + "    ?ri a gen:RoleInstantiation ;\n"
+                + "        npa:forSpace ?space ;\n"
+                + "        npa:forAgent ?member ;\n"
+                + "        npa:viaNanopub ?np .\n"
+                + "    OPTIONAL { ?ri npa:inverseProperty ?adminPred . }\n"
+                + "  }\n"
+                + "  OPTIONAL { GRAPH npa:spacesGraph { ?ri npa:regularProperty ?regProp } }\n"
+                + "  OPTIONAL { GRAPH npa:spacesGraph { ?ri npa:inverseProperty ?invProp } }\n"
+                + "}";
+        SpacesRepoAccess.get().select(sparql, null, b -> {
+            IRI memberId = Utils.vf.createIRI(b.getValue("member").stringValue());
+            String np = b.getValue("np").stringValue();
+            SpaceMemberRole role = null;
+            for (String key : new String[] {"adminPred", "regProp", "invProp"}) {
+                if (b.getValue(key) != null) {
+                    IRI pred = Utils.vf.createIRI(b.getValue(key).stringValue());
+                    SpaceMemberRole candidate = data.roleMap.get(pred);
+                    if (candidate != null) { role = candidate; break; }
+                }
+            }
+            data.users.computeIfAbsent(memberId, k -> new HashSet<>())
+                    .add(new SpaceMemberRoleRef(role, np));
+            return null;
+        });
     }
 
     private void setCoreData(SpaceData data) {
