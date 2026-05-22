@@ -1,11 +1,9 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
@@ -64,9 +62,6 @@ public class Space extends AbstractResourceWithProfile {
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
-        Set<Serializable> pinnedResources = new HashSet<>();
-        Set<String> pinGroupTags = new HashSet<>();
-        Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
         void addAdmin(IRI admin, String npId) {
             // TODO This isn't efficient for long owner lists:
@@ -284,36 +279,6 @@ public class Space extends AbstractResourceWithProfile {
     public boolean isAdminPubkey(String pubkey) {
         ensureInitialized();
         return data.adminPubkeyMap.containsKey(pubkey);
-    }
-
-    /**
-     * Get the list of pinned resources in this space.
-     *
-     * @return Set of pinned resources.
-     */
-    public Set<Serializable> getPinnedResources() {
-        ensureInitialized();
-        return data.pinnedResources;
-    }
-
-    /**
-     * Get the set of tags used for grouping pinned resources.
-     *
-     * @return Set of tags.
-     */
-    public Set<String> getPinGroupTags() {
-        ensureInitialized();
-        return data.pinGroupTags;
-    }
-
-    /**
-     * Get a map of pinned resources grouped by their tags.
-     *
-     * @return Map where keys are tags and values are lists of pinned resources (Templates or GrlcQueries).
-     */
-    public Map<String, Set<Serializable>> getPinnedResourceMap() {
-        ensureInitialized();
-        return data.pinnedResourceMap;
     }
 
     @Override
@@ -551,21 +516,9 @@ public class Space extends AbstractResourceWithProfile {
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     data.addAdmin(obj, rootNanopub.getUri().stringValue());
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
-                    data.pinnedResources.add(GrlcQuery.get(obj.stringValue()));
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     data.defaultProvenance = obj;
                 }
-            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                data.pinGroupTags.add(l.stringValue());
-                Set<Serializable> list = data.pinnedResourceMap.get(l.stringValue());
-                if (list == null) {
-                    list = new HashSet<>();
-                    data.pinnedResourceMap.put(l.stringValue(), list);
-                }
-                list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
         }
     }
