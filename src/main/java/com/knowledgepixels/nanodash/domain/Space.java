@@ -1,9 +1,6 @@
 package com.knowledgepixels.nanodash.domain;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
@@ -13,9 +10,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -415,32 +410,6 @@ public class Space extends AbstractResourceWithProfile {
                     loadRolesFromSpacesRepo(newData, spaceIris);
                     loadMembersFromSpacesRepo(newData, spaceIris);
 
-                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
-                    spaceIds.put("space", getId());
-                    for (String id : newData.altIds) spaceIds.put("space", id);
-
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        Template t = TemplateData.get().getTemplate(r.get("template"));
-                        if (t == null) continue;
-                        newData.pinnedResources.add(t);
-                        String tag = r.get("tag");
-                        if (tag != null && !tag.isEmpty()) {
-                            newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
-                        }
-                    }
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        GrlcQuery query = GrlcQuery.get(r.get("query"));
-                        if (query == null) continue;
-                        newData.pinnedResources.add(query);
-                        String tag = r.get("tag");
-                        if (tag != null && !tag.isEmpty()) {
-                            newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(query);
-                        }
-                    }
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
