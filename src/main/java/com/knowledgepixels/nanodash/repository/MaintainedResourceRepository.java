@@ -1,20 +1,19 @@
 package com.knowledgepixels.nanodash.repository;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.SpacesRepoAccess;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.MaintainedResourceFactory;
 import com.knowledgepixels.nanodash.domain.Space;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MaintainedResourceRepository {
 
@@ -43,33 +42,56 @@ public class MaintainedResourceRepository {
     private MaintainedResourceRepository() {
     }
 
+    private static final String MAINTAINED_RESOURCES_QUERY = SpacesRepoAccess.PREFIXES
+            + "SELECT ?resource ?space ?np ?label ?namespace ?date WHERE {\n"
+            + SpacesRepoAccess.CURRENT_STATE_POINTER
+            + "  GRAPH ?g { ?resource npa:isMaintainedBy ?space . }\n"
+            + "  GRAPH npa:spacesGraph {\n"
+            + "    ?d a npa:MaintainedResourceDeclaration ;\n"
+            + "       npa:resourceIri ?resource ;\n"
+            + "       npa:maintainerSpace ?space ;\n"
+            + "       npa:viaNanopub ?np ;\n"
+            + "       dct:created ?date .\n"
+            + "  }\n"
+            + "  GRAPH npa:graph {\n"
+            + "    ?np np:hasAssertion ?a .\n"
+            + "    OPTIONAL { ?np rdfs:label ?label }\n"
+            + "  }\n"
+            + "  GRAPH ?a { OPTIONAL { ?resource gen:hasNamespace ?namespace } }\n"
+            + "} ORDER BY DESC(?date)";
+
     /**
-     * Refresh the list of maintained resources from the API response, updating the internal state accordingly.
-     *
-     * @param resp The API response containing maintained resource data.
+     * Refresh the list of maintained resources from the spaces repo. Pulls
+     * server-validated {@code npa:isMaintainedBy} links from the current
+     * space-state graph; only the most recent declaration per resource is kept.
      */
-    public synchronized void refresh(ApiResponse resp) {
+    public synchronized void refresh() {
         List<MaintainedResource> newResourceList = new ArrayList<>();
         Map<String, MaintainedResource> newResourcesById = new HashMap<>();
         Map<Space, List<MaintainedResource>> newResourcesBySpace = new HashMap<>();
         Map<String, MaintainedResource> newResourcesByNamespace = new HashMap<>();
-        for (ApiResponseEntry entry : resp.getData()) {
-            Space space = SpaceRepository.get().findById(entry.get("space"));
-            if (space == null) {
-                continue;
-            }
+        Set<String> seenResources = new HashSet<>();
+        SpacesRepoAccess.get().select(MAINTAINED_RESOURCES_QUERY, null, b -> {
+            String resourceId = b.getValue("resource").stringValue();
+            if (!seenResources.add(resourceId)) return null; // first row (newest date) wins
+            String spaceId = b.getValue("space").stringValue();
+            Space space = SpaceRepository.get().findById(spaceId);
+            if (space == null) return null;
+            ApiResponseEntry entry = new ApiResponseEntry();
+            entry.add("resource", resourceId);
+            entry.add("np", b.getValue("np") == null ? null : b.getValue("np").stringValue());
+            if (b.getValue("label") != null) entry.add("label", b.getValue("label").stringValue());
+            if (b.getValue("namespace") != null) entry.add("namespace", b.getValue("namespace").stringValue());
             MaintainedResource resource = MaintainedResourceFactory.getOrCreate(entry, space);
-            if (newResourcesById.containsKey(resource.getId())) {
-                continue;
-            }
             newResourceList.add(resource);
-            newResourcesById.put(resource.getId(), resource);
+            newResourcesById.put(resourceId, resource);
             newResourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>()).add(resource);
             if (resource.getNamespace() != null) {
                 // TODO Handle conflicts when two resources claim the same namespace:
                 newResourcesByNamespace.put(resource.getNamespace(), resource);
             }
-        }
+            return null;
+        });
         MaintainedResourceFactory.removeStale(newResourcesById.keySet());
         resourcesById = newResourcesById;
         resourcesBySpace = newResourcesBySpace;
@@ -129,10 +151,10 @@ public class MaintainedResourceRepository {
                 logger.error("Interrupted", ex);
             }
             if (resourceList == null) { // double-check after potential wait
-                refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
+                refresh();
             }
         } else if (System.currentTimeMillis() - lastRefreshTime > 60_000) {
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
+            refresh();
         }
     }
 
@@ -147,10 +169,10 @@ public class MaintainedResourceRepository {
     }
 
     /**
-     * Refresh the maintained resources by fetching the latest data from the API and updating the internal state accordingly.
+     * Refresh the maintained resources and mark each as needing a downstream data update.
      */
-    public void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true));
+    public void refreshAndInvalidate() {
+        refresh();
         for (MaintainedResource resource : resourceList) {
             resource.setDataNeedsUpdate();
         }
