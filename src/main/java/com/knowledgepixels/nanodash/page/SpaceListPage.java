@@ -86,11 +86,11 @@ public class SpaceListPage extends NanodashPage {
         add(new ItemListPanel<Space>(
                 typePl.toLowerCase(),
                 Space.getTypeEmoji(type) + " " + typePl,
-                new QueryRef(QueryApiAccess.GET_SPACES),
-                (apiResponse) -> {
-                    SpaceRepository.get().refresh(apiResponse);
-                    return SpaceRepository.get().findByType(KPXL_TERMS.NAMESPACE + type);
+                () -> {
+                    SpaceRepository.get().ensureLoaded();
+                    return true;
                 },
+                () -> SpaceRepository.get().findByType(KPXL_TERMS.NAMESPACE + type),
                 (space) -> {
                     return new ItemListElement("item", SpacePage.class, new PageParameters().set("id", space.getId()), space.getLabel());
                 }

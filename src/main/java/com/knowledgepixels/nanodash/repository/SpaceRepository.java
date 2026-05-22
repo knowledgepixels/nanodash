@@ -1,14 +1,10 @@
 package com.knowledgepixels.nanodash.repository;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.SpacesRepoAccess;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.SpaceFactory;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,29 +43,63 @@ public class SpaceRepository {
     private SpaceRepository() {
     }
 
+    // TODO Replace this programmatically-built SPARQL with a published grlc
+    // query template (like the constants in QueryApiAccess), so all Nanopub
+    // Query access goes through the same query-template pipeline.
+    //
+    // Returns one row per (SpaceRef, SpaceDefinition) — many spaces have
+    // multiple contributing nanopubs (root + updates) and even multiple
+    // SpaceRefs during the rootless transition phase. Sorting by DESC(?date)
+    // and dedup'ing by spaceIri in Java picks the latest update per space.
+    private static final String SPACES_QUERY = SpacesRepoAccess.PREFIXES
+            + "SELECT ?spaceIri ?np ?date ?label ?type WHERE {\n"
+            + "  GRAPH npa:spacesGraph {\n"
+            + "    ?spaceRef a npa:SpaceRef ; npa:spaceIri ?spaceIri .\n"
+            + "    ?def a npa:SpaceDefinition ;\n"
+            + "         npa:forSpaceRef ?spaceRef ;\n"
+            + "         npa:viaNanopub  ?np ;\n"
+            + "         dct:created     ?date .\n"
+            + "  }\n"
+            + "  GRAPH npa:graph {\n"
+            + "    ?np rdfs:label ?label .\n"
+            + "    ?np npx:hasNanopubType ?type .\n"
+            + "    FILTER(STRSTARTS(STR(?type), \"https://w3id.org/kpxl/gen/terms/\"))\n"
+            + "    FILTER(?type != <https://w3id.org/kpxl/gen/terms/Space>)\n"
+            + "  }\n"
+            + "  FILTER NOT EXISTS { GRAPH npa:graph { ?invNp npx:invalidates ?np . } }\n"
+            + "} ORDER BY DESC(?date)";
+
     /**
-     * Refresh the list of spaces from the API response.
-     *
-     * @param resp The API response containing space data.
+     * Refresh the list of spaces from the spaces repo. Pulls the latest
+     * non-invalidated SpaceDefinition per Space IRI from {@code npa:spacesGraph}
+     * and joins to the declaring nanopub for label and type.
      */
-    public synchronized void refresh(ApiResponse resp) {
-        logger.info("Refreshing spaces from API response with {} entries", resp.getData().size());
+    public synchronized void refresh() {
         List<Space> newSpaceList = new ArrayList<>();
         Map<String, List<Space>> newSpaceListByType = new HashMap<>();
         Map<String, Space> newSpacesById = new HashMap<>();
         Map<String, Space> newSpacesByAltId = new HashMap<>();
         Map<Space, Set<Space>> newSubspaceMap = new HashMap<>();
         Map<Space, Set<Space>> newSuperspaceMap = new HashMap<>();
-        for (ApiResponseEntry entry : resp.getData()) {
-            Space space;
-            space = SpaceFactory.getOrCreate(entry);
+        Set<String> seen = new HashSet<>();
+        SpacesRepoAccess.get().select(SPACES_QUERY, null, b -> {
+            String spaceIri = b.getValue("spaceIri").stringValue();
+            if (!seen.add(spaceIri)) return null; // first row (latest date) wins
+            ApiResponseEntry entry = new ApiResponseEntry();
+            entry.add("space", spaceIri);
+            entry.add("np", b.getValue("np").stringValue());
+            entry.add("label", b.getValue("label").stringValue());
+            entry.add("type", b.getValue("type").stringValue());
+            Space space = SpaceFactory.getOrCreate(entry);
             newSpaceList.add(space);
             newSpaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             newSpacesById.put(space.getId(), space);
             for (String altId : space.getAltIDs()) {
                 newSpacesByAltId.put(altId, space);
             }
-        }
+            return null;
+        });
+        logger.info("Refreshed spaces from spaces repo: {} distinct spaces", newSpaceList.size());
         SpaceFactory.removeStale(newSpacesById.keySet());
         populateSubspaceRelations(newSpacesById, newSubspaceMap, newSuperspaceMap);
         for (Space space : newSpaceList) {
@@ -113,10 +143,10 @@ public class SpaceRepository {
                 logger.error("Interrupted", ex);
             }
             if (spaceList == null) { // double-check after potential wait
-                refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+                refresh();
             }
         } else if (System.currentTimeMillis() - lastRefreshTime > 60_000) {
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+            refresh();
         }
     }
 
@@ -198,10 +228,10 @@ public class SpaceRepository {
     }
 
     /**
-     * Mark all spaces as needing a data update.
+     * Refresh the spaces and mark each as needing a downstream data update.
      */
-    public void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+    public void refreshAndInvalidate() {
+        refresh();
         for (Space space : spaceList) {
             space.setDataNeedsUpdate();
         }
