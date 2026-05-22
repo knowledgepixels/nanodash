@@ -207,6 +207,9 @@ public class SpaceRepository {
         }
     }
 
+    // TODO Replace this programmatically-built SPARQL with a published grlc
+    // query template (like the constants in QueryApiAccess), so all Nanopub
+    // Query access goes through the same query-template pipeline.
     private static final String SUBSPACE_LINKS_QUERY = SpacesRepoAccess.PREFIXES
             + "SELECT ?child ?parent WHERE {\n"
             + SpacesRepoAccess.CURRENT_STATE_POINTER

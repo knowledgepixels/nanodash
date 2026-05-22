@@ -395,6 +395,9 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private static void loadAdminsFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // TODO Replace this programmatically-built SPARQL with a published grlc
+        // query template (like the constants in QueryApiAccess), so all Nanopub
+        // Query access goes through the same query-template pipeline.
         String sparql = SpacesRepoAccess.PREFIXES
                 + "SELECT DISTINCT ?agent ?np WHERE {\n"
                 + SpacesRepoAccess.CURRENT_STATE_POINTER
@@ -416,6 +419,9 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private static void loadRolesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // TODO Replace this programmatically-built SPARQL with a published grlc
+        // query template (like the constants in QueryApiAccess), so all Nanopub
+        // Query access goes through the same query-template pipeline.
         String sparql = SpacesRepoAccess.PREFIXES
                 + "SELECT ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate\n"
                 + "       (GROUP_CONCAT(DISTINCT ?reg; separator=\" \") AS ?regularProperties)\n"
@@ -462,6 +468,9 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // TODO Replace this programmatically-built SPARQL with a published grlc
+        // query template (like the constants in QueryApiAccess), so all Nanopub
+        // Query access goes through the same query-template pipeline.
         // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
         // than the validated state graph. The spaces-repo materialiser's
         // per-tier admit query can time out on some spaces (a planner blow-up

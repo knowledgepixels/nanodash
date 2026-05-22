@@ -42,6 +42,10 @@ public class MaintainedResourceRepository {
     private MaintainedResourceRepository() {
     }
 
+    // TODO Replace this programmatically-built SPARQL with a published grlc
+    // query template (like the constants in QueryApiAccess), so all Nanopub
+    // Query access goes through the same query-template pipeline.
+    //
     // OPTIONAL pulled outside the GRAPH ?a wrapper: `GRAPH ?a { OPTIONAL { ... } }`
     // returns zero solutions when no triple in ?a matches the inner pattern, which
     // would drop every resource that has no gen:hasNamespace.

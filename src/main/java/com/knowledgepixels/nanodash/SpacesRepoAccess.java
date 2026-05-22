@@ -20,6 +20,12 @@ import java.util.function.Function;
  * space-related calculations (admin closure, role attachments, members,
  * sub-space links, etc.) that are materialised server-side.
  *
+ * <p>TODO All Nanopub Query access should eventually go through published
+ * grlc query templates (as in {@link QueryApiAccess}) rather than
+ * programmatically-built SPARQL. Once the queries that use this helper are
+ * republished as grlc nanopubs against {@code /repo/spaces}, this class
+ * can be deleted in favour of the standard {@code QueryAccess.get()} path.
+ *
  * <p>Today only {@code https://query.nanodash.net/} carries this repo, so we
  * default to it directly rather than going through the general main-query URL
  * (which can resolve to instances without the spaces repo). Override with the
