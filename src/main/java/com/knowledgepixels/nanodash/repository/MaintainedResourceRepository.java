@@ -116,12 +116,13 @@ public class MaintainedResourceRepository {
     }
 
     /**
-     * Find a maintained resource by its ID.
+     * Find the maintained resources belonging to a given space.
      *
-     * @param space The space to which the resource belongs.
-     * @return The MaintainedResource with the given ID, or null if not found.
+     * @param space The space to look up.
+     * @return The list of maintained resources for the space, possibly empty.
      */
     public List<MaintainedResource> findResourcesBySpace(Space space) {
+        ensureLoaded();
         return resourcesBySpace.computeIfAbsent(space, k -> new ArrayList<>());
     }
 
