@@ -437,12 +437,13 @@ public class Space extends AbstractResourceWithProfile {
                 + "    OPTIONAL { ?roleDecl gen:hasInverseProperty ?inv }\n"
                 + "  }\n"
                 + "  GRAPH npa:graph { ?role_np np:hasAssertion ?role_a . }\n"
-                + "  GRAPH ?role_a {\n"
-                + "    OPTIONAL { ?role rdfs:label ?roleLabel }\n"
-                + "    OPTIONAL { ?role dct:title ?roleTitle }\n"
-                + "    OPTIONAL { ?role schema:name ?roleName }\n"
-                + "    OPTIONAL { ?role gen:hasRoleAssignmentTemplate ?roleAssignmentTemplate }\n"
-                + "  }\n"
+                // Each OPTIONAL wraps its own GRAPH so a role with none of these
+                // properties still produces a row (GRAPH ?x { OPTIONAL { ... } }
+                // returns no solutions in RDF4J when the inner pattern is unmatched).
+                + "  OPTIONAL { GRAPH ?role_a { ?role rdfs:label ?roleLabel } }\n"
+                + "  OPTIONAL { GRAPH ?role_a { ?role dct:title ?roleTitle } }\n"
+                + "  OPTIONAL { GRAPH ?role_a { ?role schema:name ?roleName } }\n"
+                + "  OPTIONAL { GRAPH ?role_a { ?role gen:hasRoleAssignmentTemplate ?roleAssignmentTemplate } }\n"
                 + "}\n"
                 + "GROUP BY ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate ?ra_np";
         SpacesRepoAccess.get().select(sparql, null, b -> {
