@@ -71,12 +71,15 @@ public class MaintainedResourceRepository {
         Map<Space, List<MaintainedResource>> newResourcesBySpace = new HashMap<>();
         Map<String, MaintainedResource> newResourcesByNamespace = new HashMap<>();
         Set<String> seenResources = new HashSet<>();
+        int[] rowCount = {0};
+        Set<String> missingSpaces = new HashSet<>();
         SpacesRepoAccess.get().select(MAINTAINED_RESOURCES_QUERY, null, b -> {
+            rowCount[0]++;
             String resourceId = b.getValue("resource").stringValue();
             if (!seenResources.add(resourceId)) return null; // first row (newest date) wins
             String spaceId = b.getValue("space").stringValue();
             Space space = SpaceRepository.get().findById(spaceId);
-            if (space == null) return null;
+            if (space == null) { missingSpaces.add(spaceId); return null; }
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("resource", resourceId);
             entry.add("np", b.getValue("np") == null ? null : b.getValue("np").stringValue());
@@ -92,6 +95,8 @@ public class MaintainedResourceRepository {
             }
             return null;
         });
+        logger.info("Maintained-resources refresh: {} rows from spaces repo, {} kept, {} skipped because their maintaining space was not in SpaceRepository. Missing spaces: {}",
+                rowCount[0], newResourcesById.size(), rowCount[0] - newResourcesById.size(), missingSpaces);
         MaintainedResourceFactory.removeStale(newResourcesById.keySet());
         resourcesById = newResourcesById;
         resourcesBySpace = newResourcesBySpace;
