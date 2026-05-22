@@ -15,20 +15,25 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Runs SPARQL queries against the {@code /repo/spaces} endpoint of the
- * configured main Nanopub Query instance. Used for space-related calculations
- * (admin closure, role attachments, members, sub-space links, etc.) that are
- * materialised server-side in nanopub-query &gt;= 1.11.
+ * Runs SPARQL queries against a Nanopub Query instance that exposes the
+ * {@code /repo/spaces} endpoint (nanopub-query &gt;= 1.11). Used for
+ * space-related calculations (admin closure, role attachments, members,
+ * sub-space links, etc.) that are materialised server-side.
  *
- * <p>This is a temporary access path: only query instances that expose the
- * spaces repository can serve these queries. Operators restrict nanodash to
- * such an instance via {@code NANODASH_MAIN_QUERY} /
- * {@code NANOPUB_QUERY_INSTANCES} (see {@code NOTES.md}). Empty results are
- * treated as authoritative; callers do not fall back to a legacy code path.
+ * <p>Today only {@code https://query.nanodash.net/} carries this repo, so we
+ * default to it directly rather than going through the general main-query URL
+ * (which can resolve to instances without the spaces repo). Override with the
+ * {@code NANODASH_SPACES_REPO_URL} env var. Once the spaces repo is widely
+ * deployed, the default should fall back to {@link Utils#getMainQueryUrl()}.
+ *
+ * <p>Empty results are treated as authoritative; callers do not fall back to
+ * a legacy code path.
  */
 public class SpacesRepoAccess {
 
     private static final Logger logger = LoggerFactory.getLogger(SpacesRepoAccess.class);
+
+    private static final String DEFAULT_SPACES_REPO_URL = "https://query.nanodash.net/repo/spaces";
 
     private static final SpacesRepoAccess INSTANCE = new SpacesRepoAccess();
 
@@ -82,14 +87,16 @@ public class SpacesRepoAccess {
         if (repo == null) {
             synchronized (this) {
                 if (repo == null) {
-                    String url = Utils.getMainQueryUrl();
-                    if (!url.endsWith("/")) url = url + "/";
-                    String ep = url + "repo/spaces";
+                    String envOverride = System.getenv("NANODASH_SPACES_REPO_URL");
+                    String ep = envOverride != null && !envOverride.isBlank()
+                            ? envOverride
+                            : DEFAULT_SPACES_REPO_URL;
                     SPARQLRepository r = new SPARQLRepository(ep);
                     r.init();
                     endpointUrl = ep;
                     repo = r;
-                    logger.info("Initialised spaces-repo SPARQL endpoint at {}", ep);
+                    logger.info("Initialised spaces-repo SPARQL endpoint at {}{}",
+                            ep, envOverride != null ? " (from NANODASH_SPACES_REPO_URL)" : " (default)");
                 }
             }
         }
