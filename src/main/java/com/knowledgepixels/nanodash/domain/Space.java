@@ -67,11 +67,9 @@ public class Space extends AbstractResourceWithProfile {
             // TODO This isn't efficient for long owner lists:
             if (admins.contains(admin)) return;
             admins.add(admin);
-            UserData ud = User.getUserData();
-            // TODO Add approval measures for admin pubkeys in the future
-            for (String pubkeyHash : ud.getPubkeyHashes(admin, null)) {
-                adminPubkeyMap.put(pubkeyHash, admin);
-            }
+            // adminPubkeyMap is populated in bulk by loadAdminPubkeyHashesFromSpacesRepo,
+            // sourcing trust-state-validated (agent, pubkey-hash) pairs from the
+            // spaces repo's npa:AccountState rows.
             users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
         }
 
@@ -371,6 +369,7 @@ public class Space extends AbstractResourceWithProfile {
 
                     loadAdminsFromSpacesRepo(newData, spaceIris);
                     newData.admins.sort(User.getUserData().userComparator);
+                    loadAdminPubkeyHashesFromSpacesRepo(newData, spaceIris);
 
                     loadRolesFromSpacesRepo(newData, spaceIris);
                     loadMembersFromSpacesRepo(newData, spaceIris);
@@ -414,6 +413,41 @@ public class Space extends AbstractResourceWithProfile {
             IRI adminId = Utils.vf.createIRI(b.getValue("agent").stringValue());
             String np = b.getValue("np").stringValue();
             if (!data.admins.contains(adminId)) data.addAdmin(adminId, np);
+            return null;
+        });
+    }
+
+    private static void loadAdminPubkeyHashesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // TODO Replace this programmatically-built SPARQL with a published grlc
+        // query template (like the constants in QueryApiAccess), so all Nanopub
+        // Query access goes through the same query-template pipeline. Better
+        // still: push the view-display admin gate server-side (a published
+        // get-view-displays-v2 that joins through the spaces-repo admins) so
+        // the adminPubkeyMap dependency disappears entirely — see callers of
+        // Space.isAdminPubkey in AbstractResourceWithProfile and DownloadRdfPage.
+        //
+        // Source: trust-state-validated (agent, pubkey-hash) pairs for the
+        // space's admin RIs. Stricter than the prior UserData.getPubkeyHashes
+        // source (only pubkeys that are in the current trust state count),
+        // matching the trust model the rest of this PR moves toward.
+        String sparql = SpacesRepoAccess.PREFIXES
+                + "SELECT DISTINCT ?agent ?pkh WHERE {\n"
+                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + spaceValuesClause(spaceIris)
+                + "  GRAPH ?g {\n"
+                + "    ?ri a gen:RoleInstantiation ;\n"
+                + "        npa:inverseProperty gen:hasAdmin ;\n"
+                + "        npa:forSpace ?space ;\n"
+                + "        npa:forAgent ?agent .\n"
+                + "    ?acct a npa:AccountState ;\n"
+                + "          npa:agent ?agent ;\n"
+                + "          npa:pubkey ?pkh .\n"
+                + "  }\n"
+                + "}";
+        SpacesRepoAccess.get().select(sparql, null, b -> {
+            IRI adminId = Utils.vf.createIRI(b.getValue("agent").stringValue());
+            String pkh = b.getValue("pkh").stringValue();
+            data.adminPubkeyMap.put(pkh, adminId);
             return null;
         });
     }
