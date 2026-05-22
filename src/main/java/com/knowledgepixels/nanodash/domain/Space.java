@@ -462,28 +462,37 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // Tier predicate per RI: admin-tier RIs pin npa:inverseProperty in the state graph
-        // (see design-space-repositories.md); other tiers carry the predicate in
-        // npa:spacesGraph only. We return both candidates and pick admin-pin first.
+        // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
+        // than the validated state graph. The spaces-repo materialiser's
+        // per-tier admit query can time out on some spaces (a planner blow-up
+        // in RDF4J, observed on fdo-connect), leaving member RIs extracted but
+        // never validated. To keep parity with the pre-migration behaviour
+        // (legacy GET_SPACE_MEMBERS gated rows client-side by admin pubkey),
+        // we read the universe of candidates here and apply the same client-side
+        // admin-pubkey gate via data.adminPubkeyMap. Invalidated rows are
+        // filtered out via the npx:invalidates triple in npa:graph.
         String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT ?member ?np ?adminPred ?regProp ?invProp WHERE {\n"
-                + SpacesRepoAccess.CURRENT_STATE_POINTER
+                + "SELECT ?member ?np ?pkh ?regProp ?invProp WHERE {\n"
                 + spaceValuesClause(spaceIris)
-                + "  GRAPH ?g {\n"
+                + "  GRAPH npa:spacesGraph {\n"
                 + "    ?ri a gen:RoleInstantiation ;\n"
                 + "        npa:forSpace ?space ;\n"
                 + "        npa:forAgent ?member ;\n"
-                + "        npa:viaNanopub ?np .\n"
-                + "    OPTIONAL { ?ri npa:inverseProperty ?adminPred . }\n"
+                + "        npa:viaNanopub ?np ;\n"
+                + "        npa:pubkeyHash ?pkh .\n"
+                + "    OPTIONAL { ?ri npa:regularProperty ?regProp }\n"
+                + "    OPTIONAL { ?ri npa:inverseProperty ?invProp }\n"
+                + "    FILTER NOT EXISTS { ?ri npa:inverseProperty gen:hasAdmin }\n"
                 + "  }\n"
-                + "  OPTIONAL { GRAPH npa:spacesGraph { ?ri npa:regularProperty ?regProp } }\n"
-                + "  OPTIONAL { GRAPH npa:spacesGraph { ?ri npa:inverseProperty ?invProp } }\n"
+                + "  FILTER NOT EXISTS { GRAPH npa:graph { ?invNp npx:invalidates ?np . } }\n"
                 + "}";
         SpacesRepoAccess.get().select(sparql, null, b -> {
+            String pkh = b.getValue("pkh") == null ? null : b.getValue("pkh").stringValue();
+            if (pkh == null || !data.adminPubkeyMap.containsKey(pkh)) return null;
             IRI memberId = Utils.vf.createIRI(b.getValue("member").stringValue());
             String np = b.getValue("np").stringValue();
             SpaceMemberRole role = null;
-            for (String key : new String[] {"adminPred", "regProp", "invProp"}) {
+            for (String key : new String[] {"regProp", "invProp"}) {
                 if (b.getValue(key) != null) {
                     IRI pred = Utils.vf.createIRI(b.getValue(key).stringValue());
                     SpaceMemberRole candidate = data.roleMap.get(pred);
