@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.component.menu.SpaceExploreMenu;
@@ -24,7 +23,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.QueryRef;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -222,11 +220,11 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<MaintainedResource>(
                 "resources",
                 "📦 Maintained Resources",
-                new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES),
-                (apiResponse) -> {
+                () -> {
                     MaintainedResourceRepository.get().ensureLoaded();
-                    return MaintainedResourceRepository.get().findResourcesBySpace(spaceModel.getObject());
+                    return true;
                 },
+                () -> MaintainedResourceRepository.get().findResourcesBySpace(spaceModel.getObject()),
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         ));
 

@@ -57,12 +57,9 @@ public class QueryApiAccess {
     public static final String GET_ASSERTION_TEMPLATES = "RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates";
     public static final String GET_PROVENANCE_TEMPLATES = "RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates";
     public static final String GET_PUBINFO_TEMPLATES = "RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates";
-    public static final String GET_ADMINS = "RAOpebLWcp0G6D9U8ZhfYGOkz-kObkytDsM6rCQlIi_j0/get-admins";
-    public static final String GET_SPACE_MEMBERS = "RA_Xf7mfC2PAohGYktJEXjkbzxPhkfX4DE1bQKFqkxrRg/get-space-members";
     public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
     public static final String GET_PINNED_TEMPLATES = "RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates";
     public static final String GET_PINNED_QUERIES = "RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries";
-    public static final String GET_SPACE_MEMBER_ROLES = "RAF-LNZPrT11euM9NQGOLRrJg1pD02oXM5Cxb9XP7tBkU/get-space-member-roles";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
     public static final String GET_LATEST_ACCEPTED_DS = "RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds";
@@ -72,7 +69,6 @@ public class QueryApiAccess {
     public static final String GET_LATEST_RIO_CANDIDATES = "RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates";
     public static final String GET_REACTIONS = "RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions";
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
-    public static final String GET_MAINTAINED_RESOURCES = "RA8RsuKt6HzCXGmw9wMeN4rwSm456bohOuJ0h-jEgXKmM/get-maintained-resources";
     public static final String GET_VIEW_DISPLAYS = "RAapc3jbJ3GkDy0ncKx3pok_zEKqwrT6-Z5TkCP1k96II/get-view-displays";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
