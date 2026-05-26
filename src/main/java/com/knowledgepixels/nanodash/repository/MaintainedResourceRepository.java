@@ -1,10 +1,12 @@
 package com.knowledgepixels.nanodash.repository;
 
-import com.knowledgepixels.nanodash.SpacesRepoAccess;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.MaintainedResourceFactory;
 import com.knowledgepixels.nanodash.domain.Space;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,35 +44,12 @@ public class MaintainedResourceRepository {
     private MaintainedResourceRepository() {
     }
 
-    // TODO Replace this programmatically-built SPARQL with a published grlc
-    // query template (like the constants in QueryApiAccess), so all Nanopub
-    // Query access goes through the same query-template pipeline.
-    //
-    // OPTIONAL pulled outside the GRAPH ?a wrapper: `GRAPH ?a { OPTIONAL { ... } }`
-    // returns zero solutions when no triple in ?a matches the inner pattern, which
-    // would drop every resource that has no gen:hasNamespace.
-    private static final String MAINTAINED_RESOURCES_QUERY = SpacesRepoAccess.PREFIXES
-            + "SELECT ?resource ?space ?np ?label ?namespace ?date WHERE {\n"
-            + SpacesRepoAccess.CURRENT_STATE_POINTER
-            + "  GRAPH ?g { ?resource npa:isMaintainedBy ?space . }\n"
-            + "  GRAPH npa:spacesGraph {\n"
-            + "    ?d a npa:MaintainedResourceDeclaration ;\n"
-            + "       npa:resourceIri ?resource ;\n"
-            + "       npa:maintainerSpace ?space ;\n"
-            + "       npa:viaNanopub ?np ;\n"
-            + "       dct:created ?date .\n"
-            + "  }\n"
-            + "  GRAPH npa:graph {\n"
-            + "    ?np np:hasAssertion ?a .\n"
-            + "    OPTIONAL { ?np rdfs:label ?label }\n"
-            + "  }\n"
-            + "  OPTIONAL { GRAPH ?a { ?resource gen:hasNamespace ?namespace } }\n"
-            + "} ORDER BY DESC(?date)";
-
     /**
      * Refresh the list of maintained resources from the spaces repo. Pulls
      * server-validated {@code npa:isMaintainedBy} links from the current
-     * space-state graph; only the most recent declaration per resource is kept.
+     * space-state graph; only the most recent declaration per resource is kept
+     * (the {@code get-maintained-resources} query orders by {@code DESC(?date)},
+     * so the first row per resource wins).
      */
     public synchronized void refresh() {
         List<MaintainedResource> newResourceList = new ArrayList<>();
@@ -78,17 +57,20 @@ public class MaintainedResourceRepository {
         Map<Space, List<MaintainedResource>> newResourcesBySpace = new HashMap<>();
         Map<String, MaintainedResource> newResourcesByNamespace = new HashMap<>();
         Set<String> seenResources = new HashSet<>();
-        SpacesRepoAccess.get().select(MAINTAINED_RESOURCES_QUERY, null, b -> {
-            String resourceId = b.getValue("resource").stringValue();
-            if (!seenResources.add(resourceId)) return null; // first row (newest date) wins
-            String spaceId = b.getValue("space").stringValue();
+        for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), true).getData()) {
+            String resourceId = r.get("resource");
+            if (resourceId == null || resourceId.isEmpty()) continue;
+            if (!seenResources.add(resourceId)) continue; // first row (newest date) wins
+            String spaceId = r.get("space");
             Space space = SpaceRepository.get().findById(spaceId);
-            if (space == null) return null;
+            if (space == null) continue;
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("resource", resourceId);
-            entry.add("np", b.getValue("np") == null ? null : b.getValue("np").stringValue());
-            if (b.getValue("label") != null) entry.add("label", b.getValue("label").stringValue());
-            if (b.getValue("namespace") != null) entry.add("namespace", b.getValue("namespace").stringValue());
+            entry.add("np", r.get("np"));
+            String label = r.get("label");
+            if (label != null && !label.isEmpty()) entry.add("label", label);
+            String namespace = r.get("namespace");
+            if (namespace != null && !namespace.isEmpty()) entry.add("namespace", namespace);
             MaintainedResource resource = MaintainedResourceFactory.getOrCreate(entry, space);
             newResourceList.add(resource);
             newResourcesById.put(resourceId, resource);
@@ -97,8 +79,7 @@ public class MaintainedResourceRepository {
                 // TODO Handle conflicts when two resources claim the same namespace:
                 newResourcesByNamespace.put(resource.getNamespace(), resource);
             }
-            return null;
-        });
+        }
         MaintainedResourceFactory.removeStale(newResourcesById.keySet());
         resourcesById = newResourcesById;
         resourcesBySpace = newResourcesBySpace;

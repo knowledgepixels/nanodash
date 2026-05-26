@@ -68,6 +68,11 @@ public class QueryApiAccess {
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
     public static final String GET_VIEW_DISPLAYS = "RAapc3jbJ3GkDy0ncKx3pok_zEKqwrT6-Z5TkCP1k96II/get-view-displays";
 
+    // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
+    public static final String GET_SPACES = "RA1sxIHufQSSPu9ZWG6Est26euNJMhBOO33oQF_TV7xnc/get-spaces";
+    public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
+    public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
+
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
     private static ConcurrentMap<String, Pair<Long, String>> latestVersionMap = new ConcurrentHashMap<>();

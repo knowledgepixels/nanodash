@@ -1,10 +1,12 @@
 package com.knowledgepixels.nanodash.repository;
 
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
-import com.knowledgepixels.nanodash.SpacesRepoAccess;
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.SpaceFactory;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,36 +45,16 @@ public class SpaceRepository {
     private SpaceRepository() {
     }
 
-    // TODO Replace this programmatically-built SPARQL with a published grlc
-    // query template (like the constants in QueryApiAccess), so all Nanopub
-    // Query access goes through the same query-template pipeline.
-    //
-    // Returns one row per (SpaceRef, SpaceDefinition) — many spaces have
-    // multiple contributing nanopubs (root + updates) and even multiple
-    // SpaceRefs during the rootless transition phase. Sorting by DESC(?date)
-    // and dedup'ing by spaceIri in Java picks the latest update per space.
-    private static final String SPACES_QUERY = SpacesRepoAccess.PREFIXES
-            + "SELECT ?spaceIri ?np ?date ?label ?type WHERE {\n"
-            + "  GRAPH npa:spacesGraph {\n"
-            + "    ?spaceRef a npa:SpaceRef ; npa:spaceIri ?spaceIri .\n"
-            + "    ?def a npa:SpaceDefinition ;\n"
-            + "         npa:forSpaceRef ?spaceRef ;\n"
-            + "         npa:viaNanopub  ?np ;\n"
-            + "         dct:created     ?date .\n"
-            + "  }\n"
-            + "  GRAPH npa:graph {\n"
-            + "    ?np rdfs:label ?label .\n"
-            + "    ?np npx:hasNanopubType ?type .\n"
-            + "    FILTER(STRSTARTS(STR(?type), \"https://w3id.org/kpxl/gen/terms/\"))\n"
-            + "    FILTER(?type != <https://w3id.org/kpxl/gen/terms/Space>)\n"
-            + "  }\n"
-            + "  FILTER NOT EXISTS { GRAPH npa:graph { ?invNp npx:invalidates ?np . } }\n"
-            + "} ORDER BY DESC(?date)";
-
     /**
      * Refresh the list of spaces from the spaces repo. Pulls the latest
      * non-invalidated SpaceDefinition per Space IRI from {@code npa:spacesGraph}
      * and joins to the declaring nanopub for label and type.
+     * <p>
+     * The {@code get-spaces} query returns one row per (SpaceRef, SpaceDefinition)
+     * — many spaces have multiple contributing nanopubs (root + updates) and even
+     * multiple SpaceRefs during the rootless transition phase. The query orders by
+     * {@code DESC(?date)}, so dedup'ing by spaceIri here (first row wins) picks the
+     * latest update per space.
      */
     public synchronized void refresh() {
         List<Space> newSpaceList = new ArrayList<>();
@@ -82,14 +64,15 @@ public class SpaceRepository {
         Map<Space, Set<Space>> newSubspaceMap = new HashMap<>();
         Map<Space, Set<Space>> newSuperspaceMap = new HashMap<>();
         Set<String> seen = new HashSet<>();
-        SpacesRepoAccess.get().select(SPACES_QUERY, null, b -> {
-            String spaceIri = b.getValue("spaceIri").stringValue();
-            if (!seen.add(spaceIri)) return null; // first row (latest date) wins
+        for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true).getData()) {
+            String spaceIri = r.get("spaceIri");
+            if (spaceIri == null || spaceIri.isEmpty()) continue;
+            if (!seen.add(spaceIri)) continue; // first row (latest date) wins
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("space", spaceIri);
-            entry.add("np", b.getValue("np").stringValue());
-            entry.add("label", b.getValue("label").stringValue());
-            entry.add("type", b.getValue("type").stringValue());
+            entry.add("np", r.get("np"));
+            entry.add("label", r.get("label"));
+            entry.add("type", r.get("type"));
             Space space = SpaceFactory.getOrCreate(entry);
             newSpaceList.add(space);
             newSpaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
@@ -97,8 +80,7 @@ public class SpaceRepository {
             for (String altId : space.getAltIDs()) {
                 newSpacesByAltId.put(altId, space);
             }
-            return null;
-        });
+        }
         logger.info("Refreshed spaces from spaces repo: {} distinct spaces", newSpaceList.size());
         SpaceFactory.removeStale(newSpacesById.keySet());
         populateSubspaceRelations(newSpacesById, newSubspaceMap, newSuperspaceMap);
@@ -237,27 +219,17 @@ public class SpaceRepository {
         }
     }
 
-    // TODO Replace this programmatically-built SPARQL with a published grlc
-    // query template (like the constants in QueryApiAccess), so all Nanopub
-    // Query access goes through the same query-template pipeline.
-    private static final String SUBSPACE_LINKS_QUERY = SpacesRepoAccess.PREFIXES
-            + "SELECT ?child ?parent WHERE {\n"
-            + SpacesRepoAccess.CURRENT_STATE_POINTER
-            + "  GRAPH ?g { ?child npa:isSubSpaceOf ?parent . }\n"
-            + "}";
-
     private static void populateSubspaceRelations(
             Map<String, Space> spacesById,
             Map<Space, Set<Space>> subspaceMap,
             Map<Space, Set<Space>> superspaceMap) {
-        SpacesRepoAccess.get().select(SUBSPACE_LINKS_QUERY, null, b -> {
-            Space child = spacesById.get(b.getValue("child").stringValue());
-            Space parent = spacesById.get(b.getValue("parent").stringValue());
-            if (child == null || parent == null) return null;
+        for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SUB_SPACE_LINKS), true).getData()) {
+            Space child = spacesById.get(r.get("child"));
+            Space parent = spacesById.get(r.get("parent"));
+            if (child == null || parent == null) continue;
             subspaceMap.computeIfAbsent(parent, k -> new HashSet<>()).add(child);
             superspaceMap.computeIfAbsent(child, k -> new HashSet<>()).add(parent);
-            return null;
-        });
+        }
     }
 
 }
