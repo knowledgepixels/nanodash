@@ -47,18 +47,6 @@ instances queries are dispatched to. `NANODASH_MAIN_QUERY` pins the URL nanodash
 building query-related links.
 
 
-## Override the spaces-repo endpoint
-
-Space-related calculations (admins, members, roles, sub-spaces, maintained resources)
-hit a dedicated SPARQL endpoint that needs the new `spaces` repo (nanopub-query >= 1.11).
-This currently only lives on `https://query.nanodash.net/`, which is the built-in default;
-override with:
-
-    $ NANODASH_SPACES_REPO_URL=https://your-query-instance/repo/spaces ./run-dev.sh
-
-Unlike `NANODASH_MAIN_QUERY`, this is just the spaces endpoint, not the whole query API.
-
-
 ## Backup archive of user data
 
 Make password-protected backup file of user data (private keys):
