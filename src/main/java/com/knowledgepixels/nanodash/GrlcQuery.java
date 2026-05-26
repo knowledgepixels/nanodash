@@ -1,35 +1,31 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
-import net.trustyuri.TrustyUriUtils;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.algebra.Var;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractSimpleQueryModelVisitor;
-import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
-import org.eclipse.rdf4j.query.parser.ParsedQuery;
-import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
-import org.nanopub.Nanopub;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents a GRLC query extracted from a nanopublication.
- * This class parses the query details, including SPARQL, endpoint, label, description, and placeholders.
+ * <p>
+ * Query parsing (SPARQL, endpoint, label, description, placeholders) is inherited from
+ * {@link QueryTemplate} in nanopub-java. This subclass adds Nanodash-specific concerns:
+ * an instance cache with {@link #get} factory methods, and integration with the
+ * {@link QueryParamField} form components used by the query UI.
  */
-public class GrlcQuery implements Serializable {
+public class GrlcQuery extends QueryTemplate {
 
     private static final Logger logger = LoggerFactory.getLogger(GrlcQuery.class);
 
@@ -37,6 +33,8 @@ public class GrlcQuery implements Serializable {
         .maximumSize(5_000)
         .expireAfterAccess(24, TimeUnit.HOURS)
         .build();
+
+    private static final Pattern ARTIFACT_CODE_PATTERN = Pattern.compile("RA[A-Za-z0-9\\-_]{43}");
 
     /**
      * Returns a singleton instance of GrlcQuery for the given QueryRef.
@@ -73,203 +71,27 @@ public class GrlcQuery implements Serializable {
     }
 
     /**
-     * The IRI for the GRLC query class and properties.
-     */
-    public final static IRI GRLC_QUERY_CLASS = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/grlc-query");
-
-    /**
-     * The IRI for the SPARQL property and endpoint property in GRLC queries.
-     */
-    public final static IRI GRLC_HAS_SPARQL = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/sparql");
-
-    /**
-     * The IRI for the endpoint property in GRLC queries.
-     */
-    public final static IRI GRLC_HAS_ENDPOINT = Utils.vf.createIRI("https://w3id.org/kpxl/grlc/endpoint");
-
-    private final String queryId;
-    private final String artifactCode;
-    private final String querySuffix;
-    private final Nanopub nanopub;
-    private IRI queryUri;
-    private String sparql;
-    private IRI endpoint;
-    private String label;
-    private String description;
-    private final List<String> placeholdersList;
-    private boolean constructQuery;
-
-    /**
-     * Constructs a GrlcQuery object by parsing the provided query ID or URI.
+     * Constructs a GrlcQuery by parsing the given query ID or URI, fetching the underlying
+     * nanopublication through Nanodash's {@link Utils#getNanopub(String)} (which uses the
+     * configured registries and a local cache).
      *
-     * @param id The query ID or URI.
-     * @throws IllegalArgumentException If the ID is null, invalid, or the nanopublication defines multiple queries.
+     * @param id the query ID or URI
+     * @throws IllegalArgumentException if the ID is invalid or the nanopublication does not
+     *                                  contain exactly one query
      */
     private GrlcQuery(String id) {
+        super(Utils.getNanopub(extractArtifactCode(id)), id);
+    }
+
+    private static String extractArtifactCode(String id) {
         if (id == null) {
             throw new IllegalArgumentException("Null value for query ID");
         }
-        if (TrustyUriUtils.isPotentialTrustyUri(id)) {
-            artifactCode = TrustyUriUtils.getArtifactCode(id);
-            nanopub = Utils.getNanopub(artifactCode);
-            for (Statement st : nanopub.getAssertion()) {
-                if (st.getPredicate().equals(RDF.TYPE) && st.getObject().equals(GRLC_QUERY_CLASS)) {
-                    if (queryUri != null) {
-                        throw new IllegalArgumentException("Nanopublication defines more than one query: " + id);
-                    }
-                    queryUri = (IRI) st.getSubject();
-                }
-            }
-            if (queryUri == null) {
-                throw new IllegalArgumentException("No query found in nanopublication: " + id);
-            }
-            queryId = queryUri.stringValue().replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
-        } else {
-            if (id.matches("https?://.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}[/#][^/#]+")) {
-                queryId = id.replaceFirst("^https?://.*[^A-Za-z0-9-_](RA[A-Za-z0-9-_]{43}[/#][^/#]+)$", "$1").replace("#", "/");
-            } else if (id.matches("RA[A-Za-z0-9-_]{43}[/#][^/#]+")) {
-                queryId = id;
-            } else {
-                throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
-            }
-            artifactCode = queryId.replaceFirst("[/#].*$", "");
-            nanopub = Utils.getNanopub(artifactCode);
+        Matcher m = ARTIFACT_CODE_PATTERN.matcher(id);
+        if (m.find()) {
+            return m.group();
         }
-        querySuffix = queryId.replaceFirst("^.*[/#]", "");
-        for (Statement st : nanopub.getAssertion()) {
-            if (!st.getSubject().stringValue().replace("#", "/").endsWith(queryId)) continue;
-            queryUri = (IRI) st.getSubject();
-            if (st.getPredicate().equals(GRLC_HAS_SPARQL) && st.getObject() instanceof Literal objLiteral) {
-                sparql = objLiteral.stringValue();
-            } else if (st.getPredicate().equals(GRLC_HAS_ENDPOINT) && st.getObject() instanceof IRI objIri) {
-                endpoint = objIri;
-            } else if (st.getPredicate().equals(RDFS.LABEL)) {
-                label = st.getObject().stringValue();
-            } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                description = st.getObject().stringValue();
-            }
-        }
-
-        final Set<String> placeholders = new HashSet<>();
-        ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
-        constructQuery = query instanceof ParsedGraphQuery;
-        try {
-            query.getTupleExpr().visitChildren(new AbstractSimpleQueryModelVisitor<Exception>() {
-
-                @Override
-                public void meet(Var node) throws Exception {
-                    super.meet(node);
-                    if (!node.isConstant() && !node.isAnonymous() && node.getName().startsWith("_")) {
-                        placeholders.add(node.getName());
-                    }
-                }
-
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        List<String> placeholdersListPre = new ArrayList<>(placeholders);
-        Collections.sort(placeholdersListPre);
-        placeholdersList = Collections.unmodifiableList(placeholdersListPre);
-    }
-
-    /**
-     * Returns the unique query ID.
-     *
-     * @return The query ID.
-     */
-    public String getQueryId() {
-        return queryId;
-    }
-
-    /**
-     * Returns the artifact code extracted from the nanopublication.
-     *
-     * @return The artifact code.
-     */
-    public String getArtifactCode() {
-        return artifactCode;
-    }
-
-    /**
-     * Returns the suffix of the query.
-     *
-     * @return The query suffix.
-     */
-    public String getQuerySuffix() {
-        return querySuffix;
-    }
-
-    /**
-     * Returns the nanopublication containing the query.
-     *
-     * @return The nanopublication.
-     */
-    public Nanopub getNanopub() {
-        return nanopub;
-    }
-
-    /**
-     * Returns the URI of the query.
-     *
-     * @return The query URI.
-     */
-    public IRI getQueryUri() {
-        return queryUri;
-    }
-
-    /**
-     * Returns the SPARQL query string.
-     *
-     * @return The SPARQL query.
-     */
-    public String getSparql() {
-        return sparql;
-    }
-
-    /**
-     * Returns the endpoint URI for the query.
-     *
-     * @return The endpoint URI.
-     */
-    public IRI getEndpoint() {
-        return endpoint;
-    }
-
-    /**
-     * Returns the label of the query.
-     *
-     * @return The query label.
-     */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * Returns the description of the query.
-     *
-     * @return The query description.
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Returns a list of placeholders in the query.
-     *
-     * @return The list of placeholders.
-     */
-    public List<String> getPlaceholdersList() {
-        return placeholdersList;
-    }
-
-    /**
-     * Returns true if this is a CONSTRUCT query (returns RDF graph data instead of tabular data).
-     *
-     * @return true if CONSTRUCT query
-     */
-    public boolean isConstructQuery() {
-        return constructQuery;
+        throw new IllegalArgumentException("Not a valid query ID or URI: " + id);
     }
 
     /**
@@ -280,19 +102,18 @@ public class GrlcQuery implements Serializable {
      */
     public List<QueryParamField> createParamFields(String markupId) {
         List<QueryParamField> l = new ArrayList<>();
-        for (String s : placeholdersList) {
+        for (String s : getPlaceholdersList()) {
             l.add(new QueryParamField(markupId, s));
         }
         return l;
     }
 
-    // NOTE: The following methods are duplicated from nanopub-query's GrlcSpec.java.
-    // They should eventually be moved to nanopub-java to avoid duplication.
-
     /**
      * Expands the SPARQL query by substituting placeholder values from the given param fields.
-     * Unlike the server-side version in nanopub-query, missing mandatory params are simply skipped
-     * (not thrown as errors) to support partial substitution for the Yasgui link.
+     * Unlike the strict server-side expansion in {@link QueryTemplate}, missing/unset params are
+     * simply skipped (not thrown as errors), to support the partial substitution used for the
+     * Yasgui link. Placeholder conventions follow {@link QueryParamField} (which recognizes
+     * {@code _multi_val} in addition to the standard suffixes).
      *
      * @param paramFields the list of query parameter fields with user-entered values
      * @return the expanded SPARQL query string
@@ -302,8 +123,8 @@ public class GrlcQuery implements Serializable {
         for (QueryParamField f : paramFields) {
             fieldMap.put(f.getParamName(), f);
         }
-        String expandedQueryContent = sparql;
-        for (String ph : placeholdersList) {
+        String expandedQueryContent = getSparql();
+        for (String ph : getPlaceholdersList()) {
             String paramName = QueryParamField.getParamName(ph);
             QueryParamField field = fieldMap.get(paramName);
             if (field == null || !field.isSet()) continue;
@@ -344,22 +165,6 @@ public class GrlcQuery implements Serializable {
             if (!f.isOptional() && !f.isSet()) return false;
         }
         return true;
-    }
-
-    private static boolean isIriPlaceholder(String placeholder) {
-        return placeholder.endsWith("_iri");
-    }
-
-    private static String escapeLiteral(String s) {
-        return s.replace("\\", "\\\\").replace("\n", "\\n").replace("\"", "\\\"");
-    }
-
-    private static String serializeIri(String iriString) {
-        return "<" + iriString + ">";
-    }
-
-    private static String serializeLiteral(String literalString) {
-        return "\"" + escapeLiteral(literalString) + "\"";
     }
 
     private static String escapeSlashes(String string) {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.*;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.vocabulary.KPXL_GRLC;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,8 +61,8 @@ class GrlcQueryTest {
     @Test
     void getNullForMoreThanOneQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator nanopubCreator = TestUtils.getNanopubCreator();
-        nanopubCreator.addAssertionStatement(anyIri, RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
-        nanopubCreator.addAssertionStatement(randomIri(), RDF.TYPE, GrlcQuery.GRLC_QUERY_CLASS);
+        nanopubCreator.addAssertionStatement(anyIri, RDF.TYPE, KPXL_GRLC.GRLC_QUERY);
+        nanopubCreator.addAssertionStatement(randomIri(), RDF.TYPE, KPXL_GRLC.GRLC_QUERY);
 
         TestUtils.fillProvenanceGraph(nanopubCreator);
         TestUtils.fillPubInfoGraph(nanopubCreator);
@@ -159,7 +160,7 @@ class GrlcQueryTest {
         Nanopub nanopub = new NanopubImpl(new File("src/test/resources/np-grlc-query.trig"), RDFFormat.TRIG);
         AtomicReference<String> sparqlFromNanopub = new AtomicReference<>();
         nanopub.getAssertion().forEach(st -> {
-            if (st.getPredicate().equals(GrlcQuery.GRLC_HAS_SPARQL)) {
+            if (st.getPredicate().equals(KPXL_GRLC.SPARQL)) {
                 sparqlFromNanopub.set(st.getObject().stringValue());
             }
         });

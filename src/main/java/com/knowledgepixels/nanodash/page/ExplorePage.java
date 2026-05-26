@@ -32,6 +32,7 @@ import org.nanopub.NanopubUtils;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.vocabulary.KPXL_GRLC;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -264,7 +265,7 @@ public class ExplorePage extends NanodashPage {
             } else {
                 nanopubSection.add(new WebMarkupContainer("use-template").setVisible(false));
             }
-            if (Utils.isNanopubOfClass(np, GrlcQuery.GRLC_QUERY_CLASS)) {
+            if (Utils.isNanopubOfClass(np, KPXL_GRLC.GRLC_QUERY)) {
                 nanopubSection.add(new WebMarkupContainer("run-query").add(new BookmarkablePageLink<Void>("query-link", QueryPage.class, new PageParameters().set("id", np.getUri()))));
             } else {
                 nanopubSection.add(new WebMarkupContainer("run-query").setVisible(false));
