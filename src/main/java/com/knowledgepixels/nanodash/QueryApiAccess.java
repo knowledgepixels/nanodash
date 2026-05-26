@@ -72,6 +72,11 @@ public class QueryApiAccess {
     public static final String GET_SPACES = "RA1sxIHufQSSPu9ZWG6Est26euNJMhBOO33oQF_TV7xnc/get-spaces";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
+    public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
+    public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
+    public static final String GET_SPACE_ROLES = "RAERgisNLMcIq9eZgXA6ASW3XaewAJIvMSGs4v1yn-FdM/get-space-roles";
+    public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
+    public static final String GET_AGENT_PUBKEY_HASHES = "RA2PQEJdN9CqkmwlCcn6-OYPY3-C_Y9P4X968nmI2s96s/get-agent-pubkey-hashes";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.domain;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
@@ -8,7 +10,9 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -409,125 +413,59 @@ public class Space extends AbstractResourceWithProfile {
         return spaceDataFuture;
     }
 
-    private static String spaceValuesClause(List<String> spaceIris) {
-        StringBuilder sb = new StringBuilder("  VALUES ?space { ");
-        for (String iri : spaceIris) sb.append('<').append(iri).append("> ");
-        sb.append("}\n");
-        return sb.toString();
+    private static Multimap<String, String> spaceParams(List<String> spaceIris) {
+        Multimap<String, String> params = ArrayListMultimap.create();
+        for (String iri : spaceIris) params.put("space", iri);
+        return params;
+    }
+
+    private static List<ApiResponseEntry> runSpacesQuery(String queryId, Multimap<String, String> params) {
+        // Like the prior direct-SPARQL path, a failed/empty query yields an empty
+        // list rather than aborting the rest of the space-data load.
+        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), true);
+        return resp == null ? List.of() : resp.getData();
     }
 
     private static void loadAdminsFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // TODO Replace this programmatically-built SPARQL with a published grlc
-        // query template (like the constants in QueryApiAccess), so all Nanopub
-        // Query access goes through the same query-template pipeline.
-        String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT DISTINCT ?agent ?np WHERE {\n"
-                + SpacesRepoAccess.CURRENT_STATE_POINTER
-                + spaceValuesClause(spaceIris)
-                + "  GRAPH ?g {\n"
-                + "    ?ri a gen:RoleInstantiation ;\n"
-                + "        npa:inverseProperty gen:hasAdmin ;\n"
-                + "        npa:forSpace ?space ;\n"
-                + "        npa:forAgent ?agent ;\n"
-                + "        npa:viaNanopub ?np .\n"
-                + "  }\n"
-                + "}";
-        SpacesRepoAccess.get().select(sparql, null, b -> {
-            IRI adminId = Utils.vf.createIRI(b.getValue("agent").stringValue());
-            String np = b.getValue("np").stringValue();
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMINS, spaceParams(spaceIris))) {
+            IRI adminId = Utils.vf.createIRI(r.get("agent"));
+            String np = r.get("np");
             if (!data.admins.contains(adminId)) data.addAdmin(adminId, np);
-            return null;
-        });
+        }
     }
 
     private static void loadAdminPubkeyHashesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // TODO Replace this programmatically-built SPARQL with a published grlc
-        // query template (like the constants in QueryApiAccess), so all Nanopub
-        // Query access goes through the same query-template pipeline. Better
-        // still: push the view-display admin gate server-side (a published
-        // get-view-displays-v2 that joins through the spaces-repo admins) so
+        // TODO Push the view-display admin gate server-side (a published
+        // get-view-displays variant that joins through the spaces-repo admins) so
         // the adminPubkeyMap dependency disappears entirely — see callers of
         // Space.isAdminPubkey in AbstractResourceWithProfile and DownloadRdfPage.
         //
         // Source: trust-state-validated (agent, pubkey-hash) pairs for the
         // space's admin RIs. Stricter than the prior UserData.getPubkeyHashes
-        // source (only pubkeys that are in the current trust state count),
-        // matching the trust model the rest of this PR moves toward.
-        String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT DISTINCT ?agent ?pkh WHERE {\n"
-                + SpacesRepoAccess.CURRENT_STATE_POINTER
-                + spaceValuesClause(spaceIris)
-                + "  GRAPH ?g {\n"
-                + "    ?ri a gen:RoleInstantiation ;\n"
-                + "        npa:inverseProperty gen:hasAdmin ;\n"
-                + "        npa:forSpace ?space ;\n"
-                + "        npa:forAgent ?agent .\n"
-                + "    ?acct a npa:AccountState ;\n"
-                + "          npa:agent ?agent ;\n"
-                + "          npa:pubkey ?pkh .\n"
-                + "  }\n"
-                + "}";
-        SpacesRepoAccess.get().select(sparql, null, b -> {
-            IRI adminId = Utils.vf.createIRI(b.getValue("agent").stringValue());
-            String pkh = b.getValue("pkh").stringValue();
-            data.adminPubkeyMap.put(pkh, adminId);
-            return null;
-        });
+        // source (only pubkeys that are in the current trust state count).
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, spaceParams(spaceIris))) {
+            data.adminPubkeyMap.put(r.get("pkh"), Utils.vf.createIRI(r.get("agent")));
+        }
     }
 
     private static void loadRolesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // TODO Replace this programmatically-built SPARQL with a published grlc
-        // query template (like the constants in QueryApiAccess), so all Nanopub
-        // Query access goes through the same query-template pipeline.
-        String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate\n"
-                + "       (GROUP_CONCAT(DISTINCT ?reg; separator=\" \") AS ?regularProperties)\n"
-                + "       (GROUP_CONCAT(DISTINCT ?inv; separator=\" \") AS ?inverseProperties)\n"
-                + "       ?ra_np WHERE {\n"
-                + SpacesRepoAccess.CURRENT_STATE_POINTER
-                + spaceValuesClause(spaceIris)
-                + "  GRAPH ?g {\n"
-                + "    ?ra a gen:RoleAssignment ;\n"
-                + "        npa:forSpace ?space ;\n"
-                + "        gen:hasRole ?role ;\n"
-                + "        npa:viaNanopub ?ra_np .\n"
-                + "  }\n"
-                + "  GRAPH npa:spacesGraph {\n"
-                + "    ?roleDecl a npa:RoleDeclaration ;\n"
-                + "              npa:role ?role ;\n"
-                + "              npa:viaNanopub ?role_np .\n"
-                + "    OPTIONAL { ?roleDecl gen:hasRegularProperty ?reg }\n"
-                + "    OPTIONAL { ?roleDecl gen:hasInverseProperty ?inv }\n"
-                + "  }\n"
-                + "  GRAPH npa:graph { ?role_np np:hasAssertion ?role_a . }\n"
-                // Each OPTIONAL wraps its own GRAPH so a role with none of these
-                // properties still produces a row (GRAPH ?x { OPTIONAL { ... } }
-                // returns no solutions in RDF4J when the inner pattern is unmatched).
-                + "  OPTIONAL { GRAPH ?role_a { ?role rdfs:label ?roleLabel } }\n"
-                + "  OPTIONAL { GRAPH ?role_a { ?role dct:title ?roleTitle } }\n"
-                + "  OPTIONAL { GRAPH ?role_a { ?role schema:name ?roleName } }\n"
-                + "  OPTIONAL { GRAPH ?role_a { ?role gen:hasRoleAssignmentTemplate ?roleAssignmentTemplate } }\n"
-                + "}\n"
-                + "GROUP BY ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate ?ra_np";
-        SpacesRepoAccess.get().select(sparql, null, b -> {
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ROLES, spaceParams(spaceIris))) {
             ApiResponseEntry entry = new ApiResponseEntry();
             for (String k : List.of("role", "roleLabel", "roleName", "roleTitle",
                     "roleAssignmentTemplate", "regularProperties", "inverseProperties")) {
-                if (b.getValue(k) != null) entry.add(k, b.getValue(k).stringValue());
+                String v = r.get(k);
+                if (v != null && !v.isEmpty()) entry.add(k, v);
             }
             SpaceMemberRole role = new SpaceMemberRole(entry);
-            String raNp = b.getValue("ra_np") == null ? null : b.getValue("ra_np").stringValue();
+            String raNp = r.get("ra_np");
+            if (raNp != null && raNp.isEmpty()) raNp = null;
             data.roles.add(new SpaceMemberRoleRef(role, raNp));
             for (IRI p : role.getRegularProperties()) data.roleMap.put(p, role);
             for (IRI p : role.getInverseProperties()) data.roleMap.put(p, role);
-            return null;
-        });
+        }
     }
 
     private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // TODO Replace this programmatically-built SPARQL with a published grlc
-        // query template (like the constants in QueryApiAccess), so all Nanopub
-        // Query access goes through the same query-template pipeline.
         // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
         // than the validated state graph. The materialiser is correctly stricter
         // (e.g., it stops admitting RIs when their role declaration is
@@ -535,30 +473,17 @@ public class Space extends AbstractResourceWithProfile {
         // and the design admits non-admin-published observer-tier RIs only via
         // AccountState self-evidence, dropping any whose agents aren't in the
         // trust state). Nanodash matches the looser pre-migration semantic of
-        // GET_SPACE_MEMBERS: any RI whose predicate corresponds to a role
+        // get-space-members: any RI whose predicate corresponds to a role
         // attached to the space (the admin-gating happens server-side on the
         // role attachment, not on the per-member nanopub) is admitted,
         // regardless of who signed the member RI. Invalidated rows are filtered
-        // via the npx:invalidates triple in npa:graph.
-        String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT ?member ?np ?regProp ?invProp WHERE {\n"
-                + spaceValuesClause(spaceIris)
-                + "  GRAPH npa:spacesGraph {\n"
-                + "    ?ri a gen:RoleInstantiation ;\n"
-                + "        npa:forSpace ?space ;\n"
-                + "        npa:forAgent ?member ;\n"
-                + "        npa:viaNanopub ?np .\n"
-                + "    OPTIONAL { ?ri npa:regularProperty ?regProp }\n"
-                + "    OPTIONAL { ?ri npa:inverseProperty ?invProp }\n"
-                + "    FILTER NOT EXISTS { ?ri npa:inverseProperty gen:hasAdmin }\n"
-                + "  }\n"
-                + "  FILTER NOT EXISTS { GRAPH npa:graph { ?invNp npx:invalidates ?np . } }\n"
-                + "}";
-        SpacesRepoAccess.get().select(sparql, null, b -> {
+        // server-side via the npx:invalidates triple in npa:graph.
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_MEMBERS, spaceParams(spaceIris))) {
             SpaceMemberRole role = null;
             for (String key : new String[] {"regProp", "invProp"}) {
-                if (b.getValue(key) != null) {
-                    IRI pred = Utils.vf.createIRI(b.getValue(key).stringValue());
+                String val = r.get(key);
+                if (val != null && !val.isEmpty()) {
+                    IRI pred = Utils.vf.createIRI(val);
                     SpaceMemberRole candidate = data.roleMap.get(pred);
                     if (candidate != null) { role = candidate; break; }
                 }
@@ -567,24 +492,19 @@ public class Space extends AbstractResourceWithProfile {
             // corresponds to a role that was attached to this space by an admin
             // (data.roleMap is populated from validated gen:RoleAssignment rows
             // in loadRolesFromSpacesRepo).
-            if (role == null) return null;
-            IRI memberId = Utils.vf.createIRI(b.getValue("member").stringValue());
-            String np = b.getValue("np").stringValue();
+            if (role == null) continue;
+            IRI memberId = Utils.vf.createIRI(r.get("member"));
+            String np = r.get("np");
             data.users.computeIfAbsent(memberId, k -> new HashSet<>())
                     .add(new SpaceMemberRoleRef(role, np));
-            return null;
-        });
+        }
     }
 
     private static void loadUserPubkeyHashesFromSpacesRepo(SpaceData data) {
-        // TODO Replace this programmatically-built SPARQL with a published grlc
-        // query template (like the constants in QueryApiAccess), so all Nanopub
-        // Query access goes through the same query-template pipeline. The
-        // long-term direction is to push the per-view pubkey filtering server
-        // side too, so view queries gate by user-of-space without nanodash
-        // having to expand the placeholder client-side at all — see callers
-        // of Space.getUserPubkeyHashes / getAdminPubkeyHashes in ViewList and
-        // DownloadRdfPage.
+        // TODO Push the per-view pubkey filtering server-side too, so view queries
+        // gate by user-of-space without nanodash having to expand the placeholder
+        // client-side at all — see callers of Space.getUserPubkeyHashes /
+        // getAdminPubkeyHashes in ViewList and DownloadRdfPage.
         //
         // Source: trust-state-validated (agent, pubkey-hash) pairs from
         // npa:AccountState for every user agent (admin or admin-gated member)
@@ -592,27 +512,13 @@ public class Space extends AbstractResourceWithProfile {
         // UserData.getPubkeyHashes source — pubkey hashes of users not in
         // the current trust state are not returned.
         if (data.users.isEmpty()) return;
-        StringBuilder values = new StringBuilder("  VALUES ?agent { ");
+        Multimap<String, String> params = ArrayListMultimap.create();
         for (IRI agent : data.users.keySet()) {
-            values.append('<').append(agent.stringValue()).append("> ");
+            params.put("agent", agent.stringValue());
         }
-        values.append("}\n");
-        String sparql = SpacesRepoAccess.PREFIXES
-                + "SELECT DISTINCT ?agent ?pkh WHERE {\n"
-                + SpacesRepoAccess.CURRENT_STATE_POINTER
-                + values
-                + "  GRAPH ?g {\n"
-                + "    ?acct a npa:AccountState ;\n"
-                + "          npa:agent ?agent ;\n"
-                + "          npa:pubkey ?pkh .\n"
-                + "  }\n"
-                + "}";
-        SpacesRepoAccess.get().select(sparql, null, b -> {
-            IRI agentId = Utils.vf.createIRI(b.getValue("agent").stringValue());
-            String pkh = b.getValue("pkh").stringValue();
-            data.userPubkeyMap.put(pkh, agentId);
-            return null;
-        });
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_AGENT_PUBKEY_HASHES, params)) {
+            data.userPubkeyMap.put(r.get("pkh"), Utils.vf.createIRI(r.get("agent")));
+        }
     }
 
     private void setCoreData(SpaceData data) {
