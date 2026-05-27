@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -108,18 +107,6 @@ public class ViewList extends Panel {
                                     queryRefParams.put(view.getQueryField() + "Np", "x:");
                                 } else {
                                     queryRefParams.put(view.getQueryField() + "Np", npId);
-                                }
-                            } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
-                                for (IRI userId : space.getUsers()) {
-                                    for (String memberHash : User.getUserData().getPubkeyHashes(userId, true)) {
-                                        queryRefParams.put("user_pubkey", memberHash);
-                                    }
-                                }
-                            } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
-                                for (IRI adminId : space.getAdmins()) {
-                                    for (String adminHash : User.getUserData().getPubkeyHashes(adminId, true)) {
-                                        queryRefParams.put("admin_pubkey", adminHash);
-                                    }
                                 }
                             } else if (!QueryParamField.isOptional(p)) {
                                 item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));

@@ -5,7 +5,6 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.SpaceFactory;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -47,21 +46,34 @@ public class SpaceRepository {
     }
 
     /**
-     * Refresh the list of spaces from the API response.
-     *
-     * @param resp The API response containing space data.
+     * Refresh the list of spaces from the spaces repo. Pulls the latest
+     * non-invalidated SpaceDefinition per Space IRI from {@code npa:spacesGraph}
+     * and joins to the declaring nanopub for label and type.
+     * <p>
+     * The {@code get-spaces} query returns one row per (SpaceRef, SpaceDefinition)
+     * — many spaces have multiple contributing nanopubs (root + updates) and even
+     * multiple SpaceRefs during the rootless transition phase. The query orders by
+     * {@code DESC(?date)}, so dedup'ing by spaceIri here (first row wins) picks the
+     * latest update per space.
      */
-    public synchronized void refresh(ApiResponse resp) {
-        logger.info("Refreshing spaces from API response with {} entries", resp.getData().size());
+    public synchronized void refresh() {
         List<Space> newSpaceList = new ArrayList<>();
         Map<String, List<Space>> newSpaceListByType = new HashMap<>();
         Map<String, Space> newSpacesById = new HashMap<>();
         Map<String, Space> newSpacesByAltId = new HashMap<>();
         Map<Space, Set<Space>> newSubspaceMap = new HashMap<>();
         Map<Space, Set<Space>> newSuperspaceMap = new HashMap<>();
-        for (ApiResponseEntry entry : resp.getData()) {
-            Space space;
-            space = SpaceFactory.getOrCreate(entry);
+        Set<String> seen = new HashSet<>();
+        for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true).getData()) {
+            String spaceIri = r.get("spaceIri");
+            if (spaceIri == null || spaceIri.isEmpty()) continue;
+            if (!seen.add(spaceIri)) continue; // first row (latest date) wins
+            ApiResponseEntry entry = new ApiResponseEntry();
+            entry.add("space", spaceIri);
+            entry.add("np", r.get("np"));
+            entry.add("label", r.get("label"));
+            entry.add("type", r.get("type"));
+            Space space = SpaceFactory.getOrCreate(entry);
             newSpaceList.add(space);
             newSpaceListByType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             newSpacesById.put(space.getId(), space);
@@ -69,15 +81,10 @@ public class SpaceRepository {
                 newSpacesByAltId.put(altId, space);
             }
         }
+        logger.info("Refreshed spaces from spaces repo: {} distinct spaces", newSpaceList.size());
         SpaceFactory.removeStale(newSpacesById.keySet());
+        populateSubspaceRelations(newSpacesById, newSubspaceMap, newSuperspaceMap);
         for (Space space : newSpaceList) {
-            String id = space.getId();
-            if (!id.matches("https?://[^/]+/.*/[^/]*/?")) continue;
-            String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
-            Space superSpace = newSpacesById.get(superId);
-            if (superSpace == null) continue;
-            newSubspaceMap.computeIfAbsent(superSpace, k -> new HashSet<>()).add(space);
-            newSuperspaceMap.computeIfAbsent(space, k -> new HashSet<>()).add(superSpace);
             space.setDataNeedsUpdate();
         }
         spacesById = newSpacesById;
@@ -118,10 +125,10 @@ public class SpaceRepository {
                 logger.error("Interrupted", ex);
             }
             if (spaceList == null) { // double-check after potential wait
-                refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+                refresh();
             }
         } else if (System.currentTimeMillis() - lastRefreshTime > 60_000) {
-            refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+            refresh();
         }
     }
 
@@ -203,20 +210,26 @@ public class SpaceRepository {
     }
 
     /**
-     * Mark all spaces as needing a data update.
+     * Refresh the spaces and mark each as needing a downstream data update.
      */
-    public void refresh() {
-        refresh(ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), true));
+    public void refreshAndInvalidate() {
+        refresh();
         for (Space space : spaceList) {
             space.setDataNeedsUpdate();
         }
     }
 
-    private Space getIdSuperspace(Space space) {
-        String id = space.getId();
-        if (!id.matches("https?://[^/]+/.*/[^/]*/?")) return null;
-        String superId = id.replaceFirst("(https?://[^/]+/.*)/[^/]*/?", "$1");
-        return spacesById.get(superId);
+    private static void populateSubspaceRelations(
+            Map<String, Space> spacesById,
+            Map<Space, Set<Space>> subspaceMap,
+            Map<Space, Set<Space>> superspaceMap) {
+        for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SUB_SPACE_LINKS), true).getData()) {
+            Space child = spacesById.get(r.get("child"));
+            Space parent = spacesById.get(r.get("parent"));
+            if (child == null || parent == null) continue;
+            subspaceMap.computeIfAbsent(parent, k -> new HashSet<>()).add(child);
+            superspaceMap.computeIfAbsent(child, k -> new HashSet<>()).add(parent);
+        }
     }
 
 }

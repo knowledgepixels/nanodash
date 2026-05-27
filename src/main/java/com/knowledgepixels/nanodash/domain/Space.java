@@ -3,12 +3,9 @@ package com.knowledgepixels.nanodash.domain;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
@@ -69,19 +66,14 @@ public class Space extends AbstractResourceWithProfile {
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
         Map<String, IRI> adminPubkeyMap = new HashMap<>();
-        Set<Serializable> pinnedResources = new HashSet<>();
-        Set<String> pinGroupTags = new HashSet<>();
-        Map<String, Set<Serializable>> pinnedResourceMap = new HashMap<>();
 
         void addAdmin(IRI admin, String npId) {
             // TODO This isn't efficient for long owner lists:
             if (admins.contains(admin)) return;
             admins.add(admin);
-            UserData ud = User.getUserData();
-            // TODO Add approval measures for admin pubkeys in the future
-            for (String pubkeyHash : ud.getPubkeyHashes(admin, null)) {
-                adminPubkeyMap.put(pubkeyHash, admin);
-            }
+            // adminPubkeyMap is populated in bulk by loadAdminPubkeyHashesFromSpacesRepo,
+            // sourcing trust-state-validated (agent, pubkey-hash) pairs from the
+            // spaces repo's npa:AccountState rows.
             users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
         }
 
@@ -291,36 +283,6 @@ public class Space extends AbstractResourceWithProfile {
         return data.adminPubkeyMap.containsKey(pubkey);
     }
 
-    /**
-     * Get the list of pinned resources in this space.
-     *
-     * @return Set of pinned resources.
-     */
-    public Set<Serializable> getPinnedResources() {
-        ensureInitialized();
-        return data.pinnedResources;
-    }
-
-    /**
-     * Get the set of tags used for grouping pinned resources.
-     *
-     * @return Set of tags.
-     */
-    public Set<String> getPinGroupTags() {
-        ensureInitialized();
-        return data.pinGroupTags;
-    }
-
-    /**
-     * Get a map of pinned resources grouped by their tags.
-     *
-     * @return Map where keys are tags and values are lists of pinned resources (Templates or GrlcQueries).
-     */
-    public Map<String, Set<Serializable>> getPinnedResourceMap() {
-        ensureInitialized();
-        return data.pinnedResourceMap;
-    }
-
     @Override
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerSpaceDataUpdate();
@@ -405,75 +367,17 @@ public class Space extends AbstractResourceWithProfile {
                     newData.roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
                     newData.roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
 
-                    // TODO Improve this:
-                    Multimap<String, String> spaceIds = ArrayListMultimap.create();
-                    Multimap<String, String> resourceIds = ArrayListMultimap.create();
-                    spaceIds.put("space", getId());
-                    resourceIds.put("resource", getId());
-                    for (String id : newData.altIds) {
-                        spaceIds.put("space", id);
-                        resourceIds.put("resource", id);
-                    }
+                    List<String> spaceIris = new ArrayList<>();
+                    spaceIris.add(getId());
+                    spaceIris.addAll(newData.altIds);
 
-                    ApiResponse getAdminsResponse = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ADMINS, spaceIds), true);
-                    boolean continueAddingAdmins = true;
-                    while (continueAddingAdmins) {
-                        continueAddingAdmins = false;
-                        for (ApiResponseEntry r : getAdminsResponse.getData()) {
-                            String pubkeyHash = r.get("pubkey");
-                            if (newData.adminPubkeyMap.containsKey(pubkeyHash)) {
-                                IRI adminId = Utils.vf.createIRI(r.get("admin"));
-                                if (!newData.admins.contains(adminId)) {
-                                    continueAddingAdmins = true;
-                                    newData.addAdmin(adminId, r.get("np"));
-                                }
-                            }
-                        }
-                    }
+                    loadAdminsFromSpacesRepo(newData, spaceIris);
                     newData.admins.sort(User.getUserData().userComparator);
+                    loadAdminPubkeyHashesFromSpacesRepo(newData, spaceIris);
 
-                    Multimap<String, String> getSpaceMemberParams = ArrayListMultimap.create(spaceIds);
+                    loadRolesFromSpacesRepo(newData, spaceIris);
+                    loadMembersFromSpacesRepo(newData, spaceIris);
 
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBER_ROLES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        SpaceMemberRole role = new SpaceMemberRole(r);
-                        newData.roles.add(new SpaceMemberRoleRef(role, r.get("np")));
-
-                        // TODO Handle cases of overlapping properties:
-                        for (IRI p : role.getRegularProperties()) newData.roleMap.put(p, role);
-                        for (IRI p : role.getInverseProperties()) newData.roleMap.put(p, role);
-
-                        role.addRoleParams(getSpaceMemberParams);
-                    }
-
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, getSpaceMemberParams), true).getData()) {
-                        IRI memberId = Utils.vf.createIRI(r.get("member"));
-                        SpaceMemberRole role = newData.roleMap.get(Utils.vf.createIRI(r.get("role")));
-                        newData.users.computeIfAbsent(memberId, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(role, r.get("np")));
-                    }
-
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_TEMPLATES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        Template t = TemplateData.get().getTemplate(r.get("template"));
-                        if (t == null) continue;
-                        newData.pinnedResources.add(t);
-                        String tag = r.get("tag");
-                        if (tag != null && !tag.isEmpty()) {
-                            newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(TemplateData.get().getTemplate(r.get("template")));
-                        }
-                    }
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_PINNED_QUERIES, spaceIds), true).getData()) {
-                        if (!newData.adminPubkeyMap.containsKey(r.get("pubkey"))) continue;
-                        GrlcQuery query = GrlcQuery.get(r.get("query"));
-                        if (query == null) continue;
-                        newData.pinnedResources.add(query);
-                        String tag = r.get("tag");
-                        if (tag != null && !tag.isEmpty()) {
-                            newData.pinGroupTags.add(r.get("tag"));
-                            newData.pinnedResourceMap.computeIfAbsent(tag, k -> new HashSet<>()).add(query);
-                        }
-                    }
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
@@ -484,6 +388,93 @@ public class Space extends AbstractResourceWithProfile {
             return spaceDataFuture;
         }
         return spaceDataFuture;
+    }
+
+    private static Multimap<String, String> spaceParams(List<String> spaceIris) {
+        Multimap<String, String> params = ArrayListMultimap.create();
+        for (String iri : spaceIris) params.put("space", iri);
+        return params;
+    }
+
+    private static List<ApiResponseEntry> runSpacesQuery(String queryId, Multimap<String, String> params) {
+        // Like the prior direct-SPARQL path, a failed/empty query yields an empty
+        // list rather than aborting the rest of the space-data load.
+        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), true);
+        return resp == null ? List.of() : resp.getData();
+    }
+
+    private static void loadAdminsFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMINS, spaceParams(spaceIris))) {
+            IRI adminId = Utils.vf.createIRI(r.get("agent"));
+            String np = r.get("np");
+            if (!data.admins.contains(adminId)) data.addAdmin(adminId, np);
+        }
+    }
+
+    private static void loadAdminPubkeyHashesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // TODO Push the view-display admin gate server-side (a published
+        // get-view-displays variant that joins through the spaces-repo admins) so
+        // the adminPubkeyMap dependency disappears entirely — see callers of
+        // Space.isAdminPubkey in AbstractResourceWithProfile and DownloadRdfPage.
+        //
+        // Source: trust-state-validated (agent, pubkey-hash) pairs for the
+        // space's admin RIs. Stricter than the prior UserData.getPubkeyHashes
+        // source (only pubkeys that are in the current trust state count).
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, spaceParams(spaceIris))) {
+            data.adminPubkeyMap.put(r.get("pkh"), Utils.vf.createIRI(r.get("agent")));
+        }
+    }
+
+    private static void loadRolesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ROLES, spaceParams(spaceIris))) {
+            ApiResponseEntry entry = new ApiResponseEntry();
+            for (String k : List.of("role", "roleLabel", "roleName", "roleTitle",
+                    "roleAssignmentTemplate", "regularProperties", "inverseProperties")) {
+                String v = r.get(k);
+                if (v != null && !v.isEmpty()) entry.add(k, v);
+            }
+            SpaceMemberRole role = new SpaceMemberRole(entry);
+            String raNp = r.get("ra_np");
+            if (raNp != null && raNp.isEmpty()) raNp = null;
+            data.roles.add(new SpaceMemberRoleRef(role, raNp));
+            for (IRI p : role.getRegularProperties()) data.roleMap.put(p, role);
+            for (IRI p : role.getInverseProperties()) data.roleMap.put(p, role);
+        }
+    }
+
+    private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+        // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
+        // than the validated state graph. The materialiser is correctly stricter
+        // (e.g., it stops admitting RIs when their role declaration is
+        // invalidated, even if the role assignment still points at the old IRI;
+        // and the design admits non-admin-published observer-tier RIs only via
+        // AccountState self-evidence, dropping any whose agents aren't in the
+        // trust state). Nanodash matches the looser pre-migration semantic of
+        // get-space-members: any RI whose predicate corresponds to a role
+        // attached to the space (the admin-gating happens server-side on the
+        // role attachment, not on the per-member nanopub) is admitted,
+        // regardless of who signed the member RI. Invalidated rows are filtered
+        // server-side via the npx:invalidates triple in npa:graph.
+        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_MEMBERS, spaceParams(spaceIris))) {
+            SpaceMemberRole role = null;
+            for (String key : new String[] {"regProp", "invProp"}) {
+                String val = r.get(key);
+                if (val != null && !val.isEmpty()) {
+                    IRI pred = Utils.vf.createIRI(val);
+                    SpaceMemberRole candidate = data.roleMap.get(pred);
+                    if (candidate != null) { role = candidate; break; }
+                }
+            }
+            // Gate by role-predicate match: only admit members whose predicate
+            // corresponds to a role that was attached to this space by an admin
+            // (data.roleMap is populated from validated gen:RoleAssignment rows
+            // in loadRolesFromSpacesRepo).
+            if (role == null) continue;
+            IRI memberId = Utils.vf.createIRI(r.get("member"));
+            String np = r.get("np");
+            data.users.computeIfAbsent(memberId, k -> new HashSet<>())
+                    .add(new SpaceMemberRoleRef(role, np));
+        }
     }
 
     private void setCoreData(SpaceData data) {
@@ -507,21 +498,9 @@ public class Space extends AbstractResourceWithProfile {
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     data.addAdmin(obj, rootNanopub.getUri().stringValue());
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_TEMPLATE) && st.getObject() instanceof IRI obj) {
-                    data.pinnedResources.add(TemplateData.get().getTemplate(obj.stringValue()));
-                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PINNED_QUERY) && st.getObject() instanceof IRI obj) {
-                    data.pinnedResources.add(GrlcQuery.get(obj.stringValue()));
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     data.defaultProvenance = obj;
                 }
-            } else if (st.getPredicate().equals(NTEMPLATE.HAS_TAG) && st.getObject() instanceof Literal l) {
-                data.pinGroupTags.add(l.stringValue());
-                Set<Serializable> list = data.pinnedResourceMap.get(l.stringValue());
-                if (list == null) {
-                    list = new HashSet<>();
-                    data.pinnedResourceMap.put(l.stringValue(), list);
-                }
-                list.add(TemplateData.get().getTemplate(st.getSubject().stringValue()));
             }
         }
     }

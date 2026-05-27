@@ -424,18 +424,6 @@ public class DownloadRdfPage extends WebPage {
                 } else {
                     queryRefParams.put(view.getQueryField() + "Np", targetNpId);
                 }
-            } else if (paramName.equals("user_pubkey") && QueryParamField.isMultiPlaceholder(p) && resource instanceof Space space) {
-                for (IRI userId : space.getUsers()) {
-                    for (String memberHash : User.getUserData().getPubkeyHashes(userId, true)) {
-                        queryRefParams.put("user_pubkey", memberHash);
-                    }
-                }
-            } else if (paramName.equals("admin_pubkey") && QueryParamField.isMultiPlaceholder(p) && resource instanceof Space space) {
-                for (IRI adminId : space.getAdmins()) {
-                    for (String adminHash : User.getUserData().getPubkeyHashes(adminId, true)) {
-                        queryRefParams.put("admin_pubkey", adminHash);
-                    }
-                }
             } else if (!QueryParamField.isOptional(p)) {
                 logger.error("Query has non-optional parameter that cannot be filled: {} {}", view.getQuery().getQueryId(), p);
                 return null;

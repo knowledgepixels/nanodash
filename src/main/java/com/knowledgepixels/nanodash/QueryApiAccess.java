@@ -52,17 +52,11 @@ public class QueryApiAccess {
     public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
     public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
     public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
-    public static final String GET_SPACES = "RAf0Apox1sbJRC0ZBrqS9wtYccLFJ_5VLq-u4rJy5WbnA/get-spaces";
     public static final String GET_PARTS = "RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts";
     public static final String GET_ASSERTION_TEMPLATES = "RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates";
     public static final String GET_PROVENANCE_TEMPLATES = "RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates";
     public static final String GET_PUBINFO_TEMPLATES = "RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates";
-    public static final String GET_ADMINS = "RAOpebLWcp0G6D9U8ZhfYGOkz-kObkytDsM6rCQlIi_j0/get-admins";
-    public static final String GET_SPACE_MEMBERS = "RA_Xf7mfC2PAohGYktJEXjkbzxPhkfX4DE1bQKFqkxrRg/get-space-members";
     public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
-    public static final String GET_PINNED_TEMPLATES = "RA_F6C2DtlL4EXSF2vzU1KLVUiRLjPAM-r1Wy32JIeSYI/get-pinned-templates";
-    public static final String GET_PINNED_QUERIES = "RAH5jJUo8ukFkPP1xghveSNPze3pmSK69zri5PPM6HEbg/get-pinned-queries";
-    public static final String GET_SPACE_MEMBER_ROLES = "RAF-LNZPrT11euM9NQGOLRrJg1pD02oXM5Cxb9XP7tBkU/get-space-member-roles";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
     public static final String GET_LATEST_ACCEPTED_DS = "RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds";
@@ -72,8 +66,16 @@ public class QueryApiAccess {
     public static final String GET_LATEST_RIO_CANDIDATES = "RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates";
     public static final String GET_REACTIONS = "RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions";
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
-    public static final String GET_MAINTAINED_RESOURCES = "RA8RsuKt6HzCXGmw9wMeN4rwSm456bohOuJ0h-jEgXKmM/get-maintained-resources";
     public static final String GET_VIEW_DISPLAYS = "RAapc3jbJ3GkDy0ncKx3pok_zEKqwrT6-Z5TkCP1k96II/get-view-displays";
+
+    // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
+    public static final String GET_SPACES = "RA1sxIHufQSSPu9ZWG6Est26euNJMhBOO33oQF_TV7xnc/get-spaces";
+    public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
+    public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
+    public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
+    public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
+    public static final String GET_SPACE_ROLES = "RAERgisNLMcIq9eZgXA6ASW3XaewAJIvMSGs4v1yn-FdM/get-space-roles";
+    public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
