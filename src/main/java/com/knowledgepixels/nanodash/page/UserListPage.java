@@ -2,19 +2,12 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.component.ItemListElement;
-import com.knowledgepixels.nanodash.component.ItemListPanel;
+import com.knowledgepixels.nanodash.component.QueryResultItemListBuilder;
 import com.knowledgepixels.nanodash.component.QueryResultListBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.domain.IndividualAgent;
-import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Page that lists all users and groups.
@@ -25,6 +18,10 @@ public class UserListPage extends NanodashPage {
      * The mount path for this page.
      */
     public static final String MOUNT_PATH = "/userlist";
+
+    private static final String HUMAN_USERS_VIEW = "https://w3id.org/np/RAeDwLoelA43CfcetS7LVQOAgQuDCw-Yf5naRYdmCmCXs/human-users-view";
+    private static final String SOFTWARE_AGENTS_VIEW = "https://w3id.org/np/RAr4qrDh77rNoRcodAoGDOJLEECu3sBvrUJPAhuK73e1c/software-agents-view";
+    private static final String NON_APPROVED_USERS_VIEW = "https://w3id.org/np/RA8Xkr-SnsRqu0RBGExZ3Ms8J1TviL_1bRQVRnymaWafw/non-approved-users-view";
 
     /**
      * {@inheritDoc}
@@ -67,29 +64,17 @@ public class UserListPage extends NanodashPage {
         QueryRef luQueryRef = new QueryRef(latestUsersView.getQuery().getQueryId());
         add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView).withDisplayWidth(6)).build());
 
-        add(new ItemListPanel<IRI>(
-                "approved-human-users",
-                "👤 Human Users",
-                User.getUsers(true).stream().filter(iri -> !IndividualAgent.isSoftware(iri)).collect(Collectors.toList()),
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
-                User::getShortDisplayName
-        ));
+        View humanUsersView = View.get(HUMAN_USERS_VIEW);
+        add(QueryResultItemListBuilder.create("approved-human-users",
+                new QueryRef(humanUsersView.getQuery().getQueryId()), new ViewDisplay(humanUsersView)).build());
 
-        add(new ItemListPanel<IRI>(
-                "approved-software-agents",
-                "🤖 Software Agents",
-                User.getUsers(true).stream().filter(IndividualAgent::isSoftware).collect(Collectors.toList()),
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
-                User::getShortDisplayName
-        ));
+        View softwareAgentsView = View.get(SOFTWARE_AGENTS_VIEW);
+        add(QueryResultItemListBuilder.create("approved-software-agents",
+                new QueryRef(softwareAgentsView.getQuery().getQueryId()), new ViewDisplay(softwareAgentsView)).build());
 
-        add(new ItemListPanel<IRI>(
-                "other-users",
-                "❓ Non-Approved Users",
-                User.getUsers(false),
-                (userIri) -> new ItemListElement("item", UserPage.class, new PageParameters().set("id", userIri), User.getShortDisplayName(userIri)),
-                User::getShortDisplayName
-        ));
+        View nonApprovedUsersView = View.get(NON_APPROVED_USERS_VIEW);
+        add(QueryResultItemListBuilder.create("other-users",
+                new QueryRef(nonApprovedUsersView.getQuery().getQueryId()), new ViewDisplay(nonApprovedUsersView)).build());
 
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else..."));
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
