@@ -109,6 +109,8 @@ public class QueryResultTable extends QueryResult {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi_val".length());
                 } else if (displayLabel.endsWith("_multi")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi".length());
+                } else if (displayLabel.endsWith("_iri")) {
+                    displayLabel = displayLabel.substring(0, displayLabel.length() - "_iri".length());
                 }
                 columns.add(new Column(displayLabel.replaceAll("_", " "), h));
             }
