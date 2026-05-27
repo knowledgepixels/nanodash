@@ -76,7 +76,6 @@ public class QueryApiAccess {
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
     public static final String GET_SPACE_ROLES = "RAERgisNLMcIq9eZgXA6ASW3XaewAJIvMSGs4v1yn-FdM/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
-    public static final String GET_AGENT_PUBKEY_HASHES = "RA2PQEJdN9CqkmwlCcn6-OYPY3-C_Y9P4X968nmI2s96s/get-agent-pubkey-hashes";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
