@@ -81,6 +81,10 @@ public class SpaceRepository {
                 newSpacesByAltId.put(altId, space);
             }
         }
+        Comparator<Space> byLabel = Comparator.comparing(Space::getLabel, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+        for (List<Space> spacesOfType : newSpaceListByType.values()) {
+            spacesOfType.sort(byLabel);
+        }
         logger.info("Refreshed spaces from spaces repo: {} distinct spaces", newSpaceList.size());
         SpaceFactory.removeStale(newSpacesById.keySet());
         populateSubspaceRelations(newSpacesById, newSubspaceMap, newSuperspaceMap);
