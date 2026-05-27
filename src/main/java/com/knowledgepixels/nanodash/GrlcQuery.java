@@ -109,49 +109,21 @@ public class GrlcQuery extends QueryTemplate {
     }
 
     /**
-     * Expands the SPARQL query by substituting placeholder values from the given param fields.
-     * Unlike the strict server-side expansion in {@link QueryTemplate}, missing/unset params are
-     * simply skipped (not thrown as errors), to support the partial substitution used for the
-     * Yasgui link. Placeholder conventions follow {@link QueryParamField} (which recognizes
-     * {@code _multi_val} in addition to the standard suffixes).
+     * Expands the SPARQL query by substituting the user-entered param-field values. This adapts the
+     * UI {@link QueryParamField}s into the parameter map of {@link QueryTemplate#expandQuery(Map, boolean)}
+     * and expands non-strictly: missing/unset params are not errors but left partially expanded (the
+     * placeholder kept for single values, the empty {@code VALUES} block dropped for multi values), as
+     * needed for the Yasgui link.
      *
      * @param paramFields the list of query parameter fields with user-entered values
      * @return the expanded SPARQL query string
      */
     public String expandQuery(List<QueryParamField> paramFields) {
-        Map<String, QueryParamField> fieldMap = new HashMap<>();
+        Map<String, List<String>> params = new HashMap<>();
         for (QueryParamField f : paramFields) {
-            fieldMap.put(f.getParamName(), f);
+            if (f.isSet()) params.put(f.getParamName(), List.of(f.getValues()));
         }
-        String expandedQueryContent = getSparql();
-        for (String ph : getPlaceholdersList()) {
-            String paramName = QueryParamField.getParamName(ph);
-            QueryParamField field = fieldMap.get(paramName);
-            if (field == null || !field.isSet()) continue;
-            if (QueryParamField.isMultiPlaceholder(ph)) {
-                String[] values = field.getValues();
-                StringBuilder valueList = new StringBuilder();
-                for (String v : values) {
-                    if (isIriPlaceholder(ph)) {
-                        valueList.append(serializeIri(v)).append(" ");
-                    } else {
-                        valueList.append(serializeLiteral(v)).append(" ");
-                    }
-                }
-                expandedQueryContent = expandedQueryContent.replaceAll(
-                    "values\\s*\\?" + ph + "\\s*\\{\\s*\\}",
-                    "values ?" + ph + " { " + escapeSlashes(valueList.toString()) + "}"
-                );
-            } else {
-                String val = field.getValues()[0];
-                if (isIriPlaceholder(ph)) {
-                    expandedQueryContent = expandedQueryContent.replaceAll("\\?" + ph + "(?![A-Za-z0-9_])", escapeSlashes(serializeIri(val)));
-                } else {
-                    expandedQueryContent = expandedQueryContent.replaceAll("\\?" + ph + "(?![A-Za-z0-9_])", escapeSlashes(serializeLiteral(val)));
-                }
-            }
-        }
-        return expandedQueryContent;
+        return expandQuery(params, false);
     }
 
     /**
@@ -165,10 +137,6 @@ public class GrlcQuery extends QueryTemplate {
             if (!f.isOptional() && !f.isSet()) return false;
         }
         return true;
-    }
-
-    private static String escapeSlashes(String string) {
-        return string.replace("\\", "\\\\");
     }
 
 }

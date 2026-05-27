@@ -8,7 +8,6 @@ import com.knowledgepixels.nanodash.SpaceMemberRoleRef;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -34,6 +33,7 @@ import org.nanopub.NanopubWithNs;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.QueryTemplate;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -408,10 +408,10 @@ public class DownloadRdfPage extends WebPage {
 
         Multimap<String, String> queryRefParams = ArrayListMultimap.create();
         for (String p : view.getQuery().getPlaceholdersList()) {
-            String paramName = QueryParamField.getParamName(p);
+            String paramName = QueryTemplate.getParamName(p);
             if (paramName.equals(view.getQueryField())) {
                 queryRefParams.put(view.getQueryField(), targetId);
-                if (QueryParamField.isMultiPlaceholder(p) && resource instanceof Space space) {
+                if (QueryTemplate.isMultiPlaceholder(p) && resource instanceof Space space) {
                     for (String altId : space.getAltIDs()) {
                         queryRefParams.put(view.getQueryField(), altId);
                     }
@@ -419,12 +419,12 @@ public class DownloadRdfPage extends WebPage {
             } else if (paramName.equals(view.getQueryField() + "Namespace") && resource.getNamespace() != null) {
                 queryRefParams.put(view.getQueryField() + "Namespace", resource.getNamespace());
             } else if (paramName.equals(view.getQueryField() + "Np")) {
-                if (!QueryParamField.isOptional(p) && targetNpId == null) {
+                if (!QueryTemplate.isOptionalPlaceholder(p) && targetNpId == null) {
                     queryRefParams.put(view.getQueryField() + "Np", "x:");
                 } else {
                     queryRefParams.put(view.getQueryField() + "Np", targetNpId);
                 }
-            } else if (!QueryParamField.isOptional(p)) {
+            } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
                 logger.error("Query has non-optional parameter that cannot be filled: {} {}", view.getQuery().getQueryId(), p);
                 return null;
             }

@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,10 +92,10 @@ public class ViewList extends Panel {
                         View view = item.getModelObject().getView();
                         Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                         for (String p : view.getQuery().getPlaceholdersList()) {
-                            String paramName = QueryParamField.getParamName(p);
+                            String paramName = QueryTemplate.getParamName(p);
                             if (paramName.equals(view.getQueryField())) {
                                 queryRefParams.put(view.getQueryField(), id);
-                                if (QueryParamField.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
+                                if (QueryTemplate.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
                                     // TODO Support this also for maintained resources and users.
                                     for (String altId : space.getAltIDs()) {
                                         queryRefParams.put(view.getQueryField(), altId);
@@ -103,12 +104,12 @@ public class ViewList extends Panel {
                             } else if (paramName.equals(view.getQueryField() + "Namespace") && resourceWithProfile.getNamespace() != null) {
                                 queryRefParams.put(view.getQueryField() + "Namespace", resourceWithProfile.getNamespace());
                             } else if (paramName.equals(view.getQueryField() + "Np")) {
-                                if (!QueryParamField.isOptional(p) && npId == null) {
+                                if (!QueryTemplate.isOptionalPlaceholder(p) && npId == null) {
                                     queryRefParams.put(view.getQueryField() + "Np", "x:");
                                 } else {
                                     queryRefParams.put(view.getQueryField() + "Np", npId);
                                 }
-                            } else if (!QueryParamField.isOptional(p)) {
+                            } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
                                 item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
                                 logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
                                 return;

@@ -19,6 +19,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,6 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.component.QueryParamField;
 
 /**
  * Utility class for APIs look up and parsing.
@@ -287,7 +287,7 @@ public class LookupApis {
         }
         String queryParamName = "query";
         if (q.getPlaceholdersList().size() == 1) {
-            queryParamName = QueryParamField.getParamName(q.getPlaceholdersList().get(0));
+            queryParamName = QueryTemplate.getParamName(q.getPlaceholdersList().get(0));
         }
         params.put(queryParamName, searchterm);
         ApiResponse result = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
