@@ -10,6 +10,7 @@ import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.common.net.ParsedIRI;
+import org.nanopub.extra.services.QueryTemplate;
 
 import java.net.URISyntaxException;
 
@@ -76,7 +77,7 @@ public class QueryParamField extends Panel {
      * @return the parameter name
      */
     public String getParamName() {
-        return getParamName(paramId);
+        return QueryTemplate.getParamName(paramId);
     }
 
     /**
@@ -108,7 +109,7 @@ public class QueryParamField extends Panel {
      * @return true if the parameter is optional, false otherwise
      */
     public boolean isOptional() {
-        return isOptional(paramId);
+        return QueryTemplate.isOptionalPlaceholder(paramId);
     }
 
     /**
@@ -117,7 +118,7 @@ public class QueryParamField extends Panel {
      * @return true if the parameter is an IRI parameter, false otherwise
      */
     public boolean isIri() {
-        return paramId.endsWith("_iri");
+        return QueryTemplate.isIriPlaceholder(paramId);
     }
 
     /**
@@ -135,7 +136,7 @@ public class QueryParamField extends Panel {
      * @return true if the parameter is a multi parameter, false otherwise
      */
     public boolean isMultiPlaceholder() {
-        return isMultiPlaceholder(paramId);
+        return QueryTemplate.isMultiPlaceholder(paramId);
     }
 
     private class Validator extends InvalidityHighlighting implements INullAcceptingValidator<String> {
@@ -181,20 +182,6 @@ public class QueryParamField extends Panel {
     }
 
     /**
-     * Checks if a parameter ID indicates a multi parameter (ends with "_multi" or "_multi_iri").
-     *
-     * @param p the parameter ID to check
-     * @return true if the parameter ID indicates a multi parameter, false otherwise
-     */
-    public static boolean isMultiPlaceholder(String p) {
-        return p.endsWith("_multi") || p.endsWith("_multi_iri") || p.endsWith("_multi_val");
-    }
-
-    public static boolean isOptional(String p) {
-        return p.startsWith("__");
-    }
-
-    /**
      * Expands the value string into an array of values based on whether the parameter is multi or not.
      *
      * @param s       the value string
@@ -204,21 +191,11 @@ public class QueryParamField extends Panel {
     public static String[] expandValues(String s, String paramId) {
         if (!isSet(s)) {
             return new String[]{};
-        } else if (isMultiPlaceholder(paramId)) {
+        } else if (QueryTemplate.isMultiPlaceholder(paramId)) {
             return s.replaceFirst("\r?\n$", "").split("\r?\n");
         } else {
             return new String[]{s};
         }
-    }
-
-    /**
-     * Extracts the parameter name from the placeholder ID.
-     *
-     * @param placeholderId the placeholder ID, which may start with underscores and end with "_iri" and/or "_multi"
-     * @return the parameter name, stripped of leading underscores and "_iri"/"_multi" suffixes
-     */
-    public static String getParamName(String placeholderId) {
-        return placeholderId.replaceFirst("^_+", "").replaceFirst("_multi_val$", "").replaceFirst("_iri$", "").replaceFirst("_multi$", "");
     }
 
 }
