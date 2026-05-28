@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -124,6 +125,12 @@ public class QueryResultList extends QueryResult {
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
                                     new Label("component", linkHtml).setEscapeModelStrings(false))));
+                        } else if (key.endsWith("query_iri")) {
+                            String queryLabel = entry.get(key + "_label");
+                            String displayLabel = queryLabel != null && !queryLabel.isBlank() ? queryLabel : entryValue;
+                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            String linkHtml = "<a href=\"" + Strings.escapeMarkup(queryUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
+                            components.add(new Label("component", linkHtml).setEscapeModelStrings(false));
                         } else if (key.endsWith("_multi_iri")) {
                             String[] uris = entryValue.split("\\s+");
                             String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
