@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,24 +43,21 @@ public class SpaceRepository {
     private static final class Snapshot {
         final Map<String, Space> spacesById;
         final Map<String, Space> spacesByAltId;
-        final Map<String, List<Space>> spaceListByType;
         final Map<Space, Set<Space>> subspaceMap;
         final Map<Space, Set<Space>> superspaceMap;
 
         Snapshot(Map<String, Space> byId,
                  Map<String, Space> byAltId,
-                 Map<String, List<Space>> byType,
                  Map<Space, Set<Space>> subspaces,
                  Map<Space, Set<Space>> superspaces) {
             this.spacesById = byId;
             this.spacesByAltId = byAltId;
-            this.spaceListByType = byType;
             this.subspaceMap = subspaces;
             this.superspaceMap = superspaces;
         }
 
         static final Snapshot EMPTY = new Snapshot(
-                Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+                Collections.emptyMap(), Collections.emptyMap(),
                 Collections.emptyMap(), Collections.emptyMap());
     }
 
@@ -105,31 +101,25 @@ public class SpaceRepository {
     private Snapshot build(ApiResponse resp) {
         Map<String, Space> byId = new HashMap<>();
         Map<String, Space> byAltId = new HashMap<>();
-        Map<String, List<Space>> byType = new HashMap<>();
         Map<Space, Set<Space>> subspaceMap = new HashMap<>();
         Map<Space, Set<Space>> superspaceMap = new HashMap<>();
         List<Space> spaceList = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (ApiResponseEntry r : resp.getData()) {
-            String spaceIri = r.get("spaceIri");
+            String spaceIri = r.get("space_iri");
             if (spaceIri == null || spaceIri.isEmpty()) continue;
             if (!seen.add(spaceIri)) continue; // first row (latest date) wins
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("space", spaceIri);
             entry.add("np", r.get("np"));
-            entry.add("label", r.get("label"));
+            entry.add("label", r.get("space_iri_label"));
             entry.add("type", r.get("type"));
             Space space = SpaceFactory.getOrCreate(entry);
             spaceList.add(space);
-            byType.computeIfAbsent(space.getType(), k -> new ArrayList<>()).add(space);
             byId.put(space.getId(), space);
             for (String altId : space.getAltIDs()) {
                 byAltId.put(altId, space);
             }
-        }
-        Comparator<Space> byLabel = Comparator.comparing(Space::getLabel, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
-        for (List<Space> spacesOfType : byType.values()) {
-            spacesOfType.sort(byLabel);
         }
         logger.info("Refreshed spaces from spaces repo: {} distinct spaces", spaceList.size());
         SpaceFactory.removeStale(byId.keySet());
@@ -140,7 +130,7 @@ public class SpaceRepository {
         for (Space space : spaceList) {
             space.setDataNeedsUpdate();
         }
-        return new Snapshot(byId, byAltId, byType, subspaceMap, superspaceMap);
+        return new Snapshot(byId, byAltId, subspaceMap, superspaceMap);
     }
 
     /**
@@ -171,17 +161,6 @@ public class SpaceRepository {
      */
     public Space findByAltId(String altId) {
         return current().spacesByAltId.get(altId);
-    }
-
-    /**
-     * Get spaces by their type.
-     *
-     * @param type The type of spaces to retrieve.
-     * @return List of Space objects matching the specified type, or an empty list if none are found.
-     */
-    public List<Space> findByType(String type) {
-        List<Space> l = current().spaceListByType.get(type);
-        return l != null ? l : new ArrayList<>();
     }
 
     /**
