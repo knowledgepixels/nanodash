@@ -1,17 +1,14 @@
 package com.knowledgepixels.nanodash.page;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
-import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.component.ApiResultComponent;
-import com.knowledgepixels.nanodash.component.QueryList;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.component.QueryResultListBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 
 /**
@@ -23,6 +20,8 @@ public class QueryListPage extends NanodashPage {
      * The mount path for this page.
      */
     public static final String MOUNT_PATH = "/queries";
+
+    private static final String QUERIES_VIEW = "https://w3id.org/np/RAHfLCMk5jF0yaamDU9d0tQAaKKRZaYwWFH1HdbW35Qwo/queries-view";
 
     /**
      * {@inheritDoc}
@@ -59,20 +58,9 @@ public class QueryListPage extends NanodashPage {
 
         form.add(searchField = new TextField<String>("search", Model.of(searchText)));
 
-        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_QUERIES);
-        ApiResponse qResponse = ApiCache.retrieveResponseAsync(queryRef);
-        if (qResponse != null) {
-            add(new QueryList("queries", qResponse));
-        } else {
-            add(new ApiResultComponent("queries", queryRef) {
-
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return new QueryList(markupId, response);
-                }
-            });
-
-        }
+        View queriesView = View.get(QUERIES_VIEW);
+        QueryRef queryRef = new QueryRef(queriesView.getQuery().getQueryId());
+        add(QueryResultListBuilder.create("queries", queryRef, new ViewDisplay(queriesView)).build());
     }
 
 }
