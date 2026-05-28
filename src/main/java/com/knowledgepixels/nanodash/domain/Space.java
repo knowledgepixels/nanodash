@@ -19,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Class representing a "Space", which can be any kind of collaborative unit, like a project, group, or event.
@@ -29,71 +27,57 @@ public class Space extends AbstractResourceWithProfile {
 
     private static final Logger logger = LoggerFactory.getLogger(Space.class);
 
-    @Override
-    public boolean isDataInitialized() {
-        triggerDataUpdate();
-        return dataInitialized && super.isDataInitialized();
-    }
-
-    @Override
-    public void setDataNeedsUpdate() {
-        super.setDataNeedsUpdate();
-        dataNeedsUpdate = true;
-    }
-
-    @Override
-    public void forceRefresh(long waitMillis) {
-        super.forceRefresh(waitMillis);
-        dataNeedsUpdate = true;
-        dataInitialized = false;
-    }
-
     private String label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
-    private SpaceData data = new SpaceData();
+
+    // Core data — derived directly from the root nanopub assertion.
+    private final List<String> altIds = new ArrayList<>();
+    private final List<IRI> rootAdmins = new ArrayList<>();
+    private String description = null;
+    private Calendar startDate, endDate;
+    private IRI defaultProvenance = null;
+
+    // Derived data — admins / members / roles loaded from the spaces repo and
+    // memoised by ApiResponse object identity (rebuild when ApiCache returns a
+    // fresh response for any of the three underlying queries).
+    private volatile ApiResponse cachedAdminsResp, cachedRolesResp, cachedMembersResp;
+    private volatile SpaceData cachedData = SpaceData.EMPTY;
 
     private static class SpaceData implements Serializable {
 
-        List<String> altIds = new ArrayList<>();
+        final List<IRI> admins;
+        final Map<IRI, Set<SpaceMemberRoleRef>> users;
+        final List<SpaceMemberRoleRef> roles;
+        final Map<IRI, SpaceMemberRole> roleMap;
 
-        String description = null;
-        Calendar startDate, endDate;
-        IRI defaultProvenance = null;
-
-        List<IRI> admins = new ArrayList<>();
-        Map<IRI, Set<SpaceMemberRoleRef>> users = new HashMap<>();
-        List<SpaceMemberRoleRef> roles = new ArrayList<>();
-        Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
-
-        Map<String, IRI> adminPubkeyMap = new HashMap<>();
-
-        void addAdmin(IRI admin, String npId) {
-            // TODO This isn't efficient for long owner lists:
-            if (admins.contains(admin)) return;
-            admins.add(admin);
-            // adminPubkeyMap is populated in bulk by loadAdminPubkeyHashesFromSpacesRepo,
-            // sourcing trust-state-validated (agent, pubkey-hash) pairs from the
-            // spaces repo's npa:AccountState rows.
-            users.computeIfAbsent(admin, (k) -> new HashSet<>()).add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, npId));
+        SpaceData(List<IRI> admins, Map<IRI, Set<SpaceMemberRoleRef>> users,
+                  List<SpaceMemberRoleRef> roles, Map<IRI, SpaceMemberRole> roleMap) {
+            this.admins = admins;
+            this.users = users;
+            this.roles = roles;
+            this.roleMap = roleMap;
         }
 
+        static final SpaceData EMPTY = new SpaceData(
+                Collections.emptyList(), Collections.emptyMap(),
+                Collections.emptyList(), Collections.emptyMap());
     }
 
     private static final Map<String, String> TYPE_EMOJIS = Map.ofEntries(
-            Map.entry("Alliance", "\uD83E\uDD1D"),
-            Map.entry("Consortium", "\u2602\uFE0F"),
-            Map.entry("Organization", "\uD83C\uDFE2"),
-            Map.entry("Taskforce", "\uD83C\uDFAF"),
-            Map.entry("Division", "\uD83C\uDFD7\uFE0F"),
-            Map.entry("Taskunit", "\u2699\uFE0F"),
-            Map.entry("Group", "\uD83D\uDC65"),
-            Map.entry("Project", "\uD83D\uDE80"),
-            Map.entry("Program", "\uD83D\uDCCB"),
-            Map.entry("Initiative", "\uD83D\uDCA1"),
-            Map.entry("Outlet", "\uD83D\uDCF0"),
-            Map.entry("Campaign", "\uD83D\uDCE3"),
-            Map.entry("Community", "\uD83C\uDF10"),
-            Map.entry("Event", "\uD83C\uDFAA")
+            Map.entry("Alliance", "🤝"),
+            Map.entry("Consortium", "☂️"),
+            Map.entry("Organization", "🏢"),
+            Map.entry("Taskforce", "🎯"),
+            Map.entry("Division", "🏗️"),
+            Map.entry("Taskunit", "⚙️"),
+            Map.entry("Group", "👥"),
+            Map.entry("Project", "🚀"),
+            Map.entry("Program", "📋"),
+            Map.entry("Initiative", "💡"),
+            Map.entry("Outlet", "📰"),
+            Map.entry("Campaign", "📣"),
+            Map.entry("Community", "🌐"),
+            Map.entry("Event", "🎪")
     );
 
     /**
@@ -106,16 +90,6 @@ public class Space extends AbstractResourceWithProfile {
         return TYPE_EMOJIS.getOrDefault(typeName, "");
     }
 
-    private static String getCoreInfoString(ApiResponseEntry resp) {
-        String id = resp.get("space");
-        String rootNanopubId = resp.get("np");
-        return id + " " + rootNanopubId;
-    }
-
-    private volatile boolean dataInitialized = false;
-    private volatile boolean dataNeedsUpdate = true;
-    private transient volatile Future<?> spaceDataFuture = null;
-
     Space(ApiResponseEntry resp) {
         super(resp.get("space"));
         initSpace(this);
@@ -123,7 +97,7 @@ public class Space extends AbstractResourceWithProfile {
         this.type = resp.get("type");
         this.rootNanopubId = resp.get("np");
         this.rootNanopub = Utils.getAsNanopub(rootNanopubId);
-        setCoreData(data);
+        readCoreData();
     }
 
     void updateFromApi(ApiResponseEntry resp) {
@@ -133,6 +107,13 @@ public class Space extends AbstractResourceWithProfile {
             this.type = resp.get("type");
             this.rootNanopubId = newNpId;
             this.rootNanopub = Utils.getAsNanopub(newNpId);
+            altIds.clear();
+            rootAdmins.clear();
+            description = null;
+            startDate = null;
+            endDate = null;
+            defaultProvenance = null;
+            readCoreData();
             setDataNeedsUpdate();
         }
     }
@@ -197,7 +178,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return The start date as a Calendar object, or null if not set.
      */
     public Calendar getStartDate() {
-        return data.startDate;
+        return startDate;
     }
 
     /**
@@ -206,7 +187,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return The end date as a Calendar object, or null if not set.
      */
     public Calendar getEndDate() {
-        return data.endDate;
+        return endDate;
     }
 
     /**
@@ -224,7 +205,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return The description string.
      */
     public String getDescription() {
-        return data.description;
+        return description;
     }
 
 
@@ -234,8 +215,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return List of admin IRIs.
      */
     public List<IRI> getAdmins() {
-        ensureInitialized();
-        return data.admins;
+        return currentData().admins;
     }
 
     /**
@@ -244,8 +224,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return List of member IRIs.
      */
     public List<IRI> getUsers() {
-        ensureInitialized();
-        List<IRI> users = new ArrayList<IRI>(data.users.keySet());
+        List<IRI> users = new ArrayList<>(currentData().users.keySet());
         users.sort(User.getUserData().userComparator);
         return users;
     }
@@ -257,8 +236,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return Set of roles assigned to the member, or null if the member is not part of this space.
      */
     public Set<SpaceMemberRoleRef> getMemberRoles(IRI userId) {
-        ensureInitialized();
-        return data.users.get(userId);
+        return currentData().users.get(userId);
     }
 
     /**
@@ -268,8 +246,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return true if the user is a member, false otherwise.
      */
     public boolean isMember(IRI userId) {
-        ensureInitialized();
-        return data.users.containsKey(userId);
+        return currentData().users.containsKey(userId);
     }
 
     /**
@@ -279,14 +256,14 @@ public class Space extends AbstractResourceWithProfile {
      * @return true if the public key is associated with an admin, false otherwise.
      */
     public boolean isAdminPubkey(String pubkey) {
-        ensureInitialized();
-        return data.adminPubkeyMap.containsKey(pubkey);
-    }
-
-    @Override
-    public boolean appliesTo(String elementId, Set<IRI> classes) {
-        triggerSpaceDataUpdate();
-        return super.appliesTo(elementId, classes);
+        if (pubkey == null) return false;
+        ApiResponse resp = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, spaceParams(allSpaceIris())), false);
+        if (resp == null) return false;
+        for (ApiResponseEntry r : resp.getData()) {
+            if (pubkey.equals(r.get("pkh"))) return true;
+        }
+        return false;
     }
 
     /**
@@ -295,7 +272,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return The default provenance IRI, or null if not set.
      */
     public IRI getDefaultProvenance() {
-        return data.defaultProvenance;
+        return defaultProvenance;
     }
 
     /**
@@ -304,7 +281,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return List of roles.
      */
     public List<SpaceMemberRoleRef> getRoles() {
-        return data.roles;
+        return currentData().roles;
     }
 
     /**
@@ -322,72 +299,67 @@ public class Space extends AbstractResourceWithProfile {
      * @return List of alternative IDs.
      */
     public List<String> getAltIDs() {
-        return data.altIds;
-    }
-
-    private synchronized void ensureInitialized() {
-        triggerSpaceDataUpdate();
-        if (!dataInitialized && spaceDataFuture != null) {
-            try {
-                spaceDataFuture.get(30, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                logger.error("failed to await space data update", ex);
-            }
-        }
-        Future<?> future = super.triggerDataUpdate();
-        if (!dataInitialized && future != null) {
-            try {
-                future.get(30, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                logger.error("failed to await data update", ex);
-            }
-        }
+        return altIds;
     }
 
     @Override
-    public synchronized Future<?> triggerDataUpdate() {
-        triggerSpaceDataUpdate();
-        return super.triggerDataUpdate();
+    public void forceRefresh(long waitMillis) {
+        super.forceRefresh(waitMillis);
+        Multimap<String, String> params = spaceParams(allSpaceIris());
+        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, params), waitMillis);
+        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), waitMillis);
+        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, params), waitMillis);
+        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, params), waitMillis);
     }
 
-    private synchronized Future<?> triggerSpaceDataUpdate() {
-        if (dataNeedsUpdate) {
-            logger.info("Data needs update for space {} core data, starting update thread", getId());
-            dataNeedsUpdate = false;
-            spaceDataFuture = NanodashThreadPool.submit(() -> {
-                try {
-                    if (getRunUpdateAfter() != null) {
-                        while (System.currentTimeMillis() < getRunUpdateAfter()) {
-                            Thread.sleep(100);
-                        }
-                    }
-                    SpaceData newData = new SpaceData();
-                    setCoreData(newData);
+    private List<String> allSpaceIris() {
+        List<String> iris = new ArrayList<>(altIds.size() + 1);
+        iris.add(getId());
+        iris.addAll(altIds);
+        return iris;
+    }
 
-                    newData.roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
-                    newData.roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
-
-                    List<String> spaceIris = new ArrayList<>();
-                    spaceIris.add(getId());
-                    spaceIris.addAll(newData.altIds);
-
-                    loadAdminsFromSpacesRepo(newData, spaceIris);
-                    newData.admins.sort(User.getUserData().userComparator);
-                    loadAdminPubkeyHashesFromSpacesRepo(newData, spaceIris);
-
-                    loadRolesFromSpacesRepo(newData, spaceIris);
-                    loadMembersFromSpacesRepo(newData, spaceIris);
-
-                    data = newData;
-                    dataInitialized = true;
-                } catch (Exception ex) {
-                    logger.error("Error while trying to update space data: {}", ex.getMessage());
-                    dataNeedsUpdate = true;
-                }
-            });
-            return spaceDataFuture;
+    private synchronized SpaceData currentData() {
+        Multimap<String, String> params = spaceParams(allSpaceIris());
+        ApiResponse adminsResp = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, params), false);
+        ApiResponse rolesResp = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), false);
+        ApiResponse membersResp = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, params), false);
+        if (adminsResp == cachedAdminsResp && rolesResp == cachedRolesResp && membersResp == cachedMembersResp) {
+            return cachedData;
         }
-        return spaceDataFuture;
+        SpaceData newData = buildData(adminsResp, rolesResp, membersResp);
+        cachedAdminsResp = adminsResp;
+        cachedRolesResp = rolesResp;
+        cachedMembersResp = membersResp;
+        cachedData = newData;
+        return newData;
+    }
+
+    private SpaceData buildData(ApiResponse adminsResp, ApiResponse rolesResp, ApiResponse membersResp) {
+        List<IRI> admins = new ArrayList<>();
+        Map<IRI, Set<SpaceMemberRoleRef>> users = new HashMap<>();
+        List<SpaceMemberRoleRef> roles = new ArrayList<>();
+        Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
+
+        // Seed from rootNanopub-derived state
+        for (IRI rootAdmin : rootAdmins) {
+            admins.add(rootAdmin);
+            users.computeIfAbsent(rootAdmin, k -> new HashSet<>())
+                    .add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, rootNanopubId));
+        }
+        roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
+        roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);
+
+        loadAdmins(admins, users, adminsResp);
+        admins.sort(User.getUserData().userComparator);
+
+        loadRoles(roles, roleMap, rolesResp);
+        loadMembers(users, roleMap, membersResp);
+
+        return new SpaceData(admins, users, roles, roleMap);
     }
 
     private static Multimap<String, String> spaceParams(List<String> spaceIris) {
@@ -396,37 +368,21 @@ public class Space extends AbstractResourceWithProfile {
         return params;
     }
 
-    private static List<ApiResponseEntry> runSpacesQuery(String queryId, Multimap<String, String> params) {
-        // Like the prior direct-SPARQL path, a failed/empty query yields an empty
-        // list rather than aborting the rest of the space-data load.
-        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), true);
-        return resp == null ? List.of() : resp.getData();
-    }
-
-    private static void loadAdminsFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMINS, spaceParams(spaceIris))) {
+    private static void loadAdmins(List<IRI> admins, Map<IRI, Set<SpaceMemberRoleRef>> users, ApiResponse resp) {
+        if (resp == null) return;
+        for (ApiResponseEntry r : resp.getData()) {
             IRI adminId = Utils.vf.createIRI(r.get("agent"));
             String np = r.get("np");
-            if (!data.admins.contains(adminId)) data.addAdmin(adminId, np);
+            if (admins.contains(adminId)) continue;
+            admins.add(adminId);
+            users.computeIfAbsent(adminId, k -> new HashSet<>())
+                    .add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, np));
         }
     }
 
-    private static void loadAdminPubkeyHashesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        // TODO Push the view-display admin gate server-side (a published
-        // get-view-displays variant that joins through the spaces-repo admins) so
-        // the adminPubkeyMap dependency disappears entirely — see callers of
-        // Space.isAdminPubkey in AbstractResourceWithProfile and DownloadRdfPage.
-        //
-        // Source: trust-state-validated (agent, pubkey-hash) pairs for the
-        // space's admin RIs. Stricter than the prior UserData.getPubkeyHashes
-        // source (only pubkeys that are in the current trust state count).
-        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, spaceParams(spaceIris))) {
-            data.adminPubkeyMap.put(r.get("pkh"), Utils.vf.createIRI(r.get("agent")));
-        }
-    }
-
-    private static void loadRolesFromSpacesRepo(SpaceData data, List<String> spaceIris) {
-        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_ROLES, spaceParams(spaceIris))) {
+    private static void loadRoles(List<SpaceMemberRoleRef> roles, Map<IRI, SpaceMemberRole> roleMap, ApiResponse resp) {
+        if (resp == null) return;
+        for (ApiResponseEntry r : resp.getData()) {
             ApiResponseEntry entry = new ApiResponseEntry();
             for (String k : List.of("role", "roleLabel", "roleName", "roleTitle",
                     "roleAssignmentTemplate", "regularProperties", "inverseProperties")) {
@@ -436,13 +392,13 @@ public class Space extends AbstractResourceWithProfile {
             SpaceMemberRole role = new SpaceMemberRole(entry);
             String raNp = r.get("ra_np");
             if (raNp != null && raNp.isEmpty()) raNp = null;
-            data.roles.add(new SpaceMemberRoleRef(role, raNp));
-            for (IRI p : role.getRegularProperties()) data.roleMap.put(p, role);
-            for (IRI p : role.getInverseProperties()) data.roleMap.put(p, role);
+            roles.add(new SpaceMemberRoleRef(role, raNp));
+            for (IRI p : role.getRegularProperties()) roleMap.put(p, role);
+            for (IRI p : role.getInverseProperties()) roleMap.put(p, role);
         }
     }
 
-    private static void loadMembersFromSpacesRepo(SpaceData data, List<String> spaceIris) {
+    private static void loadMembers(Map<IRI, Set<SpaceMemberRoleRef>> users, Map<IRI, SpaceMemberRole> roleMap, ApiResponse resp) {
         // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
         // than the validated state graph. The materialiser is correctly stricter
         // (e.g., it stops admitting RIs when their role declaration is
@@ -455,51 +411,52 @@ public class Space extends AbstractResourceWithProfile {
         // role attachment, not on the per-member nanopub) is admitted,
         // regardless of who signed the member RI. Invalidated rows are filtered
         // server-side via the npx:invalidates triple in npa:graph.
-        for (ApiResponseEntry r : runSpacesQuery(QueryApiAccess.GET_SPACE_MEMBERS, spaceParams(spaceIris))) {
+        if (resp == null) return;
+        for (ApiResponseEntry r : resp.getData()) {
             SpaceMemberRole role = null;
             for (String key : new String[] {"regProp", "invProp"}) {
                 String val = r.get(key);
                 if (val != null && !val.isEmpty()) {
                     IRI pred = Utils.vf.createIRI(val);
-                    SpaceMemberRole candidate = data.roleMap.get(pred);
+                    SpaceMemberRole candidate = roleMap.get(pred);
                     if (candidate != null) { role = candidate; break; }
                 }
             }
             // Gate by role-predicate match: only admit members whose predicate
             // corresponds to a role that was attached to this space by an admin
-            // (data.roleMap is populated from validated gen:RoleAssignment rows
-            // in loadRolesFromSpacesRepo).
+            // (roleMap is populated from validated gen:RoleAssignment rows
+            // in loadRoles).
             if (role == null) continue;
             IRI memberId = Utils.vf.createIRI(r.get("member"));
             String np = r.get("np");
-            data.users.computeIfAbsent(memberId, k -> new HashSet<>())
+            users.computeIfAbsent(memberId, k -> new HashSet<>())
                     .add(new SpaceMemberRoleRef(role, np));
         }
     }
 
-    private void setCoreData(SpaceData data) {
+    private void readCoreData() {
         for (Statement st : rootNanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(OWL.SAMEAS) && st.getObject() instanceof IRI objIri) {
-                    data.altIds.add(objIri.stringValue());
+                    altIds.add(objIri.stringValue());
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    data.description = st.getObject().stringValue();
+                    description = st.getObject().stringValue();
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
                     try {
-                        data.startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                        startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
                     } catch (IllegalArgumentException ex) {
                         logger.error("Failed to parse date {}", st.getObject().stringValue());
                     }
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/endDate")) {
                     try {
-                        data.endDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
+                        endDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
                     } catch (IllegalArgumentException ex) {
                         logger.error("Failed to parse date {}", st.getObject().stringValue());
                     }
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ADMIN) && st.getObject() instanceof IRI obj) {
-                    data.addAdmin(obj, rootNanopub.getUri().stringValue());
+                    if (!rootAdmins.contains(obj)) rootAdmins.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
-                    data.defaultProvenance = obj;
+                    defaultProvenance = obj;
                 }
             }
         }

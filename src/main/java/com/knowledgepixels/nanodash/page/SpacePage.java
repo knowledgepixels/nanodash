@@ -220,10 +220,7 @@ public class SpacePage extends NanodashPage {
         add(new ItemListPanel<MaintainedResource>(
                 "resources",
                 "📦 Maintained Resources",
-                () -> {
-                    MaintainedResourceRepository.get().ensureLoaded();
-                    return true;
-                },
+                () -> true,
                 () -> MaintainedResourceRepository.get().findResourcesBySpace(spaceModel.getObject()),
                 (resource) -> new ItemListElement("item", MaintainedResourcePage.class, new PageParameters().set("id", resource.getId()), resource.getLabel())
         ));

@@ -287,7 +287,6 @@ public class DownloadRdfPage extends WebPage {
         }
 
         // Maintained resource declarations
-        MaintainedResourceRepository.get().ensureLoaded();
         for (MaintainedResource resource : MaintainedResourceRepository.get().findResourcesBySpace(space)) {
             if (collected.size() >= MAX_NANOPUBS) break;
             if (resource.getNanopub() != null) {
@@ -558,11 +557,6 @@ public class DownloadRdfPage extends WebPage {
      * Mirrors the logic of AbstractResourceWithProfile.triggerDataUpdate() and getTopLevelViewDisplays().
      */
     private List<ViewDisplay> fetchViewDisplays(AbstractResourceWithProfile resource, String partId, Set<IRI> partClasses) {
-        // For spaces, ensure core data is loaded first (needed for isAdminPubkey check)
-        if (resource instanceof Space space) {
-            space.getUsers(); // triggers ensureInitialized
-        }
-
         ApiResponse response = ApiCache.retrieveResponseSync(
                 new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", resource.getId()), false);
         if (response == null) {
@@ -573,9 +567,6 @@ public class DownloadRdfPage extends WebPage {
         // Build raw view display list (same logic as AbstractResourceWithProfile.triggerDataUpdate)
         List<ViewDisplay> allDisplays = new ArrayList<>();
         for (ApiResponseEntry r : response.getData()) {
-            if (resource.getSpace() != null && !resource.getSpace().isAdminPubkey(r.get("pubkey"))) {
-                continue;
-            }
             try {
                 allDisplays.add(ViewDisplay.get(r.get("display")));
             } catch (IllegalArgumentException ex) {
