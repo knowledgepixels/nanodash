@@ -132,9 +132,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     ResourceWithProfile newData = new ResourceWithProfile();
 
                     for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id), true).getData()) {
-                        if (space != null && !space.isAdminPubkey(r.get("pubkey"))) {
-                            continue;
-                        }
                         try {
                             newData.viewDisplays.add(ViewDisplay.get(r.get("display")));
                         } catch (IllegalArgumentException ex) {
