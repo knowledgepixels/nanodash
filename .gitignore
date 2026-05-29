@@ -11,6 +11,7 @@
 /target
 /package/.extract
 /scratch
+/tmp
 /*.tar.gz
 /*.tar.gz.enc
 .run/
