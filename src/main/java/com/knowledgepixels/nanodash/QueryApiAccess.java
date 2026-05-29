@@ -69,7 +69,7 @@ public class QueryApiAccess {
     public static final String GET_VIEW_DISPLAYS = "RAIMs6C9gfjqX-TYGd8mrq7MJ7K-DoofW6v4dzFQJTs7Y/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
-    public static final String GET_SPACES = "RA1sxIHufQSSPu9ZWG6Est26euNJMhBOO33oQF_TV7xnc/get-spaces";
+    public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
