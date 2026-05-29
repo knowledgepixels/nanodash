@@ -55,6 +55,8 @@ public class ExplorePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/explore";
 
+    private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RAuOf1T2Dto4qh604lq9meHf7y-7jCKR_q7yXUuX-6-5c/described-in-view";
+
     /**
      * {@inheritDoc}
      */
@@ -308,7 +310,9 @@ public class ExplorePage extends NanodashPage {
             infoSection.add(new Label("parts-panel").setVisible(false));
             infoSection.add(new Label("templates-panel").setVisible(false));
         } else {
-            infoSection.add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
+            View describedInView = View.get(DESCRIBED_IN_VIEW);
+            QueryRef describedInQueryRef = new QueryRef(describedInView.getQuery().getQueryId(), "term", ref);
+            infoSection.add(QueryResultListBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView)).build());
             infoSection.add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
             infoSection.add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
             infoSection.add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));

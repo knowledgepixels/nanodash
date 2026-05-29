@@ -2279,6 +2279,12 @@ a.source:hover {
   display: inline;
 }
 
+.no-records-note {
+  padding: 8px 15px;
+  color: #888;
+  font-style: italic;
+}
+
 .cell-data-html p,
 .cell-data-html span,
 .cell-data-html div {
