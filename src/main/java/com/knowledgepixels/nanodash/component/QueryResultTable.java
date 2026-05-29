@@ -8,7 +8,6 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
@@ -67,7 +66,7 @@ public class QueryResultTable extends QueryResult {
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
-        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        filterField.add(new FilterUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (filteredDataProvider != null && table != null) {

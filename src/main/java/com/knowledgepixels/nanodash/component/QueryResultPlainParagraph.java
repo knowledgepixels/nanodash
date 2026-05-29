@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -48,7 +47,7 @@ public class QueryResultPlainParagraph extends QueryResult {
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
-        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        filterField.add(new FilterUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (filteredDataProvider != null && paragraphsContainer != null) {

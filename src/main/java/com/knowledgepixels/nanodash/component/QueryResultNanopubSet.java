@@ -7,7 +7,6 @@ import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -76,7 +75,7 @@ public class QueryResultNanopubSet extends QueryResult {
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
-        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        filterField.add(new FilterUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (filteredDataProvider != null && nanopubsContainer != null) {

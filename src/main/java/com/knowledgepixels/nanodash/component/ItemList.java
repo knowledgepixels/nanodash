@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.component.ItemListPanel.ComponentProvider;
 import com.knowledgepixels.nanodash.FilteredListDataProvider;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -70,7 +69,7 @@ public class ItemList<T extends Serializable> extends Panel {
             if (filterModel == null) {
                 TextField<String> filterField = new TextField<>("filter", effectiveFilterModel);
                 filterField.setOutputMarkupId(true);
-                filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+                filterField.add(new FilterUpdatingBehavior() {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         filteredDataProvider.setFilterText(effectiveFilterModel.getObject());

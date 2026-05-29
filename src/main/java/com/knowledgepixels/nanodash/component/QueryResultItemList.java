@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -46,7 +45,7 @@ public class QueryResultItemList extends QueryResult {
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
-        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        filterField.add(new FilterUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (filteredDataProvider != null && itemsContainer != null) {

@@ -10,7 +10,6 @@ import com.knowledgepixels.nanodash.FilteredListDataProvider;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -56,7 +55,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
             IModel<String> filterModel = Model.of("");
             TextField<String> filterField = new TextField<>("filter", filterModel);
             filterField.setOutputMarkupId(true);
-            filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            filterField.add(new FilterUpdatingBehavior() {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     target.add(ItemListPanel.this);
@@ -111,7 +110,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
         WebMarkupContainer filterContainer = new WebMarkupContainer("filterContainer");
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
-        filterField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        filterField.add(new FilterUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(panel);
