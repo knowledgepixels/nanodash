@@ -56,10 +56,10 @@ public class ExplorePage extends NanodashPage {
     public static final String MOUNT_PATH = "/explore";
 
     private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RAuOf1T2Dto4qh604lq9meHf7y-7jCKR_q7yXUuX-6-5c/described-in-view";
-    private static final String CLASSES_VIEW = "https://w3id.org/np/RAkb6EioB4Ltw4vEeSvxtUNIQHyQiC94NEdrZmLjbob0k/classes-view";
-    private static final String INSTANCES_VIEW = "https://w3id.org/np/RAUVsWFaipJFEAKB9Roq6LJCGt3pCD7i1x7rXJZxo-dDo/instances-view";
-    private static final String PARTS_VIEW = "https://w3id.org/np/RAjmTszsbe02nBxQtu7kDXmftdiPMhsfJ7B9iLQzSIxlk/parts-view";
-    private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAfQw7aOfRJufYBFDBK4qrwpcqgjDGRuIcoUYOVRNPJRc/templates-view";
+    private static final String CLASSES_VIEW = "https://w3id.org/np/RAHPtR1VriEW09tcvZhrM8Dr3vE1JnMWWi9-ajKJWNOJs/classes-view";
+    private static final String INSTANCES_VIEW = "https://w3id.org/np/RABXfsNoT_RYlk8LpDmKfJ2poSlvIGk3jgq4DkR4YLAps/instances-view";
+    private static final String PARTS_VIEW = "https://w3id.org/np/RAJFhbp3vOItmEY_wfrmHWWpQ3aqe0waVpJVC9PbCQjeA/parts-view";
+    private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
 
     /**
      * {@inheritDoc}
