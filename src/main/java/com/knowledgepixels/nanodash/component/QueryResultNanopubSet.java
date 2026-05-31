@@ -98,6 +98,14 @@ public class QueryResultNanopubSet extends QueryResult {
         nanopubsContainer = new WebMarkupContainer("nanopubs-container");
         nanopubsContainer.setOutputMarkupId(true);
         nanopubsContainer.add(buildNanopubResults());
+        Label noRecordsLabel = new Label("no-records", "Nothing found.") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(filteredDataProvider.size() == 0);
+            }
+        };
+        nanopubsContainer.add(noRecordsLabel);
         add(nanopubsContainer);
 
         if (viewDisplay.getNanopubId() != null) {
