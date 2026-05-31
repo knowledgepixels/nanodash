@@ -2162,6 +2162,10 @@ td div:has(.button-list) {
   display: block;
 }
 
+.flex-container.list-view {
+  padding-top: 0;
+}
+
 .flex-container.list-view .nanopub-item {
   border: 0;
   border-top: 1px solid #ccc;
@@ -2179,7 +2183,6 @@ td div:has(.button-list) {
   top: 0;
   right: 0;
   padding-right: 0;
-  padding-bottom: 0;
 }
 
 .view-selector.with-source .buttons {
