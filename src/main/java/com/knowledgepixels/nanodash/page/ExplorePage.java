@@ -55,7 +55,7 @@ public class ExplorePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/explore";
 
-    private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RA0gvkIYqi8YE7UcngvOthXUGrXbB3xa9A6chPrWyEkJQ/described-in-view";
+    private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RAMH_7qMY-jmgXr2jqqk5F_XW7t2k2n3NCB6LtoKEXDzY/described-in-view";
     private static final String CLASSES_VIEW = "https://w3id.org/np/RAHPtR1VriEW09tcvZhrM8Dr3vE1JnMWWi9-ajKJWNOJs/classes-view";
     private static final String INSTANCES_VIEW = "https://w3id.org/np/RABXfsNoT_RYlk8LpDmKfJ2poSlvIGk3jgq4DkR4YLAps/instances-view";
     private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
@@ -316,7 +316,7 @@ public class ExplorePage extends NanodashPage {
         } else {
             View describedInView = View.get(DESCRIBED_IN_VIEW);
             QueryRef describedInQueryRef = new QueryRef(describedInView.getQuery().getQueryId(), "term", ref);
-            infoSection.add(QueryResultListBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView)).build());
+            infoSection.add(QueryResultNanopubSetBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView)).build());
 
             View instancesView = View.get(INSTANCES_VIEW);
             QueryRef instancesQueryRef = new QueryRef(instancesView.getQuery().getQueryId(), "class", ref);
