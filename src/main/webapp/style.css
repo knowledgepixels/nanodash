@@ -2179,6 +2179,7 @@ td div:has(.button-list) {
   top: 0;
   right: 0;
   padding-right: 0;
+  padding-bottom: 0;
 }
 
 .view-selector.with-source .buttons {
