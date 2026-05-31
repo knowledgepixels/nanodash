@@ -118,6 +118,10 @@ public class QueryResultNanopubSet extends QueryResult {
     private NanopubResults buildNanopubResults() {
         NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
         nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+        // Hide the (empty) results container when there is nothing to show, so the
+        // "Nothing found." note sits directly below the header instead of being pushed
+        // down by the flex-container's padding.
+        nanopubResults.setVisible(!filteredDataProvider.getFilteredData().isEmpty());
         return nanopubResults;
     }
 
