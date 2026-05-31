@@ -2280,6 +2280,7 @@ a.source:hover {
 }
 
 .no-records-note {
+  margin: 0;
   padding: 8px 15px;
   color: #888;
   font-style: italic;
