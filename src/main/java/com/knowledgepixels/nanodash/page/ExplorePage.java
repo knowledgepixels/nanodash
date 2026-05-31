@@ -58,7 +58,6 @@ public class ExplorePage extends NanodashPage {
     private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RA0gvkIYqi8YE7UcngvOthXUGrXbB3xa9A6chPrWyEkJQ/described-in-view";
     private static final String CLASSES_VIEW = "https://w3id.org/np/RAHPtR1VriEW09tcvZhrM8Dr3vE1JnMWWi9-ajKJWNOJs/classes-view";
     private static final String INSTANCES_VIEW = "https://w3id.org/np/RABXfsNoT_RYlk8LpDmKfJ2poSlvIGk3jgq4DkR4YLAps/instances-view";
-    private static final String PARTS_VIEW = "https://w3id.org/np/RAJFhbp3vOItmEY_wfrmHWWpQ3aqe0waVpJVC9PbCQjeA/parts-view";
     private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
 
     /**
@@ -313,7 +312,6 @@ public class ExplorePage extends NanodashPage {
         if (isNanopubId) {
             infoSection.add(new Label("definitions-panel").setVisible(false));
             infoSection.add(new Label("instances-panel").setVisible(false));
-            infoSection.add(new Label("parts-panel").setVisible(false));
             infoSection.add(new Label("templates-panel").setVisible(false));
         } else {
             View describedInView = View.get(DESCRIBED_IN_VIEW);
@@ -323,10 +321,6 @@ public class ExplorePage extends NanodashPage {
             View instancesView = View.get(INSTANCES_VIEW);
             QueryRef instancesQueryRef = new QueryRef(instancesView.getQuery().getQueryId(), "class", ref);
             infoSection.add(QueryResultListBuilder.create("instances-panel", instancesQueryRef, new ViewDisplay(instancesView)).build());
-
-            View partsView = View.get(PARTS_VIEW);
-            QueryRef partsQueryRef = new QueryRef(partsView.getQuery().getQueryId(), "thing", ref);
-            infoSection.add(QueryResultListBuilder.create("parts-panel", partsQueryRef, new ViewDisplay(partsView)).build());
 
             View templatesView = View.get(TEMPLATES_VIEW);
             QueryRef templatesQueryRef = new QueryRef(templatesView.getQuery().getQueryId(), "thing", ref);
