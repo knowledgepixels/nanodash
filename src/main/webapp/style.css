@@ -408,7 +408,10 @@ th {
 }
 
 tbody tr:nth-child(even) {
-  background-color: #efefef;
+  /* Alpha-based so the zebra stripe darkens whatever is behind it (≈ #efefef
+     on white), instead of looking brighter than darker backgrounds (e.g. on
+     the About pages). */
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 table.activitypanel td {
