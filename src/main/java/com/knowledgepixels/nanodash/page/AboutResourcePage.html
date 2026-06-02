@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title wicket:id="pagetitle">... (about) | nanodash</title>
+  </wicket:head>
+</head>
+<body>
+<wicket:extend>
+
+  <div wicket:id="justPublishedMessage"></div>
+  <div class="row-section">
+    <div class="col-12 header">
+      <h2><span wicket:id="resourcename">Resource ABC</span></h2>
+      <p><span wicket:id="id"></span></p>
+      <p class="hide-if-empty">Namespace: <a wicket:id="namespace" class="hide-if-empty-trigger"></a></p>
+      <p class="hide-if-empty">Maintained by: <a wicket:id="space" class="hide-if-empty-trigger"></a></p>
+      <span wicket:id="download-rdf"></span>
+    </div>
+  </div>
+
+  <div class="row-section">
+    <div wicket:id="viewdisplays"></div>
+  </div>
+
+  <div class="row-section">
+    <div wicket:id="references"></div>
+  </div>
+
+</wicket:extend>
+</body>
+</html>
