@@ -39,7 +39,13 @@ public class AboutSpacePage extends NanodashPage {
      * get-view-displays query Nanodash uses internally). Shown on About pages
      * instead of rendering the assigned views themselves.
      */
-    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAQO0kK2FFtdfdGShuLkpFTbrq90btzt38z4w1hGVQfJE/view-displays-view";
+    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAL94vd5RPlmLIQ1mA5zIV08Z1AtOUWOzL1YJsK5ex3Ik/view-displays-view";
+
+    /**
+     * View listing a space's assigned roles, built on the existing
+     * get-space-roles query.
+     */
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAsH9ItKDb5sRdMul-dTT-Dqb7u4u80RmeYUndZKyjGZ8/space-roles-view";
 
     /**
      * Constructor for the AboutSpacePage.
@@ -67,6 +73,11 @@ public class AboutSpacePage extends NanodashPage {
         add(new Label("spacetype", space.getTypeLabel()));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
         add(new DownloadRdfLinks("download-rdf", "space", space.getId()));
+
+        // Assigned roles (rendered as a view, using the existing get-space-roles query).
+        View rolesView = View.get(SPACE_ROLES_VIEW);
+        QueryRef rolesQueryRef = new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId());
+        add(QueryResultTableBuilder.create("roles", rolesQueryRef, new ViewDisplay(rolesView)).build());
 
         // Assigned view displays (a listing of the configured view displays,
         // not the rendered views themselves).
