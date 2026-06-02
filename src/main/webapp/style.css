@@ -2162,6 +2162,14 @@ td div:has(.button-list) {
   display: block;
 }
 
+.flex-container.list-view {
+  padding-top: 0;
+}
+
+.flex-container.list-view > .nanopub-item:first-child .meta {
+  margin-top: 8px;
+}
+
 .flex-container.list-view .nanopub-item {
   border: 0;
   border-top: 1px solid #ccc;
@@ -2277,6 +2285,13 @@ a.source:hover {
 .inline-list p,
 .inline-list div {
   display: inline;
+}
+
+.no-records-note {
+  margin: 0;
+  padding: 8px 15px;
+  color: #888;
+  font-style: italic;
 }
 
 .cell-data-html p,

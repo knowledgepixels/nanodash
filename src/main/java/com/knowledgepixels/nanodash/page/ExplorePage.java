@@ -55,6 +55,11 @@ public class ExplorePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/explore";
 
+    private static final String DESCRIBED_IN_VIEW = "https://w3id.org/np/RAMH_7qMY-jmgXr2jqqk5F_XW7t2k2n3NCB6LtoKEXDzY/described-in-view";
+    private static final String CLASSES_VIEW = "https://w3id.org/np/RAHPtR1VriEW09tcvZhrM8Dr3vE1JnMWWi9-ajKJWNOJs/classes-view";
+    private static final String INSTANCES_VIEW = "https://w3id.org/np/RABXfsNoT_RYlk8LpDmKfJ2poSlvIGk3jgq4DkR4YLAps/instances-view";
+    private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
+
     /**
      * {@inheritDoc}
      */
@@ -300,18 +305,26 @@ public class ExplorePage extends NanodashPage {
         if (publishedNanopub != null) {
             infoSection.add(new Label("classes-panel").setVisible(false));
         } else {
-            infoSection.add(ThingListPanel.createComponent("classes-panel", ThingListPanel.Mode.CLASSES, ref, "<em>Searching for classes...</em>"));
+            View classesView = View.get(CLASSES_VIEW);
+            QueryRef classesQueryRef = new QueryRef(classesView.getQuery().getQueryId(), "thing", ref);
+            infoSection.add(QueryResultListBuilder.create("classes-panel", classesQueryRef, new ViewDisplay(classesView)).build());
         }
         if (isNanopubId) {
             infoSection.add(new Label("definitions-panel").setVisible(false));
             infoSection.add(new Label("instances-panel").setVisible(false));
-            infoSection.add(new Label("parts-panel").setVisible(false));
             infoSection.add(new Label("templates-panel").setVisible(false));
         } else {
-            infoSection.add(ThingListPanel.createComponent("definitions-panel", ThingListPanel.Mode.DESCRIPTIONS, ref, "<em>Searching for term descriptions...</em>"));
-            infoSection.add(ThingListPanel.createComponent("instances-panel", ThingListPanel.Mode.INSTANCES, ref, "<em>Searching for instances...</em>"));
-            infoSection.add(ThingListPanel.createComponent("parts-panel", ThingListPanel.Mode.PARTS, ref, "<em>Searching for parts...</em>"));
-            infoSection.add(ThingListPanel.createComponent("templates-panel", ThingListPanel.Mode.TEMPLATES, ref, "<em>Searching for templates...</em>"));
+            View describedInView = View.get(DESCRIBED_IN_VIEW);
+            QueryRef describedInQueryRef = new QueryRef(describedInView.getQuery().getQueryId(), "term", ref);
+            infoSection.add(QueryResultNanopubSetBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView)).build());
+
+            View instancesView = View.get(INSTANCES_VIEW);
+            QueryRef instancesQueryRef = new QueryRef(instancesView.getQuery().getQueryId(), "class", ref);
+            infoSection.add(QueryResultListBuilder.create("instances-panel", instancesQueryRef, new ViewDisplay(instancesView)).build());
+
+            View templatesView = View.get(TEMPLATES_VIEW);
+            QueryRef templatesQueryRef = new QueryRef(templatesView.getQuery().getQueryId(), "thing", ref);
+            infoSection.add(QueryResultListBuilder.create("templates-panel", templatesQueryRef, new ViewDisplay(templatesView)).build());
         }
         add(infoSection);
     }

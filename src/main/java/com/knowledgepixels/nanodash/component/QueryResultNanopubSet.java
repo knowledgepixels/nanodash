@@ -98,6 +98,14 @@ public class QueryResultNanopubSet extends QueryResult {
         nanopubsContainer = new WebMarkupContainer("nanopubs-container");
         nanopubsContainer.setOutputMarkupId(true);
         nanopubsContainer.add(buildNanopubResults());
+        Label noRecordsLabel = new Label("no-records", "Nothing found.") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(filteredDataProvider.size() == 0);
+            }
+        };
+        nanopubsContainer.add(noRecordsLabel);
         add(nanopubsContainer);
 
         if (viewDisplay.getNanopubId() != null) {
@@ -110,6 +118,10 @@ public class QueryResultNanopubSet extends QueryResult {
     private NanopubResults buildNanopubResults() {
         NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
         nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+        // Hide the (empty) results container when there is nothing to show, so the
+        // "Nothing found." note sits directly below the header instead of being pushed
+        // down by the flex-container's padding.
+        nanopubResults.setVisible(!filteredDataProvider.getFilteredData().isEmpty());
         return nanopubResults;
     }
 
