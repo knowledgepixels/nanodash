@@ -39,7 +39,7 @@ public class AboutSpacePage extends NanodashPage {
      * get-view-displays query Nanodash uses internally). Shown on About pages
      * instead of rendering the assigned views themselves.
      */
-    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAL94vd5RPlmLIQ1mA5zIV08Z1AtOUWOzL1YJsK5ex3Ik/view-displays-view";
+    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAVlEpw_JEaFxAoOj7sJvE7cut_yb1XmFdJmb9job0O-w/view-displays-view";
 
     /**
      * View listing a space's assigned roles, built on the existing
