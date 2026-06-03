@@ -66,8 +66,9 @@ public class QueryApiAccess {
     public static final String GET_LATEST_RIO_CANDIDATES = "RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates";
     public static final String GET_REACTIONS = "RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions";
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
-    // v5 (issue #302) returns both standalone view displays and preset-supplied views (unbound ?display).
-    public static final String GET_VIEW_DISPLAYS = "RAb9H0-YcjhyLSLJw8opEO0jDRcKaCwA4ELHoHX0zQh84/get-view-displays";
+    // v6 (issue #302): standalone + preset-supplied views (unbound ?display), gated to
+    // admins/maintainers of the owning space or the affected user themselves.
+    public static final String GET_VIEW_DISPLAYS = "RAd-T_vYETxcKf_1lEgIMoJSnSCFJTdpFDWYqvGNM91Ew/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
