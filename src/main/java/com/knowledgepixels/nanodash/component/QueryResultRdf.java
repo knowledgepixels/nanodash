@@ -5,7 +5,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.NoRecordsToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
@@ -44,9 +43,11 @@ public class QueryResultRdf extends Panel {
 
         DataTable<String[], String> table = new DataTable<>("table", columns, new TripleDataProvider(rows), 20);
         table.addBottomToolbar(new AjaxNavigationToolbar(table));
-        table.addBottomToolbar(new NoRecordsToolbar(table));
         table.addTopToolbar(new HeadersToolbar<>(table, null));
+        // Hide the whole table (header included) when empty; show "(nothing found)" instead.
+        table.setVisible(!rows.isEmpty());
         add(table);
+        add(new Label("no-records", "(nothing found)").setVisible(rows.isEmpty()));
     }
 
     private static class TripleDataProvider implements ISortableDataProvider<String[], String> {

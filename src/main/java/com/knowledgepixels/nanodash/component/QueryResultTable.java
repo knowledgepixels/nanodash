@@ -41,6 +41,7 @@ public class QueryResultTable extends QueryResult {
 
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
+    private Label noRecordsLabel;
     private Label errorLabel;
     private FilteredQueryResultDataProvider filteredDataProvider;
     private Model<String> filterModel = Model.of("");
@@ -72,6 +73,7 @@ public class QueryResultTable extends QueryResult {
                 if (filteredDataProvider != null && table != null) {
                     filteredDataProvider.setFilterText(filterModel.getObject());
                     target.add(table);
+                    if (noRecordsLabel != null) target.add(noRecordsLabel);
                 }
             }
         });
@@ -118,15 +120,33 @@ public class QueryResultTable extends QueryResult {
             }
             dataProvider = new QueryResultDataProvider(response.getData());
             filteredDataProvider = new FilteredQueryResultDataProvider(dataProvider, response);
-            table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
-            table.setOutputMarkupId(true);
+            // The whole table (header included) is hidden when there is nothing to show;
+            // a "(nothing found)" note is shown instead. No NoRecordsToolbar, since that
+            // would leave the header row visible.
+            table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize()) {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() > 0);
+                }
+            };
+            table.setOutputMarkupPlaceholderTag(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
-            table.addBottomToolbar(new NoRecordsToolbar(table));
             table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             add(table);
+            noRecordsLabel = new Label("no-records", "(nothing found)") {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0);
+                }
+            };
+            noRecordsLabel.setOutputMarkupPlaceholderTag(true);
+            add(noRecordsLabel);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
+            add(new Label("no-records", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
     }

@@ -69,6 +69,13 @@ public class QueryResultPlainParagraph extends QueryResult {
         paragraphsContainer = new WebMarkupContainer("paragraphs-container");
         paragraphsContainer.setOutputMarkupId(true);
         paragraphsContainer.add(buildParagraphsView());
+        paragraphsContainer.add(new Label("no-records", "(nothing found)") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(filteredDataProvider.getFilteredData().isEmpty());
+            }
+        });
         add(paragraphsContainer);
     }
 
