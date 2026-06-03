@@ -1204,7 +1204,9 @@ div.nanopub-head {
 }
 
 div.nanopub-graph {
-  background: #F3F6F9;
+  /* Alpha-defined grey: renders as #F3F6F9 over white, but stays visible
+     (darker) over the #F3F6F9 row-section stripe background. */
+  background: rgba(135, 165, 195, 0.1);
   padding: 12px 15px 10px 15px;
   margin-top: 3px;
   border-radius: 4px;
