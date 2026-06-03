@@ -109,40 +109,7 @@ public class QueryResultTableBuilder implements Serializable {
                 }
                 table.setResourceWithProfile(resourceWithProfile);
                 table.setPageResource(resourceWithProfile);
-                View view = viewDisplay.getView();
-                if (view != null) {
-                    for (IRI actionIri : view.getViewResultActionList()) {
-                        Template t = view.getTemplateForAction(actionIri);
-                        if (t == null) continue;
-                        String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                        if (targetField == null) targetField = "resource";
-                        String label = view.getLabelForAction(actionIri);
-                        if (label == null) label = "action...";
-                        if (!label.endsWith("...")) label += "...";
-                        PageParameters params = new PageParameters().set("template", t.getId())
-                                .set("param_" + targetField, id)
-                                .set("context", contextId)
-                                .set("template-version", "latest");
-                        if (id != null && contextId != null && !id.equals(contextId)) {
-                            params.set("part", id);
-                        }
-                        String partField = view.getTemplatePartFieldForAction(actionIri);
-                        if (partField != null) {
-                            // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                            if (r != null && r.getNamespace() != null) {
-                                params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                            }
-                        }
-                        String queryMapping = view.getTemplateQueryMapping(actionIri);
-                        if (queryMapping != null && queryMapping.contains(":")) {
-                            params.set("values-from-query", queryRef.getAsUrlString());
-                            params.set("values-from-query-mapping", queryMapping);
-                        }
-                        params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                        table.addButton(label, PublishPage.class, params);
-                    }
-                }
+                addViewActions(table, viewDisplay, queryRef, id, contextId);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -156,39 +123,7 @@ public class QueryResultTableBuilder implements Serializable {
                         }
                         table.setResourceWithProfile(resourceWithProfile);
                         table.setPageResource(resourceWithProfile);
-                        View view = viewDisplay.getView();
-                        if (view != null) {
-                            for (IRI actionIri : view.getViewResultActionList()) {
-                                Template t = view.getTemplateForAction(actionIri);
-                                if (t == null) continue;
-                                String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                                if (targetField == null) targetField = "resource";
-                                String label = view.getLabelForAction(actionIri);
-                                if (label == null) label = "action...";
-                                PageParameters params = new PageParameters().set("template", t.getId())
-                                        .set("param_" + targetField, id)
-                                        .set("context", contextId)
-                                        .set("template-version", "latest");
-                                if (id != null && contextId != null && !id.equals(contextId)) {
-                                    params.set("part", id);
-                                }
-                                String partField = view.getTemplatePartFieldForAction(actionIri);
-                                if (partField != null) {
-                                    // TODO Find a better way to pass the MaintainedResource object to this method:
-                                    MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                                    if (r != null && r.getNamespace() != null) {
-                                        params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                                    }
-                                }
-                                String queryMapping = view.getTemplateQueryMapping(actionIri);
-                                if (queryMapping != null && queryMapping.contains(":")) {
-                                    params.set("values-from-query", queryRef.getAsUrlString());
-                                    params.set("values-from-query-mapping", queryMapping);
-                                }
-                                params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                                table.addButton(label, PublishPage.class, params);
-                            }
-                        }
+                        addViewActions(table, viewDisplay, queryRef, id, contextId);
                         return table;
                     }
                 };
@@ -199,6 +134,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
+                addViewActions(table, viewDisplay, queryRef, id, contextId);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -207,12 +143,61 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
+                        addViewActions(table, viewDisplay, queryRef, id, contextId);
                         return table;
                     }
                 };
                 comp.add(new AttributeAppender("class", colClass));
                 return comp;
             }
+        }
+    }
+
+    /**
+     * Adds a button to the table for each result action declared by the view, linking to the
+     * action's template on the publish page. Resource-context parameters (the target field, the
+     * context, the part, and the part field) are only set when the corresponding id/contextId is
+     * available, so this also works on resource-less listings such as the general Spaces page.
+     *
+     * @param table       the table to add the action buttons to
+     * @param viewDisplay the view display whose view declares the actions
+     * @param queryRef    the query reference backing the table (used for refresh and query mapping)
+     * @param id          the resource id, or null if there is no specific resource in context
+     * @param contextId   the context id, or null if there is no context
+     */
+    private static void addViewActions(QueryResultTable table, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId) {
+        View view = viewDisplay.getView();
+        if (view == null) return;
+        for (IRI actionIri : view.getViewResultActionList()) {
+            Template t = view.getTemplateForAction(actionIri);
+            if (t == null) continue;
+            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+            if (targetField == null) targetField = "resource";
+            String label = view.getLabelForAction(actionIri);
+            if (label == null) label = "action...";
+            if (!label.endsWith("...")) label += "...";
+            PageParameters params = new PageParameters().set("template", t.getId())
+                    .set("template-version", "latest");
+            if (id != null) params.set("param_" + targetField, id);
+            if (contextId != null) params.set("context", contextId);
+            if (id != null && contextId != null && !id.equals(contextId)) {
+                params.set("part", id);
+            }
+            String partField = view.getTemplatePartFieldForAction(actionIri);
+            if (partField != null && contextId != null) {
+                // TODO Find a better way to pass the MaintainedResource object to this method:
+                MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
+                if (r != null && r.getNamespace() != null) {
+                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                }
+            }
+            String queryMapping = view.getTemplateQueryMapping(actionIri);
+            if (queryMapping != null && queryMapping.contains(":")) {
+                params.set("values-from-query", queryRef.getAsUrlString());
+                params.set("values-from-query-mapping", queryMapping);
+            }
+            params.set("refresh-upon-publish", queryRef.getAsUrlString());
+            table.addButton(label, PublishPage.class, params);
         }
     }
 
