@@ -41,6 +41,11 @@ public class KPXL_TERMS {
 
     // Presets (issue #302): a named bundle of default views and roles, and the
     // assignment of such a bundle to a resource. Mirrors the view-display model.
+    // Resource types (the values used in gen:appliesToInstancesOf).
+    public static final IRI SPACE = VocabUtils.createIRI(NAMESPACE, "Space");
+    public static final IRI MAINTAINED_RESOURCE = VocabUtils.createIRI(NAMESPACE, "MaintainedResource");
+    public static final IRI INDIVIDUAL_AGENT = VocabUtils.createIRI(NAMESPACE, "IndividualAgent");
+
     public static final IRI PRESET = VocabUtils.createIRI(NAMESPACE, "Preset");
     public static final IRI PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "PresetAssignment");
     public static final IRI ACTIVATED_PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "ActivatedPresetAssignment");

@@ -148,6 +148,11 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     @Override
+    protected Set<IRI> getOwnClasses() {
+        return Set.of(KPXL_TERMS.SPACE);
+    }
+
+    @Override
     public String getNamespace() {
         // FIXME this will be removed in the future
         return null;

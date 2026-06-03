@@ -221,7 +221,20 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     @Override
     public List<ViewDisplay> getTopLevelViewDisplays() {
-        return getViewDisplays(true, getId(), null);
+        // Pass the resource's own type(s) so that views targeting that type (e.g. a
+        // messages view for gen:MaintainedResource) are shown at the top level, while
+        // views targeting part types (e.g. gen:hasViewTargetClass owl:Class) are not.
+        return getViewDisplays(true, getId(), getOwnClasses());
+    }
+
+    /**
+     * The resource's own type IRI(s), used to match top-level views by
+     * {@code gen:appliesToInstancesOf}. Empty by default; overridden per resource type.
+     *
+     * @return the resource's own classes (never null)
+     */
+    protected Set<IRI> getOwnClasses() {
+        return Collections.emptySet();
     }
 
     @Override

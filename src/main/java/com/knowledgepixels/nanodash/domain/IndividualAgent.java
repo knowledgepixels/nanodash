@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.domain;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 
@@ -69,6 +70,11 @@ public class IndividualAgent extends AbstractResourceWithProfile {
     public String getNamespace() {
         // FIXME this will be removed in the future
         return null;
+    }
+
+    @Override
+    protected Set<IRI> getOwnClasses() {
+        return Set.of(KPXL_TERMS.INDIVIDUAL_AGENT);
     }
 
     /**

@@ -94,9 +94,10 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @param resourceId  the resource the preset is assigned to
      * @param viewIri     the resolved view IRI (a {@code gen:hasView} /
      *                    {@code gen:hasTopLevelView} target of the preset)
-     * @param topLevel    whether this came from {@code gen:hasTopLevelView}
-     *                    (reserved; the top-level vs. default placement is the
-     *                    open rendering question in {@code doc/presets.md})
+     * @param topLevel    whether this came from {@code gen:hasTopLevelView} (shown
+     *                    at the top level of the resource page) vs. {@code gen:hasView}
+     *                    (shown at the part level, for parts matching the view's own
+     *                    class/namespace targeting)
      * @param deactivated whether the underlying preset assignment is deactivated
      * @return the ViewDisplay, or null if the view could not be resolved
      */
@@ -113,10 +114,13 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         this.id = null;
         this.nanopub = view.getNanopub();
         this.view = view;
-        // TODO Differentiate top-level (gen:hasTopLevelView) from default (gen:hasView)
-        //      placement once the rendering semantics are decided (doc/presets.md open
-        //      question). For now both render at the resource's top level.
-        this.appliesTo.add(resourceId);
+        if (topLevel) {
+            // gen:hasTopLevelView: pin to the resource's own page (top level).
+            this.appliesTo.add(resourceId);
+        }
+        // else gen:hasView: leave appliesTo empty so applicability falls back to the
+        // view's own class/namespace targeting -> shown at the part level for matching
+        // parts, not at the resource's top level.
         if (deactivated) {
             this.types.add(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY);
         }
