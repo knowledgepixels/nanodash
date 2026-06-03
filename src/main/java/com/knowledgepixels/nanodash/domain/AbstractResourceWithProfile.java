@@ -131,9 +131,25 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
                     ResourceWithProfile newData = new ResourceWithProfile();
 
+                    // The query returns both standalone view displays (bound ?display) and
+                    // preset-supplied views (issue #302: unbound ?display, the assignment's
+                    // preset expanded into its views server-side), already ordered by date
+                    // (latest first) so the per-view-kind latest-wins / deactivation
+                    // aggregation in getViewDisplays() resolves overrides between presets and
+                    // standalone displays correctly, in either direction.
                     for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id), true).getData()) {
                         try {
-                            newData.viewDisplays.add(ViewDisplay.get(r.get("display")));
+                            String display = r.get("display");
+                            if (display != null && !display.isEmpty()) {
+                                newData.viewDisplays.add(ViewDisplay.get(display));
+                            } else {
+                                String view = r.get("view");
+                                if (view == null || view.isEmpty()) continue;
+                                boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
+                                boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
+                                ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated);
+                                if (vd != null) newData.viewDisplays.add(vd);
+                            }
                         } catch (IllegalArgumentException ex) {
                             logger.error("Couldn't generate view display object", ex);
                         }

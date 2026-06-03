@@ -39,7 +39,13 @@ public class AboutSpacePage extends NanodashPage {
      * get-view-displays query Nanodash uses internally). Shown on About pages
      * instead of rendering the assigned views themselves.
      */
-    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAVlEpw_JEaFxAoOj7sJvE7cut_yb1XmFdJmb9job0O-w/view-displays-view";
+    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA-o92qp6rr50wsMSfwy-HUNEkHiCdBR6nTMjSQs3wvII/view-displays-view";
+
+    /**
+     * View listing the presets assigned to a resource (issue #302). Shown on
+     * About pages just before the view displays listing.
+     */
+    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAlcZ2FdqNVFqbxtzs1o2NPWmOhL8hqnokHm7mbjo8KuQ/preset-assignments-view";
 
     /**
      * View listing a space's assigned roles, built on the existing
@@ -79,8 +85,13 @@ public class AboutSpacePage extends NanodashPage {
         QueryRef rolesQueryRef = new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId());
         add(QueryResultTableBuilder.create("roles", rolesQueryRef, new ViewDisplay(rolesView)).build());
 
+        // Assigned presets (issue #302).
+        View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
+        QueryRef presetsQueryRef = new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId());
+        add(QueryResultTableBuilder.create("presets", presetsQueryRef, new ViewDisplay(presetsView)).build());
+
         // Assigned view displays (a listing of the configured view displays,
-        // not the rendered views themselves).
+        // not the rendered views themselves; includes preset-supplied views).
         View vdView = View.get(VIEW_DISPLAYS_VIEW);
         QueryRef vdQueryRef = new QueryRef(vdView.getQuery().getQueryId(), "resource", space.getId());
         add(QueryResultTableBuilder.create("viewdisplays", vdQueryRef, new ViewDisplay(vdView)).build());

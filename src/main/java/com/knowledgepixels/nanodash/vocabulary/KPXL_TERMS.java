@@ -39,6 +39,13 @@ public class KPXL_TERMS {
     public static final IRI VIEW_RESULT_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewResultAction");
     public static final IRI VIEW_ENTRY_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewEntryAction");
 
+    // Presets (issue #302): a named bundle of default views and roles, and the
+    // assignment of such a bundle to a resource. Mirrors the view-display model.
+    public static final IRI PRESET = VocabUtils.createIRI(NAMESPACE, "Preset");
+    public static final IRI PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "PresetAssignment");
+    public static final IRI ACTIVATED_PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "ActivatedPresetAssignment");
+    public static final IRI DEACTIVATED_PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "DeactivatedPresetAssignment");
+
     public static final IRI HAS_DISPLAY_WIDTH = VocabUtils.createIRI(NAMESPACE, "hasDisplayWidth");
     public static final IRI HAS_VIEW_QUERY = VocabUtils.createIRI(NAMESPACE, "hasViewQuery");
     public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasViewQueryTargetField");
@@ -54,6 +61,13 @@ public class KPXL_TERMS {
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");
+
+    // Preset properties (issue #302):
+    public static final IRI HAS_TOP_LEVEL_VIEW = VocabUtils.createIRI(NAMESPACE, "hasTopLevelView");
+    public static final IRI HAS_VIEW = VocabUtils.createIRI(NAMESPACE, "hasView");
+    public static final IRI HAS_ROLE = VocabUtils.createIRI(NAMESPACE, "hasRole");
+    public static final IRI IS_ASSIGNMENT_OF_PRESET = VocabUtils.createIRI(NAMESPACE, "isAssignmentOfPreset");
+    public static final IRI IS_ASSIGNMENT_FOR = VocabUtils.createIRI(NAMESPACE, "isAssignmentFor");
 
     // TODO Remove these deprecated terms.
     // Deprecated:

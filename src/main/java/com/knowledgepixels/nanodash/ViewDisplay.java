@@ -81,6 +81,48 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     }
 
     /**
+     * Builds a view display derived from a preset assignment (issue #302).
+     *
+     * <p>Used for the preset-derived rows emitted by the {@code get-view-displays}
+     * query: instead of a standalone view-display nanopub, the row carries the
+     * resolved view IRI plus the assignment's activation state. The resulting
+     * object behaves like a top-level view display for {@code resourceId}, so it
+     * flows through the same latest-wins / deactivation aggregation in
+     * {@link com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile} as
+     * standalone displays.</p>
+     *
+     * @param resourceId  the resource the preset is assigned to
+     * @param viewIri     the resolved view IRI (a {@code gen:hasView} /
+     *                    {@code gen:hasTopLevelView} target of the preset)
+     * @param topLevel    whether this came from {@code gen:hasTopLevelView}
+     *                    (reserved; the top-level vs. default placement is the
+     *                    open rendering question in {@code doc/presets.md})
+     * @param deactivated whether the underlying preset assignment is deactivated
+     * @return the ViewDisplay, or null if the view could not be resolved
+     */
+    public static ViewDisplay forPresetView(String resourceId, String viewIri, boolean topLevel, boolean deactivated) {
+        View view = View.get(viewIri);
+        if (view == null) {
+            logger.error("Couldn't resolve preset view: {}", viewIri);
+            return null;
+        }
+        return new ViewDisplay(resourceId, view, topLevel, deactivated);
+    }
+
+    private ViewDisplay(String resourceId, View view, boolean topLevel, boolean deactivated) {
+        this.id = null;
+        this.nanopub = view.getNanopub();
+        this.view = view;
+        // TODO Differentiate top-level (gen:hasTopLevelView) from default (gen:hasView)
+        //      placement once the rendering semantics are decided (doc/presets.md open
+        //      question). For now both render at the resource's top level.
+        this.appliesTo.add(resourceId);
+        if (deactivated) {
+            this.types.add(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY);
+        }
+    }
+
+    /**
      * Constructor for ViewDisplay.
      *
      * @param id      the ID of the ViewDisplay

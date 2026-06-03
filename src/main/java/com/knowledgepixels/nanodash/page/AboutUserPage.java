@@ -102,8 +102,13 @@ public class AboutUserPage extends NanodashPage {
                 .contextId(userIriString)
                 .build());
 
+        // Assigned presets (issue #302).
+        View presetsView = View.get(AboutSpacePage.PRESET_ASSIGNMENTS_VIEW);
+        QueryRef presetsQueryRef = new QueryRef(presetsView.getQuery().getQueryId(), "resource", userIriString);
+        add(QueryResultTableBuilder.create("presets", presetsQueryRef, new ViewDisplay(presetsView)).build());
+
         // Assigned view displays (a listing of the configured view displays,
-        // not the rendered views themselves).
+        // not the rendered views themselves; includes preset-supplied views).
         View vdView = View.get(AboutSpacePage.VIEW_DISPLAYS_VIEW);
         QueryRef vdQueryRef = new QueryRef(vdView.getQuery().getQueryId(), "resource", userIriString);
         add(QueryResultTableBuilder.create("viewdisplays", vdQueryRef, new ViewDisplay(vdView)).build());
