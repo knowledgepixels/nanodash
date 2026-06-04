@@ -58,34 +58,53 @@ public class View implements Serializable {
         .build();
 
     /**
-     * Get a View by its ID.
+     * Get a View by its ID, resolving to the latest version (following the
+     * supersedes chain).
      *
      * @param id the ID of the View
      * @return the View object
      */
     public static View get(String id) {
+        return get(id, true);
+    }
+
+    /**
+     * Get a View by its ID.
+     *
+     * @param id            the ID of the View
+     * @param resolveLatest if true, follow the supersedes chain to load the latest
+     *                      version of the view; if false, load exactly the given
+     *                      version without a latest-version lookup. Pass false when
+     *                      the caller already holds a latest-resolved IRI (e.g. from
+     *                      the get-view-displays query, which now resolves it
+     *                      server-side) to avoid a redundant network round-trip.
+     * @return the View object
+     */
+    public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-        // Automatically selecting latest version of view definition:
-        // TODO This should be made configurable at some point, so one can make it a fixed version.
-        try {
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (!latestNpId.equals(npId)) {
-                Nanopub np = Utils.getAsNanopub(latestNpId);
-                if (np != null) {
-                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                    if (embeddedIris.size() == 1) {
-                        String latestId = embeddedIris.iterator().next();
-                        View cached = views.getIfPresent(latestId);
-                        if (cached == null) {
-                            cached = new View(latestId, np);
-                            views.put(latestId, cached);
+        if (resolveLatest) {
+            // Automatically selecting latest version of view definition:
+            // TODO This should be made configurable at some point, so one can make it a fixed version.
+            try {
+                String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+                if (!latestNpId.equals(npId)) {
+                    Nanopub np = Utils.getAsNanopub(latestNpId);
+                    if (np != null) {
+                        Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                        if (embeddedIris.size() == 1) {
+                            String latestId = embeddedIris.iterator().next();
+                            View cached = views.getIfPresent(latestId);
+                            if (cached == null) {
+                                cached = new View(latestId, np);
+                                views.put(latestId, cached);
+                            }
+                            return cached;
                         }
-                        return cached;
                     }
                 }
+            } catch (Exception ex) {
+                logger.error("Error resolving latest version for view: {}", id, ex);
             }
-        } catch (Exception ex) {
-            logger.error("Error resolving latest version for view: {}", id, ex);
         }
         // Fall back to loading the nanopub as given:
         Nanopub np = Utils.getAsNanopub(npId);

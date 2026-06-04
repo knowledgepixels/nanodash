@@ -568,7 +568,7 @@ public class DownloadRdfPage extends WebPage {
         List<ViewDisplay> allDisplays = new ArrayList<>();
         for (ApiResponseEntry r : response.getData()) {
             try {
-                allDisplays.add(ViewDisplay.get(r.get("display")));
+                allDisplays.add(ViewDisplay.get(r.get("display"), r.get("view")));
             } catch (IllegalArgumentException ex) {
                 logger.error("Couldn't generate view display object", ex);
             }

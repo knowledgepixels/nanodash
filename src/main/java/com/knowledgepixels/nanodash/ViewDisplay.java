@@ -7,7 +7,6 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,26 +53,30 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @return the View object
      */
     public static ViewDisplay get(String id) throws IllegalArgumentException {
-        // Try to resolve to the latest version (same pattern as View.get()):
-        try {
-            String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (!latestNpId.equals(npId)) {
-                Nanopub np = Utils.getAsNanopub(latestNpId);
-                if (np != null) {
-                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                    if (embeddedIris.size() == 1) {
-                        return new ViewDisplay(embeddedIris.iterator().next(), np);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("Error resolving latest version for view display: {}", id, ex);
-        }
-        // Fall back to loading the nanopub as given:
+        return get(id, null);
+    }
+
+    /**
+     * Get a ViewDisplay by its ID, using a pre-resolved latest view IRI.
+     *
+     * <p>The display nanopub is loaded directly, without a per-display latest-version
+     * lookup: the get-view-displays query already returns only current display
+     * nanopubs (its {@code npx:invalidates} filter excludes superseded ones, since
+     * superseding a display also invalidates it under the same signing key). The
+     * displayed view is likewise loaded directly from {@code latestViewIri}, which the
+     * query resolved to its latest version server-side. The result: no one-by-one
+     * latest-version network round-trips when building the view displays for a page.</p>
+     *
+     * @param id            the ID of the ViewDisplay (a current display nanopub)
+     * @param latestViewIri the already latest-resolved IRI of the displayed view (from
+     *                      the get-view-displays query), or null to resolve the view's
+     *                      latest version separately
+     * @return the ViewDisplay object
+     */
+    public static ViewDisplay get(String id, String latestViewIri) throws IllegalArgumentException {
         try {
             Nanopub np = Utils.getAsNanopub(id.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
-            return new ViewDisplay(id, np);
+            return new ViewDisplay(id, np, latestViewIri);
         } catch (Exception ex) {
             logger.error("Couldn't load nanopub for resource: {}", id, ex);
             throw new IllegalArgumentException("invalid view value " + id);
@@ -102,7 +105,9 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @return the ViewDisplay, or null if the view could not be resolved
      */
     public static ViewDisplay forPresetView(String resourceId, String viewIri, boolean topLevel, boolean deactivated) {
-        View view = View.get(viewIri);
+        // viewIri is already latest-resolved by the get-view-displays query, so load
+        // it directly without a separate latest-version lookup.
+        View view = View.get(viewIri, false);
         if (view == null) {
             logger.error("Couldn't resolve preset view: {}", viewIri);
             return null;
@@ -133,6 +138,19 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * @param nanopub the Nanopub containing the data for this ViewDisplay
      */
     private ViewDisplay(String id, Nanopub nanopub) {
+        this(id, nanopub, null);
+    }
+
+    /**
+     * Constructor for ViewDisplay.
+     *
+     * @param id            the ID of the ViewDisplay
+     * @param nanopub       the Nanopub containing the data for this ViewDisplay
+     * @param latestViewIri the already latest-resolved IRI of the displayed view, or
+     *                      null to resolve the view's latest version separately. When
+     *                      given, the view is loaded directly (no extra round-trip).
+     */
+    private ViewDisplay(String id, Nanopub nanopub, String latestViewIri) {
         this.id = id;
         this.nanopub = nanopub;
 
@@ -153,7 +171,9 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                         throw new IllegalArgumentException("View already set: " + objIri);
                     }
                     viewIri = objIri;
-                    view = View.get(objIri.stringValue());
+                    view = (latestViewIri != null && !latestViewIri.isEmpty())
+                            ? View.get(latestViewIri, false)
+                            : View.get(objIri.stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_FOR) && st.getObject() instanceof IRI objIri) {
                     if (resource != null) {
                         throw new IllegalArgumentException("Resource already set: " + objIri);

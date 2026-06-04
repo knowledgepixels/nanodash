@@ -141,7 +141,9 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                         try {
                             String display = r.get("display");
                             if (display != null && !display.isEmpty()) {
-                                newData.viewDisplays.add(ViewDisplay.get(display));
+                                // The query resolves ?view to its latest version server-side, so
+                                // pass it through to avoid a separate per-view latest-version lookup.
+                                newData.viewDisplays.add(ViewDisplay.get(display, r.get("view")));
                             } else {
                                 String view = r.get("view");
                                 if (view == null || view.isEmpty()) continue;
