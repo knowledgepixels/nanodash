@@ -85,6 +85,7 @@ public class QueryResultNanopubSet extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         viewSelector.add(filterField);
 
         setOutputMarkupId(true);

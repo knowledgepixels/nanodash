@@ -54,6 +54,7 @@ public class QueryResultItemList extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();

@@ -57,6 +57,7 @@ public class QueryResultPlainParagraph extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();

@@ -77,6 +77,7 @@ public class QueryResultTable extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();
