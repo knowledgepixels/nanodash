@@ -69,6 +69,9 @@ public class ProfileAccountPanel extends Panel {
         add(form);
 
         add(new FeedbackPanel("feedback"));
+
+        // Signing key: public key + (local mode) the local key-file path.
+        add(new ProfileSigItem("sigpart"));
     }
 
 }
