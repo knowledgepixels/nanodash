@@ -263,6 +263,9 @@ public class QueryResultTable extends QueryResult {
                     } else {
                         if (key.startsWith("pubkey")) {
                             cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
+                        } else if (Utils.isDateTimeLiteral(value)) {
+                            // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
+                            cellItem.add(new Label(componentId, Utils.friendlyDateHtml(value, value)).setEscapeModelStrings(false));
                         } else {
                             Label cellLabel;
                             if (Utils.looksLikeHtml(value)) {

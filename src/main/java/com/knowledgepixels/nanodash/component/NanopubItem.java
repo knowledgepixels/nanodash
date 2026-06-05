@@ -145,7 +145,10 @@ public class NanopubItem extends Panel {
         } else {
             WebMarkupContainer footer = new WebMarkupContainer("footer");
             if (n.getCreationTime() != null) {
-                footer.add(new Label("datetime", simpleDateTimeFormat.format(n.getCreationTime().getTime())));
+                // Friendly relative time client-side; server-formatted date is the no-script fallback.
+                String iso = n.getCreationTime().toInstant().toString();
+                String fallback = simpleDateTimeFormat.format(n.getCreationTime().getTime());
+                footer.add(new Label("datetime", Utils.friendlyDateHtml(iso, fallback)).setEscapeModelStrings(false));
             } else {
                 footer.add(new Label("datetime", "(undated)"));
             }
