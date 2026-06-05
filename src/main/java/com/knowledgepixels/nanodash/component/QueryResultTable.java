@@ -100,6 +100,13 @@ public class QueryResultTable extends QueryResult {
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         QueryResultDataProvider dataProvider;
         try {
+            // The last data column (ignoring _label helper columns); if it is the
+            // source-nanopub column ("np"/"nps") its header is left blank.
+            String lastColumnKey = null;
+            for (String h : response.getHeader()) {
+                if (h.endsWith("_label") || h.endsWith("_label_multi")) continue;
+                lastColumnKey = h;
+            }
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label") || h.endsWith("_label_multi")) {
                     continue;
@@ -114,7 +121,13 @@ public class QueryResultTable extends QueryResult {
                 } else if (displayLabel.endsWith("_iri")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_iri".length());
                 }
-                columns.add(new Column(displayLabel.replaceAll("_", " "), h));
+                String columnHeader = displayLabel.replaceAll("_", " ");
+                if (h.equals(lastColumnKey) && (h.equals("np") || h.equals("nps"))) {
+                    columnHeader = "";
+                    columns.add(new Column(columnHeader, h, "cell-right"));
+                } else {
+                    columns.add(new Column(columnHeader, h));
+                }
             }
             if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
                 columns.add(new Column("", Column.ACTIONS));
@@ -152,14 +165,25 @@ public class QueryResultTable extends QueryResult {
         }
     }
 
-    private class Column extends AbstractColumn<ApiResponseEntry, String> {
+    private class Column extends AbstractColumn<ApiResponseEntry, String> implements IStyledColumn<ApiResponseEntry, String> {
 
         private String key;
+        private String cssClass;
         public static final String ACTIONS = "*actions*";
 
         public Column(String title, String key) {
+            this(title, key, null);
+        }
+
+        public Column(String title, String key, String cssClass) {
             super(new Model<String>(title), key);
             this.key = key;
+            this.cssClass = cssClass;
+        }
+
+        @Override
+        public String getCssClass() {
+            return cssClass;
         }
 
         @Override

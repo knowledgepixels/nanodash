@@ -749,6 +749,11 @@ span.prelink {
   color: #0B73DA;
 }
 
+/* Right-aligned table column (used for the trailing np/nps source-nanopub column) */
+.cell-right {
+  text-align: right;
+}
+
 /* Gray italic "– About" / "– Raw" suffix appended to a page title */
 .title-suffix {
   color: #888888;
@@ -941,9 +946,9 @@ input[type=radio] + label strong {
   height: 22px;
   padding: 0;
   margin: 1px;
-  background-color: #0B73DA;
-  color: #fff;
-  border-width: 0;
+  background-color: transparent;
+  color: #0B73DA;
+  border: 1px solid #0B73DA;
   border-radius: 4px;
   display: inline-block;
   cursor: pointer;
@@ -991,7 +996,8 @@ input[type=radio] + label strong {
 }
 
 .actionmenu:hover .actionmenu-button {
-  background-color: #0B73DAC0;
+  background-color: #0B73DA;
+  color: #fff;
 }
 
 
@@ -2104,6 +2110,14 @@ div.navigator .goto a[disabled] {
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   margin-left: auto;
+}
+
+/* The action-menu dropdown's down-arrow glyph baselines a couple of pixels
+   lower than the text action buttons; nudge it up so they line up (and with
+   the filter field / title, which the buttons already match). */
+.paneltitlerow span.buttons .actionmenu-button {
+  position: relative;
+  top: -2px;
 }
 
 .paneltitlerow > span.buttons:has(~ span.buttons) {
