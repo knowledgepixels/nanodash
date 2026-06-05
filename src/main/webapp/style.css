@@ -940,11 +940,10 @@ input[type=radio] + label strong {
 
 
 .actionmenu-button {
-  font-size: 7pt;
+  font-size: 11pt;
   font-weight: 700;
-  width: 22px;
-  height: 22px;
-  padding: 0;
+  min-width: 22px;
+  padding: 0 4px;
   margin: 1px;
   background-color: transparent;
   color: #0B73DA;
@@ -954,6 +953,23 @@ input[type=radio] + label strong {
   cursor: pointer;
   line-height: 20px !important;
   text-align: center;
+  /* Match the box model + alignment of the (vertical-align:middle) action
+     buttons so the dropdown lines up with them and the filter/title. */
+  vertical-align: middle;
+}
+
+/* Down chevron ("v" / outline arrow, no top line), drawn with two borders. */
+.actionmenu-button::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
 }
 
 .actionmenu {
@@ -961,6 +977,7 @@ input[type=radio] + label strong {
   padding: 0;
   position: relative;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .actionmenu-content {
@@ -2110,14 +2127,6 @@ div.navigator .goto a[disabled] {
 .paneltitlerow span.buttons {
   margin: 6px 0 6px 0;
   margin-left: auto;
-}
-
-/* The action-menu dropdown's down-arrow glyph baselines a couple of pixels
-   lower than the text action buttons; nudge it up so they line up (and with
-   the filter field / title, which the buttons already match). */
-.paneltitlerow span.buttons .actionmenu-button {
-  position: relative;
-  top: -2px;
 }
 
 .paneltitlerow > span.buttons:has(~ span.buttons) {

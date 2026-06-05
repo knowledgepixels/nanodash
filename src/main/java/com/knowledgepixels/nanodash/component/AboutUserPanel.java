@@ -1,8 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.QueryRef;
 
@@ -30,6 +32,16 @@ public class AboutUserPanel extends Panel {
      */
     public AboutUserPanel(String id, String userIriString) {
         super(id);
+
+        // Account/identity controls (logout, local-mode ORCID form) only on the
+        // current user's own About page.
+        NanodashSession session = NanodashSession.get();
+        boolean ownPage = session.getUserIri() != null && session.getUserIri().stringValue().equals(userIriString);
+        if (ownPage) {
+            add(new ProfileAccountPanel("account", userIriString));
+        } else {
+            add(new EmptyPanel("account").setVisible(false));
+        }
 
         View introView = View.get(INTRODUCTIONS_VIEW);
         add(QueryResultTableBuilder.create("introductions", new QueryRef(introView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(introView)).build());
