@@ -7,6 +7,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -31,6 +32,13 @@ public class TitleBar extends Panel {
     private String highlight;
 
     /**
+     * The breadcrumb/tab strip row (the grey band just below the nav bar). Holds
+     * the breadcrumb links on the left and, optionally, the resource tab strip on
+     * the right (see {@link #setTabs(ResourceTabs)}).
+     */
+    private WebMarkupContainer breadcrumbPath;
+
+    /**
      * Constructs a TitleBar with the specified id, page, highlight element,
      * and an array of path references for breadcrumb navigation.
      *
@@ -49,14 +57,14 @@ public class TitleBar extends Panel {
         createNavLink("publish", PublishPage.class).setVisible(!NanodashPreferences.get().isReadOnlyMode());
         createNavLink("query", QueryListPage.class);
 
-        WebMarkupContainer breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
-        breadcrumbPath.setVisible(pathRefs.length > 0);
+        breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
+        WebMarkupContainer breadcrumbLinks = new WebMarkupContainer("breadcrumblinks");
         if (pathRefs.length > 0) {
             final String[] displayLabels = simplifyBreadcrumbLabels(pathRefs);
-            breadcrumbPath.add(pathRefs[0].createComponent("firstpathelement", displayLabels[0]));
+            breadcrumbLinks.add(pathRefs[0].createComponent("firstpathelement", displayLabels[0]));
             // Getting serialization exception if not using 'new ArrayList<...>(...)' here:
             List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Utils.subList(pathRefs, 1, pathRefs.length));
-            breadcrumbPath.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
+            breadcrumbLinks.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
 
                 @Override
                 protected void populateItem(Item<NanodashPageRef> item) {
@@ -66,8 +74,14 @@ public class TitleBar extends Panel {
 
             });
         } else {
-            breadcrumbPath.setVisible(false);
+            breadcrumbLinks.setVisible(false);
         }
+        breadcrumbPath.add(breadcrumbLinks);
+        // Tab strip placeholder (right side of the strip); replaced via setTabs().
+        breadcrumbPath.add(new EmptyPanel("tabs").setVisible(false));
+        // The strip shows when there is a breadcrumb to display; setTabs() also
+        // forces it visible so a tab strip shows even without a breadcrumb.
+        breadcrumbPath.setVisible(pathRefs.length > 0);
         add(breadcrumbPath);
     }
 
@@ -129,6 +143,21 @@ public class TitleBar extends Panel {
         String remainder = child.substring(lcp).replaceAll("^\\s+", "");
         if (remainder.isEmpty()) return child;
         return remainder;
+    }
+
+    /**
+     * Places a resource tab strip (Content | About | Raw) on the right side of
+     * the breadcrumb strip, and forces the strip visible so the tabs show even on
+     * pages without a breadcrumb (e.g. user pages). Returns {@code this} for
+     * fluent use at the {@code add(...)} call site.
+     *
+     * @param tabs the tab strip (its markup id must be {@code "tabs"})
+     * @return this TitleBar
+     */
+    public TitleBar setTabs(ResourceTabs tabs) {
+        breadcrumbPath.addOrReplace(tabs);
+        breadcrumbPath.setVisible(true);
+        return this;
     }
 
     private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass) {

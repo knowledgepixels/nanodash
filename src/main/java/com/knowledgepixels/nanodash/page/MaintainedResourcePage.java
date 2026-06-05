@@ -9,7 +9,9 @@ import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -61,58 +63,63 @@ public class MaintainedResourcePage extends NanodashPage {
                 return MaintainedResourceRepository.get().findById(resourceId);
             }
         };
-        Space space = resource.getSpace();
         resource.triggerDataUpdate();
+
+        ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
 
         List<AbstractResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());
         superSpaces.add(resource);
         add(new TitleBar("titlebar", this, null,
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
-        ));
+        ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
         add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
+        add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(resource.getId()), Model.of(resource.getLabel()), Values.iri(resource.getNanopubId())));
 
         String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
         add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
 
-        boolean isAdmin = SpaceMemberRole.isCurrentUserAdmin(space);
-        add(new AddViewDisplayButton("addviewdisplay",
-                "https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU",
-                "latest",
-                resource.getId(),
-                resource.getId(),
-                new PageParameters()
-                        .set("param_appliesToResource", resource.getId())
-                        .set("refresh-upon-publish", resource.getId())
-        ).setVisible(isAdmin));
-        add(new DownloadRdfLinks("download-rdf", "resource", resource.getId()));
 
-        if (resource.isDataInitialized()) {
-            add(new ViewList("views", resource));
+        WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
+        add(contentContainer);
+        if (activeTab == ResourceTabs.Tab.CONTENT) {
+            add(new EmptyPanel("otherTab").setVisible(false));
+            if (resource.isDataInitialized()) {
+                contentContainer.add(new ViewList("views", resource));
+            } else {
+                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
+
+                    @Override
+                    public Component getLazyLoadComponent(String markupId) {
+                        return new ViewList(markupId, resourceModel.getObject());
+                    }
+
+                    @Override
+                    protected boolean isContentReady() {
+                        return resourceModel.getObject().isDataInitialized();
+                    }
+
+                    @Override
+                    public Component getLoadingComponent(String id) {
+                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                    }
+
+                });
+            }
         } else {
-            add(new AjaxLazyLoadPanel<Component>("views") {
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resourceModel.getObject());
-                }
-
-                @Override
-                protected boolean isContentReady() {
-                    return resourceModel.getObject().isDataInitialized();
-                }
-
-                @Override
-                public Component getLoadingComponent(String id) {
-                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                }
-
-            });
+            contentContainer.setVisible(false);
+            if (activeTab == ResourceTabs.Tab.ABOUT) {
+                add(new AboutResourcePanel("otherTab", resource));
+            } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
+                add(new ExplorePanel("otherTab", resource.getId()));
+            } else {
+                add(new DownloadRdfLinks("otherTab", "resource", resource.getId()));
+            }
         }
     }
 
