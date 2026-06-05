@@ -66,15 +66,16 @@ public class QueryApiAccess {
     public static final String GET_LATEST_RIO_CANDIDATES = "RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates";
     public static final String GET_REACTIONS = "RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions";
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
-    // v8 (issue #302): standalone + preset-supplied views (unbound ?display), gated to
+    // v10 (issue #302): standalone + preset-supplied views (unbound ?display), gated to
     // admins/maintainers of the owning space or the affected user themselves. Each
-    // referenced view is resolved to its latest version server-side (supersedes chain),
-    // so ?view is already the latest and needs no separate per-view lookup. v8 hardens
-    // that resolution: rather than picking the max-timestamp node, it picks the version
-    // tree's most recent current head (a nanopub that is itself neither superseded nor
-    // validly retracted via npx:invalidates), making it robust to backdated supersedes
-    // and to retracted versions.
-    public static final String GET_VIEW_DISPLAYS = "RAJtBiC42q8RCd8yaTI5KwFTm7nPiBgzWD-DHHQiCt57A/get-view-displays";
+    // referenced view is resolved to its latest version server-side: the version tree's
+    // most recent current head (a nanopub itself neither superseded nor validly retracted
+    // via npx:invalidates), robust to backdated supersedes and retracted versions, so
+    // ?view is already the latest and needs no separate per-view lookup. v10 wraps that
+    // resolution in a run-once sub-SELECT so the cross-repo lookup federates once for the
+    // whole view set instead of once per referenced view -- cut a 44-display page from
+    // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
+    public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
