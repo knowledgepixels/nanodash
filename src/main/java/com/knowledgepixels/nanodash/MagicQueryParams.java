@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.google.common.collect.LinkedHashMultimap;
 import org.apache.wicket.Session;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ public class MagicQueryParams {
      */
     private static final Map<String, Supplier<List<String>>> REGISTRY = Map.of(
             "LOCALPUBKEY", MagicQueryParams::localPubkey,
-            "SITEURL", MagicQueryParams::siteUrl
+            "SITEURL", MagicQueryParams::siteUrl,
+            "CURRENTUSER", MagicQueryParams::currentUser
     );
 
     /**
@@ -124,6 +126,12 @@ public class MagicQueryParams {
     private static List<String> siteUrl() {
         String url = NanodashPreferences.get().getWebsiteUrl();
         return (url == null || url.isEmpty()) ? List.of() : List.of(url);
+    }
+
+    private static List<String> currentUser() {
+        if (!Session.exists()) return List.of();
+        IRI iri = NanodashSession.get().getUserIri();
+        return iri == null ? List.of() : List.of(iri.stringValue());
     }
 
 }

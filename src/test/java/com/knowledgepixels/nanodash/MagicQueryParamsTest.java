@@ -21,6 +21,7 @@ class MagicQueryParamsTest {
     void isMagicMatchesRegistryNamesOnly() {
         assertTrue(MagicQueryParams.isMagic("_LOCALPUBKEY_multi_val"));
         assertTrue(MagicQueryParams.isMagic("_SITEURL_multi_val"));
+        assertTrue(MagicQueryParams.isMagic("_CURRENTUSER_multi_iri"));
         assertFalse(MagicQueryParams.isMagic("_user_iri"));
         // detection is registry membership; the lowercase stem isn't registered
         assertFalse(MagicQueryParams.isMagic("_localpubkey_multi_val"));

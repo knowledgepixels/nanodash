@@ -13,9 +13,10 @@ The motivating case is the **Introductions** listing on a user's About page
 editable companion (`ProfileIntroItem`) *instead of* the read-only
 introductions-view, because the editable workflow branches on the session's
 local key (which introductions declare it, whether it is approved, which keys
-are missing). Magic params let the query compute those flags, so most of that
-custom panel can be replaced by a proper view. See the gap analysis at the end
-for what becomes declarative and what stays custom.
+are missing). Magic params let the query compute those flags, so the whole custom
+panel — both the introductions table and the recommended-actions companion —
+becomes views, removing `ProfileIntroItem` entirely. See the phase-3 design for
+how, and the gap analysis for the one deferred piece (include-keys).
 
 This complements, and is independent of, the role-dependent action work: magic
 params supply the *data*; role gating and per-row action visibility decide which
@@ -75,6 +76,7 @@ isMagic(rawPlaceholder) = REGISTRY.containsKey(QueryTemplate.getParamName(rawPla
 | --- | --- | --- | --- |
 | `LOCALPUBKEY` | `?_LOCALPUBKEY_multi_val` | `NanodashSession.get().getPubkeyString()` | the load-bearing one — drives every per-row flag and the create/derive key parameter |
 | `SITEURL` | `?_SITEURL_multi_val` | `NanodashPreferences.get().getWebsiteUrl()` | `key-location` prefill; genuine non-derivable deployment state |
+| `CURRENTUSER` | `?_CURRENTUSER_multi_iri` | `NanodashSession.get().getUserIri()` | the viewer's agent IRI; lets a view tell "is the viewer the page user" — the owner gate the recommended-actions view needs (the create case can't rely on key-match) |
 
 Declared as `_multi_*` so absence drops the `VALUES` block (see "graceful
 absence"). When the session has no value (logged out, no key pair), the binding
@@ -89,9 +91,8 @@ Deliberately **not** in the registry:
 - `LOCALINTRO` — only the deferred *include-keys* action needs the specific
   local-introduction IRI (for `supersede`). Every other flow derives from
   `LOCALPUBKEY` alone. Add it back only when include-keys goes declarative.
-- `CURRENTUSER` — the introductions view is already keyed on the page user. Add
-  it only when a view needs "who is viewing" distinct from "whose page," for the
-  general role-action work.
+(`CURRENTUSER` was initially parked here, but the recommended-actions view needs
+it for its owner gate, so it is now in the registry above.)
 
 ### Naming: uppercase is a best practice, not a rule
 
@@ -213,55 +214,132 @@ A query may `SELECT` a magic variable back out
 (`?_LOCALPUBKEY_multi_val AS ?local_pubkey`) and feed it to an action via an
 ordinary mapping (e.g. derive's key parameter).
 
-## Worked example: the introductions view
+## Phase 3 design: the introductions view (concrete)
 
-Query keyed on `?_user_iri` plus magic `?_LOCALPUBKEY_multi_val`:
+### The split
 
-```sparql
-SELECT ?np_iri ?date ?location ?keys_multi_val
-       ?declares_local_key ?retractable ?derivable
-       ?local_pubkey          # echoed for derive's key bundle
-WHERE {
-  # ... introductions of ?_user_iri ...
-  BIND( EXISTS { ?np npx:hasKeyDeclaration/npx:hasPublicKey ?_LOCALPUBKEY_multi_val }
-        AS ?declares_local_key )
-  BIND( (?declares_local_key && ?localCount > 1) AS ?retractable )
-  BIND( (!?declares_local_key && ?localCount = 0) AS ?derivable )
-}
-```
+`ProfileIntroItem` today is **[Recommended-Actions companion] + [the full
+introductions table with per-row action plumbing]**. Phase 3 turns **both** into
+views and removes `ProfileIntroItem` entirely:
 
-A conditionally-bound target column drives each row action's visibility:
+- The **table** (date / location / keys / np + per-row `retract`/`derive`)
+  becomes a proper **view**, shared by owner *and* non-owner — superseding the
+  read-only `introductions-view` (`RAElH_0Za…`, query `get-user-introductions`
+  `RAJTZRxP…`, keyed on `user`, no actions today).
+- The **Recommended-Actions companion** becomes a second **multi-row view**: one
+  row per applicable recommendation, owner-gated via `?_CURRENTUSER = ?_user_iri`
+  (see below). No custom Java remains.
 
-```sparql
-BIND( IF(?retractable, ?np_iri, "") AS ?retract_target )
-BIND( IF(?derivable,   ?np_iri, "") AS ?derive_target )
-```
+### The recommended-actions view (multi-row)
 
-Action declarations on the view nanopub:
+A list/item-list view keyed on `?_user_iri` + `?_CURRENTUSER` + `?_LOCALPUBKEY`,
+emitting **one row per applicable recommendation** via a `UNION` of conditional
+branches — each branch produces a row only when its condition holds:
 
-| Action | Type | Mappings (empty target → button hidden) |
+| Recommendation row | Condition (all also require `?_CURRENTUSER = ?_user_iri`) | Row's action |
 | --- | --- | --- |
-| Create Introduction | result action (owner-gated) | echoed `local_pubkey` → `public-key`, `SITEURL` → `key-location` |
-| retract | entry action | `retract_target → nanopubToBeRetracted` (required) |
-| derive | entry action | `derive_target → derive-a` (required, fill-mode key) + `local_pubkey → public-key__.1` |
+| Create an introduction | `localCount = 0` | Create Introduction (entry action) |
+| Retract redundant intros | `localCount > 1` | — (the retract buttons live in the table) |
+| Include missing keys | missing-keys set non-empty | include-keys (deferred — needs multi-expand) |
+| Get your intro approved | `!approved && localCount = 1` | link to the intro / `/userlist` |
+| (key not in any intro / approved status) | informational | — |
 
-`retract_target` / `derive_target` are empty for rows where the action does not
-apply, so the empty-into-required rule hides the button there. The table and
-these three row actions all become declarative.
+Zero applicable → zero rows → the section is empty/hidden. A **non-owner** fails
+`?_CURRENTUSER = ?_user_iri` on every branch → zero rows → nothing shown (the
+read-only intro table is enough). The owner gate **must** be `CURRENTUSER` here,
+not `LOCALPUBKEY` key-match: the "create" case has no intro yet, so there is no
+key to match — a non-owner would otherwise see "create an introduction" on the
+page (their own `localCount` is also 0).
 
-## Gap analysis: what stays custom
+Each actionable row carries its action as an **entry action** with target columns
+(empty-into-required gates the button); e.g. Create Introduction maps the intro
+template's `public-key`/`key-declaration`/`key-location` from
+`local_pubkey`/`local_pubkey_short`/`SITEURL` (all `param_`, so phase-2 **2b**
+multiple-mappings, no fill-mode key). The approval/wording text is built in the
+query (`IF`/`CONCAT`); approval status comes from the trust repo (queryable).
 
-- **Recommended-Actions prose.** The natural-language guidance on the owner's
-  About tab (keyed on approval / local-intro state) is not a view, table, or
-  action. It stays a small owner-only companion.
-- **include-keys.** The strained one. Beyond multi-value → indexed expansion it
-  needs three correlated indexed parameters per missing key (`public-key`,
-  `key-declaration`, `key-declaration-ref`); the two `key-declaration*` values
-  are `getShortPubkeyName(SHA-256(pubkey))`, whose Nanodash-specific formatting
-  does not map cleanly to SPARQL string functions. Ship create/derive/retract
-  declaratively first; keep include-keys custom (or as a derive-only flow) until
-  the short-name derivation is worth pushing into the query — at which point
-  `LOCALINTRO` returns to the registry.
+### The query (extends the real `get-user-introductions`)
+
+Today it groups intros of `?_user_iri` into `?date ?location ?keys ?np`. The new
+version adds `?_LOCALPUBKEY_multi_val` and derives the action flags/targets. Per
+intro `?np`:
+
+```sparql
+# does THIS intro declare the viewer's local key?
+BIND(EXISTS { GRAPH ?a { ?kd npx:declaredBy ?_user_iri ; npx:hasPublicKey ?_LOCALPUBKEY_multi_val } }
+     AS ?declares_local_key)
+# how many of the user's intros declare the local key (subquery, viewer-relative)
+#   ?localCount = count(distinct ?np2 : intro of ?_user_iri declaring ?_LOCALPUBKEY)
+BIND((?declares_local_key && ?localCount > 1) AS ?retractable)
+BIND((!?declares_local_key && ?localCount = 0) AS ?derivable)
+BIND(IF(?retractable, str(?np), "") AS ?retract_target)
+BIND(IF(?derivable,   str(?np), "") AS ?derive_target)
+# echoed for derive's key bundle:
+BIND(?_LOCALPUBKEY_multi_val AS ?local_pubkey)
+BIND(substr(sha256(?_LOCALPUBKEY_multi_val), 1, 10) AS ?local_pubkey_short)
+```
+
+When `?_LOCALPUBKEY` is unbound (logged out / no key) the `VALUES` block drops,
+so `declares_local_key` is false and `local_pubkey` is empty everywhere — which,
+via the action mappings below, hides both editable actions for non-owners and
+logged-out viewers without any role check.
+
+### Owner-gating falls out of `LOCALPUBKEY` — no `gen:isVisibleTo` needed
+
+A non-owner viewing user X's page is logged in with *their own* key, which X's
+intros don't declare → `declares_local_key` false, `localCount` 0 → both targets
+empty → buttons hidden. The owner's own key *does* match → shown for applicable
+rows. So the magic-param flags gate **both** owner-ness and per-row applicability;
+the role-gating `gen:isVisibleTo` is not used on these actions.
+
+### View entry actions
+
+| Action | Template | Mappings (every *required* target empty → button hidden) |
+| --- | --- | --- |
+| retract | `RA0QOsYN…` (retract) | `retract_target → nanopubToBeRetracted` (`param_`, required) |
+| derive | `RAT8ayO6…` (intro) | `derive_target → derive-a` (fill-mode key, required) **+** `local_pubkey → public-key__.1` **+** `local_pubkey_short → key-declaration__.1` / `key-declaration-ref__.1` **+** `SITEURL → key-location__.1` |
+
+`retract` shows only for the viewer's own redundant intros; `derive` only when the
+viewer holds a local key not yet in any of the user's intros (its `derive_target`
+*and* `local_pubkey` mappings must both be non-empty).
+
+### What phase 2 must support (pinned by the above)
+
+- **retract → phase-2 core only:** a single `param_` mapping, hidden when its
+  value is empty and the placeholder is required. No 2b.
+- **derive → 2b:** *multiple* mappings per action, one targeting a **non-`param_`
+  fill-mode key** (`derive-a`); the action is hidden if **any** required mapped
+  value is empty (so an empty `derive_target` *or* empty `local_pubkey` hides it).
+- **Create Introduction → 2b:** an entry action on the "create" recommendation
+  row, with *multiple* `param_` mappings (`local_pubkey → public-key`,
+  `local_pubkey_short → key-declaration`/`-ref`, `SITEURL → key-location`); no
+  fill-mode key. Hidden if any required mapping is empty (logged out → no
+  `local_pubkey` → hidden). Same 2b machinery as derive.
+- **include-keys → multi-value→indexed expansion:** deferred. Its recommendation
+  row can show guidance text now, but the action (the missing-keys set-difference
+  expanded into `__.1..N`) waits for multi-expand.
+
+So phase 2 = the **empty-into-required core** + **2b (multiple mappings,
+non-`param_` targets)** — which covers retract, derive, and Create Introduction.
+Multi-expand (include-keys) and `CURRENTUSER` are the remaining additions; nothing
+stays permanently custom.
+
+## Gap analysis: what's deferred (nothing stays permanently custom)
+
+With both the table and the recommendations modelled as views, `ProfileIntroItem`
+is removed entirely. The only deferred piece is **include-keys**:
+
+- It needs `LOCALINTRO` (the `supersede` target) back in the registry, plus the
+  missing-keys set-difference and three correlated indexed parameters per missing
+  key (`public-key`/`key-declaration`/`key-declaration-ref`, the `key-declaration*`
+  being `getShortPubkeyName(SHA-256(pubkey))`). That's the multi-value→indexed
+  expansion (phase 4) — and whether the short-name formatting maps cleanly to
+  SPARQL is the open question. Until then, the include-keys recommendation row can
+  show guidance text without an executable button.
+
+A copy-maintenance note: with the recommendations modelled as a view, the advisory
+wording lives in a query nanopub (`IF`/`CONCAT`), so tweaking it means republishing
+the query — the accepted trade for going fully declarative.
 
 ## Touch points
 
