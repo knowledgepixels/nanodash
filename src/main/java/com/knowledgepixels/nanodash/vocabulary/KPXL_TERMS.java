@@ -117,6 +117,16 @@ public class KPXL_TERMS {
     public static final IRI OBSERVER_ROLE = VocabUtils.createIRI(NAMESPACE, "ObserverRole");
 
     /**
+     * Visibility sentinel tier meaning "everyone, including anonymous viewers"
+     * (the rank-0 floor). Unlike the tiers above it is <em>not</em> a
+     * nanopub-query grant tier — it is never granted, only used as a
+     * {@code gen:isVisibleTo} value/default to express "no restriction"
+     * explicitly (needed because a view-creation template cannot leave the
+     * per-action visibility statement optional). See docs/role-specific-views.md.
+     */
+    public static final IRI EVERYONE_ROLE = VocabUtils.createIRI(NAMESPACE, "EveryoneRole");
+
+    /**
      * Restricts a view display (or view) to viewers holding the given role tier
      * (one of the role-tier IRIs above) or a specific role IRI. Absent means
      * visible to everyone. See docs/role-specific-views.md.

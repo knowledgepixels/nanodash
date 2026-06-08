@@ -51,16 +51,21 @@ and this feature decides what to do with it.
 
 ### The visibility ladder
 
-For matching, Nanodash ranks tiers, with an **"Everyone" floor below Observer**:
+For matching, Nanodash ranks tiers, with a `gen:EveryoneRole` floor below Observer:
 
 ```
-Everyone (rank 0, = no triple) < Observer (1) < Member (2) < Maintainer (3) < Admin (4)
+gen:EveryoneRole (0) < Observer (1) < Member (2) < Maintainer (3) < Admin (4)
 ```
 
-"Everyone" means literally anyone, including logged-out viewers with no role —
-distinct from Observer, the lowest *assigned* tier. **"Everyone" is not a
-nanopub-query role type** (those are *grant* tiers, and you never "grant
-everybody"); it exists only as the absence-of-restriction default here.
+`gen:EveryoneRole` means literally anyone, including logged-out viewers with no
+role — distinct from Observer, the lowest *assigned* tier. It is a
+**Nanodash-side visibility sentinel, not a nanopub-query grant tier** (those are
+admin/maintainer/member/observer — you never "grant everybody"). It earns an
+explicit IRI because the view-creation template **cannot leave the per-action
+visibility statement optional inside a repeated action group**, so it needs a
+concrete "no restriction" value to use as the default. A hand-authored action
+that simply omits `gen:isVisibleTo` is also visible to everyone — omission and
+`gen:EveryoneRole` are equivalent.
 
 ## The predicate — on the action node
 
@@ -75,7 +80,8 @@ sub:retractAction a gen:ViewEntryAction ;
     gen:hasActionTemplate <…/retract-template> ;
     gen:isVisibleTo gen:MaintainerRole .          # tier: this tier or above
 # sub:retractAction gen:isVisibleTo <…/someRole>  # or a specific role IRI
-# (no triple)                                      # Everyone (default, additive)
+# sub:retractAction gen:isVisibleTo gen:EveryoneRole  # everyone (the authored default)
+# (no triple at all)                              # also everyone (hand-authored)
 ```
 
 The object is either a tier IRI or a specific role IRI; disambiguation is the
@@ -87,6 +93,7 @@ fixed tier set (`gen:AdminRole` / `gen:MaintainerRole` / `gen:MemberRole` /
 ```
 isViewerEntitled(reqs, viewer, governingSpace, viewerIsOwner):
   if reqs empty                      -> entitled (Everyone)
+  if reqs contains gen:EveryoneRole  -> entitled (everyone, incl. anonymous)
   if governingSpace == null:                            // user page = owner is sole admin
     tier = viewerIsOwner ? Admin : Everyone
     return any tier-IRI X in reqs with tier >= rank(X)  // specific roles unholdable here
@@ -155,7 +162,7 @@ of how the table was wired — the declarative fix for this class of bug.
 | `userTier` / `viewerHoldsRole` | `domain/Space.java` | done |
 | Parse `gen:isVisibleTo` on action nodes | `View.java` (`getActionVisibleTo`) | done |
 | Filter actions in the renderers | `QueryResultTable(Builder)`, `QueryResultList(Builder)`, `QueryResultPlainParagraphBuilder` | done |
-| `gen:isVisibleTo` field in the view-creation template | nanopub publish | todo |
+| `gen:isVisibleTo` field in the view-creation template | nanopub `RA8_hijwsfGCryMYtjtEpec21ZSNY68-qmL0bHRWR0sWM` | published |
 | Server-side path (optional) | `get-view-displays` / action queries + `?_CURRENTUSER` | todo |
 
 ## Phasing
@@ -164,10 +171,23 @@ of how the table was wired — the declarative fix for this class of bug.
    `Space.userTier`/`viewerHoldsRole`, the `get-space-roles` `roleType` column. ✅
 2. **Per-action parse + filter** — `View.getActionVisibleTo`, gates in the five
    action renderers (additive). ✅
-3. **Authoring** — add an optional `gen:isVisibleTo` tier picker to the
-   view-creation template (`…declaring-a-resource-view`), so authors set it when
-   defining a view. Republish; no Nanodash change (templates are discovered
-   dynamically). Specific-role targeting stays an advanced/hand-authored case.
+3. **Authoring** ✅ — published as
+   `RA8_hijwsfGCryMYtjtEpec21ZSNY68-qmL0bHRWR0sWM` (supersedes the
+   `…declaring-a-resource-view` chain). Each action in the repeatable `st50` group
+   now carries a `gen:isVisibleTo` `nt:GuidedChoicePlaceholder`:
+   - fixed `nt:possibleValue`s for the tiers (`EveryoneRole`, `ObserverRole`,
+     `MemberRole`, `MaintainerRole`, `AdminRole`);
+   - `nt:possibleValuesFromApi …find-things?type=…SpaceMemberRole` to offer
+     published specific roles (the same source the role-assignment template uses);
+   - free text still allowed for any other role IRI.
+
+   The statement **cannot be optional** (a known limitation: optional statements
+   inside a repeated group aren't supported yet), so it carries
+   `nt:hasDefaultValue gen:EveryoneRole` — the explicit "no restriction" value.
+   Republishing requires the template's original **Nanodash-web signing key** (it
+   was created there, not with the local CLI key), so it must be superseded via
+   Nanodash-web or by signing with that key. No Nanodash code change (templates are
+   discovered dynamically).
 4. *(Optional, later)* server-side enforcement via the `?_CURRENTUSER` magic
    parameter, once [magic-query-params](magic-query-params.md) lands.
 
@@ -179,5 +199,6 @@ nanopub-query
 ([design-space-repositories.md](../../nanopub-query/doc/design-space-repositories.md)).
 Nanodash adds only the *privilege* interpretation — "a viewer at tier ≥ T (or
 holding role R) may use this action" — which that design explicitly leaves to
-Nanodash. No new server-side role type is introduced (the Everyone floor is a
-Nanodash-side default, not a tier).
+Nanodash. No new server-side role type is introduced: `gen:EveryoneRole` is a
+Nanodash-side visibility sentinel (the rank-0 "no restriction" default), never a
+grantable nanopub-query tier.

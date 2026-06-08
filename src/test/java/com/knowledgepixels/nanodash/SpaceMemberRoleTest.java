@@ -173,6 +173,22 @@ class SpaceMemberRoleTest {
     }
 
     @Test
+    void everyoneRoleIsVisibleToAll() {
+        Set<IRI> reqs = Set.of(KPXL_TERMS.EVERYONE_ROLE);
+        // anonymous viewer on a space page
+        assertTrue(SpaceMemberRole.isViewerEntitled(reqs, null, mock(Space.class), false));
+        // member of a space (any tier)
+        Space space = mock(Space.class);
+        when(space.userTier(VIEWER)).thenReturn(SpaceMemberRole.EVERYONE_RANK);
+        assertTrue(SpaceMemberRole.isViewerEntitled(reqs, VIEWER, space, false));
+        // non-owner on a user page
+        assertTrue(SpaceMemberRole.isViewerEntitled(reqs, VIEWER, null, false));
+        // EveryoneRole ranks at the floor, below Observer
+        assertEquals(SpaceMemberRole.EVERYONE_RANK, SpaceMemberRole.tierRank(KPXL_TERMS.EVERYONE_ROLE));
+        assertTrue(SpaceMemberRole.isTier(KPXL_TERMS.EVERYONE_ROLE));
+    }
+
+    @Test
     void userPageSpecificRoleMatchesNobody() {
         // Specific roles are unholdable without a space, so even the owner (admin
         // tier, not that role) does not match.

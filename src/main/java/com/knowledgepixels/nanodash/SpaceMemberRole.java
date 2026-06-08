@@ -193,7 +193,8 @@ public class SpaceMemberRole implements Serializable {
      * @return true if the IRI is a role tier
      */
     public static boolean isTier(IRI iri) {
-        return KPXL_TERMS.ADMIN_ROLE_TYPE.equals(iri)
+        return KPXL_TERMS.EVERYONE_ROLE.equals(iri)
+                || KPXL_TERMS.ADMIN_ROLE_TYPE.equals(iri)
                 || KPXL_TERMS.MAINTAINER_ROLE.equals(iri)
                 || KPXL_TERMS.MEMBER_ROLE.equals(iri)
                 || KPXL_TERMS.OBSERVER_ROLE.equals(iri);
@@ -221,6 +222,11 @@ public class SpaceMemberRole implements Serializable {
      */
     public static boolean isViewerEntitled(Set<IRI> requiredVisibility, IRI viewer, Space governingSpace, boolean viewerIsOwner) {
         if (requiredVisibility == null || requiredVisibility.isEmpty()) return true;
+        // gen:EveryoneRole is the explicit "no restriction" value (the default the
+        // view-creation template emits since it cannot leave the statement optional);
+        // it is visible to everyone, including anonymous viewers, so short-circuit
+        // before the null-viewer / null-space guards below.
+        if (requiredVisibility.contains(KPXL_TERMS.EVERYONE_ROLE)) return true;
         if (governingSpace == null) {
             // A user page is a degenerate space: the owner is its sole admin and no
             // other members or role assignments exist (observers may be added
