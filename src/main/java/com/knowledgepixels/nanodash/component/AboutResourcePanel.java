@@ -21,10 +21,10 @@ public class AboutResourcePanel extends Panel {
         super(id);
 
         View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
-        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).id(resource.getId()).contextId(resource.getId()).build());
+        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
 
         View vdView = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(vdView)).id(resource.getId()).contextId(resource.getId()).build());
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
     }
 
 }

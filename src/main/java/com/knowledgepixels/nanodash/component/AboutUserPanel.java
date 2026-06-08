@@ -72,10 +72,10 @@ public class AboutUserPanel extends Panel {
                 .build());
 
         View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
-        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(presetsView)).id(userIriString).contextId(userIriString).build());
+        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(presetsView)).resourceWithProfile(IndividualAgent.get(userIriString)).id(userIriString).contextId(userIriString).build());
 
         View vdView = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(vdView)).id(userIriString).contextId(userIriString).build());
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(vdView)).resourceWithProfile(IndividualAgent.get(userIriString)).id(userIriString).contextId(userIriString).build());
     }
 
 }
