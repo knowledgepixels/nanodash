@@ -1,6 +1,6 @@
 # Role-specific view actions
 
-**Status:** 🚧 In progress — per-action `gen:isVisibleTo` gating implemented (tier model, matching, and filtering in the action renderers), and the `get-space-roles` `roleType` republish (P0) is published. Remaining: an authoring template field for `gen:isVisibleTo`, and the optional server-side path.
+**Status:** ✅ Implemented — per-action `gen:isVisibleTo` gating (tier model, matching, and filtering in the action renderers), the `get-space-roles` `roleType` republish (P0), and the authoring template field are all published. Only an optional performance tweak remains (see Phasing).
 
 A view's **action button** can declare that it is shown only to viewers holding a
 given role, or a given role **tier** (class), relative to the resource's
@@ -163,7 +163,6 @@ of how the table was wired — the declarative fix for this class of bug.
 | Parse `gen:isVisibleTo` on action nodes | `View.java` (`getActionVisibleTo`) | done |
 | Filter actions in the renderers | `QueryResultTable(Builder)`, `QueryResultList(Builder)`, `QueryResultPlainParagraphBuilder` | done |
 | `gen:isVisibleTo` field in the view-creation template | nanopub `RA8_hijwsfGCryMYtjtEpec21ZSNY68-qmL0bHRWR0sWM` | published |
-| Server-side path (optional) | `get-view-displays` / action queries + `?_CURRENTUSER` | todo |
 
 ## Phasing
 
@@ -188,8 +187,11 @@ of how the table was wired — the declarative fix for this class of bug.
    was created there, not with the local CLI key), so it must be superseded via
    Nanodash-web or by signing with that key. No Nanodash code change (templates are
    discovered dynamically).
-4. *(Optional, later)* server-side enforcement via the `?_CURRENTUSER` magic
-   parameter, once [magic-query-params](magic-query-params.md) lands.
+4. *(Optional, later — performance only)* have a query return the viewer's tier
+   in a space directly, so Nanodash needn't load the full role set to compute
+   `userTier`. This is **not** a security boundary — action gating is client-side
+   relevance-gating over public data, so there is nothing to "enforce"
+   server-side; it would only save a fetch on busy pages.
 
 ## Relationship to nanopub-query
 
