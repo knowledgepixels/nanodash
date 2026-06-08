@@ -39,6 +39,18 @@ public class KPXL_TERMS {
     public static final IRI VIEW_RESULT_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewResultAction");
     public static final IRI VIEW_ENTRY_ACTION = VocabUtils.createIRI(NAMESPACE, "ViewEntryAction");
 
+    // Presets (issue #302): a named bundle of default views and roles, and the
+    // assignment of such a bundle to a resource. Mirrors the view-display model.
+    // Resource types (the values used in gen:appliesToInstancesOf).
+    public static final IRI SPACE = VocabUtils.createIRI(NAMESPACE, "Space");
+    public static final IRI MAINTAINED_RESOURCE = VocabUtils.createIRI(NAMESPACE, "MaintainedResource");
+    public static final IRI INDIVIDUAL_AGENT = VocabUtils.createIRI(NAMESPACE, "IndividualAgent");
+
+    public static final IRI PRESET = VocabUtils.createIRI(NAMESPACE, "Preset");
+    public static final IRI PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "PresetAssignment");
+    public static final IRI ACTIVATED_PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "ActivatedPresetAssignment");
+    public static final IRI DEACTIVATED_PRESET_ASSIGNMENT = VocabUtils.createIRI(NAMESPACE, "DeactivatedPresetAssignment");
+
     public static final IRI HAS_DISPLAY_WIDTH = VocabUtils.createIRI(NAMESPACE, "hasDisplayWidth");
     public static final IRI HAS_VIEW_QUERY = VocabUtils.createIRI(NAMESPACE, "hasViewQuery");
     public static final IRI HAS_VIEW_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasViewQueryTargetField");
@@ -54,6 +66,13 @@ public class KPXL_TERMS {
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");
+
+    // Preset properties (issue #302):
+    public static final IRI HAS_TOP_LEVEL_VIEW = VocabUtils.createIRI(NAMESPACE, "hasTopLevelView");
+    public static final IRI HAS_VIEW = VocabUtils.createIRI(NAMESPACE, "hasView");
+    public static final IRI HAS_ROLE = VocabUtils.createIRI(NAMESPACE, "hasRole");
+    public static final IRI IS_ASSIGNMENT_OF_PRESET = VocabUtils.createIRI(NAMESPACE, "isAssignmentOfPreset");
+    public static final IRI IS_ASSIGNMENT_FOR = VocabUtils.createIRI(NAMESPACE, "isAssignmentFor");
 
     // TODO Remove these deprecated terms.
     // Deprecated:
@@ -86,5 +105,32 @@ public class KPXL_TERMS {
     public static final IRI HAS_ADMIN_PREDICATE = VocabUtils.createIRI(NAMESPACE, "hasAdmin");
 
     public static final IRI HAS_DEFAULT_LICENSE = VocabUtils.createIRI(NAMESPACE, "hasDefaultLicense");
+
+    // Role tiers (subclasses of gen:SpaceMemberRole; materialized server-side by
+    // nanopub-query as the npa:hasRoleType value). Ordered admin > maintainer >
+    // member > observer; observer is the default when a role declares no tier.
+    // Used to gate view-display visibility by role tier; see
+    // docs/role-specific-views.md.
+    public static final IRI ADMIN_ROLE_TYPE = VocabUtils.createIRI(NAMESPACE, "AdminRole");
+    public static final IRI MAINTAINER_ROLE = VocabUtils.createIRI(NAMESPACE, "MaintainerRole");
+    public static final IRI MEMBER_ROLE = VocabUtils.createIRI(NAMESPACE, "MemberRole");
+    public static final IRI OBSERVER_ROLE = VocabUtils.createIRI(NAMESPACE, "ObserverRole");
+
+    /**
+     * Visibility sentinel tier meaning "everyone, including anonymous viewers"
+     * (the rank-0 floor). Unlike the tiers above it is <em>not</em> a
+     * nanopub-query grant tier — it is never granted, only used as a
+     * {@code gen:isVisibleTo} value/default to express "no restriction"
+     * explicitly (needed because a view-creation template cannot leave the
+     * per-action visibility statement optional). See docs/role-specific-views.md.
+     */
+    public static final IRI EVERYONE_ROLE = VocabUtils.createIRI(NAMESPACE, "EveryoneRole");
+
+    /**
+     * Restricts a view display (or view) to viewers holding the given role tier
+     * (one of the role-tier IRIs above) or a specific role IRI. Absent means
+     * visible to everyone. See docs/role-specific-views.md.
+     */
+    public static final IRI IS_VISIBLE_TO = VocabUtils.createIRI(NAMESPACE, "isVisibleTo");
 
 }

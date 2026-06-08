@@ -54,6 +54,7 @@ public class QueryResultItemList extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();
@@ -119,9 +120,18 @@ public class QueryResultItemList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
+        Label noRecordsLabel = new Label("no-records", "(nothing found)") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(filteredDataProvider.size() == 0);
+            }
+        };
+
         itemsContainer = new WebMarkupContainer("items-container");
         itemsContainer.setOutputMarkupId(true);
         itemsContainer.add(dataView);
+        itemsContainer.add(noRecordsLabel);
         itemsContainer.add(navigation);
         add(itemsContainer);
     }

@@ -5,7 +5,6 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
-import com.knowledgepixels.nanodash.component.menu.UserPageMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.Component;
@@ -69,8 +68,10 @@ public class UserPage extends NanodashPage {
         }
         if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
 
+        ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
         String pageType = "users";
-        add(new TitleBar("titlebar", this, pageType));
+        add(new TitleBar("titlebar", this, pageType)
+                .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
         add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
 
@@ -93,21 +94,9 @@ public class UserPage extends NanodashPage {
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));
+        add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
 
-        add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName),
-                new UserPageMenu("np", userIriString, displayName)));
-        boolean isOwnPage = userIri.equals(NanodashSession.get().getUserIri());
-        add(new BookmarkablePageLink<Void>("showprofile", ProfilePage.class).setVisible(isOwnPage));
-        add(new AddViewDisplayButton("addviewdisplay",
-                "https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g",
-                "latest",
-                userIriString,
-                userIriString,
-                new PageParameters()
-                        .set("refresh-upon-publish", userIriString)
-                        .set("param_appliesToResource", userIriString)
-        ).setVisible(isOwnPage));
-        add(new DownloadRdfLinks("download-rdf", "user", userIriString));
+        add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
 
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;
@@ -151,66 +140,80 @@ public class UserPage extends NanodashPage {
 //			});
 //		}
 
-        IndividualAgent individualAgent = IndividualAgent.get(userIriString);
-        if (individualAgent.isDataInitialized()) {
-            boolean empty = individualAgent.getTopLevelViewDisplays().isEmpty();
-            if (empty) {
-                add(new WebMarkupContainer("views").setVisible(false));
+        WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
+        add(contentContainer);
+        if (activeTab != ResourceTabs.Tab.CONTENT) {
+            contentContainer.setVisible(false);
+            if (activeTab == ResourceTabs.Tab.ABOUT) {
+                add(new AboutUserPanel("otherTab", userIriString));
+            } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
+                add(new ExplorePanel("otherTab", userIriString));
             } else {
-                add(new ViewList("views", individualAgent));
-            }
-            add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
-            if (empty) {
-                ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-                add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
-            } else {
-                add(new EmptyPanel("latestnanopubsview").setVisible(false));
+                add(new DownloadRdfLinks("otherTab", "user", userIriString));
             }
         } else {
-            final WebMarkupContainer unconfiguredNotice = new WebMarkupContainer("unconfigured-notice");
-            unconfiguredNotice.setVisible(false);
-            unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
-            add(unconfiguredNotice);
-
-            ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-            final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
-            latestNanopubsView.setVisible(false);
-            latestNanopubsView.setOutputMarkupPlaceholderTag(true);
-            add(latestNanopubsView);
-
-            add(new AjaxLazyLoadPanel<Component>("views") {
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, individualAgent);
+            add(new EmptyPanel("otherTab").setVisible(false));
+            IndividualAgent individualAgent = IndividualAgent.get(userIriString);
+            if (individualAgent.isDataInitialized()) {
+                boolean empty = individualAgent.getTopLevelViewDisplays().isEmpty();
+                if (empty) {
+                    contentContainer.add(new WebMarkupContainer("views").setVisible(false));
+                } else {
+                    contentContainer.add(new ViewList("views", individualAgent));
                 }
-
-                @Override
-                protected boolean isContentReady() {
-                    return individualAgent.isDataInitialized();
+                contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
+                if (empty) {
+                    ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
+                    contentContainer.add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
+                } else {
+                    contentContainer.add(new EmptyPanel("latestnanopubsview").setVisible(false));
                 }
+            } else {
+                final WebMarkupContainer unconfiguredNotice = new WebMarkupContainer("unconfigured-notice");
+                unconfiguredNotice.setVisible(false);
+                unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
+                contentContainer.add(unconfiguredNotice);
 
-                @Override
-                public Component getLoadingComponent(String id) {
-                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                }
+                ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
+                final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
+                latestNanopubsView.setVisible(false);
+                latestNanopubsView.setOutputMarkupPlaceholderTag(true);
+                contentContainer.add(latestNanopubsView);
 
-                @Override
-                protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
-                    super.onContentLoaded(content, target);
-                    target.ifPresent(t -> {
-                        boolean isEmpty = individualAgent.getTopLevelViewDisplays().isEmpty();
-                        if (isEmpty) {
-                            t.appendJavaScript("document.getElementById('" + getMarkupId() + "').remove();");
-                        }
-                        unconfiguredNotice.setVisible(isEmpty);
-                        t.add(unconfiguredNotice);
-                        latestNanopubsView.setVisible(isEmpty);
-                        t.add(latestNanopubsView);
-                    });
-                }
+                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
 
-            });
+                    @Override
+                    public Component getLazyLoadComponent(String markupId) {
+                        return new ViewList(markupId, individualAgent);
+                    }
+
+                    @Override
+                    protected boolean isContentReady() {
+                        return individualAgent.isDataInitialized();
+                    }
+
+                    @Override
+                    public Component getLoadingComponent(String id) {
+                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                    }
+
+                    @Override
+                    protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+                        super.onContentLoaded(content, target);
+                        target.ifPresent(t -> {
+                            boolean isEmpty = individualAgent.getTopLevelViewDisplays().isEmpty();
+                            if (isEmpty) {
+                                t.appendJavaScript("document.getElementById('" + getMarkupId() + "').remove();");
+                            }
+                            unconfiguredNotice.setVisible(isEmpty);
+                            t.add(unconfiguredNotice);
+                            latestNanopubsView.setVisible(isEmpty);
+                            t.add(latestNanopubsView);
+                        });
+                    }
+
+                });
+            }
         }
     }
 

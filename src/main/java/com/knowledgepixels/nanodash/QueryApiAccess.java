@@ -66,7 +66,16 @@ public class QueryApiAccess {
     public static final String GET_LATEST_RIO_CANDIDATES = "RAehKOCOnZ3uDBmI0kkCNTh5k9Nl6YYNj7tyc20tVymxY/get-latest-rio-candidates";
     public static final String GET_REACTIONS = "RAe7k3L0oElPOrFoUMkUhqU9dGUqfBaUSw3cVplOUn3Fk/get-reactions";
     public static final String GET_TERM_DEFINITIONS = "RAZUsK7jU85oUYEVKvMPFlqbwn19oR55IQuFkXuiS_Tkg/get-term-definitions";
-    public static final String GET_VIEW_DISPLAYS = "RAIMs6C9gfjqX-TYGd8mrq7MJ7K-DoofW6v4dzFQJTs7Y/get-view-displays";
+    // v10 (issue #302): standalone + preset-supplied views (unbound ?display), gated to
+    // admins/maintainers of the owning space or the affected user themselves. Each
+    // referenced view is resolved to its latest version server-side: the version tree's
+    // most recent current head (a nanopub itself neither superseded nor validly retracted
+    // via npx:invalidates), robust to backdated supersedes and retracted versions, so
+    // ?view is already the latest and needs no separate per-view lookup. v10 wraps that
+    // resolution in a run-once sub-SELECT so the cross-repo lookup federates once for the
+    // whole view set instead of once per referenced view -- cut a 44-display page from
+    // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
+    public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
@@ -74,7 +83,7 @@ public class QueryApiAccess {
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
-    public static final String GET_SPACE_ROLES = "RAERgisNLMcIq9eZgXA6ASW3XaewAJIvMSGs4v1yn-FdM/get-space-roles";
+    public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);

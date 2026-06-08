@@ -17,15 +17,6 @@ public class SpaceExploreMenu extends BaseDisplayMenu {
     public SpaceExploreMenu(String id, String exploreUri, String exploreLabel, IRI sourceUri, Space space) {
         super(id);
 
-        addEntry("explore", new BookmarkablePageLink<Void>("explore", ExplorePage.class,
-                new PageParameters().set("id", exploreUri).set("label", exploreLabel)));
-        addEntry("viewDeclaration", new BookmarkablePageLink<Void>("viewDeclaration", ExplorePage.class,
-                new PageParameters().set("id", sourceUri)));
-        addEntry("showViewDisplayQuery", new BookmarkablePageLink<Void>("showViewDisplayQuery", QueryPage.class,
-                new PageParameters()
-                        .set("id", QueryApiAccess.GET_VIEW_DISPLAYS)
-                        .add("queryparam_resource", exploreUri)));
-
         boolean isAdmin = SpaceMemberRole.isCurrentUserAdmin(space);
 
         String spacePrefix = space.getId().replaceFirst("https://w3id.org/spaces/", "") + "/<SET-SUFFIX>";

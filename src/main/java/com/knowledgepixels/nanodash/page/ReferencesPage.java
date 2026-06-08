@@ -16,7 +16,10 @@ public class ReferencesPage extends NanodashPage {
 
     public static final String MOUNT_PATH = "/references";
 
-    private static final String REFERENCES_VIEW = "https://w3id.org/np/RAZ0EGsBlca8unLqQzGl5kVapGgllKvDbGFlTA_FFD7oM/references-view";
+    /**
+     * The view used to render references to a given URI. Shared with the About pages.
+     */
+    public static final String REFERENCES_VIEW = "https://w3id.org/np/RAZ0EGsBlca8unLqQzGl5kVapGgllKvDbGFlTA_FFD7oM/references-view";
 
     @Override
     public String getMountPath() {

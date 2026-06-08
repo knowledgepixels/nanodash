@@ -15,7 +15,9 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -137,14 +139,16 @@ public class ResourcePartPage extends NanodashPage {
         }
         breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
         NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);
+        ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
         add(new TitleBar("titlebar", this, null,
                 breadCrumbArray
-        ));
+        ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
         add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
 
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
+        add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         boolean showButton = false;
@@ -165,30 +169,39 @@ public class ResourcePartPage extends NanodashPage {
                         .set("refresh-upon-publish", resourceWithProfile.getId())
         ).setVisible(showButton));
 
-        add(new DownloadRdfLinks("download-rdf", "part", id, resourceWithProfile.getId()));
-
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
-        if (resourceWithProfile.isDataInitialized()) {
-            add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
+        WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
+        add(contentContainer);
+        if (activeTab == ResourceTabs.Tab.EXPLORE) {
+            contentContainer.setVisible(false);
+            add(new ExplorePanel("otherTab", id));
+        } else if (activeTab == ResourceTabs.Tab.RAW) {
+            contentContainer.setVisible(false);
+            add(new DownloadRdfLinks("otherTab", "part", id, resourceWithProfile.getId()));
         } else {
-            add(new AjaxLazyLoadPanel<Component>("views") {
+            add(new EmptyPanel("otherTab").setVisible(false));
+            if (resourceWithProfile.isDataInitialized()) {
+                contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
+            } else {
+                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
 
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
-                }
+                    @Override
+                    public Component getLazyLoadComponent(String markupId) {
+                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
+                    }
 
-                @Override
-                protected boolean isContentReady() {
-                    return resourceWithProfile.isDataInitialized();
-                }
+                    @Override
+                    protected boolean isContentReady() {
+                        return resourceWithProfile.isDataInitialized();
+                    }
 
-                @Override
-                public Component getLoadingComponent(String id) {
-                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                }
+                    @Override
+                    public Component getLoadingComponent(String id) {
+                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                    }
 
-            });
+                });
+            }
         }
     }
 

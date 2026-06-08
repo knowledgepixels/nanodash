@@ -58,34 +58,53 @@ public class View implements Serializable {
         .build();
 
     /**
-     * Get a View by its ID.
+     * Get a View by its ID, resolving to the latest version (following the
+     * supersedes chain).
      *
      * @param id the ID of the View
      * @return the View object
      */
     public static View get(String id) {
+        return get(id, true);
+    }
+
+    /**
+     * Get a View by its ID.
+     *
+     * @param id            the ID of the View
+     * @param resolveLatest if true, follow the supersedes chain to load the latest
+     *                      version of the view; if false, load exactly the given
+     *                      version without a latest-version lookup. Pass false when
+     *                      the caller already holds a latest-resolved IRI (e.g. from
+     *                      the get-view-displays query, which now resolves it
+     *                      server-side) to avoid a redundant network round-trip.
+     * @return the View object
+     */
+    public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-        // Automatically selecting latest version of view definition:
-        // TODO This should be made configurable at some point, so one can make it a fixed version.
-        try {
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (!latestNpId.equals(npId)) {
-                Nanopub np = Utils.getAsNanopub(latestNpId);
-                if (np != null) {
-                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                    if (embeddedIris.size() == 1) {
-                        String latestId = embeddedIris.iterator().next();
-                        View cached = views.getIfPresent(latestId);
-                        if (cached == null) {
-                            cached = new View(latestId, np);
-                            views.put(latestId, cached);
+        if (resolveLatest) {
+            // Automatically selecting latest version of view definition:
+            // TODO This should be made configurable at some point, so one can make it a fixed version.
+            try {
+                String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+                if (!latestNpId.equals(npId)) {
+                    Nanopub np = Utils.getAsNanopub(latestNpId);
+                    if (np != null) {
+                        Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                        if (embeddedIris.size() == 1) {
+                            String latestId = embeddedIris.iterator().next();
+                            View cached = views.getIfPresent(latestId);
+                            if (cached == null) {
+                                cached = new View(latestId, np);
+                                views.put(latestId, cached);
+                            }
+                            return cached;
                         }
-                        return cached;
                     }
                 }
+            } catch (Exception ex) {
+                logger.error("Error resolving latest version for view: {}", id, ex);
             }
-        } catch (Exception ex) {
-            logger.error("Error resolving latest version for view: {}", id, ex);
         }
         // Fall back to loading the nanopub as given:
         Nanopub np = Utils.getAsNanopub(npId);
@@ -122,6 +141,7 @@ public class View implements Serializable {
     private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
+    private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
 
     private View(String id, Nanopub nanopub) {
         this.id = id;
@@ -171,11 +191,16 @@ public class View implements Serializable {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
                 actionTemplateMap.put((IRI) st.getSubject(), template);
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
-                actionTemplateTargetFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplateTargetFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_PART_FIELD)) {
-                actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplatePartFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
-                actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplateQueryMappingMap, (IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
+                // Per-action visibility: gen:isVisibleTo on an action node restricts
+                // that action button to viewers holding the given role tier or
+                // specific role. See docs/role-specific-views.md.
+                actionVisibleToMap.computeIfAbsent((IRI) st.getSubject(), k -> new HashSet<>()).add(objIri);
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDF.TYPE)) {
@@ -193,6 +218,20 @@ public class View implements Serializable {
         }
         if (!viewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
         if (query == null) throw new IllegalArgumentException("Query not found: " + id);
+    }
+
+    /**
+     * Stores an action-field value unless it is the {@code "void"} sentinel.
+     * View-creation templates can't leave a statement optional inside a repeated
+     * action group, so views carry every action field, with {@code "void"} for the
+     * not-applicable ones (its presence is what lets Nanodash repopulate the action
+     * group when superseding a view). It is treated here as absent — so e.g. a
+     * "void" part field never becomes a bogus {@code param_void}.
+     */
+    private static void putUnlessVoid(Map<IRI, String> map, IRI key, String value) {
+        if (value != null && !value.equals("void")) {
+            map.put(key, value);
+        }
     }
 
     /**
@@ -268,6 +307,19 @@ public class View implements Serializable {
 
     public String getStructuralPosition() {
         return structuralPosition;
+    }
+
+    /**
+     * Gets the visibility restriction declared on a given action node via
+     * {@code gen:isVisibleTo}: the set of role-tier or specific-role IRIs a viewer
+     * must hold for that action button to be shown. An empty set means the action
+     * is visible to everyone (subject to the existing button-list routing).
+     *
+     * @param actionIri the action IRI (a result or entry action of this view)
+     * @return the set of {@code gen:isVisibleTo} IRIs for that action (never null)
+     */
+    public Set<IRI> getActionVisibleTo(IRI actionIri) {
+        return actionVisibleToMap.getOrDefault(actionIri, Collections.emptySet());
     }
 
     /**

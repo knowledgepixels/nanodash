@@ -130,6 +130,20 @@ public class ExplorePage extends NanodashPage {
 
         String contextId = parameters.get("context").toString("");
 
+        // Known resources are explored via their own page's Explore tab; forward
+        // there instead of rendering the generic explore page.
+        if (publishedNanopub == null) {
+            if (SpaceRepository.get().findById(tempRef) != null) {
+                throw new RestartResponseException(SpacePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+            } else if (MaintainedResourceRepository.get().findById(tempRef) != null) {
+                throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+            } else if (User.getUserData().isUser(tempRef)) {
+                throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+            } else if (!contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null) {
+                throw new RestartResponseException(ResourcePartPage.class, new PageParameters().set("id", tempRef).set("context", contextId).set("tab", "explore"));
+            }
+        }
+
         add(new TitleBar("titlebar", this, null));
 
         if (SpaceRepository.get().findById(contextId) != null) {
@@ -293,7 +307,6 @@ public class ExplorePage extends NanodashPage {
         //add(new ExternalLink("urilink", ref, ref));
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
 
-        add(new BookmarkablePageLink<Void>("references-link", ReferencesPage.class, new PageParameters().set("id", ref)));
         if (publishedNanopub != null) {
             add(new Label("statusLine").setVisible(false));
         } else if (np != null && SignatureUtils.seemsToHaveSignature(np)) {
@@ -327,6 +340,12 @@ public class ExplorePage extends NanodashPage {
             infoSection.add(QueryResultListBuilder.create("templates-panel", templatesQueryRef, new ViewDisplay(templatesView)).build());
         }
         add(infoSection);
+
+        // References to the explored thing (the References view, moved here from
+        // the About pages).
+        View refView = View.get(ReferencesPage.REFERENCES_VIEW);
+        QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
+        add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
     }
 
     @Override

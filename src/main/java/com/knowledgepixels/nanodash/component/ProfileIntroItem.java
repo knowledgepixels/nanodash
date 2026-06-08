@@ -129,7 +129,9 @@ public class ProfileIntroItem extends Panel {
         } else if (session.getLocalIntroCount() == 1) {
             add(new Label("intro-note", ""));
         } else {
-            add(new Label("intro-note", "You have <strong class=\"negative\">multiple introductions from this site</strong>.").setEscapeModelStrings(false));
+            // The "multiple introductions from this site" message is shown in the
+            // retract recommended-action bullet instead.
+            add(new Label("intro-note", ""));
         }
         if (recommendedActionsCount == 0) {
             add(new Label("action-note", "<em>There are no recommended actions.</em>").setEscapeModelStrings(false));

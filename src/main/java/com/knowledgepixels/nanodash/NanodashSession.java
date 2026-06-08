@@ -55,6 +55,17 @@ public class NanodashSession extends WebSession {
     }
 
     /**
+     * Returns the current user's agent IRI, or null when no session is bound to
+     * the current thread (e.g. a background or non-request context) or no user is
+     * logged in. Safe to call outside a request cycle, unlike {@link #get()}.
+     *
+     * @return the current user IRI, or null
+     */
+    public static IRI getCurrentUserIriOrNull() {
+        return Session.exists() ? get().getUserIri() : null;
+    }
+
+    /**
      * Constructs a new NanodashSession for the given request.
      * Initializes the HTTP session and loads profile information.
      *

@@ -1,8 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.component.menu.BaseDisplayMenu;
-import com.knowledgepixels.nanodash.component.menu.ExploreDisplayMenu;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -10,7 +8,6 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 
@@ -66,25 +63,14 @@ public class ExternalLinkWithActionsPanel extends Panel {
         copyLinkButton.add(new Image("copyIcon", new ContextRelativeResourceReference("images/copy-icon.svg", false)));
         add(copyLinkButton);
 
+        // The "explore" action is now reachable via the resource's Explore tab,
+        // so this panel no longer shows an explore button or an explore menu.
+        // A custom menu (e.g. the space admin actions) is still shown when given.
+        add(new Label("exploreButton", "").setVisible(false));
         if (customMenu != null) {
-            add(new Label("exploreButton", "").setVisible(false));
             add(customMenu);
-        } else if (sourceNanopub != null) {
-            add(new Label("exploreButton", "").setVisible(false));
-            add(new ExploreDisplayMenu("np", urlModel.getObject(), labelModel.getObject(), sourceNanopub));
         } else {
             add(new Label("np", "").setVisible(false));
-            if (labelModel != null) {
-                AjaxLink<Void> exploreButton = new AjaxLink<>("exploreButton") {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        setResponsePage(ExplorePage.class, new PageParameters().set("id", urlModel.getObject()).set("label", labelModel.getObject()));
-                    }
-                };
-                add(exploreButton);
-            } else {
-                add(new Label("exploreButton", "").setVisible(false));
-            }
         }
     }
 

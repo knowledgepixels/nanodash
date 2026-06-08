@@ -408,7 +408,10 @@ th {
 }
 
 tbody tr:nth-child(even) {
-  background-color: #efefef;
+  /* Alpha-based so the zebra stripe darkens whatever is behind it (≈ #efefef
+     on white), instead of looking brighter than darker backgrounds (e.g. on
+     the About pages). */
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 table.activitypanel td {
@@ -705,6 +708,72 @@ span.prelink {
   color: #fff;
 }
 
+/* Breadcrumb (left) + Content | About | Raw tabs (right), sharing the grey
+   breadcrumb strip; they sit on one line when they fit and wrap otherwise. */
+.breadcrumb-tab-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+}
+.breadcrumb-tab-row .breadcrumb-links {
+  min-width: 0;
+  padding-bottom: 7px;
+}
+.breadcrumb-tab-row .tabs-container {
+  margin-left: auto;
+}
+.resource-tabs {
+  display: flex;
+  gap: 4px;
+  /* Pull the strip down so the tabs end flush with the bottom edge of the
+     grey breadcrumb stripe (which has 10px bottom padding on its column). */
+  margin-bottom: -10px;
+}
+.resource-tabs a {
+  padding: 6px 16px 10px;
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  color: #0B73DA;
+  text-decoration: none;
+  /* Rounded only at the top -> tab shape rising out of the stripe. */
+  border-radius: 8px 8px 0 0;
+  line-height: 1.3;
+}
+.resource-tabs a:hover:not(.selected) {
+  background-color: #0B73DA1A;
+}
+.resource-tabs a.selected {
+  background-color: #ffffff;
+  color: #0B73DA;
+}
+
+/* Right-aligned table column (used for the trailing np/nps source-nanopub column) */
+.cell-right {
+  text-align: right;
+}
+
+/* Gray italic "– About" / "– Raw" suffix appended to a page title */
+.title-suffix {
+  color: #888888;
+  font-style: italic;
+  font-weight: normal;
+}
+
+/* Raw page content: subtitles + format link lists */
+.raw-subtitle {
+  font-weight: 700;
+  margin: 0.7em 0 0.2em;
+}
+.raw-formats {
+  margin: 0 0 0.5em;
+  padding-left: 1.4em;
+}
+.raw-formats li {
+  line-height: 1.7;
+}
+
 a.actionlink {
   font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif !important;
   font-style: italic !important;
@@ -871,20 +940,36 @@ input[type=radio] + label strong {
 
 
 .actionmenu-button {
-  font-size: 7pt;
+  font-size: 11pt;
   font-weight: 700;
-  width: 22px;
-  height: 22px;
-  padding: 0;
+  min-width: 22px;
+  padding: 0 4px;
   margin: 1px;
-  background-color: #0B73DA;
-  color: #fff;
-  border-width: 0;
+  background-color: transparent;
+  color: #0B73DA;
+  border: 1px solid #0B73DA;
   border-radius: 4px;
   display: inline-block;
   cursor: pointer;
   line-height: 20px !important;
   text-align: center;
+  /* Match the box model + alignment of the (vertical-align:middle) action
+     buttons so the dropdown lines up with them and the filter/title. */
+  vertical-align: middle;
+}
+
+/* Down chevron ("v" / outline arrow, no top line), drawn with two borders. */
+.actionmenu-button::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
 }
 
 .actionmenu {
@@ -892,6 +977,7 @@ input[type=radio] + label strong {
   padding: 0;
   position: relative;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .actionmenu-content {
@@ -927,7 +1013,8 @@ input[type=radio] + label strong {
 }
 
 .actionmenu:hover .actionmenu-button {
-  background-color: #0B73DAC0;
+  background-color: #0B73DA;
+  color: #fff;
 }
 
 
@@ -972,9 +1059,6 @@ select {
   font-weight: 700;
   font-size: 9pt;
   background-color: #F3F6F9;
-  border-color: #F3F6F9;
-  border-style: solid;
-  border-width: 0 0 4px 0;
 }
 
 .breadcrumbpath [class*="col-"] {
@@ -1201,7 +1285,9 @@ div.nanopub-head {
 }
 
 div.nanopub-graph {
-  background: #F3F6F9;
+  /* Alpha-defined grey: renders as #F3F6F9 over white, but stays visible
+     (darker) over the #F3F6F9 row-section stripe background. */
+  background: rgba(135, 165, 195, 0.1);
   padding: 12px 15px 10px 15px;
   margin-top: 3px;
   border-radius: 4px;

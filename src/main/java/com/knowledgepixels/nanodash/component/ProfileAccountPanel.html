@@ -1,0 +1,14 @@
+<wicket:panel>
+  <div class="row-section">
+    <div class="col-12">
+      <div class="paneltitlerow"><h4>Account</h4></div>
+      <p><a wicket:id="logout" class="button light">logout</a></p>
+      <form wicket:id="form">
+        <code>https://orcid.org/</code><input wicket:id="orcidfield" type="text" size="20"/>
+        <input type="submit" class="button" value="set"/>
+      </form>
+      <div wicket:id="feedback" class="negative"></div>
+      <div wicket:id="sigpart"></div>
+    </div>
+  </div>
+</wicket:panel>

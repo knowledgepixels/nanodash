@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -14,7 +16,6 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashPreferences;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryListPage;
@@ -29,6 +30,13 @@ import com.knowledgepixels.nanodash.page.UserListPage;
 public class TitleBar extends Panel {
 
     private String highlight;
+
+    /**
+     * The breadcrumb/tab strip row (the grey band just below the nav bar). Holds
+     * the breadcrumb links on the left and, optionally, the resource tab strip on
+     * the right (see {@link #setTabs(ResourceTabs)}).
+     */
+    private WebMarkupContainer breadcrumbPath;
 
     /**
      * Constructs a TitleBar with the specified id, page, highlight element,
@@ -49,32 +57,45 @@ public class TitleBar extends Panel {
         createNavLink("publish", PublishPage.class).setVisible(!NanodashPreferences.get().isReadOnlyMode());
         createNavLink("query", QueryListPage.class);
 
-        WebMarkupContainer breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
-        breadcrumbPath.setVisible(pathRefs.length > 0);
-        if (pathRefs.length > 0) {
-            final String[] displayLabels = simplifyBreadcrumbLabels(pathRefs);
-            breadcrumbPath.add(pathRefs[0].createComponent("firstpathelement", displayLabels[0]));
+        breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
+        WebMarkupContainer breadcrumbLinks = new WebMarkupContainer("breadcrumblinks");
+        List<CrumbPart> crumbParts = buildCrumbParts(pathRefs);
+        if (!crumbParts.isEmpty()) {
+            CrumbPart first = crumbParts.get(0);
+            breadcrumbLinks.add(first.ref().createComponent("firstpathelement", first.label()));
             // Getting serialization exception if not using 'new ArrayList<...>(...)' here:
-            List<NanodashPageRef> morePathElements = new ArrayList<NanodashPageRef>(Utils.subList(pathRefs, 1, pathRefs.length));
-            breadcrumbPath.add(new DataView<NanodashPageRef>("morepathelements", new ListDataProvider<NanodashPageRef>(morePathElements)) {
+            List<CrumbPart> moreParts = new ArrayList<CrumbPart>(crumbParts.subList(1, crumbParts.size()));
+            breadcrumbLinks.add(new DataView<CrumbPart>("morepathelements", new ListDataProvider<CrumbPart>(moreParts)) {
 
                 @Override
-                protected void populateItem(Item<NanodashPageRef> item) {
-                    int index = (int) item.getIndex() + 1;
-                    item.add(item.getModelObject().createComponent("furtherpathelement", displayLabels[index]));
+                protected void populateItem(Item<CrumbPart> item) {
+                    CrumbPart part = item.getModelObject();
+                    item.add(part.ref().createComponent("furtherpathelement", part.label()));
                 }
 
             });
         } else {
-            breadcrumbPath.setVisible(false);
+            breadcrumbLinks.setVisible(false);
         }
+        breadcrumbPath.add(breadcrumbLinks);
+        // Tab strip placeholder (right side of the strip); replaced via setTabs().
+        breadcrumbPath.add(new EmptyPanel("tabs").setVisible(false));
+        // The strip shows when there is a breadcrumb to display; setTabs() also
+        // forces it visible so a tab strip shows even without a breadcrumb.
+        breadcrumbPath.setVisible(pathRefs.length > 0);
         add(breadcrumbPath);
     }
 
     /**
-     * Computes shortened display labels for a breadcrumb path.
-     *
-     * Two simplifications are applied:
+     * One breadcrumb segment: the {@link NanodashPageRef} it links to and the
+     * (possibly split) label text to show for it.
+     */
+    public record CrumbPart(NanodashPageRef ref, String label) implements Serializable {
+    }
+
+    /**
+     * Flattens a breadcrumb path into the segments to render. Two transforms are
+     * applied to each ref's label:
      * <ul>
      *   <li>For each non-root crumb, the part it shares with its parent label
      *       is stripped (e.g. parent "Knowledge Pixels", child "Knowledge
@@ -83,30 +104,51 @@ public class TitleBar extends Panel {
      *       (almost) all of the parent and ends on a non-letter/digit boundary
      *       in the child — this also catches singular/plural variations like
      *       parent "Nano Sessions", child "Nano Session #30" → "#30".</li>
-     *   <li>Any ": " in a label and everything after it is removed (e.g.
-     *       "Incubator 1: Some title" becomes "Incubator 1"). Applied to all
-     *       crumbs, including the first.</li>
+     *   <li>The remaining label is split on list/title punctuation ({@code ,},
+     *       {@code :}, {@code ;}, {@code |}, and spaced {@code -}) into separate
+     *       breadcrumb segments — e.g. "General Nanopub Ecosystem Ontology,
+     *       version 0.4 (incomplete)" renders as two crumbs "General Nanopub
+     *       Ecosystem Ontology" › "version 0.4 (incomplete)". All segments of a
+     *       label link to the same page.</li>
      * </ul>
-     *
-     * The parent-prefix comparison uses the original (un-simplified) labels,
-     * so that simplifications on the parent don't interfere with the child.
+     * The parent-prefix comparison uses the original (un-simplified) labels.
      */
-    static String[] simplifyBreadcrumbLabels(NanodashPageRef[] pathRefs) {
-        String[] displayLabels = new String[pathRefs.length];
+    static List<CrumbPart> buildCrumbParts(NanodashPageRef[] pathRefs) {
+        List<CrumbPart> parts = new ArrayList<>();
         for (int i = 0; i < pathRefs.length; i++) {
             String label = pathRefs[i].getLabel();
-            if (label != null) {
-                if (i > 0) {
-                    label = stripParentPrefix(pathRefs[i - 1].getLabel(), label);
-                }
-                int colonIdx = label.indexOf(": ");
-                if (colonIdx > 0) {
-                    label = label.substring(0, colonIdx);
-                }
+            if (label == null) {
+                parts.add(new CrumbPart(pathRefs[i], null));
+                continue;
             }
-            displayLabels[i] = label;
+            if (i > 0) {
+                label = stripParentPrefix(pathRefs[i - 1].getLabel(), label);
+            }
+            for (String segment : splitLabel(label)) {
+                parts.add(new CrumbPart(pathRefs[i], segment));
+            }
         }
-        return displayLabels;
+        return parts;
+    }
+
+    /**
+     * Splits a label on list/title separators — comma, colon, semicolon, pipe
+     * (with or without surrounding spaces), or a space-surrounded hyphen — into
+     * trimmed, non-empty segments. Returns the trimmed whole label if there is
+     * no separator (so the result always has at least one element).
+     */
+    static List<String> splitLabel(String label) {
+        List<String> segments = new ArrayList<>();
+        if (label == null) return segments;
+        for (String s : label.split("\\s*[,;:]\\s+|\\s*\\|\\s*|\\s+-\\s+")) {
+            String trimmed = s.trim();
+            if (!trimmed.isEmpty()) segments.add(trimmed);
+        }
+        if (segments.isEmpty()) {
+            String trimmed = label.trim();
+            if (!trimmed.isEmpty()) segments.add(trimmed);
+        }
+        return segments;
     }
 
     /**
@@ -129,6 +171,21 @@ public class TitleBar extends Panel {
         String remainder = child.substring(lcp).replaceAll("^\\s+", "");
         if (remainder.isEmpty()) return child;
         return remainder;
+    }
+
+    /**
+     * Places a resource tab strip (Content | About | Raw) on the right side of
+     * the breadcrumb strip, and forces the strip visible so the tabs show even on
+     * pages without a breadcrumb (e.g. user pages). Returns {@code this} for
+     * fluent use at the {@code add(...)} call site.
+     *
+     * @param tabs the tab strip (its markup id must be {@code "tabs"})
+     * @return this TitleBar
+     */
+    public TitleBar setTabs(ResourceTabs tabs) {
+        breadcrumbPath.addOrReplace(tabs);
+        breadcrumbPath.setVisible(true);
+        return this;
     }
 
     private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass) {

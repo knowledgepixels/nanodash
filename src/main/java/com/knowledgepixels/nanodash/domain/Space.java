@@ -148,6 +148,11 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     @Override
+    protected Set<IRI> getOwnClasses() {
+        return Set.of(KPXL_TERMS.SPACE);
+    }
+
+    @Override
     public String getNamespace() {
         // FIXME this will be removed in the future
         return null;
@@ -247,6 +252,42 @@ public class Space extends AbstractResourceWithProfile {
      */
     public boolean isMember(IRI userId) {
         return currentData().users.containsKey(userId);
+    }
+
+    /**
+     * Get the highest role tier the given user holds in this space, as a numeric
+     * rank for threshold comparisons (admin {@literal >} maintainer {@literal >}
+     * member {@literal >} observer). A user holding no role gets
+     * {@link SpaceMemberRole#EVERYONE_RANK}.
+     *
+     * @param userId The IRI of the user.
+     * @return the highest tier rank held, or the "everyone" floor if none.
+     */
+    public int userTier(IRI userId) {
+        Set<SpaceMemberRoleRef> roles = getMemberRoles(userId);
+        if (roles == null || roles.isEmpty()) return SpaceMemberRole.EVERYONE_RANK;
+        int max = SpaceMemberRole.EVERYONE_RANK;
+        for (SpaceMemberRoleRef ref : roles) {
+            max = Math.max(max, ref.getRole().getTierRank());
+        }
+        return max;
+    }
+
+    /**
+     * Check whether the given user holds the specific role (by role IRI) in this
+     * space.
+     *
+     * @param userId  The IRI of the user.
+     * @param roleIri The specific role IRI.
+     * @return true if the user holds that exact role, false otherwise.
+     */
+    public boolean viewerHoldsRole(IRI userId, IRI roleIri) {
+        Set<SpaceMemberRoleRef> roles = getMemberRoles(userId);
+        if (roles == null) return false;
+        for (SpaceMemberRoleRef ref : roles) {
+            if (ref.getRole().getId().equals(roleIri)) return true;
+        }
+        return false;
     }
 
     /**
@@ -385,7 +426,7 @@ public class Space extends AbstractResourceWithProfile {
         for (ApiResponseEntry r : resp.getData()) {
             ApiResponseEntry entry = new ApiResponseEntry();
             for (String k : List.of("role", "roleLabel", "roleName", "roleTitle",
-                    "roleAssignmentTemplate", "regularProperties", "inverseProperties")) {
+                    "roleAssignmentTemplate", "regularProperties", "inverseProperties", "roleType")) {
                 String v = r.get(k);
                 if (v != null && !v.isEmpty()) entry.add(k, v);
             }

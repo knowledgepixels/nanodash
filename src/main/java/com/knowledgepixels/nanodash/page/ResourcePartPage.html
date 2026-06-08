@@ -14,15 +14,17 @@
   <div wicket:id="justPublishedMessage"></div>
   <div class="row-section">
     <div class="col-12 header">
-      <h2><span wicket:id="name">ABC</span></h2>
+      <h2><span wicket:id="name">ABC</span><span class="title-suffix" wicket:id="titlesuffix"></span></h2>
       <p><span wicket:id="id"></span></p>
       <p wicket:id="description">Description...</p>
       <p><a wicket:id="addviewdisplay" class="button">+ view display</a></p>
-      <span wicket:id="download-rdf"></span>
     </div>
   </div>
 
-  <div wicket:id="views"></div>
+  <wicket:container wicket:id="contentContainer">
+    <div wicket:id="views"></div>
+  </wicket:container>
+  <div wicket:id="otherTab"></div>
 
 </wicket:extend>
 </body>

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -78,6 +79,11 @@ public class MaintainedResource extends AbstractResourceWithProfile {
     @Override
     public String getNamespace() {
         return namespace;
+    }
+
+    @Override
+    protected Set<IRI> getOwnClasses() {
+        return Set.of(KPXL_TERMS.MAINTAINED_RESOURCE);
     }
 
 }

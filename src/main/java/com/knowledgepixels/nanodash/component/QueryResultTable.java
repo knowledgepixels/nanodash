@@ -41,6 +41,7 @@ public class QueryResultTable extends QueryResult {
 
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
+    private Label noRecordsLabel;
     private Label errorLabel;
     private FilteredQueryResultDataProvider filteredDataProvider;
     private Model<String> filterModel = Model.of("");
@@ -72,9 +73,11 @@ public class QueryResultTable extends QueryResult {
                 if (filteredDataProvider != null && table != null) {
                     filteredDataProvider.setFilterText(filterModel.getObject());
                     target.add(table);
+                    if (noRecordsLabel != null) target.add(noRecordsLabel);
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();
@@ -97,6 +100,13 @@ public class QueryResultTable extends QueryResult {
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         QueryResultDataProvider dataProvider;
         try {
+            // The last data column (ignoring _label helper columns); if it is the
+            // source-nanopub column ("np"/"nps") its header is left blank.
+            String lastColumnKey = null;
+            for (String h : response.getHeader()) {
+                if (h.endsWith("_label") || h.endsWith("_label_multi")) continue;
+                lastColumnKey = h;
+            }
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label") || h.endsWith("_label_multi")) {
                     continue;
@@ -111,34 +121,69 @@ public class QueryResultTable extends QueryResult {
                 } else if (displayLabel.endsWith("_iri")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_iri".length());
                 }
-                columns.add(new Column(displayLabel.replaceAll("_", " "), h));
+                String columnHeader = displayLabel.replaceAll("_", " ");
+                if (h.equals(lastColumnKey) && (h.equals("np") || h.equals("nps"))) {
+                    columnHeader = "";
+                    columns.add(new Column(columnHeader, h, "cell-right"));
+                } else {
+                    columns.add(new Column(columnHeader, h));
+                }
             }
             if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
                 columns.add(new Column("", Column.ACTIONS));
             }
             dataProvider = new QueryResultDataProvider(response.getData());
             filteredDataProvider = new FilteredQueryResultDataProvider(dataProvider, response);
-            table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize());
-            table.setOutputMarkupId(true);
+            // The whole table (header included) is hidden when there is nothing to show;
+            // a "(nothing found)" note is shown instead. No NoRecordsToolbar, since that
+            // would leave the header row visible.
+            table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize()) {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() > 0);
+                }
+            };
+            table.setOutputMarkupPlaceholderTag(true);
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
-            table.addBottomToolbar(new NoRecordsToolbar(table));
             table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             add(table);
+            noRecordsLabel = new Label("no-records", "(nothing found)") {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0);
+                }
+            };
+            noRecordsLabel.setOutputMarkupPlaceholderTag(true);
+            add(noRecordsLabel);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
+            add(new Label("no-records", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
     }
 
-    private class Column extends AbstractColumn<ApiResponseEntry, String> {
+    private class Column extends AbstractColumn<ApiResponseEntry, String> implements IStyledColumn<ApiResponseEntry, String> {
 
         private String key;
+        private String cssClass;
         public static final String ACTIONS = "*actions*";
 
         public Column(String title, String key) {
+            this(title, key, null);
+        }
+
+        public Column(String title, String key, String cssClass) {
             super(new Model<String>(title), key);
             this.key = key;
+            this.cssClass = cssClass;
+        }
+
+        @Override
+        public String getCssClass() {
+            return cssClass;
         }
 
         @Override
@@ -148,6 +193,10 @@ public class QueryResultTable extends QueryResult {
                 if (key.equals(ACTIONS) && view != null) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {
+                        // Per-action role gating (docs/role-specific-views.md): skip an
+                        // action whose gen:isVisibleTo the viewer does not satisfy.
+                        // Additive — actions without gen:isVisibleTo are unaffected.
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;

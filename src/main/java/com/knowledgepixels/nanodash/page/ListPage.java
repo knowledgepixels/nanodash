@@ -261,8 +261,6 @@ public class ListPage extends NanodashPage {
         if (endDate != null) {
             downloadParams.set("endtime", endDate.toInstant().toString());
         }
-        add(new DownloadRdfLinks("download-rdf", downloadParams));
-
         refresh();
     }
 

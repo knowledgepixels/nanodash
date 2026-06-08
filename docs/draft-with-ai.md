@@ -1,5 +1,7 @@
 # Server-side "Draft with AI" for Nanopub Authoring
 
+**Status:** 📋 Proposed
+
 Add a server-side "Draft with AI" feature to Nanodash that calls a model
 provider (Claude / OpenAI / Gemini / OpenAI-compatible) directly from the
 backend and returns an unsigned TriG draft the user can then sign and publish

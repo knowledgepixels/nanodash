@@ -122,6 +122,18 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
+     * Whether all result rows fit on the first page, so no pagination is needed
+     * and the filter textfield can be hidden. Also true when the page size is
+     * unlimited ({@code < 1}).
+     *
+     * @return true if all entries fit on the first page
+     */
+    protected boolean fitsOnFirstPage() {
+        int pageSize = viewDisplay.getPageSize();
+        return pageSize < 1 || response.getData().size() <= pageSize;
+    }
+
+    /**
      * Populate the component with the query results.
      */
     protected abstract void populateComponent();

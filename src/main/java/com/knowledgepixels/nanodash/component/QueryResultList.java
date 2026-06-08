@@ -75,6 +75,7 @@ public class QueryResultList extends QueryResult {
                 }
             }
         });
+        filterField.setVisible(!fitsOnFirstPage());
         add(filterField);
 
         populateComponent();
@@ -199,6 +200,9 @@ public class QueryResultList extends QueryResult {
                 if (view != null && !view.getViewEntryActionList().isEmpty()) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {
+                        // Per-action role gating (docs/role-specific-views.md): skip an
+                        // action whose gen:isVisibleTo the viewer does not satisfy.
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
@@ -246,7 +250,7 @@ public class QueryResultList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
-        Label noRecordsLabel = new Label("no-records", "Nothing found.") {
+        Label noRecordsLabel = new Label("no-records", "(nothing found)") {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
