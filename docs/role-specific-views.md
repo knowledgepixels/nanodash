@@ -142,15 +142,29 @@ never gated and result actions are owner-gated only on user pages.
 *adds* a filter; a later step could let a declared action fully replace the
 resource-type routing (and fix the leak below at the source).
 
-## Known gap this addresses
+## Known gap this addresses — fixed
 
-Today's incidental routing already leaks: on a user's About page
-(`AboutUserPanel.java:74-78`) the **presets** and **view-displays** tables are
-built without `resourceWithProfile`, so their "add preset…" / "add view display…"
-actions fall into the unconditional regular bucket (`QueryResult.java:61`,
-`ButtonList.java:24-26`) and show on *other* users' pages. Declaring
-`gen:isVisibleTo` on those actions (e.g. owner/admin only) gates them regardless
-of how the table was wired — the declarative fix for this class of bug.
+Incidental routing used to leak: the **presets** and **view-displays** tables in
+`AboutUserPanel` / `AboutSpacePanel` / `AboutResourcePanel` were built without
+`resourceWithProfile`, so their "add preset…" / "add view display…" actions fell
+into the unconditional regular bucket (`QueryResult.java:61`,
+`ButtonList.java:24-26`) and showed on *other* users' (and visitors') pages.
+
+Fixed in two parts:
+
+- the panels now pass `resourceWithProfile` (owner-gates the user-page case via
+  the `IndividualAgent` admin bucket, and lets the per-action filter resolve the
+  governing space on space/resource pages);
+- the two views were republished with `gen:isVisibleTo gen:MaintainerRole` on
+  their action, gating space/resource pages too:
+  `preset-assignments-view` → `RAdznWzBMUxWySxHpxf5daEOwAQDPbgNMBvRxv0MoJCEU`,
+  `view-displays-view` → `RAZJUhDTNbOsdF_N4kJCLzF1-NEg8oIRm_XaUBsKhxOLM`
+  (picked up automatically via `View.get`'s latest-version resolution — no
+  constant change needed).
+
+So those actions now show only to admins/maintainers (or the owner on a user
+page) on every page type — the declarative fix for this class of bug, and the
+feature's first real use.
 
 ## Touch points
 
