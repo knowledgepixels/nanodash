@@ -515,6 +515,47 @@ public class Template implements Serializable {
     }
 
     /**
+     * Whether the placeholder with the given parameter name is a required field of
+     * this template: it appears (as subject or object) in at least one non-optional
+     * statement — i.e. a value must be provided to publish. A repetition-index
+     * suffix on the name (e.g. {@code public-key__.1}) is ignored, matching the base
+     * placeholder. Used to decide whether an empty mapped value should hide a view
+     * action's button (see docs/magic-query-params.md).
+     *
+     * @param paramName the parameter name (placeholder local name, optionally with a
+     *                  {@code __.N} repetition suffix)
+     * @return true if the placeholder is required (appears in a non-optional statement)
+     */
+    public boolean isRequiredField(String paramName) {
+        if (paramName == null) return false;
+        String base = paramName.replaceFirst("__\\..*$", "");
+        for (IRI top : getStatementIris()) {
+            List<IRI> members = getStatementIris(top);
+            if (members != null) {
+                if (isOptionalStatement(top)) continue; // whole group optional
+                for (IRI st : members) {
+                    if (!isOptionalStatement(st) && statementReferencesPlaceholder(st, base)) return true;
+                }
+            } else if (!isOptionalStatement(top) && statementReferencesPlaceholder(top, base)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean statementReferencesPlaceholder(IRI statementIri, String localName) {
+        return matchesPlaceholderLocalName(getSubject(statementIri), localName)
+                || matchesPlaceholderLocalName(getObject(statementIri), localName);
+    }
+
+    private boolean matchesPlaceholderLocalName(Value value, String localName) {
+        if (!(value instanceof IRI iri) || !isPlaceholder(iri)) return false;
+        String s = iri.stringValue();
+        int i = Math.max(s.lastIndexOf('/'), s.lastIndexOf('#'));
+        return localName.equals(i < 0 ? s : s.substring(i + 1));
+    }
+
+    /**
      * Checks if the IRI is an advanced statement, which are only show upon expanding to full view in form mode.
      *
      * @param iri the IRI to check.

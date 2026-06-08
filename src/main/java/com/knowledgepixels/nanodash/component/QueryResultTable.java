@@ -220,12 +220,10 @@ public class QueryResultTable extends QueryResult {
                                 params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                             }
                         }
-                        String queryMapping = view.getTemplateQueryMapping(actionIri);
-                        if (queryMapping != null && queryMapping.contains(":")) {
-                            // This part is different from the code in QueryResultTableBuilder:
-                            String queryParam = queryMapping.split(":")[0];
-                            String templateParam = queryMapping.split(":")[1];
-                            params.set("param_" + templateParam, rowModel.getObject().get(queryParam));
+                        // Apply the action's query mappings; hide the button for this row
+                        // if any required mapped value is empty (docs/magic-query-params.md).
+                        if (!ViewActionMappings.applyEntryMappings(view, actionIri, rowModel.getObject(), params)) {
+                            continue;
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
                         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, params);

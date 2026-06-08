@@ -365,15 +365,18 @@ are external (nanopub-java) and need no change.
    magic placeholders. Inert until a query declares one. *Still to do:* the wire
    smoke-test (grlc binds `?_LOCALPUBKEY_multi_val` from URL param `LOCALPUBKEY`)
    once a magic query is published in phase 3.
-2. **Empty-into-required hides entry-action buttons.** Skip an entry action for a
-   row when its mapped value is empty and the target is required (non-optional
-   placeholder, or a fill-mode key). No new predicate; feeds the role-dependent
-   action work too.
-   - **2b. Multiple mappings per action + non-`param_` targets.** Folds in with
-     phase 2; needed by `derive` (two mappings, one targeting `derive-a`).
-3. **Republish the introductions view** with the magic query and the
-   create/derive/retract actions; drop the bespoke table from `ProfileIntroItem`,
-   keeping only the Recommended-Actions companion.
+2. **Empty-into-required hides entry-action buttons (+ 2b).** ✅ Done —
+   `View` holds multiple mappings per action (`getTemplateQueryMappings`);
+   `Template.isRequiredField` answers "is this placeholder required"; the shared
+   `ViewActionMappings.applyEntryMappings` applies an action's mappings per row
+   (`@target` → raw URL key for fill-mode keys like `@derive-a`, else
+   `param_target`) and hides the button when any *required* mapped value is empty.
+   Wired into `QueryResultTable` and `QueryResultList` entry-action loops. Inert
+   until a published view declares such mappings (phase 3). *Validate in phase 3:*
+   `isRequiredField` against the real retract/intro templates.
+3. **Republish the introductions view(s)** with the magic queries and the
+   retract/derive entry actions, plus the multi-row recommended-actions view;
+   remove `ProfileIntroItem` entirely.
 4. **Multi-expand + include-keys**, only if worthwhile (also returns `LOCALINTRO`
    to the registry).
 

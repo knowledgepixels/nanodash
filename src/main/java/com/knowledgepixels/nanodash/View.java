@@ -138,7 +138,7 @@ public class View implements Serializable {
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
-    private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
+    private Map<IRI, List<String>> actionTemplateQueryMappingsMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
     private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
@@ -195,7 +195,12 @@ public class View implements Serializable {
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_PART_FIELD)) {
                 putUnlessVoid(actionTemplatePartFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
-                putUnlessVoid(actionTemplateQueryMappingMap, (IRI) st.getSubject(), st.getObject().stringValue());
+                // Repeatable: an action may declare several query mappings (e.g. derive
+                // maps both the row np and the local pubkey). "void" means "none".
+                String mapping = st.getObject().stringValue();
+                if (!"void".equals(mapping)) {
+                    actionTemplateQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
+                }
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -359,8 +364,31 @@ public class View implements Serializable {
         return actionTemplatePartFieldMap.get(actionIri);
     }
 
+    /**
+     * Gets the query mappings declared for an action: each is {@code "col:target"},
+     * mapping result column {@code col} to template parameter {@code param_target}
+     * — or, when {@code target} begins with {@code @}, to the raw URL parameter
+     * {@code target} (without the {@code param_} prefix), used for fill-mode keys
+     * such as {@code @derive-a} / {@code @supersede}. An entry action applies all
+     * of these per row; see docs/magic-query-params.md.
+     *
+     * @param actionIri the action IRI
+     * @return the list of mappings (never null; empty if none)
+     */
+    public List<String> getTemplateQueryMappings(IRI actionIri) {
+        return actionTemplateQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList());
+    }
+
+    /**
+     * Gets the first query mapping for an action, or null. Kept for result-action
+     * callers that pass a single {@code values-from-query-mapping}.
+     *
+     * @param actionIri the action IRI
+     * @return the first mapping, or null
+     */
     public String getTemplateQueryMapping(IRI actionIri) {
-        return actionTemplateQueryMappingMap.get(actionIri);
+        List<String> mappings = actionTemplateQueryMappingsMap.get(actionIri);
+        return (mappings == null || mappings.isEmpty()) ? null : mappings.get(0);
     }
 
     /**
