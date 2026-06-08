@@ -1,5 +1,7 @@
 # Session-bound ("magic") query parameters
 
+**Status:** 📋 Proposed
+
 A **magic query parameter** is a view-query placeholder that Nanodash fills
 automatically from the current browser session, rather than from a value the
 caller passes or the user types into a form. It exists so that a *data-driven

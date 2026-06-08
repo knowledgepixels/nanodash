@@ -1,5 +1,7 @@
 # Presets for Nanodash
 
+**Status:** 🚧 In progress — see [issue #302](https://github.com/knowledgepixels/nanodash/issues/302)
+
 A **preset** is a named, publishable bundle of default views and roles that can
 be applied to a resource page (a user, a space, or a maintained resource).
 Instead of attaching views and roles to a resource one nanopublication at a

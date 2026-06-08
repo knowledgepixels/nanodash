@@ -1,5 +1,7 @@
 # Custom Domain Support for Nanodash
 
+**Status:** 📋 Proposed
+
 Allow users to connect their own domain (e.g. tkuhn.org) so that it serves
 their Nanodash profile page while keeping the custom domain visible in the
 browser URL bar.
