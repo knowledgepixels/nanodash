@@ -156,15 +156,27 @@ Fixed in two parts:
   the `IndividualAgent` admin bucket, and lets the per-action filter resolve the
   governing space on space/resource pages);
 - the two views were republished with `gen:isVisibleTo gen:MaintainerRole` on
-  their action, gating space/resource pages too:
-  `preset-assignments-view` → `RAdznWzBMUxWySxHpxf5daEOwAQDPbgNMBvRxv0MoJCEU`,
-  `view-displays-view` → `RAZJUhDTNbOsdF_N4kJCLzF1-NEg8oIRm_XaUBsKhxOLM`
+  their action (plus complete `"void"` action fields so the action group
+  round-trips on edit), gating space/resource pages too. Current latest heads:
+  `preset-assignments-view` → `RA4fgqTAYcaKiHNA8NZ1JgMlJI4JAgfh7B9YOJsfRQIFE`,
+  `view-displays-view` → `RABs0d67G0oOPlZZ28Y-x-U6_W6geJxpFO8K8fwCaPB0k`
   (picked up automatically via `View.get`'s latest-version resolution — no
   constant change needed).
 
 So those actions now show only to admins/maintainers (or the owner on a user
 page) on every page type — the declarative fix for this class of bug, and the
 feature's first real use.
+
+**Watch out for forked version chains.** The view-displays-view chain had two
+latest heads — an earlier republish was built on a stale base (`RAVVUjFM…`)
+while a separate June-5 head (`RAqh-ZN9…`, with a newer `list-view-displays`
+query) had already branched from it. With two heads, `getLatestVersionId`
+resolves ambiguously, so the gate appeared not to take effect on some pages.
+Fixed by publishing one version (`RABs0d67…`) that `npx:supersedes` **both**
+heads — merging the newer query with the gating/void — collapsing the fork to a
+single head. When republishing a view, resolve the actual current head(s) first
+(query `get-latest-version-of-np`) rather than assuming the constant's IRI is
+latest.
 
 ## Touch points
 
