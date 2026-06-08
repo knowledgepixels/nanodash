@@ -103,6 +103,8 @@ public class GrlcQuery extends QueryTemplate {
     public List<QueryParamField> createParamFields(String markupId) {
         List<QueryParamField> l = new ArrayList<>();
         for (String s : getPlaceholdersList()) {
+            // Magic placeholders are bound from the session, not entered by the user.
+            if (MagicQueryParams.isMagic(s)) continue;
             l.add(new QueryParamField(markupId, s));
         }
         return l;

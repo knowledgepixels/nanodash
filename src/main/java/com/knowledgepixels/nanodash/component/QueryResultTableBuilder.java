@@ -33,7 +33,9 @@ public class QueryResultTableBuilder implements Serializable {
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
-        this.queryRef = queryRef;
+        // Bind session-derived "magic" query parameters here on the request thread
+        // (ApiCache fetches on background threads where the session is absent).
+        this.queryRef = com.knowledgepixels.nanodash.MagicQueryParams.augment(queryRef);
         this.viewDisplay = viewDisplay;
     }
 

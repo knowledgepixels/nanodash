@@ -1,6 +1,6 @@
 # Session-bound ("magic") query parameters
 
-**Status:** 📋 Proposed
+**Status:** 🚧 In progress — phase 1 (binding infra + UI-field suppression) implemented (`MagicQueryParams`, wired into the view builders; registry `LOCALPUBKEY`/`SITEURL`). Entry-action visibility, the introductions cutover, and the magic-aware introductions query/view are pending.
 
 A **magic query parameter** is a view-query placeholder that Nanodash fills
 automatically from the current browser session, rather than from a value the
@@ -281,9 +281,12 @@ are external (nanopub-java) and need no change.
 
 ## Phasing
 
-1. **Magic-param binding + UI-field suppression.** Standalone and testable with
-   a throwaway query that just echoes `?_LOCALPUBKEY` into a result column.
-   Lowest risk, immediately reusable by any view. Do the wire smoke-test here.
+1. **Magic-param binding + UI-field suppression.** ✅ Done — `MagicQueryParams`
+   (registry `LOCALPUBKEY`/`SITEURL`, `isMagic`, request-thread `augment`), wired
+   into the five view-builder constructors; `GrlcQuery.createParamFields` skips
+   magic placeholders. Inert until a query declares one. *Still to do:* the wire
+   smoke-test (grlc binds `?_LOCALPUBKEY_multi_val` from URL param `LOCALPUBKEY`)
+   once a magic query is published in phase 3.
 2. **Empty-into-required hides entry-action buttons.** Skip an entry action for a
    row when its mapped value is empty and the target is required (non-optional
    placeholder, or a fill-mode key). No new predicate; feeds the role-dependent
