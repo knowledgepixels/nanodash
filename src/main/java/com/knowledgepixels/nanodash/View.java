@@ -191,11 +191,11 @@ public class View implements Serializable {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
                 actionTemplateMap.put((IRI) st.getSubject(), template);
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_TARGET_FIELD)) {
-                actionTemplateTargetFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplateTargetFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_PART_FIELD)) {
-                actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplatePartFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
-                actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+                putUnlessVoid(actionTemplateQueryMappingMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -218,6 +218,20 @@ public class View implements Serializable {
         }
         if (!viewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
         if (query == null) throw new IllegalArgumentException("Query not found: " + id);
+    }
+
+    /**
+     * Stores an action-field value unless it is the {@code "void"} sentinel.
+     * View-creation templates can't leave a statement optional inside a repeated
+     * action group, so views carry every action field, with {@code "void"} for the
+     * not-applicable ones (its presence is what lets Nanodash repopulate the action
+     * group when superseding a view). It is treated here as absent — so e.g. a
+     * "void" part field never becomes a bogus {@code param_void}.
+     */
+    private static void putUnlessVoid(Map<IRI, String> map, IRI key, String value) {
+        if (value != null && !value.equals("void")) {
+            map.put(key, value);
+        }
     }
 
     /**
