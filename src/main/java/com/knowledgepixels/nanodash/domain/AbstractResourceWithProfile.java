@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -250,14 +249,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
-        // Role-based visibility (docs/role-specific-views.md): a display restricted
-        // via gen:isVisibleTo is shown only to viewers holding the required role
-        // tier or specific role in the governing space. For a space-less resource
-        // (e.g. a user page) a restricted display is shown only to the page owner.
-        Space governingSpace = (this instanceof Space s) ? s : getSpace();
-        IRI viewer = NanodashSession.getCurrentUserIriOrNull();
-        boolean viewerIsOwner = viewer != null && (this instanceof IndividualAgent ia) && ia.isCurrentUser();
-
         // Results are sorted by date (most recent first); only the most recent per view-kind is considered
         for (ViewDisplay vd : getViewDisplays()) {
             IRI kind = vd.getViewKindIri();
@@ -269,13 +260,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
             }
 
             if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) {
-                continue;
-            }
-
-            // Drop displays this viewer is not entitled to see. Done after the
-            // per-view-kind latest-wins pick above, so a hidden latest display
-            // does not fall back to an older, more-visible version of the same kind.
-            if (!vd.isVisibleTo(viewer, governingSpace, viewerIsOwner)) {
                 continue;
             }
 

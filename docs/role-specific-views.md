@@ -1,29 +1,34 @@
-# Role-specific views
+# Role-specific view actions
 
-**Status:** 🚧 In progress — tier model + `gen:isVisibleTo` parsing/matching + client-side filter implemented (steps 1–4); pending the `get-space-roles` `roleType` republish (P0), authoring UI, and the server-side filter.
+**Status:** 🚧 In progress — per-action `gen:isVisibleTo` gating implemented (tier model, matching, and filtering in the action renderers), and the `get-space-roles` `roleType` republish (P0) is published. Remaining: an authoring template field for `gen:isVisibleTo`, and the optional server-side path.
 
-A view display may declare that it is **visible only to viewers holding a given
-role, or a given role tier (class)**, relative to the resource's governing
-space. Targeting a *tier* (e.g. Maintainer) matches anyone at that tier or
-above; targeting a *specific role IRI* matches only holders of that exact role.
+A view's **action button** can declare that it is shown only to viewers holding a
+given role, or a given role **tier** (class), relative to the resource's
+governing space. Targeting a *tier* (e.g. Maintainer) matches anyone at that tier
+or above; targeting a *specific role IRI* matches only holders of that exact role.
 
-This builds directly on the role-tier model that **nanopub-query already
-defines and materializes** (see
+This gates individual *actions*, not whole views — a view is shown to everyone,
+but (say) its "retract" or "add member" button only appears for maintainers. It
+builds on the role-tier model that **nanopub-query already defines and
+materializes** (see
 [`../nanopub-query/doc/design-space-repositories.md`](../../nanopub-query/doc/design-space-repositories.md),
-§"Role types"). It is meant to be compatible with the session-bound query
-parameters in [magic-query-params](magic-query-params.md); the two share the
-`?_CURRENTUSER` binding for the optional server-side path.
+§"Role types").
 
 ## Semantics & scope
 
-This is **relevance-gating, not a security boundary.** The view, its query, and
-the underlying nanopubs are all public; hiding a maintainer-only view from a
-normal visitor declutters their page, it does not protect data. That lets the
-first cut filter **client-side** with role data the page already loads.
+This is **relevance-gating, not a security boundary.** The template behind an
+action and the underlying nanopubs are public; hiding a button only declutters —
+publishing is still authorised server-side. That lets the gate run **client-side**
+with role data the page already loads.
 
-Applies to **spaces** and **maintained resources** (which resolve a governing
-space via `getSpace()`). On a user page (`IndividualAgent`) there is no space, so
-role-gating degrades to the existing owner-vs-visitor check.
+The governing space is the resource the action is rendered for: the space itself
+for a space page, the owning space for a maintained resource, and none for a user
+page (`IndividualAgent`). A **user page is treated as a degenerate space whose
+sole admin is the owner** — so the owner holds the admin tier (any tier-gated
+action shows only to them) and no one else holds any role. Specific-role gates are
+unholdable on a user page and therefore match nobody. (When agents can later
+*observe* a user, `userTier` returns Observer for them and observer-gated actions
+start matching automatically — no special-casing.)
 
 ## The role model it rides on
 
@@ -40,9 +45,9 @@ materializes it per space as `npa:hasRoleType <tier>` alongside `npa:role
 | `gen:ObserverRole` | granted by anyone above, or self-attested; **default** when a role declares no tier |
 
 The nanopub-query design doc explicitly leaves *per-tier privilege
-enforcement — what each tier may do inside a space —* to Nanodash. View
-visibility by tier is exactly such a privilege, so the query layer hands us the
-tier and this feature decides what to do with it.
+enforcement — what each tier may do inside a space —* to Nanodash. Gating an
+action by tier is exactly such a privilege, so the query layer hands us the tier
+and this feature decides what to do with it.
 
 ### The visibility ladder
 
@@ -53,161 +58,126 @@ Everyone (rank 0, = no triple) < Observer (1) < Member (2) < Maintainer (3) < Ad
 ```
 
 "Everyone" means literally anyone, including logged-out viewers with no role —
-distinct from Observer, which is the lowest *assigned* tier (self-attestation is
-still a deliberate step). **"Everyone" is not a nanopub-query role type** and is
-not added to that repo's tier set — those are *grant* tiers, and you never
-"grant everybody." It exists only as the absence-of-restriction default here.
+distinct from Observer, the lowest *assigned* tier. **"Everyone" is not a
+nanopub-query role type** (those are *grant* tiers, and you never "grant
+everybody"); it exists only as the absence-of-restriction default here.
 
-## The predicate
+## The predicate — on the action node
 
-A single predicate carries both targeting modes; its object is either a tier IRI
-or a specific role IRI:
+`gen:isVisibleTo` attaches to the **action node inside the view nanopub** — the
+IRI that is the object of `gen:hasViewAction` and carries `gen:hasActionTemplate`
+plus the `gen:ViewAction` / `gen:ViewEntryAction` type. Not on the view itself,
+and **not** on the shared action template (which is reusable across views).
 
 ```turtle
-<viewDisplay> gen:isVisibleTo gen:MaintainerRole .          # tier: this tier or above
-<viewDisplay> gen:isVisibleTo <…/newsletterEditorRole> .    # specific role IRI
-# (no gen:isVisibleTo triple)                                # Everyone (default, backward-compatible)
+sub:myview gen:hasViewAction sub:retractAction .
+sub:retractAction a gen:ViewEntryAction ;
+    gen:hasActionTemplate <…/retract-template> ;
+    gen:isVisibleTo gen:MaintainerRole .          # tier: this tier or above
+# sub:retractAction gen:isVisibleTo <…/someRole>  # or a specific role IRI
+# (no triple)                                      # Everyone (default, additive)
 ```
 
-Disambiguation is trivial and safe: the tier IRIs are a fixed known set
-(`gen:AdminRole` / `gen:MaintainerRole` / `gen:MemberRole` / `gen:ObserverRole`);
-any other IRI is a specific role. Multiple `gen:isVisibleTo` triples are **OR**.
-
-An explicit "Everyone" option in the authoring UI simply *omits* the predicate —
-no IRI is minted for it. (A Nanodash-local sentinel would only be worth it if we
-ever needed to distinguish "deliberately public" from "unset," which for
-visibility does not appear to matter.)
+The object is either a tier IRI or a specific role IRI; disambiguation is the
+fixed tier set (`gen:AdminRole` / `gen:MaintainerRole` / `gen:MemberRole` /
+`gen:ObserverRole`), anything else is a specific role. Multiple triples are **OR**.
 
 ## Matching
 
 ```
-visible(viewer, space, display):
-  reqs = display.isVisibleTo            // set of IRIs; empty => Everyone
-  if reqs empty                         -> visible
-  if space == null                      -> visible only if viewer is the page owner
+isViewerEntitled(reqs, viewer, governingSpace, viewerIsOwner):
+  if reqs empty                      -> entitled (Everyone)
+  if governingSpace == null:                            // user page = owner is sole admin
+    tier = viewerIsOwner ? Admin : Everyone
+    return any tier-IRI X in reqs with tier >= rank(X)  // specific roles unholdable here
+  if viewer == null                  -> not entitled
   for X in reqs:
-    if X is a tier IRI and userTier(viewer, space) >= rank(X)   -> visible   // tier threshold
-    if X is a role IRI and viewerHoldsRole(viewer, space, X)    -> visible   // specific role
-  hidden
+    if X is a tier IRI and governingSpace.userTier(viewer) >= rank(X) -> entitled
+    if X is a role IRI and governingSpace.viewerHoldsRole(viewer, X)  -> entitled
+  not entitled
 ```
 
 - **`userTier`** = the highest-ranked tier among the roles the viewer holds in
   that space (Everyone/rank-0 if none).
 - **No admin override.** An admin who does not personally hold a specific role
-  does **not** see a view gated to that role — the page shows exactly what each
-  role is entitled to. The management escape hatch is **self-assignment**: an
-  admin can grant any non-admin-tier role (and every custom role is
-  maintainer/member/observer tier), so an admin who needs a specific-role view
-  simply publishes a role-instantiation for themselves. No special-case code.
+  does **not** see an action gated to that role. The escape hatch is
+  **self-assignment**: an admin can grant any non-admin-tier role (every custom
+  role is maintainer/member/observer tier), so an admin who needs the action
+  publishes a role-instantiation for themselves. No special-case code.
 
-## Where the assignment lives
+Implemented as `SpaceMemberRole.isViewerEntitled(reqs, viewer, space, owner)` plus
+a convenience overload `isViewerEntitled(reqs, resourceWithProfile)` that resolves
+viewer/space/owner from the rendered resource.
 
-Primary carrier: the **`ViewDisplay`** nanopub — it already models "show this
-view for this resource" with per-display modifiers (`appliesTo`, page size,
-structural position, deactivation). Visibility is one more modifier, so the
-underlying View stays reusable and unrestricted elsewhere.
+## Where it's enforced
 
-Two parallels for consistency (same predicate, same matching):
+The action renderers drop an action whose `gen:isVisibleTo` the viewer does not
+satisfy, **before** the button reaches `ButtonList`:
 
-- **View default** — a `View` may carry a default `gen:isVisibleTo` that a
-  `ViewDisplay` overrides, mirroring how View defaults page size / width /
-  position flow into ViewDisplay.
-- **Preset-bundled view** — a preset's `gen:hasView` / `gen:hasTopLevelView`
-  reference may carry the same visibility so bundled views gate too.
+- result actions: `QueryResultTableBuilder.addViewActions`,
+  `QueryResultListBuilder`, `QueryResultPlainParagraphBuilder`
+- entry (per-row) actions: `QueryResultTable`, `QueryResultList`
 
-## What Nanodash needs (all additive — it has no tier awareness today)
+This is **additive**: an action without `gen:isVisibleTo` renders exactly as
+before. It composes with — does not replace — the existing `ButtonList` routing
+(see next).
 
-1. **Learn tiers.** `get-space-roles` (or `get-space-members`) must return
-   `roleType` (= `npa:hasRoleType`); `SpaceMemberRole` gains a `tier` field. This
-   dovetails with the in-progress grlc spaces-repo migration — same direction,
-   consuming the materialized `npass:` state.
-2. **Tier IRIs + rank** in `KPXL_TERMS` (`AdminRole` / `MaintainerRole` /
-   `MemberRole` / `ObserverRole`) and a small rank helper with the Everyone floor.
-3. **Parse `gen:isVisibleTo`** in `ViewDisplay` (and `View` for defaults).
-4. **`Space` helpers** `userTier(iri)` (max tier held) and
-   `viewerHoldsRole(iri, roleIri)`, plus `ViewDisplay.isVisibleTo(...)`.
-5. **Apply the filter** (see next).
+## Relationship to today's `ButtonList` routing
 
-## Filter point — and the magic-param tie-in
+Existing action visibility is coarse and wired by resource *type*, not declared:
+`ButtonList` (`ButtonList.java:24-46`) has three buckets — regular (everyone),
+member (space member), admin (space admin / user-page owner) — and `QueryResult`
+/ `QueryResultTable` route a view's actions into a bucket based on whether the
+resource is an `IndividualAgent`, `Space`, etc. That is why entry actions are
+never gated and result actions are owner-gated only on user pages.
 
-**v1 (standalone — implement here first).** Filter in the existing view-display
-aggregation in `AbstractResourceWithProfile` (the `get-view-displays` consumer,
-where latest-wins / deactivation already happen). After aggregation, drop
-displays where `isVisibleTo(currentUser, governingSpace)` is false. Uses
-already-loaded `Space` role data; no query changes; no dependency on the
-magic-param work.
+`gen:isVisibleTo` is the precise, declarative gate layered on top. For now it only
+*adds* a filter; a later step could let a declared action fully replace the
+resource-type routing (and fix the leak below at the source).
 
-**v2 (compatible evolution).** Push the filter server-side into
-`get-view-displays` by binding the viewer identity as the `?_CURRENTUSER` magic
-parameter from [magic-query-params](magic-query-params.md) — the same binding
-hook. The spaces repo already materializes member → role → tier, so the JOIN
-(viewer's instantiations vs the display's required role/tier, honoring the tier
-order) is cheap. Same vocabulary and data model; only the enforcement point
-moves.
+## Known gap this addresses
 
-## How it layers with action-gating
-
-Three independent layers, coarse → fine, all over the same role model:
-
-1. **View-display visibility** (this doc) — whole section shows/hides by viewer
-   role/tier.
-2. **Result/entry action gating** — `ButtonList` admin/member routing, plus the
-   empty-into-required rule from [magic-query-params](magic-query-params.md).
-3. **Per-row** visibility via conditional query binding.
-
-A view can be member-visible yet carry an admin-only action button; the layers
-compose.
-
-## Known gaps this closes
-
-Today's action gating is incidental — it depends on how each table happens to be
-wired, not on anything the view declares — so it is already inconsistent. A
-concrete example to fix when this lands:
-
-- On a user's About page (`AboutUserPanel`), the **profile** table passes
-  `resourceWithProfile(IndividualAgent…)`, so its "update profile image / license"
-  actions route to `ButtonList`'s admin slot and are correctly owner-only. But
-  the **presets** and **view-displays** tables (`AboutUserPanel.java:74-78`) are
-  built *without* `resourceWithProfile`, so their "add preset…" / "add view
-  display…" actions fall into the unconditional regular-button slot
-  (`QueryResult.java:61`, `ButtonList.java:24-26`) and **leak onto other users'
-  About pages**. Publishing would be ignored server-side (authorized-agents-only),
-  but the button should not be shown.
-
-Left as-is deliberately: rather than patch the per-call wiring, the declarative
-mechanism makes the view/action declare its required role once, so every table
-honours it regardless of construction — removing this whole class of
-wiring-dependent inconsistency.
+Today's incidental routing already leaks: on a user's About page
+(`AboutUserPanel.java:74-78`) the **presets** and **view-displays** tables are
+built without `resourceWithProfile`, so their "add preset…" / "add view display…"
+actions fall into the unconditional regular bucket (`QueryResult.java:61`,
+`ButtonList.java:24-26`) and show on *other* users' pages. Declaring
+`gen:isVisibleTo` on those actions (e.g. owner/admin only) gates them regardless
+of how the table was wired — the declarative fix for this class of bug.
 
 ## Touch points
 
-| Change | File |
-| --- | --- |
-| Tier IRIs + rank, `gen:isVisibleTo` term | `vocabulary/KPXL_TERMS.java` |
-| `roleType` / tier field | `SpaceMemberRole.java`, `get-space-roles` (or `get-space-members`) query |
-| `userTier` / `viewerHoldsRole` | `domain/Space.java` |
-| Parse `gen:isVisibleTo` (+ View default) | `ViewDisplay.java`, `View.java` |
-| `isVisibleTo(...)` + apply filter | `ViewDisplay.java`, `domain/AbstractResourceWithProfile.java` |
-| Visibility selector in display-admin UI | `AddViewDisplayButton` / display authoring |
+| Change | File | Status |
+| --- | --- | --- |
+| Tier IRIs + `gen:isVisibleTo` term | `vocabulary/KPXL_TERMS.java` | done |
+| `roleType` → tier field, rank/`isTier`, `isViewerEntitled` | `SpaceMemberRole.java` | done |
+| `roleType` column | `get-space-roles` query republish (P0) | published |
+| `userTier` / `viewerHoldsRole` | `domain/Space.java` | done |
+| Parse `gen:isVisibleTo` on action nodes | `View.java` (`getActionVisibleTo`) | done |
+| Filter actions in the renderers | `QueryResultTable(Builder)`, `QueryResultList(Builder)`, `QueryResultPlainParagraphBuilder` | done |
+| `gen:isVisibleTo` field in the view-creation template | nanopub publish | todo |
+| Server-side path (optional) | `get-view-displays` / action queries + `?_CURRENTUSER` | todo |
 
 ## Phasing
 
-1. **Consume tiers**: tier IRIs + rank in `KPXL_TERMS`; `SpaceMemberRole.tier`
-   (and the `get-space-roles`/`get-space-members` column).
-2. **Parse + match + client-side filter** in `AbstractResourceWithProfile` —
-   functional end-to-end here.
-3. **Authoring UI**: a visibility selector ("Everyone" / tier / specific role)
-   on the display-admin control.
-4. *(Later, with magic params)* server-side filter in `get-view-displays` via
-   `?_CURRENTUSER`.
+1. **Tier model** — IRIs, `SpaceMemberRole.tier`/rank/`isViewerEntitled`,
+   `Space.userTier`/`viewerHoldsRole`, the `get-space-roles` `roleType` column. ✅
+2. **Per-action parse + filter** — `View.getActionVisibleTo`, gates in the five
+   action renderers (additive). ✅
+3. **Authoring** — add an optional `gen:isVisibleTo` tier picker to the
+   view-creation template (`…declaring-a-resource-view`), so authors set it when
+   defining a view. Republish; no Nanodash change (templates are discovered
+   dynamically). Specific-role targeting stays an advanced/hand-authored case.
+4. *(Optional, later)* server-side enforcement via the `?_CURRENTUSER` magic
+   parameter, once [magic-query-params](magic-query-params.md) lands.
 
 ## Relationship to nanopub-query
 
-This feature is purely a **consumer** of the spaces-repo role state. Tiers,
-grant rules, and the per-space validated member→role materialization all live in
+This feature is purely a **consumer** of the spaces-repo role state. Tiers, grant
+rules, and the per-space validated member→role materialization all live in
 nanopub-query
 ([design-space-repositories.md](../../nanopub-query/doc/design-space-repositories.md)).
 Nanodash adds only the *privilege* interpretation — "a viewer at tier ≥ T (or
-holding role R) may see this view display" — which that design explicitly leaves
-to Nanodash. No new server-side role type is introduced (the Everyone floor is a
+holding role R) may use this action" — which that design explicitly leaves to
+Nanodash. No new server-side role type is introduced (the Everyone floor is a
 Nanodash-side default, not a tier).

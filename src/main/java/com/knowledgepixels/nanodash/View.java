@@ -141,7 +141,7 @@ public class View implements Serializable {
     private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
-    private Set<IRI> visibleTo = new HashSet<>();
+    private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
 
     private View(String id, Nanopub nanopub) {
         this.id = id;
@@ -186,8 +186,6 @@ public class View implements Serializable {
                     displayWidth = columnWidths.get(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
-                } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
-                    visibleTo.add(objIri);
                 }
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE)) {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
@@ -198,6 +196,11 @@ public class View implements Serializable {
                 actionTemplatePartFieldMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
                 actionTemplateQueryMappingMap.put((IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
+                // Per-action visibility: gen:isVisibleTo on an action node restricts
+                // that action button to viewers holding the given role tier or
+                // specific role. See docs/role-specific-views.md.
+                actionVisibleToMap.computeIfAbsent((IRI) st.getSubject(), k -> new HashSet<>()).add(objIri);
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 labelMap.put((IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDF.TYPE)) {
@@ -293,14 +296,16 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the default visibility restriction of this view: the set of role-tier
-     * or specific-role IRIs a viewer must hold to see it. Empty means visible to
-     * everyone. A {@link ViewDisplay} overrides this with its own restriction.
+     * Gets the visibility restriction declared on a given action node via
+     * {@code gen:isVisibleTo}: the set of role-tier or specific-role IRIs a viewer
+     * must hold for that action button to be shown. An empty set means the action
+     * is visible to everyone (subject to the existing button-list routing).
      *
-     * @return the set of {@code gen:isVisibleTo} IRIs (never null)
+     * @param actionIri the action IRI (a result or entry action of this view)
+     * @return the set of {@code gen:isVisibleTo} IRIs for that action (never null)
      */
-    public Set<IRI> getVisibleTo() {
-        return visibleTo;
+    public Set<IRI> getActionVisibleTo(IRI actionIri) {
+        return actionVisibleToMap.getOrDefault(actionIri, Collections.emptySet());
     }
 
     /**

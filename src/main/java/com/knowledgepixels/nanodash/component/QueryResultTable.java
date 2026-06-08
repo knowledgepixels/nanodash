@@ -193,6 +193,10 @@ public class QueryResultTable extends QueryResult {
                 if (key.equals(ACTIONS) && view != null) {
                     List<AbstractLink> links = new ArrayList<>();
                     for (IRI actionIri : view.getViewEntryActionList()) {
+                        // Per-action role gating (docs/role-specific-views.md): skip an
+                        // action whose gen:isVisibleTo the viewer does not satisfy.
+                        // Additive — actions without gen:isVisibleTo are unaffected.
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;

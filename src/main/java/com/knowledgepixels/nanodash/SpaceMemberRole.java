@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash;
 
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
@@ -9,6 +11,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -194,6 +197,69 @@ public class SpaceMemberRole implements Serializable {
                 || KPXL_TERMS.MAINTAINER_ROLE.equals(iri)
                 || KPXL_TERMS.MEMBER_ROLE.equals(iri)
                 || KPXL_TERMS.OBSERVER_ROLE.equals(iri);
+    }
+
+    /**
+     * Evaluates a {@code gen:isVisibleTo} restriction (a set of role-tier and/or
+     * specific-role IRIs) against a viewer. Used to gate per-action visibility on
+     * views (see docs/role-specific-views.md).
+     *
+     * <p>An empty restriction is visible to everyone. A role-tier IRI matches when
+     * the viewer's highest tier in the governing space meets or exceeds it
+     * (admin {@literal >} maintainer {@literal >} member {@literal >} observer); a
+     * specific role IRI matches when the viewer holds exactly that role. Multiple
+     * entries are OR-ed; there is no admin override for specific roles. When there
+     * is no governing space (e.g. a user page), a non-empty restriction is
+     * satisfied only for the resource owner.</p>
+     *
+     * @param requiredVisibility the set of {@code gen:isVisibleTo} IRIs (may be empty)
+     * @param viewer             the viewer's agent IRI, or null if logged out
+     * @param governingSpace     the space whose roles govern visibility, or null
+     * @param viewerIsOwner      whether the viewer owns the resource (used only
+     *                           when there is no governing space)
+     * @return true if the viewer is entitled
+     */
+    public static boolean isViewerEntitled(Set<IRI> requiredVisibility, IRI viewer, Space governingSpace, boolean viewerIsOwner) {
+        if (requiredVisibility == null || requiredVisibility.isEmpty()) return true;
+        if (governingSpace == null) {
+            // A user page is a degenerate space: the owner is its sole admin and no
+            // other members or role assignments exist (observers may be added
+            // later). So the owner holds the admin tier and everyone else the
+            // everyone floor; only tier requirements can match here, and specific
+            // role IRIs — unholdable without a space — never do.
+            int tier = viewerIsOwner ? ADMIN_RANK : EVERYONE_RANK;
+            for (IRI req : requiredVisibility) {
+                if (isTier(req) && tier >= tierRank(req)) return true;
+            }
+            return false;
+        }
+        if (viewer == null) return false;
+        for (IRI req : requiredVisibility) {
+            if (isTier(req)) {
+                if (governingSpace.userTier(viewer) >= tierRank(req)) return true;
+            } else if (governingSpace.viewerHoldsRole(viewer, req)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Convenience overload that resolves the current viewer, the governing space,
+     * and ownership from a resource-with-profile, then evaluates the
+     * {@code gen:isVisibleTo} restriction. The governing space is the resource
+     * itself if it is a space, otherwise its owning space (null for a user page).
+     *
+     * @param requiredVisibility the set of {@code gen:isVisibleTo} IRIs (may be empty)
+     * @param resource           the resource the action is being rendered for, or null
+     * @return true if the current viewer is entitled
+     */
+    public static boolean isViewerEntitled(Set<IRI> requiredVisibility, AbstractResourceWithProfile resource) {
+        if (requiredVisibility == null || requiredVisibility.isEmpty()) return true;
+        Space governingSpace = (resource instanceof Space s) ? s : (resource != null ? resource.getSpace() : null);
+        IRI viewer = NanodashSession.getCurrentUserIriOrNull();
+        boolean viewerIsOwner = viewer != null && resource instanceof IndividualAgent ia && ia.isCurrentUser();
+        return isViewerEntitled(requiredVisibility, viewer, governingSpace, viewerIsOwner);
     }
 
     /**

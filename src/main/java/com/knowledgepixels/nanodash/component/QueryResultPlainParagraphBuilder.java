@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -37,6 +38,9 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
         View view = viewDisplay.getView();
         if (view == null) return;
         for (IRI actionIri : view.getViewResultActionList()) {
+            // Per-action role gating (docs/role-specific-views.md): skip an action
+            // whose gen:isVisibleTo the viewer does not satisfy.
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), pageResource)) continue;
             Template t = view.getTemplateForAction(actionIri);
             if (t == null) continue;
             String targetField = view.getTemplateTargetFieldForAction(actionIri);

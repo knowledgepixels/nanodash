@@ -89,6 +89,7 @@ public class QueryResultListBuilder implements Serializable {
                 View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
                         String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -133,6 +134,7 @@ public class QueryResultListBuilder implements Serializable {
                         View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
+                                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
                                 Template t = view.getTemplateForAction(actionIri);
                                 if (t == null) continue;
                                 String targetField = view.getTemplateTargetFieldForAction(actionIri);

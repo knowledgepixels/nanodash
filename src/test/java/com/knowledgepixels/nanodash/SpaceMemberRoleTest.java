@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -148,6 +150,61 @@ class SpaceMemberRoleTest {
         assertEquals(KPXL_TERMS.ADMIN_ROLE_TYPE, SpaceMemberRole.ADMIN_ROLE.getTier());
         assertEquals(4, SpaceMemberRole.ADMIN_ROLE.getTierRank());
         assertTrue(SpaceMemberRole.ADMIN_ROLE.isAdminRole());
+    }
+
+    private static final IRI VIEWER = Values.iri("https://orcid.org/0000-0000-0000-0001");
+
+    @Test
+    void emptyRestrictionIsVisibleToEveryone() {
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(), null, null, false));
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(), VIEWER, mock(Space.class), false));
+        assertTrue(SpaceMemberRole.isViewerEntitled(null, null, null, false));
+    }
+
+    @Test
+    void userPageOwnerHoldsAdminTier() {
+        // No governing space (user page): the owner is the sole admin, so any tier
+        // requirement matches the owner and nobody else.
+        for (IRI tier : new IRI[]{KPXL_TERMS.ADMIN_ROLE_TYPE, KPXL_TERMS.MAINTAINER_ROLE,
+                KPXL_TERMS.MEMBER_ROLE, KPXL_TERMS.OBSERVER_ROLE}) {
+            assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(tier), VIEWER, null, true), tier.toString());
+            assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(tier), VIEWER, null, false), tier.toString());
+        }
+    }
+
+    @Test
+    void userPageSpecificRoleMatchesNobody() {
+        // Specific roles are unholdable without a space, so even the owner (admin
+        // tier, not that role) does not match.
+        IRI customRole = Values.iri("https://example.org/newsletterEditor");
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, null, true));
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, null, false));
+    }
+
+    @Test
+    void loggedOutViewerFailsRestriction() {
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.MEMBER_ROLE), null, mock(Space.class), false));
+    }
+
+    @Test
+    void tierThresholdMatchesAtOrAboveRequired() {
+        Space space = mock(Space.class);
+        when(space.userTier(VIEWER)).thenReturn(3); // maintainer
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.MAINTAINER_ROLE), VIEWER, space, false));
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.MEMBER_ROLE), VIEWER, space, false));
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.ADMIN_ROLE_TYPE), VIEWER, space, false));
+    }
+
+    @Test
+    void specificRoleMatchesOnlyWhenHeld() {
+        IRI customRole = Values.iri("https://example.org/newsletterEditor");
+        Space space = mock(Space.class);
+        when(space.userTier(VIEWER)).thenReturn(4); // even an admin...
+        when(space.viewerHoldsRole(VIEWER, customRole)).thenReturn(false);
+        // ...does not see a specific-role-gated action they don't hold (no admin override)
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, space, false));
+        when(space.viewerHoldsRole(VIEWER, customRole)).thenReturn(true);
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, space, false));
     }
 
 }

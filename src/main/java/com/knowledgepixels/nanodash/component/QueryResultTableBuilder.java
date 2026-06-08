@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -109,7 +110,7 @@ public class QueryResultTableBuilder implements Serializable {
                 }
                 table.setResourceWithProfile(resourceWithProfile);
                 table.setPageResource(resourceWithProfile);
-                addViewActions(table, viewDisplay, queryRef, id, contextId);
+                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -123,7 +124,7 @@ public class QueryResultTableBuilder implements Serializable {
                         }
                         table.setResourceWithProfile(resourceWithProfile);
                         table.setPageResource(resourceWithProfile);
-                        addViewActions(table, viewDisplay, queryRef, id, contextId);
+                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                         return table;
                     }
                 };
@@ -134,7 +135,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
-                addViewActions(table, viewDisplay, queryRef, id, contextId);
+                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -143,7 +144,7 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
-                        addViewActions(table, viewDisplay, queryRef, id, contextId);
+                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                         return table;
                     }
                 };
@@ -165,10 +166,14 @@ public class QueryResultTableBuilder implements Serializable {
      * @param id          the resource id, or null if there is no specific resource in context
      * @param contextId   the context id, or null if there is no context
      */
-    private static void addViewActions(QueryResultTable table, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId) {
+    private static void addViewActions(QueryResultTable table, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId, AbstractResourceWithProfile resourceWithProfile) {
         View view = viewDisplay.getView();
         if (view == null) return;
         for (IRI actionIri : view.getViewResultActionList()) {
+            // Per-action role gating (docs/role-specific-views.md): skip an action
+            // whose gen:isVisibleTo the current viewer does not satisfy. Additive —
+            // actions without gen:isVisibleTo are unaffected.
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
             Template t = view.getTemplateForAction(actionIri);
             if (t == null) continue;
             String targetField = view.getTemplateTargetFieldForAction(actionIri);
