@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +90,64 @@ class SpaceMemberRoleTest {
         assertArrayEquals(new IRI[]{
                 Values.iri("https://example.org/invprop1")
         }, role.getInverseProperties());
+    }
+
+    private static SpaceMemberRole roleWithType(String roleType) {
+        ApiResponseEntry entry = mock(ApiResponseEntry.class);
+        when(entry.get("role")).thenReturn("https://example.org/role");
+        when(entry.get("roleType")).thenReturn(roleType);
+        return new SpaceMemberRole(entry);
+    }
+
+    @Test
+    void defaultsToObserverTierWhenRoleTypeAbsent() {
+        // The shared setUp() role stubs no roleType.
+        assertEquals(KPXL_TERMS.OBSERVER_ROLE, role.getTier());
+        assertEquals(1, role.getTierRank());
+    }
+
+    @Test
+    void parsesTierFromRoleType() {
+        assertEquals(KPXL_TERMS.MAINTAINER_ROLE, roleWithType(KPXL_TERMS.MAINTAINER_ROLE.stringValue()).getTier());
+        assertEquals(3, roleWithType(KPXL_TERMS.MAINTAINER_ROLE.stringValue()).getTierRank());
+        assertEquals(KPXL_TERMS.MEMBER_ROLE, roleWithType(KPXL_TERMS.MEMBER_ROLE.stringValue()).getTier());
+        assertEquals(2, roleWithType(KPXL_TERMS.MEMBER_ROLE.stringValue()).getTierRank());
+    }
+
+    @Test
+    void tierRankIsStrictlyOrdered() {
+        int admin = SpaceMemberRole.tierRank(KPXL_TERMS.ADMIN_ROLE_TYPE);
+        int maintainer = SpaceMemberRole.tierRank(KPXL_TERMS.MAINTAINER_ROLE);
+        int member = SpaceMemberRole.tierRank(KPXL_TERMS.MEMBER_ROLE);
+        int observer = SpaceMemberRole.tierRank(KPXL_TERMS.OBSERVER_ROLE);
+        assertTrue(admin > maintainer);
+        assertTrue(maintainer > member);
+        assertTrue(member > observer);
+        assertTrue(observer > SpaceMemberRole.EVERYONE_RANK);
+    }
+
+    @Test
+    void unknownAndNullTierRankToEveryoneFloor() {
+        assertEquals(SpaceMemberRole.EVERYONE_RANK, SpaceMemberRole.tierRank(Values.iri("https://example.org/role")));
+        assertEquals(SpaceMemberRole.EVERYONE_RANK, SpaceMemberRole.tierRank(null));
+        assertEquals(0, SpaceMemberRole.EVERYONE_RANK);
+    }
+
+    @Test
+    void isTierRecognizesOnlyTierIris() {
+        assertTrue(SpaceMemberRole.isTier(KPXL_TERMS.ADMIN_ROLE_TYPE));
+        assertTrue(SpaceMemberRole.isTier(KPXL_TERMS.MAINTAINER_ROLE));
+        assertTrue(SpaceMemberRole.isTier(KPXL_TERMS.MEMBER_ROLE));
+        assertTrue(SpaceMemberRole.isTier(KPXL_TERMS.OBSERVER_ROLE));
+        assertFalse(SpaceMemberRole.isTier(Values.iri("https://example.org/role")));
+        assertFalse(SpaceMemberRole.isTier(null));
+    }
+
+    @Test
+    void adminRoleHasAdminTier() {
+        assertEquals(KPXL_TERMS.ADMIN_ROLE_TYPE, SpaceMemberRole.ADMIN_ROLE.getTier());
+        assertEquals(4, SpaceMemberRole.ADMIN_ROLE.getTierRank());
+        assertTrue(SpaceMemberRole.ADMIN_ROLE.isAdminRole());
     }
 
 }

@@ -141,6 +141,7 @@ public class View implements Serializable {
     private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
+    private Set<IRI> visibleTo = new HashSet<>();
 
     private View(String id, Nanopub nanopub) {
         this.id = id;
@@ -185,6 +186,8 @@ public class View implements Serializable {
                     displayWidth = columnWidths.get(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_STRUCTURAL_POSITION) && st.getObject() instanceof Literal objL) {
                     structuralPosition = objL.stringValue();
+                } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
+                    visibleTo.add(objIri);
                 }
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE)) {
                 Template template = TemplateData.get().getTemplate(st.getObject().stringValue());
@@ -287,6 +290,17 @@ public class View implements Serializable {
 
     public String getStructuralPosition() {
         return structuralPosition;
+    }
+
+    /**
+     * Gets the default visibility restriction of this view: the set of role-tier
+     * or specific-role IRIs a viewer must hold to see it. Empty means visible to
+     * everyone. A {@link ViewDisplay} overrides this with its own restriction.
+     *
+     * @return the set of {@code gen:isVisibleTo} IRIs (never null)
+     */
+    public Set<IRI> getVisibleTo() {
+        return visibleTo;
     }
 
     /**

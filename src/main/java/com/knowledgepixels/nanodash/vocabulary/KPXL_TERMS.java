@@ -106,4 +106,21 @@ public class KPXL_TERMS {
 
     public static final IRI HAS_DEFAULT_LICENSE = VocabUtils.createIRI(NAMESPACE, "hasDefaultLicense");
 
+    // Role tiers (subclasses of gen:SpaceMemberRole; materialized server-side by
+    // nanopub-query as the npa:hasRoleType value). Ordered admin > maintainer >
+    // member > observer; observer is the default when a role declares no tier.
+    // Used to gate view-display visibility by role tier; see
+    // docs/role-specific-views.md.
+    public static final IRI ADMIN_ROLE_TYPE = VocabUtils.createIRI(NAMESPACE, "AdminRole");
+    public static final IRI MAINTAINER_ROLE = VocabUtils.createIRI(NAMESPACE, "MaintainerRole");
+    public static final IRI MEMBER_ROLE = VocabUtils.createIRI(NAMESPACE, "MemberRole");
+    public static final IRI OBSERVER_ROLE = VocabUtils.createIRI(NAMESPACE, "ObserverRole");
+
+    /**
+     * Restricts a view display (or view) to viewers holding the given role tier
+     * (one of the role-tier IRIs above) or a specific role IRI. Absent means
+     * visible to everyone. See docs/role-specific-views.md.
+     */
+    public static final IRI IS_VISIBLE_TO = VocabUtils.createIRI(NAMESPACE, "isVisibleTo");
+
 }

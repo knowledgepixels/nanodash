@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -33,6 +34,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<String> appliesTo = new HashSet<>();
     private Set<IRI> appliesToClasses = new HashSet<>();
     private Set<IRI> appliesToNamespaces = new HashSet<>();
+    private Set<IRI> visibleTo = new HashSet<>();
     private IRI resource;
 
     /**
@@ -195,6 +197,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     appliesToClasses.add(objIri);
                 } else if (st.getPredicate().equals(KPXL_TERMS.APPLIES_TO) && st.getObject() instanceof IRI objIri) {
                     appliesTo.add(objIri.stringValue());
+                } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
+                    visibleTo.add(objIri);
                 }
             }
         }
@@ -323,6 +327,42 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         if (title != null) return title;
         if (view != null) return view.getTitle();
         return null;
+    }
+
+    /**
+     * Whether this view display should be shown to the given viewer, per its
+     * {@code gen:isVisibleTo} restriction (falling back to the displayed view's
+     * default when the display declares none). An empty restriction means
+     * visible to everyone.
+     *
+     * <p>A role-tier IRI matches when the viewer's highest role tier in the
+     * governing space meets or exceeds it (admin {@literal >} maintainer
+     * {@literal >} member {@literal >} observer); a specific role IRI matches
+     * when the viewer holds exactly that role. Multiple restrictions are OR-ed.
+     * There is no admin override for specific roles — an admin who needs such a
+     * view self-assigns the role.</p>
+     *
+     * @param viewer         the viewer's agent IRI, or null if logged out
+     * @param governingSpace the space whose roles govern visibility, or null
+     *                       (e.g. a user page) — then a restricted display is
+     *                       shown only to the page owner
+     * @param viewerIsOwner  whether the viewer owns the resource this display is
+     *                       for (used only when there is no governing space)
+     * @return true if the display should be shown
+     */
+    public boolean isVisibleTo(IRI viewer, Space governingSpace, boolean viewerIsOwner) {
+        Set<IRI> reqs = (visibleTo.isEmpty() && view != null) ? view.getVisibleTo() : visibleTo;
+        if (reqs == null || reqs.isEmpty()) return true;
+        if (governingSpace == null) return viewerIsOwner;
+        if (viewer == null) return false;
+        for (IRI req : reqs) {
+            if (SpaceMemberRole.isTier(req)) {
+                if (governingSpace.userTier(viewer) >= SpaceMemberRole.tierRank(req)) return true;
+            } else if (governingSpace.viewerHoldsRole(viewer, req)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

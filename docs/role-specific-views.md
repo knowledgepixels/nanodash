@@ -1,6 +1,6 @@
 # Role-specific views
 
-**Status:** 📋 Proposed
+**Status:** 🚧 In progress — tier model + `gen:isVisibleTo` parsing/matching + client-side filter implemented (steps 1–4); pending the `get-space-roles` `roleType` republish (P0), authoring UI, and the server-side filter.
 
 A view display may declare that it is **visible only to viewers holding a given
 role, or a given role tier (class)**, relative to the resource's governing
