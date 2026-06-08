@@ -376,7 +376,30 @@ public class View implements Serializable {
      * @return the list of mappings (never null; empty if none)
      */
     public List<String> getTemplateQueryMappings(IRI actionIri) {
-        return actionTemplateQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList());
+        List<String> result = new ArrayList<>();
+        for (String literal : actionTemplateQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList())) {
+            result.addAll(parseMappingLiteral(literal));
+        }
+        return result;
+    }
+
+    /**
+     * Splits a query-mapping literal into individual {@code "col:target"} mappings
+     * on whitespace. Multiple mappings share a single literal because a
+     * view-creation template cannot repeat a statement inside its repeated action
+     * group — e.g. {@code "np:nanopubToBeRetracted"} or
+     * {@code "derive_target:@derive-a local_pubkey:public-key__.1"}.
+     *
+     * @param literal the mapping literal (may be null/blank/"void")
+     * @return the individual mappings (never null; empty if none)
+     */
+    public static List<String> parseMappingLiteral(String literal) {
+        List<String> mappings = new ArrayList<>();
+        if (literal == null || literal.isBlank()) return mappings;
+        for (String m : literal.trim().split("\\s+")) {
+            if (!m.isEmpty() && !"void".equals(m)) mappings.add(m);
+        }
+        return mappings;
     }
 
     /**

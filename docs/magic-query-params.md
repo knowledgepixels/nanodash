@@ -197,11 +197,18 @@ missing-keys column), and every key-dependent action vanishes when logged out
 Today an action carries a single `queryVar:templateParam` mapping that only sets
 `param_X`. Two extensions, folded together because `derive` needs both:
 
-- allow a **list** of mappings per action;
-- allow a mapping to target a **non-`param_` URL key** (`derive-a`, `supersede`).
+- allow **multiple** mappings per action — but as a **single whitespace-separated
+  literal** in one `gen:hasActionTemplateQueryMapping` value, *not* a repeated
+  statement: the action is declared inside the view-creation template's repeated
+  action group, which can't itself contain a repeated/optional statement. (Same
+  space-separated convention used for role `regularProperties`.) `View` splits the
+  literal (`parseMappingLiteral`);
+- allow a mapping to target a **non-`param_` URL key** via an `@` prefix
+  (`@derive-a`, `@supersede`).
 
-`derive` then declares two: `derive_target → derive-a` (conditional, drives
-visibility) and `local_pubkey → public-key__.1`.
+`derive` then declares one literal with two mappings:
+`"derive_target:@derive-a local_pubkey:public-key__.1"` — the first drives
+visibility (conditional target), the second supplies the key.
 
 ### Multi-value column → indexed params
 
