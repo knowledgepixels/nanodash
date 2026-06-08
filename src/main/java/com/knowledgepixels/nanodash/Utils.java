@@ -10,6 +10,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.string.Strings;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -408,6 +409,39 @@ public class Utils {
      */
     public static boolean looksLikeHtml(String value) {
         return LEADING_TAG.matcher(value).find();
+    }
+
+    /**
+     * Matches an xsd:dateTime-style literal with a time component, e.g.
+     * "2026-04-16T08:27:12.954Z" or "2026-04-16T08:27:12+02:00".
+     */
+    private static final Pattern DATETIME_LITERAL =
+            Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$");
+
+    /**
+     * Checks whether a (raw query-result) string looks like an ISO-8601 date-time literal.
+     *
+     * @param value the string to check
+     * @return true if the string parses as an xsd:dateTime-style value
+     */
+    public static boolean isDateTimeLiteral(String value) {
+        return value != null && DATETIME_LITERAL.matcher(value).matches();
+    }
+
+    /**
+     * Renders a {@code <time>} element for an ISO-8601 date-time value. The machine-readable
+     * value goes in the {@code datetime} attribute; client-side script (nanodash.js) rewrites
+     * the visible text to a relative form ("10 minutes ago") in the viewer's local timezone and
+     * puts the absolute date-time in the tooltip. If script does not run, {@code fallbackText}
+     * remains visible.
+     *
+     * @param isoValue     the ISO-8601 date-time string (machine-readable)
+     * @param fallbackText the human-readable text shown when script is unavailable
+     * @return an HTML {@code <time>} element string (caller must render with escaping disabled)
+     */
+    public static String friendlyDateHtml(String isoValue, String fallbackText) {
+        return "<time class=\"friendly-date\" datetime=\"" + Strings.escapeMarkup(isoValue) + "\">"
+                + Strings.escapeMarkup(fallbackText) + "</time>";
     }
 
     /**

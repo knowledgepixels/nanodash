@@ -15,11 +15,49 @@ function wrapLeadingEmoji() {
     node.parentNode.insertBefore(span, node);
   });
 }
+/* Friendly date rendering — turns <time class="friendly-date" datetime="..."> into a
+   relative form ("10 minutes ago") in the viewer's local timezone, with the absolute
+   date-time in the tooltip. Falls back silently to the server-rendered text if the value
+   does not parse. No jQuery dependency; safe to call repeatedly (idempotent). */
+function friendlyRelative(date, absDateFallback) {
+  var diffSec = Math.round((date.getTime() - Date.now()) / 1000); // negative = past
+  if (Math.abs(diffSec) < 45) return "just now";
+  if (typeof Intl === "undefined" || !Intl.RelativeTimeFormat) return absDateFallback;
+  var rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  var min = Math.round(diffSec / 60);
+  if (Math.abs(min) < 60) return rtf.format(min, "minute");
+  var hr = Math.round(diffSec / 3600);
+  if (Math.abs(hr) < 24) return rtf.format(hr, "hour");
+  var day = Math.round(diffSec / 86400);
+  if (Math.abs(day) < 7) return rtf.format(day, "day");
+  return absDateFallback; // older than a week → absolute date
+}
+
+function renderFriendlyDates(root) {
+  var scope = root || document;
+  scope.querySelectorAll("time.friendly-date[datetime]").forEach(function (el) {
+    if (el.dataset.friendlyRendered === "1") return;
+    var d = new Date(el.getAttribute("datetime"));
+    if (isNaN(d.getTime())) return; // unparseable → leave server-rendered text as-is
+    el.dataset.friendlyRendered = "1";
+    // Full, pretty tooltip: weekday + full date + time with seconds and timezone,
+    // e.g. "Thursday, 16 April 2026 at 10:27:12 CEST".
+    var absFull = d.toLocaleString(undefined, { dateStyle: "full", timeStyle: "long" });
+    var absDate = d.toLocaleDateString(undefined, { dateStyle: "medium" });
+    el.setAttribute("title", absFull);
+    el.textContent = friendlyRelative(d, absDate);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   wrapLeadingEmoji();
+  renderFriendlyDates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
   if (typeof Wicket !== "undefined" && Wicket.Event) {
-    Wicket.Event.subscribe("/ajax/call/complete", wrapLeadingEmoji);
+    Wicket.Event.subscribe("/ajax/call/complete", function() {
+      wrapLeadingEmoji();
+      renderFriendlyDates();
+    });
   }
 });
 
@@ -38,6 +76,7 @@ $(window).on('load', updateElements);
 
 function updateElements() {
   wrapLeadingEmoji();
+  renderFriendlyDates();
   adjustValueWidths();
   setCollapseOverflow();
   collapseNanopubAssertions();
