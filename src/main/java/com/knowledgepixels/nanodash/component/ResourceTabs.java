@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
@@ -105,6 +106,31 @@ public class ResourceTabs extends Panel {
         }
         add(tabLink("explore-tab", pageClass, params(resourceId, contextId, "explore"), active == Tab.EXPLORE));
         add(tabLink("raw-tab", pageClass, params(resourceId, contextId, "raw"), active == Tab.RAW));
+    }
+
+    /**
+     * Constructs a two-tab strip (<b>Content</b> | <b>Explore</b>) for the
+     * standalone {@link ExplorePage}. Unlike the resource variants this carries
+     * the page's full parameter set (minus {@code tab}) across tab switches so
+     * the resolved id, context and label are preserved, and it has neither an
+     * About nor a Raw tab.
+     *
+     * @param id         the Wicket markup id
+     * @param baseParams the explore page's parameters to preserve across tabs
+     * @param active     the tab to mark as selected
+     */
+    public ResourceTabs(String id, PageParameters baseParams, Tab active) {
+        super(id);
+
+        PageParameters contentParams = new PageParameters(baseParams);
+        contentParams.remove("tab");
+        PageParameters exploreParams = new PageParameters(contentParams);
+        exploreParams.set("tab", "explore");
+
+        add(tabLink("content-tab", ExplorePage.class, contentParams, active == Tab.CONTENT));
+        add(new WebMarkupContainer("about-tab").setVisible(false));
+        add(tabLink("explore-tab", ExplorePage.class, exploreParams, active == Tab.EXPLORE));
+        add(new WebMarkupContainer("raw-tab").setVisible(false));
     }
 
     /**

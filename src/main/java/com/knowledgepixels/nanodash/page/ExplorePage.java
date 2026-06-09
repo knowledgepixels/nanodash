@@ -144,7 +144,9 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
-        add(new TitleBar("titlebar", this, null));
+        ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
+        TitleBar titleBar = new TitleBar("titlebar", this, null);
+        add(titleBar);
 
         if (SpaceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
@@ -343,9 +345,34 @@ public class ExplorePage extends NanodashPage {
 
         // References to the explored thing (the References view, moved here from
         // the About pages).
+        WebMarkupContainer referencesSection = new WebMarkupContainer("references-section");
         View refView = View.get(ReferencesPage.REFERENCES_VIEW);
         QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
-        add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
+        referencesSection.add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
+        add(referencesSection);
+
+        // Tab layout: the Content tab shows the nanopublication itself (for
+        // nanopub / minted-in-nanopub things) or, for plain terms, the info
+        // section (Assigned to, Described in, instances, templates). The Explore
+        // tab shows only References (for all cases).
+        titleBar.setTabs(new ResourceTabs("tabs", exploreTabParams(ref, contextId, parameters), activeTab));
+        boolean contentTab = (activeTab == ResourceTabs.Tab.CONTENT);
+        boolean hasNanopub = (np != null);
+        nanopubSection.setVisible(contentTab && hasNanopub);
+        infoSection.setVisible(publishedNanopub == null && contentTab && !hasNanopub);
+        referencesSection.setVisible(!contentTab);
+    }
+
+    /**
+     * Builds the parameter set carried across the Content/Explore tabs: the
+     * resolved thing id, plus the optional context and label, so tab switches
+     * stay on the same resolved thing without dragging publish-only parameters.
+     */
+    private static PageParameters exploreTabParams(String ref, String contextId, PageParameters parameters) {
+        PageParameters p = new PageParameters().set("id", ref);
+        if (!contextId.isEmpty()) p.set("context", contextId);
+        if (!parameters.get("label").isEmpty()) p.set("label", parameters.get("label").toString());
+        return p;
     }
 
     @Override
