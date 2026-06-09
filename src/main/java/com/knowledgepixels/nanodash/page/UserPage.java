@@ -98,6 +98,16 @@ public class UserPage extends NanodashPage {
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
 
+        // The owner's account + signing-key controls share the title/ORCID header
+        // stripe (own About page only).
+        boolean ownPage = NanodashSession.get().getUserIri() != null
+                && NanodashSession.get().getUserIri().stringValue().equals(userIriString);
+        if (ownPage && activeTab == ResourceTabs.Tab.ABOUT) {
+            add(new ProfileAccountPanel("accountpart", userIriString));
+        } else {
+            add(new EmptyPanel("accountpart").setVisible(false));
+        }
+
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;
 //		if (pubkeyHashes.isEmpty()) {

@@ -44,15 +44,10 @@ public class AboutUserPanel extends Panel {
     public AboutUserPanel(String id, String userIriString) {
         super(id);
 
-        // Account/identity controls (logout, local-mode ORCID form) only on the
-        // current user's own About page.
+        // The owner's account/identity controls (logout, local-mode ORCID form,
+        // signing key) live in the page header stripe (see UserPage), not here.
         NanodashSession session = NanodashSession.get();
         boolean ownPage = session.getUserIri() != null && session.getUserIri().stringValue().equals(userIriString);
-        if (ownPage) {
-            add(new ProfileAccountPanel("account", userIriString));
-        } else {
-            add(new EmptyPanel("account").setVisible(false));
-        }
 
         // Recommended actions: shown only on the owner's own About page when they
         // have a local key. The query is owner-gated (CURRENTUSER) and may return

@@ -43,6 +43,23 @@
   vertical-align: -0.1em;
 }
 
+/* Highlighted box for the user's own account + signing-key controls, marking
+   it apart from the surrounding view sections. */
+.account-box {
+  background: #0B73DA1A;
+  border: 1px solid #0B73DA40;
+  border-radius: 8px;
+  padding: 4px 16px;
+  margin: 20px 0 8px;
+}
+
+.account-box-title {
+  margin-top: 8px;
+  /* h1–h6 set background-color:inherit, which would re-stack the box's
+     semi-transparent blue on top of itself; keep the title transparent. */
+  background-color: transparent;
+}
+
 pre {
   margin-top: 0;
   margin-bottom: 0;

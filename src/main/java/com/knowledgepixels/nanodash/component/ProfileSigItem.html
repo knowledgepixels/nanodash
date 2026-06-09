@@ -8,13 +8,9 @@
 
 <wicket:panel>
 
-<div class="paneltitlerow">
-<h4>Signing Key</h4>
-</div>
+<p wicket:id="keyline">Local key (<code wicket:id="keylabel"></code>)<span wicket:id="filepart"> is in file: <code wicket:id="keyfile"></code></span></p>
 
-<p><span wicket:id="pubkey"></span></p>
-
-<p wicket:id="localfile">Local key file: <code wicket:id="keyfile"></code></p>
+<p wicket:id="keyerror" class="negative">Error loading key file</p>
 
 </wicket:panel>
 
