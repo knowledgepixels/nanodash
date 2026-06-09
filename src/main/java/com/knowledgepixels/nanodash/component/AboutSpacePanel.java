@@ -36,7 +36,14 @@ public class AboutSpacePanel extends Panel {
      * highest role tier, built on the list-space-members query. Observer-tier
      * members are excluded.
      */
-    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAy_3Z7HZLaMit3fRTgzDexblHAG_9vCaal07h01FZrZU/space-members-view";
+    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAtXkvt5k8F0Q0wcHGBUeviereSSKFqPd5awX4TOi-VvQ/space-members-view";
+
+    /**
+     * View listing a space's observers (members whose highest tier is observer,
+     * i.e. holding no admin/maintainer/member role), built on the
+     * list-space-observers query.
+     */
+    public static final String OBSERVERS_VIEW = "https://w3id.org/np/RAWm9RSI6AHTl1n5LNQj-iYKcU0iJFknwMnZ4xgvpckM0/space-observers-view";
 
     /**
      * @param id    the Wicket markup id
@@ -50,6 +57,9 @@ public class AboutSpacePanel extends Panel {
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());
+
+        View observersView = View.get(OBSERVERS_VIEW);
+        add(QueryResultTableBuilder.create("observers", new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(observersView)).build());
 
         View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
