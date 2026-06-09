@@ -752,7 +752,8 @@ span.prelink {
   font-family: Inter, Verdana, Helvetica, sans-serif;
   font-size: 10pt;
   font-weight: 700;
-  color: #0B73DA;
+  /* Inactive tabs are gray; the selected tab and hovered tabs are blue. */
+  color: #6c757d;
   text-decoration: none;
   /* Rounded only at the top -> tab shape rising out of the stripe. */
   border-radius: 8px 8px 0 0;
@@ -760,6 +761,7 @@ span.prelink {
 }
 .resource-tabs a:hover:not(.selected) {
   background-color: #0B73DA1A;
+  color: #0B73DA;
 }
 .resource-tabs a.selected {
   background-color: #ffffff;
@@ -2481,6 +2483,13 @@ a.source:hover {
   cursor: pointer;
   color: #555;
   transition: background 0.15s, color 0.15s;
+}
+
+/* The icon is an external SVG loaded via <img>, so CSS color can't reach its
+   currentColor strokes (they render black). Recolor it to the brighter link
+   blue with a filter. */
+.copy-link-btn img {
+  filter: invert(39%) sepia(57%) saturate(2476%) hue-rotate(199deg) brightness(97%) contrast(95%);
 }
 
 .copy-link-btn:hover {
