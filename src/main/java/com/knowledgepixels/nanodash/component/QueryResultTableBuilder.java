@@ -200,9 +200,11 @@ public class QueryResultTableBuilder implements Serializable {
                 if (r != null) {
                     namespace = r.getNamespace();
                 } else if (resourceWithProfile instanceof Space) {
-                    // A space's sub-resources (incl. sub-spaces) live under its IRI; the
-                    // prefix match makes the created space a sub-space of this one.
-                    namespace = contextId + "/";
+                    // The Space-creation templates' `space` placeholder has a fixed
+                    // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it
+                    // (same as SpaceExploreMenu). Nesting the new space's IRI under this
+                    // space's path makes it a sub-space via the prefix match.
+                    namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
                 }
                 if (namespace != null) {
                     params.set("param_" + partField, namespace + "<SET-SUFFIX>");
