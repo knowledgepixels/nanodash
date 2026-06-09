@@ -21,7 +21,7 @@ public class AboutUserPanel extends Panel {
      * params (LOCALPUBKEY/SITEURL), so the owner gets the editable actions and
      * everyone else gets the read-only table — no custom companion needed.
      */
-    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAKCj5_P_w1r4mzaoaR5XVRjyLafPuFt034b7UK5Ve-H0/introductions-view";
+    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAmdDJAKs1gKPPdo23t6lMUXC6mlzLjRZyjDCcNEMx7Tw/introductions-view";
 
     /**
      * Owner-gated view (via the CURRENTUSER magic param) listing recommended

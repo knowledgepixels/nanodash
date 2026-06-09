@@ -151,6 +151,10 @@ public class QueryResultTable extends QueryResult {
                 }
             };
             table.setOutputMarkupPlaceholderTag(true);
+            // Marker class so nanodash.js can wrap emoji in body cells with the same
+            // monochrome .emoji styling used for headings (e.g. the ✅/⚠️ key-approval
+            // annotations in the "keys" column).
+            table.add(new AttributeAppender("class", "result-table"));
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
             table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             add(table);

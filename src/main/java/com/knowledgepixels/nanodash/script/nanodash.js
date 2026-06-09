@@ -15,6 +15,42 @@ function wrapLeadingEmoji() {
     node.parentNode.insertBefore(span, node);
   });
 }
+/* Wrap EVERY emoji (not just leading) inside result-table body cells, so the
+   ✅/⚠️ key-approval annotations and any other in-cell emoji get the same
+   monochrome ".emoji" styling as headings. Idempotent: text already inside an
+   ".emoji" span is skipped, so re-running after Wicket AJAX is safe. */
+var EMOJI_PATTERN = "(?:\\p{Extended_Pictographic}|[\\u{13000}-\\u{1342F}])\\uFE0F?";
+function wrapCellEmoji() {
+  document.querySelectorAll(".result-table td").forEach(function (cell) {
+    var re = new RegExp(EMOJI_PATTERN, "u");
+    var reg = new RegExp(EMOJI_PATTERN, "gu");
+    var walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    var node;
+    while ((node = walker.nextNode())) {
+      var p = node.parentNode;
+      if (p && p.classList && p.classList.contains("emoji")) continue;
+      if (re.test(node.textContent)) nodes.push(node);
+    }
+    nodes.forEach(function (n) {
+      var text = n.textContent;
+      var frag = document.createDocumentFragment();
+      var last = 0;
+      var m;
+      reg.lastIndex = 0;
+      while ((m = reg.exec(text))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var span = document.createElement("span");
+        span.className = "emoji";
+        span.textContent = m[0].replace(/\uFE0F/g, "");
+        frag.appendChild(span);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  });
+}
 /* Friendly date rendering — turns <time class="friendly-date" datetime="..."> into a
    relative form ("10 minutes ago") in the viewer's local timezone, with the absolute
    date-time in the tooltip. Falls back silently to the server-rendered text if the value
@@ -51,11 +87,13 @@ function renderFriendlyDates(root) {
 
 document.addEventListener("DOMContentLoaded", function() {
   wrapLeadingEmoji();
+  wrapCellEmoji();
   renderFriendlyDates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
   if (typeof Wicket !== "undefined" && Wicket.Event) {
     Wicket.Event.subscribe("/ajax/call/complete", function() {
       wrapLeadingEmoji();
+      wrapCellEmoji();
       renderFriendlyDates();
     });
   }
@@ -76,6 +114,7 @@ $(window).on('load', updateElements);
 
 function updateElements() {
   wrapLeadingEmoji();
+  wrapCellEmoji();
   renderFriendlyDates();
   adjustValueWidths();
   setCollapseOverflow();
