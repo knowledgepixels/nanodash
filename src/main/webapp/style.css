@@ -2378,11 +2378,11 @@ a.source {
   font-family: "Noto Emoji", Martian, monaco, monospace;
   font-weight: bold;
   font-size: 10pt;
-  color: rgba(0, 0, 0, 0.2);
+  color: rgba(11, 115, 218, 0.5);
 }
 
 a.source:hover {
-  color: rgba(0, 0, 0, 1.0);
+  color: rgba(11, 115, 218, 1.0);
 }
 
 .inline-list p,
