@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -192,10 +193,19 @@ public class QueryResultTableBuilder implements Serializable {
             }
             String partField = view.getTemplatePartFieldForAction(actionIri);
             if (partField != null && contextId != null) {
+                // The part field pre-fills a namespaced child IRI (the user fills the suffix).
                 // TODO Find a better way to pass the MaintainedResource object to this method:
                 MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                if (r != null && r.getNamespace() != null) {
-                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                String namespace = null;
+                if (r != null) {
+                    namespace = r.getNamespace();
+                } else if (resourceWithProfile instanceof Space) {
+                    // A space's sub-resources (incl. sub-spaces) live under its IRI; the
+                    // prefix match makes the created space a sub-space of this one.
+                    namespace = contextId + "/";
+                }
+                if (namespace != null) {
+                    params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                 }
             }
             String queryMapping = view.getTemplateQueryMapping(actionIri);
