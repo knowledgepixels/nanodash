@@ -257,12 +257,20 @@ public class StatementItem extends Panel {
         isMatched = true;
         if (!isRepeatable()) return;
         while (true) {
+            Set<IRI> modelsBefore = new HashSet<>(context.getComponentModels().keySet());
             RepetitionGroup newGroup = new RepetitionGroup();
             if (newGroup.matches(statements)) {
                 newGroup.fill(statements);
                 addRepetitionGroup(newGroup);
             } else {
                 newGroup.disconnect();
+                // The trial group's constructor registered fresh (empty) component
+                // models for its narrow-scope placeholders (e.g. public-key__N). If
+                // left behind, a later real repetition group at the same index reuses
+                // the stale empty model and skips param seeding — the "derive new
+                // introduction" empty-fields bug. Drop exactly the models this trial
+                // group added; shared (wide-scope) models existed before and stay.
+                context.getComponentModels().keySet().retainAll(modelsBefore);
                 return;
             }
         }
