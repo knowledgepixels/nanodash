@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.page;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
-import com.knowledgepixels.nanodash.component.menu.SpaceExploreMenu;
 import com.knowledgepixels.nanodash.connector.ConnectorConfig;
 import com.knowledgepixels.nanodash.connector.GenOverviewPage;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -24,7 +23,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.nanopub.Nanopub;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -83,8 +81,6 @@ public class SpacePage extends NanodashPage {
         };
         space.triggerDataUpdate();
 
-        Nanopub np = space.getNanopub();
-
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
 
         List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
@@ -105,8 +101,7 @@ public class SpacePage extends NanodashPage {
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new Label("spacetype", space.getTypeLabel()));
-        add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel()),
-                new SpaceExploreMenu("np", space.getId(), space.getLabel(), np.getUri(), space)));
+        add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
         add(new ItemListPanel<String>(
                 "altids",
