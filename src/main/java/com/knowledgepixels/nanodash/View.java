@@ -403,6 +403,28 @@ public class View implements Serializable {
     }
 
     /**
+     * Gets the set of query result columns that serve only as <em>sources</em> for
+     * this view's action query mappings (the {@code col} part of each
+     * {@code "col:target"} mapping, across all actions). These columns carry
+     * action data — conditional targets, the local-key bundle — not row content, so
+     * the result builders skip them when rendering visible columns. A column that
+     * happens to be both a display column and a mapping source would also be hidden;
+     * map a duplicated/aliased column instead if you need to show one.
+     *
+     * @return the set of mapping-source column names (never null)
+     */
+    public Set<String> getActionMappingSourceColumns() {
+        Set<String> columns = new HashSet<>();
+        for (IRI actionIri : actionTemplateQueryMappingsMap.keySet()) {
+            for (String mapping : getTemplateQueryMappings(actionIri)) {
+                int idx = mapping.indexOf(':');
+                if (idx > 0) columns.add(mapping.substring(0, idx));
+            }
+        }
+        return columns;
+    }
+
+    /**
      * Gets the first query mapping for an action, or null. Kept for result-action
      * callers that pass a single {@code values-from-query-mapping}.
      *

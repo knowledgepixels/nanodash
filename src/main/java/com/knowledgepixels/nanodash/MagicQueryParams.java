@@ -24,8 +24,16 @@ import java.util.function.Supplier;
  * <p>A placeholder is "magic" iff its parameter name — what
  * {@link QueryTemplate#getParamName(String)} produces after stripping the leading
  * underscore(s) and the type suffix — is a registered magic name. Names are
- * written in {@code SCREAMING_CASE} (e.g. {@code ?_LOCALPUBKEY_multi_val}) by
+ * written in {@code SCREAMING_CASE} (e.g. {@code ?__LOCALPUBKEY_multi}) by
  * convention, but detection is pure registry membership, not case.</p>
+ *
+ * <p>Magic placeholders are wired into the SPARQL as <b>optional multi</b>
+ * placeholders (double-underscore prefix, {@code _multi} suffix) with an explicit
+ * empty {@code values ?__NAME_multi {}} block. The live grlc service fills that
+ * block from the bound value(s) when present, and degrades gracefully to "no
+ * binding" when absent — so a query reads the value via a normal SPARQL variable
+ * and need not special-case the logged-out viewer. Comparisons against a possibly
+ * unbound magic variable should be {@code coalesce}-guarded.</p>
  */
 public class MagicQueryParams {
 

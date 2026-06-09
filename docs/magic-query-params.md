@@ -1,6 +1,6 @@
 # Session-bound ("magic") query parameters
 
-**Status:** 🚧 In progress — phase 1 (binding infra + UI-field suppression) implemented (`MagicQueryParams`, wired into the view builders; registry `LOCALPUBKEY`/`SITEURL`). Entry-action visibility, the introductions cutover, and the magic-aware introductions query/view are pending.
+**Status:** 🚧 In progress — phase 1 (binding infra + UI-field suppression) and phase 2 (empty-into-required entry-action visibility + multiple mappings) implemented. The wire convention is **verified live**: `get-user-introductions` v2 declares `?__LOCALPUBKEY_multi` and round-trips correctly against `query.knowledgepixels.com` (absent → all rows, flags empty; present → per-row `declares_local_key`/`retract_target` set for intros declaring the local key). Remaining: republish the introductions view(s) with the v2 query + retract/derive entry actions, the recommended-actions view, and the `ProfileIntroItem` cutover.
 
 A **magic query parameter** is a view-query placeholder that Nanodash fills
 automatically from the current browser session, rather than from a value the
@@ -35,15 +35,38 @@ against `org.nanopub:nanopub:1.90.0`:
 | leading `_` | (prefix on every placeholder) | marks the variable as a placeholder | `?_user` |
 | leading `__` | `isOptionalPlaceholder` (`startsWith("__")`) | placeholder is optional | `?__user` |
 | `_iri` suffix | `isIriPlaceholder` (`endsWith`) | bind as an IRI, not a literal | `?_user_iri` |
-| `_multi` / `_multi_iri` / `_multi_val` suffix | `isMultiPlaceholder` (`endsWith`) | multi-valued `VALUES` block | `?_keys_multi_val` |
+| `_multi` / `_multi_iri` suffix | `isMultiPlaceholder` (`endsWith`) | multi-valued `VALUES` block | `?_keys_multi` |
+
+> **Wire caveat (verified empirically against `query.knowledgepixels.com`).** The
+> live grlc service does **not** match nanopub-java's conventions one-for-one:
+> - A **single** (non-multi) placeholder is *text-substituted* into the SPARQL, so
+>   it cannot be tested with `bound(?_x)` (you get `bound("literal")` → malformed).
+> - A **multi** placeholder is bound through an explicit, author-written
+>   `values ?_x_multi {}` block in the SPARQL; absence empties the block gracefully
+>   (no error, all rows returned), presence fills it. This is the only form that is
+>   both bindable *and* absent-tolerant — so magic params use it.
+> - The `_multi_val` suffix is **not** recognized by the service; use plain `_multi`
+>   for literals and `_multi_iri` for IRIs.
+>
+> **Possible future (service-side, nanopub-query/grlc).** Today there is no form
+> that is optional, *single-valued*, **and** bindable: to get absent-tolerant +
+> bound you must use `_multi`, modeling a singular value (e.g. `LOCALPUBKEY`) as a
+> set. We could let an **optional placeholder `?__x` (no `_multi`) opt into a
+> `values ?__x {}` block** too — the presence of the block (not the `_multi`
+> suffix) becoming the "bind vs. text-substitute" signal, with single ⇒ cardinality
+> ≤ 1 (a second value errors instead of silently cross-joining). That would let the
+> magic params be `?__LOCALPUBKEY` / `?__SITEURL` / `?__CURRENTUSER_iri` with honest
+> cardinality and drop the "single dressed as multi" caveat. Not needed for the
+> current work; revisit when touching the service. Tracked in
+> [nanodash#481](https://github.com/knowledgepixels/nanodash/issues/481).
 
 `QueryTemplate.getParamName(raw)` strips the leading underscore(s) **and** the
 type suffix to produce the wire/QueryRef parameter name:
 
 ```
-getParamName("_user_iri")            = "user"
-getParamName("_LOCALPUBKEY_multi_val") = "LOCALPUBKEY"
-getParamName("__optionalfoo")        = "optionalfoo"
+getParamName("_user_iri")           = "user"
+getParamName("__LOCALPUBKEY_multi") = "LOCALPUBKEY"
+getParamName("__optionalfoo")       = "optionalfoo"
 ```
 
 This is why callers pass plain names — `new QueryRef(queryId, "user", iri)` —
@@ -55,11 +78,14 @@ Two behaviours we rely on:
   i.e. the full set of parameters. Anything folded into the `QueryRef` therefore
   partitions the cache automatically — two viewers with different local keys get
   distinct cache entries, no collisions.
-- **Graceful absence.** `GrlcQuery.expandQuery(params, false)` is non-strict:
-  for a **multi-valued** placeholder with no value, the empty `VALUES` block is
-  dropped and the query still runs. So an unbound magic param leaves the query
-  valid (e.g. `?declares_local_key` comes back false everywhere), degrading to
-  the plain read-only view for logged-out or non-owner viewers.
+- **Graceful absence.** A **multi** placeholder with no value leaves its
+  author-written `values ?__NAME_multi {}` block empty and the query still runs
+  (verified live: all rows returned, no error). So an unbound magic param leaves
+  the query valid (e.g. `?declares_local_key` comes back empty everywhere),
+  degrading to the plain read-only view for logged-out or non-owner viewers.
+  Because the variable may be unbound, comparisons against it must be
+  `coalesce`-guarded (`coalesce(str(?pubkey) = str(?__LOCALPUBKEY_multi), false)`)
+  rather than `bound()`-tested.
 
 ## What makes a parameter "magic"
 
@@ -74,13 +100,14 @@ isMagic(rawPlaceholder) = REGISTRY.containsKey(QueryTemplate.getParamName(rawPla
 
 | Magic name | Declare in SPARQL as | Bound from | Notes |
 | --- | --- | --- | --- |
-| `LOCALPUBKEY` | `?_LOCALPUBKEY_multi_val` | `NanodashSession.get().getPubkeyString()` | the load-bearing one — drives every per-row flag and the create/derive key parameter |
-| `SITEURL` | `?_SITEURL_multi_val` | `NanodashPreferences.get().getWebsiteUrl()` | `key-location` prefill; genuine non-derivable deployment state |
-| `CURRENTUSER` | `?_CURRENTUSER_multi_iri` | `NanodashSession.get().getUserIri()` | the viewer's agent IRI; lets a view tell "is the viewer the page user" — the owner gate the recommended-actions view needs (the create case can't rely on key-match) |
+| `LOCALPUBKEY` | `?__LOCALPUBKEY_multi` | `NanodashSession.get().getPubkeyString()` | the load-bearing one — drives every per-row flag and the create/derive key parameter |
+| `SITEURL` | `?__SITEURL_multi` | `NanodashPreferences.get().getWebsiteUrl()` | `key-location` prefill; genuine non-derivable deployment state |
+| `CURRENTUSER` | `?__CURRENTUSER_multi_iri` | `NanodashSession.get().getUserIri()` | the viewer's agent IRI; lets a view tell "is the viewer the page user" — the owner gate the recommended-actions view needs (the create case can't rely on key-match) |
 
-Declared as `_multi_*` so absence drops the `VALUES` block (see "graceful
-absence"). When the session has no value (logged out, no key pair), the binding
-is simply omitted.
+Declared as **optional multi** (`__…_multi`) with an explicit empty
+`values ?__NAME_multi {}` block, so absence empties the block gracefully (see
+"graceful absence"). When the session has no value (logged out, no key pair), the
+binding is simply omitted and the variable stays unbound.
 
 Deliberately **not** in the registry:
 
@@ -218,8 +245,8 @@ Extend a mapping so a `_multi*` source column expands to
 ### Echo-as-column (no code)
 
 A query may `SELECT` a magic variable back out
-(`?_LOCALPUBKEY_multi_val AS ?local_pubkey`) and feed it to an action via an
-ordinary mapping (e.g. derive's key parameter).
+(`(sample(?__LOCALPUBKEY_multi) AS ?local_pubkey)`) and feed it to an action via
+an ordinary mapping (e.g. derive's key parameter).
 
 ## Phase 3 design: the introductions view (concrete)
 
@@ -239,7 +266,7 @@ views and removes `ProfileIntroItem` entirely:
 
 ### The recommended-actions view (multi-row)
 
-A list/item-list view keyed on `?_user_iri` + `?_CURRENTUSER` + `?_LOCALPUBKEY`,
+A list/item-list view keyed on `?_user_iri` + `?__CURRENTUSER_multi_iri` + `?__LOCALPUBKEY_multi`,
 emitting **one row per applicable recommendation** via a `UNION` of conditional
 branches — each branch produces a row only when its condition holds:
 
@@ -267,29 +294,41 @@ query (`IF`/`CONCAT`); approval status comes from the trust repo (queryable).
 
 ### The query (extends the real `get-user-introductions`)
 
-Today it groups intros of `?_user_iri` into `?date ?location ?keys ?np`. The new
-version adds `?_LOCALPUBKEY_multi_val` and derives the action flags/targets. Per
-intro `?np`:
+Today it groups intros of `?_user_iri` into `?date ?location ?keys ?np`. The v2
+version (verified live) adds an optional-multi `?__LOCALPUBKEY_multi` with its own
+`values {}` block and derives the action flags/targets. Sketch (see the working
+file for the exact text):
 
 ```sparql
-# does THIS intro declare the viewer's local key?
-BIND(EXISTS { GRAPH ?a { ?kd npx:declaredBy ?_user_iri ; npx:hasPublicKey ?_LOCALPUBKEY_multi_val } }
-     AS ?declares_local_key)
-# how many of the user's intros declare the local key (subquery, viewer-relative)
-#   ?localCount = count(distinct ?np2 : intro of ?_user_iri declaring ?_LOCALPUBKEY)
-BIND((?declares_local_key && ?localCount > 1) AS ?retractable)
-BIND((!?declares_local_key && ?localCount = 0) AS ?derivable)
-BIND(IF(?retractable, str(?np), "") AS ?retract_target)
-BIND(IF(?derivable,   str(?np), "") AS ?derive_target)
-# echoed for derive's key bundle:
-BIND(?_LOCALPUBKEY_multi_val AS ?local_pubkey)
-BIND(substr(sha256(?_LOCALPUBKEY_multi_val), 1, 10) AS ?local_pubkey_short)
+select (max(?date0) as ?date) (sample(str(?keyLocation)) as ?location)
+       (group_concat(distinct ?keyHash; separator=", ") as ?keys) ?np ("^" as ?np_label)
+       (if(sum(?isLocal) > 0, "true", "") as ?declares_local_key)
+       (if(sum(?isLocal) > 0 && ?localCount > 1, str(?np), "") as ?retract_target)
+       (if(sum(?isLocal) = 0 && ?localCount = 0 && max(?lpkBound) > 0, str(?np), "") as ?derive_target)
+where {
+  values ?__LOCALPUBKEY_multi {}          # filled when present, empty (graceful) when absent
+  # … the intro graph patterns, binding ?pubkey / ?keyHash per key declaration …
+  bind(coalesce(if(str(?pubkey) = str(?__LOCALPUBKEY_multi), 1, 0), 0) as ?isLocal)
+  bind(if(bound(?__LOCALPUBKEY_multi), 1, 0) as ?lpkBound)
+  {                                        # subquery: how many of the user's intros declare the local key
+    select (count(distinct ?lnp) as ?localCount) where {
+      values ?__LOCALPUBKEY_multi {}       # needs its own values block (subquery scope)
+      # … the user's intros / key declarations, binding ?lpubkey …
+      filter(coalesce(str(?lpubkey) = str(?__LOCALPUBKEY_multi), false))
+    }
+  }
+} group by ?np ?localCount order by desc(max(?date0))
 ```
 
-When `?_LOCALPUBKEY` is unbound (logged out / no key) the `VALUES` block drops,
-so `declares_local_key` is false and `local_pubkey` is empty everywhere — which,
-via the action mappings below, hides both editable actions for non-owners and
-logged-out viewers without any role check.
+Comparisons are `coalesce`-guarded, **not** `bound()`-tested, because the live
+service text-substitutes single placeholders but binds the multi var via the
+`values` block (and the subquery needs its **own** `values` block — outer VALUES
+doesn't reach into it). When `?__LOCALPUBKEY_multi` is unbound (logged out / no
+key) every flag column comes back empty — which, via the action mappings below,
+hides both editable actions for non-owners and logged-out viewers without any
+role check. **Verified:** absent → all intros, flags empty; present → `retract_target`
+set on each intro declaring the local key (`localCount > 1`), `derive_target` set
+only when the local key is declared in none of the user's intros.
 
 ### Owner-gating falls out of `LOCALPUBKEY` — no `gen:isVisibleTo` needed
 
@@ -369,9 +408,9 @@ are external (nanopub-java) and need no change.
 1. **Magic-param binding + UI-field suppression.** ✅ Done — `MagicQueryParams`
    (registry `LOCALPUBKEY`/`SITEURL`, `isMagic`, request-thread `augment`), wired
    into the five view-builder constructors; `GrlcQuery.createParamFields` skips
-   magic placeholders. Inert until a query declares one. *Still to do:* the wire
-   smoke-test (grlc binds `?_LOCALPUBKEY_multi_val` from URL param `LOCALPUBKEY`)
-   once a magic query is published in phase 3.
+   magic placeholders. Inert until a query declares one. Wire smoke-test ✅ done —
+   grlc binds `?__LOCALPUBKEY_multi` from URL param `LOCALPUBKEY` (verified against
+   `get-user-introductions` v2, present and absent).
 2. **Empty-into-required hides entry-action buttons (+ 2b).** ✅ Done —
    `View` holds multiple mappings per action (`getTemplateQueryMappings`);
    `Template.isRequiredField` answers "is this placeholder required"; the shared
@@ -384,15 +423,129 @@ are external (nanopub-java) and need no change.
 3. **Republish the introductions view(s)** with the magic queries and the
    retract/derive entry actions, plus the multi-row recommended-actions view;
    remove `ProfileIntroItem` entirely.
-4. **Multi-expand + include-keys**, only if worthwhile (also returns `LOCALINTRO`
-   to the registry).
+4. ~~**Multi-expand + include-keys**~~ — **dropped** (decided not needed,
+   2026-06-09). See "Dropped: include keys" below.
 
-## To verify before building
+## Wire round-trip: verified
 
-The convention semantics above are confirmed in-process against nanopub-java
-1.90.0. The one unverified link is the full wire round-trip: that grlc /
-nanopub-query binds SPARQL variable `?_LOCALPUBKEY_multi_val` from URL parameter
-`LOCALPUBKEY` exactly as it already does for `user` → `?_user_iri`. It almost
-certainly does (same `getParamName` canonicalization), but it is worth one
-integration smoke-test — a throwaway query echoing the parameter — before
-committing to the convention.
+The full wire round-trip is **confirmed** against `query.knowledgepixels.com`
+using `get-user-introductions` v2 (signed, passed inline via `_nanopub_trig`):
+
+- **Absent** (`user=…`, no `LOCALPUBKEY`): HTTP 200, all intros returned, every
+  flag column empty — the empty `values ?__LOCALPUBKEY_multi {}` block degrades
+  gracefully (no "missing non-optional placeholder" error).
+- **Present** (`user=…&LOCALPUBKEY=<pubkey>`): HTTP 200; `declares_local_key="true"`
+  and `retract_target=<np>` exactly on intros whose key set includes the local
+  key's hash; intros declaring only other keys come back with empty flags.
+
+Note the corrections this surfaced vs. the in-process nanopub-java conventions:
+single placeholders are text-substituted (so `bound()` breaks), `_multi_val` is
+not recognized, and a multi placeholder needs an author-written `values {}` block
+(one per subquery scope). All captured in the wire caveat above.
+
+## Retract/derive gating: match the UI's notion of a "local introduction"
+
+The first published intro query computed `retract_target`/`derive_target` off
+whether the local key was merely **declared** in an introduction. That is looser
+than the old `ProfileIntroItem`, whose `isIntroWithLocalKey`
+(`NanodashSession.java`) — the canonical definition — requires **all three**:
+
+1. the introduction is **signed by** the local key (`el.getPublicKeyString()`),
+2. its local-key declaration has **no key-location, or one matching the site URL**
+   (with the legacy `nanobench`→`nanodash` rewrite), and
+3. it **declares** the local key.
+
+Declaration alone over-counts: a user's local key can appear as a *declared* key
+in introductions signed by *other* keys or located at *other* sites (common when
+one ORCID bundles several keys, or the same key is reused across sites). Offering
+"retract" on an introduction you didn't sign is also pointless — your retraction
+wouldn't validate against it.
+
+`get-user-introductions` **v6**
+(`RA00h6v4MM0fU55lHYlUsGCQBKOmT1AC5v7BXlUHo-d3k`, view v8
+`RAKCj5_P_w1r4mzaoaR5XVRjyLafPuFt034b7UK5Ve-H0`) ports the strict definition into
+SPARQL:
+
+- per row, `?signedByLocal = (str(?introPubkey) = str(?__LOCALPUBKEY_multi))`
+  (`?introPubkey` is the signing key from `npa:hasValidSignatureForPublicKey`),
+  and `?localDeclOk = ?isLocal && (!bound(?keyLocation) || keyLocation = SITEURL ||
+  replace(keyLocation,"nanobench","nanodash") = SITEURL)`;
+- a row is a *local introduction* iff `max(?signedByLocal) > 0 && sum(?localDeclOk)
+  > 0`; `retract_target` fires on it when `?localCount > 1`, `derive_target` on a
+  non-local row when `?localCount = 0`;
+- the `?localCount` subquery counts distinct introductions under the **same**
+  three-part definition (signed-by + declares + location-ok), each test
+  `coalesce(...,false)`-guarded so it degrades to 0 when `LOCALPUBKEY` is absent.
+
+Wire-verified against the live type-repo (Tobias, `SITEURL=localhost:37373` and
+`=nanodash.knowledgepixels.com`): retract dropped from **8** (declares-only) to
+**2** (the introductions actually signed by + declaring the local key); derive
+stayed 0. Owner gate unchanged.
+
+## Dropped: "include keys"
+
+**Decision (2026-06-09): include keys is not needed — dropped, not built.** It was
+the one `ProfileIntroItem` action that couldn't be expressed as a view action; rather
+than build the indexed-expansion infra for it, we removed it. The per-row
+"include keys…" button and its recommended-action bullet were deleted from
+`ProfileIntroItem` (the legacy `/profile` component), and it is absent from the
+migrated About page. The remaining recommended actions (create, derive, retract,
+get-approval, update-approved) all carry over.
+
+The design below is retained only as a record of what it *would* have taken, should
+it ever be revived.
+
+`ProfileIntroItem` had an **"include keys…"** per-row action (and a matching
+recommended-action bullet) that was **not expressible as a view action**.
+
+**What it does.** When you have **exactly one** local introduction
+(`getLocalIntro() != null`, i.e. `localCount == 1`), each *other* introduction that
+declares key(s) your local introduction lacks gets an "include keys…" button. It
+opens the intro template (`RAT8ayO62…`) with `supersede=<your local intro>` plus,
+for each of the **N** missing keys, an indexed quad of params:
+`param_public-key__.{i}`, `param_key-declaration__.{i}` (short name),
+`param_key-declaration-ref__.{i}`, `param_key-location__.{i}`. The result
+supersedes your local introduction, adding those keys.
+
+**Why it doesn't fit the current model.** The view-action mapping maps **one**
+query column to **one** template param (`col:target`). "Include keys" needs a
+**variable number** of *indexed* params filled from a **set** of missing keys, plus
+a `supersede` URL key — neither is expressible today. This is the
+"multi-expand / indexed expansion" work flagged in phase 4.
+
+**Query side (future `get-user-introductions` v7).** Add, owner-gated and only
+meaningful when `localCount == 1`:
+
+- `local_intro_np` — the single local introduction's URI (the supersede target;
+  `sample`, same for all rows);
+- `include_keys_target` — non-empty on a row whose introduction declares ≥1 key
+  absent from the local introduction (drives button visibility);
+- `missing_keys` — one column encoding the missing keys as aligned tuples, e.g.
+  `group_concat(concat(?pubkey,"\t",?short,"\t",?loc); separator="\n")`, where the
+  per-key "absent from local intro" test is a correlated
+  `filter not exists { <local intro> declares ?pubkey }`. **One** column avoids the
+  cross-`group_concat` ordering hazard (three separate aggregates are not
+  guaranteed index-aligned).
+
+**Builder/mapping side — two routes:**
+
+- **A (generic, recommended).** Add an indexed-tuple fill mode to
+  `ViewActionMappings`: a mapping like
+  `missing_keys:public-key__.*|key-declaration__.*|key-declaration-ref__.*|key-location__.*`
+  splits the column into rows (by `\n`) then fields (by `\t`), zips field→target,
+  and emits `param_<target>__.{i}` for each row `i`. Plus a `@supersede` raw-key
+  mode for `local_intro_np:@supersede` (cf. the existing `@derive-a`). Generic, no
+  template field names hardcoded; reusable for any "add N repeated-group instances"
+  action.
+- **B (bounded, no infra change).** Cap at K (~5) missing keys: query emits
+  `missing_pubkey_1..K` / `missing_short_1..K` / `missing_loc_1..K`, the view maps
+  each statically (`missing_pubkey_1:public-key__.1`, …). Simpler but caps at K and
+  clutters the view; silently drops the (K+1)-th key.
+
+**Recommendations view.** The informational "Use 'include keys' below…" bullet is a
+third UNION branch in `get-intro-recommendations`, gated on `localCount == 1 &&
+exists an introduction with a missing key` (no action of its own — it points at the
+per-row buttons).
+
+Recommend route **A** when this is picked up; verify `supersede` + indexed `__.{i}`
+params against `PublishPage`'s handling before publishing the query.

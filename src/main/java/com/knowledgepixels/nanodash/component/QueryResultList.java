@@ -33,7 +33,10 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Component for displaying query results in a list format.
@@ -92,9 +95,17 @@ public class QueryResultList extends QueryResult {
                 ApiResponseEntry entry = item.getModelObject();
                 RepeatingView listItem = new RepeatingView("listItem");
 
+                // Columns that only feed action query mappings carry action data, not
+                // row content — don't render them as visible row text.
+                View viewForColumns = viewDisplay.getView();
+                Set<String> hiddenColumns = viewForColumns != null
+                        ? viewForColumns.getActionMappingSourceColumns() : Collections.emptySet();
                 List<Component> components = new ArrayList<>();
+                // Indices of "^"-labelled links (compact "open" affordances) — their
+                // leading separator is suppressed when they are the trailing component.
+                Set<Integer> caretIndices = new HashSet<>();
                 for (String key : response.getHeader()) {
-                    if (key.endsWith("_label") || key.endsWith("_label_multi")) {
+                    if (key.endsWith("_label") || key.endsWith("_label_multi") || hiddenColumns.contains(key)) {
                         continue;
                     }
                     String entryValue = entry.get(key);
@@ -187,6 +198,7 @@ public class QueryResultList extends QueryResult {
                             components.add(new ComponentSequence("component", ", ", multiComponents));
                         } else if (entryValue.matches("https?://.+")) {
                             String entryLabel = entry.get(key + "_label");
+                            if ("^".equals(entryLabel)) caretIndices.add(components.size());
                             components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
                         } else {
                             if (Utils.looksLikeHtml(entryValue)) {
@@ -233,9 +245,20 @@ public class QueryResultList extends QueryResult {
                         button.setBody(Model.of(labelForAction));
                         links.add(button);
                     }
-                    components.add(new ButtonList("component", resourceWithProfile, links, null, null));
+                    // Only render the button row when a button actually survived gating;
+                    // an empty ButtonList would leave a dangling separator at the row's end.
+                    if (!links.isEmpty()) {
+                        components.add(new ButtonList("component", resourceWithProfile, links, null, null));
+                    }
                 }
-                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components);
+                // Use a plain space (not the full separator) before a "^" link when it's
+                // the trailing component, so it hugs the preceding content with just a space.
+                Set<Integer> spaceBeforeCaret = new HashSet<>();
+                int lastIndex = components.size() - 1;
+                for (int ci : caretIndices) {
+                    if (ci == lastIndex) spaceBeforeCaret.add(ci);
+                }
+                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components, spaceBeforeCaret);
                 listItem.add(componentSequence);
                 item.add(listItem);
             }

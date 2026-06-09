@@ -30,7 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Component for displaying query results in a table format.
@@ -100,15 +102,19 @@ public class QueryResultTable extends QueryResult {
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         QueryResultDataProvider dataProvider;
         try {
+            // Columns that only feed action query mappings (conditional targets, the
+            // local-key bundle) carry action data, not row content — don't render them.
+            Set<String> hiddenColumns = viewDisplay.getView() != null
+                    ? viewDisplay.getView().getActionMappingSourceColumns() : Collections.emptySet();
             // The last data column (ignoring _label helper columns); if it is the
             // source-nanopub column ("np"/"nps") its header is left blank.
             String lastColumnKey = null;
             for (String h : response.getHeader()) {
-                if (h.endsWith("_label") || h.endsWith("_label_multi")) continue;
+                if (h.endsWith("_label") || h.endsWith("_label_multi") || hiddenColumns.contains(h)) continue;
                 lastColumnKey = h;
             }
             for (String h : response.getHeader()) {
-                if (h.endsWith("_label") || h.endsWith("_label_multi")) {
+                if (h.endsWith("_label") || h.endsWith("_label_multi") || hiddenColumns.contains(h)) {
                     continue;
                 }
                 String displayLabel = h;

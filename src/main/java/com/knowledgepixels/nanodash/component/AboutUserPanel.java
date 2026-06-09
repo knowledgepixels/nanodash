@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.QueryRef;
@@ -17,11 +16,20 @@ import org.nanopub.extra.services.QueryRef;
 public class AboutUserPanel extends Panel {
 
     /**
-     * Read-only view that lists a user's introduction nanopublications (shown to
-     * other users; the current user gets the editable {@link ProfileIntroItem}
-     * companion instead).
+     * View that lists a user's introduction nanopublications. Its per-row
+     * retract/derive actions are driven by the viewer's session-bound magic query
+     * params (LOCALPUBKEY/SITEURL), so the owner gets the editable actions and
+     * everyone else gets the read-only table — no custom companion needed.
      */
-    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAElH_0Za_T9H_GeyixS35lGwOAL_OD3r4XYs__BF6tl4/introductions-view";
+    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAKCj5_P_w1r4mzaoaR5XVRjyLafPuFt034b7UK5Ve-H0/introductions-view";
+
+    /**
+     * Owner-gated view (via the CURRENTUSER magic param) listing recommended
+     * introduction actions — currently "Create Introduction" (when the local key is
+     * in no introduction) and "Get approved" (when the single local introduction is
+     * not yet approved). Returns nothing for non-owners or when nothing applies.
+     */
+    public static final String RECOMMENDATIONS_VIEW = "https://w3id.org/np/RAFUApLzx7uqKp_utcn8YUq5eBNTTat1t2LxzzYffEocE/intro-recommendations-view";
 
     /**
      * View showing a user's basic profile properties (default license and
@@ -46,21 +54,30 @@ public class AboutUserPanel extends Panel {
             add(new EmptyPanel("account").setVisible(false));
         }
 
-        // Introductions: the current user (with a local key) gets the editable
-        // companion with the full intro workflow; everyone else gets the
-        // read-only view. The companion is styled to match the view tables.
+        // Recommended actions: shown only on the owner's own About page when they
+        // have a local key. The query is owner-gated (CURRENTUSER) and may return
+        // nothing; the <wicket:enclosure> in the markup drops the whole section for
+        // viewers who don't qualify (non-owners / no local key).
         if (ownPage && session.getKeyPair() != null) {
-            ProfileIntroItem introItem = new ProfileIntroItem("introductions");
-            introItem.add(new AttributeAppender("class", " col-12"));
-            add(introItem);
-        } else {
-            View introView = View.get(INTRODUCTIONS_VIEW);
-            add(QueryResultTableBuilder.create("introductions", new QueryRef(introView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(introView))
+            View recView = View.get(RECOMMENDATIONS_VIEW);
+            add(QueryResultListBuilder.create("recommendations", new QueryRef(recView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(recView))
                     .resourceWithProfile(IndividualAgent.get(userIriString))
                     .id(userIriString)
                     .contextId(userIriString)
                     .build());
+        } else {
+            add(new EmptyPanel("recommendations").setVisible(false));
         }
+
+        // Introductions: a proper view for everyone. The owner's session-bound magic
+        // params drive the per-row retract/derive action buttons; non-owners get the
+        // read-only table. (Formerly the ProfileIntroItem companion for the owner.)
+        View introView = View.get(INTRODUCTIONS_VIEW);
+        add(QueryResultTableBuilder.create("introductions", new QueryRef(introView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(introView))
+                .resourceWithProfile(IndividualAgent.get(userIriString))
+                .id(userIriString)
+                .contextId(userIriString)
+                .build());
 
         // Profile view with result actions to update the profile image/license;
         // needs the resourceWithProfile/id/contextId for the action links.

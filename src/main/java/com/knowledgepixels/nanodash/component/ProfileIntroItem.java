@@ -23,8 +23,6 @@ import org.nanopub.extra.setting.IntroNanopub;
 
 import java.net.URLEncoder;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.knowledgepixels.nanodash.Utils.urlEncode;
 
@@ -36,7 +34,6 @@ public class ProfileIntroItem extends Panel {
     private NanodashSession session = NanodashSession.get();
     private NanodashPreferences prefs = NanodashPreferences.get();
     private int recommendedActionsCount = 0;
-    private Map<IntroNanopub, String> includeKeysParamMap = new HashMap<>();
     private int approvedIntrosCount = 0;
 
     /**
@@ -64,21 +61,6 @@ public class ProfileIntroItem extends Panel {
         if (session.getLocalIntro() != null) {
             for (IntroNanopub inp : session.getUserIntroNanopubs()) {
                 if (User.isApproved(inp)) approvedIntrosCount++;
-                String params = "";
-                int paramIndex = 0;
-                for (KeyDeclaration kd : inp.getKeyDeclarations()) {
-                    if (!hasKey(session.getLocalIntro(), kd)) {
-                        paramIndex++;
-                        params += "&" +
-                                  "param_public-key__." + paramIndex + "=" + urlEncode(kd.getPublicKeyString()) + "&" +
-                                  "param_key-declaration__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
-                                  "param_key-declaration-ref__." + paramIndex + "=" + urlEncode(Utils.getShortPubkeyName(kd.getPublicKeyString())) + "&" +
-                                  "param_key-location__." + paramIndex + "=" + urlEncode(kd.getKeyLocation() == null ? "" : kd.getKeyLocation());
-                    }
-                }
-                if (paramIndex > 0) {
-                    includeKeysParamMap.put(inp, params);
-                }
             }
         }
 
@@ -87,11 +69,6 @@ public class ProfileIntroItem extends Panel {
         add(publishIntroItem);
         publishIntroItem.setVisible(session.getLocalIntroCount() == 0);
         if (publishIntroItem.isVisible()) recommendedActionsCount++;
-
-        WebMarkupContainer includeKeysItem = new WebMarkupContainer("include-keys-item");
-        add(includeKeysItem);
-        includeKeysItem.setVisible(!includeKeysParamMap.isEmpty());
-        if (includeKeysItem.isVisible()) recommendedActionsCount++;
 
         WebMarkupContainer retractIntroItem = new WebMarkupContainer("retract-intro-item");
         add(retractIntroItem);
@@ -188,18 +165,6 @@ public class ProfileIntroItem extends Panel {
                 item.add(deriveLink);
                 deriveLink.setVisible(!session.isIntroWithLocalKey(inp) && session.getLocalIntroCount() == 0);
 
-                if (includeKeysParamMap.containsKey(inp)) {
-                    item.add(new ExternalLink("include-keys-link", PublishPage.MOUNT_PATH + "?" +
-                                                                   "template=http://purl.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA&" +
-                                                                   "supersede=" + urlEncode(session.getLocalIntro().getNanopub().getUri()) +
-                                                                   includeKeysParamMap.get(inp) + "&" +
-                                                                   "link-message=" + urlEncode("Check the checkbox at the end of this page and press 'Publish' to publish this " +
-                                                                                               "introduction that includes the additional keys."),
-                            "include keys..."));
-                } else {
-                    item.add(new ExternalLink("include-keys-link", ".", "").setVisible(false));
-                }
-
                 item.add(new DataView<>("intro-keys", new ListDataProvider<>(inp.getKeyDeclarations())) {
 
                     @Override
@@ -212,14 +177,6 @@ public class ProfileIntroItem extends Panel {
 
         });
 
-    }
-
-    private boolean hasKey(IntroNanopub inp, KeyDeclaration kd) {
-        // TODO: Do this more efficiently:
-        for (KeyDeclaration k : inp.getKeyDeclarations()) {
-            if (k.getPublicKeyString().equals(kd.getPublicKeyString())) return true;
-        }
-        return false;
     }
 
 }
