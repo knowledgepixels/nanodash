@@ -81,8 +81,13 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     + "&template-version=latest"
                     + "&context=" + Utils.urlEncode(pageResourceId);
         }
+        // "edit"/"deactivate view display" only make sense for an actual view-display
+        // assignment (one with a resolved view IRI). Built-in views rendered directly —
+        // e.g. a space's About-tab meta-views (roles/members/presets/view-displays) — have
+        // no view-display nanopub, so these options are hidden for them.
+        boolean isViewDisplay = viewDisplay.getViewIri() != null;
         ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
-        adjustLink.setVisible(showAdjust);
+        adjustLink.setVisible(showAdjust && isViewDisplay);
         addEntry("adjust", adjustLink);
 
         BookmarkablePageLink<Void> deactivateLink = new BookmarkablePageLink<>("deactivate", PublishPage.class,
@@ -93,7 +98,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
                         .set("context", pageResourceId)
                         .set("refresh-upon-publish", pageResourceId));
-        deactivateLink.setVisible(showAdjust);
+        deactivateLink.setVisible(showAdjust && isViewDisplay);
         addEntry("deactivate", deactivateLink);
 
         boolean showAddToOwn = session.getUserIri() != null

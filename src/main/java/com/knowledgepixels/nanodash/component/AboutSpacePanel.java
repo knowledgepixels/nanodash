@@ -18,7 +18,7 @@ public class AboutSpacePanel extends Panel {
      * get-view-displays query Nanodash uses internally). Shown on About tabs
      * instead of rendering the assigned views themselves.
      */
-    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAVVUjFMWIylf0Bz0n5-NdFG4_T0d6TWQvRYC23IZscYo/view-displays-view";
+    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA83JHQyewOwSHnXnyEap44h4stXR-rG49BLVuoGuPMS8/view-displays-view";
 
     /**
      * View listing the presets assigned to a resource (issue #302).
