@@ -241,6 +241,7 @@ public class QueryResultList extends QueryResult {
                             continue;
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, params);
                         button.setBody(Model.of(labelForAction));
                         links.add(button);

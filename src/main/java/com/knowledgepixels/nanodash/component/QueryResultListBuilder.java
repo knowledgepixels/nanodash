@@ -27,6 +27,7 @@ public class QueryResultListBuilder implements Serializable {
     private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
+    private String postPublishTab = null;
 
     private QueryResultListBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -75,6 +76,19 @@ public class QueryResultListBuilder implements Serializable {
     }
 
     /**
+     * Sets the tab to return to after publishing one of this view's action
+     * buttons (e.g. {@code "about"}). Null leaves the post-publish redirect on
+     * its default tab.
+     *
+     * @param postPublishTab the tab name, or null for the default
+     * @return the current QueryResultListBuilder instance
+     */
+    public QueryResultListBuilder postPublishTab(String postPublishTab) {
+        this.postPublishTab = postPublishTab;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultList component.
      *
      * @return the QueryResultList component
@@ -88,6 +102,7 @@ public class QueryResultListBuilder implements Serializable {
                 resultList.setResourceWithProfile(resourceWithProfile);
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
+                resultList.setPostPublishTab(postPublishTab);
                 View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
@@ -120,6 +135,7 @@ public class QueryResultListBuilder implements Serializable {
                             params.set("values-from-query-mapping", queryMapping);
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                         resultList.addButton(label, PublishPage.class, params);
                     }
                 }
@@ -133,6 +149,7 @@ public class QueryResultListBuilder implements Serializable {
                         resultList.setResourceWithProfile(resourceWithProfile);
                         resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
+                        resultList.setPostPublishTab(postPublishTab);
                         View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
@@ -164,6 +181,7 @@ public class QueryResultListBuilder implements Serializable {
                                     params.set("values-from-query-mapping", queryMapping);
                                 }
                                 params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                                if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                                 resultList.addButton(label, PublishPage.class, params);
                             }
                         }

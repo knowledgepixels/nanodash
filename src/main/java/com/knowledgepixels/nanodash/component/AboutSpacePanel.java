@@ -55,8 +55,11 @@ public class AboutSpacePanel extends Panel {
         View rolesView = View.get(SPACE_ROLES_VIEW);
         // Pass the space as resource/context so the roles view's per-entry action
         // button (publish a role assignment) renders with param_space prefilled,
-        // mirroring the "+" button on the content tab's role list.
-        add(QueryResultListBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
+        // mirroring the "+" button on the content tab's role list. postPublishTab
+        // keeps the user on the About tab after publishing a role/assignment, so
+        // they see the updated roles list (the presets/view-display views below
+        // intentionally fall through to the Content tab, where their effect shows).
+        add(QueryResultListBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());

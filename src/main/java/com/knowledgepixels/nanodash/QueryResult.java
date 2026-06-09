@@ -25,6 +25,7 @@ public abstract class QueryResult extends Panel {
     protected final List<AbstractLink> buttons = new ArrayList<>();
     protected String contextId;
     protected String partId;
+    protected String postPublishTab;
     protected boolean finalized = false;
     protected final QueryRef queryRef;
     protected final ViewDisplay viewDisplay;
@@ -105,6 +106,18 @@ public abstract class QueryResult extends Panel {
      */
     public void setPartId(String partId) {
         this.partId = partId;
+    }
+
+    /**
+     * Set the tab to return to after publishing one of this view's action
+     * buttons (e.g. {@code "about"} so a space's About-tab views send the user
+     * back to About instead of the default Content tab). Null leaves the
+     * post-publish redirect on its default tab.
+     *
+     * @param postPublishTab the tab name, or null for the default
+     */
+    public void setPostPublishTab(String postPublishTab) {
+        this.postPublishTab = postPublishTab;
     }
 
     // TODO button adding method copied and adjusted from ItemListPanel
