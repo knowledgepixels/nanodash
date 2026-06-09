@@ -43,7 +43,7 @@ public class AboutSpacePanel extends Panel {
      * i.e. holding no admin/maintainer/member role), built on the
      * list-space-observers query.
      */
-    public static final String OBSERVERS_VIEW = "https://w3id.org/np/RAWm9RSI6AHTl1n5LNQj-iYKcU0iJFknwMnZ4xgvpckM0/space-observers-view";
+    public static final String OBSERVERS_VIEW = "https://w3id.org/np/RA7uYe4WmsJCk3NaMTE8p0YofcMcRfjLyM8PGLaADkH18/space-observers-view";
 
     /**
      * @param id    the Wicket markup id
