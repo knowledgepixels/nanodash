@@ -29,7 +29,7 @@ public class AboutSpacePanel extends Panel {
      * View listing a space's assigned roles, built on the existing
      * get-space-roles query.
      */
-    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAsH9ItKDb5sRdMul-dTT-Dqb7u4u80RmeYUndZKyjGZ8/space-roles-view";
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAoqzi9VTP6c3HNtv98yMHiqrXMXpg3RmrwLoFL6ONV0E/space-roles-view";
 
     /**
      * View listing a space's members (admins, maintainers, members) with their
@@ -53,7 +53,10 @@ public class AboutSpacePanel extends Panel {
         super(id);
 
         View rolesView = View.get(SPACE_ROLES_VIEW);
-        add(QueryResultTableBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).build());
+        // Pass the space as resource/context so the roles view's per-entry action
+        // button (publish a role assignment) renders with param_space prefilled,
+        // mirroring the "+" button on the content tab's role list.
+        add(QueryResultListBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());
