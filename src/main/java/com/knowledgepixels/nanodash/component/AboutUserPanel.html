@@ -1,11 +1,9 @@
 <wicket:panel>
   <div wicket:id="account"></div>
-  <wicket:enclosure child="recommendations">
-    <div class="row-section">
-      <div wicket:id="recommendations"></div>
-    </div>
-  </wicket:enclosure>
   <div class="row-section">
+    <wicket:enclosure child="recommendations">
+      <div wicket:id="recommendations"></div>
+    </wicket:enclosure>
     <div wicket:id="introductions"></div>
   </div>
   <div class="row-section">
@@ -13,8 +11,6 @@
   </div>
   <div class="row-section">
     <div wicket:id="presets"></div>
-  </div>
-  <div class="row-section">
     <div wicket:id="viewdisplays"></div>
   </div>
 </wicket:panel>

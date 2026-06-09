@@ -29,7 +29,7 @@ public class AboutUserPanel extends Panel {
      * in no introduction) and "Get approved" (when the single local introduction is
      * not yet approved). Returns nothing for non-owners or when nothing applies.
      */
-    public static final String RECOMMENDATIONS_VIEW = "https://w3id.org/np/RAFUApLzx7uqKp_utcn8YUq5eBNTTat1t2LxzzYffEocE/intro-recommendations-view";
+    public static final String RECOMMENDATIONS_VIEW = "https://w3id.org/np/RAhcXD0pxuru6l3PR9n_zcEleJMH-M-H953RLKrgu-nbc/intro-recommendations-view";
 
     /**
      * View showing a user's basic profile properties (default license and
