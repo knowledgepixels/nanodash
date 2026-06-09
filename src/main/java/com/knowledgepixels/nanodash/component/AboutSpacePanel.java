@@ -36,7 +36,7 @@ public class AboutSpacePanel extends Panel {
      * highest role tier, built on the list-space-members query. Observer-tier
      * members are excluded.
      */
-    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAtXkvt5k8F0Q0wcHGBUeviereSSKFqPd5awX4TOi-VvQ/space-members-view";
+    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAFmrcEqniX7mqrZQ8c4OCqjU-3wwKjLhE2glXAZKFNT0/space-members-view";
 
     /**
      * View listing a space's observers (members whose highest tier is observer,
