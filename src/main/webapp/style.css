@@ -2163,6 +2163,17 @@ div.navigator .goto a[disabled] {
   margin-top: 8px;
 }
 
+/* Title-less paragraph: float the source link to the top-right corner so it
+   doesn't occupy its own line; the content flows up beside it. */
+.paragraph-header.no-title {
+  float: right;
+  margin: 0 0 0 12px;
+}
+
+.paragraph-header.no-title + p {
+  margin-top: 8px;
+}
+
 .paragraph-header h5 {
   margin: 0;
 }

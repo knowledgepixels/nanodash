@@ -3,9 +3,11 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.FilteredQueryResultDataProvider;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.QueryResultDataProvider;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -84,14 +86,23 @@ public class QueryResultPlainParagraph extends QueryResult {
         return new ListView<>("paragraphs", filteredDataProvider.getFilteredData()) {
             @Override
             protected void populateItem(ListItem<ApiResponseEntry> item) {
-                item.add(new Label("title", item.getModelObject().get("title")));
+                String title = item.getModelObject().get("title");
+                boolean hasTitle = title != null && !title.isBlank();
+                // For a title-less paragraph (e.g. a space description) hide the
+                // empty heading and float the source link into the corner (via
+                // the "no-title" class) so the header takes no vertical line.
+                WebMarkupContainer header = new WebMarkupContainer("header");
+                if (!hasTitle) header.add(new AttributeAppender("class", " no-title"));
+                header.add(new Label("title", title).setVisible(hasTitle));
                 String npId = item.getModelObject().get("np");
                 if (npId != null && !npId.isBlank()) {
-                    item.add(new BookmarkablePageLink<Void>("pnp", ExplorePage.class, new PageParameters().set("id", npId)));
+                    header.add(new BookmarkablePageLink<Void>("pnp", ExplorePage.class, new PageParameters().set("id", npId)));
                 } else {
-                    item.add(new Label("pnp").setVisible(false));
+                    header.add(new Label("pnp").setVisible(false));
                 }
-                item.add(new Label("content", item.getModelObject().get("content")).setEscapeModelStrings(false));
+                item.add(header);
+                String content = item.getModelObject().get("content");
+                item.add(new Label("content", content == null ? null : Utils.sanitizeHtml(content)).setEscapeModelStrings(false));
             }
         };
     }
