@@ -701,6 +701,11 @@ span.prelink {
   border: 1px solid #0B73DA;
 }
 
+.button.big {
+  font-size: 14pt;
+  padding: 12px 24px;
+}
+
 .button > * {
   vertical-align: middle;
 }

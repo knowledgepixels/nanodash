@@ -2,11 +2,14 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ProfilePage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -31,7 +34,33 @@ public class ProfileAccountPanel extends Panel {
         super(id);
         final NanodashSession session = NanodashSession.get();
         session.loadProfileInfo();
-        final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
+        final NanodashPreferences prefs = NanodashPreferences.get();
+        final boolean loginMode = prefs.isOrcidLoginMode();
+
+        // Prominent onboarding CTA: a "Create Introduction" button shown only when the
+        // user has a local key but no introduction from this site yet. Mirrors the
+        // "Create Introduction" action of the 👉 Recommended-actions view (same intro
+        // template + params), but surfaced as a primary button so it can't be missed.
+        boolean canCreateIntro = session.getKeyPair() != null && session.getLocalIntroCount() == 0;
+        String createIntroUrl = "";
+        if (canCreateIntro) {
+            String shortKey = Utils.getShortPubkeyName(session.getPubkeyString());
+            String aboutUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(userIriString) + "&tab=about";
+            createIntroUrl = PublishPage.MOUNT_PATH
+                    + "?template=" + Utils.urlEncode("https://w3id.org/np/RAT8ayO62s4SFqDY1qjv24Iw0xarpbpc6zH68n7hRsAsA")
+                    + "&template-version=latest"
+                    + "&param_user=" + Utils.urlEncode(userIriString)
+                    + "&param_public-key=" + Utils.urlEncode(session.getPubkeyString())
+                    + "&param_key-declaration=" + Utils.urlEncode(shortKey)
+                    + "&param_key-declaration-ref=" + Utils.urlEncode(shortKey)
+                    + "&param_key-location=" + Utils.urlEncode(prefs.getWebsiteUrl())
+                    + "&postpub-redirect-url=" + Utils.urlEncode(aboutUrl)
+                    + "&link-message=" + Utils.urlEncode("Check the checkbox at the end of this page and press 'Publish' to "
+                            + "publish this introduction linking your ORCID identifier to the local key used on this site.");
+        }
+        ExternalLink createIntro = new ExternalLink("createIntro", createIntroUrl, "Create Introduction");
+        createIntro.setVisible(canCreateIntro);
+        add(createIntro);
 
         // Logout only makes sense with an ORCID-login session; in local mode
         // there is no login to end.
