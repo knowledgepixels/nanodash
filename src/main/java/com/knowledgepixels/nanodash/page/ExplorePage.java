@@ -92,7 +92,16 @@ public class ExplorePage extends NanodashPage {
         if (someIntroJustNowPublished) NanodashSession.get().setIntroPublishedNow();
         boolean lastIntroPublishedMoreThanFiveMinsAgo = session.getTimeSinceLastIntroPublished() > 5 * 60 * 1000;
         if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
-        publishConfirmPanel.add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
+        WebMarkupContainer missingIntroWarning = new WebMarkupContainer("missing-intro-warning");
+        missingIntroWarning.setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo);
+        // Point the recommendation at the user's own About page, where the "Create
+        // Introduction" onboarding action lives (fall back to the profile page if the
+        // user IRI is not resolved).
+        String introProfileUrl = session.getUserIri() != null
+                ? UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(session.getUserIri()) + "&tab=about"
+                : ProfilePage.MOUNT_PATH + "?message=publish-intro";
+        missingIntroWarning.add(new ExternalLink("profile-link", introProfileUrl));
+        publishConfirmPanel.add(missingIntroWarning);
 
         PageParameters plainLinkParams = new PageParameters();
         plainLinkParams.set("template", parameters.get("template"));
