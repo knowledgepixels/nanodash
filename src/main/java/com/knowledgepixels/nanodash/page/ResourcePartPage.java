@@ -144,8 +144,6 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

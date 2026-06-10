@@ -73,8 +73,6 @@ public class UserPage extends NanodashPage {
         add(new TitleBar("titlebar", this, pageType)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         IRI profilePictureIri = User.getProfilePicture(userIri);
         if (profilePictureIri != null) {
             ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);

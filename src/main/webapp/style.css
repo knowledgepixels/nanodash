@@ -1734,22 +1734,56 @@ hr {
   padding: 0;
 }
 
-.just-published-message-box {
-  position: relative;
-  padding-right: 28px;
+/* Uniform "successfully published" message, centered in the title bar between the
+   menu (left) and user (right) icons. The wrapper centers the box; the box itself
+   is slightly less wide than the content so it stays between the icons. */
+.titlebar-message {
+  text-align: center;
+  padding: 5px 0;
+  font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif;
+  font-size: 11pt;
+  color: #444;
 }
 
-.just-published-message-close {
+/* Inline-block wrapper that centers within the float-shortened title-bar gap and
+   stacks the (block-level) message boxes vertically. */
+.titlebar-message-stack {
+  display: inline-block;
+  max-width: 1000px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.titlebar-message-box {
+  display: block;
+  position: relative;
+  background: #0B73DA1A;
+  border: 1px solid #0B73DA40;
+  border-radius: 8px;
+  padding: 6px 30px 6px 14px;
+}
+
+.titlebar-message-box + .titlebar-message-box {
+  margin-top: 6px;
+}
+
+/* Red variant for the "missing introduction" warning box (mirrors .negative). */
+.titlebar-message-box-warning {
+  background: #A012081A;
+  border-color: #A0120840;
+}
+
+.titlebar-message-close {
   position: absolute;
   right: 8px;
-  top: 8px;
+  top: 6px;
   font-size: 18px;
   line-height: 1;
   color: #666;
   text-decoration: none;
 }
 
-.just-published-message-close:hover {
+.titlebar-message-close:hover {
   color: #000;
 }
 
@@ -2723,6 +2757,17 @@ a.source:hover {
   #titlebar .alignleft {
     float: none;
     order: 0;
+  }
+  /* Keep the message between the menu and user icons on the same row, taking up
+     the middle space and centering its content. */
+  .titlebar-message {
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 4px 6px;
+  }
+  .titlebar-message-stack {
+    max-width: 100%;
   }
   .nav-profile {
     order: 1;

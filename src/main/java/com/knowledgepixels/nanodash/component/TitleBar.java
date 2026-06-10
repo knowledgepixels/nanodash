@@ -51,6 +51,9 @@ public class TitleBar extends Panel {
         super(id);
         this.highlight = highlight;
         add(new ProfileItem("profile", page));
+        // Centered title-bar message: the post-publish confirmation and/or the
+        // always-on "you haven't published an introduction yet" warning.
+        add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
 
         createNavLink("users", UserListPage.class);
         createNavLink("connectors", SpaceListPage.class);

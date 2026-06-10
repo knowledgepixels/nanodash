@@ -74,8 +74,6 @@ public class MaintainedResourcePage extends NanodashPage {
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

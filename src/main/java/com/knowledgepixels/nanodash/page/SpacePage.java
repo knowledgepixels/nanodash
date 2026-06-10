@@ -83,8 +83,6 @@ public class SpacePage extends NanodashPage {
             ).setTabs(new ResourceTabs("tabs", "space", space.getId(), activeTab)));
         }
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

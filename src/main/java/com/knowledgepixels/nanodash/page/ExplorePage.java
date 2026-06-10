@@ -33,7 +33,6 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.KPXL_GRLC;
-import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,25 +81,19 @@ public class ExplorePage extends NanodashPage {
     }
 
     public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
-        super(parameters.set("id", publishedNanopub.getUri()));
+        // Flag the just-published nanopub so the uniform "successfully published"
+        // message (and the "missing introduction" hint) render in the title bar; see
+        // JustPublishedMessagePanel.
+        super(parameters.set("id", publishedNanopub.getUri()).set("just-published", publishedNanopub.getUri().stringValue()));
         this.publishedNanopub = publishedNanopub;
 
+        // The success confirmation now lives in the title bar. The "publish another
+        // with same template" buttons below are kept here for possible later
+        // reactivation, but are not currently shown.
         WebMarkupContainer publishConfirmPanel = new WebMarkupContainer("publish-confirm-panel");
-        final NanodashSession session = NanodashSession.get();
-        boolean hasKnownOwnLocalIntro = session.getLocalIntroCount() > 0;
-        boolean someIntroJustNowPublished = Utils.usesPredicateInAssertion(publishedNanopub, NPX.DECLARED_BY);
-        if (someIntroJustNowPublished) NanodashSession.get().setIntroPublishedNow();
-        boolean lastIntroPublishedMoreThanFiveMinsAgo = session.getTimeSinceLastIntroPublished() > 5 * 60 * 1000;
-        if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
+        publishConfirmPanel.setVisible(false);
         WebMarkupContainer missingIntroWarning = new WebMarkupContainer("missing-intro-warning");
-        missingIntroWarning.setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo);
-        // Point the recommendation at the user's own About page, where the "Create
-        // Introduction" onboarding action lives (fall back to the profile page if the
-        // user IRI is not resolved).
-        String introProfileUrl = session.getUserIri() != null
-                ? UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(session.getUserIri()) + "&tab=about"
-                : ProfilePage.MOUNT_PATH + "?message=publish-intro";
-        missingIntroWarning.add(new ExternalLink("profile-link", introProfileUrl));
+        missingIntroWarning.add(new ExternalLink("profile-link", "."));
         publishConfirmPanel.add(missingIntroWarning);
 
         PageParameters plainLinkParams = new PageParameters();
@@ -113,6 +106,7 @@ public class ExplorePage extends NanodashPage {
         PageParameters linkParams = new PageParameters(parameters);
         linkParams.remove("supersede");
         linkParams.remove("supersede-a");
+        linkParams.remove("just-published");
         boolean publishAnotherFilledLinkVisible = false;
         for (NamedPair n : linkParams.getAllNamed()) {
             if (n.getKey().matches("(param|prparam|piparam[1-9][0-9]*)_.*")) {
