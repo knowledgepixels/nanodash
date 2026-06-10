@@ -981,10 +981,10 @@ input[type=radio] + label strong {
 .actionmenu-button::before {
   content: "";
   display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
+  width: 4px;
+  height: 4px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
   transform: rotate(45deg);
   vertical-align: middle;
   position: relative;
@@ -1027,6 +1027,12 @@ input[type=radio] + label strong {
   background-color: #ccc;
 }
 
+.actionmenu-content hr.actionmenu-separator {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #ccc;
+}
+
 .actionmenu:hover .actionmenu-content {
   display: block;
 }
@@ -1034,6 +1040,32 @@ input[type=radio] + label strong {
 .actionmenu:hover .actionmenu-button {
   background-color: #0B73DA;
   color: #fff;
+}
+
+/* Per-entry actions dropdown shown inside view results (table cells, list items,
+   paragraph corners): nudge it a touch higher, and keep the resting state as a bare
+   chevron — the border only appears on hover (as an outline, not a filled button). */
+.result-table .actionmenu,
+.inline-list .actionmenu,
+.paragraph-header .actionmenu {
+  position: relative;
+  top: -2px;
+}
+
+.result-table .actionmenu-button,
+.inline-list .actionmenu-button,
+.paragraph-header .actionmenu-button {
+  border-color: transparent;
+  /* Resting state (no border): a lighter, semi-transparent chevron; full color on hover. */
+  color: rgba(11, 115, 218, 0.4);
+}
+
+.result-table .actionmenu:hover .actionmenu-button,
+.inline-list .actionmenu:hover .actionmenu-button,
+.paragraph-header .actionmenu:hover .actionmenu-button {
+  border-color: #0B73DA;
+  background-color: transparent;
+  color: #0B73DA;
 }
 
 

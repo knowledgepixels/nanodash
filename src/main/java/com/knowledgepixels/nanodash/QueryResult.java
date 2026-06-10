@@ -1,19 +1,15 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.component.ButtonList;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +18,13 @@ import java.util.List;
  */
 public abstract class QueryResult extends Panel {
 
-    protected final List<AbstractLink> buttons = new ArrayList<>();
+    /**
+     * A view-level action, shown as a top entry of the view's dropdown menu.
+     */
+    public record MenuAction(String label, Class<? extends NanodashPage> pageClass, PageParameters params) implements Serializable {
+    }
+
+    protected final List<MenuAction> menuActions = new ArrayList<>();
     protected String contextId;
     protected String partId;
     protected String postPublishTab;
@@ -54,19 +56,12 @@ public abstract class QueryResult extends Panel {
     @Override
     protected void onBeforeRender() {
         if (!finalized) {
-            if (!buttons.isEmpty()) {
-                // TODO: Add more flexible ways to restrict button visibility (e.g. per-view or per-action permissions)
-                if (resourceWithProfile instanceof IndividualAgent) {
-                    add(new ButtonList("buttons", resourceWithProfile, null, null, buttons));
-                } else {
-                    add(new ButtonList("buttons", resourceWithProfile, buttons, null, null));
-                }
-            } else {
-                add(new Label("buttons").setVisible(false));
-            }
+            // View-level actions used to render as a button strip in the header here;
+            // they now live as the top entries of the view's dropdown menu instead.
+            add(new Label("buttons").setVisible(false));
             if (showViewDisplayMenu) {
-                if (viewDisplay.getNanopubId() != null) {
-                    add(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
+                if (viewDisplay.getNanopubId() != null || !menuActions.isEmpty()) {
+                    add(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource, menuActions));
                 } else {
                     add(new Label("np").setVisible(false));
                 }
@@ -74,6 +69,15 @@ public abstract class QueryResult extends Panel {
             finalized = true;
         }
         super.onBeforeRender();
+    }
+
+    /**
+     * The view-level actions to render as top entries of the view's dropdown menu.
+     *
+     * @return the collected view-level menu actions
+     */
+    public List<MenuAction> getMenuActions() {
+        return menuActions;
     }
 
     /**
@@ -120,8 +124,8 @@ public abstract class QueryResult extends Panel {
         this.postPublishTab = postPublishTab;
     }
 
-    // TODO button adding method copied and adjusted from ItemListPanel
-    // TODO Improve this (member/admin) button handling:
+    // A view-level action button; collected here and rendered as a top entry of the
+    // view's dropdown menu (see ViewDisplayMenu).
     public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) {
             parameters = new PageParameters();
@@ -129,9 +133,7 @@ public abstract class QueryResult extends Panel {
         if (contextId != null) {
             parameters.set("context", contextId);
         }
-        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
-        button.setBody(Model.of(label));
-        buttons.add(button);
+        menuActions.add(new MenuAction(label, pageClass, parameters));
     }
 
     /**

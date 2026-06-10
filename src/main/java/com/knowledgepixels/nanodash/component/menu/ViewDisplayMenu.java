@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component.menu;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
@@ -13,12 +14,19 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
+
+import java.util.List;
 
 /**
  * A dropdown menu panel for view displays, replacing the "^" source link.
@@ -33,9 +41,26 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
      * @param viewDisplay  the view display this menu acts on (must have a non-null nanopub)
      * @param queryRef     the query reference used by this view display
      * @param pageResource the page-level resource used to determine whether "adjust" is visible
+     * @param viewActions  the view-level actions to show as top entries (may be empty)
      */
-    public ViewDisplayMenu(String id, ViewDisplay viewDisplay, QueryRef queryRef, AbstractResourceWithProfile pageResource) {
+    public ViewDisplayMenu(String id, ViewDisplay viewDisplay, QueryRef queryRef, AbstractResourceWithProfile pageResource, List<QueryResult.MenuAction> viewActions) {
         super(id);
+
+        // View-level actions become the top entries of the menu, followed by a
+        // separator and then the standard view-display options below.
+        DataView<QueryResult.MenuAction> viewActionView = new DataView<>("viewActions", new ListDataProvider<>(viewActions)) {
+            @Override
+            protected void populateItem(Item<QueryResult.MenuAction> item) {
+                QueryResult.MenuAction action = item.getModelObject();
+                BookmarkablePageLink<Void> link = new BookmarkablePageLink<>("viewAction", action.pageClass(), action.params());
+                link.setBody(Model.of(action.label()));
+                item.add(link);
+            }
+        };
+        addEntry("viewActions", viewActionView);
+        WebMarkupContainer separator = new WebMarkupContainer("separator");
+        separator.setVisible(!viewActions.isEmpty());
+        addEntry("separator", separator);
 
         PageParameters showQueryParams = new PageParameters().set("id", queryRef.getQueryId());
         for (var entry : queryRef.getParams().entries()) {

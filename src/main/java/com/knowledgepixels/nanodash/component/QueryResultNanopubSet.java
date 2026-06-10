@@ -109,8 +109,8 @@ public class QueryResultNanopubSet extends QueryResult {
         nanopubsContainer.add(noRecordsLabel);
         add(nanopubsContainer);
 
-        if (viewDisplay.getNanopubId() != null) {
-            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
+        if (viewDisplay.getNanopubId() != null || !getMenuActions().isEmpty()) {
+            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource, getMenuActions()));
         } else {
             viewSelector.addOrReplace(new Label("np").setVisible(false));
         }

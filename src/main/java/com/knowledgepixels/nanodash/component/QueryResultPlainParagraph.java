@@ -5,12 +5,14 @@ import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -19,6 +21,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Component for displaying query results in a list format.
@@ -96,7 +101,14 @@ public class QueryResultPlainParagraph extends QueryResult {
                 header.add(new Label("title", title).setVisible(hasTitle));
                 String npId = item.getModelObject().get("np");
                 if (npId != null && !npId.isBlank()) {
-                    header.add(new BookmarkablePageLink<Void>("pnp", ExplorePage.class, new PageParameters().set("id", npId)));
+                    // The former "^" source link is now the single "source" entry of a
+                    // per-paragraph dropdown, matching the other view types.
+                    List<AbstractLink> links = new ArrayList<>();
+                    BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class,
+                            new PageParameters().set("id", npId));
+                    sourceLink.setBody(Model.of("source"));
+                    links.add(sourceLink);
+                    header.add(new EntryActionMenu("pnp", links));
                 } else {
                     header.add(new Label("pnp").setVisible(false));
                 }

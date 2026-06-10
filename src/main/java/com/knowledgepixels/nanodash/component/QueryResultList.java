@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
@@ -101,9 +103,9 @@ public class QueryResultList extends QueryResult {
                 Set<String> hiddenColumns = viewForColumns != null
                         ? viewForColumns.getActionMappingSourceColumns() : Collections.emptySet();
                 List<Component> components = new ArrayList<>();
-                // Indices of "^"-labelled links (compact "open" affordances) — their
-                // leading separator is suppressed when they are the trailing component.
-                Set<Integer> caretIndices = new HashSet<>();
+                // The row's "^" source link, if any — folded into the per-row actions
+                // dropdown appended at the end of the row.
+                String sourceUri = null;
                 for (String key : response.getHeader()) {
                     if (key.endsWith("_label") || key.endsWith("_label_multi") || hiddenColumns.contains(key)) {
                         continue;
@@ -198,8 +200,12 @@ public class QueryResultList extends QueryResult {
                             components.add(new ComponentSequence("component", ", ", multiComponents));
                         } else if (entryValue.matches("https?://.+")) {
                             String entryLabel = entry.get(key + "_label");
-                            if ("^".equals(entryLabel)) caretIndices.add(components.size());
-                            components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
+                            if ("^".equals(entryLabel)) {
+                                // Folded into the per-row actions dropdown appended below.
+                                sourceUri = entryValue;
+                            } else {
+                                components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
+                            }
                         } else {
                             if (Utils.looksLikeHtml(entryValue)) {
                                 entryValue = Utils.sanitizeHtml(entryValue);
@@ -209,8 +215,8 @@ public class QueryResultList extends QueryResult {
                     }
                 }
                 View view = viewDisplay.getView();
-                if (view != null && !view.getViewEntryActionList().isEmpty()) {
-                    List<AbstractLink> links = new ArrayList<>();
+                List<AbstractLink> actionLinks = new ArrayList<>();
+                if (view != null) {
                     for (IRI actionIri : view.getViewEntryActionList()) {
                         // Per-action role gating (docs/role-specific-views.md): skip an
                         // action whose gen:isVisibleTo the viewer does not satisfy.
@@ -242,24 +248,26 @@ public class QueryResultList extends QueryResult {
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
                         if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, params);
+                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
                         button.setBody(Model.of(labelForAction));
-                        links.add(button);
-                    }
-                    // Only render the button row when a button actually survived gating;
-                    // an empty ButtonList would leave a dangling separator at the row's end.
-                    if (!links.isEmpty()) {
-                        components.add(new ButtonList("component", resourceWithProfile, links, null, null));
+                        actionLinks.add(button);
                     }
                 }
-                // Use a plain space (not the full separator) before a "^" link when it's
-                // the trailing component, so it hugs the preceding content with just a space.
-                Set<Integer> spaceBeforeCaret = new HashSet<>();
-                int lastIndex = components.size() - 1;
-                for (int ci : caretIndices) {
-                    if (ci == lastIndex) spaceBeforeCaret.add(ci);
+                // The former "^" source link joins the same dropdown, as a "source" entry.
+                if (sourceUri != null) {
+                    AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
+                            new PageParameters().set("id", sourceUri));
+                    sourceLink.setBody(Model.of("source"));
+                    actionLinks.add(sourceLink);
                 }
-                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components, spaceBeforeCaret);
+                // Append the per-row dropdown (entry actions + source) as the trailing item;
+                // it hugs the preceding content with a plain space, not the list separator.
+                Set<Integer> spaceBeforeMenu = new HashSet<>();
+                if (!actionLinks.isEmpty()) {
+                    spaceBeforeMenu.add(components.size());
+                    components.add(new EntryActionMenu("component", actionLinks));
+                }
+                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components, spaceBeforeMenu);
                 listItem.add(componentSequence);
                 item.add(listItem);
             }
