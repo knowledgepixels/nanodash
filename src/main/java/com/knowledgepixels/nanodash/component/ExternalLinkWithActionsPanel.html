@@ -5,9 +5,12 @@
   <div class="link-actions-panel">
     <a wicket:id="externalLink" target="_blank" rel="noopener noreferrer"></a>
 
-    <a wicket:id="copyLinkButton" class="copy-link-btn">
-      <img wicket:id="copyIcon" alt="Copy link" width="16" height="16"/>
-    </a>
+    <span class="actionmenu link-copy-menu">
+      <button class="actionmenu-button" type="button" aria-label="actions"></button>
+      <span class="actionmenu-content">
+        <a wicket:id="copyLinkButton">copy</a>
+      </span>
+    </span>
 
     <wicket:container wicket:id="np">[np]</wicket:container>
 
