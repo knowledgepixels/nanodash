@@ -3,19 +3,29 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.PatternValidator;
+import org.nanopub.extra.setting.IntroNanopub;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Account/identity controls for the current user's own About tab: a logout
@@ -101,6 +111,54 @@ public class ProfileAccountPanel extends Panel {
 
         // Signing key: public key + (local mode) the local key-file path.
         add(new ProfileSigItem("sigpart"));
+
+        // Recommended actions — hard-coded here (formerly the 👉 Recommended-actions
+        // view/query). One bullet per applicable case, computed from the session's
+        // introduction/approval state. The "create" case is the Create Introduction
+        // button above, so it has no bullet of its own.
+        int localCount = session.getLocalIntroCount();
+        boolean approved = session.isPubkeyApproved();
+        List<String> recs = new ArrayList<>();
+        // get-approval: exactly one local introduction, not approved yet
+        if (localCount == 1 && !approved) {
+            String t = "Your introduction with the local key is not approved yet. Share it so a maintainer can approve it";
+            IntroNanopub localIntro = session.getLocalIntro();
+            if (localIntro != null) {
+                t += ": <a href=\"" + ExplorePage.MOUNT_PATH + "?id="
+                        + Utils.urlEncode(localIntro.getNanopub().getUri().stringValue()) + "\">your introduction</a>.";
+            } else {
+                t += ".";
+            }
+            recs.add(t);
+        }
+        // derive: no local introduction, but the user has introductions elsewhere
+        if (localCount == 0 && !session.getUserIntroNanopubs().isEmpty()) {
+            recs.add("You have introductions elsewhere, but none with this site's local key. Use "
+                    + "<em>'derive new introduction'</em> from the row menu in the Introductions table below to "
+                    + "declare those keys alongside the local key.");
+        }
+        // retract: more than one local introduction
+        if (localCount > 1) {
+            recs.add("You have multiple introductions from this site. Use <em>'retract'</em> from the row menu in "
+                    + "the Introductions table below to remove the redundant ones.");
+        }
+        // update-approved: local key not approved, but the user has another approved key
+        String localHash = session.getPubkeyhash();
+        boolean hasAnotherApprovedKey = localHash != null && session.getUserIri() != null
+                && User.getPubkeyhashes(session.getUserIri(), true).stream().anyMatch(h -> !h.equals(localHash));
+        if (localCount > 0 && !approved && hasAnotherApprovedKey) {
+            recs.add("Your local key is not approved, but you have an approved introduction elsewhere. Add this "
+                    + "site's local key to that approved introduction, at the site where you created it.");
+        }
+        WebMarkupContainer recommendations = new WebMarkupContainer("recommendations");
+        recommendations.setVisible(!recs.isEmpty());
+        recommendations.add(new ListView<String>("recItems", recs) {
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                item.add(new Label("recText", item.getModelObject()).setEscapeModelStrings(false));
+            }
+        });
+        add(recommendations);
     }
 
 }

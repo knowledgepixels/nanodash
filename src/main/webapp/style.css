@@ -53,6 +53,25 @@
   margin: 20px 0 8px;
 }
 
+.account-box .recommended-actions {
+  margin-top: 12px;
+  margin-bottom: 10px;
+}
+
+.account-box .recommended-actions-title {
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.account-box .recommended-actions ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.account-box .recommended-actions li {
+  margin: 2px 0;
+}
+
 .account-box-title {
   margin-top: 8px;
   /* h1–h6 set background-color:inherit, which would re-stack the box's
