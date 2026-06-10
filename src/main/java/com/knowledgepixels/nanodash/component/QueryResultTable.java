@@ -113,11 +113,21 @@ public class QueryResultTable extends QueryResult {
                 if (h.endsWith("_label") || h.endsWith("_label_multi") || hiddenColumns.contains(h)) continue;
                 lastColumnKey = h;
             }
+            // Whether any rendered column carries a visible header label. If none do
+            // (every column is "_noheader", or the blank np-column), the entire header
+            // row is dropped — see the gated addTopToolbar below.
+            boolean anyHeaderShown = false;
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label") || h.endsWith("_label_multi") || hiddenColumns.contains(h)) {
                     continue;
                 }
-                String displayLabel = h;
+                // A trailing "_noheader" hides this column's header label while still
+                // rendering the column. It is stripped first to recover the logical
+                // column key, so every other rule (type suffix, _label companion,
+                // action mappings) operates unchanged on the unmarked name.
+                boolean noHeader = h.endsWith("_noheader");
+                String key = noHeader ? h.substring(0, h.length() - "_noheader".length()) : h;
+                String displayLabel = key;
                 if (displayLabel.endsWith("_multi_iri")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi_iri".length());
                 } else if (displayLabel.endsWith("_multi_val")) {
@@ -129,10 +139,13 @@ public class QueryResultTable extends QueryResult {
                 }
                 String columnHeader = displayLabel.replaceAll("_", " ");
                 if (h.equals(lastColumnKey) && (h.equals("np") || h.equals("nps"))) {
-                    columnHeader = "";
-                    columns.add(new Column(columnHeader, h, "cell-right"));
+                    // Source-nanopub column: blank, right-aligned header.
+                    columns.add(new Column("", h, key, "cell-right"));
+                } else if (noHeader) {
+                    columns.add(new Column("", h, key, null));
                 } else {
-                    columns.add(new Column(columnHeader, h));
+                    anyHeaderShown = true;
+                    columns.add(new Column(columnHeader, h, key, null));
                 }
             }
             if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
@@ -156,7 +169,10 @@ public class QueryResultTable extends QueryResult {
             // annotations in the "keys" column).
             table.add(new AttributeAppender("class", "result-table"));
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
-            table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
+            // Drop the header row entirely when no column has a visible header label.
+            if (anyHeaderShown) {
+                table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
+            }
             add(table);
             noRecordsLabel = new Label("no-records", "(nothing found)") {
                 @Override
@@ -178,16 +194,25 @@ public class QueryResultTable extends QueryResult {
     private class Column extends AbstractColumn<ApiResponseEntry, String> implements IStyledColumn<ApiResponseEntry, String> {
 
         private String key;
+        // The actual response-column name to read row data from. Differs from the
+        // logical key only for "_noheader" columns, whose marker is kept here but
+        // stripped from key so all name-matching uses the unmarked name.
+        private String dataKey;
         private String cssClass;
         public static final String ACTIONS = "*actions*";
 
         public Column(String title, String key) {
-            this(title, key, null);
+            this(title, key, key, null);
         }
 
         public Column(String title, String key, String cssClass) {
-            super(new Model<String>(title), key);
+            this(title, key, key, cssClass);
+        }
+
+        public Column(String title, String dataKey, String key, String cssClass) {
+            super(new Model<String>(title), dataKey);
             this.key = key;
+            this.dataKey = dataKey;
             this.cssClass = cssClass;
         }
 
@@ -242,7 +267,7 @@ public class QueryResultTable extends QueryResult {
                     }
                     cellItem.add(new ButtonList(componentId, resourceWithProfile, links, null, null));
                 } else {
-                    String value = rowModel.getObject().get(key);
+                    String value = rowModel.getObject().get(dataKey);
                     if (key.endsWith("_multi_iri")) {
                         String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);
