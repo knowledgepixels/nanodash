@@ -702,8 +702,11 @@ span.prelink {
 }
 
 .button.big {
-  font-size: 14pt;
-  padding: 12px 24px;
+  /* Same height as a regular/.light button (matching vertical padding + a
+     transparent border to offset .light's 1px border); stands out via the solid
+     fill and extra width rather than a taller box. */
+  padding: 8px 24px;
+  border: 1px solid transparent;
 }
 
 .button > * {
