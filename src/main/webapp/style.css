@@ -2340,7 +2340,7 @@ td div:has(.button-list) {
 .view-selector.with-source .buttons {
   display: inline-block;
   vertical-align: middle;
-  margin: 0 0 0 16px;
+  margin: 0;
 }
 
 .view-selector.with-source .buttons .source {
