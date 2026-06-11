@@ -30,7 +30,7 @@ public class AboutSpacePanel extends Panel {
      * count of how many of the space's users hold each role), built on the
      * list-space-roles query. The built-in Admin role is always the first row.
      */
-    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAOwQh3L1DVlfyP4jkNgG90Rs6pBYHDKvt9VheA0LYr-U/space-roles-view";
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAcRnO6i7L22wozu6szNq_sMok4W3Lc6aowHfnVAfCrOo/space-roles-view";
 
     /**
      * View listing a space's members (admins, maintainers, members) with their
