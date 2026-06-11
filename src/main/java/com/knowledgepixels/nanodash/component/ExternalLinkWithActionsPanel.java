@@ -55,7 +55,7 @@ public class ExternalLinkWithActionsPanel extends Panel {
                 String escapedUrl = url.replace("'", "\\'");
                 target.appendJavaScript(
                         "navigator.clipboard.writeText('" + escapedUrl + "')" +
-                        ".then(function() { alert('Link copied to clipboard!'); })" +
+                        ".then(function() { showToast('Link copied to clipboard!'); })" +
                         ".catch(function(err) { console.error('Copy failed:', err); });"
                 );
             }

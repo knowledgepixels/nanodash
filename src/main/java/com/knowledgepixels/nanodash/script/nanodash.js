@@ -293,6 +293,27 @@ function toggleMobileNav() {
   $('#titlebar').toggleClass('nav-open');
 }
 
+// Show a transient, auto-dismissing message at the top of the viewport, styled
+// like the post-publish confirmation box. Used e.g. for the "link copied"
+// feedback instead of a blocking alert().
+function showToast(message) {
+  var existing = document.getElementById('nanodash-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'nanodash-toast';
+  toast.className = 'nanodash-toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  // Trigger the fade-in on the next frame so the transition runs.
+  requestAnimationFrame(function () {
+    toast.classList.add('nanodash-toast-visible');
+  });
+  setTimeout(function () {
+    toast.classList.remove('nanodash-toast-visible');
+    setTimeout(function () { toast.remove(); }, 400);
+  }, 2500);
+}
+
 function toggleView() {
   $('.view-selector .list').on('click', function () {
     $('.flex-container').addClass('list-view').removeClass('grid-view');

@@ -1801,6 +1801,31 @@ hr {
   color: #000;
 }
 
+/* Transient, auto-dismissing toast at the top of the viewport (e.g. "link
+   copied"), styled like the blue post-publish confirmation box. */
+.nanodash-toast {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translate(-50%, -10px);
+  z-index: 10000;
+  background: #0B73DA1A;
+  border: 1px solid #0B73DA40;
+  border-radius: 8px;
+  padding: 3px 14px;
+  font-family: Inter, Verdana, Helvetica, sans-serif;
+  font-size: 10pt;
+  color: #444;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.nanodash-toast-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .instruction {
   background: #DAE5F1;
   padding: 25px;
