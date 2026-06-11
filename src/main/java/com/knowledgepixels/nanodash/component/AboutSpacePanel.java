@@ -26,10 +26,11 @@ public class AboutSpacePanel extends Panel {
     public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAFRpDY_Tw7PYCGQ0t8UYLvM-EPIj-n4BpwwUDUjdj2I4/preset-assignments-view";
 
     /**
-     * View listing a space's assigned roles, built on the existing
-     * get-space-roles query.
+     * View listing a space's assigned roles as a table (role, schema:name, and a
+     * count of how many of the space's users hold each role), built on the
+     * list-space-roles query. The built-in Admin role is always the first row.
      */
-    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAoqzi9VTP6c3HNtv98yMHiqrXMXpg3RmrwLoFL6ONV0E/space-roles-view";
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAOwQh3L1DVlfyP4jkNgG90Rs6pBYHDKvt9VheA0LYr-U/space-roles-view";
 
     /**
      * View listing a space's members (admins, maintainers, members) with their
@@ -59,7 +60,7 @@ public class AboutSpacePanel extends Panel {
         // keeps the user on the About tab after publishing a role/assignment, so
         // they see the updated roles list (the presets/view-display views below
         // intentionally fall through to the Content tab, where their effect shows).
-        add(QueryResultListBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
+        add(QueryResultTableBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());

@@ -31,6 +31,7 @@ public class QueryResultTableBuilder implements Serializable {
     private QueryRef queryRef;
     private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
+    private String postPublishTab = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -97,6 +98,18 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
+     * Sets the tab to return to after publishing via one of the table's action
+     * buttons (so the user stays on, e.g., the About tab).
+     *
+     * @param postPublishTab the tab name, or null for the default
+     * @return the current QueryResultTableBuilder instance
+     */
+    public QueryResultTableBuilder postPublishTab(String postPublishTab) {
+        this.postPublishTab = postPublishTab;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultTable component based on the configured parameters.
      *
      * @return the constructed Component
@@ -108,6 +121,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
+                table.setPostPublishTab(postPublishTab);
                 if (id != null && contextId != null && !id.equals(contextId)) {
                     table.setPartId(id);
                 }
@@ -122,6 +136,7 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                         table.setContextId(contextId);
+                        table.setPostPublishTab(postPublishTab);
                         if (id != null && contextId != null && !id.equals(contextId)) {
                             table.setPartId(id);
                         }
@@ -138,6 +153,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
+                table.setPostPublishTab(postPublishTab);
                 addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
@@ -147,6 +163,7 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
+                        table.setPostPublishTab(postPublishTab);
                         addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                         return table;
                     }
@@ -216,6 +233,7 @@ public class QueryResultTableBuilder implements Serializable {
                 params.set("values-from-query-mapping", queryMapping);
             }
             params.set("refresh-upon-publish", queryRef.getAsUrlString());
+            if (table.getPostPublishTab() != null) params.set("postpub-tab", table.getPostPublishTab());
             table.addButton(label, PublishPage.class, params);
         }
     }

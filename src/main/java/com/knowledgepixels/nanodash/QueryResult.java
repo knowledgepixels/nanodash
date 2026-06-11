@@ -124,6 +124,13 @@ public abstract class QueryResult extends Panel {
         this.postPublishTab = postPublishTab;
     }
 
+    /**
+     * @return the tab to return to after publishing via an action button, or null for the default
+     */
+    public String getPostPublishTab() {
+        return postPublishTab;
+    }
+
     // A view-level action button; collected here and rendered as a top entry of the
     // view's dropdown menu (see ViewDisplayMenu).
     public void addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
