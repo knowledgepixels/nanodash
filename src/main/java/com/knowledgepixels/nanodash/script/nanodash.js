@@ -128,15 +128,19 @@ $(document).on('mouseenter', '.actionmenu', function () {
   var el = content[0];
   el.style.left = '';
   el.style.right = '';
+  el.style.position = '';
+  el.style.top = '';
   var rect = this.getBoundingClientRect();
   var spaceRight = window.innerWidth - rect.left;
   var spaceLeft = rect.right;
-  if (spaceRight >= 250) {
-    el.style.left = '0';
-    el.style.right = 'auto';
-  } else if (spaceLeft >= 250) {
+  // The chevron sits at the right of its row, so prefer opening leftward
+  // (right-aligned); only fall back to opening rightward when the left lacks room.
+  if (spaceLeft >= 250) {
     el.style.left = 'auto';
     el.style.right = '0';
+  } else if (spaceRight >= 250) {
+    el.style.left = '0';
+    el.style.right = 'auto';
   } else {
     el.style.position = 'fixed';
     el.style.left = '5px';

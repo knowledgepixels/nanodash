@@ -111,7 +111,8 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         // e.g. a space's About-tab meta-views (roles/members/presets/view-displays) — have
         // no view-display nanopub, so these options are hidden for them.
         boolean isViewDisplay = viewDisplay.getViewIri() != null;
-        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
+        // Label (with its leading icon) comes from the markup body, so no label arg here.
+        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl);
         adjustLink.setVisible(showAdjust && isViewDisplay);
         addEntry("adjust", adjustLink);
 
@@ -144,7 +145,8 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     + "&refresh-upon-publish=" + Utils.urlEncode(userIri)
                     + "&param_appliesToResource=" + Utils.urlEncode(userIri);
         }
-        ExternalLink addToOwnLink = new ExternalLink("addToOwn", addToOwnUrl, "add to my own profile...");
+        // Label (with its leading icon) comes from the markup body, so no label arg here.
+        ExternalLink addToOwnLink = new ExternalLink("addToOwn", addToOwnUrl);
         addToOwnLink.setVisible(showAddToOwn);
         addEntry("addToOwn", addToOwnLink);
 

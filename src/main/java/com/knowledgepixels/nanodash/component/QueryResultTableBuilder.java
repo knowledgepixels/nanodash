@@ -218,9 +218,9 @@ public class QueryResultTableBuilder implements Serializable {
                     namespace = r.getNamespace();
                 } else if (resourceWithProfile instanceof Space) {
                     // The Space-creation templates' `space` placeholder has a fixed
-                    // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it
-                    // (same as SpaceExploreMenu). Nesting the new space's IRI under this
-                    // space's path makes it a sub-space via the prefix match.
+                    // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
+                    // Nesting the new space's IRI under this space's path makes it a
+                    // sub-space via the prefix match.
                     namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
                 }
                 if (namespace != null) {

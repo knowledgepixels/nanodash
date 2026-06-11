@@ -106,7 +106,7 @@ public class QueryResultPlainParagraph extends QueryResult {
                     List<AbstractLink> links = new ArrayList<>();
                     BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class,
                             new PageParameters().set("id", npId));
-                    sourceLink.setBody(Model.of("source"));
+                    sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                     links.add(sourceLink);
                     header.add(new EntryActionMenu("pnp", links));
                 } else {

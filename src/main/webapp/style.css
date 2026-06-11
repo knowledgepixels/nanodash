@@ -1029,29 +1029,47 @@ input[type=radio] + label strong {
 .actionmenu-content {
   display: none;
   position: absolute;
-  border-color: #666 !important;
+  /* The chevron button sits at the right of its row, so the menu opens leftward
+     (its right edge anchored to the button) rather than overflowing rightward. */
+  right: 0;
+  border-color: #0B73DA !important;
   border-style: solid !important;
   border-width: 1px !important;
   border-radius: 2px !important;
   font-weight: normal;
   font-size: 10pt;
   background-color: #fff;
-  min-width: 250px;
+  /* Size to the longest entry (kept on one line) rather than a fixed min-width,
+     so the menu is just wide enough to fit its entries; capped to the viewport. */
+  width: max-content;
+  max-width: 90vw;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
   z-index: 1;
   text-align: left;
 }
 
 .actionmenu-content a {
-  color: #000 !important;
+  color: #0b73da !important;
+  font-weight: bold;
   margin: 0 !important;
-  padding: 8px;
+  /* Extra left padding reserves a consistent slot before the text so some items
+     can carry a leading icon/emoji (.actionmenu-icon) while labels stay aligned. */
+  padding: 8px 12px 8px 32px;
+  position: relative;
   text-decoration: none;
   display: block;
 }
 
+/* Optional leading icon/emoji for a menu item, placed in the reserved left slot. */
+.actionmenu-content a .actionmenu-icon {
+  position: absolute;
+  left: 10px;
+  font-style: normal;
+}
+
 .actionmenu-content a:hover {
-  background-color: #ccc;
+  background-color: #0B73DA;
+  color: #fff !important;
 }
 
 .actionmenu-content hr.actionmenu-separator {

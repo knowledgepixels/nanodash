@@ -279,7 +279,7 @@ public class QueryResultTable extends QueryResult {
                         if (sourceUri != null && !sourceUri.isBlank()) {
                             AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
                                     new PageParameters().set("id", sourceUri));
-                            sourceLink.setBody(Model.of("source"));
+                            sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                             links.add(sourceLink);
                         }
                     }

@@ -257,7 +257,7 @@ public class QueryResultList extends QueryResult {
                 if (sourceUri != null) {
                     AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
                             new PageParameters().set("id", sourceUri));
-                    sourceLink.setBody(Model.of("source"));
+                    sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                     actionLinks.add(sourceLink);
                 }
                 // Append the per-row dropdown (entry actions + source) as the trailing item;
