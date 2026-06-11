@@ -249,7 +249,13 @@ public class QueryResultList extends QueryResult {
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
                         if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                         AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
-                        button.setBody(Model.of(labelForAction));
+                        // A label that starts with a leading symbol/emoji renders that as the entry icon.
+                        String iconBody = Utils.menuEntryIconBodyHtml(labelForAction);
+                        if (iconBody != null) {
+                            button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+                        } else {
+                            button.setBody(Model.of(labelForAction));
+                        }
                         actionLinks.add(button);
                     }
                 }

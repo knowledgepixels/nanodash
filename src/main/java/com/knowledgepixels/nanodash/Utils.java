@@ -161,6 +161,36 @@ public class Utils {
     }
 
     /**
+     * Builds the HTML body for a menu entry whose label may begin with a leading
+     * symbol/emoji used as the entry's icon. If {@code label} starts with a token
+     * of symbol/emoji characters (no letters or digits) followed by whitespace,
+     * that token is wrapped in the {@code .actionmenu-icon} slot and the remaining
+     * text follows it (both escaped). Returns {@code null} when there is no such
+     * leading icon, so callers can fall back to the plain (escaped) label.
+     *
+     * @param label the menu entry label
+     * @return the icon+text HTML body to render with escaping disabled, or null
+     */
+    public static String menuEntryIconBodyHtml(String label) {
+        if (label == null) return null;
+        int sp = -1;
+        for (int i = 0; i < label.length(); i++) {
+            if (Character.isWhitespace(label.charAt(i))) {
+                sp = i;
+                break;
+            }
+        }
+        if (sp <= 0) return null;
+        String icon = label.substring(0, sp);
+        String rest = label.substring(sp).replaceFirst("^\\s+", "");
+        if (rest.isEmpty()) return null;
+        // Only a pure symbol/emoji token (no letters or digits) counts as an icon.
+        if (icon.codePoints().anyMatch(Character::isLetterOrDigit)) return null;
+        return "<span class=\"actionmenu-icon\">" + Strings.escapeMarkup(icon) + "</span>"
+                + Strings.escapeMarkup(rest);
+    }
+
+    /**
      * URL-decodes the string representation of the given object using UTF-8 encoding.
      *
      * @param o the object to be URL-decoded

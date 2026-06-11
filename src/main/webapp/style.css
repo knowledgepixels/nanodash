@@ -1054,7 +1054,7 @@ input[type=radio] + label strong {
   margin: 0 !important;
   /* Extra left padding reserves a consistent slot before the text so some items
      can carry a leading icon/emoji (.actionmenu-icon) while labels stay aligned. */
-  padding: 8px 12px 8px 32px;
+  padding: 8px 24px 8px 32px;
   position: relative;
   text-decoration: none;
   display: block;

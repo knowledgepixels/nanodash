@@ -53,7 +53,13 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
             protected void populateItem(Item<QueryResult.MenuAction> item) {
                 QueryResult.MenuAction action = item.getModelObject();
                 BookmarkablePageLink<Void> link = new BookmarkablePageLink<>("viewAction", action.pageClass(), action.params());
-                link.setBody(Model.of(action.label()));
+                // A label that starts with a leading symbol/emoji renders that as the entry icon.
+                String iconBody = Utils.menuEntryIconBodyHtml(action.label());
+                if (iconBody != null) {
+                    link.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+                } else {
+                    link.setBody(Model.of(action.label()));
+                }
                 item.add(link);
             }
         };
