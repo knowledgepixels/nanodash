@@ -2235,6 +2235,17 @@ div.navigator .goto a[disabled] {
   width: auto;
 }
 
+/* The universal rule above forces display:inline on every descendant, which would
+   un-hide the copy dropdown's content (e.g. next to an alternative id). Restore the
+   actionmenu's normal collapsed-until-hover behavior. */
+.inline .actionmenu-content {
+  display: none;
+}
+
+.inline .actionmenu:hover .actionmenu-content {
+  display: block;
+}
+
 .inline .paneltitlerow h4 {
   font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif;
   margin-right: 5px;
