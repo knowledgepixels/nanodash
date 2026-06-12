@@ -23,7 +23,7 @@ public class AboutSpacePanel extends Panel {
     /**
      * View listing the presets assigned to a resource (issue #302).
      */
-    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAFRpDY_Tw7PYCGQ0t8UYLvM-EPIj-n4BpwwUDUjdj2I4/preset-assignments-view";
+    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RA1jT4w9WA_omLXpC-VrGaeAAlKcyMf4Fj57741ebUxO0/preset-assignments-view";
 
     /**
      * View listing a space's assigned roles as a table (role, schema:name, and a
@@ -53,26 +53,30 @@ public class AboutSpacePanel extends Panel {
     public AboutSpacePanel(String id, Space space) {
         super(id);
 
+        // "Structure" section: presets, assigned roles, view displays.
+
+        View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
+        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
+
         View rolesView = View.get(SPACE_ROLES_VIEW);
         // Pass the space as resource/context so the roles view's per-entry action
         // button (publish a role assignment) renders with param_space prefilled,
         // mirroring the "+" button on the content tab's role list. postPublishTab
         // keeps the user on the About tab after publishing a role/assignment, so
-        // they see the updated roles list (the presets/view-display views below
+        // they see the updated roles list (the presets/view-display views
         // intentionally fall through to the Content tab, where their effect shows).
         add(QueryResultTableBuilder.create("roles", new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
+
+        View vdView = View.get(VIEW_DISPLAYS_VIEW);
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
+
+        // "Users" section: admins/maintainers/members, then observers.
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());
 
         View observersView = View.get(OBSERVERS_VIEW);
         add(QueryResultTableBuilder.create("observers", new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(observersView)).build());
-
-        View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
-        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
-
-        View vdView = View.get(VIEW_DISPLAYS_VIEW);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
     }
 
 }
