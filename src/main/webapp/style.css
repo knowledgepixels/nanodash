@@ -2575,9 +2575,24 @@ a.source:hover {
 
 .no-records-note {
   margin: 0;
-  padding: 8px 15px;
+  padding: 8px 0;
   color: #888;
   font-style: italic;
+}
+
+/* Empty-state line with the view-level actions promoted to visible buttons,
+   replacing the plain note (only when the result is empty and the viewer is
+   entitled to the actions). */
+.no-records-actions {
+  margin: 0;
+  padding: 8px 0 10px 0;
+  color: #888;
+  font-style: italic;
+}
+
+.no-records-actions a {
+  font-style: normal;
+  margin-left: 8px;
 }
 
 .cell-data-html p,

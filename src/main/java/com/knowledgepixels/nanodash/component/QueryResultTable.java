@@ -15,14 +15,18 @@ import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFal
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
@@ -179,19 +183,49 @@ public class QueryResultTable extends QueryResult {
                 table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
             }
             add(table);
+            // Hidden when the empty-actions line below shows instead, which carries
+            // its own "Nothing here yet:" text; this note still covers the case of
+            // the filter text matching no row.
             noRecordsLabel = new Label("no-records", "(nothing found)") {
                 @Override
                 protected void onConfigure() {
                     super.onConfigure();
-                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0);
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0 && !hasEmptyStateActions());
                 }
             };
             noRecordsLabel.setOutputMarkupPlaceholderTag(true);
             add(noRecordsLabel);
+            // When the result is genuinely empty (not merely filtered down to zero
+            // rows), the view-level actions are promoted from the dropdown menu to
+            // visible buttons in the empty state, pointing e.g. a space admin to
+            // "add preset..." as the next step. menuActions only ever contains
+            // actions the viewer is entitled to (see QueryResultTableBuilder), so
+            // everyone else just gets the plain note. The same actions stay in the
+            // dropdown menu, which remains their place once the table has content.
+            WebMarkupContainer emptyActions = new WebMarkupContainer("empty-actions") {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && hasEmptyStateActions());
+                }
+            };
+            // menuActions is filled by the builder after construction, so the list
+            // is wrapped as a live model rather than copied here.
+            emptyActions.add(new ListView<MenuAction>("actions", new ListModel<>(menuActions)) {
+                @Override
+                protected void populateItem(ListItem<MenuAction> item) {
+                    MenuAction action = item.getModelObject();
+                    AbstractLink link = new BookmarkablePageLink<NanodashPage>("link", action.pageClass(), action.params());
+                    link.setBody(Model.of(action.label()));
+                    item.add(link);
+                }
+            });
+            add(emptyActions);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
             add(new Label("no-records", "").setVisible(false));
+            add(new Label("empty-actions", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
     }
@@ -396,6 +430,13 @@ public class QueryResultTable extends QueryResult {
             }
         }
 
+    }
+
+    // Whether the empty state should point the viewer to the view-level actions:
+    // the underlying response (not just the filtered view of it) has no rows, and
+    // there is at least one action the viewer is entitled to.
+    private boolean hasEmptyStateActions() {
+        return response.getData().isEmpty() && !menuActions.isEmpty();
     }
 
     private static String truncateLabel(String label) {
