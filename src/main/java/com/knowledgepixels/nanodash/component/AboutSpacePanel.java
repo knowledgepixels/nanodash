@@ -19,7 +19,7 @@ public class AboutSpacePanel extends Panel {
      * get-view-displays query Nanodash uses internally). Shown on About tabs
      * instead of rendering the assigned views themselves.
      */
-    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAmWY2SeqBn-3cb5uHhJL8mWUHfbT70qGZyTxqKrIRiyk/view-displays-view";
+    public static final String VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA2Wxm80NAzOrXCjIZK9oVJ2vzbycuQtT3wLSGTX5vDVw/view-displays-view";
 
     /**
      * View listing the presets assigned to a resource (issue #302).
@@ -51,13 +51,13 @@ public class AboutSpacePanel extends Panel {
      * View listing a space's direct sub-spaces with their types, built on the
      * list-sub-spaces query.
      */
-    public static final String SUB_SPACES_VIEW = "https://w3id.org/np/RAeBFAztK931M_rw6FXoALjoLpIgwCk3oLiwy53CTlRJM/sub-spaces-view";
+    public static final String SUB_SPACES_VIEW = "https://w3id.org/np/RAoO4uYnSJXCHr0F5uVC5sYpkD4HOh-lsHQj4k3epqeH0/sub-spaces-view";
 
     /**
      * View listing the resources maintained by a space, built on the
      * list-maintained-resources query.
      */
-    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAaSQjXbKDgQTKiQuuArU9hzbHOduSaLqZNklyuj3HtZk/maintained-resources-view";
+    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RA4mk84QDZ4njO5N1sryJ5_wbyG7bAisL4BIAsNoISt-Y/maintained-resources-view";
 
     /**
      * @param id    the Wicket markup id
