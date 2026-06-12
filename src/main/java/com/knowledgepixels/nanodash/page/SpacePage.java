@@ -100,9 +100,15 @@ public class SpacePage extends NanodashPage {
         if (activeTab != ResourceTabs.Tab.CONTENT) {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
-                add(new AboutSpacePanel("otherTab", space));
+                // The panel constructor resolves view nanopubs over the network when
+                // they aren't freshly cached, which would block the initial page
+                // render; the view-id list must mirror the panel's View.get calls.
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject()),
+                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
+                        AboutSpacePanel.MEMBERS_VIEW, AboutSpacePanel.OBSERVERS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
-                add(new ExplorePanel("otherTab", space.getId()));
+                add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, spaceId),
+                        ReferencesPage.REFERENCES_VIEW));
             } else {
                 add(new DownloadRdfLinks("otherTab", "space", space.getId()));
             }

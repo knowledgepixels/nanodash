@@ -153,9 +153,15 @@ public class UserPage extends NanodashPage {
         if (activeTab != ResourceTabs.Tab.CONTENT) {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
-                add(new AboutUserPanel("otherTab", userIriString));
+                // The panel constructor resolves view nanopubs over the network when
+                // they aren't freshly cached, which would block the initial page
+                // render; the view-id list must mirror the panel's View.get calls.
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutUserPanel(markupId, userIriString),
+                        AboutUserPanel.INTRODUCTIONS_VIEW, AboutUserPanel.PROFILE_VIEW,
+                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
-                add(new ExplorePanel("otherTab", userIriString));
+                add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, userIriString),
+                        ReferencesPage.REFERENCES_VIEW));
             } else {
                 add(new DownloadRdfLinks("otherTab", "user", userIriString));
             }

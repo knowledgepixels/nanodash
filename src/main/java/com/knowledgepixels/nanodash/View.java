@@ -58,6 +58,31 @@ public class View implements Serializable {
         .build();
 
     /**
+     * Memo of latest-version resolutions: view id (as passed to {@link #get(String)})
+     * to the View it resolved to. Entries expire after 1 minute, mirroring the
+     * freshness window of {@link QueryApiAccess#getLatestVersionId(String)}, so a
+     * superseding view nanopub is still picked up within a minute. While an entry
+     * is fresh, {@link #get(String)} returns without any network access.
+     */
+    private static final Cache<String, View> latestResolvedViews = CacheBuilder.newBuilder()
+        .maximumSize(5_000)
+        .expireAfterWrite(1, TimeUnit.MINUTES)
+        .build();
+
+    /**
+     * Indicates whether {@link #get(String)} would currently return without
+     * network access, i.e. a fresh latest-version resolution is memoized for
+     * this id. Used to decide between constructing a view-based panel directly
+     * and deferring it to a lazy-loading AJAX request.
+     *
+     * @param id the ID of the View
+     * @return true if {@link #get(String)} is currently a pure cache hit
+     */
+    public static boolean isCached(String id) {
+        return latestResolvedViews.getIfPresent(id) != null;
+    }
+
+    /**
      * Get a View by its ID, resolving to the latest version (following the
      * supersedes chain).
      *
@@ -83,6 +108,8 @@ public class View implements Serializable {
     public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
         if (resolveLatest) {
+            View memo = latestResolvedViews.getIfPresent(id);
+            if (memo != null) return memo;
             // Automatically selecting latest version of view definition:
             // TODO This should be made configurable at some point, so one can make it a fixed version.
             try {
@@ -98,6 +125,7 @@ public class View implements Serializable {
                                 cached = new View(latestId, np);
                                 views.put(latestId, cached);
                             }
+                            latestResolvedViews.put(id, cached);
                             return cached;
                         }
                     }
@@ -116,6 +144,11 @@ public class View implements Serializable {
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for resource: {}", id, ex);
             }
+        }
+        if (resolveLatest && cached != null) {
+            // Reached when the given version is already the latest (or the latest
+            // lookup failed); memoize so the next get() within a minute is free.
+            latestResolvedViews.put(id, cached);
         }
         return cached;
     }

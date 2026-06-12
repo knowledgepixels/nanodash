@@ -172,7 +172,10 @@ public class ResourcePartPage extends NanodashPage {
         add(contentContainer);
         if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
-            add(new ExplorePanel("otherTab", id));
+            // The panel constructor resolves a view nanopub over the network when
+            // it isn't freshly cached, which would block the initial page render.
+            add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, id),
+                    ReferencesPage.REFERENCES_VIEW));
         } else if (activeTab == ResourceTabs.Tab.RAW) {
             contentContainer.setVisible(false);
             add(new DownloadRdfLinks("otherTab", "part", id, resourceWithProfile.getId()));

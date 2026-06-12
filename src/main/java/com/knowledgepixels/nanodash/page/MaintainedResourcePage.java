@@ -112,9 +112,14 @@ public class MaintainedResourcePage extends NanodashPage {
         } else {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
-                add(new AboutResourcePanel("otherTab", resource));
+                // The panel constructor resolves view nanopubs over the network when
+                // they aren't freshly cached, which would block the initial page
+                // render; the view-id list must mirror the panel's View.get calls.
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutResourcePanel(markupId, resourceModel.getObject()),
+                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
-                add(new ExplorePanel("otherTab", resource.getId()));
+                add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, resourceId),
+                        ReferencesPage.REFERENCES_VIEW));
             } else {
                 add(new DownloadRdfLinks("otherTab", "resource", resource.getId()));
             }
