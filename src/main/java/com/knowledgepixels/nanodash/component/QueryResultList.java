@@ -21,10 +21,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
@@ -286,18 +289,44 @@ public class QueryResultList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
+        // Hidden when the empty-actions line below shows instead, which carries
+        // its own "Nothing here yet:" text; this note still covers the case of
+        // the filter text matching no row.
         Label noRecordsLabel = new Label("no-records", "(nothing found)") {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
-                setVisible(filteredDataProvider.size() == 0);
+                setVisible(filteredDataProvider.size() == 0 && !hasEmptyStateActions());
             }
         };
+
+        // When the result is genuinely empty (not merely filtered down to zero
+        // rows), the view-level actions are promoted from the dropdown menu to
+        // visible buttons in the empty state — same as in QueryResultTable.
+        WebMarkupContainer emptyActions = new WebMarkupContainer("empty-actions") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(hasEmptyStateActions());
+            }
+        };
+        // menuActions is filled by the builder after construction, so the list
+        // is wrapped as a live model rather than copied here.
+        emptyActions.add(new ListView<MenuAction>("actions", new ListModel<>(menuActions)) {
+            @Override
+            protected void populateItem(ListItem<MenuAction> item) {
+                MenuAction action = item.getModelObject();
+                AbstractLink link = new BookmarkablePageLink<NanodashPage>("link", action.pageClass(), action.params());
+                link.setBody(Model.of(action.label()));
+                item.add(link);
+            }
+        });
 
         itemsContainer = new WebMarkupContainer("items-container");
         itemsContainer.setOutputMarkupId(true);
         itemsContainer.add(dataView);
         itemsContainer.add(noRecordsLabel);
+        itemsContainer.add(emptyActions);
         itemsContainer.add(navigation);
         add(itemsContainer);
     }

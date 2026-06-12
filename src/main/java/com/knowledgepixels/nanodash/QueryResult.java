@@ -156,6 +156,17 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
+     * Whether the empty state should point the viewer to the view-level actions:
+     * the underlying response (not just a filtered view of it) has no rows, and
+     * there is at least one action the viewer is entitled to.
+     *
+     * @return true if the empty-state call-to-action buttons should show
+     */
+    protected boolean hasEmptyStateActions() {
+        return response.getData().isEmpty() && !menuActions.isEmpty();
+    }
+
+    /**
      * Populate the component with the query results.
      */
     protected abstract void populateComponent();

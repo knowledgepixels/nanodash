@@ -7,8 +7,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.QueryRef;
 
 /**
- * The "About" tab body for a space: its assigned roles, assigned presets, and
- * the listing of its configured view displays (issue #302). Rendered as views
+ * The "About" tab body for a space: its structure (assigned presets, roles, and
+ * configured view displays; issue #302), its users (members and observers), and
+ * its sub-units (sub-spaces and maintained resources). Rendered as views
  * (query result tables) rather than the live view content.
  */
 public class AboutSpacePanel extends Panel {
@@ -47,6 +48,18 @@ public class AboutSpacePanel extends Panel {
     public static final String OBSERVERS_VIEW = "https://w3id.org/np/RA7uYe4WmsJCk3NaMTE8p0YofcMcRfjLyM8PGLaADkH18/space-observers-view";
 
     /**
+     * View listing a space's direct sub-spaces with their types, built on the
+     * list-sub-spaces query.
+     */
+    public static final String SUB_SPACES_VIEW = "https://w3id.org/np/RA6phAe1pWQgn1sOsPCwCCZGgQi5GPQLEVzMnsZYFL8Rc/sub-spaces-view";
+
+    /**
+     * View listing the resources maintained by a space, built on the
+     * list-maintained-resources query.
+     */
+    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAvWZritn-sZ1Q1dlHjW4vFG3dRZPSa73qA-dMObjsH8Q/maintained-resources-view";
+
+    /**
      * @param id    the Wicket markup id
      * @param space the space whose About listings to render
      */
@@ -77,6 +90,18 @@ public class AboutSpacePanel extends Panel {
 
         View observersView = View.get(OBSERVERS_VIEW);
         add(QueryResultTableBuilder.create("observers", new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(observersView)).build());
+
+        // "Sub-units" section: sub-spaces and maintained resources, side by side
+        // (both views declare 6/12 width). resourceWithProfile/id/contextId let the
+        // views' "add" actions pre-fill the new sub-space's IRI under this space's
+        // namespace and this space as the maintainer, respectively; postPublishTab
+        // returns the user here, where the new entry shows up.
+
+        View subSpacesView = View.get(SUB_SPACES_VIEW);
+        add(QueryResultListBuilder.create("subspaces", new QueryRef(subSpacesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(subSpacesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
+
+        View maintainedResourcesView = View.get(MAINTAINED_RESOURCES_VIEW);
+        add(QueryResultListBuilder.create("maintainedresources", new QueryRef(maintainedResourcesView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(maintainedResourcesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
     }
 
 }

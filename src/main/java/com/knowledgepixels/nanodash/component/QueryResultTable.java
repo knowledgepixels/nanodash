@@ -432,13 +432,6 @@ public class QueryResultTable extends QueryResult {
 
     }
 
-    // Whether the empty state should point the viewer to the view-level actions:
-    // the underlying response (not just the filtered view of it) has no rows, and
-    // there is at least one action the viewer is entitled to.
-    private boolean hasEmptyStateActions() {
-        return response.getData().isEmpty() && !menuActions.isEmpty();
-    }
-
     private static String truncateLabel(String label) {
         return Utils.truncateLabel(label);
     }
