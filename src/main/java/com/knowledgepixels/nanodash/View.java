@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -19,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,24 +61,40 @@ public class View implements Serializable {
 
     /**
      * Memo of latest-version resolutions: view id (as passed to {@link #get(String)})
-     * to the View it resolved to. Entries expire after 1 minute, mirroring the
-     * freshness window of {@link QueryApiAccess#getLatestVersionId(String)}, so a
-     * superseding view nanopub is still picked up within a minute. While an entry
-     * is fresh, {@link #get(String)} returns without any network access.
+     * to the resolution time and the View it resolved to. Entries are served as
+     * long as they live; one older than {@link #REFRESH_RESOLUTION_AFTER_MS} is
+     * served stale while a background re-resolution runs (stale-while-revalidate,
+     * like {@link ApiCache}), so a superseding view nanopub is picked up on a
+     * later render without {@link #get(String)} ever blocking on the network
+     * once an entry exists.
      */
-    private static final Cache<String, View> latestResolvedViews = CacheBuilder.newBuilder()
+    private static final Cache<String, Pair<Long, View>> latestResolvedViews = CacheBuilder.newBuilder()
         .maximumSize(5_000)
-        .expireAfterWrite(1, TimeUnit.MINUTES)
+        .expireAfterAccess(24, TimeUnit.HOURS)
         .build();
 
     /**
+     * Age after which a memoized latest-version resolution is re-resolved in the
+     * background; mirrors the freshness window of
+     * {@link QueryApiAccess#getLatestVersionId(String)}.
+     */
+    private static final long REFRESH_RESOLUTION_AFTER_MS = 1000 * 60;
+
+    /**
+     * Ids whose latest-version resolution is currently being refreshed in the
+     * background, so concurrent renders don't pile up duplicate refreshes.
+     */
+    private static final Set<String> refreshingViews = ConcurrentHashMap.newKeySet();
+
+    /**
      * Indicates whether {@link #get(String)} would currently return without
-     * network access, i.e. a fresh latest-version resolution is memoized for
-     * this id. Used to decide between constructing a view-based panel directly
-     * and deferring it to a lazy-loading AJAX request.
+     * network access, i.e. a latest-version resolution is memoized for this id
+     * (possibly stale, in which case get() serves it while refreshing in the
+     * background). Used to decide between constructing a view-based panel
+     * directly and deferring it to a lazy-loading AJAX request.
      *
      * @param id the ID of the View
-     * @return true if {@link #get(String)} is currently a pure cache hit
+     * @return true if {@link #get(String)} currently returns without blocking
      */
     public static boolean isCached(String id) {
         return latestResolvedViews.getIfPresent(id) != null;
@@ -107,34 +125,59 @@ public class View implements Serializable {
      */
     public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-        if (resolveLatest) {
-            View memo = latestResolvedViews.getIfPresent(id);
-            if (memo != null) return memo;
-            // Automatically selecting latest version of view definition:
-            // TODO This should be made configurable at some point, so one can make it a fixed version.
-            try {
-                String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-                if (!latestNpId.equals(npId)) {
-                    Nanopub np = Utils.getAsNanopub(latestNpId);
-                    if (np != null) {
-                        Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                        if (embeddedIris.size() == 1) {
-                            String latestId = embeddedIris.iterator().next();
-                            View cached = views.getIfPresent(latestId);
-                            if (cached == null) {
-                                cached = new View(latestId, np);
-                                views.put(latestId, cached);
-                            }
-                            latestResolvedViews.put(id, cached);
-                            return cached;
+        if (!resolveLatest) {
+            return getExactVersion(id, npId);
+        }
+        Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
+        if (memo != null) {
+            if (System.currentTimeMillis() - memo.getLeft() > REFRESH_RESOLUTION_AFTER_MS) {
+                triggerResolutionRefresh(id, npId);
+            }
+            return memo.getRight();
+        }
+        View resolved = resolveLatestVersion(id, npId);
+        if (resolved != null) {
+            latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+        }
+        return resolved;
+    }
+
+    /**
+     * Resolves a view id to the latest version of its view definition by
+     * following the supersedes chain, falling back to the exact given version
+     * if the lookup fails or doesn't yield a single embedded view IRI. This is
+     * the network-touching part of {@link #get(String)}.
+     */
+    private static View resolveLatestVersion(String id, String npId) {
+        // Automatically selecting latest version of view definition:
+        // TODO This should be made configurable at some point, so one can make it a fixed version.
+        try {
+            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+            if (!latestNpId.equals(npId)) {
+                Nanopub np = Utils.getAsNanopub(latestNpId);
+                if (np != null) {
+                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                    if (embeddedIris.size() == 1) {
+                        String latestId = embeddedIris.iterator().next();
+                        View cached = views.getIfPresent(latestId);
+                        if (cached == null) {
+                            cached = new View(latestId, np);
+                            views.put(latestId, cached);
                         }
+                        return cached;
                     }
                 }
-            } catch (Exception ex) {
-                logger.error("Error resolving latest version for view: {}", id, ex);
             }
+        } catch (Exception ex) {
+            logger.error("Error resolving latest version for view: {}", id, ex);
         }
-        // Fall back to loading the nanopub as given:
+        return getExactVersion(id, npId);
+    }
+
+    /**
+     * Loads the view exactly as given, without a latest-version lookup.
+     */
+    private static View getExactVersion(String id, String npId) {
         Nanopub np = Utils.getAsNanopub(npId);
         View cached = views.getIfPresent(id);
         if (cached == null) {
@@ -145,12 +188,31 @@ public class View implements Serializable {
                 logger.error("Couldn't load nanopub for resource: {}", id, ex);
             }
         }
-        if (resolveLatest && cached != null) {
-            // Reached when the given version is already the latest (or the latest
-            // lookup failed); memoize so the next get() within a minute is free.
-            latestResolvedViews.put(id, cached);
-        }
         return cached;
+    }
+
+    /**
+     * Re-resolves a stale memoized latest-version resolution in the background.
+     * The stale value keeps being served meanwhile; on failure it is re-stamped
+     * with the current time, so failing lookups are retried at most once per
+     * {@link #REFRESH_RESOLUTION_AFTER_MS} rather than on every render.
+     */
+    private static void triggerResolutionRefresh(String id, String npId) {
+        if (!refreshingViews.add(id)) return;
+        NanodashThreadPool.submit(() -> {
+            try {
+                View resolved = resolveLatestVersion(id, npId);
+                if (resolved == null) {
+                    Pair<Long, View> previous = latestResolvedViews.getIfPresent(id);
+                    resolved = (previous == null ? null : previous.getRight());
+                }
+                if (resolved != null) {
+                    latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+                }
+            } finally {
+                refreshingViews.remove(id);
+            }
+        });
     }
 
     private String id;
