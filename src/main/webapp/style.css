@@ -266,6 +266,15 @@ details summary {
   margin-bottom: 0;
 }
 
+[class*="col-"].section-header {
+  padding-bottom: 0;
+}
+
+[class*="col-"].section-header h3 {
+  border-bottom: 2px solid #bdbdbd;
+  padding-bottom: 6px;
+}
+
 .columncontainer {
   display: flex;
   column-gap: 60px;
@@ -306,7 +315,7 @@ h1, h2 {
 }
 
 h4, h5, h6 {
-  font-size: 12pt;
+  font-size: 11pt;
 }
 
 h5, h6 {
