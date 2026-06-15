@@ -176,7 +176,7 @@ public class ResourcePartPage extends NanodashPage {
             // aren't freshly cached, which would block the initial page render; the
             // view-id list must mirror the panel's View.get calls.
             add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
-                    AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
+                    AboutPartPanel.PART_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
         } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
             // The panel constructor resolves a view nanopub over the network when

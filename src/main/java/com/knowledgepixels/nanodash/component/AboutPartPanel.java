@@ -2,9 +2,11 @@ package com.knowledgepixels.nanodash.component;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
@@ -12,19 +14,25 @@ import org.nanopub.extra.services.QueryRef;
 import java.util.Set;
 
 /**
- * The "About" tab body for a resource part: the presets assigned to the part's
+ * The "About" tab body for a resource part: an "ℹ️ Info" table (the part's type,
+ * owning resource, and defining nanopub), the presets assigned to the part's
  * owning resource, and that resource's configured view displays each flagged
- * (shown_here) for this specific part (issue #302). Read-only: part-level views
- * are inherited from the owning resource via class/namespace targeting, so their
- * configuration is managed on the owning resource, not the part. The "ℹ️ Info"
- * section is intentionally left for later.
+ * (shown_here) for this specific part (issue #302). The presets and view displays
+ * are inherited from the owning resource (a part has none of its own); the view
+ * displays are managed on the owning resource, where part-level views live.
  */
 public class AboutPartPanel extends Panel {
 
     /**
+     * The "ℹ️ Info" view for a part: a key-value table (Type / Belongs to / Defined
+     * in) sourced from the part's defining nanopub, found among the owning resource's
+     * space members' pubkeys (as on the part page itself).
+     */
+    public static final String PART_INFO_VIEW = "https://w3id.org/np/RAKMu5L23lMUfZe-DSGopJTRFHBh-drfvazSDC6ZocxhU/part-info-view";
+
+    /**
      * The "⬜ View displays" view for a part: the owning resource's view displays,
      * each flagged for this specific part via the partid/partclass parameters.
-     * Read-only (no add/deactivate actions).
      */
     public static final String PART_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAHPaxWXTO6Utt54oRFQqTjyGuk4w7y8IDZEsmNqeptwE/part-view-displays-view";
 
@@ -37,6 +45,26 @@ public class AboutPartPanel extends Panel {
      */
     public AboutPartPanel(String id, AbstractResourceWithProfile context, String partId, Set<IRI> partClasses) {
         super(id);
+
+        // Info: the part's type / owning resource / defining nanopub, read from the
+        // part's defining nanopub. As on the part page, the definition is looked up
+        // among the owning resource's space members' pubkeys (or the owning user's).
+        View infoView = View.get(PART_INFO_VIEW);
+        Multimap<String, String> infoParams = ArrayListMultimap.create();
+        infoParams.put("partid", partId);
+        infoParams.put("context", context.getId());
+        if (context.getSpace() != null) {
+            for (IRI userIri : context.getSpace().getUsers()) {
+                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
+                    infoParams.put("pubkey", pubkey);
+                }
+            }
+        } else {
+            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(context.getId()), true)) {
+                infoParams.put("pubkey", pubkey);
+            }
+        }
+        add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
 
         // Presets are assigned to the owning resource (a part has none of its own),
         // so this lists the owning resource's presets.
