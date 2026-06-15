@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -13,6 +15,15 @@ import org.nanopub.extra.services.QueryRef;
  * (query result tables) rather than the live view content.
  */
 public class AboutSpacePanel extends Panel {
+
+    /**
+     * The "ℹ️ Info" view: key-value facts about the space (type, alternative IDs,
+     * dates, latest and root definition). Also shown on the Content tab; surfaced
+     * here at the top of the About tab. Its query needs both the space IRI
+     * ({@code space}) and the space's nanopub ({@code spaceNp}) so it can scope to
+     * a single space-ref.
+     */
+    public static final String SPACE_INFO_VIEW = "https://w3id.org/np/RAIh3Cq4K99abRiL2xZphMYTjByvZYATK-d--dI3DD05g/space-info-view-kind";
 
     /**
      * View that lists all assigned view displays of a resource (built on the
@@ -31,7 +42,7 @@ public class AboutSpacePanel extends Panel {
      * count of how many of the space's users hold each role), built on the
      * list-space-roles query. The built-in Admin role is always the first row.
      */
-    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAAdFYTo9fnsJRwQCR3jkWHA3eroTQlZHHLnpPdzV2-t0/space-roles-view";
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RA2nHxsuG4CYVQbA-tPjTB4TAdGKjMmN8rNjG2vKBqqXc/space-roles-view";
 
     /**
      * View listing a space's members (admins, maintainers, members) with their
@@ -66,7 +77,16 @@ public class AboutSpacePanel extends Panel {
     public AboutSpacePanel(String id, Space space) {
         super(id);
 
-        // "Structure" section: presets, assigned roles, view displays.
+        // "Structure" section: key-value info, presets, assigned roles, view displays.
+
+        // The info view leads the section (to the left of the presets). Its query is
+        // scoped to a single space-ref, so it needs both the space IRI and the
+        // space's nanopub (the latest-definition NP) — bind them as separate params.
+        View infoView = View.get(SPACE_INFO_VIEW);
+        Multimap<String, String> infoParams = ArrayListMultimap.create();
+        infoParams.put("space", space.getId());
+        infoParams.put("spaceNp", space.getNanopubId());
+        add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
 
         View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());

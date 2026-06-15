@@ -14,11 +14,22 @@ import org.nanopub.extra.services.QueryRef;
 public class AboutResourcePanel extends Panel {
 
     /**
+     * The "ℹ️ Info" view for a maintained resource: key-value facts (type,
+     * namespace, maintaining space). Also shown on the Content tab; surfaced here
+     * at the top of the About tab.
+     */
+    public static final String MAINTAINED_RESOURCE_INFO_VIEW = "https://w3id.org/np/RAqKkqvOFWWCDJ4LOa6rrgQJMFbDnoaG56zkIBN5AMBZw/maintained-resource-info-view-kind";
+
+    /**
      * @param id       the Wicket markup id
      * @param resource the maintained resource whose About listings to render
      */
     public AboutResourcePanel(String id, MaintainedResource resource) {
         super(id);
+
+        // The info view leads the "Structure" section (to the left of the presets).
+        View infoView = View.get(MAINTAINED_RESOURCE_INFO_VIEW);
+        add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(infoView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
 
         View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());

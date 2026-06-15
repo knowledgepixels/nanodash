@@ -88,13 +88,6 @@ public class SpacePage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
-        add(new ItemListPanel<String>(
-                "altids",
-                "Alternative IDs:",
-                space.getAltIDs(),
-                i -> new ExternalLinkWithActionsPanel("item", Model.of(i), Model.of(i))
-        ));
-
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
         if (activeTab != ResourceTabs.Tab.CONTENT) {
@@ -104,7 +97,7 @@ public class SpacePage extends NanodashPage {
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
                 add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject()),
-                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
+                        AboutSpacePanel.SPACE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
                         AboutSpacePanel.MEMBERS_VIEW, AboutSpacePanel.OBSERVERS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, spaceId),
