@@ -45,6 +45,14 @@ public class QueryPage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/query";
 
+    /**
+     * Prefix of the generic ("portable") nanopub-query service URLs that w3id-redirect to
+     * whatever concrete query instance is current. These appear both as a query's endpoint and
+     * inside SPARQL bodies (e.g. {@code SERVICE} clauses); for the YasGUI link they are rewritten
+     * to a concrete instance so the browser-based editor can run them.
+     */
+    private static final String GENERIC_QUERY_SERVICE_PREFIX = "https://w3id.org/np/l/nanopub-query-1.1/";
+
     private final Form<Void> form;
     private final List<QueryParamField> paramFields;
     private final FeedbackPanel feedbackPanel;
@@ -164,7 +172,11 @@ public class QueryPage extends NanodashPage {
                 if (!allSet) {
                     sparql = "'auto_execution_blocker: Fill in placeholders below, then remove this line to run the query'\n\n" + sparql;
                 }
-                String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", Utils.getMainQueryUrl() + "tools/")
+                // Point the generic query-service URLs (e.g. SERVICE clauses) at a concrete
+                // instance so they resolve in the browser-based YasGUI editor.
+                String queryUrl = Utils.getMainQueryUrl();
+                sparql = sparql.replace(GENERIC_QUERY_SERVICE_PREFIX, queryUrl);
+                String editLink = q.getEndpoint().stringValue().replaceFirst("^.*/repo/", queryUrl + "tools/")
                     + "/yasgui.html#query=" + URLEncoder.encode(sparql, Charsets.UTF_8);
                 target.appendJavaScript("window.location.href='" + editLink.replace("\\", "\\\\").replace("'", "\\'") + "';");
             }

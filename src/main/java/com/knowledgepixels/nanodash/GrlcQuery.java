@@ -111,11 +111,14 @@ public class GrlcQuery extends QueryTemplate {
     }
 
     /**
-     * Expands the SPARQL query by substituting the user-entered param-field values. This adapts the
-     * UI {@link QueryParamField}s into the parameter map of {@link QueryTemplate#expandQuery(Map, boolean)}
-     * and expands non-strictly: missing/unset params are not errors but left partially expanded (the
-     * placeholder kept for single values, the empty {@code VALUES} block dropped for multi values), as
-     * needed for the Yasgui link.
+     * Expands the SPARQL query by substituting the user-entered param-field values, plus the
+     * session-bound {@linkplain MagicQueryParams magic} placeholders (which are not part of the
+     * form fields). This adapts the UI {@link QueryParamField}s into the parameter map of
+     * {@link QueryTemplate#expandQuery(Map, boolean)} and expands non-strictly: missing/unset
+     * params are not errors but left partially expanded (the placeholder kept for single values,
+     * the empty {@code VALUES} block dropped for multi values), as needed for the Yasgui link.
+     *
+     * <p>Resolves magic values from the current session, so call on the request thread.</p>
      *
      * @param paramFields the list of query parameter fields with user-entered values
      * @return the expanded SPARQL query string
@@ -125,6 +128,8 @@ public class GrlcQuery extends QueryTemplate {
         for (QueryParamField f : paramFields) {
             if (f.isSet()) params.put(f.getParamName(), List.of(f.getValues()));
         }
+        // Magic placeholders are excluded from the form fields, so fill them from the session here.
+        params.putAll(MagicQueryParams.resolve(this));
         return expandQuery(params, false);
     }
 

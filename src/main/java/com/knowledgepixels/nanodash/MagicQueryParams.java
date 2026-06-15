@@ -8,6 +8,7 @@ import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -103,26 +104,46 @@ public class MagicQueryParams {
      */
     static QueryRef augment(QueryRef queryRef, GrlcQuery query) {
         if (queryRef == null || query == null) return queryRef;
-        TreeMap<String, List<String>> magic = new TreeMap<>();
-        for (String raw : query.getPlaceholdersList()) {
-            String name = QueryTemplate.getParamName(raw);
-            Supplier<List<String>> resolver = REGISTRY.get(name);
-            if (resolver != null) magic.put(name, resolver.get());
-        }
+        Map<String, List<String>> magic = resolve(query);
         if (magic.isEmpty()) return queryRef;
         LinkedHashMultimap<String, String> params = LinkedHashMultimap.create();
         params.putAll(queryRef.getParams());
-        boolean added = false;
         for (Map.Entry<String, List<String>> e : magic.entrySet()) {
             for (String value : e.getValue()) {
-                if (value != null && !value.isEmpty()) {
-                    params.put(e.getKey(), value);
-                    added = true;
-                }
+                params.put(e.getKey(), value);
             }
         }
-        if (!added) return queryRef;
         return new QueryRef(queryRef.getQueryId(), params);
+    }
+
+    /**
+     * Resolves the session-bound values for the magic placeholders declared by the given
+     * query, keyed by magic parameter name (the {@link QueryTemplate#getParamName} stem).
+     * Names with no available value (logged out, no key pair) are omitted, and within a
+     * name only non-empty values are kept. The result is name-sorted so callers that turn
+     * it into a stable key (e.g. {@link QueryRef#getAsUrlString()}) get a deterministic order.
+     *
+     * <p>Reads the Wicket session, so it must be called on the <b>request thread</b>.</p>
+     *
+     * @param query the query whose placeholders to inspect, or null
+     * @return a (possibly empty) map of magic parameter name to its resolved value(s)
+     */
+    public static Map<String, List<String>> resolve(GrlcQuery query) {
+        TreeMap<String, List<String>> magic = new TreeMap<>();
+        if (query == null) return magic;
+        for (String raw : query.getPlaceholdersList()) {
+            String name = QueryTemplate.getParamName(raw);
+            Supplier<List<String>> resolver = REGISTRY.get(name);
+            if (resolver == null) continue;
+            List<String> values = resolver.get();
+            if (values == null) continue;
+            List<String> nonEmpty = new ArrayList<>();
+            for (String value : values) {
+                if (value != null && !value.isEmpty()) nonEmpty.add(value);
+            }
+            if (!nonEmpty.isEmpty()) magic.put(name, nonEmpty);
+        }
+        return magic;
     }
 
     private static List<String> localPubkey() {
