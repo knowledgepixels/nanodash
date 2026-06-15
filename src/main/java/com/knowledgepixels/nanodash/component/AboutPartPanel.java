@@ -44,8 +44,10 @@ public class AboutPartPanel extends Panel {
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", context.getId()), new ViewDisplay(presetsView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
 
         // View displays: the owning resource's displays (resource = context, for the
-        // display set + admin/maintainer auth), with shown_here/target computed for
-        // THIS part (partid + the part's classes).
+        // display set + admin/maintainer auth), with shown_here computed for THIS part
+        // (partid + the part's classes). id = context so the view's "add view display"
+        // action creates a display on the owning resource (where part-level views live,
+        // and so the new display appears in this list).
         View vdView = View.get(PART_VIEW_DISPLAYS_VIEW);
         Multimap<String, String> vdParams = ArrayListMultimap.create();
         vdParams.put("resource", context.getId());
@@ -53,7 +55,7 @@ public class AboutPartPanel extends Panel {
         for (IRI partClass : partClasses) {
             vdParams.put("partclass", partClass.stringValue());
         }
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(partId).contextId(context.getId()).build());
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
     }
 
 }
