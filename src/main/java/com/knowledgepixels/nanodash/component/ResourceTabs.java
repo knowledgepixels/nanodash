@@ -92,7 +92,7 @@ public class ResourceTabs extends Panel {
                 break;
             case "part":
                 pageClass = ResourcePartPage.class;
-                hasAbout = false;
+                hasAbout = true;
                 break;
             default:
                 throw new IllegalArgumentException("Unknown resource type: " + type);
