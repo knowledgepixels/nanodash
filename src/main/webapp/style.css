@@ -1200,6 +1200,16 @@ select {
   color: #888888;
 }
 
+.ref-conflict-notice {
+  color: #8a6d3b;
+  background: #fcf3e3;
+  border: 1px solid #f0d9a8;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  display: inline-block;
+}
+
 #content-pane {
   padding: 10px 0;
   margin-top: 20px;

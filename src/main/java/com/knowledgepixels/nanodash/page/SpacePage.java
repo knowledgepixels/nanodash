@@ -88,6 +88,15 @@ public class SpacePage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
+        // Disambiguation notice: this identifier is claimed by several rival root
+        // definitions with different admins (not just same-owner stray duplicates). The
+        // page shows the representative (most recent) ref. See docs/space-ref-identity.md.
+        String conflictMsg = space.hasConflictingRefs()
+                ? "⚠ This space identifier is claimed by " + space.getRefCount()
+                        + " competing definitions with different admins — showing the most recent one."
+                : "";
+        add(new Label("ref-conflict", conflictMsg).setVisible(!conflictMsg.isEmpty()));
+
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
         if (activeTab != ResourceTabs.Tab.CONTENT) {

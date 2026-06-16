@@ -193,6 +193,42 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     /**
+     * Whether this space IRI is claimed by multiple refs (root definitions) with
+     * <em>differing</em> admin sets — i.e. rival definitions, as opposed to same-owner
+     * stray duplicates (which share an admin set and stay collapsed). Resolves each ref's
+     * validated admin set via the ref-scoped admins query and reports a conflict as soon as
+     * two of them differ. Returns false for the common single-ref case. See
+     * docs/space-ref-identity.md.
+     *
+     * @return true if at least two refs of this IRI have different admin agent sets
+     */
+    public boolean hasConflictingRefs() {
+        if (refRoots.size() < 2) return false;
+        Set<Set<String>> distinctAdminSets = new HashSet<>();
+        for (String rootNp : refRoots) {
+            distinctAdminSets.add(adminAgentsForRef(rootNp));
+            if (distinctAdminSets.size() > 1) return true;
+        }
+        return false;
+    }
+
+    /** The validated admin agent IRIs for a single ref (by its root nanopub). */
+    private Set<String> adminAgentsForRef(String rootNp) {
+        Multimap<String, String> params = ArrayListMultimap.create();
+        params.put("root_np", rootNp);
+        ApiResponse resp = ApiCache.retrieveResponseSync(
+                new QueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, params), false);
+        Set<String> agents = new HashSet<>();
+        if (resp != null) {
+            for (ApiResponseEntry r : resp.getData()) {
+                String agent = r.get("agent");
+                if (agent != null && !agent.isEmpty()) agents.add(agent);
+            }
+        }
+        return agents;
+    }
+
+    /**
      * Get the root nanopublication of the space.
      *
      * @return The root Nanopub object.
