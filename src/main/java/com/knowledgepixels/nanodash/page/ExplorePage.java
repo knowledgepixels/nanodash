@@ -33,7 +33,6 @@ import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.KPXL_GRLC;
-import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,17 +81,20 @@ public class ExplorePage extends NanodashPage {
     }
 
     public ExplorePage(final Nanopub publishedNanopub, final PageParameters parameters) {
-        super(parameters.set("id", publishedNanopub.getUri()));
+        // Flag the just-published nanopub so the uniform "successfully published"
+        // message (and the "missing introduction" hint) render in the title bar; see
+        // JustPublishedMessagePanel.
+        super(parameters.set("id", publishedNanopub.getUri()).set("just-published", publishedNanopub.getUri().stringValue()));
         this.publishedNanopub = publishedNanopub;
 
+        // The success confirmation now lives in the title bar. The "publish another
+        // with same template" buttons below are kept here for possible later
+        // reactivation, but are not currently shown.
         WebMarkupContainer publishConfirmPanel = new WebMarkupContainer("publish-confirm-panel");
-        final NanodashSession session = NanodashSession.get();
-        boolean hasKnownOwnLocalIntro = session.getLocalIntroCount() > 0;
-        boolean someIntroJustNowPublished = Utils.usesPredicateInAssertion(publishedNanopub, NPX.DECLARED_BY);
-        if (someIntroJustNowPublished) NanodashSession.get().setIntroPublishedNow();
-        boolean lastIntroPublishedMoreThanFiveMinsAgo = session.getTimeSinceLastIntroPublished() > 5 * 60 * 1000;
-        if (!hasKnownOwnLocalIntro && session.hasIntroPublished()) User.refreshUsers();
-        publishConfirmPanel.add(new WebMarkupContainer("missing-intro-warning").setVisible(!hasKnownOwnLocalIntro && lastIntroPublishedMoreThanFiveMinsAgo));
+        publishConfirmPanel.setVisible(false);
+        WebMarkupContainer missingIntroWarning = new WebMarkupContainer("missing-intro-warning");
+        missingIntroWarning.add(new ExternalLink("profile-link", "."));
+        publishConfirmPanel.add(missingIntroWarning);
 
         PageParameters plainLinkParams = new PageParameters();
         plainLinkParams.set("template", parameters.get("template"));
@@ -104,6 +106,7 @@ public class ExplorePage extends NanodashPage {
         PageParameters linkParams = new PageParameters(parameters);
         linkParams.remove("supersede");
         linkParams.remove("supersede-a");
+        linkParams.remove("just-published");
         boolean publishAnotherFilledLinkVisible = false;
         for (NamedPair n : linkParams.getAllNamed()) {
             if (n.getKey().matches("(param|prparam|piparam[1-9][0-9]*)_.*")) {
@@ -139,12 +142,15 @@ public class ExplorePage extends NanodashPage {
                 throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
             } else if (User.getUserData().isUser(tempRef)) {
                 throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
-            } else if (!contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null) {
-                throw new RestartResponseException(ResourcePartPage.class, new PageParameters().set("id", tempRef).set("context", contextId).set("tab", "explore"));
             }
+            // Note: forwarding to the part page when the context is a maintained
+            // resource is handled further down (after np resolution), gated on
+            // actual part membership rather than the context type alone.
         }
 
-        add(new TitleBar("titlebar", this, null));
+        ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
+        TitleBar titleBar = new TitleBar("titlebar", this, null);
+        add(titleBar);
 
         if (SpaceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
@@ -197,7 +203,13 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
-        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty() && publishedNanopub == null) {
+        // Forward to the part page when the explored resource actually qualifies as a
+        // part of the context: either explicitly requested via forward-to-part, or
+        // whenever the context is a maintained resource. In both cases the membership
+        // is verified below (dct:isPartOf / skos:inScheme or view-display applicability)
+        // rather than assumed from the context type.
+        boolean contextIsMaintainedResource = !contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null;
+        if ((parameters.get("forward-to-part").toString("").equals("true") || contextIsMaintainedResource) && !contextId.isEmpty() && publishedNanopub == null) {
             parameters.remove("forward-to-part");
             Set<IRI> classes = new HashSet<>();
             if (np != null) {
@@ -343,9 +355,34 @@ public class ExplorePage extends NanodashPage {
 
         // References to the explored thing (the References view, moved here from
         // the About pages).
+        WebMarkupContainer referencesSection = new WebMarkupContainer("references-section");
         View refView = View.get(ReferencesPage.REFERENCES_VIEW);
         QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
-        add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
+        referencesSection.add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
+        add(referencesSection);
+
+        // Tab layout: the Content tab shows the nanopublication itself (for
+        // nanopub / minted-in-nanopub things) or, for plain terms, the info
+        // section (Assigned to, Described in, instances, templates). The Explore
+        // tab shows only References (for all cases).
+        titleBar.setTabs(new ResourceTabs("tabs", exploreTabParams(ref, contextId, parameters), activeTab));
+        boolean contentTab = (activeTab == ResourceTabs.Tab.CONTENT);
+        boolean hasNanopub = (np != null);
+        nanopubSection.setVisible(contentTab && hasNanopub);
+        infoSection.setVisible(publishedNanopub == null && contentTab && !hasNanopub);
+        referencesSection.setVisible(!contentTab);
+    }
+
+    /**
+     * Builds the parameter set carried across the Content/Explore tabs: the
+     * resolved thing id, plus the optional context and label, so tab switches
+     * stay on the same resolved thing without dragging publish-only parameters.
+     */
+    private static PageParameters exploreTabParams(String ref, String contextId, PageParameters parameters) {
+        PageParameters p = new PageParameters().set("id", ref);
+        if (!contextId.isEmpty()) p.set("context", contextId);
+        if (!parameters.get("label").isEmpty()) p.set("label", parameters.get("label").toString());
+        return p;
     }
 
     @Override

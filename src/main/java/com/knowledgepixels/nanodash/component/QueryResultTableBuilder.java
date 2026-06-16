@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -30,10 +31,13 @@ public class QueryResultTableBuilder implements Serializable {
     private QueryRef queryRef;
     private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
+    private String postPublishTab = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
-        this.queryRef = queryRef;
+        // Bind session-derived "magic" query parameters here on the request thread
+        // (ApiCache fetches on background threads where the session is absent).
+        this.queryRef = com.knowledgepixels.nanodash.MagicQueryParams.augment(queryRef);
         this.viewDisplay = viewDisplay;
     }
 
@@ -94,6 +98,18 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
+     * Sets the tab to return to after publishing via one of the table's action
+     * buttons (so the user stays on, e.g., the About tab).
+     *
+     * @param postPublishTab the tab name, or null for the default
+     * @return the current QueryResultTableBuilder instance
+     */
+    public QueryResultTableBuilder postPublishTab(String postPublishTab) {
+        this.postPublishTab = postPublishTab;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultTable component based on the configured parameters.
      *
      * @return the constructed Component
@@ -105,6 +121,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
+                table.setPostPublishTab(postPublishTab);
                 if (id != null && contextId != null && !id.equals(contextId)) {
                     table.setPartId(id);
                 }
@@ -119,6 +136,7 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                         table.setContextId(contextId);
+                        table.setPostPublishTab(postPublishTab);
                         if (id != null && contextId != null && !id.equals(contextId)) {
                             table.setPartId(id);
                         }
@@ -135,6 +153,7 @@ public class QueryResultTableBuilder implements Serializable {
             if (response != null) {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
+                table.setPostPublishTab(postPublishTab);
                 addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
@@ -144,6 +163,7 @@ public class QueryResultTableBuilder implements Serializable {
                     public Component getApiResultComponent(String markupId, ApiResponse response) {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
+                        table.setPostPublishTab(postPublishTab);
                         addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
                         return table;
                     }
@@ -190,10 +210,21 @@ public class QueryResultTableBuilder implements Serializable {
             }
             String partField = view.getTemplatePartFieldForAction(actionIri);
             if (partField != null && contextId != null) {
+                // The part field pre-fills a namespaced child IRI (the user fills the suffix).
                 // TODO Find a better way to pass the MaintainedResource object to this method:
                 MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                if (r != null && r.getNamespace() != null) {
-                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                String namespace = null;
+                if (r != null) {
+                    namespace = r.getNamespace();
+                } else if (resourceWithProfile instanceof Space) {
+                    // The Space-creation templates' `space` placeholder has a fixed
+                    // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
+                    // Nesting the new space's IRI under this space's path makes it a
+                    // sub-space via the prefix match.
+                    namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
+                }
+                if (namespace != null) {
+                    params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                 }
             }
             String queryMapping = view.getTemplateQueryMapping(actionIri);
@@ -202,6 +233,7 @@ public class QueryResultTableBuilder implements Serializable {
                 params.set("values-from-query-mapping", queryMapping);
             }
             params.set("refresh-upon-publish", queryRef.getAsUrlString());
+            if (table.getPostPublishTab() != null) params.set("postpub-tab", table.getPostPublishTab());
             table.addButton(label, PublishPage.class, params);
         }
     }

@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component.menu;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
@@ -13,12 +14,19 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.markup.repeater.data.ListDataProvider;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
+
+import java.util.List;
 
 /**
  * A dropdown menu panel for view displays, replacing the "^" source link.
@@ -33,9 +41,32 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
      * @param viewDisplay  the view display this menu acts on (must have a non-null nanopub)
      * @param queryRef     the query reference used by this view display
      * @param pageResource the page-level resource used to determine whether "adjust" is visible
+     * @param viewActions  the view-level actions to show as top entries (may be empty)
      */
-    public ViewDisplayMenu(String id, ViewDisplay viewDisplay, QueryRef queryRef, AbstractResourceWithProfile pageResource) {
+    public ViewDisplayMenu(String id, ViewDisplay viewDisplay, QueryRef queryRef, AbstractResourceWithProfile pageResource, List<QueryResult.MenuAction> viewActions) {
         super(id);
+
+        // View-level actions become the top entries of the menu, followed by a
+        // separator and then the standard view-display options below.
+        DataView<QueryResult.MenuAction> viewActionView = new DataView<>("viewActions", new ListDataProvider<>(viewActions)) {
+            @Override
+            protected void populateItem(Item<QueryResult.MenuAction> item) {
+                QueryResult.MenuAction action = item.getModelObject();
+                BookmarkablePageLink<Void> link = new BookmarkablePageLink<>("viewAction", action.pageClass(), action.params());
+                // A label that starts with a leading symbol/emoji renders that as the entry icon.
+                String iconBody = Utils.menuEntryIconBodyHtml(action.label());
+                if (iconBody != null) {
+                    link.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+                } else {
+                    link.setBody(Model.of(action.label()));
+                }
+                item.add(link);
+            }
+        };
+        addEntry("viewActions", viewActionView);
+        WebMarkupContainer separator = new WebMarkupContainer("separator");
+        separator.setVisible(!viewActions.isEmpty());
+        addEntry("separator", separator);
 
         PageParameters showQueryParams = new PageParameters().set("id", queryRef.getQueryId());
         for (var entry : queryRef.getParams().entries()) {
@@ -81,8 +112,14 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     + "&template-version=latest"
                     + "&context=" + Utils.urlEncode(pageResourceId);
         }
-        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl, "edit view display...");
-        adjustLink.setVisible(showAdjust);
+        // "edit"/"deactivate view display" only make sense for an actual view-display
+        // assignment (one with a resolved view IRI). Built-in views rendered directly —
+        // e.g. a space's About-tab meta-views (roles/members/presets/view-displays) — have
+        // no view-display nanopub, so these options are hidden for them.
+        boolean isViewDisplay = viewDisplay.getViewIri() != null;
+        // Label (with its leading icon) comes from the markup body, so no label arg here.
+        ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl);
+        adjustLink.setVisible(showAdjust && isViewDisplay);
         addEntry("adjust", adjustLink);
 
         BookmarkablePageLink<Void> deactivateLink = new BookmarkablePageLink<>("deactivate", PublishPage.class,
@@ -93,7 +130,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
                         .set("context", pageResourceId)
                         .set("refresh-upon-publish", pageResourceId));
-        deactivateLink.setVisible(showAdjust);
+        deactivateLink.setVisible(showAdjust && isViewDisplay);
         addEntry("deactivate", deactivateLink);
 
         boolean showAddToOwn = session.getUserIri() != null
@@ -114,7 +151,8 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     + "&refresh-upon-publish=" + Utils.urlEncode(userIri)
                     + "&param_appliesToResource=" + Utils.urlEncode(userIri);
         }
-        ExternalLink addToOwnLink = new ExternalLink("addToOwn", addToOwnUrl, "add to my own profile...");
+        // Label (with its leading icon) comes from the markup body, so no label arg here.
+        ExternalLink addToOwnLink = new ExternalLink("addToOwn", addToOwnUrl);
         addToOwnLink.setVisible(showAddToOwn);
         addEntry("addToOwn", addToOwnLink);
 

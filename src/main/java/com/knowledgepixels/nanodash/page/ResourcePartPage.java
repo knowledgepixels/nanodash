@@ -144,8 +144,6 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
@@ -172,9 +170,19 @@ public class ResourcePartPage extends NanodashPage {
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
-        if (activeTab == ResourceTabs.Tab.EXPLORE) {
+        if (activeTab == ResourceTabs.Tab.ABOUT) {
             contentContainer.setVisible(false);
-            add(new ExplorePanel("otherTab", id));
+            // The panel constructor resolves view nanopubs over the network when they
+            // aren't freshly cached, which would block the initial page render; the
+            // view-id list must mirror the panel's View.get calls.
+            add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
+                    AboutPartPanel.PART_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
+        } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
+            contentContainer.setVisible(false);
+            // The panel constructor resolves a view nanopub over the network when
+            // it isn't freshly cached, which would block the initial page render.
+            add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, id),
+                    ReferencesPage.REFERENCES_VIEW));
         } else if (activeTab == ResourceTabs.Tab.RAW) {
             contentContainer.setVisible(false);
             add(new DownloadRdfLinks("otherTab", "part", id, resourceWithProfile.getId()));

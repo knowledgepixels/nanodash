@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
@@ -11,7 +12,9 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
@@ -49,7 +52,30 @@ public abstract class NanodashPage extends WebPage {
      */
     protected NanodashPage(PageParameters parameters) {
         super(parameters);
+        markIfBrowserReload();
         ensureRefreshed();
+    }
+
+    /**
+     * Flags the request for a cache force-refresh when it is a genuine browser
+     * reload. Browsers send {@code Cache-Control: max-age=0} on a normal reload and
+     * {@code no-cache} (often with {@code Pragma: no-cache}) on a hard reload, but
+     * not on link navigation, Ajax requests, or a followed server redirect — so
+     * this targets only the reload case. The flag is read by {@link ApiCache},
+     * which then re-queries this page's views instead of serving the cache. Set
+     * here (in the base constructor) so it is in effect before subclasses build
+     * their query components.
+     */
+    private void markIfBrowserReload() {
+        RequestCycle rc = RequestCycle.get();
+        if (rc == null || !(rc.getRequest() instanceof WebRequest req)) return;
+        String cacheControl = req.getHeader("Cache-Control");
+        String pragma = req.getHeader("Pragma");
+        boolean reload = (cacheControl != null && (cacheControl.contains("no-cache") || cacheControl.contains("max-age=0")))
+                || (pragma != null && pragma.contains("no-cache"));
+        if (reload) {
+            rc.setMetaData(ApiCache.FORCE_REFRESH_ON_RELOAD, Boolean.TRUE);
+        }
     }
 
     private void ensureRefreshed() {

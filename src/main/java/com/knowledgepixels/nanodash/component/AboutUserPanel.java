@@ -1,11 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.nanopub.extra.services.QueryRef;
 
@@ -17,11 +14,12 @@ import org.nanopub.extra.services.QueryRef;
 public class AboutUserPanel extends Panel {
 
     /**
-     * Read-only view that lists a user's introduction nanopublications (shown to
-     * other users; the current user gets the editable {@link ProfileIntroItem}
-     * companion instead).
+     * View that lists a user's introduction nanopublications. Its per-row
+     * retract/derive actions are driven by the viewer's session-bound magic query
+     * params (LOCALPUBKEY/SITEURL), so the owner gets the editable actions and
+     * everyone else gets the read-only table — no custom companion needed.
      */
-    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAElH_0Za_T9H_GeyixS35lGwOAL_OD3r4XYs__BF6tl4/introductions-view";
+    public static final String INTRODUCTIONS_VIEW = "https://w3id.org/np/RAmdDJAKs1gKPPdo23t6lMUXC6mlzLjRZyjDCcNEMx7Tw/introductions-view";
 
     /**
      * View showing a user's basic profile properties (default license and
@@ -36,31 +34,19 @@ public class AboutUserPanel extends Panel {
     public AboutUserPanel(String id, String userIriString) {
         super(id);
 
-        // Account/identity controls (logout, local-mode ORCID form) only on the
-        // current user's own About page.
-        NanodashSession session = NanodashSession.get();
-        boolean ownPage = session.getUserIri() != null && session.getUserIri().stringValue().equals(userIriString);
-        if (ownPage) {
-            add(new ProfileAccountPanel("account", userIriString));
-        } else {
-            add(new EmptyPanel("account").setVisible(false));
-        }
+        // The owner's account/identity controls (logout, local-mode ORCID form,
+        // signing key) AND the recommended actions now live in the page header
+        // stripe's "This is you" box (ProfileAccountPanel), not here.
 
-        // Introductions: the current user (with a local key) gets the editable
-        // companion with the full intro workflow; everyone else gets the
-        // read-only view. The companion is styled to match the view tables.
-        if (ownPage && session.getKeyPair() != null) {
-            ProfileIntroItem introItem = new ProfileIntroItem("introductions");
-            introItem.add(new AttributeAppender("class", " col-12"));
-            add(introItem);
-        } else {
-            View introView = View.get(INTRODUCTIONS_VIEW);
-            add(QueryResultTableBuilder.create("introductions", new QueryRef(introView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(introView))
-                    .resourceWithProfile(IndividualAgent.get(userIriString))
-                    .id(userIriString)
-                    .contextId(userIriString)
-                    .build());
-        }
+        // Introductions: a proper view for everyone. The owner's session-bound magic
+        // params drive the per-row retract/derive action buttons; non-owners get the
+        // read-only table. (Formerly the ProfileIntroItem companion for the owner.)
+        View introView = View.get(INTRODUCTIONS_VIEW);
+        add(QueryResultTableBuilder.create("introductions", new QueryRef(introView.getQuery().getQueryId(), "user", userIriString), new ViewDisplay(introView))
+                .resourceWithProfile(IndividualAgent.get(userIriString))
+                .id(userIriString)
+                .contextId(userIriString)
+                .build());
 
         // Profile view with result actions to update the profile image/license;
         // needs the resourceWithProfile/id/contextId for the action links.

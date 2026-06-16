@@ -73,8 +73,6 @@ public class UserPage extends NanodashPage {
         add(new TitleBar("titlebar", this, pageType)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         IRI profilePictureIri = User.getProfilePicture(userIri);
         if (profilePictureIri != null) {
             ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
@@ -97,6 +95,16 @@ public class UserPage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
+
+        // The owner's account + signing-key controls share the title/ORCID header
+        // stripe (own About page only).
+        boolean ownPage = NanodashSession.get().getUserIri() != null
+                && NanodashSession.get().getUserIri().stringValue().equals(userIriString);
+        if (ownPage && activeTab == ResourceTabs.Tab.ABOUT) {
+            add(new ProfileAccountPanel("accountpart", userIriString));
+        } else {
+            add(new EmptyPanel("accountpart").setVisible(false));
+        }
 
 //		final Map<String,String> statsParams = new HashMap<>();
 //		final String statsQueryName;
@@ -145,9 +153,15 @@ public class UserPage extends NanodashPage {
         if (activeTab != ResourceTabs.Tab.CONTENT) {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
-                add(new AboutUserPanel("otherTab", userIriString));
+                // The panel constructor resolves view nanopubs over the network when
+                // they aren't freshly cached, which would block the initial page
+                // render; the view-id list must mirror the panel's View.get calls.
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutUserPanel(markupId, userIriString),
+                        AboutUserPanel.INTRODUCTIONS_VIEW, AboutUserPanel.PROFILE_VIEW,
+                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
-                add(new ExplorePanel("otherTab", userIriString));
+                add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, userIriString),
+                        ReferencesPage.REFERENCES_VIEW));
             } else {
                 add(new DownloadRdfLinks("otherTab", "user", userIriString));
             }

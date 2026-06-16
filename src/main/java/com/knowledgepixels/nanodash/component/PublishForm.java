@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
@@ -461,11 +462,19 @@ public class PublishForm extends Panel {
                     feedbackPanel.error(message);
                 }
                 if (signedNp != null) {
-                    if (!pageParams.get("refresh-upon-publish").isEmpty()) {
-                        String toRefresh = pageParams.get("refresh-upon-publish").toString();
+                    String toRefresh = pageParams.get("refresh-upon-publish").toString("");
+                    if (!toRefresh.isEmpty()) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                     }
                     String contextId = pageParams.get("context").toString("");
+                    // Broaden the refresh: also force-refresh the context resource's own
+                    // data (e.g. a space's roles/members) so the page we redirect to —
+                    // typically its Content tab — reflects the just-published change, not
+                    // only the specific view query that was acted on.
+                    if (!contextId.isEmpty() && !contextId.equals(toRefresh)
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                        WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
+                    }
                     String partId = pageParams.get("part").toString("");
                     if (!contextId.isEmpty() && pageParams.get("postpub-redirect-url").isEmpty()) {
                         PageParameters redirectParams = new PageParameters().set("just-published", signedNp.getUri().stringValue());
@@ -475,6 +484,10 @@ public class PublishForm extends Panel {
                             throw new RestartResponseException(ResourcePartPage.class, redirectParams);
                         }
                         redirectParams.set("id", contextId);
+                        // Return to the tab the action asked for (e.g. "about" for a
+                        // space's About-tab role actions); default is the Content tab.
+                        String postpubTab = pageParams.get("postpub-tab").toString("");
+                        if (!postpubTab.isEmpty()) redirectParams.set("tab", postpubTab);
                         if (SpaceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(SpacePage.class, redirectParams);
                         }

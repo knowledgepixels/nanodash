@@ -7,7 +7,6 @@ import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -47,22 +46,8 @@ public class QueryResultNanopubSet extends QueryResult {
         viewSelector = new WebMarkupContainer("viewSelector");
         viewSelector.setOutputMarkupId(true);
 
-        viewSelector.add(new AjaxLink<>("listEnabler") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.LIST);
-                logger.info("ListEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
-            }
-        });
-
-        viewSelector.add(new AjaxLink<>("gridEnabler") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                NanodashSession.get().setNanopubResultsViewMode(NanopubResults.ViewMode.GRID);
-                logger.info("GridEnabler -- Switched to '{}' mode", NanodashSession.get().getNanopubResultsViewMode().getValue());
-            }
-        });
-
+        // The tiled (grid) view mode is deactivated for now: this view always renders
+        // as a list (see buildNanopubResults), so the list/grid toggle is omitted.
         viewSelector.add(new Label("np"));
         add(viewSelector);
         showViewDisplayMenu = false; // handled in populateComponent() inside viewSelector
@@ -109,8 +94,8 @@ public class QueryResultNanopubSet extends QueryResult {
         nanopubsContainer.add(noRecordsLabel);
         add(nanopubsContainer);
 
-        if (viewDisplay.getNanopubId() != null) {
-            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource));
+        if (viewDisplay.getNanopubId() != null || !getMenuActions().isEmpty()) {
+            viewSelector.addOrReplace(new ViewDisplayMenu("np", viewDisplay, queryRef, pageResource, getMenuActions()));
         } else {
             viewSelector.addOrReplace(new Label("np").setVisible(false));
         }
@@ -118,7 +103,9 @@ public class QueryResultNanopubSet extends QueryResult {
 
     private NanopubResults buildNanopubResults() {
         NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
-        nanopubResults.add(AttributeAppender.append("class", NanodashSession.get().getNanopubResultsViewMode().getValue()));
+        // Tiled (grid) mode deactivated for now — always render this view as a list,
+        // regardless of the session's view-mode setting.
+        nanopubResults.add(AttributeAppender.append("class", NanopubResults.ViewMode.LIST.getValue()));
         // Hide the (empty) results container when there is nothing to show, so the
         // "(nothing found)" note sits directly below the header instead of being pushed
         // down by the flex-container's padding.

@@ -78,13 +78,48 @@ public class QueryApiAccess {
     public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
+    // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
+    // to this release stay pinned on it, and the roll-out fork-merge will supersede both
+    // it and v3. No longer fetched by SpaceRepository (now uses GET_SPACES_REF).
     public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
+    // v3: ref-aware get-spaces (adds ?ref + ?root so the client can key one space per
+    // ref). Published as an independent nanopub (no npx:supersedes). Active query used by
+    // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
+    // docs/space-ref-identity.md.
+    public static final String GET_SPACES_REF = "RAD5KmWO6uqjM04tK7tb2IREgbxA1GTGyRhaRjjaVIKPw/get-spaces";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
+    // Ref-scoped admins (Stage 2): takes the ref's root nanopub (root_np), matches admins
+    // on npa:forSpaceRef, so multi-ref spaces don't merge admin sets across refs. Published
+    // independently. Source at docs/queries/get-space-admins-ref.trig. See
+    // docs/space-ref-identity.md.
+    public static final String GET_SPACE_ADMINS_REF = "RAWM8qlKbV3DEH_NsPJ6hIyTrBwIp8sNeg9MGDgu8la1o/get-space-admins";
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
+    // Ref-scoped admin pubkey hashes (Stage 2): takes the ref's root nanopub (root_np),
+    // matches admins on npa:forSpaceRef, so multi-ref spaces don't merge admin keys across
+    // refs. Published independently. Source at docs/queries/get-space-admin-pubkey-hashes-ref.trig.
+    public static final String GET_SPACE_ADMIN_PUBKEY_HASHES_REF = "RAO8KDdS4_Z0-R1qCSKqWcewg0WUSaiQDh_p1N1Bg-zic/get-space-admin-pubkey-hashes";
     public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
+    // Ref-scoped roles (Stage 2): takes the ref's root nanopub (root_np), matches
+    // RoleAssignments on npa:forSpaceRef, so multi-ref spaces don't merge role sets across
+    // refs. Published independently. Source at docs/queries/get-space-roles-ref.trig.
+    public static final String GET_SPACE_ROLES_REF = "RAqUWUfmEmzxpkeuXek7oEiVSnwjuzRfV8kRe7pQSpe4c/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
+    // Ref-scoped members (Stage 2): takes the ref's root nanopub (root_np), resolves the
+    // ref + its space IRI, and returns ALL non-admin RoleInstantiations naming that IRI
+    // (raw npa:spacesGraph, matching the looser pre-migration semantic), each with a
+    // ?validated flag = whether it is also in the trust-state-validated current-state graph
+    // (i.e. the agent's key has a trust-approved AccountState from an accepted intro). Shows
+    // every self-declared member while flagging the un-introduced ones, rather than hiding
+    // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
+    public static final String GET_SPACE_MEMBERS_REF = "RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw/get-space-members";
+    // Ref-scoped observers (Stage 2): takes the ref's root nanopub (root_np), lists observers
+    // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
+    // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
+    // Observers view's table (the view nanopub is left untouched). Published independently.
+    // Source at docs/queries/list-space-observers-ref.trig.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RARc37t3fXMzrFP-PYsdmIqsDdloZaNklY4eYxpUKaLHI/list-space-observers";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

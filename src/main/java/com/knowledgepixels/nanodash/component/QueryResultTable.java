@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
@@ -13,14 +15,18 @@ import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFal
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
@@ -30,7 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Component for displaying query results in a table format.
@@ -45,6 +53,8 @@ public class QueryResultTable extends QueryResult {
     private Label errorLabel;
     private FilteredQueryResultDataProvider filteredDataProvider;
     private Model<String> filterModel = Model.of("");
+    // The source-nanopub column ("np"/"nps"), folded into the per-row actions dropdown.
+    private String sourceColumnKey;
 
     QueryResultTable(String id, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, boolean plain) {
         super(id, queryRef, response, viewDisplay);
@@ -100,18 +110,32 @@ public class QueryResultTable extends QueryResult {
         List<IColumn<ApiResponseEntry, String>> columns = new ArrayList<>();
         QueryResultDataProvider dataProvider;
         try {
-            // The last data column (ignoring _label helper columns); if it is the
-            // source-nanopub column ("np"/"nps") its header is left blank.
-            String lastColumnKey = null;
+            // Columns that only feed action query mappings (conditional targets, the
+            // local-key bundle) carry action data, not row content — don't render them.
+            Set<String> hiddenColumns = viewDisplay.getView() != null
+                    ? viewDisplay.getView().getActionMappingSourceColumns() : Collections.emptySet();
+            // The source-nanopub column ("np"/"nps") is no longer rendered as its own
+            // column; it becomes the "source" entry of this row's actions dropdown.
+            sourceColumnKey = null;
             for (String h : response.getHeader()) {
-                if (h.endsWith("_label") || h.endsWith("_label_multi")) continue;
-                lastColumnKey = h;
+                if (h.equals("np") || h.equals("nps")) sourceColumnKey = h;
             }
+            // Whether any rendered column carries a visible header label. If none do
+            // (every column is "_noheader"), the entire header row is dropped — see the
+            // gated addTopToolbar below.
+            boolean anyHeaderShown = false;
             for (String h : response.getHeader()) {
-                if (h.endsWith("_label") || h.endsWith("_label_multi")) {
+                if (h.endsWith("_label") || h.endsWith("_label_multi")
+                        || hiddenColumns.contains(h) || h.equals(sourceColumnKey)) {
                     continue;
                 }
-                String displayLabel = h;
+                // A trailing "_noheader" hides this column's header label while still
+                // rendering the column. It is stripped first to recover the logical
+                // column key, so every other rule (type suffix, _label companion,
+                // action mappings) operates unchanged on the unmarked name.
+                boolean noHeader = h.endsWith("_noheader");
+                String key = noHeader ? h.substring(0, h.length() - "_noheader".length()) : h;
+                String displayLabel = key;
                 if (displayLabel.endsWith("_multi_iri")) {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi_iri".length());
                 } else if (displayLabel.endsWith("_multi_val")) {
@@ -122,15 +146,19 @@ public class QueryResultTable extends QueryResult {
                     displayLabel = displayLabel.substring(0, displayLabel.length() - "_iri".length());
                 }
                 String columnHeader = displayLabel.replaceAll("_", " ");
-                if (h.equals(lastColumnKey) && (h.equals("np") || h.equals("nps"))) {
-                    columnHeader = "";
-                    columns.add(new Column(columnHeader, h, "cell-right"));
+                if (noHeader) {
+                    columns.add(new Column("", h, key, null));
                 } else {
-                    columns.add(new Column(columnHeader, h));
+                    anyHeaderShown = true;
+                    columns.add(new Column(columnHeader, h, key, null));
                 }
             }
-            if (viewDisplay.getView() != null && !viewDisplay.getView().getViewEntryActionList().isEmpty()) {
-                columns.add(new Column("", Column.ACTIONS));
+            // A single trailing dropdown column bundling this row's entry-level actions
+            // and its "source" link, shown whenever either is present.
+            boolean hasEntryActions = viewDisplay.getView() != null
+                    && !viewDisplay.getView().getViewEntryActionList().isEmpty();
+            if (hasEntryActions || sourceColumnKey != null) {
+                columns.add(new Column("", Column.ACTIONS, "cell-right"));
             }
             dataProvider = new QueryResultDataProvider(response.getData());
             filteredDataProvider = new FilteredQueryResultDataProvider(dataProvider, response);
@@ -145,22 +173,59 @@ public class QueryResultTable extends QueryResult {
                 }
             };
             table.setOutputMarkupPlaceholderTag(true);
+            // Marker class so nanodash.js can wrap emoji in body cells with the same
+            // monochrome .emoji styling used for headings (e.g. the ✅/⚠️ key-approval
+            // annotations in the "keys" column).
+            table.add(new AttributeAppender("class", "result-table"));
             table.addBottomToolbar(new AjaxNavigationToolbar(table));
-            table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
+            // Drop the header row entirely when no column has a visible header label.
+            if (anyHeaderShown) {
+                table.addTopToolbar(new AjaxFallbackHeadersToolbar<String>(table, dataProvider));
+            }
             add(table);
+            // Hidden when the empty-actions line below shows instead, which carries
+            // its own "Nothing here yet:" text; this note still covers the case of
+            // the filter text matching no row.
             noRecordsLabel = new Label("no-records", "(nothing found)") {
                 @Override
                 protected void onConfigure() {
                     super.onConfigure();
-                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0);
+                    setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() == 0 && !hasEmptyStateActions());
                 }
             };
             noRecordsLabel.setOutputMarkupPlaceholderTag(true);
             add(noRecordsLabel);
+            // When the result is genuinely empty (not merely filtered down to zero
+            // rows), the view-level actions are promoted from the dropdown menu to
+            // visible buttons in the empty state, pointing e.g. a space admin to
+            // "add preset..." as the next step. menuActions only ever contains
+            // actions the viewer is entitled to (see QueryResultTableBuilder), so
+            // everyone else just gets the plain note. The same actions stay in the
+            // dropdown menu, which remains their place once the table has content.
+            WebMarkupContainer emptyActions = new WebMarkupContainer("empty-actions") {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    setVisible(errorMessages.getObject().isEmpty() && hasEmptyStateActions());
+                }
+            };
+            // menuActions is filled by the builder after construction, so the list
+            // is wrapped as a live model rather than copied here.
+            emptyActions.add(new ListView<MenuAction>("actions", new ListModel<>(menuActions)) {
+                @Override
+                protected void populateItem(ListItem<MenuAction> item) {
+                    MenuAction action = item.getModelObject();
+                    AbstractLink link = new BookmarkablePageLink<NanodashPage>("link", action.pageClass(), action.params());
+                    link.setBody(Model.of(action.label()));
+                    item.add(link);
+                }
+            });
+            add(emptyActions);
         } catch (Exception ex) {
             logger.error("Error creating table for query {}", grlcQuery.getQueryId(), ex);
             add(new Label("table", "").setVisible(false));
             add(new Label("no-records", "").setVisible(false));
+            add(new Label("empty-actions", "").setVisible(false));
             addErrorMessage(ex.getMessage());
         }
     }
@@ -168,16 +233,25 @@ public class QueryResultTable extends QueryResult {
     private class Column extends AbstractColumn<ApiResponseEntry, String> implements IStyledColumn<ApiResponseEntry, String> {
 
         private String key;
+        // The actual response-column name to read row data from. Differs from the
+        // logical key only for "_noheader" columns, whose marker is kept here but
+        // stripped from key so all name-matching uses the unmarked name.
+        private String dataKey;
         private String cssClass;
         public static final String ACTIONS = "*actions*";
 
         public Column(String title, String key) {
-            this(title, key, null);
+            this(title, key, key, null);
         }
 
         public Column(String title, String key, String cssClass) {
-            super(new Model<String>(title), key);
+            this(title, key, key, cssClass);
+        }
+
+        public Column(String title, String dataKey, String key, String cssClass) {
+            super(new Model<String>(title), dataKey);
             this.key = key;
+            this.dataKey = dataKey;
             this.cssClass = cssClass;
         }
 
@@ -190,51 +264,72 @@ public class QueryResultTable extends QueryResult {
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
             try {
                 View view = viewDisplay.getView();
-                if (key.equals(ACTIONS) && view != null) {
+                if (key.equals(ACTIONS)) {
                     List<AbstractLink> links = new ArrayList<>();
-                    for (IRI actionIri : view.getViewEntryActionList()) {
-                        // Per-action role gating (docs/role-specific-views.md): skip an
-                        // action whose gen:isVisibleTo the viewer does not satisfy.
-                        // Additive — actions without gen:isVisibleTo are unaffected.
-                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
-                        // TODO Copied code and adjusted from QueryResultTableBuilder:
-                        Template t = view.getTemplateForAction(actionIri);
-                        if (t == null) continue;
-                        String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                        if (targetField == null) targetField = "resource";
-                        String label = view.getLabelForAction(actionIri);
-                        if (label == null) label = "action...";
-                        if (!label.endsWith("...")) label += "...";
-                        PageParameters params = new PageParameters().set("template", t.getId())
-                                .set("param_" + targetField, contextId)
-                                .set("context", contextId)
-                                .set("template-version", "latest");
-                        if (partId != null && contextId != null && !partId.equals(contextId)) {
-                            params.set("part", partId);
-                        }
-                        String partField = view.getTemplatePartFieldForAction(actionIri);
-                        if (partField != null) {
-                            // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                            if (r != null && r.getNamespace() != null) {
-                                params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                    if (view != null) {
+                        for (IRI actionIri : view.getViewEntryActionList()) {
+                            // Per-action role gating (docs/role-specific-views.md): skip an
+                            // action whose gen:isVisibleTo the viewer does not satisfy.
+                            // Additive — actions without gen:isVisibleTo are unaffected.
+                            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
+                            // TODO Copied code and adjusted from QueryResultTableBuilder:
+                            Template t = view.getTemplateForAction(actionIri);
+                            if (t == null) continue;
+                            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+                            if (targetField == null) targetField = "resource";
+                            String label = view.getLabelForAction(actionIri);
+                            if (label == null) label = "action...";
+                            if (!label.endsWith("...")) label += "...";
+                            PageParameters params = new PageParameters().set("template", t.getId())
+                                    .set("param_" + targetField, contextId)
+                                    .set("context", contextId)
+                                    .set("template-version", "latest");
+                            if (partId != null && contextId != null && !partId.equals(contextId)) {
+                                params.set("part", partId);
                             }
+                            String partField = view.getTemplatePartFieldForAction(actionIri);
+                            if (partField != null) {
+                                // TODO Find a better way to pass the MaintainedResource object to this method:
+                                MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
+                                if (r != null && r.getNamespace() != null) {
+                                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                                }
+                            }
+                            // Apply the action's query mappings; hide the button for this row
+                            // if any required mapped value is empty (docs/magic-query-params.md).
+                            if (!ViewActionMappings.applyEntryMappings(view, actionIri, rowModel.getObject(), params)) {
+                                continue;
+                            }
+                            params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                            if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
+                            AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
+                            // A label that starts with a leading symbol/emoji renders that as the entry icon.
+                            String iconBody = Utils.menuEntryIconBodyHtml(label);
+                            if (iconBody != null) {
+                                button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+                            } else {
+                                button.setBody(Model.of(label));
+                            }
+                            links.add(button);
                         }
-                        String queryMapping = view.getTemplateQueryMapping(actionIri);
-                        if (queryMapping != null && queryMapping.contains(":")) {
-                            // This part is different from the code in QueryResultTableBuilder:
-                            String queryParam = queryMapping.split(":")[0];
-                            String templateParam = queryMapping.split(":")[1];
-                            params.set("param_" + templateParam, rowModel.getObject().get(queryParam));
-                        }
-                        params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, params);
-                        button.setBody(Model.of(label));
-                        links.add(button);
                     }
-                    cellItem.add(new ButtonList(componentId, resourceWithProfile, links, null, null));
+                    // The former "^" source link joins the same dropdown, as a "source" entry.
+                    if (sourceColumnKey != null) {
+                        String sourceUri = rowModel.getObject().get(sourceColumnKey);
+                        if (sourceUri != null && !sourceUri.isBlank()) {
+                            AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
+                                    new PageParameters().set("id", sourceUri));
+                            sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
+                            links.add(sourceLink);
+                        }
+                    }
+                    if (links.isEmpty()) {
+                        cellItem.add(new Label(componentId).setVisible(false));
+                    } else {
+                        cellItem.add(new EntryActionMenu(componentId, links));
+                    }
                 } else {
-                    String value = rowModel.getObject().get(key);
+                    String value = rowModel.getObject().get(dataKey);
                     if (key.endsWith("_multi_iri")) {
                         String labelKey = key.substring(0, key.length() - "_multi_iri".length()) + "_label_multi";
                         String labelValue = rowModel.getObject().get(labelKey);

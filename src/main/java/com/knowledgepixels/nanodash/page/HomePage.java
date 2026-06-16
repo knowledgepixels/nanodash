@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -66,7 +67,12 @@ public class HomePage extends NanodashPage {
             String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
             add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
         } else {
-            add(new Label("text", "Before you can start, you first need to <a href=\"" + ProfilePage.MOUNT_PATH + "\">complete your profile</a>.").setEscapeModelStrings(false));
+            // A logged-in user completes their profile on their own About page; only fall
+            // back to the profile page when there is no resolved user IRI yet.
+            String profileUrl = session.getUserIri() != null
+                    ? UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(session.getUserIri()) + "&tab=about"
+                    : ProfilePage.MOUNT_PATH;
+            add(new Label("text", "Before you can start, you first need to <a href=\"" + profileUrl + "\">complete your profile</a>.").setEscapeModelStrings(false));
         }
 
         setOutputMarkupId(true);

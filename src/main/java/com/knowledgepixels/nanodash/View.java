@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -19,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,6 +60,47 @@ public class View implements Serializable {
         .build();
 
     /**
+     * Memo of latest-version resolutions: view id (as passed to {@link #get(String)})
+     * to the resolution time and the View it resolved to. Entries are served as
+     * long as they live; one older than {@link #REFRESH_RESOLUTION_AFTER_MS} is
+     * served stale while a background re-resolution runs (stale-while-revalidate,
+     * like {@link ApiCache}), so a superseding view nanopub is picked up on a
+     * later render without {@link #get(String)} ever blocking on the network
+     * once an entry exists.
+     */
+    private static final Cache<String, Pair<Long, View>> latestResolvedViews = CacheBuilder.newBuilder()
+        .maximumSize(5_000)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .build();
+
+    /**
+     * Age after which a memoized latest-version resolution is re-resolved in the
+     * background; mirrors the freshness window of
+     * {@link QueryApiAccess#getLatestVersionId(String)}.
+     */
+    private static final long REFRESH_RESOLUTION_AFTER_MS = 1000 * 60;
+
+    /**
+     * Ids whose latest-version resolution is currently being refreshed in the
+     * background, so concurrent renders don't pile up duplicate refreshes.
+     */
+    private static final Set<String> refreshingViews = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Indicates whether {@link #get(String)} would currently return without
+     * network access, i.e. a latest-version resolution is memoized for this id
+     * (possibly stale, in which case get() serves it while refreshing in the
+     * background). Used to decide between constructing a view-based panel
+     * directly and deferring it to a lazy-loading AJAX request.
+     *
+     * @param id the ID of the View
+     * @return true if {@link #get(String)} currently returns without blocking
+     */
+    public static boolean isCached(String id) {
+        return latestResolvedViews.getIfPresent(id) != null;
+    }
+
+    /**
      * Get a View by its ID, resolving to the latest version (following the
      * supersedes chain).
      *
@@ -82,31 +125,59 @@ public class View implements Serializable {
      */
     public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-        if (resolveLatest) {
-            // Automatically selecting latest version of view definition:
-            // TODO This should be made configurable at some point, so one can make it a fixed version.
-            try {
-                String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-                if (!latestNpId.equals(npId)) {
-                    Nanopub np = Utils.getAsNanopub(latestNpId);
-                    if (np != null) {
-                        Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                        if (embeddedIris.size() == 1) {
-                            String latestId = embeddedIris.iterator().next();
-                            View cached = views.getIfPresent(latestId);
-                            if (cached == null) {
-                                cached = new View(latestId, np);
-                                views.put(latestId, cached);
-                            }
-                            return cached;
+        if (!resolveLatest) {
+            return getExactVersion(id, npId);
+        }
+        Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
+        if (memo != null) {
+            if (System.currentTimeMillis() - memo.getLeft() > REFRESH_RESOLUTION_AFTER_MS) {
+                triggerResolutionRefresh(id, npId);
+            }
+            return memo.getRight();
+        }
+        View resolved = resolveLatestVersion(id, npId);
+        if (resolved != null) {
+            latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+        }
+        return resolved;
+    }
+
+    /**
+     * Resolves a view id to the latest version of its view definition by
+     * following the supersedes chain, falling back to the exact given version
+     * if the lookup fails or doesn't yield a single embedded view IRI. This is
+     * the network-touching part of {@link #get(String)}.
+     */
+    private static View resolveLatestVersion(String id, String npId) {
+        // Automatically selecting latest version of view definition:
+        // TODO This should be made configurable at some point, so one can make it a fixed version.
+        try {
+            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+            if (!latestNpId.equals(npId)) {
+                Nanopub np = Utils.getAsNanopub(latestNpId);
+                if (np != null) {
+                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+                    if (embeddedIris.size() == 1) {
+                        String latestId = embeddedIris.iterator().next();
+                        View cached = views.getIfPresent(latestId);
+                        if (cached == null) {
+                            cached = new View(latestId, np);
+                            views.put(latestId, cached);
                         }
+                        return cached;
                     }
                 }
-            } catch (Exception ex) {
-                logger.error("Error resolving latest version for view: {}", id, ex);
             }
+        } catch (Exception ex) {
+            logger.error("Error resolving latest version for view: {}", id, ex);
         }
-        // Fall back to loading the nanopub as given:
+        return getExactVersion(id, npId);
+    }
+
+    /**
+     * Loads the view exactly as given, without a latest-version lookup.
+     */
+    private static View getExactVersion(String id, String npId) {
         Nanopub np = Utils.getAsNanopub(npId);
         View cached = views.getIfPresent(id);
         if (cached == null) {
@@ -118,6 +189,30 @@ public class View implements Serializable {
             }
         }
         return cached;
+    }
+
+    /**
+     * Re-resolves a stale memoized latest-version resolution in the background.
+     * The stale value keeps being served meanwhile; on failure it is re-stamped
+     * with the current time, so failing lookups are retried at most once per
+     * {@link #REFRESH_RESOLUTION_AFTER_MS} rather than on every render.
+     */
+    private static void triggerResolutionRefresh(String id, String npId) {
+        if (!refreshingViews.add(id)) return;
+        NanodashThreadPool.submit(() -> {
+            try {
+                View resolved = resolveLatestVersion(id, npId);
+                if (resolved == null) {
+                    Pair<Long, View> previous = latestResolvedViews.getIfPresent(id);
+                    resolved = (previous == null ? null : previous.getRight());
+                }
+                if (resolved != null) {
+                    latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+                }
+            } finally {
+                refreshingViews.remove(id);
+            }
+        });
     }
 
     private String id;
@@ -138,7 +233,7 @@ public class View implements Serializable {
     private Map<IRI, String> actionTemplateTargetFieldMap = new HashMap<>();
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
-    private Map<IRI, String> actionTemplateQueryMappingMap = new HashMap<>();
+    private Map<IRI, List<String>> actionTemplateQueryMappingsMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
     private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
@@ -195,7 +290,12 @@ public class View implements Serializable {
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_PART_FIELD)) {
                 putUnlessVoid(actionTemplatePartFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_TEMPLATE_QUERY_MAPPING)) {
-                putUnlessVoid(actionTemplateQueryMappingMap, (IRI) st.getSubject(), st.getObject().stringValue());
+                // Repeatable: an action may declare several query mappings (e.g. derive
+                // maps both the row np and the local pubkey). "void" means "none".
+                String mapping = st.getObject().stringValue();
+                if (!"void".equals(mapping)) {
+                    actionTemplateQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
+                }
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -359,8 +459,76 @@ public class View implements Serializable {
         return actionTemplatePartFieldMap.get(actionIri);
     }
 
+    /**
+     * Gets the query mappings declared for an action: each is {@code "col:target"},
+     * mapping result column {@code col} to template parameter {@code param_target}
+     * — or, when {@code target} begins with {@code @}, to the raw URL parameter
+     * {@code target} (without the {@code param_} prefix), used for fill-mode keys
+     * such as {@code @derive-a} / {@code @supersede}. An entry action applies all
+     * of these per row; see docs/magic-query-params.md.
+     *
+     * @param actionIri the action IRI
+     * @return the list of mappings (never null; empty if none)
+     */
+    public List<String> getTemplateQueryMappings(IRI actionIri) {
+        List<String> result = new ArrayList<>();
+        for (String literal : actionTemplateQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList())) {
+            result.addAll(parseMappingLiteral(literal));
+        }
+        return result;
+    }
+
+    /**
+     * Splits a query-mapping literal into individual {@code "col:target"} mappings
+     * on whitespace. Multiple mappings share a single literal because a
+     * view-creation template cannot repeat a statement inside its repeated action
+     * group — e.g. {@code "np:nanopubToBeRetracted"} or
+     * {@code "derive_target:@derive-a local_pubkey:public-key__.1"}.
+     *
+     * @param literal the mapping literal (may be null/blank/"void")
+     * @return the individual mappings (never null; empty if none)
+     */
+    public static List<String> parseMappingLiteral(String literal) {
+        List<String> mappings = new ArrayList<>();
+        if (literal == null || literal.isBlank()) return mappings;
+        for (String m : literal.trim().split("\\s+")) {
+            if (!m.isEmpty() && !"void".equals(m)) mappings.add(m);
+        }
+        return mappings;
+    }
+
+    /**
+     * Gets the set of query result columns that serve only as <em>sources</em> for
+     * this view's action query mappings (the {@code col} part of each
+     * {@code "col:target"} mapping, across all actions). These columns carry
+     * action data — conditional targets, the local-key bundle — not row content, so
+     * the result builders skip them when rendering visible columns. A column that
+     * happens to be both a display column and a mapping source would also be hidden;
+     * map a duplicated/aliased column instead if you need to show one.
+     *
+     * @return the set of mapping-source column names (never null)
+     */
+    public Set<String> getActionMappingSourceColumns() {
+        Set<String> columns = new HashSet<>();
+        for (IRI actionIri : actionTemplateQueryMappingsMap.keySet()) {
+            for (String mapping : getTemplateQueryMappings(actionIri)) {
+                int idx = mapping.indexOf(':');
+                if (idx > 0) columns.add(mapping.substring(0, idx));
+            }
+        }
+        return columns;
+    }
+
+    /**
+     * Gets the first query mapping for an action, or null. Kept for result-action
+     * callers that pass a single {@code values-from-query-mapping}.
+     *
+     * @param actionIri the action IRI
+     * @return the first mapping, or null
+     */
     public String getTemplateQueryMapping(IRI actionIri) {
-        return actionTemplateQueryMappingMap.get(actionIri);
+        List<String> mappings = actionTemplateQueryMappingsMap.get(actionIri);
+        return (mappings == null || mappings.isEmpty()) ? null : mappings.get(0);
     }
 
     /**

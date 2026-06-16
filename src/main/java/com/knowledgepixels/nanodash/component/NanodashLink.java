@@ -193,12 +193,19 @@ public class NanodashLink extends Panel {
             label = MaintainedResourceRepository.get().findById(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
         } else {
-            if (!"^".equals(label)) params.set("label", label);
+            boolean isCaret = "^".equals(label);
+            if (!isCaret) params.set("label", label);
+            BookmarkablePageLink<Void> link;
             if (isPartOfResource(uri, contextId)) {
-                return new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params).setBody(Model.of(label));
+                link = new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params);
             } else {
-                return new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true")).setBody(Model.of(label));
+                link = new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true"));
             }
+            link.setBody(Model.of(label));
+            // The "^" source-nanopub caret is styled like the admin lists (subtle, with
+            // hover-darken), reusing SourceNanopub's `a.source` styling.
+            if (isCaret) link.add(new AttributeAppender("class", "source"));
+            return link;
         }
     }
 

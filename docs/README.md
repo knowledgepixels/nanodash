@@ -8,9 +8,10 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | Doc | Status | Summary |
 | --- | --- | --- |
 | [userlist-views](userlist-views.md) | ✅ Implemented | Human / Software / Non-Approved user lists as published views on `UserListPage` |
-| [presets](presets.md) | 🚧 In progress | Publishable bundles of default views + roles, assignable to resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
-| [magic-query-params](magic-query-params.md) | 📋 Proposed | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`); path to replace the custom introductions table with a proper view |
+| [presets](presets.md) | ✅ Implemented | Publishable bundles of default views + roles, assignable to (and deactivatable on) resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
+| [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |
 | [role-specific-views](role-specific-views.md) | ✅ Implemented | View **action buttons** gated to a role tier (Maintainer, …) or specific role, via `gen:isVisibleTo` on the action node |
+| [space-ref-identity](space-ref-identity.md) | 🚧 In progress | A space's identity is IRI + root-definition NPID (rival roots = distinct spaces); ref-keyed `SpaceRepository` + ref-scoped per-space authority queries shipped; one-`Space`-per-ref identity + disambiguation UI still to come |
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
 | [draft-with-ai](draft-with-ai.md) | 📋 Proposed | Server-side "Draft with AI" nanopub authoring |
 

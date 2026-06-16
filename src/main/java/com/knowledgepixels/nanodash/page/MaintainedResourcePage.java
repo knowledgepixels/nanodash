@@ -12,7 +12,6 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -74,16 +73,10 @@ public class MaintainedResourcePage extends NanodashPage {
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
-        add(new JustPublishedMessagePanel("justPublishedMessage", parameters));
-
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(resource.getId()), Model.of(resource.getLabel()), Values.iri(resource.getNanopubId())));
-
-        String namespaceUri = resource.getNamespace() == null ? "" : resource.getNamespace();
-        add(new BookmarkablePageLink<Void>("namespace", ExplorePage.class, new PageParameters().set("id", namespaceUri)).setBody(Model.of(namespaceUri)));
-
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
@@ -114,9 +107,14 @@ public class MaintainedResourcePage extends NanodashPage {
         } else {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
-                add(new AboutResourcePanel("otherTab", resource));
+                // The panel constructor resolves view nanopubs over the network when
+                // they aren't freshly cached, which would block the initial page
+                // render; the view-id list must mirror the panel's View.get calls.
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutResourcePanel(markupId, resourceModel.getObject()),
+                        AboutResourcePanel.MAINTAINED_RESOURCE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
-                add(new ExplorePanel("otherTab", resource.getId()));
+                add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, resourceId),
+                        ReferencesPage.REFERENCES_VIEW));
             } else {
                 add(new DownloadRdfLinks("otherTab", "resource", resource.getId()));
             }

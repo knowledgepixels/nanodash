@@ -2,12 +2,15 @@ package com.knowledgepixels.nanodash;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.wicket.MetaDataKey;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.eclipse.rdf4j.model.Model;
 import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -25,6 +28,18 @@ public class ApiCache {
     } // no instances allowed
 
     private static final int MAX_CACHE_ENTRIES = 10_000;
+
+    // How stale a cached response may be before the next access triggers a
+    // background re-fetch. Must stay reasonably high: every render that finds a
+    // query older than this submits a refresh to the shared pool, which uses a
+    // CallerRunsPolicy — so too low a value turns page renders into a refresh
+    // storm that can run queries synchronously on the request thread.
+    private static final long REFRESH_AGE_THRESHOLD_MS = 60 * 1000;
+
+    // How long a cached response is still served immediately (while refreshing in
+    // the background) before it is treated as absent and the caller waits for a
+    // fresh fetch. Acts as the stale-data fallback during API outages.
+    private static final long MAX_CACHE_AGE_MS = 24 * 60 * 60 * 1000;
 
     private static final Cache<String, ApiResponse> cachedResponses = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
@@ -76,6 +91,39 @@ public class ApiCache {
     }
 
     /**
+     * Request-scoped flag set by {@code NanodashPage} when the current request is a
+     * genuine browser reload (the browser sends {@code Cache-Control: max-age=0} or
+     * {@code no-cache}). When set, the first access to each query during the page
+     * render evicts that query's cache so it re-fetches fresh, while normal
+     * navigation, Ajax updates, and the auto-refresh redirect keep serving the
+     * cache. Public so the page layer can set it.
+     */
+    public static final MetaDataKey<Boolean> FORCE_REFRESH_ON_RELOAD = new MetaDataKey<>() {};
+
+    // The query cache-ids already force-evicted during the current reload request,
+    // so each is evicted only once (the lazy-load that follows must not re-evict).
+    private static final MetaDataKey<HashSet<String>> RELOAD_FORCED_IDS = new MetaDataKey<>() {};
+
+    /**
+     * On a genuine browser reload, returns true the first time a given query is
+     * accessed this request (and records it), so callers evict its cache once.
+     * Returns false on non-reload requests, off the request thread, and for any
+     * query already handled this request — so it never triggers a refresh storm.
+     */
+    private static boolean isForcedReload(String cacheId) {
+        RequestCycle rc = RequestCycle.get();
+        if (rc == null) return false;
+        Boolean force = rc.getMetaData(FORCE_REFRESH_ON_RELOAD);
+        if (force == null || !force) return false;
+        HashSet<String> handled = rc.getMetaData(RELOAD_FORCED_IDS);
+        if (handled == null) {
+            handled = new HashSet<>();
+            rc.setMetaData(RELOAD_FORCED_IDS, handled);
+        }
+        return handled.add(cacheId);
+    }
+
+    /**
      * Updates the cached API response for a specific query reference.
      *
      * @param queryRef The query reference
@@ -101,7 +149,7 @@ public class ApiCache {
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
-            needsRefresh = cacheAge > 60 * 1000;
+            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
         }
         if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
             failed.remove(cacheId);
@@ -152,12 +200,16 @@ public class ApiCache {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         logger.info("Retrieving cached API response asynchronously for {}", cacheId);
+        if (isForcedReload(cacheId)) {
+            cachedResponses.invalidate(cacheId);
+            lastRefresh.remove(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < 24 * 60 * 60 * 1000;
-            needsRefresh = cacheAge > 60 * 1000;
+            isCached = cacheAge < MAX_CACHE_AGE_MS;
+            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
         }
         if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
             failed.remove(cacheId);
@@ -230,12 +282,16 @@ public class ApiCache {
     public static Map<String, String> retrieveMap(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
+        if (isForcedReload(cacheId)) {
+            cachedMaps.invalidate(cacheId);
+            lastRefresh.remove(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedMaps.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < 24 * 60 * 60 * 1000;
-            needsRefresh = cacheAge > 60 * 1000;
+            isCached = cacheAge < MAX_CACHE_AGE_MS;
+            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
         }
         if (needsRefresh && !isRunning(cacheId)) {
             NanodashThreadPool.submit(() -> {
@@ -301,12 +357,16 @@ public class ApiCache {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         logger.info("Retrieving cached RDF model asynchronously for {}", cacheId);
+        if (isForcedReload(cacheId)) {
+            cachedRdfModels.invalidate(cacheId);
+            lastRefresh.remove(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedRdfModels.getIfPresent(cacheId) != null) {
             long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < 24 * 60 * 60 * 1000;
-            needsRefresh = cacheAge > 60 * 1000;
+            isCached = cacheAge < MAX_CACHE_AGE_MS;
+            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
         }
         if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
             failed.remove(cacheId);

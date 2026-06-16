@@ -124,7 +124,14 @@ public class OrcidLoginPage extends WebPage {
         }
         NanodashSession session = NanodashSession.get();
         if (session.getLocalIntroCount() == 0 && redirectUrl == null) {
-            redirectUrl = ProfilePage.MOUNT_PATH;
+            // First login (no introduction yet): send the user to their own About page,
+            // where the recommended onboarding actions (e.g. "Create Introduction") live.
+            // Fall back to the profile page if the ORCID iD couldn't be resolved.
+            if (session.getUserIri() != null) {
+                redirectUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(session.getUserIri()) + "&tab=about";
+            } else {
+                redirectUrl = ProfilePage.MOUNT_PATH;
+            }
         }
         throw new RedirectToUrlException(redirectUrl);
     }

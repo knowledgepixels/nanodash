@@ -4,11 +4,9 @@ import com.knowledgepixels.nanodash.component.menu.BaseDisplayMenu;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 
 /**
@@ -48,6 +46,8 @@ public class ExternalLinkWithActionsPanel extends Panel {
         ExternalLink externalLink = new ExternalLink("externalLink", urlModel, urlModel);
         add(externalLink);
 
+        // The "copy link" action is the single entry of a borderless dropdown menu
+        // (the .link-copy-menu chevron), not an icon button.
         AjaxLink<Void> copyLinkButton = new AjaxLink<>("copyLinkButton") {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -55,12 +55,11 @@ public class ExternalLinkWithActionsPanel extends Panel {
                 String escapedUrl = url.replace("'", "\\'");
                 target.appendJavaScript(
                         "navigator.clipboard.writeText('" + escapedUrl + "')" +
-                        ".then(function() { alert('Link copied to clipboard!'); })" +
+                        ".then(function() { showToast('Link copied to clipboard!'); })" +
                         ".catch(function(err) { console.error('Copy failed:', err); });"
                 );
             }
         };
-        copyLinkButton.add(new Image("copyIcon", new ContextRelativeResourceReference("images/copy-icon.svg", false)));
         add(copyLinkButton);
 
         // The "explore" action is now reachable via the resource's Explore tab,

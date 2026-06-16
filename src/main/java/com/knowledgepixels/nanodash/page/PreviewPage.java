@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -79,8 +80,8 @@ public class PreviewPage extends NanodashPage {
                     Utils.cacheNanopub(signedNp);
                     NanodashSession.get().removePreviewNanopub(previewId);
 
-                    if (!pageParams.get("refresh-upon-publish").isEmpty()) {
-                        String toRefresh = pageParams.get("refresh-upon-publish").toString();
+                    String toRefresh = pageParams.get("refresh-upon-publish").toString("");
+                    if (!toRefresh.isEmpty()) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                     }
 
@@ -98,6 +99,13 @@ public class PreviewPage extends NanodashPage {
                     }
 
                     String contextId = pageParams.get("context").toString("");
+                    // Broaden the refresh: also force-refresh the context resource's own
+                    // data so the page we redirect to reflects the just-published change,
+                    // not only the specific view query that was acted on.
+                    if (!contextId.isEmpty() && !contextId.equals(toRefresh)
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                        WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
+                    }
                     String partId = pageParams.get("part").toString("");
                     if (!contextId.isEmpty()) {
                         PageParameters redirectParams = new PageParameters().set("just-published", signedNp.getUri().stringValue());
@@ -106,6 +114,9 @@ public class PreviewPage extends NanodashPage {
                             throw new RestartResponseException(ResourcePartPage.class, redirectParams);
                         }
                         redirectParams.set("id", contextId);
+                        // Return to the tab the action asked for (default Content).
+                        String postpubTab = pageParams.get("postpub-tab").toString("");
+                        if (!postpubTab.isEmpty()) redirectParams.set("tab", postpubTab);
                         if (SpaceRepository.get().findById(contextId) != null) {
                             throw new RestartResponseException(SpacePage.class, redirectParams);
                         }

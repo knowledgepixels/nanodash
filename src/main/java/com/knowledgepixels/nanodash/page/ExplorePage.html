@@ -24,7 +24,7 @@
         <p wicket:id="missing-intro-warning">
           It seems that <strong class="negative">you haven't published an introduction yet</strong> to link the local
           key to your ORCID identifier.
-          It is recommended that you do so via <a href="./profile?message=publish-intro">your profile page</a>.
+          It is recommended that you do so via <a wicket:id="profile-link">your profile page</a>.
         </p>
         <p>
           <a class="button" href="." wicket:id="publish-another-link">with same template...</a>
@@ -53,7 +53,7 @@
     <div wicket:id="templates-panel"></div>
   </div>
 
-  <div class="row-section">
+  <div wicket:id="references-section" class="row-section">
     <div wicket:id="references"></div>
   </div>
 

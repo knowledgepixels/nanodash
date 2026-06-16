@@ -51,6 +51,9 @@ public class TitleBar extends Panel {
         super(id);
         this.highlight = highlight;
         add(new ProfileItem("profile", page));
+        // Centered title-bar message: the post-publish confirmation and/or the
+        // always-on "you haven't published an introduction yet" warning.
+        add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
 
         createNavLink("users", UserListPage.class);
         createNavLink("connectors", SpaceListPage.class);
@@ -104,12 +107,12 @@ public class TitleBar extends Panel {
      *       (almost) all of the parent and ends on a non-letter/digit boundary
      *       in the child — this also catches singular/plural variations like
      *       parent "Nano Sessions", child "Nano Session #30" → "#30".</li>
-     *   <li>The remaining label is split on list/title punctuation ({@code ,},
-     *       {@code :}, {@code ;}, {@code |}, and spaced {@code -}) into separate
-     *       breadcrumb segments — e.g. "General Nanopub Ecosystem Ontology,
-     *       version 0.4 (incomplete)" renders as two crumbs "General Nanopub
-     *       Ecosystem Ontology" › "version 0.4 (incomplete)". All segments of a
-     *       label link to the same page.</li>
+     *   <li>Only the leading segment of the remaining label is kept — the part
+     *       before the first list/title separator ({@code ,}, {@code :},
+     *       {@code ;}, {@code |}, or a spaced {@code -}) — so each path level
+     *       renders as one concise crumb. E.g. "FIP.38.T.8 | FAIR Implementation
+     *       Profile Training Session 8" renders as "FIP.38.T.8" and "3PFF: the
+     *       Three Point FAIRification Framework" as "3PFF".</li>
      * </ul>
      * The parent-prefix comparison uses the original (un-simplified) labels.
      */
@@ -124,8 +127,13 @@ public class TitleBar extends Panel {
             if (i > 0) {
                 label = stripParentPrefix(pathRefs[i - 1].getLabel(), label);
             }
-            for (String segment : splitLabel(label)) {
-                parts.add(new CrumbPart(pathRefs[i], segment));
+            // Show only the leading segment (before the first list/title separator)
+            // so each path level renders as one concise crumb — e.g.
+            // "FIP.38.T.8 | FAIR Implementation Profile Training Session 8" → "FIP.38.T.8",
+            // "3PFF: the Three Point FAIRification Framework" → "3PFF".
+            List<String> segments = splitLabel(label);
+            if (!segments.isEmpty()) {
+                parts.add(new CrumbPart(pathRefs[i], segments.get(0)));
             }
         }
         return parts;

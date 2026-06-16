@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
@@ -27,10 +28,13 @@ public class QueryResultListBuilder implements Serializable {
     private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
+    private String postPublishTab = null;
 
     private QueryResultListBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
-        this.queryRef = queryRef;
+        // Bind session-derived "magic" query parameters here on the request thread
+        // (ApiCache fetches on background threads where the session is absent).
+        this.queryRef = com.knowledgepixels.nanodash.MagicQueryParams.augment(queryRef);
         this.viewDisplay = viewDisplay;
     }
 
@@ -73,6 +77,19 @@ public class QueryResultListBuilder implements Serializable {
     }
 
     /**
+     * Sets the tab to return to after publishing one of this view's action
+     * buttons (e.g. {@code "about"}). Null leaves the post-publish redirect on
+     * its default tab.
+     *
+     * @param postPublishTab the tab name, or null for the default
+     * @return the current QueryResultListBuilder instance
+     */
+    public QueryResultListBuilder postPublishTab(String postPublishTab) {
+        this.postPublishTab = postPublishTab;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultList component.
      *
      * @return the QueryResultList component
@@ -86,6 +103,7 @@ public class QueryResultListBuilder implements Serializable {
                 resultList.setResourceWithProfile(resourceWithProfile);
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
+                resultList.setPostPublishTab(postPublishTab);
                 View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
@@ -105,11 +123,22 @@ public class QueryResultListBuilder implements Serializable {
                             params.set("part", id);
                         }
                         String partField = view.getTemplatePartFieldForAction(actionIri);
-                        if (partField != null) {
+                        if (partField != null && contextId != null) {
+                            // The part field pre-fills a namespaced child IRI (the user fills the suffix).
                             // TODO Find a better way to pass the MaintainedResource object to this method:
                             MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                            if (r != null && r.getNamespace() != null) {
-                                params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                            String namespace = null;
+                            if (r != null) {
+                                namespace = r.getNamespace();
+                            } else if (resourceWithProfile instanceof Space) {
+                                // The Space-creation templates' `space` placeholder has a fixed
+                                // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
+                                // Nesting the new space's IRI under this space's path makes it a
+                                // sub-space via the prefix match.
+                                namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
+                            }
+                            if (namespace != null) {
+                                params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                             }
                         }
                         String queryMapping = view.getTemplateQueryMapping(actionIri);
@@ -118,6 +147,7 @@ public class QueryResultListBuilder implements Serializable {
                             params.set("values-from-query-mapping", queryMapping);
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                         resultList.addButton(label, PublishPage.class, params);
                     }
                 }
@@ -131,6 +161,7 @@ public class QueryResultListBuilder implements Serializable {
                         resultList.setResourceWithProfile(resourceWithProfile);
                         resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
+                        resultList.setPostPublishTab(postPublishTab);
                         View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
@@ -141,6 +172,7 @@ public class QueryResultListBuilder implements Serializable {
                                 if (targetField == null) targetField = "resource";
                                 String label = view.getLabelForAction(actionIri);
                                 if (label == null) label = "action...";
+                                if (!label.endsWith("...")) label += "...";
                                 PageParameters params = new PageParameters().set("template", t.getId())
                                         .set("param_" + targetField, id)
                                         .set("context", contextId)
@@ -149,11 +181,22 @@ public class QueryResultListBuilder implements Serializable {
                                     params.set("part", id);
                                 }
                                 String partField = view.getTemplatePartFieldForAction(actionIri);
-                                if (partField != null) {
+                                if (partField != null && contextId != null) {
+                                    // The part field pre-fills a namespaced child IRI (the user fills the suffix).
                                     // TODO Find a better way to pass the MaintainedResource object to this method:
                                     MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                                    if (r != null && r.getNamespace() != null) {
-                                        params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                                    String namespace = null;
+                                    if (r != null) {
+                                        namespace = r.getNamespace();
+                                    } else if (resourceWithProfile instanceof Space) {
+                                        // The Space-creation templates' `space` placeholder has a fixed
+                                        // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
+                                        // Nesting the new space's IRI under this space's path makes it a
+                                        // sub-space via the prefix match.
+                                        namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
+                                    }
+                                    if (namespace != null) {
+                                        params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                                     }
                                 }
                                 String queryMapping = view.getTemplateQueryMapping(actionIri);
@@ -162,6 +205,7 @@ public class QueryResultListBuilder implements Serializable {
                                     params.set("values-from-query-mapping", queryMapping);
                                 }
                                 params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                                if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
                                 resultList.addButton(label, PublishPage.class, params);
                             }
                         }

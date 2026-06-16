@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
@@ -19,10 +21,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
@@ -33,7 +38,10 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Component for displaying query results in a list format.
@@ -92,9 +100,17 @@ public class QueryResultList extends QueryResult {
                 ApiResponseEntry entry = item.getModelObject();
                 RepeatingView listItem = new RepeatingView("listItem");
 
+                // Columns that only feed action query mappings carry action data, not
+                // row content — don't render them as visible row text.
+                View viewForColumns = viewDisplay.getView();
+                Set<String> hiddenColumns = viewForColumns != null
+                        ? viewForColumns.getActionMappingSourceColumns() : Collections.emptySet();
                 List<Component> components = new ArrayList<>();
+                // The row's "^" source link, if any — folded into the per-row actions
+                // dropdown appended at the end of the row.
+                String sourceUri = null;
                 for (String key : response.getHeader()) {
-                    if (key.endsWith("_label") || key.endsWith("_label_multi")) {
+                    if (key.endsWith("_label") || key.endsWith("_label_multi") || hiddenColumns.contains(key)) {
                         continue;
                     }
                     String entryValue = entry.get(key);
@@ -187,7 +203,12 @@ public class QueryResultList extends QueryResult {
                             components.add(new ComponentSequence("component", ", ", multiComponents));
                         } else if (entryValue.matches("https?://.+")) {
                             String entryLabel = entry.get(key + "_label");
-                            components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
+                            if ("^".equals(entryLabel)) {
+                                // Folded into the per-row actions dropdown appended below.
+                                sourceUri = entryValue;
+                            } else {
+                                components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
+                            }
                         } else {
                             if (Utils.looksLikeHtml(entryValue)) {
                                 entryValue = Utils.sanitizeHtml(entryValue);
@@ -197,8 +218,8 @@ public class QueryResultList extends QueryResult {
                     }
                 }
                 View view = viewDisplay.getView();
-                if (view != null && !view.getViewEntryActionList().isEmpty()) {
-                    List<AbstractLink> links = new ArrayList<>();
+                List<AbstractLink> actionLinks = new ArrayList<>();
+                if (view != null) {
                     for (IRI actionIri : view.getViewEntryActionList()) {
                         // Per-action role gating (docs/role-specific-views.md): skip an
                         // action whose gen:isVisibleTo the viewer does not satisfy.
@@ -223,21 +244,39 @@ public class QueryResultList extends QueryResult {
                                 params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
                             }
                         }
-                        String queryMapping = view.getTemplateQueryMapping(actionIri);
-                        if (queryMapping != null && queryMapping.contains(":")) {
-                            // This part is different from the code in QueryResultTableBuilder:
-                            String queryParam = queryMapping.split(":")[0];
-                            String templateParam = queryMapping.split(":")[1];
-                            params.set("param_" + templateParam, entry.get(queryParam));
+                        // Apply the action's query mappings; hide the button for this row
+                        // if any required mapped value is empty (docs/magic-query-params.md).
+                        if (!ViewActionMappings.applyEntryMappings(view, actionIri, entry, params)) {
+                            continue;
                         }
                         params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", PublishPage.class, params);
-                        button.setBody(Model.of(labelForAction));
-                        links.add(button);
+                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
+                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
+                        // A label that starts with a leading symbol/emoji renders that as the entry icon.
+                        String iconBody = Utils.menuEntryIconBodyHtml(labelForAction);
+                        if (iconBody != null) {
+                            button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+                        } else {
+                            button.setBody(Model.of(labelForAction));
+                        }
+                        actionLinks.add(button);
                     }
-                    components.add(new ButtonList("component", resourceWithProfile, links, null, null));
                 }
-                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components);
+                // The former "^" source link joins the same dropdown, as a "source" entry.
+                if (sourceUri != null) {
+                    AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
+                            new PageParameters().set("id", sourceUri));
+                    sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
+                    actionLinks.add(sourceLink);
+                }
+                // Append the per-row dropdown (entry actions + source) as the trailing item;
+                // it hugs the preceding content with a plain space, not the list separator.
+                Set<Integer> spaceBeforeMenu = new HashSet<>();
+                if (!actionLinks.isEmpty()) {
+                    spaceBeforeMenu.add(components.size());
+                    components.add(new EntryActionMenu("component", actionLinks));
+                }
+                ComponentSequence componentSequence = new ComponentSequence(listItem.newChildId(), SEPARATOR, components, spaceBeforeMenu);
                 listItem.add(componentSequence);
                 item.add(listItem);
             }
@@ -250,18 +289,44 @@ public class QueryResultList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
+        // Hidden when the empty-actions line below shows instead, which carries
+        // its own "Nothing here yet:" text; this note still covers the case of
+        // the filter text matching no row.
         Label noRecordsLabel = new Label("no-records", "(nothing found)") {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
-                setVisible(filteredDataProvider.size() == 0);
+                setVisible(filteredDataProvider.size() == 0 && !hasEmptyStateActions());
             }
         };
+
+        // When the result is genuinely empty (not merely filtered down to zero
+        // rows), the view-level actions are promoted from the dropdown menu to
+        // visible buttons in the empty state — same as in QueryResultTable.
+        WebMarkupContainer emptyActions = new WebMarkupContainer("empty-actions") {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(hasEmptyStateActions());
+            }
+        };
+        // menuActions is filled by the builder after construction, so the list
+        // is wrapped as a live model rather than copied here.
+        emptyActions.add(new ListView<MenuAction>("actions", new ListModel<>(menuActions)) {
+            @Override
+            protected void populateItem(ListItem<MenuAction> item) {
+                MenuAction action = item.getModelObject();
+                AbstractLink link = new BookmarkablePageLink<NanodashPage>("link", action.pageClass(), action.params());
+                link.setBody(Model.of(action.label()));
+                item.add(link);
+            }
+        });
 
         itemsContainer = new WebMarkupContainer("items-container");
         itemsContainer.setOutputMarkupId(true);
         itemsContainer.add(dataView);
         itemsContainer.add(noRecordsLabel);
+        itemsContainer.add(emptyActions);
         itemsContainer.add(navigation);
         add(itemsContainer);
     }
