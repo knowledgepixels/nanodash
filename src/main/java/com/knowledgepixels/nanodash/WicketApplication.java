@@ -27,6 +27,7 @@ import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
@@ -199,6 +200,18 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 if (response instanceof WebResponse) {
                     ((WebResponse) response).setHeader("Nanodash-Version", getThisVersion());
                 }
+            }
+
+            @Override
+            public IRequestHandler onException(RequestCycle cycle, Exception ex) {
+                logger.error("Unhandled exception during request [{}]", cycle.getRequest().getUrl(), ex);
+                Throwable cause = ex.getCause();
+                int depth = 1;
+                while (cause != null) {
+                    logger.error("  Caused by (depth {}): {}", depth++, cause.getMessage(), cause);
+                    cause = cause.getCause();
+                }
+                return null;
             }
         });
 

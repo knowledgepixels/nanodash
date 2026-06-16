@@ -64,7 +64,7 @@ public class GrlcQuery extends QueryTemplate {
                 instanceMap.put(id, q);
                 cached = q;
             } catch (Exception ex) {
-                logger.error("Could not load query: {}", id, ex);
+                logger.warn("Could not load query: {}", id, ex);
             }
         }
         return cached;
