@@ -397,7 +397,7 @@ public class Space extends AbstractResourceWithProfile {
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
         Multimap<String, String> params = spaceParams(allSpaceIris());
-        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, params), waitMillis);
+        ApiCache.clearCache(adminsQueryRef(), waitMillis);
         ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), waitMillis);
         ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, params), waitMillis);
         ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, params), waitMillis);
@@ -412,8 +412,7 @@ public class Space extends AbstractResourceWithProfile {
 
     private synchronized SpaceData currentData() {
         Multimap<String, String> params = spaceParams(allSpaceIris());
-        ApiResponse adminsResp = ApiCache.retrieveResponseSync(
-                new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, params), false);
+        ApiResponse adminsResp = ApiCache.retrieveResponseSync(adminsQueryRef(), false);
         ApiResponse rolesResp = ApiCache.retrieveResponseSync(
                 new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), false);
         ApiResponse membersResp = ApiCache.retrieveResponseSync(
@@ -457,6 +456,21 @@ public class Space extends AbstractResourceWithProfile {
         Multimap<String, String> params = ArrayListMultimap.create();
         for (String iri : spaceIris) params.put("space", iri);
         return params;
+    }
+
+    /**
+     * Query reference for this space's admins. When the ref root is known (ref-aware
+     * get-spaces), use the ref-scoped admins query so multi-ref spaces don't merge admin
+     * sets across refs; otherwise fall back to the IRI-keyed query. See
+     * docs/space-ref-identity.md.
+     */
+    private QueryRef adminsQueryRef() {
+        if (refRootId != null && !refRootId.isEmpty()) {
+            Multimap<String, String> p = ArrayListMultimap.create();
+            p.put("root_np", refRootId);
+            return new QueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, p);
+        }
+        return new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, spaceParams(allSpaceIris()));
     }
 
     private static void loadAdmins(List<IRI> admins, Map<IRI, Set<SpaceMemberRoleRef>> users, ApiResponse resp) {
