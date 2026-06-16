@@ -29,6 +29,12 @@ public class Space extends AbstractResourceWithProfile {
 
     private String label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
+    // Space-ref identity (space IRI + root-definition NPID). Populated only by the
+    // ref-aware get-spaces query (v3); null/empty with the pre-v3 query. See
+    // docs/space-ref-identity.md. refRootId = the representative ref's root nanopub;
+    // refRoots = the roots of all distinct refs that claim this space IRI.
+    private String refRootId = null;
+    private Set<String> refRoots = Collections.emptySet();
 
     // Core data — derived directly from the root nanopub assertion.
     private final List<String> altIds = new ArrayList<>();
@@ -97,10 +103,12 @@ public class Space extends AbstractResourceWithProfile {
         this.type = resp.get("type");
         this.rootNanopubId = resp.get("np");
         this.rootNanopub = Utils.getAsNanopub(rootNanopubId);
+        this.refRootId = resp.get("ref_root");
         readCoreData();
     }
 
     void updateFromApi(ApiResponseEntry resp) {
+        this.refRootId = resp.get("ref_root");
         String newNpId = resp.get("np");
         if (!newNpId.equals(this.rootNanopubId)) {
             this.label = resp.get("label");
@@ -135,6 +143,48 @@ public class Space extends AbstractResourceWithProfile {
      */
     public String getCoreInfoString() {
         return getId() + " " + rootNanopubId;
+    }
+
+    /**
+     * Get the root-definition nanopub ID of this space's ref (the representative ref
+     * when several refs claim the same space IRI). The space ref identity is the space
+     * IRI plus this root NPID. Populated only by the ref-aware get-spaces query (v3);
+     * null with the pre-v3 query. See docs/space-ref-identity.md.
+     *
+     * @return The representative ref's root nanopub ID, or null if unknown.
+     */
+    public String getRefRootId() {
+        return refRootId;
+    }
+
+    /**
+     * Get the root nanopub IDs of all distinct refs that claim this space IRI. More than
+     * one means several space definitions claim the same IRI (distinct spaces, not a
+     * conflict to resolve). Empty with the pre-v3 query. See docs/space-ref-identity.md.
+     *
+     * @return The set of ref root nanopub IDs (possibly empty).
+     */
+    public Set<String> getRefRoots() {
+        return refRoots;
+    }
+
+    /**
+     * Set the root nanopub IDs of all distinct refs claiming this space IRI. Called by
+     * the repository while building the space listing from the ref-aware get-spaces query.
+     *
+     * @param refRoots The set of ref root nanopub IDs (may be null/empty).
+     */
+    public void setRefRoots(Set<String> refRoots) {
+        this.refRoots = (refRoots == null || refRoots.isEmpty()) ? Collections.emptySet() : refRoots;
+    }
+
+    /**
+     * Get the number of distinct refs claiming this space IRI (at least 1).
+     *
+     * @return The ref count (1 when ref data is unavailable).
+     */
+    public int getRefCount() {
+        return Math.max(1, refRoots.size());
     }
 
     /**

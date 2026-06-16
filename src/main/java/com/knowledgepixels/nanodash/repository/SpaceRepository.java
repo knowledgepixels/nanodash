@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,16 +89,60 @@ public class SpaceRepository {
     }
 
     /**
-     * Build the space lookup maps from the spaces-repo response. Pulls the
-     * latest non-invalidated SpaceDefinition per Space IRI from
-     * {@code npa:spacesGraph} and joins to the declaring nanopub for label and
-     * type.
+     * Reduce the {@code get-spaces} rows to one representative entry per space IRI and
+     * collect the distinct ref roots seen for each IRI. Rows are expected in
+     * {@code DESC(?date)} order.
      * <p>
-     * The {@code get-spaces} query returns one row per (SpaceRef, SpaceDefinition)
-     * — many spaces have multiple contributing nanopubs (root + updates) and even
-     * multiple SpaceRefs during the rootless transition phase. The query orders by
-     * {@code DESC(?date)}, so dedup'ing by spaceIri here (first row wins) picks the
-     * latest update per space.
+     * The ref-aware query (v3) returns {@code ?ref} (the space ref = space IRI + root
+     * definition) and {@code ?root} (the ref's root nanopub) per (ref, definition) row.
+     * We dedup by ref (latest definition within a ref wins), then keep one representative
+     * per IRI — the globally latest definition, preserving the pre-ref-aware behaviour —
+     * and return the full set of ref roots per IRI for the (deferred) multi-ref
+     * disambiguation UI. See docs/space-ref-identity.md.
+     * <p>
+     * When rows carry no {@code ?ref} (the pre-v3 query, still live until v3 is
+     * published) this degrades to dedup-by-IRI exactly as before, with empty ref-root
+     * sets.
+     */
+    static RefReduction reduceByRef(List<ApiResponseEntry> rows) {
+        Set<String> seenRef = new HashSet<>();
+        Map<String, Set<String>> refRootsByIri = new LinkedHashMap<>();
+        Map<String, ApiResponseEntry> representativeByIri = new LinkedHashMap<>();
+        for (ApiResponseEntry r : rows) {
+            String spaceIri = r.get("space_iri");
+            if (spaceIri == null || spaceIri.isEmpty()) continue;
+            String ref = r.get("ref");
+            // Dedup by ref when available, else by IRI (pre-v3 query).
+            String refKey = (ref != null && !ref.isEmpty()) ? ref : spaceIri;
+            if (!seenRef.add(refKey)) continue;
+            String root = r.get("root");
+            if (root != null && !root.isEmpty()) {
+                refRootsByIri.computeIfAbsent(spaceIri, k -> new LinkedHashSet<>()).add(root);
+            }
+            // First surviving row per IRI = latest definition overall (rows are DESC(date)).
+            representativeByIri.putIfAbsent(spaceIri, r);
+        }
+        return new RefReduction(new ArrayList<>(representativeByIri.values()), refRootsByIri);
+    }
+
+    /** Result of {@link #reduceByRef}: one representative row per IRI plus the ref roots per IRI. */
+    static final class RefReduction {
+        final List<ApiResponseEntry> representatives;
+        final Map<String, Set<String>> refRootsByIri;
+
+        RefReduction(List<ApiResponseEntry> representatives, Map<String, Set<String>> refRootsByIri) {
+            this.representatives = representatives;
+            this.refRootsByIri = refRootsByIri;
+        }
+    }
+
+    /**
+     * Build the space lookup maps from the spaces-repo response. Pulls the
+     * latest non-invalidated SpaceDefinition per space ref from
+     * {@code npa:spacesGraph} and joins to the declaring nanopub for label and
+     * type, then keeps one representative space per IRI (see {@link #reduceByRef}).
+     * Each space additionally carries the set of ref roots claiming its IRI for the
+     * (deferred) multi-ref disambiguation UI.
      */
     private Snapshot build(ApiResponse resp) {
         Map<String, Space> byId = new HashMap<>();
@@ -104,17 +150,18 @@ public class SpaceRepository {
         Map<Space, Set<Space>> subspaceMap = new HashMap<>();
         Map<Space, Set<Space>> superspaceMap = new HashMap<>();
         List<Space> spaceList = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
-        for (ApiResponseEntry r : resp.getData()) {
+        RefReduction reduction = reduceByRef(resp.getData());
+        for (ApiResponseEntry r : reduction.representatives) {
             String spaceIri = r.get("space_iri");
-            if (spaceIri == null || spaceIri.isEmpty()) continue;
-            if (!seen.add(spaceIri)) continue; // first row (latest date) wins
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("space", spaceIri);
             entry.add("np", r.get("np"));
             entry.add("label", r.get("space_iri_label"));
             entry.add("type", r.get("type"));
+            String refRoot = r.get("root");
+            if (refRoot != null && !refRoot.isEmpty()) entry.add("ref_root", refRoot);
             Space space = SpaceFactory.getOrCreate(entry);
+            space.setRefRoots(reduction.refRootsByIri.getOrDefault(spaceIri, Collections.emptySet()));
             spaceList.add(space);
             byId.put(space.getId(), space);
             for (String altId : space.getAltIDs()) {
