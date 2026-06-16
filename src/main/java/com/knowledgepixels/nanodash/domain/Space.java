@@ -367,7 +367,7 @@ public class Space extends AbstractResourceWithProfile {
     public boolean isAdminPubkey(String pubkey) {
         if (pubkey == null) return false;
         ApiResponse resp = ApiCache.retrieveResponseSync(
-                new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, spaceParams(allSpaceIris())), false);
+                spaceQueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES_REF, QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES), false);
         if (resp == null) return false;
         for (ApiResponseEntry r : resp.getData()) {
             if (pubkey.equals(r.get("pkh"))) return true;
@@ -414,11 +414,10 @@ public class Space extends AbstractResourceWithProfile {
     @Override
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
-        Multimap<String, String> params = spaceParams(allSpaceIris());
         ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, QueryApiAccess.GET_SPACE_ADMINS), waitMillis);
         ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_ROLES_REF, QueryApiAccess.GET_SPACE_ROLES), waitMillis);
         ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_MEMBERS_REF, QueryApiAccess.GET_SPACE_MEMBERS), waitMillis);
-        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, params), waitMillis);
+        ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES_REF, QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES), waitMillis);
     }
 
     private List<String> allSpaceIris() {

@@ -1,0 +1,56 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:get-space-admin-pubkey-hashes a grlc:grlc-query;
+    dct:description "Returns the public key hashes of the admins of a given space ref (space IRI + root definition), not merged across refs. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and returns, for each trust-state-validated admin RoleInstantiation (npa:inverseProperty gen:hasAdmin) scoped to that ref (npa:forSpaceRef), the admin agent and each of its AccountState pubkey hashes. Ref-scoped variant of get-space-admin-pubkey-hashes (which is IRI-keyed via npa:forSpace and merges all refs of an IRI).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get space admin pubkey hashes (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix npa: <http://purl.org/nanopub/admin/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select distinct ?agent ?pkh where {
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+  values ?_root_np_multi_iri {}
+  graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri . }
+  graph ?g {
+    ?ri a gen:RoleInstantiation ;
+        npa:inverseProperty gen:hasAdmin ;
+        npa:forSpaceRef ?ref ;
+        npa:forAgent ?agent .
+    ?acct a npa:AccountState ;
+          npa:agent ?agent ;
+          npa:pubkey ?pkh .
+  }
+}""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-16T12:50:54Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:get-space-admin-pubkey-hashes .
+}

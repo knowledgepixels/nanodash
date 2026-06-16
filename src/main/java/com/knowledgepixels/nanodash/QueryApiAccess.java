@@ -96,6 +96,10 @@ public class QueryApiAccess {
     // docs/space-ref-identity.md.
     public static final String GET_SPACE_ADMINS_REF = "RAWM8qlKbV3DEH_NsPJ6hIyTrBwIp8sNeg9MGDgu8la1o/get-space-admins";
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
+    // Ref-scoped admin pubkey hashes (Stage 2): takes the ref's root nanopub (root_np),
+    // matches admins on npa:forSpaceRef, so multi-ref spaces don't merge admin keys across
+    // refs. Published independently. Source at docs/queries/get-space-admin-pubkey-hashes-ref.trig.
+    public static final String GET_SPACE_ADMIN_PUBKEY_HASHES_REF = "RAO8KDdS4_Z0-R1qCSKqWcewg0WUSaiQDh_p1N1Bg-zic/get-space-admin-pubkey-hashes";
     public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
     // Ref-scoped roles (Stage 2): takes the ref's root nanopub (root_np), matches
     // RoleAssignments on npa:forSpaceRef, so multi-ref spaces don't merge role sets across
