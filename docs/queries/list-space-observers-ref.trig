@@ -19,7 +19,7 @@ sub:Head {
 
 sub:assertion {
   sub:list-space-observers a grlc:grlc-query;
-    dct:description "Lists the observers of a given space ref (space IRI + root definition): agents holding an observer-tier role and no validated admin/maintainer/member role. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and its space IRI. Unlike list-space-observers (which reads only the validated current-state graph), this also includes self-declared observers whose key is not trust-validated (no accepted introduction): such rows carry a warning marker in the headerless ?unverified_noheader column. Ref-scoped and shows un-introduced observers rather than hiding them.";
+    dct:description "Lists the observers of a given space ref (space IRI + root definition): agents holding an observer-tier role and no validated admin/maintainer/member role. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and its space IRI. Unlike list-space-observers (which reads only the validated current-state graph), this also includes self-declared observers whose key is not trust-validated (no accepted introduction): such rows carry a warning marker in the headerless ?unverified_noheader column. The role label is pinned to the role the space actually assigned (via its RoleAssignment), so it is correct even when several role declarations share a property. Ref-scoped and shows un-introduced observers rather than hiding them.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "List space observers (ref-scoped, with validation flag)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
@@ -42,27 +42,26 @@ where {
   graph npa:spacesGraph {
     ?ri a gen:RoleInstantiation ; npa:forSpace ?spaceIri ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
         (npa:regularProperty|npa:inverseProperty) ?roleProp .
-    ?rd a npa:RoleDeclaration ; npa:hasRoleType gen:ObserverRole ;
-        (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ;
-        npa:viaNanopub ?roleNp ; npa:role ?role .
   }
+  filter exists { graph npa:spacesGraph { ?rdf a npa:RoleDeclaration ; npa:hasRoleType gen:ObserverRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } }
   filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp . } }
   filter not exists {
-    graph ?g {
-      ?hri npa:forSpaceRef ?ref ; npa:forAgent ?member ; (npa:regularProperty|npa:inverseProperty) ?hp .
-    }
-    graph npa:spacesGraph {
-      ?hrd a npa:RoleDeclaration ; (gen:hasRegularProperty|gen:hasInverseProperty) ?hp .
-      { ?hrd npa:hasRoleType gen:MemberRole } union { ?hrd npa:hasRoleType gen:MaintainerRole }
-    }
+    graph ?g { ?hri npa:forSpaceRef ?ref ; npa:forAgent ?member ; (npa:regularProperty|npa:inverseProperty) ?hp . }
+    graph npa:spacesGraph { ?hrd a npa:RoleDeclaration ; (gen:hasRegularProperty|gen:hasInverseProperty) ?hp .
+      { ?hrd npa:hasRoleType gen:MemberRole } union { ?hrd npa:hasRoleType gen:MaintainerRole } }
   }
   filter not exists { graph ?g { ?ari npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:inverseProperty gen:hasAdmin . } }
   bind(if(exists { graph ?g { ?vri npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:viaNanopub ?grantNp } }, 1, 0) as ?val)
-  graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
-  optional { graph ?role_a { ?role schema:name ?rlS } }
-  optional { graph ?role_a { ?role rdfs:label ?rlA } }
-  optional { graph ?role_a { ?role dct:title ?rlB } }
-  bind(coalesce(?rlS, ?rlA, ?rlB, \"role\") as ?roleLabel)
+  optional {
+    graph ?g { ?raRole a gen:RoleAssignment ; npa:forSpaceRef ?ref ; gen:hasRole ?role . }
+    graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; npa:role ?role ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp . }
+    graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
+    optional { graph ?role_a { ?role schema:name ?rlS } }
+    optional { graph ?role_a { ?role rdfs:label ?rlA } }
+    optional { graph ?role_a { ?role dct:title ?rlB } }
+    bind(coalesce(?rlS, ?rlA, ?rlB) as ?rl)
+  }
+  bind(coalesce(?rl, \"role\") as ?roleLabel)
 }
 group by ?member
 order by ?unverified_noheader ?member""" .
@@ -75,7 +74,7 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
 
-  this: dct:created "2026-06-16T12:09:45Z"^^xsd:dateTime;
+  this: dct:created "2026-06-16T12:33:07Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
     npx:embeds sub:list-space-observers .
