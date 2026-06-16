@@ -1,8 +1,10 @@
 # Space-ref identity (space IRI + root-definition NPID)
 
-**Status:** 🚧 In progress — the identity model is decided and ref-aware detail
-views ship today, but the per-ref `SpaceRepository` migration is still pending and
-is coupled to the nanopub-query server roll-out.
+**Status:** 🚧 In progress — the identity model is decided, the ref-aware spaces
+backend is live (nanopub-query 1.16.0 on all instances), and per-space authority is
+ref-scoped end to end. Remaining: the one-`Space`-per-ref identity flip + multi-ref
+disambiguation UI, sub-space / maintained-resource ref-scoping, and the roll-out
+fork-merge of the new spaces-repo queries.
 
 ## The problem
 
@@ -34,56 +36,48 @@ Consequences:
 
 ## Where Nanodash is today
 
-Partly migrated:
+Backend + per-space authority are migrated; the visible identity model (one `Space`
+per ref) is not yet.
 
 | Aspect | State |
 | --- | --- |
 | `Space` identity carries the ref | ✅ `Space.getNanopubId()` returns the root NPID; `Space.getCoreInfoString()` = `id + " " + rootNanopubId` (`domain/Space.java`) |
 | Admin seeded per root | ✅ `new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, rootNanopubId)` (`domain/Space.java`) |
-| Ref-aware detail views | ✅ Info / heads views scope to a single ref via the `?_spaceNp_iri` placeholder, filled from `space.getNanopubId()` (wire param `spaceNp`, `component/AboutSpacePanel.java`) |
-| Space *listing* keyed by ref | ❌ `SpaceRepository.build` still dedups by `space_iri`, first-row-of-`DESC(?date)` wins (`repository/SpaceRepository.java`) — i.e. **one `Space` per IRI**, so the globally-latest definition across all refs can hijack `rootNanopub` and flip-flop |
+| Ref-aware detail views | ✅ Info / heads views scope to a single ref via the `?_spaceNp_iri` placeholder, filled from `space.getNanopubId()` (`component/AboutSpacePanel.java`) |
+| Space *listing* ref-keyed | ✅ `SpaceRepository.build` reduces by **ref** (`reduceByRef`): one representative `Space` per IRI (the active ref) + captures all ref roots per IRI; fed by the live ref-aware `get-spaces` v3 (`GET_SPACES_REF`) |
+| Per-space authority ref-scoped | ✅ admins, admin-pubkey-hashes, roles, members, observers all queried via `root_np` → `npa:forSpaceRef` (`Space.spaceQueryRef`), so multi-ref spaces don't merge authority across refs |
+| Un-introduced members/observers | ✅ shown **with a ⚠️ flag** rather than hidden (validation = trust-approved `AccountState` from an accepted introduction); `Space.isMemberValidated()`, headerless `unverified_noheader` column in the Observers query |
+| One `Space` per *ref* + disambiguation UI | ❌ `Space` is still IRI-identified (one representative per IRI). "N spaces claim this IRI" disambiguation is future |
+| Sub-spaces / maintained-resources ref-scoped | ❌ still IRI-keyed (they work on the dual-keyed server; low-value, deferred) |
 
-The remaining client work is the **`SpaceRepository` migration**: keep one `Space`
-per *ref* (not per IRI), and move grouping-by-IRI / trust-gating / disambiguation
-into display logic, threading the ref through every follow-up query (members,
-roles, sub-spaces, maintained resources, …).
+## Server status
 
-## Cross-repo dependency (why the listing change is on hold)
+The cross-repo dependency that once gated this is **resolved**:
 
-The server materializer and the published read queries have to move together:
+- nanopub-query is at **1.16.0** on all live instances — authority is **dual-keyed**
+  (rows carry both `npa:forSpace` and `npa:forSpaceRef`), so IRI-keyed reads still
+  work *and* ref-scoped reads are available. (History: 1.15.0 ref-only was reverted
+  after the 2026-06-12 mixed-fleet empty-home-page incident; 1.15.1 Phase-1.5 bridge
+  restored bare-IRI reads; 1.16.0 shipped. See `../nanopub-query/doc/`.)
+- All new spaces-repo queries are published as **independent nanopubs** (no
+  `npx:supersedes`), so deployed instances are unaffected; the client repoints to
+  them. `GET_SPACES` now points at the ref-aware v3 (`GET_SPACES_REF`). Sources of
+  the published queries are in `docs/queries/`.
+- The eventual roll-out will **fork-merge** the new query heads with the old ones —
+  the same pattern used for the space-roles view.
 
-- The full per-ref isolation design lives in
-  `../nanopub-query/doc/design-spaceref-isolation.md`;
-  `design-space-repositories.md` defines the ref format and the spaces graph.
-- nanopub-query **1.15.0** (ref-only state) was deployed to `query.nanodash.net`
-  and then **reverted**: it re-keyed `npa:` state edges (`isMaintainedBy`,
-  `hasSubSpace`, `sameAsSpace`, authority rows) to refs, so the existing IRI-keyed
-  published queries returned **empty-but-200** there. Because nanopub-java's
-  `QueryCall` races the whole fleet and accepts the first 2xx, one such instance
-  silently empties consumers fleet-wide — the 2026-06-12 mixed-fleet empty-home-page
-  incident (`report-2026-06-12-mixed-fleet-spaceref-breakage.md`).
-- **Phase 1.5** — a dual-key / bridge so bare-IRI reads return rows again (parity
-  with 1.14.4), gated by `canary-checklist-spaceref-1.15.md`, which now exercises
-  the `/api` read path, not just state shape — must land and pass before 1.15.x
-  redeploys.
+## Status snapshot (2026-06-16)
 
-The released Nanodash (4.28.0) does **not** read the spaces repo, so a post-4.28.0
-Nanodash can co-release with revised, ref-explicit grlc queries. The current
-`get-spaces` head in code (`RAxGboS…/get-spaces`, IRI-keyed, dedup-by-IRI) is
-therefore deliberately pinned; the ref-aware `get-spaces` will be published as a
-**new independent nanopub** (no `npx:supersedes`, so running instances stay pinned),
-pointed to on the co-release branch, then fork-merged at roll-out — the same pattern
-used for the space-roles view.
-
-## Status snapshot (measured 2026-06-12)
-
-6 of 114 live spaces had multiple live refs (plantmetwiki ×4, PSE8-hackathon ×3,
-incubator/project2 ×3, ReproNanopub / session31 / dggs4eo ×2). **All** had identical
-root-admin sets across their refs (some with different *signers*), so a same-owner
-collapse rule must compare **root-admin sets**, not signers; **zero** spaces would
-hit a disambiguation UI today. The strays are cleanup candidates (republish with an
-explicit `gen:hasRootDefinition` + invalidate), ideally before co-release so
-duplicates never render.
+7 of ~115 live spaces have multiple live refs at the `get-spaces` filter level
+(plantmetwiki ×4, project2 / Nanopublications-Hackathon ×3, FAIR2Adapt / session31 /
+dggs4eo / ReproNanopub ×2). Most are same-owner strays (identical root-admin sets
+across refs), but **FAIR2Adapt now diverges**: its two refs have *different* admin
+sets (one ref grants an admin the other doesn't) — exactly the case a disambiguation
+UI would surface. Today the client shows the representative ref (the active definition
+from `get-spaces`), and the ref-scoped authority queries already keep each ref's
+admins/roles/members from bleeding into the others. The same-owner collapse rule
+should compare **root-admin sets**, not signers. Strays are cleanup candidates
+(republish with an explicit `gen:hasRootDefinition` + invalidate).
 
 ## Related
 

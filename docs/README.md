@@ -11,7 +11,7 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | [presets](presets.md) | 🚧 In progress | Publishable bundles of default views + roles, assignable to resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
 | [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |
 | [role-specific-views](role-specific-views.md) | ✅ Implemented | View **action buttons** gated to a role tier (Maintainer, …) or specific role, via `gen:isVisibleTo` on the action node |
-| [space-ref-identity](space-ref-identity.md) | 🚧 In progress | A space's identity is IRI + root-definition NPID (rival roots = distinct spaces); ref-aware views ship, per-ref `SpaceRepository` pending (coupled to nanopub-query roll-out) |
+| [space-ref-identity](space-ref-identity.md) | 🚧 In progress | A space's identity is IRI + root-definition NPID (rival roots = distinct spaces); ref-keyed `SpaceRepository` + ref-scoped per-space authority queries shipped; one-`Space`-per-ref identity + disambiguation UI still to come |
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
 | [draft-with-ai](draft-with-ai.md) | 📋 Proposed | Server-side "Draft with AI" nanopub authoring |
 
