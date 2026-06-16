@@ -73,6 +73,20 @@ public class ResourceTabs extends Panel {
      * @param active     the tab to mark as selected
      */
     public ResourceTabs(String id, String type, String resourceId, String contextId, Tab active) {
+        this(id, type, resourceId, contextId, active, null);
+    }
+
+    /**
+     * Constructs the tab strip, optionally pinned to a specific space ref via {@code root}.
+     *
+     * @param id         the Wicket markup id
+     * @param type       the resource kind
+     * @param resourceId the resource (or part) IRI
+     * @param contextId  the context resource IRI (for parts), or {@code null}
+     * @param active     the tab to mark as selected
+     * @param root       the space ref's root nanopub to carry across tab switches, or {@code null}
+     */
+    public ResourceTabs(String id, String type, String resourceId, String contextId, Tab active, String root) {
         super(id);
 
         Class<? extends WebPage> pageClass;
@@ -98,14 +112,14 @@ public class ResourceTabs extends Panel {
                 throw new IllegalArgumentException("Unknown resource type: " + type);
         }
 
-        add(tabLink("content-tab", pageClass, params(resourceId, contextId, null), active == Tab.CONTENT));
+        add(tabLink("content-tab", pageClass, params(resourceId, contextId, null, root), active == Tab.CONTENT));
         if (hasAbout) {
-            add(tabLink("about-tab", pageClass, params(resourceId, contextId, "about"), active == Tab.ABOUT));
+            add(tabLink("about-tab", pageClass, params(resourceId, contextId, "about", root), active == Tab.ABOUT));
         } else {
             add(new WebMarkupContainer("about-tab").setVisible(false));
         }
-        add(tabLink("explore-tab", pageClass, params(resourceId, contextId, "explore"), active == Tab.EXPLORE));
-        add(tabLink("raw-tab", pageClass, params(resourceId, contextId, "raw"), active == Tab.RAW));
+        add(tabLink("explore-tab", pageClass, params(resourceId, contextId, "explore", root), active == Tab.EXPLORE));
+        add(tabLink("raw-tab", pageClass, params(resourceId, contextId, "raw", root), active == Tab.RAW));
     }
 
     /**
@@ -153,10 +167,11 @@ public class ResourceTabs extends Panel {
         }
     }
 
-    private PageParameters params(String resourceId, String contextId, String tab) {
+    private PageParameters params(String resourceId, String contextId, String tab, String root) {
         PageParameters p = new PageParameters().set("id", resourceId);
         if (contextId != null) p.set("context", contextId);
         if (tab != null) p.set("tab", tab);
+        if (root != null) p.set("root", root);
         return p;
     }
 

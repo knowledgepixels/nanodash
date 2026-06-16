@@ -76,17 +76,29 @@ public class AboutSpacePanel extends Panel {
      * @param space the space whose About listings to render
      */
     public AboutSpacePanel(String id, Space space) {
+        this(id, space, null);
+    }
+
+    /**
+     * @param id            the Wicket markup id
+     * @param space         the space whose About listings to render
+     * @param effectiveRoot the root nanopub of the specific ref to scope the ref-aware views
+     *                      (Info, Observers) to, or null to use the representative ref. See
+     *                      docs/space-ref-identity.md.
+     */
+    public AboutSpacePanel(String id, Space space, String effectiveRoot) {
         super(id);
 
         // "Structure" section: key-value info, presets, assigned roles, view displays.
 
         // The info view leads the section (to the left of the presets). Its query is
-        // scoped to a single space-ref, so it needs both the space IRI and the
-        // space's nanopub (the latest-definition NP) — bind them as separate params.
+        // scoped to a single space-ref, so it needs both the space IRI and the ref's
+        // nanopub — bind them as separate params. When viewing a specific claimant the
+        // effectiveRoot pins it to that ref's root definition.
         View infoView = View.get(SPACE_INFO_VIEW);
         Multimap<String, String> infoParams = ArrayListMultimap.create();
         infoParams.put("space", space.getId());
-        infoParams.put("spaceNp", space.getNanopubId());
+        infoParams.put("spaceNp", effectiveRoot != null ? effectiveRoot : space.getNanopubId());
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).build());
 
         View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
@@ -114,7 +126,7 @@ public class AboutSpacePanel extends Panel {
         // self-declared observers (flagged via the headerless ⚠️ column), instead of the view's
         // own validated-only query. The view nanopub is left untouched. Falls back to the view's
         // IRI-keyed query when the ref root is unknown (pre-v3 data). See docs/space-ref-identity.md.
-        String observersRefRoot = space.getRefRootId();
+        String observersRefRoot = effectiveRoot != null ? effectiveRoot : space.getRefRootId();
         QueryRef observersQuery = (observersRefRoot != null && !observersRefRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_OBSERVERS_REF, "root_np", observersRefRoot)
                 : new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId());

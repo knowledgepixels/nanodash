@@ -12,6 +12,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -71,16 +72,23 @@ public class SpacePage extends NanodashPage {
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
 
+        // Optional ?root=<NPID> pins the page to a specific ref (one of the IRI's claimants);
+        // validated against the known refs. null = the representative (default) ref. Carried
+        // across tab switches so the pinned ref survives navigation.
+        String rootParam = parameters.get("root").toString(null);
+        final String effectiveRoot = (rootParam != null && !rootParam.isEmpty()
+                && space.getRefRoots().contains(rootParam)) ? rootParam : null;
+
         List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             // Top-level space (no superspace): show only the tab strip, no breadcrumb.
             add(new TitleBar("titlebar", this, null)
-                    .setTabs(new ResourceTabs("tabs", "space", space.getId(), activeTab)));
+                    .setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         } else {
             superSpaces.add(space);
             add(new TitleBar("titlebar", this, null,
                     superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
-            ).setTabs(new ResourceTabs("tabs", "space", space.getId(), activeTab)));
+            ).setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
@@ -88,24 +96,43 @@ public class SpacePage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
-        // Disambiguation notice: this identifier is claimed by several rival root
-        // definitions with different admins (not just same-owner stray duplicates). The
-        // page shows the representative (most recent) ref. See docs/space-ref-identity.md.
-        String conflictMsg = space.hasConflictingRefs()
-                ? "⚠ This space identifier is claimed by " + space.getRefCount()
-                        + " competing definitions with different admins — showing the most recent one."
-                : "";
-        add(new Label("ref-conflict", conflictMsg).setVisible(!conflictMsg.isEmpty()));
+        // Disambiguation notice. Three cases: viewing a specific claimant (ref pinned),
+        // the default view of an identifier with conflicting claimants, or no notice.
+        // Hidden on the claimants overview itself. See docs/space-ref-identity.md.
+        boolean onClaimants = !parameters.get("claimants").isNull();
+        String bannerText = "";
+        if (!onClaimants && effectiveRoot != null) {
+            bannerText = "You are viewing one of " + space.getRefCount()
+                    + " definitions claiming this identifier (rooted at " + shortNp(effectiveRoot)
+                    + "). Member and role lists below still reflect the merged identifier view. ";
+        } else if (!onClaimants && space.hasConflictingRefs()) {
+            bannerText = "⚠ This space identifier is claimed by " + space.getRefCount()
+                    + " competing definitions with different admins — showing the most recent one. ";
+        }
+        WebMarkupContainer refConflictNotice = new WebMarkupContainer("ref-conflict");
+        refConflictNotice.setVisible(!bannerText.isEmpty());
+        refConflictNotice.add(new Label("ref-conflict-text", bannerText));
+        refConflictNotice.add(new BookmarkablePageLink<Void>("ref-conflict-link", SpacePage.class,
+                new PageParameters().add("id", space.getId()).add("claimants", "true")));
+        add(refConflictNotice);
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
+
+        // Claimants overview: list all root definitions claiming this IRI (explicit
+        // disambiguation), instead of the normal tab content.
+        if (!parameters.get("claimants").isNull()) {
+            contentContainer.add(new SpaceClaimantsPanel("views", space));
+            add(new EmptyPanel("otherTab").setVisible(false));
+            return;
+        }
         if (activeTab != ResourceTabs.Tab.CONTENT) {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
                 // The panel constructor resolves view nanopubs over the network when
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
-                add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject()),
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject(), effectiveRoot),
                         AboutSpacePanel.SPACE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
                         AboutSpacePanel.MEMBERS_VIEW, AboutSpacePanel.OBSERVERS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
@@ -150,6 +177,13 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /** A short, human-scannable form of a nanopub IRI (its artifact-code prefix). */
+    private static String shortNp(String npIri) {
+        int i = Math.max(npIri.lastIndexOf('/'), npIri.lastIndexOf('#'));
+        String code = i < 0 ? npIri : npIri.substring(i + 1);
+        return code.length() > 16 ? code.substring(0, 16) + "…" : code;
     }
 
     /**

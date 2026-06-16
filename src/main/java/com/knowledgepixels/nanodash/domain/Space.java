@@ -212,6 +212,54 @@ public class Space extends AbstractResourceWithProfile {
         return false;
     }
 
+    /**
+     * All refs (root definitions) claiming this space's IRI, each with its validated admin
+     * agents — the representative (currently-shown) ref first. Used by the disambiguation
+     * claimants view. See docs/space-ref-identity.md.
+     *
+     * @return the claimants, representative first (a singleton for the common single-ref case)
+     */
+    public List<RefClaimant> getRefClaimants() {
+        List<String> ordered = new ArrayList<>();
+        if (refRootId != null && !refRootId.isEmpty()) ordered.add(refRootId);
+        for (String root : refRoots) {
+            if (!root.equals(refRootId)) ordered.add(root);
+        }
+        List<RefClaimant> claimants = new ArrayList<>();
+        for (String root : ordered) {
+            claimants.add(new RefClaimant(root, adminAgentsForRef(root), root.equals(refRootId)));
+        }
+        return claimants;
+    }
+
+    /** A single ref (root definition) claiming a space's IRI, with its validated admins. */
+    public static final class RefClaimant implements Serializable {
+        private final String rootNp;
+        private final List<String> admins;
+        private final boolean representative;
+
+        RefClaimant(String rootNp, Set<String> admins, boolean representative) {
+            this.rootNp = rootNp;
+            this.admins = new ArrayList<>(admins);
+            this.representative = representative;
+        }
+
+        /** The root-definition nanopub ID identifying this ref. */
+        public String getRootNp() {
+            return rootNp;
+        }
+
+        /** The validated admin agent IRIs of this ref. */
+        public List<String> getAdmins() {
+            return admins;
+        }
+
+        /** Whether this is the representative ref currently shown on the space page. */
+        public boolean isRepresentative() {
+            return representative;
+        }
+    }
+
     /** The validated admin agent IRIs for a single ref (by its root nanopub). */
     private Set<String> adminAgentsForRef(String rootNp) {
         Multimap<String, String> params = ArrayListMultimap.create();
