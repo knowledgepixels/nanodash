@@ -9,7 +9,7 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | --- | --- | --- |
 | [userlist-views](userlist-views.md) | ✅ Implemented | Human / Software / Non-Approved user lists as published views on `UserListPage` |
 | [presets](presets.md) | 🚧 In progress | Publishable bundles of default views + roles, assignable to resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
-| [magic-query-params](magic-query-params.md) | 🚧 In progress | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`); path to replace the custom introductions table with a proper view |
+| [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |
 | [role-specific-views](role-specific-views.md) | ✅ Implemented | View **action buttons** gated to a role tier (Maintainer, …) or specific role, via `gen:isVisibleTo` on the action node |
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
 | [draft-with-ai](draft-with-ai.md) | 📋 Proposed | Server-side "Draft with AI" nanopub authoring |
