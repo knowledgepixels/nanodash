@@ -1,0 +1,69 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:get-space-members a grlc:grlc-query;
+    dct:description "Returns the (non-admin) members of a given space ref (space IRI + root definition), each with a ?validated flag. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and its space IRI, then returns every non-admin gen:RoleInstantiation naming that IRI from the raw npa:spacesGraph (member agent, role's regular/inverse property, instantiating nanopublication), with ?validated = true when that instantiation is also present in the trust-state-validated current space-state graph for this ref (i.e. the agent's key has a trust-approved AccountState from an accepted introduction), false otherwise. This shows all self-declared members while flagging the un-introduced/unvalidated ones, rather than hiding them.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get space members (ref-scoped, with validation flag)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?member ?regProp ?invProp ?np (\"^\" as ?np_label) ?validated where {
+  values ?_root_np_multi_iri {}
+  graph npa:spacesGraph {
+    ?ref npa:rootNanopub ?_root_np_multi_iri ;
+         npa:spaceIri ?spaceIri .
+  }
+  graph npa:spacesGraph {
+    ?ri a gen:RoleInstantiation ;
+        npa:forSpace ?spaceIri ;
+        npa:forAgent ?member ;
+        npa:viaNanopub ?np .
+    optional { ?ri npa:regularProperty ?regProp }
+    optional { ?ri npa:inverseProperty ?invProp }
+    filter not exists { ?ri npa:inverseProperty gen:hasAdmin }
+  }
+  filter not exists { graph npa:graph { ?invNp npx:invalidates ?np . } }
+  bind(exists {
+    graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+    graph ?g {
+      ?vri a gen:RoleInstantiation ;
+           npa:forSpaceRef ?ref ;
+           npa:forAgent ?member ;
+           npa:viaNanopub ?np .
+    }
+  } as ?validated)
+}""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-16T11:27:57Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:get-space-members .
+}

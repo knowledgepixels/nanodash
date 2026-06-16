@@ -97,7 +97,19 @@ public class QueryApiAccess {
     public static final String GET_SPACE_ADMINS_REF = "RAWM8qlKbV3DEH_NsPJ6hIyTrBwIp8sNeg9MGDgu8la1o/get-space-admins";
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES = "RAJvvNY6KXqveJivZKh-chTCntrsY_KJSGLVNRQdi0pUc/get-space-admin-pubkey-hashes";
     public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
+    // Ref-scoped roles (Stage 2): takes the ref's root nanopub (root_np), matches
+    // RoleAssignments on npa:forSpaceRef, so multi-ref spaces don't merge role sets across
+    // refs. Published independently. Source at docs/queries/get-space-roles-ref.trig.
+    public static final String GET_SPACE_ROLES_REF = "RAqUWUfmEmzxpkeuXek7oEiVSnwjuzRfV8kRe7pQSpe4c/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
+    // Ref-scoped members (Stage 2): takes the ref's root nanopub (root_np), resolves the
+    // ref + its space IRI, and returns ALL non-admin RoleInstantiations naming that IRI
+    // (raw npa:spacesGraph, matching the looser pre-migration semantic), each with a
+    // ?validated flag = whether it is also in the trust-state-validated current-state graph
+    // (i.e. the agent's key has a trust-approved AccountState from an accepted intro). Shows
+    // every self-declared member while flagging the un-introduced ones, rather than hiding
+    // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
+    public static final String GET_SPACE_MEMBERS_REF = "RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw/get-space-members";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

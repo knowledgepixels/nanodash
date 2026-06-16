@@ -1,0 +1,73 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:get-space-roles a grlc:grlc-query;
+    dct:description "Returns the roles assigned within a given space ref (space IRI + root definition), not merged across refs. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and returns the RoleAssignments scoped to that ref (npa:forSpaceRef) from the current space-state graph (/repo/spaces), joined to each role's declaration (labels, regular/inverse properties, role type) from the spaces graph. Ref-scoped variant of get-space-roles (which is IRI-keyed via npa:forSpace and merges all refs of an IRI).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get space roles (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix schema: <http://schema.org/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate ?roleType
+       (group_concat(distinct ?reg; separator=\" \") as ?regularProperties)
+       (group_concat(distinct ?inv; separator=\" \") as ?inverseProperties)
+       ?ra_np where {
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+  values ?_root_np_multi_iri {}
+  graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri . }
+  graph ?g {
+    ?ra a gen:RoleAssignment ;
+        npa:forSpaceRef ?ref ;
+        gen:hasRole ?role ;
+        npa:viaNanopub ?ra_np .
+  }
+  graph npa:spacesGraph {
+    ?roleDecl a npa:RoleDeclaration ;
+              npa:role ?role ;
+              npa:viaNanopub ?role_np .
+    optional { ?roleDecl gen:hasRegularProperty ?reg }
+    optional { ?roleDecl gen:hasInverseProperty ?inv }
+    optional { ?roleDecl npa:hasRoleType ?roleType }
+  }
+  graph npa:graph { ?role_np np:hasAssertion ?role_a . }
+  optional { graph ?role_a { ?role rdfs:label ?roleLabel } }
+  optional { graph ?role_a { ?role dct:title ?roleTitle } }
+  optional { graph ?role_a { ?role schema:name ?roleName } }
+  optional { graph ?role_a { ?role gen:hasRoleAssignmentTemplate ?roleAssignmentTemplate } }
+} group by ?role ?roleLabel ?roleName ?roleTitle ?roleAssignmentTemplate ?roleType ?ra_np""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-16T10:47:43Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:get-space-roles .
+}

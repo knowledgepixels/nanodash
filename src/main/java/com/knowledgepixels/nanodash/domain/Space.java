@@ -55,18 +55,23 @@ public class Space extends AbstractResourceWithProfile {
         final Map<IRI, Set<SpaceMemberRoleRef>> users;
         final List<SpaceMemberRoleRef> roles;
         final Map<IRI, SpaceMemberRole> roleMap;
+        // Members whose every role instantiation is un-introduced/unvalidated (not in the
+        // trust-validated state). Shown, but flagged. See docs/space-ref-identity.md.
+        final Set<IRI> unvalidatedMembers;
 
         SpaceData(List<IRI> admins, Map<IRI, Set<SpaceMemberRoleRef>> users,
-                  List<SpaceMemberRoleRef> roles, Map<IRI, SpaceMemberRole> roleMap) {
+                  List<SpaceMemberRoleRef> roles, Map<IRI, SpaceMemberRole> roleMap,
+                  Set<IRI> unvalidatedMembers) {
             this.admins = admins;
             this.users = users;
             this.roles = roles;
             this.roleMap = roleMap;
+            this.unvalidatedMembers = unvalidatedMembers;
         }
 
         static final SpaceData EMPTY = new SpaceData(
                 Collections.emptyList(), Collections.emptyMap(),
-                Collections.emptyList(), Collections.emptyMap());
+                Collections.emptyList(), Collections.emptyMap(), Collections.emptySet());
     }
 
     private static final Map<String, String> TYPE_EMOJIS = Map.ofEntries(
@@ -285,6 +290,19 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     /**
+     * Whether a member's membership is trust-validated (their key has a trust-approved
+     * AccountState from an accepted introduction). Admins and any member with at least one
+     * validated role instantiation are considered validated; un-introduced self-declared
+     * members are not. See docs/space-ref-identity.md.
+     *
+     * @param userId The IRI of the member.
+     * @return false only when the member is present but every instantiation is unvalidated.
+     */
+    public boolean isMemberValidated(IRI userId) {
+        return !currentData().unvalidatedMembers.contains(userId);
+    }
+
+    /**
      * Get the roles of a specific member in this space.
      *
      * @param userId The IRI of the member.
@@ -397,9 +415,9 @@ public class Space extends AbstractResourceWithProfile {
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
         Multimap<String, String> params = spaceParams(allSpaceIris());
-        ApiCache.clearCache(adminsQueryRef(), waitMillis);
-        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), waitMillis);
-        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, params), waitMillis);
+        ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, QueryApiAccess.GET_SPACE_ADMINS), waitMillis);
+        ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_ROLES_REF, QueryApiAccess.GET_SPACE_ROLES), waitMillis);
+        ApiCache.clearCache(spaceQueryRef(QueryApiAccess.GET_SPACE_MEMBERS_REF, QueryApiAccess.GET_SPACE_MEMBERS), waitMillis);
         ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACE_ADMIN_PUBKEY_HASHES, params), waitMillis);
     }
 
@@ -411,12 +429,12 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private synchronized SpaceData currentData() {
-        Multimap<String, String> params = spaceParams(allSpaceIris());
-        ApiResponse adminsResp = ApiCache.retrieveResponseSync(adminsQueryRef(), false);
+        ApiResponse adminsResp = ApiCache.retrieveResponseSync(
+                spaceQueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, QueryApiAccess.GET_SPACE_ADMINS), false);
         ApiResponse rolesResp = ApiCache.retrieveResponseSync(
-                new QueryRef(QueryApiAccess.GET_SPACE_ROLES, params), false);
+                spaceQueryRef(QueryApiAccess.GET_SPACE_ROLES_REF, QueryApiAccess.GET_SPACE_ROLES), false);
         ApiResponse membersResp = ApiCache.retrieveResponseSync(
-                new QueryRef(QueryApiAccess.GET_SPACE_MEMBERS, params), false);
+                spaceQueryRef(QueryApiAccess.GET_SPACE_MEMBERS_REF, QueryApiAccess.GET_SPACE_MEMBERS), false);
         if (adminsResp == cachedAdminsResp && rolesResp == cachedRolesResp && membersResp == cachedMembersResp) {
             return cachedData;
         }
@@ -447,9 +465,10 @@ public class Space extends AbstractResourceWithProfile {
         admins.sort(User.getUserData().userComparator);
 
         loadRoles(roles, roleMap, rolesResp);
-        loadMembers(users, roleMap, membersResp);
+        Set<IRI> unvalidatedMembers = new HashSet<>();
+        loadMembers(users, roleMap, membersResp, unvalidatedMembers);
 
-        return new SpaceData(admins, users, roles, roleMap);
+        return new SpaceData(admins, users, roles, roleMap, unvalidatedMembers);
     }
 
     private static Multimap<String, String> spaceParams(List<String> spaceIris) {
@@ -459,18 +478,19 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     /**
-     * Query reference for this space's admins. When the ref root is known (ref-aware
-     * get-spaces), use the ref-scoped admins query so multi-ref spaces don't merge admin
-     * sets across refs; otherwise fall back to the IRI-keyed query. See
+     * Query reference for a per-space query that has both a ref-scoped variant (param
+     * root_np = the ref's root nanopub) and an IRI-keyed variant. When the ref root is
+     * known (ref-aware get-spaces) use the ref-scoped query so multi-ref spaces don't merge
+     * authority across refs; otherwise fall back to the IRI-keyed query. See
      * docs/space-ref-identity.md.
      */
-    private QueryRef adminsQueryRef() {
+    private QueryRef spaceQueryRef(String refQueryId, String iriQueryId) {
         if (refRootId != null && !refRootId.isEmpty()) {
             Multimap<String, String> p = ArrayListMultimap.create();
             p.put("root_np", refRootId);
-            return new QueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, p);
+            return new QueryRef(refQueryId, p);
         }
-        return new QueryRef(QueryApiAccess.GET_SPACE_ADMINS, spaceParams(allSpaceIris()));
+        return new QueryRef(iriQueryId, spaceParams(allSpaceIris()));
     }
 
     private static void loadAdmins(List<IRI> admins, Map<IRI, Set<SpaceMemberRoleRef>> users, ApiResponse resp) {
@@ -503,7 +523,7 @@ public class Space extends AbstractResourceWithProfile {
         }
     }
 
-    private static void loadMembers(Map<IRI, Set<SpaceMemberRoleRef>> users, Map<IRI, SpaceMemberRole> roleMap, ApiResponse resp) {
+    private static void loadMembers(Map<IRI, Set<SpaceMemberRoleRef>> users, Map<IRI, SpaceMemberRole> roleMap, ApiResponse resp, Set<IRI> unvalidatedMembers) {
         // Pulls RI candidates from the extraction graph (npa:spacesGraph) rather
         // than the validated state graph. The materialiser is correctly stricter
         // (e.g., it stops admitting RIs when their role declaration is
@@ -517,6 +537,13 @@ public class Space extends AbstractResourceWithProfile {
         // regardless of who signed the member RI. Invalidated rows are filtered
         // server-side via the npx:invalidates triple in npa:graph.
         if (resp == null) return;
+        // The ref-scoped query carries a ?validated flag per row (true when the membership
+        // is in the trust-validated state). When present, a member with no validated row is
+        // flagged as unvalidated (shown, but un-introduced). The IRI-keyed fallback query
+        // has no flag, so nothing is flagged.
+        Set<IRI> seenMembers = new HashSet<>();
+        Set<IRI> validatedMembers = new HashSet<>();
+        boolean hasValidationFlag = false;
         for (ApiResponseEntry r : resp.getData()) {
             SpaceMemberRole role = null;
             for (String key : new String[] {"regProp", "invProp"}) {
@@ -536,6 +563,17 @@ public class Space extends AbstractResourceWithProfile {
             String np = r.get("np");
             users.computeIfAbsent(memberId, k -> new HashSet<>())
                     .add(new SpaceMemberRoleRef(role, np));
+            seenMembers.add(memberId);
+            String validated = r.get("validated");
+            if (validated != null) {
+                hasValidationFlag = true;
+                if ("true".equals(validated)) validatedMembers.add(memberId);
+            }
+        }
+        if (hasValidationFlag) {
+            for (IRI memberId : seenMembers) {
+                if (!validatedMembers.contains(memberId)) unvalidatedMembers.add(memberId);
+            }
         }
     }
 
