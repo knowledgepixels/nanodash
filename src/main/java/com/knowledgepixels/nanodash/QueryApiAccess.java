@@ -115,7 +115,7 @@ public class QueryApiAccess {
     // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
     // Observers view's table (the view nanopub is left untouched). Published independently.
     // Source at docs/queries/list-space-observers-ref.trig.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAIOXAZozCwXLk0pi7TNw_RP1IhV3Ewr1MzpfWLVIC88k/list-space-observers";
+    public static final String LIST_SPACE_OBSERVERS_REF = "RARc37t3fXMzrFP-PYsdmIqsDdloZaNklY4eYxpUKaLHI/list-space-observers";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
