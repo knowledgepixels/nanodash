@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -109,7 +110,15 @@ public class AboutSpacePanel extends Panel {
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());
 
         View observersView = View.get(OBSERVERS_VIEW);
-        add(QueryResultTableBuilder.create("observers", new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(observersView)).build());
+        // Drive the Observers table from the ref-scoped query that also includes un-introduced
+        // self-declared observers (flagged via the headerless ⚠️ column), instead of the view's
+        // own validated-only query. The view nanopub is left untouched. Falls back to the view's
+        // IRI-keyed query when the ref root is unknown (pre-v3 data). See docs/space-ref-identity.md.
+        String observersRefRoot = space.getRefRootId();
+        QueryRef observersQuery = (observersRefRoot != null && !observersRefRoot.isEmpty())
+                ? new QueryRef(QueryApiAccess.LIST_SPACE_OBSERVERS_REF, "root_np", observersRefRoot)
+                : new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId());
+        add(QueryResultTableBuilder.create("observers", observersQuery, new ViewDisplay(observersView)).build());
 
         // "Sub-units" section: sub-spaces and maintained resources, side by side
         // (both views declare 6/12 width). resourceWithProfile/id/contextId let the

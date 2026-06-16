@@ -110,6 +110,12 @@ public class QueryApiAccess {
     // every self-declared member while flagging the un-introduced ones, rather than hiding
     // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
     public static final String GET_SPACE_MEMBERS_REF = "RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw/get-space-members";
+    // Ref-scoped observers (Stage 2): takes the ref's root nanopub (root_np), lists observers
+    // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
+    // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
+    // Observers view's table (the view nanopub is left untouched). Published independently.
+    // Source at docs/queries/list-space-observers-ref.trig.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RA5c1wouyLIRpmpCXdQfYx06_ejH2Zb5yHDChOHLFl0Po/list-space-observers";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
