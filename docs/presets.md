@@ -1,6 +1,6 @@
 # Presets for Nanodash
 
-**Status:** 🚧 In progress — see [issue #302](https://github.com/knowledgepixels/nanodash/issues/302)
+**Status:** ✅ Implemented — see [issue #302](https://github.com/knowledgepixels/nanodash/issues/302)
 
 A **preset** is a named, publishable bundle of default views and roles that can
 be applied to a resource page (a user, a space, or a maintained resource).
@@ -201,19 +201,26 @@ Reference view-display templates:
   one pool and override each other in both directions, by publication time. A
   standalone view display can deactivate/override a preset's view and vice versa.
 
-## Open questions
+## Resolved decisions (as implemented)
 
-- **Top-level vs. default views:** confirm the intended rendering difference
-  between `gen:hasTopLevelView` and `gen:hasView` on the resource page.
-- **A dedicated deactivation template:** the assignment template already exposes
-  the activated/deactivated toggle, but a separate "Deactivating a preset
-  assignment" template (mirroring the view-display one) may be friendlier in the
-  UI.
-- **Assignment target granularity:** the example assignment references the
-  concrete preset-version node (`.../test-preset`) rather than the version-
-  independent `presetKind`, relying on supersedes-chain resolution (as views do).
-  Confirm this is the intended reference, or whether assignments should point at
-  the kind directly.
+These were open during design; the implementation has since settled them.
+
+- **Top-level vs. default views:** distinct and built. `gen:hasTopLevelView`
+  views are pinned to the resource's own page (shown at the top level);
+  `gen:hasView` views leave their applicability to fall back to the view's own
+  `appliesToInstancesOf` / `appliesToNamespace`. See `Preset` (`topLevelViews`
+  vs `views`) and `ViewDisplay.forPresetView(…, topLevel, …)`.
+- **Deactivation:** an assignment is deactivated by publishing a
+  `gen:DeactivatedPresetAssignment` for the same `(preset, resource)` pair
+  (latest-wins among authorized agents), so a different agent can deactivate one
+  they did not create — mirroring view-display deactivation. The preset-assignments
+  view exposes a per-row deactivate action; `PresetAssignment.isActive()` reads the
+  type. (No separate "deactivating" template was needed.)
+- **Assignment target granularity:** assignments reference a preset (version)
+  node, and resolution follows the supersedes chain to the latest version —
+  exactly as views do (`PresetAssignment.getPreset()` → `Preset.get()` →
+  `getLatestVersionId`). The version-independent `presetKind` (`dct:isVersionOf`)
+  is captured too (`Preset.getPresetKindIri()`).
 
 ## Example nanopubs
 
