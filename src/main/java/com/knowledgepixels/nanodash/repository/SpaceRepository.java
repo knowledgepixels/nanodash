@@ -70,7 +70,7 @@ public class SpaceRepository {
     private volatile Snapshot snapshot = Snapshot.EMPTY;
 
     private Snapshot current() {
-        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES), false);
+        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES_REF), false);
         if (resp == null) {
             return snapshot;
         }
@@ -100,9 +100,9 @@ public class SpaceRepository {
      * and return the full set of ref roots per IRI for the (deferred) multi-ref
      * disambiguation UI. See docs/space-ref-identity.md.
      * <p>
-     * When rows carry no {@code ?ref} (the pre-v3 query, still live until v3 is
-     * published) this degrades to dedup-by-IRI exactly as before, with empty ref-root
-     * sets.
+     * When rows carry no {@code ?ref} (the pre-v3 {@code GET_SPACES} query, e.g. a server
+     * that has not ingested v3) this degrades to dedup-by-IRI exactly as before, with
+     * empty ref-root sets.
      */
     static RefReduction reduceByRef(List<ApiResponseEntry> rows) {
         Set<String> seenRef = new HashSet<>();
@@ -186,7 +186,7 @@ public class SpaceRepository {
      * @param waitMillis Delay in milliseconds before the next access may trigger a refresh; 0 for immediate.
      */
     public void forceRootRefresh(long waitMillis) {
-        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACES), waitMillis);
+        ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SPACES_REF), waitMillis);
         ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_SUB_SPACE_LINKS), waitMillis);
     }
 

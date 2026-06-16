@@ -78,12 +78,14 @@ public class QueryApiAccess {
     public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
+    // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
+    // to this release stay pinned on it, and the roll-out fork-merge will supersede both
+    // it and v3. No longer fetched by SpaceRepository (now uses GET_SPACES_REF).
     public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
-    // Ref-aware get-spaces (v3): adds ?ref + ?root so the client can key one space per
-    // ref. Published as an independent nanopub (no npx:supersedes), so deployed instances
-    // stay pinned on v2 (GET_SPACES) until this is wired in. Source at
-    // docs/queries/get-spaces-ref.trig. Point GET_SPACES at this in Stage 2 (co-released
-    // with the nanopub-query roll-out). See docs/space-ref-identity.md.
+    // v3: ref-aware get-spaces (adds ?ref + ?root so the client can key one space per
+    // ref). Published as an independent nanopub (no npx:supersedes). Active query used by
+    // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
+    // docs/space-ref-identity.md.
     public static final String GET_SPACES_REF = "RAD5KmWO6uqjM04tK7tb2IREgbxA1GTGyRhaRjjaVIKPw/get-spaces";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
