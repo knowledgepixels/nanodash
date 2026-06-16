@@ -53,6 +53,16 @@ public class AboutSpacePanel extends Panel {
     public static final String MEMBERS_VIEW = "https://w3id.org/np/RAFmrcEqniX7mqrZQ8c4OCqjU-3wwKjLhE2glXAZKFNT0/space-members-view";
 
     /**
+     * View listing a space's non-approved role claims (agents holding an
+     * admin/maintainer/member-tier role instantiation that is not in the
+     * validated state — a self-assigned or otherwise ungranted claim awaiting
+     * approval), built on the list-space-non-approved query. Carries a per-row
+     * "approve" action (visible to members and above) that re-asserts the same
+     * role triple, signed by the approver.
+     */
+    public static final String NON_APPROVED_VIEW = "https://w3id.org/np/RAk5nU4XXK1-CzrE2mcSLcRmJXnANVWgkQ2dNUQzDVR64/pending-members-view";
+
+    /**
      * View listing a space's observers (members whose highest tier is observer,
      * i.e. holding no admin/maintainer/member role), built on the
      * list-space-observers query.
@@ -108,6 +118,20 @@ public class AboutSpacePanel extends Panel {
 
         View membersView = View.get(MEMBERS_VIEW);
         add(QueryResultTableBuilder.create("members", new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId()), new ViewDisplay(membersView)).build());
+
+        // Non-approved (pending) higher-tier role claims, between members and observers.
+        // Ref-scoped (root_np), like the observers table below; there is no IRI-keyed
+        // fallback query, so when the ref root is unknown (pre-v3 data) the table is driven
+        // by the param-less query, which yields no rows. The space is passed as
+        // resource/context so the per-row "approve" action pre-fills param_space; the agent
+        // and role template come from the row via the view's query mappings. postPublishTab
+        // returns the approver to the About tab, where the approved member now shows.
+        View nonApprovedView = View.get(NON_APPROVED_VIEW);
+        String nonApprovedRefRoot = space.getRefRootId();
+        QueryRef nonApprovedQuery = (nonApprovedRefRoot != null && !nonApprovedRefRoot.isEmpty())
+                ? new QueryRef(QueryApiAccess.LIST_SPACE_NON_APPROVED_REF, "root_np", nonApprovedRefRoot)
+                : new QueryRef(QueryApiAccess.LIST_SPACE_NON_APPROVED_REF);
+        add(QueryResultTableBuilder.create("pendingmembers", nonApprovedQuery, new ViewDisplay(nonApprovedView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").build());
 
         View observersView = View.get(OBSERVERS_VIEW);
         // Drive the Observers table from the ref-scoped query that also includes un-introduced
