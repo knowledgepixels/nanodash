@@ -1,6 +1,6 @@
 # Session-bound ("magic") query parameters
 
-**Status:** 🚧 In progress — phase 1 (binding infra + UI-field suppression) and phase 2 (empty-into-required entry-action visibility + multiple mappings) implemented. The wire convention is **verified live**: `get-user-introductions` v2 declares `?__LOCALPUBKEY_multi` and round-trips correctly against `query.knowledgepixels.com` (absent → all rows, flags empty; present → per-row `declares_local_key`/`retract_target` set for intros declaring the local key). Remaining: republish the introductions view(s) with the v2 query + retract/derive entry actions, the recommended-actions view, and the `ProfileIntroItem` cutover.
+**Status:** ✅ Complete. Phases 1–3 are implemented and live: binding infra + UI-field suppression, empty-into-required entry-action visibility (with multiple / non-`param_` mappings), and the introductions + recommended-actions listings republished as views — `ProfileIntroItem` removed entirely. The wire convention is **verified live** against `query.knowledgepixels.com` (absent → all rows, flags empty; present → per-row `declares_local_key`/`retract_target` set for intros declaring the local key). The one `ProfileIntroItem` action that couldn't be expressed as a view action — *include keys* — was **dropped** (2026-06-09), so nothing remains custom.
 
 A **magic query parameter** is a view-query placeholder that Nanodash fills
 automatically from the current browser session, rather than from a value the
@@ -8,15 +8,14 @@ caller passes or the user types into a form. It exists so that a *data-driven
 view* can branch on session/site-local state — the local signing key, the site
 URL — that a SPARQL query keyed only on a resource IRI cannot otherwise see.
 
-The motivating case is the **Introductions** listing on a user's About page
-(`AboutUserPanel` / `ProfileIntroItem`). Today the owner gets a hand-built,
-editable companion (`ProfileIntroItem`) *instead of* the read-only
-introductions-view, because the editable workflow branches on the session's
-local key (which introductions declare it, whether it is approved, which keys
-are missing). Magic params let the query compute those flags, so the whole custom
-panel — both the introductions table and the recommended-actions companion —
-becomes views, removing `ProfileIntroItem` entirely. See the phase-3 design for
-how, and the gap analysis for the one deferred piece (include-keys).
+The motivating case was the **Introductions** listing on a user's About page
+(`AboutUserPanel`). The owner used to get a hand-built, editable companion
+(`ProfileIntroItem`) *instead of* the read-only introductions-view, because the
+editable workflow branches on the session's local key (which introductions
+declare it, whether it is approved). Magic params let the query compute those
+flags, so the whole custom panel — both the introductions table and the
+recommended-actions companion — became views, and `ProfileIntroItem` was removed
+entirely. See the introductions-view design below for how.
 
 This complements, and is independent of, the role-dependent action work: magic
 params supply the *data*; role gating and per-row action visibility decide which
@@ -115,9 +114,9 @@ Deliberately **not** in the registry:
   `LOCALPUBKEY` (`getShortPubkeyName(SHA-256(pubkey))`). Compute it in the query
   or in action-link expansion if ever needed; do not give a derived value its
   own slot.
-- `LOCALINTRO` — only the deferred *include-keys* action needs the specific
-  local-introduction IRI (for `supersede`). Every other flow derives from
-  `LOCALPUBKEY` alone. Add it back only when include-keys goes declarative.
+- `LOCALINTRO` — only the dropped *include-keys* action would have needed the
+  specific local-introduction IRI (for `supersede`). Every live flow derives from
+  `LOCALPUBKEY` alone.
 (`CURRENTUSER` was initially parked here, but the recommended-actions view needs
 it for its owner gate, so it is now in the registry above.)
 
@@ -237,11 +236,6 @@ Today an action carries a single `queryVar:templateParam` mapping that only sets
 `"derive_target:@derive-a local_pubkey:public-key__.1"` — the first drives
 visibility (conditional target), the second supplies the key.
 
-### Multi-value column → indexed params
-
-Extend a mapping so a `_multi*` source column expands to
-`param_<templateParam>__.1..N`. Only *include-keys* needs this.
-
 ### Echo-as-column (no code)
 
 A query may `SELECT` a magic variable back out
@@ -274,7 +268,6 @@ branches — each branch produces a row only when its condition holds:
 | --- | --- | --- |
 | Create an introduction | `localCount = 0` | Create Introduction (entry action) |
 | Retract redundant intros | `localCount > 1` | — (the retract buttons live in the table) |
-| Include missing keys | missing-keys set non-empty | include-keys (deferred — needs multi-expand) |
 | Get your intro approved | `!approved && localCount = 1` | link to the intro / `/userlist` |
 | (key not in any intro / approved status) | informational | — |
 
@@ -361,27 +354,12 @@ viewer holds a local key not yet in any of the user's intros (its `derive_target
   `local_pubkey_short → key-declaration`/`-ref`, `SITEURL → key-location`); no
   fill-mode key. Hidden if any required mapping is empty (logged out → no
   `local_pubkey` → hidden). Same 2b machinery as derive.
-- **include-keys → multi-value→indexed expansion:** deferred. Its recommendation
-  row can show guidance text now, but the action (the missing-keys set-difference
-  expanded into `__.1..N`) waits for multi-expand.
 
 So phase 2 = the **empty-into-required core** + **2b (multiple mappings,
 non-`param_` targets)** — which covers retract, derive, and Create Introduction.
-Multi-expand (include-keys) and `CURRENTUSER` are the remaining additions; nothing
-stays permanently custom.
-
-## Gap analysis: what's deferred (nothing stays permanently custom)
-
 With both the table and the recommendations modelled as views, `ProfileIntroItem`
-is removed entirely. The only deferred piece is **include-keys**:
-
-- It needs `LOCALINTRO` (the `supersede` target) back in the registry, plus the
-  missing-keys set-difference and three correlated indexed parameters per missing
-  key (`public-key`/`key-declaration`/`key-declaration-ref`, the `key-declaration*`
-  being `getShortPubkeyName(SHA-256(pubkey))`). That's the multi-value→indexed
-  expansion (phase 4) — and whether the short-name formatting maps cleanly to
-  SPARQL is the open question. Until then, the include-keys recommendation row can
-  show guidance text without an executable button.
+is removed entirely; nothing stays custom. (The one action that did not fit the
+model, *include-keys*, was dropped — see "Dropped: include keys" below.)
 
 A copy-maintenance note: with the recommendations modelled as a view, the advisory
 wording lives in a query nanopub (`IF`/`CONCAT`), so tweaking it means republishing
@@ -391,12 +369,11 @@ the query — the accepted trade for going fully declarative.
 
 | Change | File |
 | --- | --- |
-| Magic registry + `isMagic` / binding helper | new `SessionQueryBindings.java` (or similar) |
+| Magic registry + `isMagic` / binding helper | `MagicQueryParams.java` |
 | Call binding before fetch | `QueryResultTableBuilder.build()` (+ list / paragraph builders) |
 | Suppress UI fields for magic params | `GrlcQuery.createParamFields` / `QueryParamField` |
 | Empty-into-required hides entry action | `QueryResultTable` (entry-action loop), reading `Template` optionality |
-| Multiple mappings per action + non-`param_` targets | `View` / action model, `QueryResultTable`, `QueryResultTableBuilder` |
-| Multi → indexed expansion | `QueryResultTable` action mapping |
+| Multiple mappings per action + non-`param_` targets | `ViewActionMappings`, `View` / action model, `QueryResultTable`, `QueryResultTableBuilder` |
 
 No new view-definition predicate is introduced: visibility rides on the
 template's existing optionality. The placeholder conventions
@@ -422,7 +399,10 @@ are external (nanopub-java) and need no change.
    `isRequiredField` against the real retract/intro templates.
 3. **Republish the introductions view(s)** with the magic queries and the
    retract/derive entry actions, plus the multi-row recommended-actions view;
-   remove `ProfileIntroItem` entirely.
+   remove `ProfileIntroItem` entirely. ✅ Done — live: the `get-user-introductions`
+   query (with the strict local-key definition described below) + its view, and the
+   recommended-actions query + view; `ProfileIntroItem` (and its
+   `ProfileImageItem`/`ProfileLicenseItem`/`PubkeyItem` siblings) deleted.
 4. ~~**Multi-expand + include-keys**~~ — **dropped** (decided not needed,
    2026-06-09). See "Dropped: include keys" below.
 
@@ -492,60 +472,15 @@ than build the indexed-expansion infra for it, we removed it. The per-row
 migrated About page. The remaining recommended actions (create, derive, retract,
 get-approval, update-approved) all carry over.
 
-The design below is retained only as a record of what it *would* have taken, should
-it ever be revived.
+**What it did.** When you had **exactly one** local introduction (`localCount ==
+1`), each *other* introduction that declared key(s) your local introduction lacked
+got an "include keys…" button. It opened the intro template with `supersede=<your
+local intro>` plus an indexed quad of params per missing key, superseding your
+local introduction to add those keys.
 
-`ProfileIntroItem` had an **"include keys…"** per-row action (and a matching
-recommended-action bullet) that was **not expressible as a view action**.
-
-**What it does.** When you have **exactly one** local introduction
-(`getLocalIntro() != null`, i.e. `localCount == 1`), each *other* introduction that
-declares key(s) your local introduction lacks gets an "include keys…" button. It
-opens the intro template (`RAT8ayO62…`) with `supersede=<your local intro>` plus,
-for each of the **N** missing keys, an indexed quad of params:
-`param_public-key__.{i}`, `param_key-declaration__.{i}` (short name),
-`param_key-declaration-ref__.{i}`, `param_key-location__.{i}`. The result
-supersedes your local introduction, adding those keys.
-
-**Why it doesn't fit the current model.** The view-action mapping maps **one**
-query column to **one** template param (`col:target`). "Include keys" needs a
-**variable number** of *indexed* params filled from a **set** of missing keys, plus
-a `supersede` URL key — neither is expressible today. This is the
-"multi-expand / indexed expansion" work flagged in phase 4.
-
-**Query side (future `get-user-introductions` v7).** Add, owner-gated and only
-meaningful when `localCount == 1`:
-
-- `local_intro_np` — the single local introduction's URI (the supersede target;
-  `sample`, same for all rows);
-- `include_keys_target` — non-empty on a row whose introduction declares ≥1 key
-  absent from the local introduction (drives button visibility);
-- `missing_keys` — one column encoding the missing keys as aligned tuples, e.g.
-  `group_concat(concat(?pubkey,"\t",?short,"\t",?loc); separator="\n")`, where the
-  per-key "absent from local intro" test is a correlated
-  `filter not exists { <local intro> declares ?pubkey }`. **One** column avoids the
-  cross-`group_concat` ordering hazard (three separate aggregates are not
-  guaranteed index-aligned).
-
-**Builder/mapping side — two routes:**
-
-- **A (generic, recommended).** Add an indexed-tuple fill mode to
-  `ViewActionMappings`: a mapping like
-  `missing_keys:public-key__.*|key-declaration__.*|key-declaration-ref__.*|key-location__.*`
-  splits the column into rows (by `\n`) then fields (by `\t`), zips field→target,
-  and emits `param_<target>__.{i}` for each row `i`. Plus a `@supersede` raw-key
-  mode for `local_intro_np:@supersede` (cf. the existing `@derive-a`). Generic, no
-  template field names hardcoded; reusable for any "add N repeated-group instances"
-  action.
-- **B (bounded, no infra change).** Cap at K (~5) missing keys: query emits
-  `missing_pubkey_1..K` / `missing_short_1..K` / `missing_loc_1..K`, the view maps
-  each statically (`missing_pubkey_1:public-key__.1`, …). Simpler but caps at K and
-  clutters the view; silently drops the (K+1)-th key.
-
-**Recommendations view.** The informational "Use 'include keys' below…" bullet is a
-third UNION branch in `get-intro-recommendations`, gated on `localCount == 1 &&
-exists an introduction with a missing key` (no action of its own — it points at the
-per-row buttons).
-
-Recommend route **A** when this is picked up; verify `supersede` + indexed `__.{i}`
-params against `PublishPage`'s handling before publishing the query.
+**Why it didn't fit.** The view-action mapping maps **one** query column to **one**
+template param. "Include keys" needs a **variable number** of *indexed* params
+filled from a **set** of missing keys, plus a `supersede` URL key — neither is
+expressible in the current model. Building that indexed-expansion infra for a
+single, low-value action wasn't worth it, so the action was dropped rather than
+deferred.
