@@ -142,9 +142,10 @@ public class ExplorePage extends NanodashPage {
                 throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
             } else if (User.getUserData().isUser(tempRef)) {
                 throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
-            } else if (!contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null) {
-                throw new RestartResponseException(ResourcePartPage.class, new PageParameters().set("id", tempRef).set("context", contextId).set("tab", "explore"));
             }
+            // Note: forwarding to the part page when the context is a maintained
+            // resource is handled further down (after np resolution), gated on
+            // actual part membership rather than the context type alone.
         }
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
@@ -202,7 +203,13 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
-        if (parameters.get("forward-to-part").toString("").equals("true") && !contextId.isEmpty() && publishedNanopub == null) {
+        // Forward to the part page when the explored resource actually qualifies as a
+        // part of the context: either explicitly requested via forward-to-part, or
+        // whenever the context is a maintained resource. In both cases the membership
+        // is verified below (dct:isPartOf / skos:inScheme or view-display applicability)
+        // rather than assumed from the context type.
+        boolean contextIsMaintainedResource = !contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null;
+        if ((parameters.get("forward-to-part").toString("").equals("true") || contextIsMaintainedResource) && !contextId.isEmpty() && publishedNanopub == null) {
             parameters.remove("forward-to-part");
             Set<IRI> classes = new HashSet<>();
             if (np != null) {
