@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.wicket.ThreadContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.nanopub.extra.services.QueryRef;
 
@@ -10,6 +12,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class MagicQueryParamsTest {
+
+    @BeforeEach
+    void clearLeakedSession() {
+        // Other (WicketTester-based) tests in the suite can leave a Wicket session bound to
+        // this thread without tearing it down, which would make Session.exists() true and the
+        // LOCALPUBKEY resolver pick up the leaked session's key. Detach so the magic-param
+        // resolvers see the intended logged-out state regardless of test execution order.
+        ThreadContext.detach();
+    }
 
     private static GrlcQuery queryWithPlaceholders(String... placeholders) {
         GrlcQuery q = mock(GrlcQuery.class);
