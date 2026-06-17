@@ -1,0 +1,92 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-members a grlc:grlc-query;
+    dct:description "Lists the members of a given space ref (space IRI + root definition) together with their highest role tier (admin, maintainer, or member, in that order) and links to the role-assignment nanopubs (labelled by the specific role name, preferring schema:name). Observer-tier roles are excluded. When the same role is assigned to the same person by multiple nanopubs, only the latest one is linked. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and scopes the role instantiations by npa:forSpaceRef, so it shows only the members of that one ref rather than merging all refs claiming the IRI. Ref-scoped variant of list-space-members (which is IRI-keyed via npa:forSpace).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space members (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix schema: <http://schema.org/>
+
+select ?member ?tier ?role_assignments_multi_iri ?role_assignments_label_multi where {
+  {
+    select ?member
+           (if(min(?rank)=1,\"Admin\",if(min(?rank)=2,\"Maintainer\",\"Member\")) as ?tier)
+           (min(?rank) as ?rankMin)
+           (group_concat(?latestNp; separator=\" \") as ?role_assignments_multi_iri)
+           (group_concat(?roleLabel; separator=\"\\n\") as ?role_assignments_label_multi)
+    where {
+      {
+        select ?member ?roleProp
+               (min(?rank0) as ?rank)
+               (sample(?roleLabel0) as ?roleLabel)
+               (strafter(max(concat(coalesce(str(?dateNp),\"\"), \" \", str(?grantNp))), \" \") as ?latestNp)
+        where {
+          values ?_root_np_multi_iri {}
+          graph npa:spacesGraph { ?spaceRef npa:rootNanopub ?_root_np_multi_iri . }
+          graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+          graph ?g {
+            ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?spaceRef ; npa:forAgent ?member ; npa:viaNanopub ?grantNp .
+          }
+          bind(exists { graph ?g { ?ri npa:inverseProperty gen:hasAdmin } } as ?isAdmin)
+          optional { graph npa:spacesGraph { ?ri (npa:regularProperty|npa:inverseProperty) ?ropExt } }
+          optional { graph ?g { ?ri (npa:regularProperty|npa:inverseProperty) ?ropState } }
+          bind(coalesce(?ropExt,?ropState) as ?roleProp)
+          bind(exists { graph npa:spacesGraph { ?rd a npa:RoleDeclaration ; npa:hasRoleType gen:MaintainerRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } } as ?isMaintainer)
+          bind(exists { graph npa:spacesGraph { ?rd a npa:RoleDeclaration ; npa:hasRoleType gen:MemberRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } } as ?isMember)
+          bind(if(?isAdmin,1,if(?isMaintainer,2,if(?isMember,3,0))) as ?rank0)
+          optional { graph npa:graph { ?grantNp dct:created ?dateNp } }
+          optional {
+            graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp ; npa:role ?role . }
+            graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
+            optional { graph ?role_a { ?role schema:name ?rlS } }
+            optional { graph ?role_a { ?role rdfs:label ?rlA } }
+            optional { graph ?role_a { ?role dct:title ?rlB } }
+            bind(coalesce(?rlS,?rlA,?rlB) as ?rl)
+          }
+          bind(if(?isAdmin,coalesce(?rl,\"admin\"),coalesce(?rl,\"role\")) as ?roleLabel0)
+        }
+        group by ?member ?roleProp
+      }
+      filter(?rank > 0)
+    }
+    group by ?member
+  }
+}
+order by ?rankMin ?member""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-17T06:44:57Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-members .
+}

@@ -44,11 +44,12 @@ per ref) is not yet.
 | `Space` identity carries the ref | ✅ `Space.getNanopubId()` returns the root NPID; `Space.getCoreInfoString()` = `id + " " + rootNanopubId` (`domain/Space.java`) |
 | Admin seeded per root | ✅ `new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, rootNanopubId)` (`domain/Space.java`) |
 | Ref-aware detail views | ✅ Info / heads views scope to a single ref via the `?_spaceNp_iri` placeholder, filled from `space.getNanopubId()` (`component/AboutSpacePanel.java`) |
+| About-tab listing views ref-scoped | ✅ Members, roles, sub-spaces, maintained resources (and observers, pending) all drive off ref-scoped `root_np` queries (`LIST_*_REF`), falling back to the IRI-keyed view query when the ref root is unknown; the view nanopubs are left untouched (observers pattern). `AboutSpacePanel` computes one `refRoot` (the pinned `?root=` ref, else the representative) and keys every table to it. Sources at `docs/queries/list-*-ref.trig` |
 | Space *listing* ref-keyed | ✅ `SpaceRepository.build` reduces by **ref** (`reduceByRef`): one representative `Space` per IRI (the active ref) + captures all ref roots per IRI; fed by the live ref-aware `get-spaces` v3 (`GET_SPACES_REF`) |
 | Per-space authority ref-scoped | ✅ admins, admin-pubkey-hashes, roles, members, observers all queried via `root_np` → `npa:forSpaceRef` (`Space.spaceQueryRef`), so multi-ref spaces don't merge authority across refs |
 | Un-introduced members/observers | ✅ shown **with a ⚠️ flag** rather than hidden (validation = trust-approved `AccountState` from an accepted introduction); `Space.isMemberValidated()`, headerless `unverified_noheader` column in the Observers query |
-| One `Space` per *ref* + disambiguation UI | ❌ `Space` is still IRI-identified (one representative per IRI). "N spaces claim this IRI" disambiguation is future |
-| Sub-spaces / maintained-resources ref-scoped | ❌ still IRI-keyed (they work on the dual-keyed server; low-value, deferred) |
+| Disambiguation UI | ✅ a conflict notice on the default page, a claimants overview (`SpaceClaimantsPanel`, `?claimants=true`) listing every root definition + its admins, and `?root=`-pinned pages that scope the whole page to one ref (carried across tabs via `ResourceTabs`). `Space` is still IRI-identified (one representative per IRI), but each ref is now reachable and self-consistent |
+| Sub-spaces / maintained-resources ref-scoped | ✅ scoped via the ref-level `npa:hasSubSpace` / `npa:hasMaintainedResource` edges (subject = the ref); sub-spaces take an extra child-ref→`npa:spaceIri` hop. Confirmed meaningful on live data (e.g. the `nanopub` space's 5 maintained resources sit on one of its three refs) |
 
 ## Server status
 

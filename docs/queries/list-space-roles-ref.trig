@@ -1,0 +1,113 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-roles a grlc:grlc-query;
+    dct:description "Lists the roles assigned in a given space ref (space IRI + root definition) as a table: each role (linked, labelled by its schema:name, falling back to its label/title), its tier (Admin/Maintainer/Member/Observer), a count of how many distinct users of the ref hold that role, the contributing preset (via_preset, for roles carried by a preset assignment — resolved from the validated role-attachment's npa:derivedFromPreset marker), who added it, and the date. The built-in Admin role is always included as the first row. Also returns the role-assignment template (for the assign-user action) and the source nanopublication. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and scopes the role assignments and instantiations by npa:forSpaceRef, so it shows only that one ref's roles rather than merging all refs claiming the IRI. Ref-scoped variant of list-space-roles (which is IRI-keyed via npa:forSpace).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space roles (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix schema: <http://schema.org/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?role
+       (sample(?rlbl) as ?role_label)
+       (sample(?rtier) as ?tier)
+       (count(distinct ?member) as ?users)
+       (sample(?presetX) as ?via_preset)
+       (sample(?presetXlbl) as ?via_preset_label)
+       (sample(?userX) as ?added_by)
+       (max(?dateX) as ?date_added)
+       (sample(?rtmpl) as ?roleAssignmentTemplate)
+       (sample(?npX) as ?np)
+where {
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+  values ?_root_np_multi_iri {}
+  graph npa:spacesGraph { ?spaceRef npa:rootNanopub ?_root_np_multi_iri . }
+  {
+    bind(<https://w3id.org/np/RA_eEJjQbxzSqYSwPzfjzOZi5sMPpUmHskFNsgJYSws8I/adminRole> as ?role)
+    bind(0 as ?sortkey)
+    bind(\"admin\" as ?rlbl)
+    bind(\"Admin\" as ?rtier)
+    bind(<https://w3id.org/np/RAsOQ7k3GNnuUqZuLm57PWwWopQJR_4onnCpNR457CZg8> as ?rtmpl)
+    bind(gen:hasAdmin as ?prop)
+  } union {
+    graph ?g {
+      ?ra a gen:RoleAssignment ; npa:forSpaceRef ?spaceRef ; gen:hasRole ?role ; npa:viaNanopub ?npX .
+    }
+    graph npa:graph { ?npX dct:created ?dateX . }
+    optional { graph npa:graph { ?npX npx:signedBy ?userX . } }
+    bind(1 as ?sortkey)
+    optional {
+      graph ?g { ?ra npa:derivedFromPreset ?assignNp . }
+      graph npa:spacesGraph { ?paRow a npa:PresetAssignment ; npa:viaNanopub ?assignNp ; npa:ofPreset ?presetX . }
+      optional {
+        graph npa:graph { ?presetNp npx:embeds ?presetX ; np:hasAssertion ?paX . }
+        graph ?paX { ?presetX rdfs:label ?presetXlbl . }
+      }
+    }
+    graph npa:spacesGraph {
+      ?roleDecl a npa:RoleDeclaration ; npa:role ?role ; npa:viaNanopub ?role_np .
+    }
+    bind(exists { graph npa:spacesGraph { ?roleDecl npa:hasRoleType gen:MaintainerRole } } as ?isMaintainer)
+    bind(exists { graph npa:spacesGraph { ?roleDecl npa:hasRoleType gen:MemberRole } } as ?isMember)
+    bind(if(?isMaintainer,\"Maintainer\",if(?isMember,\"Member\",\"Observer\")) as ?rtier)
+    graph npa:graph { ?role_np np:hasAssertion ?role_a . }
+    optional { graph ?role_a { ?role rdfs:label ?rl1 } }
+    optional { graph ?role_a { ?role dct:title ?rt1 } }
+    optional { graph ?role_a { ?role schema:name ?rn1 } }
+    optional { graph ?role_a { ?role gen:hasRoleAssignmentTemplate ?rtmpl } }
+    bind(coalesce(?rn1, ?rl1, ?rt1) as ?rlbl)
+    optional {
+      { graph npa:spacesGraph { ?roleDecl gen:hasRegularProperty ?prop } }
+      union
+      { graph npa:spacesGraph { ?roleDecl gen:hasInverseProperty ?prop } }
+    }
+  }
+  optional {
+    graph ?g {
+      ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?spaceRef ; npa:forAgent ?member .
+    }
+    optional { graph ?g { ?ri (npa:regularProperty|npa:inverseProperty) ?riPropS } }
+    optional { graph npa:spacesGraph { ?ri (npa:regularProperty|npa:inverseProperty) ?riPropX } }
+    bind(coalesce(?riPropS, ?riPropX) as ?riProp)
+    filter(bound(?prop) && ?riProp = ?prop)
+  }
+}
+group by ?role ?sortkey
+order by ?sortkey desc(max(?dateX))""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-17T06:44:57Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-roles .
+}

@@ -104,7 +104,7 @@ public class SpacePage extends NanodashPage {
         if (!onClaimants && effectiveRoot != null) {
             bannerText = "You are viewing one of " + space.getRefCount()
                     + " definitions claiming this identifier (rooted at " + shortNp(effectiveRoot)
-                    + "). Member and role lists below still reflect the merged identifier view. ";
+                    + "). Its members, roles, and sub-units below are scoped to this definition. ";
         } else if (!onClaimants && space.hasConflictingRefs()) {
             bannerText = "⚠ This space identifier is claimed by " + space.getRefCount()
                     + " competing definitions with different admins — showing the most recent one. ";

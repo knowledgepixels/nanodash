@@ -133,6 +133,21 @@ public class QueryApiAccess {
     // Admins/Maintainers/Members" view. Source at docs/queries/list-space-non-approved-ref.trig.
     public static final String LIST_SPACE_NON_APPROVED_REF = "RAZMAChiW6g1uJ02fYKuw_1tVk6XPUI1PpYiSraUDYpVY/list-space-non-approved";
 
+    // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
+    // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
+    // (root_np), resolves the ref via npa:rootNanopub, and scopes by npa:forSpaceRef (members,
+    // roles) or the ref-level npa:hasSubSpace / npa:hasMaintainedResource edge (sub-spaces,
+    // maintained resources), so a ?root=-pinned space page shows only that one ref's listings
+    // rather than merging all refs claiming the IRI. Column-compatible with the IRI-keyed view
+    // queries, so they drive the existing view nanopubs unchanged (the observers pattern). Used
+    // by AboutSpacePanel with an IRI-keyed fallback when the ref root is unknown. Published
+    // independently (no npx:supersedes). Sources at docs/queries/list-*-ref.trig. See
+    // docs/space-ref-identity.md.
+    public static final String LIST_SPACE_MEMBERS_REF = "RAXhi9zBXJ2mZVmjBm_MZk1xM6OCxxVyr5B3xNYdy6boQ/list-space-members";
+    public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
+    public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
+    public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
+
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
     private static ConcurrentMap<String, Pair<Long, String>> latestVersionMap = new ConcurrentHashMap<>();

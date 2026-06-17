@@ -1,0 +1,71 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-sub-spaces a grlc:grlc-query;
+    dct:description "Lists the sub-spaces of a given space ref (space IRI + root definition) with their type and a link to the source nanopublication. Type and label come from each sub-space's root-definition assertion; sub-spaces whose definitions are all retracted or otherwise invalidated are filtered out. Ordered alphabetically by label. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and scopes the sub-space edges by the ref-level npa:hasSubSpace (subject = the ref), so it shows only that one ref's sub-spaces rather than merging all refs claiming the IRI. Ref-scoped variant of list-sub-spaces (which is IRI-keyed via npa:hasSubSpace on the space IRI).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List sub-spaces of a space (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix np: <http://www.nanopub.org/nschema#>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+select ?subspace ?subspace_label ?type ?np (\"^\" as ?np_label) where {
+  {
+    select ?subspace
+           (sample(?label) as ?subspace_label)
+           (coalesce(sample(?typeName), \"\") as ?type)
+           (sample(?rootNp) as ?np)
+    where {
+      values ?_root_np_multi_iri {}
+      graph npa:spacesGraph { ?spaceRef npa:rootNanopub ?_root_np_multi_iri . }
+      graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+      graph ?g { ?spaceRef npa:hasSubSpace ?subspaceRef . }
+      graph npa:spacesGraph { ?subspaceRef npa:spaceIri ?subspace ; npa:rootNanopub ?rootNp . }
+      graph ?ag {
+        ?subspace a gen:Space ; rdfs:label ?label .
+        optional { ?subspace a ?typeIri . filter(?typeIri != gen:Space) }
+      }
+      graph npa:graph {
+        ?defNp np:hasAssertion ?ag ; npa:hasValidSignatureForPublicKey ?pubkey .
+        filter not exists { ?inv npx:invalidates ?defNp ; npa:hasValidSignatureForPublicKey ?pubkey . }
+      }
+      bind(if(bound(?typeIri), strafter(str(?typeIri), \"terms/\"), \"\") as ?typeName)
+    }
+    group by ?subspace
+  }
+}
+order by lcase(str(?subspace_label))""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-17T06:44:57Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-sub-spaces .
+}
