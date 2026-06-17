@@ -163,6 +163,16 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     /**
+     * Scope a space's view displays to its representative ref so a multi-ref identifier doesn't
+     * merge Content-tab displays across rival definitions. {@code ?root=}-pinned pages pass the
+     * pinned ref explicitly via {@link #getTopLevelViewDisplays(String)} instead.
+     */
+    @Override
+    protected String getViewDisplayRefRoot() {
+        return refRootId;
+    }
+
+    /**
      * Get the root nanopub IDs of all distinct refs that claim this space IRI. More than
      * one means several space definitions claim the same IRI (distinct spaces, not a
      * conflict to resolve). Empty with the pre-v3 query. See docs/space-ref-identity.md.

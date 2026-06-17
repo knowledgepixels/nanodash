@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.domain;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
@@ -8,6 +10,7 @@ import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -137,25 +140,14 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     // (latest first) so the per-view-kind latest-wins / deactivation
                     // aggregation in getViewDisplays() resolves overrides between presets and
                     // standalone displays correctly, in either direction.
-                    for (ApiResponseEntry r : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id), true).getData()) {
-                        try {
-                            String display = r.get("display");
-                            if (display != null && !display.isEmpty()) {
-                                // The query resolves ?view to its latest version server-side, so
-                                // pass it through to avoid a separate per-view latest-version lookup.
-                                newData.viewDisplays.add(ViewDisplay.get(display, r.get("view")));
-                            } else {
-                                String view = r.get("view");
-                                if (view == null || view.isEmpty()) continue;
-                                boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
-                                boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
-                                ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated);
-                                if (vd != null) newData.viewDisplays.add(vd);
-                            }
-                        } catch (IllegalArgumentException ex) {
-                            logger.error("Couldn't generate view display object", ex);
-                        }
-                    }
+                    // For a space, scope the displays to its representative ref (root nanopub) so a
+                    // multi-ref identifier doesn't merge displays across rival definitions; other
+                    // resource kinds (and spaces with no known ref root) stay IRI-keyed.
+                    String vdRefRoot = getViewDisplayRefRoot();
+                    QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
+                            ? viewDisplaysRefQueryRef(vdRefRoot)
+                            : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
+                    newData.viewDisplays.addAll(buildViewDisplays(vdQuery));
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
@@ -246,11 +238,29 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     private List<ViewDisplay> getViewDisplays(boolean toplevel, String resourceId, Set<IRI> classes) {
         triggerDataUpdate();
+        return filterViewDisplays(getViewDisplays(), toplevel, resourceId, classes);
+    }
+
+    /**
+     * Top-level view displays scoped to a specific space ref (root nanopub), fetched on demand
+     * rather than from the IRI-keyed singleton data — used to render the Content tab of a
+     * {@code ?root=}-pinned space page so it shows only that ref's displays. Falls back to the
+     * default (singleton) displays when {@code refRoot} is null/empty. See docs/space-ref-identity.md.
+     *
+     * @param refRoot the ref's root nanopub, or null/empty for the default
+     * @return the ref-scoped top-level view displays
+     */
+    public List<ViewDisplay> getTopLevelViewDisplays(String refRoot) {
+        if (refRoot == null || refRoot.isEmpty()) return getTopLevelViewDisplays();
+        return filterViewDisplays(buildViewDisplays(viewDisplaysRefQueryRef(refRoot)), true, getId(), getOwnClasses());
+    }
+
+    private List<ViewDisplay> filterViewDisplays(List<ViewDisplay> source, boolean toplevel, String resourceId, Set<IRI> classes) {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
         // Results are sorted by date (most recent first); only the most recent per view-kind is considered
-        for (ViewDisplay vd : getViewDisplays()) {
+        for (ViewDisplay vd : source) {
             IRI kind = vd.getViewKindIri();
             if (kind != null) {
                 if (viewKinds.contains(kind)) {
@@ -276,6 +286,56 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
         Collections.sort(viewDisplays);
         return viewDisplays;
+    }
+
+    /**
+     * Builds {@link ViewDisplay} objects from a get-view-displays(-ref) query result (standalone
+     * displays with a bound {@code ?display}, and preset-supplied views with an unbound one).
+     */
+    private List<ViewDisplay> buildViewDisplays(QueryRef ref) {
+        List<ViewDisplay> list = new ArrayList<>();
+        ApiResponse response = ApiCache.retrieveResponseSync(ref, true);
+        // Null on a cold cache or a failed (flaky federated) fetch — yield nothing for now; the
+        // cache refreshes asynchronously and the page's auto-refresh repopulates it.
+        if (response == null) return list;
+        for (ApiResponseEntry r : response.getData()) {
+            try {
+                String display = r.get("display");
+                if (display != null && !display.isEmpty()) {
+                    // The query resolves ?view to its latest version server-side, so
+                    // pass it through to avoid a separate per-view latest-version lookup.
+                    list.add(ViewDisplay.get(display, r.get("view")));
+                } else {
+                    String view = r.get("view");
+                    if (view == null || view.isEmpty()) continue;
+                    boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
+                    boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
+                    ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated);
+                    if (vd != null) list.add(vd);
+                }
+            } catch (IllegalArgumentException ex) {
+                logger.error("Couldn't generate view display object", ex);
+            }
+        }
+        return list;
+    }
+
+    private QueryRef viewDisplaysRefQueryRef(String refRoot) {
+        Multimap<String, String> params = ArrayListMultimap.create();
+        params.put("resource", id);
+        params.put("root_np", refRoot);
+        return new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS_REF, params);
+    }
+
+    /**
+     * The root nanopub of the space ref the resource's view displays should be scoped to, or null
+     * to use the IRI-keyed query (merged across refs). Null by default; {@link Space} overrides it
+     * to its representative ref so a multi-ref identifier doesn't merge Content-tab displays.
+     *
+     * @return the ref's root nanopub, or null
+     */
+    protected String getViewDisplayRefRoot() {
+        return null;
     }
 
     @Override

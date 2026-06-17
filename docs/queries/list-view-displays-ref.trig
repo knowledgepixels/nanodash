@@ -1,0 +1,228 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+sub:assertion {
+  sub:list-view-displays a grlc:grlc-query;
+    dct:description "Ref-scoped view displays for a single space ref. Like list-view-displays but takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np). The authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) rather than the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate (a single auto-detecting param can't: a service-derived resource IRI does not push into the federated SERVICE blocks). Space-only companion to list-view-displays; same columns. Regenerate from the latest list-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List view displays (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?view
+       (sample(?view_label) as ?view_label)
+       (sample(?shown_here) as ?shown_here)
+       (sample(?position) as ?position)
+       (sample(?via_preset) as ?via_preset)
+       (sample(?via_preset_label) as ?via_preset_label)
+       (sample(?added_by) as ?added_by)
+       (max(?date_added) as ?date_added)
+       (iri(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np))), \"\\\\t\")) as ?np)
+       (\"^\" as ?np_label) where {
+select ?view ?view_label ?shown_here ?position
+       (if(?shown_here = \"\", ?target_multi_iri_raw, \"\") as ?target_multi_iri)
+       (if(?shown_here = \"\", ?target_label_multi_raw, \"\") as ?target_label_multi)
+       ?via_preset ?via_preset_label ?added_by ?date_added ?deactivateView ?np ?np_label
+where {
+ select ?view ?view_label ?position
+       (if(bound(?presetScope), ?presetScope,
+         if(bound(?preset),
+            if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"✓\"),
+          if(?aDApplyHere > 0, \"✓\",
+           if(?aDHasTarget > 0, if(?aDMatch > 0, \"✓\", \"\"),
+            if(?aDHasApply > 0, \"\",
+             if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"✓\")))))) as ?shown_here)
+       ?target_multi_iri_raw ?target_label_multi_raw
+       (?preset as ?via_preset) (?preset_label as ?via_preset_label)
+       (?user as ?added_by) (?date as ?date_added)
+       ?deactivateView ?np (\"^\" as ?np_label) where {
+  select ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?deactivateView ?np
+         (max(?fDApplyHere) as ?aDApplyHere) (max(?fDHasApply) as ?aDHasApply) (max(?fDHasTarget) as ?aDHasTarget)
+         (max(?fDMatch) as ?aDMatch) (max(?fVHasTarget) as ?aVHasTarget) (max(?fVMatch) as ?aVMatch)
+         (group_concat(distinct ?targetIri; separator=\" \") as ?target_multi_iri_raw)
+         (group_concat(distinct ?targetLabel; separator=\"\\\\n\") as ?target_label_multi_raw)
+  where {
+  {
+    select ?_resource_multi_iri ?viewRef ?viewLatest ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
+           ?ownClass ?dApply ?dTarget ?vTarget where {
+      values ?_resource_multi_iri {}
+      values ?_root_np_multi_iri {}
+      service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+        graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+        graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
+        {
+          graph ?stateG {
+            ?_resource_multi_iri npa:isMaintainedBy? ?space .
+            ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?passedRef ; npa:forAgent ?authAgent ;
+                (npa:inverseProperty|npa:regularProperty) ?roleProp .
+            ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
+          }
+          optional {
+            graph npa:spacesGraph {
+              ?rd a npa:RoleDeclaration ; npa:forSpace ?space ;
+                  npa:hasRoleType gen:MaintainerRole ;
+                  (npa:inverseProperty|npa:regularProperty) ?roleProp .
+              bind(true as ?isMaintainer)
+            }
+          }
+          filter(?roleProp = gen:hasAdmin || bound(?isMaintainer))
+        } union {
+          graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
+        }
+        bind(if(exists { graph ?stateG { ?_resource_multi_iri npa:isMaintainedBy ?anyMaintainer } }, gen:MaintainedResource,
+             if(exists { graph ?stateG { ?ownAcc a npa:AccountState ; npa:agent ?_resource_multi_iri } }, gen:IndividualAgent,
+             gen:Space)) as ?ownClass)
+      }
+      {
+        graph npa:graph {
+          ?np npx:hasNanopubType gen:ViewDisplay ;
+              npa:hasValidSignatureForPublicKeyHash ?pubkey ;
+              dct:created ?date ;
+              npx:embeds ?display ;
+              np:hasAssertion ?a .
+          filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+          optional { ?np npx:signedBy ?user }
+        }
+        graph ?a {
+          ?display gen:isDisplayOfView ?viewRef ;
+                   gen:isDisplayFor ?_resource_multi_iri .
+          optional {
+            values ?displayMode { gen:ActivatedViewDisplay gen:DeactivatedViewDisplay }
+            ?display a ?displayMode .
+          }
+          optional { ?display gen:appliesTo ?dApply . }
+          optional { ?display (gen:appliesToInstancesOf|gen:appliesToNamespace) ?dTarget . }
+        }
+      }
+      union
+      {
+        select ?viewRef ?displayMode ?preset ?preset_label ?presetScope ?user ?date ?np ?pubkey ?_resource_multi_iri {
+          service <https://w3id.org/np/l/nanopub-query-1.1/repo/full> {
+            graph npa:graph {
+              ?np npx:hasNanopubType gen:PresetAssignment ;
+                  npa:hasValidSignatureForPublicKeyHash ?pubkey ;
+                  dct:created ?date ;
+                  npx:embeds ?assignment ;
+                  np:hasAssertion ?a .
+              filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+              optional { ?np npx:signedBy ?user }
+            }
+            graph ?a {
+              ?assignment gen:isAssignmentFor ?_resource_multi_iri ;
+                          gen:isAssignmentOfPreset ?preset .
+              optional {
+                values ?displayMode { gen:ActivatedPresetAssignment gen:DeactivatedPresetAssignment }
+                ?assignment a ?displayMode .
+              }
+            }
+            filter not exists {
+              graph npa:graph {
+                ?np2 npx:hasNanopubType gen:PresetAssignment ;
+                    npa:hasValidSignatureForPublicKeyHash ?pubkey2 ;
+                    dct:created ?date2 ;
+                    npx:embeds ?assignment2 ;
+                    np:hasAssertion ?a2 .
+                filter not exists { ?npx2 npx:invalidates ?np2 ; npa:hasValidSignatureForPublicKeyHash ?pubkey2 . }
+              }
+              graph ?a2 {
+                ?assignment2 a gen:DeactivatedPresetAssignment ;
+                            gen:isAssignmentFor ?_resource_multi_iri ;
+                            gen:isAssignmentOfPreset ?preset .
+              }
+              filter(?date2 > ?date)
+            }
+            graph npa:graph { ?presetNp npx:embeds ?preset ; np:hasAssertion ?pa . }
+            graph ?pa {
+              ?preset a gen:Preset .
+              optional { ?preset rdfs:label ?preset_label . }
+              { ?preset gen:hasTopLevelView ?viewRef . bind(\"✓\" as ?presetScope) }
+              union { ?preset gen:hasView ?viewRef }
+            }
+          }
+        }
+      }
+      optional {
+        graph npa:graph { ?np np:hasAssertion ?npAssertion . }
+        graph ?npAssertion { ?npDisplay gen:hasStructuralPosition ?dispPos . }
+      }
+      filter(!bound(?displayMode) || !contains(str(?displayMode), \"Deactivated\"))
+      filter not exists {
+        graph npa:graph {
+          ?np2 npx:hasNanopubType gen:ViewDisplay ;
+              npa:hasValidSignatureForPublicKeyHash ?pubkey2 ;
+              dct:created ?date2 ;
+              npx:embeds ?display2 ;
+              np:hasAssertion ?a2 .
+          filter not exists { ?npx2 npx:invalidates ?np2 ; npa:hasValidSignatureForPublicKeyHash ?pubkey2 . }
+        }
+        graph ?a2 {
+          ?display2 a gen:DeactivatedViewDisplay ;
+                    gen:isDisplayOfView ?viewRef ;
+                    gen:isDisplayFor ?_resource_multi_iri .
+        }
+        filter(?date2 > ?date)
+      }
+      optional {
+        service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+          graph npa:graph { ?vnp npx:embeds ?viewRef . }
+          { select ?vnp (max(?hDate) as ?headDate) where {
+              graph npa:networkGraph { ?h (npx:supersedes)* ?vnp . }
+              graph npa:graph {
+                ?vnp npa:hasValidSignatureForPublicKey ?k .
+                ?h npa:hasValidSignatureForPublicKey ?k ; dct:created ?hDate .
+                filter not exists { ?i npx:invalidates ?h ; npa:hasValidSignatureForPublicKey ?k . }
+              }
+            } group by ?vnp }
+          graph npa:networkGraph { ?headNp (npx:supersedes)* ?vnp . }
+          graph npa:graph {
+            ?vnp npa:hasValidSignatureForPublicKey ?vKey .
+            ?headNp npa:hasValidSignatureForPublicKey ?vKey ; dct:created ?headDate ;
+                    npx:embeds ?viewLatest ; np:hasAssertion ?hva .
+            filter not exists { ?i2 npx:invalidates ?headNp ; npa:hasValidSignatureForPublicKey ?vKey . }
+          }
+          graph ?hva { ?viewLatest dct:title ?view_label . }
+          optional { graph ?hva { ?viewLatest gen:hasStructuralPosition ?viewPos . } }
+          optional { graph ?hva { ?viewLatest (gen:appliesToInstancesOf|gen:appliesToNamespace) ?vTarget . } }
+        }
+      }
+      bind(coalesce(?dispPos, ?viewPos, \"\") as ?position)
+    }
+  }
+  bind(if(coalesce(str(?dApply) = str(?_resource_multi_iri), false), 1, 0) as ?fDApplyHere)
+  bind(if(bound(?dApply), 1, 0) as ?fDHasApply)
+  bind(if(bound(?dTarget), 1, 0) as ?fDHasTarget)
+  bind(if(coalesce(str(?dTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?dTarget)), false), 1, 0) as ?fDMatch)
+  bind(if(bound(?vTarget), 1, 0) as ?fVHasTarget)
+  bind(if(coalesce(str(?vTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?vTarget)), false), 1, 0) as ?fVMatch)
+  bind(coalesce(?dTarget, ?vTarget) as ?targetIri)
+  bind(replace(str(?targetIri), \"^.*[/#]\", \"\") as ?targetLocalName)
+  bind(if(coalesce(strlen(?targetLocalName) > 0, false), ?targetLocalName, str(?targetIri)) as ?targetLabel)
+  bind(coalesce(?viewLatest, ?viewRef) as ?view)
+  bind(str(?viewRef) as ?deactivateView)
+  }
+  group by ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?deactivateView ?np
+ }
+}
+}
+group by ?view
+order by desc(?shown_here) ?position""" .
+}
+sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  this: dct:created "2026-06-17T12:55:18Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:list-view-displays .
+}

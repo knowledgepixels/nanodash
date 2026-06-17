@@ -76,6 +76,13 @@ public class QueryApiAccess {
     // whole view set instead of once per referenced view -- cut a 44-display page from
     // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
     public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
+    // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
+    // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
+    // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
+    // rendered Content views match the space ref shown. Both params concrete so the 4-SERVICE
+    // federation propagates. Column-identical to get-view-displays. Source at
+    // docs/queries/get-view-displays-ref.trig. See docs/space-ref-identity.md.
+    public static final String GET_VIEW_DISPLAYS_REF = "RA8iqtdTrZGOWX1Yf7w_8RgB9brG3COMw9wkbjfl6VeHc/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -147,6 +154,19 @@ public class QueryApiAccess {
     public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
+
+    // Ref-scoped view displays for a space. Unlike the LIST_*_REF above this is NOT a single-param
+    // root_np query: view displays aren't materialised into the spaces repo, so the query is a
+    // 4-SERVICE federated join, and federation only propagates CONCRETE (VALUES) bindings into the
+    // sub-services. A single auto-detecting param fails (a service-derived resource IRI doesn't push
+    // into the branches → 0 rows). So this takes TWO concrete params — the space IRI (resource) and
+    // the ref's root nanopub (root_np) — and resolves the ref + scopes the authority gate to
+    // npa:forSpaceRef INSIDE the /repo/spaces service. Column-identical to list-view-displays (its
+    // spaces-only companion), so it drives the existing view-displays view unchanged. Used by
+    // AboutSpacePanel with both params; falls back to the IRI-keyed query when the ref root is
+    // unknown. Source at docs/queries/list-view-displays-ref.trig (regenerate from the latest
+    // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
+    public static final String LIST_VIEW_DISPLAYS_REF = "RAKfr2_TxPCXE-u-Ol0UDb2-8U8sej8aqKhD32EtDTob0/list-view-displays";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

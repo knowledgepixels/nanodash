@@ -145,7 +145,12 @@ public class SpacePage extends NanodashPage {
         }
         add(new EmptyPanel("otherTab").setVisible(false));
 
-        if (space.isDataInitialized()) {
+        if (effectiveRoot != null) {
+            // Pinned to a specific claimant: render that ref's view displays, not the
+            // representative ref's (the IRI-keyed singleton). Fetched on demand. See
+            // docs/space-ref-identity.md.
+            contentContainer.add(new ViewList("views", space, space.getTopLevelViewDisplays(effectiveRoot)));
+        } else if (space.isDataInitialized()) {
             contentContainer.add(new ViewList("views", space));
         } else {
             contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
