@@ -27,24 +27,28 @@ import java.util.List;
 public class SpaceClaimantsPanel extends Panel {
 
     /**
-     * @param markupId the Wicket markup id
-     * @param space    the space whose IRI's claimants to list
+     * @param markupId      the Wicket markup id
+     * @param space         the space whose IRI's claimants to list
+     * @param effectiveRoot the ref currently being viewed (the pinned {@code ?root=}, or null on
+     *                      the default page — in which case the representative ref is the current one)
      */
-    public SpaceClaimantsPanel(String markupId, Space space) {
+    public SpaceClaimantsPanel(String markupId, Space space, String effectiveRoot) {
         super(markupId);
         final String spaceId = space.getId();
         List<Space.RefClaimant> claimants = space.getRefClaimants();
-        add(new Label("iri", spaceId));
-        add(new Label("count", Integer.toString(claimants.size())));
         add(new ListView<Space.RefClaimant>("claimants", claimants) {
             @Override
             protected void populateItem(ListItem<Space.RefClaimant> item) {
                 Space.RefClaimant c = item.getModelObject();
+                // The currently-shown ref: the pinned one, or the representative when not pinned.
+                boolean current = effectiveRoot != null ? c.getRootNp().equals(effectiveRoot) : c.isRepresentative();
                 item.add(new BookmarkablePageLink<Void>("root-link", ExplorePage.class,
                         new PageParameters().add("id", c.getRootNp())).setBody(Model.of(shortNp(c.getRootNp()))));
-                item.add(new WebMarkupContainer("current").setVisible(c.isRepresentative()));
+                item.add(new WebMarkupContainer("default").setVisible(c.isRepresentative()));
+                item.add(new WebMarkupContainer("current").setVisible(current));
+                // No "view this space" on the row you're already viewing.
                 item.add(new BookmarkablePageLink<Void>("view-link", SpacePage.class,
-                        new PageParameters().add("id", spaceId).add("root", c.getRootNp())));
+                        new PageParameters().add("id", spaceId).add("root", c.getRootNp())).setVisible(!current));
                 item.add(new ListView<String>("admins", c.getAdmins()) {
                     @Override
                     protected void populateItem(ListItem<String> adminItem) {

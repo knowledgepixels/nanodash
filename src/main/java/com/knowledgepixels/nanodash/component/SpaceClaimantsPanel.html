@@ -2,25 +2,25 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-  <div class="row-section">
-    <div class="col-12">
-      <h3>Definitions claiming this identifier</h3>
-      <p>This space identifier (<span wicket:id="iri"></span>) is claimed by
-        <span wicket:id="count"></span> distinct root definitions. Each is a separate
-        space asserting the same identifier — there is no automatically "true" one.</p>
-      <ul class="claimant-list">
-        <li wicket:id="claimants">
-          <span class="claimant-root">Definition <a wicket:id="root-link">[root]</a></span>
-          <span class="badge current-ref" wicket:id="current">currently shown</span>
-          <a class="claimant-view" wicket:id="view-link">view this space →</a>
-          <div class="claimant-admins">Admins:
-            <span wicket:id="admins"><span wicket:id="admin-sep">, </span><a wicket:id="admin-link">[admin]</a></span>
-            <span wicket:id="no-admins">(none)</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
+  <table class="result-table claimant-table">
+    <thead>
+      <tr><th>Definition</th><th>Admins</th><th></th></tr>
+    </thead>
+    <tbody>
+      <tr wicket:id="claimants">
+        <td>
+          <a wicket:id="root-link">[root]</a>
+          <span class="badge current-ref" wicket:id="current">current</span>
+          <span class="badge default-ref" wicket:id="default">default</span>
+        </td>
+        <td>
+          <span wicket:id="admins"><span wicket:id="admin-sep">, </span><a wicket:id="admin-link">[admin]</a></span>
+          <span wicket:id="no-admins">(none)</span>
+        </td>
+        <td><a class="claimant-view" wicket:id="view-link">view this space →</a></td>
+      </tr>
+    </tbody>
+  </table>
 </wicket:panel>
 </body>
 </html>

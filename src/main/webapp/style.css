@@ -1210,22 +1210,20 @@ select {
   display: inline-block;
 }
 
-.ref-conflict-notice a {
-  margin-left: 4px;
-  white-space: nowrap;
+.ref-conflict-notice > summary {
+  cursor: pointer;
 }
 
-.claimant-list {
-  list-style: none;
-  padding-left: 0;
+.ref-conflict-notice[open] > summary {
+  margin-bottom: 8px;
 }
 
-.claimant-list > li {
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+.ref-conflict-notice .claimant-table {
+  margin-bottom: 0;
+  color: #333;
 }
 
-.claimant-list .current-ref {
+.default-ref {
   background: #e7f1ff;
   color: #2c5aa0;
   border-radius: 3px;
@@ -1234,20 +1232,22 @@ select {
   margin-left: 6px;
 }
 
+.current-ref {
+  background: #e3f3e3;
+  color: #2f6b2f;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
 .claimant-view {
-  margin-left: 8px;
   font-size: 13px;
   white-space: nowrap;
 }
 
-.claimant-admins {
-  color: #555;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.claimant-admins a {
-  margin-right: 4px;
+.claimant-table td a {
+  margin-right: 2px;
 }
 
 #content-pane {

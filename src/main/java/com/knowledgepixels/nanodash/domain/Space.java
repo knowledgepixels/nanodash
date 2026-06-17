@@ -214,9 +214,10 @@ public class Space extends AbstractResourceWithProfile {
      */
     public boolean hasConflictingRefs() {
         if (refRoots.size() < 2) return false;
+        Map<String, Set<String>> adminsByRoot = claimantAdminsByRoot();
         Set<Set<String>> distinctAdminSets = new HashSet<>();
         for (String rootNp : refRoots) {
-            distinctAdminSets.add(adminAgentsForRef(rootNp));
+            distinctAdminSets.add(adminsByRoot.getOrDefault(rootNp, Collections.emptySet()));
             if (distinctAdminSets.size() > 1) return true;
         }
         return false;
@@ -224,10 +225,10 @@ public class Space extends AbstractResourceWithProfile {
 
     /**
      * All refs (root definitions) claiming this space's IRI, each with its validated admin
-     * agents — the representative (currently-shown) ref first. Used by the disambiguation
-     * claimants view. See docs/space-ref-identity.md.
+     * agents — the representative (default) ref first. Used by the disambiguation claimants
+     * view. See docs/space-ref-identity.md.
      *
-     * @return the claimants, representative first (a singleton for the common single-ref case)
+     * @return the claimants, default ref first (a singleton for the common single-ref case)
      */
     public List<RefClaimant> getRefClaimants() {
         List<String> ordered = new ArrayList<>();
@@ -235,9 +236,10 @@ public class Space extends AbstractResourceWithProfile {
         for (String root : refRoots) {
             if (!root.equals(refRootId)) ordered.add(root);
         }
+        Map<String, Set<String>> adminsByRoot = claimantAdminsByRoot();
         List<RefClaimant> claimants = new ArrayList<>();
         for (String root : ordered) {
-            claimants.add(new RefClaimant(root, adminAgentsForRef(root), root.equals(refRootId)));
+            claimants.add(new RefClaimant(root, adminsByRoot.getOrDefault(root, Collections.emptySet()), root.equals(refRootId)));
         }
         return claimants;
     }
@@ -264,26 +266,37 @@ public class Space extends AbstractResourceWithProfile {
             return admins;
         }
 
-        /** Whether this is the representative ref currently shown on the space page. */
+        /** Whether this is the representative (default) ref — the one shown when no specific ref is requested. */
         public boolean isRepresentative() {
             return representative;
         }
     }
 
-    /** The validated admin agent IRIs for a single ref (by its root nanopub). */
-    private Set<String> adminAgentsForRef(String rootNp) {
-        Multimap<String, String> params = ArrayListMultimap.create();
-        params.put("root_np", rootNp);
+    /**
+     * The validated admin agent IRIs of every ref claiming this space IRI, keyed by the ref's
+     * root nanopub — a single {@code list-space-claimants} fetch (cached), replacing the per-ref
+     * {@code get-space-admins} fan-out. Used by {@link #hasConflictingRefs()} and
+     * {@link #getRefClaimants()}.
+     */
+    private Map<String, Set<String>> claimantAdminsByRoot() {
+        Map<String, Set<String>> map = new HashMap<>();
         ApiResponse resp = ApiCache.retrieveResponseSync(
-                new QueryRef(QueryApiAccess.GET_SPACE_ADMINS_REF, params), false);
-        Set<String> agents = new HashSet<>();
+                new QueryRef(QueryApiAccess.LIST_SPACE_CLAIMANTS, "space", getId()), false);
         if (resp != null) {
             for (ApiResponseEntry r : resp.getData()) {
-                String agent = r.get("agent");
-                if (agent != null && !agent.isEmpty()) agents.add(agent);
+                String root = r.get("root");
+                if (root == null || root.isEmpty()) continue;
+                Set<String> admins = new HashSet<>();
+                String adminsStr = r.get("admins_multi_iri");
+                if (adminsStr != null && !adminsStr.isEmpty()) {
+                    for (String a : adminsStr.split(" ")) {
+                        if (!a.isEmpty()) admins.add(a);
+                    }
+                }
+                map.put(root, admins);
             }
         }
-        return agents;
+        return map;
     }
 
     /**

@@ -94,6 +94,11 @@ public class QueryApiAccess {
     // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
     // docs/space-ref-identity.md.
     public static final String GET_SPACES_REF = "RAD5KmWO6uqjM04tK7tb2IREgbxA1GTGyRhaRjjaVIKPw/get-spaces";
+    // Disambiguation claimants: one row per ref (root definition) claiming a space IRI, with that
+    // ref's validated admins (admins_multi_iri). Pass the space IRI; replaces the per-ref
+    // get-space-admins fan-out with a single fetch. Which ref is the representative (default) is
+    // decided client-side. Source at docs/queries/list-space-claimants.trig.
+    public static final String LIST_SPACE_CLAIMANTS = "RApsQhJnK7MV5fHzFQe4GsnsUdf_HvPT186E02JE-4CTY/list-space-claimants";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";

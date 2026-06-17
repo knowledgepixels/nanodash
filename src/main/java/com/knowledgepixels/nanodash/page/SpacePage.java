@@ -12,7 +12,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -96,36 +95,29 @@ public class SpacePage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
-        // Disambiguation notice. Three cases: viewing a specific claimant (ref pinned),
-        // the default view of an identifier with conflicting claimants, or no notice.
-        // Hidden on the claimants overview itself. See docs/space-ref-identity.md.
-        boolean onClaimants = !parameters.get("claimants").isNull();
+        // Disambiguation notice: shown when viewing a specific claimant (ref pinned) or the
+        // default view of an identifier with conflicting claimants. It's a collapsible
+        // <details>: the summary carries the text, expanding it reveals the full claimants
+        // table inline (no separate page). See docs/space-ref-identity.md.
         String bannerText = "";
-        if (!onClaimants && effectiveRoot != null) {
-            bannerText = "You are viewing one of " + space.getRefCount()
-                    + " definitions claiming this identifier (rooted at " + shortNp(effectiveRoot)
-                    + "). Its members, roles, and sub-units below are scoped to this definition. ";
-        } else if (!onClaimants && space.hasConflictingRefs()) {
-            bannerText = "⚠ This space identifier is claimed by " + space.getRefCount()
-                    + " competing definitions with different admins — showing the most recent one. ";
+        if (effectiveRoot != null) {
+            bannerText = "Viewing 1 of " + space.getRefCount()
+                    + " definitions (" + shortNp(effectiveRoot) + "). ";
+        } else if (space.hasConflictingRefs()) {
+            bannerText = "⚠ " + space.getRefCount()
+                    + " definitions claim this identifier, with different admins; showing the default. ";
         }
+        boolean showNotice = !bannerText.isEmpty();
         WebMarkupContainer refConflictNotice = new WebMarkupContainer("ref-conflict");
-        refConflictNotice.setVisible(!bannerText.isEmpty());
+        refConflictNotice.setVisible(showNotice);
         refConflictNotice.add(new Label("ref-conflict-text", bannerText));
-        refConflictNotice.add(new BookmarkablePageLink<Void>("ref-conflict-link", SpacePage.class,
-                new PageParameters().add("id", space.getId()).add("claimants", "true")));
+        refConflictNotice.add(showNotice
+                ? new SpaceClaimantsPanel("claimants-panel", space, effectiveRoot)
+                : new EmptyPanel("claimants-panel"));
         add(refConflictNotice);
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
-
-        // Claimants overview: list all root definitions claiming this IRI (explicit
-        // disambiguation), instead of the normal tab content.
-        if (!parameters.get("claimants").isNull()) {
-            contentContainer.add(new SpaceClaimantsPanel("views", space));
-            add(new EmptyPanel("otherTab").setVisible(false));
-            return;
-        }
         if (activeTab != ResourceTabs.Tab.CONTENT) {
             contentContainer.setVisible(false);
             if (activeTab == ResourceTabs.Tab.ABOUT) {
