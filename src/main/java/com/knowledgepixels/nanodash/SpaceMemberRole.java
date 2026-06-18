@@ -258,11 +258,17 @@ public class SpaceMemberRole implements Serializable {
             return false;
         }
         if (viewer == null) return false;
+        // Without a pinned ref, resolve against the space's representative ref via the bare
+        // accessors (identical to the pre-ref-scoping behaviour); only a pinned ref takes the
+        // ref-scoped overloads. See docs/space-ref-identity.md.
+        boolean pinned = refRoot != null && !refRoot.isEmpty();
         for (IRI req : requiredVisibility) {
             if (isTier(req)) {
-                if (governingSpace.userTier(viewer, refRoot) >= tierRank(req)) return true;
-            } else if (governingSpace.viewerHoldsRole(viewer, req, refRoot)) {
-                return true;
+                int tier = pinned ? governingSpace.userTier(viewer, refRoot) : governingSpace.userTier(viewer);
+                if (tier >= tierRank(req)) return true;
+            } else {
+                boolean holds = pinned ? governingSpace.viewerHoldsRole(viewer, req, refRoot) : governingSpace.viewerHoldsRole(viewer, req);
+                if (holds) return true;
             }
         }
         return false;
