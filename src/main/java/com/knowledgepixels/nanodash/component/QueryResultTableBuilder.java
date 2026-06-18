@@ -32,6 +32,7 @@ public class QueryResultTableBuilder implements Serializable {
     private AbstractResourceWithProfile resourceWithProfile = null;
     private String id = null;
     private String postPublishTab = null;
+    private String refRoot = null;
 
     private QueryResultTableBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -110,6 +111,19 @@ public class QueryResultTableBuilder implements Serializable {
     }
 
     /**
+     * Pins this table to a specific ref (root definition), so action visibility is gated
+     * against that claimant's authority rather than the resource's representative ref. Used
+     * on {@code ?root=}-pinned pages. Null leaves it on the representative ref.
+     *
+     * @param refRoot the ref's root nanopub, or null
+     * @return the current QueryResultTableBuilder instance
+     */
+    public QueryResultTableBuilder refRoot(String refRoot) {
+        this.refRoot = refRoot;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultTable component based on the configured parameters.
      *
      * @return the constructed Component
@@ -122,12 +136,13 @@ public class QueryResultTableBuilder implements Serializable {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                 table.setContextId(contextId);
                 table.setPostPublishTab(postPublishTab);
+                table.setRefRoot(refRoot);
                 if (id != null && contextId != null && !id.equals(contextId)) {
                     table.setPartId(id);
                 }
                 table.setResourceWithProfile(resourceWithProfile);
                 table.setPageResource(resourceWithProfile);
-                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
+                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -137,12 +152,13 @@ public class QueryResultTableBuilder implements Serializable {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
                         table.setContextId(contextId);
                         table.setPostPublishTab(postPublishTab);
+                        table.setRefRoot(refRoot);
                         if (id != null && contextId != null && !id.equals(contextId)) {
                             table.setPartId(id);
                         }
                         table.setResourceWithProfile(resourceWithProfile);
                         table.setPageResource(resourceWithProfile);
-                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
+                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
                         return table;
                     }
                 };
@@ -154,7 +170,8 @@ public class QueryResultTableBuilder implements Serializable {
                 QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                 table.setContextId(contextId);
                 table.setPostPublishTab(postPublishTab);
-                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
+                table.setRefRoot(refRoot);
+                addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
                 table.add(new AttributeAppender("class", colClass));
                 return table;
             } else {
@@ -164,7 +181,8 @@ public class QueryResultTableBuilder implements Serializable {
                         QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
                         table.setContextId(contextId);
                         table.setPostPublishTab(postPublishTab);
-                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile);
+                        table.setRefRoot(refRoot);
+                        addViewActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
                         return table;
                     }
                 };
@@ -186,14 +204,15 @@ public class QueryResultTableBuilder implements Serializable {
      * @param id          the resource id, or null if there is no specific resource in context
      * @param contextId   the context id, or null if there is no context
      */
-    private static void addViewActions(QueryResultTable table, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId, AbstractResourceWithProfile resourceWithProfile) {
+    private static void addViewActions(QueryResultTable table, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId, AbstractResourceWithProfile resourceWithProfile, String refRoot) {
         View view = viewDisplay.getView();
         if (view == null) return;
         for (IRI actionIri : view.getViewResultActionList()) {
             // Per-action role gating (docs/role-specific-views.md): skip an action
             // whose gen:isVisibleTo the current viewer does not satisfy. Additive —
-            // actions without gen:isVisibleTo are unaffected.
-            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
+            // actions without gen:isVisibleTo are unaffected. Gated against the pinned
+            // ref's authority on a ?root=-pinned page. See docs/space-ref-identity.md.
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
             Template t = view.getTemplateForAction(actionIri);
             if (t == null) continue;
             String targetField = view.getTemplateTargetFieldForAction(actionIri);

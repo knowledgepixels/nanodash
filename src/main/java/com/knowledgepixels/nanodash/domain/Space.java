@@ -48,6 +48,10 @@ public class Space extends AbstractResourceWithProfile {
     // fresh response for any of the three underlying queries).
     private volatile ApiResponse cachedAdminsResp, cachedRolesResp, cachedMembersResp;
     private volatile SpaceData cachedData = SpaceData.EMPTY;
+    // Per-ref membership/role data for non-representative refs (?root=-pinned pages), memoised
+    // by ApiResponse identity like cachedData above. Transient: rebuilt on demand. See refData().
+    private transient Map<String, SpaceData> refDataMemos;
+    private transient Map<String, ApiResponse[]> refMemoResps;
 
     private static class SpaceData implements Serializable {
 
@@ -439,7 +443,23 @@ public class Space extends AbstractResourceWithProfile {
      * @return the highest tier rank held, or the "everyone" floor if none.
      */
     public int userTier(IRI userId) {
-        Set<SpaceMemberRoleRef> roles = getMemberRoles(userId);
+        return userTier(userId, null);
+    }
+
+    /**
+     * Like {@link #userTier(IRI)} but resolved against a specific ref (root definition)
+     * rather than this space's representative ref. Used to gate rendering on a
+     * {@code ?root=}-pinned page so authority reflects the ref actually being viewed: a
+     * user who is, say, an admin under the representative ref but holds no role under the
+     * pinned ref gets the "everyone" floor here. A null/empty {@code refRoot} (or one equal
+     * to this space's own ref) falls back to the representative ref. See docs/space-ref-identity.md.
+     *
+     * @param userId  The IRI of the user.
+     * @param refRoot The ref's root nanopub to scope to, or null for the representative ref.
+     * @return the highest tier rank held under that ref, or the "everyone" floor if none.
+     */
+    public int userTier(IRI userId, String refRoot) {
+        Set<SpaceMemberRoleRef> roles = dataForRef(refRoot).users.get(userId);
         if (roles == null || roles.isEmpty()) return SpaceMemberRole.EVERYONE_RANK;
         int max = SpaceMemberRole.EVERYONE_RANK;
         for (SpaceMemberRoleRef ref : roles) {
@@ -457,7 +477,22 @@ public class Space extends AbstractResourceWithProfile {
      * @return true if the user holds that exact role, false otherwise.
      */
     public boolean viewerHoldsRole(IRI userId, IRI roleIri) {
-        Set<SpaceMemberRoleRef> roles = getMemberRoles(userId);
+        return viewerHoldsRole(userId, roleIri, null);
+    }
+
+    /**
+     * Like {@link #viewerHoldsRole(IRI, IRI)} but resolved against a specific ref (root
+     * definition) rather than this space's representative ref, for ref-correct gating on a
+     * {@code ?root=}-pinned page. A null/empty {@code refRoot} (or one equal to this space's
+     * own ref) falls back to the representative ref. See docs/space-ref-identity.md.
+     *
+     * @param userId  The IRI of the user.
+     * @param roleIri The specific role IRI.
+     * @param refRoot The ref's root nanopub to scope to, or null for the representative ref.
+     * @return true if the user holds that exact role under that ref, false otherwise.
+     */
+    public boolean viewerHoldsRole(IRI userId, IRI roleIri, String refRoot) {
+        Set<SpaceMemberRoleRef> roles = dataForRef(refRoot).users.get(userId);
         if (roles == null) return false;
         for (SpaceMemberRoleRef ref : roles) {
             if (ref.getRole().getId().equals(roleIri)) return true;
@@ -544,7 +579,7 @@ public class Space extends AbstractResourceWithProfile {
         if (adminsResp == cachedAdminsResp && rolesResp == cachedRolesResp && membersResp == cachedMembersResp) {
             return cachedData;
         }
-        SpaceData newData = buildData(adminsResp, rolesResp, membersResp);
+        SpaceData newData = buildData(adminsResp, rolesResp, membersResp, true);
         cachedAdminsResp = adminsResp;
         cachedRolesResp = rolesResp;
         cachedMembersResp = membersResp;
@@ -552,17 +587,59 @@ public class Space extends AbstractResourceWithProfile {
         return newData;
     }
 
-    private SpaceData buildData(ApiResponse adminsResp, ApiResponse rolesResp, ApiResponse membersResp) {
+    /**
+     * Membership/role data scoped to a specific ref (root definition). Returns the
+     * representative-ref {@link #currentData()} when {@code refRoot} is null/empty or is
+     * this space's own ref; otherwise resolves the admins/roles/members of the requested
+     * ref via the ref-scoped queries (keyed by {@code root_np} → {@code npa:forSpaceRef}).
+     * Used for ref-correct authority on {@code ?root=}-pinned pages. See docs/space-ref-identity.md.
+     */
+    private SpaceData dataForRef(String refRoot) {
+        if (refRoot == null || refRoot.isEmpty() || refRoot.equals(refRootId)) return currentData();
+        return refData(refRoot);
+    }
+
+    private synchronized SpaceData refData(String refRoot) {
+        ApiResponse adminsResp = ApiCache.retrieveResponseSync(rootNpQuery(QueryApiAccess.GET_SPACE_ADMINS_REF, refRoot), false);
+        ApiResponse rolesResp = ApiCache.retrieveResponseSync(rootNpQuery(QueryApiAccess.GET_SPACE_ROLES_REF, refRoot), false);
+        ApiResponse membersResp = ApiCache.retrieveResponseSync(rootNpQuery(QueryApiAccess.GET_SPACE_MEMBERS_REF, refRoot), false);
+        if (refDataMemos == null) refDataMemos = new HashMap<>();
+        if (refMemoResps == null) refMemoResps = new HashMap<>();
+        SpaceData memo = refDataMemos.get(refRoot);
+        if (memo != null && refMemoFresh(refRoot, adminsResp, rolesResp, membersResp)) return memo;
+        // A non-representative ref's authority comes solely from its ref-scoped queries
+        // (npa:forSpaceRef already includes its root-definition admins); do NOT seed this
+        // space's representative root-declared admins, which belong to a rival definition.
+        SpaceData data = buildData(adminsResp, rolesResp, membersResp, false);
+        refDataMemos.put(refRoot, data);
+        refMemoResps.put(refRoot, new ApiResponse[]{adminsResp, rolesResp, membersResp});
+        return data;
+    }
+
+    private boolean refMemoFresh(String refRoot, ApiResponse a, ApiResponse r, ApiResponse m) {
+        ApiResponse[] last = refMemoResps.get(refRoot);
+        return last != null && last[0] == a && last[1] == r && last[2] == m;
+    }
+
+    private static QueryRef rootNpQuery(String queryId, String refRoot) {
+        Multimap<String, String> p = ArrayListMultimap.create();
+        p.put("root_np", refRoot);
+        return new QueryRef(queryId, p);
+    }
+
+    private SpaceData buildData(ApiResponse adminsResp, ApiResponse rolesResp, ApiResponse membersResp, boolean seedFromRoot) {
         List<IRI> admins = new ArrayList<>();
         Map<IRI, Set<SpaceMemberRoleRef>> users = new HashMap<>();
         List<SpaceMemberRoleRef> roles = new ArrayList<>();
         Map<IRI, SpaceMemberRole> roleMap = new HashMap<>();
 
-        // Seed from rootNanopub-derived state
-        for (IRI rootAdmin : rootAdmins) {
-            admins.add(rootAdmin);
-            users.computeIfAbsent(rootAdmin, k -> new HashSet<>())
-                    .add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, rootNanopubId));
+        // Seed from rootNanopub-derived state (representative ref only — see refData)
+        if (seedFromRoot) {
+            for (IRI rootAdmin : rootAdmins) {
+                admins.add(rootAdmin);
+                users.computeIfAbsent(rootAdmin, k -> new HashSet<>())
+                        .add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, rootNanopubId));
+            }
         }
         roles.add(new SpaceMemberRoleRef(SpaceMemberRole.ADMIN_ROLE, null));
         roleMap.put(KPXL_TERMS.HAS_ADMIN_PREDICATE, SpaceMemberRole.ADMIN_ROLE);

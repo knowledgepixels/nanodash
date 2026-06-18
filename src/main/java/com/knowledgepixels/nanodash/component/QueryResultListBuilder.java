@@ -29,6 +29,7 @@ public class QueryResultListBuilder implements Serializable {
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
     private String postPublishTab = null;
+    private String refRoot = null;
 
     private QueryResultListBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -90,6 +91,19 @@ public class QueryResultListBuilder implements Serializable {
     }
 
     /**
+     * Pins this list to a specific ref (root definition), so action visibility is gated
+     * against that claimant's authority rather than the resource's representative ref. Used
+     * on {@code ?root=}-pinned pages. Null leaves it on the representative ref.
+     *
+     * @param refRoot the ref's root nanopub, or null
+     * @return the current QueryResultListBuilder instance
+     */
+    public QueryResultListBuilder refRoot(String refRoot) {
+        this.refRoot = refRoot;
+        return this;
+    }
+
+    /**
      * Builds the QueryResultList component.
      *
      * @return the QueryResultList component
@@ -104,10 +118,11 @@ public class QueryResultListBuilder implements Serializable {
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
                 resultList.setPostPublishTab(postPublishTab);
+                resultList.setRefRoot(refRoot);
                 View view = viewDisplay.getView();
                 if (view != null) {
                     for (IRI actionIri : view.getViewResultActionList()) {
-                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;
                         String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -162,10 +177,11 @@ public class QueryResultListBuilder implements Serializable {
                         resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
                         resultList.setPostPublishTab(postPublishTab);
+                        resultList.setRefRoot(refRoot);
                         View view = viewDisplay.getView();
                         if (view != null) {
                             for (IRI actionIri : view.getViewResultActionList()) {
-                                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
+                                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
                                 Template t = view.getTemplateForAction(actionIri);
                                 if (t == null) continue;
                                 String targetField = view.getTemplateTargetFieldForAction(actionIri);

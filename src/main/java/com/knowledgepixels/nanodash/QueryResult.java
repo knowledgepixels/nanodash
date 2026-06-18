@@ -28,6 +28,10 @@ public abstract class QueryResult extends Panel {
     protected String contextId;
     protected String partId;
     protected String postPublishTab;
+    // The ref (root definition) this view is pinned to (?root=), used to scope per-entry
+    // action visibility to the claimant being viewed. Null = the resource's representative
+    // ref. See docs/space-ref-identity.md.
+    protected String refRoot;
     protected boolean finalized = false;
     protected final QueryRef queryRef;
     protected final ViewDisplay viewDisplay;
@@ -122,6 +126,17 @@ public abstract class QueryResult extends Panel {
      */
     public void setPostPublishTab(String postPublishTab) {
         this.postPublishTab = postPublishTab;
+    }
+
+    /**
+     * Set the ref (root definition) this view is pinned to, so per-entry action visibility
+     * is gated against that claimant's authority rather than the resource's representative
+     * ref. Null = representative ref. See docs/space-ref-identity.md.
+     *
+     * @param refRoot the ref's root nanopub, or null
+     */
+    public void setRefRoot(String refRoot) {
+        this.refRoot = refRoot;
     }
 
     /**

@@ -141,7 +141,7 @@ public class SpacePage extends NanodashPage {
             // Pinned to a specific claimant: render that ref's view displays, not the
             // representative ref's (the IRI-keyed singleton). Fetched on demand. See
             // docs/space-ref-identity.md.
-            contentContainer.add(new ViewList("views", space, space.getTopLevelViewDisplays(effectiveRoot)));
+            contentContainer.add(new ViewList("views", space, space.getTopLevelViewDisplays(effectiveRoot), effectiveRoot));
         } else if (space.isDataInitialized()) {
             contentContainer.add(new ViewList("views", space));
         } else {
