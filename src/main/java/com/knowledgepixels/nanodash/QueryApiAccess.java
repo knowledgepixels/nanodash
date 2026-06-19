@@ -136,8 +136,12 @@ public class QueryApiAccess {
     // who also hold a higher-tier (admin/maintainer/member) role, so an admin who is also a
     // participant appears here for that participant role. The built-in admin property and
     // genuine higher-tier role declarations are still excluded; non-approved higher-tier claims
-    // go to LIST_SPACE_NON_APPROVED_REF. Source at docs/queries/list-space-observers-ref-v3.trig.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAZ41V9KfYJn7EFTq4cAJ2dTKPb7G5kUPdUK2htyFRUYM/list-space-observers";
+    // go to LIST_SPACE_NON_APPROVED_REF. v4 (RAobkcQi, supersedes RAZ41V9K) gates the
+    // npx:invalidates filter on a shared signing pubkey (npa:hasValidSignatureForPublicKeyHash)
+    // between invalidator and target, so a foreign-key retraction can no longer hide an observer
+    // (issue #487; mirrors the materializer's #112 same-publisher gate). Source at
+    // docs/queries/list-space-observers-ref-v4.trig.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAobkcQijd4C02lIu-NRz-dhlp8MzPKFau3EO7r3-7hSo/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -147,9 +151,12 @@ public class QueryApiAccess {
     // repo materialises every declaration as ObserverRole). Drives the "❓ Pending
     // Admins/Maintainers/Members" view. v3 (RA2BnCGv, supersedes RAZMAChi) resolves owl:sameAs
     // space aliases via the ref's validated npa:sameAsSpace edges, so a higher-tier claim made
-    // against an alias IRI of the space is detected. Source at
-    // docs/queries/list-space-non-approved-ref-v3.trig.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RA2BnCGvEuSYtuGECCDB6DydmKVr3CNndq781WAaYPTFw/list-space-non-approved";
+    // against an alias IRI of the space is detected. v4 (RAwv7GRc, supersedes RA2BnCGv) gates the
+    // npx:invalidates filter on a shared signing pubkey between invalidator and target, so a
+    // foreign-key retraction can no longer suppress a pending claim (issue #487; mirrors the
+    // materializer's #112 same-publisher gate). Source at
+    // docs/queries/list-space-non-approved-ref-v4.trig.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RAwv7GRcjaiG3tcrtWiayQdwqOS2qeatEh4qiOGvB7pNg/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub

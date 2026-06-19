@@ -1,0 +1,90 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-observers a grlc:grlc-query;
+    dct:description "Lists every observer-tier role association of a given space ref (space IRI + root definition): each agent holding a role whose declaration's npa:hasRoleType is gen:ObserverRole. Pass the ref's root nanopub (root_np). Per (member, role) only the latest role-instantiation nanopub is returned (by dct:created), so a role re-asserted several times shows once. Unlike list-space-observers (validated-only), this also includes self-declared observers whose key is not trust-validated (no accepted introduction), flagging them in the headerless ?unverified_noheader column. The role label is pinned to the role the space actually assigned (RoleAssignment), correct even when several declarations share a property. Ref-scoped; shows un-introduced observers rather than hiding them. v3: (a) resolves owl:sameAs space aliases (via the ref's validated npa:sameAsSpace edges in the current-state graph), so an observer role declared against an alias IRI of the space is included; (b) no longer hides users who also hold a higher-tier (admin/maintainer/member) role — every observer-tier association is listed, so an admin who is also a participant appears here for that participant role. The built-in admin property gen:hasAdmin is still excluded (it is not an observer-tier association), as are roles whose declaration is itself admin/maintainer/member-tier; non-approved higher-tier claims belong in list-space-non-approved. v4: the invalidation filter now honours an npx:invalidates edge only when the invalidating nanopub shares a signing pubkey (npa:hasValidSignatureForPublicKeyHash) with the grant it targets, so a foreign-key retraction can no longer erase another agent's observer association (issue #487 / same gate as the materializer's #112).";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space observers (ref-scoped, all observer-tier associations, with validation flag)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix schema: <http://schema.org/>
+
+select ?member
+       (group_concat(distinct ?latestNp; separator=\" \") as ?role_assignments_multi_iri)
+       (group_concat(distinct ?roleLabel; separator=\"\\n\") as ?role_assignments_label_multi)
+       (if(max(?val) = 0, \"⚠️\", \"\") as ?unverified_noheader)
+where {
+  {
+    select ?member ?roleProp
+           (max(?val0) as ?val)
+           (strafter(max(concat(coalesce(str(?dateNp),\"\"), \" \", str(?grantNp))), \" \") as ?latestNp)
+           (sample(?rl) as ?rlRaw)
+    where {
+      values ?_root_np_multi_iri {}
+      graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri ; npa:spaceIri ?spaceIri . }
+      graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+      { bind(?spaceIri as ?inSpace) } union { graph ?g { ?inSpace npa:sameAsSpace ?ref } }
+      graph npa:spacesGraph {
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?inSpace ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
+            (npa:regularProperty|npa:inverseProperty) ?roleProp .
+      }
+      filter exists { graph npa:spacesGraph { ?rdf a npa:RoleDeclaration ; npa:hasRoleType gen:ObserverRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } }
+      filter(?roleProp != gen:hasAdmin)
+      filter not exists { graph npa:spacesGraph { ?rdh a npa:RoleDeclaration ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp .
+        { ?rdh npa:hasRoleType gen:AdminRole } union { ?rdh npa:hasRoleType gen:MaintainerRole } union { ?rdh npa:hasRoleType gen:MemberRole } } }
+      filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp ; npa:hasValidSignatureForPublicKeyHash ?invpk . ?grantNp npa:hasValidSignatureForPublicKeyHash ?invpk . } }
+      bind(if(exists { graph ?g { ?vri npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:viaNanopub ?grantNp } }, 1, 0) as ?val0)
+      optional { graph npa:graph { ?grantNp dct:created ?dateNp } }
+      optional {
+        graph ?g { ?raRole a gen:RoleAssignment ; npa:forSpaceRef ?ref ; gen:hasRole ?role . }
+        graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; npa:role ?role ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp . }
+        graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
+        optional { graph ?role_a { ?role schema:name ?rlS } }
+        optional { graph ?role_a { ?role rdfs:label ?rlA } }
+        optional { graph ?role_a { ?role dct:title ?rlB } }
+        bind(coalesce(?rlS, ?rlA, ?rlB) as ?rl)
+      }
+    }
+    group by ?member ?roleProp
+  }
+  bind(coalesce(?rlRaw, \"role\") as ?roleLabel)
+}
+group by ?member
+order by ?unverified_noheader ?member""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-19T06:56:12Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-observers;
+    npx:supersedes <https://w3id.org/np/RAZ41V9KfYJn7EFTq4cAJ2dTKPb7G5kUPdUK2htyFRUYM> .
+}
