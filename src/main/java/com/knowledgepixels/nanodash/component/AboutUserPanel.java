@@ -31,7 +31,7 @@ public class AboutUserPanel extends Panel {
      * View listing a user's configured view displays. Mirrors the space view-displays
      * view but its "add view display" action links the user-specific creation template.
      */
-    public static final String USER_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA1MS9bRi-J4n9hkJrLTcmQ0FFoG_8qrom4Z3Qu25psOQ/view-displays-view";
+    public static final String USER_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAjN187LMttInM2jVurIb0S3obm9w0MSI3FRqo1Ifm0gQ/view-displays-view";
 
     /**
      * @param id            the Wicket markup id

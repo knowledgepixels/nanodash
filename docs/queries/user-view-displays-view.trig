@@ -38,7 +38,6 @@ sub:assertion {
     dct:isVersionOf sub:user-view-displays-view-kind;
     dct:title "🖵 View displays";
     rdfs:label "View displays view (User)";
-    gen:appliesToInstancesOf gen:Space;
     gen:hasStructuralPosition "5.5.viewDisplays";
     gen:hasViewAction sub:add-view-display-action, sub:deactivate-action;
     gen:hasViewQuery <https://w3id.org/np/RAe63temfrauWIRVIpGa5booRJgioepZSg8t54lgMxmNo/list-view-displays>;
