@@ -61,10 +61,13 @@ public class TemplateItem extends Panel {
         WebMarkupContainer statusPart = new WebMarkupContainer("status");
         if (extended) {
             IRI userIri = null;
-            try {
-                userIri = Utils.vf.createIRI(entry.get("creator"));
-            } catch (IllegalArgumentException | NullPointerException ex) {
-                logger.error("Error creating IRI from creator string: {}", entry.get("creator"), ex);
+            String creator = entry.get("creator");
+            if (creator != null && !creator.isBlank()) {
+                try {
+                    userIri = Utils.vf.createIRI(creator);
+                } catch (IllegalArgumentException | NullPointerException ex) {
+                    logger.error("Error creating IRI from creator string: {}", creator, ex);
+                }
             }
             String userString = User.getShortDisplayNameForPubkeyhash(userIri, entry.get("pubkeyhash"));
             statusPart.add(new Label("user", userString));
