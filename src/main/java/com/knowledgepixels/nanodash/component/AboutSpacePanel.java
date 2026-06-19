@@ -118,7 +118,10 @@ public class AboutSpacePanel extends Panel {
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
 
         View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
-        add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId()), new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
+        QueryRef presetsQuery = (refRoot != null && !refRoot.isEmpty())
+                ? new QueryRef(QueryApiAccess.LIST_PRESET_ASSIGNMENTS_REF, "root_np", refRoot)
+                : new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId());
+        add(QueryResultTableBuilder.create("presets", presetsQuery, new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
 
         View rolesView = View.get(SPACE_ROLES_VIEW);
         // Drive the roles table from the ref-scoped query (scoped by npa:forSpaceRef) so a

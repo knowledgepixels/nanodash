@@ -196,6 +196,15 @@ public class QueryApiAccess {
     // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
     public static final String LIST_VIEW_DISPLAYS_REF = "RAKfr2_TxPCXE-u-Ol0UDb2-8U8sej8aqKhD32EtDTob0/list-view-displays";
 
+    // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
+    // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
+    // graph (nanopub-query #122 ref-stamps each admin-authored assignment per ref), with
+    // latest-by-date-per-(preset,resource) + npa:isActivated gating (a deactivation is a newer
+    // admin-authored row). Column-identical to the IRI-keyed list-preset-assignments, so it drives
+    // the existing Preset assignments view unchanged. Used by AboutSpacePanel with an IRI-keyed
+    // fallback when the ref root is unknown. Source at docs/queries/list-preset-assignments-ref.trig.
+    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RAeLNbudAq68NdqfIL3mtT2YeLnIHZ5T52Qwl_rJzMJJk/list-preset-assignments";
+
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
     private static ConcurrentMap<String, Pair<Long, String>> latestVersionMap = new ConcurrentHashMap<>();
