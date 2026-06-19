@@ -19,7 +19,7 @@ sub:Head {
 
 sub:assertion {
   sub:add-view-display-action a gen:ViewResultAction;
-    rdfs:label "add view display";
+    rdfs:label "➕ add view display";
     gen:hasActionTemplate <https://w3id.org/np/RAe0zantvnJlVWIC2LueG1IAMktXGFIqCdWliok1rOrmU>;
     gen:hasActionTemplatePartField "void";
     gen:hasActionTemplateQueryMapping "void";

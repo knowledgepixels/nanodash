@@ -25,7 +25,7 @@ public class AboutResourcePanel extends Panel {
      * view-displays view but its "add view display" action links the maintained-resource-
      * specific creation template.
      */
-    public static final String MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA0cB6x4hWKcX4wpc-Ej2v-Ftyu5J8Zh5UCitrE8xB-Ro/view-displays-view";
+    public static final String MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAZOxROZRaxSeoeO05iI0tKpDIy2mEN3jlUuVIo0uZN1I/view-displays-view";
 
     /**
      * @param id       the Wicket markup id
