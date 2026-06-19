@@ -195,7 +195,19 @@ public class QueryApiAccess {
     // AboutSpacePanel with both params; falls back to the IRI-keyed query when the ref root is
     // unknown. Source at docs/queries/list-view-displays-ref.trig (regenerate from the latest
     // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
-    public static final String LIST_VIEW_DISPLAYS_REF = "RAKfr2_TxPCXE-u-Ol0UDb2-8U8sej8aqKhD32EtDTob0/list-view-displays";
+    // RAPTW1r (supersedes RAKfr2) renames the ?shown_here column to ?displayed_here.
+    public static final String LIST_VIEW_DISPLAYS_REF = "RAPTW1rmsOd0XOYdYO1cXU0aXGaxFYsSJykJWSoDf1uqw/list-view-displays";
+
+    // IRI-keyed view-displays listing (resource param), used for users / maintained resources and
+    // the space ref-less fallback. Like LIST_VIEW_DISPLAYS_REF it carries a ?displayed_here flag
+    // (✓ when the display applies to the resource itself, blank for part-level displays).
+    // RAxKzcn supersedes the list-view-displays head RAdWeDNF (renames ?shown_here → ?displayed_here).
+    public static final String LIST_VIEW_DISPLAYS = "RAxKzcnWKNa_ufbAR_v2P8_eefeOIoEmRzKuEA9sm0IIQ/list-view-displays";
+
+    // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
+    // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
+    // ?shown_here → ?displayed_here).
+    public static final String LIST_PART_VIEW_DISPLAYS = "RAMy6Nufw1pXjtI4SuxFNxLl_6s7-18rFi5jyJ1no5a5A/list-part-view-displays";
 
     // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
     // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state

@@ -1,7 +1,6 @@
 @prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix np: <http://www.nanopub.org/nschema#> .
-@prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -9,14 +8,21 @@
 @prefix orcid: <https://orcid.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
 sub:assertion {
-  sub:list-view-displays a grlc:grlc-query;
-    dct:description "Ref-scoped view displays for a single space ref. Like list-view-displays but takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np). The authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) rather than the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate (a single auto-detecting param can't: a service-derived resource IRI does not push into the federated SERVICE blocks). Space-only companion to list-view-displays; same columns. Regenerate from the latest list-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation.";
+  sub:list-view-displays a <https://w3id.org/kpxl/grlc/grlc-query>;
+    dct:description "Lists the currently active view displays of a resource for the About page (standalone + preset-contributed, deactivations applied, latest version, one row per resolved view keeping the latest). displayed_here flags whether the view is shown on this resource's own page. Ordered shown-here first, then by structural position.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
-    rdfs:label "List view displays (ref-scoped)";
-    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
-    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    rdfs:label "List view displays";
+    <https://w3id.org/kpxl/grlc/endpoint> <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
+    <https://w3id.org/kpxl/grlc/sparql> """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix dct: <http://purl.org/dc/terms/>
 prefix np: <http://www.nanopub.org/nschema#>
 prefix npa: <http://purl.org/nanopub/admin/>
@@ -31,7 +37,7 @@ select ?view
        (sample(?via_preset_label) as ?via_preset_label)
        (sample(?added_by) as ?added_by)
        (max(?date_added) as ?date_added)
-       (iri(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np))), \"\\\\t\")) as ?np)
+       (iri(strafter(max(concat(str(?date_added), \"\\t\", str(?np))), \"\\t\")) as ?np)
        (\"^\" as ?np_label) where {
 select ?view ?view_label ?displayed_here ?position
        (if(?displayed_here = \"\", ?target_multi_iri_raw, \"\") as ?target_multi_iri)
@@ -54,20 +60,18 @@ where {
          (max(?fDApplyHere) as ?aDApplyHere) (max(?fDHasApply) as ?aDHasApply) (max(?fDHasTarget) as ?aDHasTarget)
          (max(?fDMatch) as ?aDMatch) (max(?fVHasTarget) as ?aVHasTarget) (max(?fVMatch) as ?aVMatch)
          (group_concat(distinct ?targetIri; separator=\" \") as ?target_multi_iri_raw)
-         (group_concat(distinct ?targetLabel; separator=\"\\\\n\") as ?target_label_multi_raw)
+         (group_concat(distinct ?targetLabel; separator=\"\\n\") as ?target_label_multi_raw)
   where {
   {
     select ?_resource_multi_iri ?viewRef ?viewLatest ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
            ?ownClass ?dApply ?dTarget ?vTarget where {
       values ?_resource_multi_iri {}
-      values ?_root_np_multi_iri {}
       service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
         graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
-        graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
         {
           graph ?stateG {
             ?_resource_multi_iri npa:isMaintainedBy? ?space .
-            ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?passedRef ; npa:forAgent ?authAgent ;
+            ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forAgent ?authAgent ;
                 (npa:inverseProperty|npa:regularProperty) ?roleProp .
             ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
           }
@@ -221,8 +225,19 @@ where {
 group by ?view
 order by desc(?displayed_here) ?position""" .
 }
-sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-  this: dct:created "2026-06-19T13:58:40Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:list-view-displays; npx:supersedes <https://w3id.org/np/RAKfr2_TxPCXE-u-Ol0UDb2-8U8sej8aqKhD32EtDTob0> .
+  
+  this: dct:created "2026-06-19T14:01:16Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-view-displays;
+    npx:supersedes <https://w3id.org/np/RAdWeDNFHaMMxJ5RVKtSPdj_0wQHfdicHd0YDnX1X7nSM>;
+    rdfs:label "List view displays" .
 }
+

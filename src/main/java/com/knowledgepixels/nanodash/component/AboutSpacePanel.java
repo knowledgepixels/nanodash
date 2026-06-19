@@ -150,7 +150,7 @@ public class AboutSpacePanel extends Panel {
             vdParams.put("root_np", refRoot);
             vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS_REF, vdParams);
         } else {
-            vdQuery = new QueryRef(vdView.getQuery().getQueryId(), "resource", space.getId());
+            vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS, "resource", space.getId());
         }
         add(QueryResultTableBuilder.create("viewdisplays", vdQuery, new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
 
