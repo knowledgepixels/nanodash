@@ -75,14 +75,20 @@ public class QueryApiAccess {
     // resolution in a run-once sub-SELECT so the cross-repo lookup federates once for the
     // whole view set instead of once per referenced view -- cut a 44-display page from
     // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
-    public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
+    // RAyXaBuR (supersedes RAy49uUd) gates the view-version-resolution npx:invalidates filters on
+    // the version nanopub's own signing pubkey (issue #487); no-regression verified across
+    // resources incl. a 45-display user page.
+    public static final String GET_VIEW_DISPLAYS = "RAyXaBuRHp2GaCRuKElnkg9bqFqayhoqZqGjpaBgd7DtU/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
     // rendered Content views match the space ref shown. Both params concrete so the 4-SERVICE
     // federation propagates. Column-identical to get-view-displays. Source at
     // docs/queries/get-view-displays-ref.trig. See docs/space-ref-identity.md.
-    public static final String GET_VIEW_DISPLAYS_REF = "RA8iqtdTrZGOWX1Yf7w_8RgB9brG3COMw9wkbjfl6VeHc/get-view-displays";
+    // RAny-yPb (supersedes RA8iqtd) gates the view-version-resolution npx:invalidates filters on
+    // the version nanopub's own signing pubkey (issue #487; the row-level filters were already
+    // gated). No-regression verified against RA8iqtd across spaces.
+    public static final String GET_VIEW_DISPLAYS_REF = "RAny-yPbLANY44GhO7fAjEShY-k5D_DTQhyHaVz3ZRxQo/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -93,7 +99,9 @@ public class QueryApiAccess {
     // ref). Published as an independent nanopub (no npx:supersedes). Active query used by
     // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
     // docs/space-ref-identity.md.
-    public static final String GET_SPACES_REF = "RAD5KmWO6uqjM04tK7tb2IREgbxA1GTGyRhaRjjaVIKPw/get-spaces";
+    // v4 (RAyXmrfs, supersedes RAD5KmWO) gates the npx:invalidates filter on a shared signing
+    // pubkey between invalidator and the space-definition nanopub (issue #487).
+    public static final String GET_SPACES_REF = "RAyXmrfs8HeSJWGxz2dFX7qhMIsvTMzWro0J6EyBvsNu8/get-spaces";
     // Disambiguation claimants: one row per ref (root definition) claiming a space IRI, with that
     // ref's validated admins (admins_multi_iri). Pass the space IRI; replaces the per-ref
     // get-space-admins fan-out with a single fetch. Which ref is the representative (default) is
@@ -125,7 +133,9 @@ public class QueryApiAccess {
     // (i.e. the agent's key has a trust-approved AccountState from an accepted intro). Shows
     // every self-declared member while flagging the un-introduced ones, rather than hiding
     // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
-    public static final String GET_SPACE_MEMBERS_REF = "RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw/get-space-members";
+    // RA2eGba0 (supersedes RAqp9TSM) gates the npx:invalidates filter on a shared signing pubkey
+    // between invalidator and the member declaration (issue #487).
+    public static final String GET_SPACE_MEMBERS_REF = "RA2eGba0_0GLtyFWPH2PZe76G0d8azkHaojNCgacifTyI/get-space-members";
     // Ref-scoped observers (Stage 2): takes the ref's root nanopub (root_np), lists observers
     // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
     // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing

@@ -1,22 +1,29 @@
 @prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
-@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER/> .
 @prefix np: <http://www.nanopub.org/nschema#> .
-@prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix orcid: <https://orcid.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
 sub:assertion {
-  sub:get-view-displays a grlc:grlc-query;
-    dct:description "Ref-scoped variant of get-view-displays (the Content-tab renderer query) for a single space ref. Takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np); the authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) instead of the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate. Space-only companion to get-view-displays; same columns. Regenerate from the latest get-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation.";
+  sub:get-view-displays a <https://w3id.org/kpxl/grlc/grlc-query>;
+    dct:description "Returns the views to display for a given resource: both standalone view displays and the views contributed by assigned presets (issue #302), unioned and ordered by date so latest-wins override resolution holds across both. Filtered server-side to declarations signed by an admin or maintainer of the owning space, or by the affected user themselves (for an agent's own page). Each referenced view is resolved to its latest version by following the npx:supersedes chain: among the version tree's current heads (nanopubs that are themselves neither superseded nor validly retracted via npx:invalidates), the most recent is chosen, so ?view is the latest non-retracted view definition (no separate latest-version lookup needed by the client). Choosing a current head rather than the max-timestamp node makes resolution robust to backdated supersedes and to retracted versions. Preset-derived rows have an unbound ?display and carry the resolved ?view plus the assignment's activation mode. The view-version resolution is wrapped in a run-once sub-SELECT so the cross-repo lookup is evaluated once for the whole view set rather than once per referenced view.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
-    rdfs:label "Get view displays (ref-scoped)";
-    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
-    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    rdfs:label "Get view displays";
+    <https://w3id.org/kpxl/grlc/endpoint> <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
+    <https://w3id.org/kpxl/grlc/sparql> """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix dct:  <http://purl.org/dc/terms/>
 prefix np:   <http://www.nanopub.org/nschema#>
 prefix npa:  <http://purl.org/nanopub/admin/>
@@ -26,14 +33,12 @@ prefix gen:  <https://w3id.org/kpxl/gen/terms/>
 select distinct ?display ?view (coalesce(?viewKindOptional, ?view) as ?viewKind)
                 ?label ?displayType ?displayMode ?np ?pubkey ?date where {
   values ?_resource_multi_iri {}
-  values ?_root_np_multi_iri {}
   service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
     graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
-    graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
     {
       graph ?stateG {
         ?_resource_multi_iri npa:isMaintainedBy? ?space .
-        ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?passedRef ; npa:forAgent ?authAgent ;
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forAgent ?authAgent ;
             (npa:inverseProperty|npa:regularProperty) ?roleProp .
         ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
       }
@@ -128,8 +133,23 @@ select distinct ?display ?view (coalesce(?viewKindOptional, ?view) as ?viewKind)
 }
 order by desc(?date)""" .
 }
-sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-  this: dct:created "2026-06-19T07:32:09Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:get-view-displays; npx:supersedes <https://w3id.org/np/RA8iqtdTrZGOWX1Yf7w_8RgB9brG3COMw9wkbjfl6VeHc> .
+  
+  this: dct:created "2026-06-19T07:32:09Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:get-view-displays;
+    npx:supersedes <https://w3id.org/np/RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4>;
+    rdfs:label "Get view displays";
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>, <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
 }
+

@@ -19,7 +19,7 @@ sub:Head {
 
 sub:assertion {
   sub:get-space-members a grlc:grlc-query;
-    dct:description "Returns the (non-admin) members of a given space ref (space IRI + root definition), each with a ?validated flag. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and its space IRI, then returns every non-admin gen:RoleInstantiation naming that IRI from the raw npa:spacesGraph (member agent, role's regular/inverse property, instantiating nanopublication), with ?validated = true when that instantiation is also present in the trust-state-validated current space-state graph for this ref (i.e. the agent's key has a trust-approved AccountState from an accepted introduction), false otherwise. This shows all self-declared members while flagging the un-introduced/unvalidated ones, rather than hiding them.";
+    dct:description "Returns the (non-admin) members of a given space ref (space IRI + root definition), each with a ?validated flag. Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and its space IRI, then returns every non-admin gen:RoleInstantiation naming that IRI from the raw npa:spacesGraph (member agent, role's regular/inverse property, instantiating nanopublication), with ?validated = true when that instantiation is also present in the trust-state-validated current space-state graph for this ref (i.e. the agent's key has a trust-approved AccountState from an accepted introduction), false otherwise. This shows all self-declared members while flagging the un-introduced/unvalidated ones, rather than hiding them. The invalidation filter is gated on a shared signing pubkey (npa:hasValidSignatureForPublicKeyHash) between the invalidating nanopub and the member declaration, so a foreign-key retraction cannot drop a member (issue #487).";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "Get space members (ref-scoped, with validation flag)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
@@ -42,7 +42,7 @@ select ?member ?regProp ?invProp ?np (\"^\" as ?np_label) ?validated where {
     optional { ?ri npa:inverseProperty ?invProp }
     filter not exists { ?ri npa:inverseProperty gen:hasAdmin }
   }
-  filter not exists { graph npa:graph { ?invNp npx:invalidates ?np . } }
+  filter not exists { graph npa:graph { ?invNp npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?invpk . ?np npa:hasValidSignatureForPublicKeyHash ?invpk . } }
   bind(exists {
     graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
     graph ?g {
@@ -62,8 +62,9 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
 
-  this: dct:created "2026-06-16T11:27:57Z"^^xsd:dateTime;
+  this: dct:created "2026-06-19T07:32:09Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
-    npx:embeds sub:get-space-members .
+    npx:embeds sub:get-space-members;
+    npx:supersedes <https://w3id.org/np/RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw> .
 }
