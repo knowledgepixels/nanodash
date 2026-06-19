@@ -36,7 +36,7 @@ public class AboutSpacePanel extends Panel {
     /**
      * View listing the presets assigned to a resource (issue #302).
      */
-    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RA1kCQYXscKPY_qDvQ-WAKhoVomrTQLSt91JSD4Y03CKI/preset-assignments-view";
+    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAhYRi-oLmLALs9HYunZu73cQSh6Z-eLP6QGlUkLMwSL0/preset-assignments-view";
 
     /**
      * View listing a space's assigned roles as a table (role, schema:name, and a

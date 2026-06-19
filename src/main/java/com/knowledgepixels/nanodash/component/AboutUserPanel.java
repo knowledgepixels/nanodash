@@ -34,6 +34,13 @@ public class AboutUserPanel extends Panel {
     public static final String USER_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA1d1qBF8Fk-ZWKtNB-wZd56HrV0wdtJkw0wp58sHxM0E/view-displays-view";
 
     /**
+     * View listing the presets assigned to a user. Mirrors the space preset-assignments view
+     * but its "add preset" action links the user-specific template (offering only presets that
+     * apply to users).
+     */
+    public static final String USER_PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAd0UM_ll5a7Ewpg2VT5azZ7lh3S-K2ASCOIk2AgKfAJY/preset-assignments-view";
+
+    /**
      * @param id            the Wicket markup id
      * @param userIriString the user IRI
      */
@@ -63,7 +70,7 @@ public class AboutUserPanel extends Panel {
                 .contextId(userIriString)
                 .build());
 
-        View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
+        View presetsView = View.get(USER_PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(presetsView)).resourceWithProfile(IndividualAgent.get(userIriString)).id(userIriString).contextId(userIriString).build());
 
         View vdView = View.get(USER_VIEW_DISPLAYS_VIEW);
