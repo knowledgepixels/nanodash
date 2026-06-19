@@ -130,11 +130,14 @@ public class QueryApiAccess {
     // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
     // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
     // Observers view's table (the view nanopub is left untouched). Published independently.
-    // v2 (RA58KSjh, supersedes RARc37t3) excludes higher-tier role claims (admin built-in
-    // property, or Maintainer/Member-tier declarations) — those go to LIST_SPACE_NON_APPROVED_REF
-    // instead of showing up here mislabelled as observers. Source at
-    // docs/queries/list-space-observers-ref-v2.trig.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RA58KSjhMzsFjibtL02m11Xptk0A-CtAjG8wWhvA_ljmQ/list-space-observers";
+    // v3 (RAZ41V9K, supersedes RA58KSjh) (a) resolves owl:sameAs space aliases via the ref's
+    // validated npa:sameAsSpace edges, so observer roles declared against an alias IRI of the
+    // space are included, and (b) lists EVERY observer-tier association — no longer hiding users
+    // who also hold a higher-tier (admin/maintainer/member) role, so an admin who is also a
+    // participant appears here for that participant role. The built-in admin property and
+    // genuine higher-tier role declarations are still excluded; non-approved higher-tier claims
+    // go to LIST_SPACE_NON_APPROVED_REF. Source at docs/queries/list-space-observers-ref-v3.trig.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAZ41V9KfYJn7EFTq4cAJ2dTKPb7G5kUPdUK2htyFRUYM/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -142,8 +145,11 @@ public class QueryApiAccess {
     // member. Observer-tier roles are excluded (self-assignable, so they need no approval and
     // are listed by LIST_SPACE_OBSERVERS_REF). Only admin claims are detectable today (the live
     // repo materialises every declaration as ObserverRole). Drives the "❓ Pending
-    // Admins/Maintainers/Members" view. Source at docs/queries/list-space-non-approved-ref.trig.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RAZMAChiW6g1uJ02fYKuw_1tVk6XPUI1PpYiSraUDYpVY/list-space-non-approved";
+    // Admins/Maintainers/Members" view. v3 (RA2BnCGv, supersedes RAZMAChi) resolves owl:sameAs
+    // space aliases via the ref's validated npa:sameAsSpace edges, so a higher-tier claim made
+    // against an alias IRI of the space is detected. Source at
+    // docs/queries/list-space-non-approved-ref-v3.trig.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RA2BnCGvEuSYtuGECCDB6DydmKVr3CNndq781WAaYPTFw/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
