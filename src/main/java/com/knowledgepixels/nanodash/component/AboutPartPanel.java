@@ -34,7 +34,7 @@ public class AboutPartPanel extends Panel {
      * The "⬜ View displays" view for a part: the owning resource's view displays,
      * each flagged for this specific part via the partid/partclass parameters.
      */
-    public static final String PART_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAHPaxWXTO6Utt54oRFQqTjyGuk4w7y8IDZEsmNqeptwE/part-view-displays-view";
+    public static final String PART_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RACcSq7Rz961_1pIB0FYGRbVHAUiVCeXcJsqlCLs0TxpE/part-view-displays-view";
 
     /**
      * @param id          the Wicket markup id
@@ -67,8 +67,10 @@ public class AboutPartPanel extends Panel {
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
 
         // Presets are assigned to the owning resource (a part has none of its own),
-        // so this lists the owning resource's presets.
-        View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
+        // so this lists the owning resource's presets. Uses the maintained-resource preset
+        // view, so the "add preset" action links the maintained-resource template and
+        // pre-fills the owning resource IRI (id = context), not the part.
+        View presetsView = View.get(AboutResourcePanel.MAINTAINED_RESOURCE_PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", context.getId()), new ViewDisplay(presetsView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
 
         // View displays: the owning resource's displays (resource = context, for the
