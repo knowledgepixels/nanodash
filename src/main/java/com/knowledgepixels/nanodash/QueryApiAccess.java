@@ -75,10 +75,11 @@ public class QueryApiAccess {
     // resolution in a run-once sub-SELECT so the cross-repo lookup federates once for the
     // whole view set instead of once per referenced view -- cut a 44-display page from
     // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
-    // RAyXaBuR (supersedes RAy49uUd) gates the view-version-resolution npx:invalidates filters on
-    // the version nanopub's own signing pubkey (issue #487); no-regression verified across
-    // resources incl. a 45-display user page.
-    public static final String GET_VIEW_DISPLAYS = "RAyXaBuRHp2GaCRuKElnkg9bqFqayhoqZqGjpaBgd7DtU/get-view-displays";
+    // RAlOsra- (supersedes the broken RAyXaBuR, which had a double-slash op IRI from a trailing
+    // slash on the sub: prefix) gates the view-version-resolution npx:invalidates filters on the
+    // version nanopub's own signing pubkey (issue #487); no-regression verified across resources
+    // incl. a 45-display user page.
+    public static final String GET_VIEW_DISPLAYS = "RAlOsra-TR9Wh-GEnt2HcFpMc6Hb7QcA3r2bdD81_B_GA/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
