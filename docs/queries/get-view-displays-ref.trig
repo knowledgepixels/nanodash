@@ -1,0 +1,135 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+sub:assertion {
+  sub:get-view-displays a grlc:grlc-query;
+    dct:description "Ref-scoped variant of get-view-displays (the Content-tab renderer query) for a single space ref. Takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np); the authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) instead of the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate. Space-only companion to get-view-displays; same columns. Regenerate from the latest get-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get view displays (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct:  <http://purl.org/dc/terms/>
+prefix np:   <http://www.nanopub.org/nschema#>
+prefix npa:  <http://purl.org/nanopub/admin/>
+prefix npx:  <http://purl.org/nanopub/x/>
+prefix gen:  <https://w3id.org/kpxl/gen/terms/>
+
+select distinct ?display ?view (coalesce(?viewKindOptional, ?view) as ?viewKind)
+                ?label ?displayType ?displayMode ?np ?pubkey ?date where {
+  values ?_resource_multi_iri {}
+  values ?_root_np_multi_iri {}
+  service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+    graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+    graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
+    {
+      graph ?stateG {
+        ?_resource_multi_iri npa:isMaintainedBy? ?space .
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?passedRef ; npa:forAgent ?authAgent ;
+            (npa:inverseProperty|npa:regularProperty) ?roleProp .
+        ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
+      }
+      optional {
+        graph npa:spacesGraph {
+          ?rd a npa:RoleDeclaration ; npa:forSpace ?space ;
+              npa:hasRoleType gen:MaintainerRole ;
+              (npa:inverseProperty|npa:regularProperty) ?roleProp .
+          bind(true as ?isMaintainer)
+        }
+      }
+      filter(?roleProp = gen:hasAdmin || bound(?isMaintainer))
+    } union {
+      graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
+    }
+  }
+  {
+    # branch (a): standalone view displays — LOCAL pattern on the endpoint repo
+    graph npa:graph {
+      ?np npx:hasNanopubType gen:ViewDisplay .
+      ?np npa:hasValidSignatureForPublicKeyHash ?pubkey .
+      filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+      ?np dct:created ?date .
+      ?np npx:embeds ?display .
+      ?np np:hasAssertion ?a .
+      optional { ?np rdfs:label ?label }
+    }
+    graph ?a {
+      ?display gen:isDisplayOfView ?refView .
+      ?display gen:isDisplayFor   ?_resource_multi_iri .
+      optional { values ?displayType { gen:PartLevelViewDisplay gen:TopLevelViewDisplay } ?display a ?displayType . }
+      optional { values ?displayMode { gen:ActivatedViewDisplay gen:DeactivatedViewDisplay } ?display a ?displayMode . }
+    }
+  }
+  union
+  {
+    # branch (b): preset-supplied views — wrapped in a sub-SELECT so the remote
+    # service does not collapse branch (a). ?display stays unbound.
+    select ?refView ?label ?displayType ?displayMode ?np ?pubkey ?date ?_resource_multi_iri {
+      service <https://w3id.org/np/l/nanopub-query-1.1/repo/full> {
+        graph npa:graph {
+          ?np npx:hasNanopubType gen:PresetAssignment .
+          ?np npa:hasValidSignatureForPublicKeyHash ?pubkey .
+          filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+          ?np dct:created ?date .
+          ?np npx:embeds ?assignment .
+          ?np np:hasAssertion ?a .
+          optional { ?np rdfs:label ?label }
+        }
+        graph ?a {
+          ?assignment gen:isAssignmentFor      ?_resource_multi_iri .
+          ?assignment gen:isAssignmentOfPreset ?presetRef .
+          optional { values ?displayMode { gen:ActivatedPresetAssignment gen:DeactivatedPresetAssignment } ?assignment a ?displayMode . }
+        }
+        graph npa:graph { ?presetNp npx:embeds ?presetRef ; np:hasAssertion ?pa . }
+        graph ?pa {
+          ?presetRef a gen:Preset .
+          { ?presetRef gen:hasTopLevelView ?refView . bind(gen:TopLevelViewDisplay as ?displayType) }
+          union { ?presetRef gen:hasView ?refView . bind(gen:PartLevelViewDisplay as ?displayType) }
+        }
+      }
+    }
+  }
+  # Resolve each referenced view to its latest version: the current head of its
+  # supersedes version tree (a nanopub itself neither superseded nor validly
+  # retracted via npx:invalidates), most recent among heads on a fork. Wrapped in
+  # a run-once sub-SELECT so this cross-repo service is evaluated once for the
+  # whole view set rather than once per referenced view -- the per-view federation
+  # round-trips were the dominant cost of earlier versions.
+  optional {
+    service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+      select distinct ?refView ?latestView ?viewKindOptional where {
+        graph npa:graph { ?rnp npx:embeds ?refView ; np:hasAssertion ?ra . }
+        graph ?ra { ?refView a gen:ResourceView . }
+        optional {
+          ?vnp npx:embeds ?refView .
+          ?latestNp (npx:supersedes|^npx:supersedes)* ?vnp ; dct:created ?ldate ; npx:embeds ?latestView ; np:hasAssertion ?va ; npa:hasValidSignatureForPublicKeyHash ?invPk .
+          filter not exists { ?supNp npx:supersedes ?latestNp . }
+          filter not exists { ?invNp npx:invalidates ?latestNp ; npa:hasValidSignatureForPublicKeyHash ?invPk . }
+          filter not exists {
+            ?other (npx:supersedes|^npx:supersedes)* ?vnp ; dct:created ?odate ; npa:hasValidSignatureForPublicKeyHash ?invPk2 .
+            filter not exists { ?supNp2 npx:supersedes ?other . }
+            filter not exists { ?invNp2 npx:invalidates ?other ; npa:hasValidSignatureForPublicKeyHash ?invPk2 . }
+            filter(?odate > ?ldate)
+          }
+          graph ?va { ?latestView a gen:ResourceView . optional { ?latestView dct:isVersionOf ?viewKindOptional . } }
+        }
+      }
+    }
+  }
+  bind(coalesce(?latestView, ?refView) as ?view)
+}
+order by desc(?date)""" .
+}
+sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  this: dct:created "2026-06-19T07:32:09Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:get-view-displays; npx:supersedes <https://w3id.org/np/RA8iqtdTrZGOWX1Yf7w_8RgB9brG3COMw9wkbjfl6VeHc> .
+}

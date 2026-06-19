@@ -31,6 +31,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
     private Space space = null;
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
+    private String refRoot = null;
 
     // This method is the result of refactoring and copying code from other classes done
     // by Cursor. This should in general be aligned and refactored more with the other classes.
@@ -40,7 +41,7 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
         for (IRI actionIri : view.getViewResultActionList()) {
             // Per-action role gating (docs/role-specific-views.md): skip an action
             // whose gen:isVisibleTo the viewer does not satisfy.
-            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), pageResource)) continue;
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), pageResource, refRoot)) continue;
             Template t = view.getTemplateForAction(actionIri);
             if (t == null) continue;
             String targetField = view.getTemplateTargetFieldForAction(actionIri);
@@ -111,6 +112,19 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
 
     public QueryResultPlainParagraphBuilder pageResource(AbstractResourceWithProfile pageResource) {
         this.pageResource = pageResource;
+        return this;
+    }
+
+    /**
+     * Pins this paragraph to a specific ref (root definition), so action visibility is gated
+     * against that claimant's authority rather than the resource's representative ref. Used
+     * on {@code ?root=}-pinned pages. Null leaves it on the representative ref.
+     *
+     * @param refRoot the ref's root nanopub, or null
+     * @return the current QueryResultPlainParagraphBuilder instance
+     */
+    public QueryResultPlainParagraphBuilder refRoot(String refRoot) {
+        this.refRoot = refRoot;
         return this;
     }
 

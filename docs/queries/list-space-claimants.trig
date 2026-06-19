@@ -1,0 +1,48 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-claimants a grlc:grlc-query;
+    dct:description "Lists every ref (root definition) that claims a given space IRI, each with its validated admin agents — the disambiguation claimants list. Pass the space IRI (space); returns one row per npa:SpaceRef of that IRI: its root nanopub (root) and the space-separated admin agent IRIs (admins_multi_iri), taken from the trust-state-validated admin RoleInstantiations (npa:inverseProperty gen:hasAdmin) scoped to that ref (npa:forSpaceRef) in the current space-state graph. More than one row means several distinct definitions claim the same identifier. Replaces the per-ref get-space-admins fan-out with a single query; which ref is the client's representative (default) is decided client-side.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space claimants";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix npa: <http://purl.org/nanopub/admin/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?root (group_concat(distinct ?agent; separator=\" \") as ?admins_multi_iri) where {
+  values ?_space_multi_iri {}
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+  graph npa:spacesGraph { ?ref a npa:SpaceRef ; npa:spaceIri ?_space_multi_iri ; npa:rootNanopub ?root . }
+  optional { graph ?g { ?ri a gen:RoleInstantiation ; npa:inverseProperty gen:hasAdmin ; npa:forSpaceRef ?ref ; npa:forAgent ?agent . } }
+} group by ?root order by ?root""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-17T13:55:31Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-claimants .
+}

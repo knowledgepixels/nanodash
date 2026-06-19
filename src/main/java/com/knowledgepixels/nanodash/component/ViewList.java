@@ -28,6 +28,12 @@ public class ViewList extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewList.class);
 
+    // The ref (root definition) this list is pinned to (?root=), used to gate each view's
+    // action visibility against the claimant being viewed rather than the resource's
+    // representative ref. Null = representative ref. Read at render time by the inner
+    // ListView, so it may be set after the delegating constructor. See docs/space-ref-identity.md.
+    private String refRoot;
+
     public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile) {
         this(markupId, resourceWithProfile, null, null, null, null, null, true, null);
     }
@@ -46,6 +52,16 @@ public class ViewList extends Panel {
 
     public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays) {
         this(markupId, resourceWithProfile, null, null, null, null, null, false, explicitViewDisplays);
+    }
+
+    /**
+     * As {@link #ViewList(String, AbstractResourceWithProfile, List)} but pinned to a specific
+     * ref (root definition), so each view's action visibility is gated against that claimant's
+     * authority. Used for {@code ?root=}-pinned space pages. See docs/space-ref-identity.md.
+     */
+    public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays, String refRoot) {
+        this(markupId, resourceWithProfile, null, null, null, null, null, false, explicitViewDisplays);
+        this.refRoot = refRoot;
     }
 
     public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, List<ViewDisplay> explicitViewDisplays, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons) {
@@ -123,18 +139,21 @@ public class ViewList extends Panel {
                                         .pageResource(resourceWithProfile)
                                         .id(id)
                                         .contextId(resourceWithProfile.getId())
+                                        .refRoot(refRoot)
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
                                 item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
                                         .resourceWithProfile(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .id(id)
+                                        .refRoot(refRoot)
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
                                 item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
                                         .pageResource(resourceWithProfile)
                                         .contextId(resourceWithProfile.getId())
                                         .id(id)
+                                        .refRoot(refRoot)
                                         .build());
                             } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
                                 item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())

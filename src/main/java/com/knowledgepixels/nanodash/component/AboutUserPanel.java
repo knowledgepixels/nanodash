@@ -28,6 +28,12 @@ public class AboutUserPanel extends Panel {
     public static final String PROFILE_VIEW = "https://w3id.org/np/RAtTP_qhEqsz2V8YoR6MfZ_j7gwcJ9SE2WvzjXLiagb9Q/profile-view";
 
     /**
+     * View listing a user's configured view displays. Mirrors the space view-displays
+     * view but its "add view display" action links the user-specific creation template.
+     */
+    public static final String USER_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RA1d1qBF8Fk-ZWKtNB-wZd56HrV0wdtJkw0wp58sHxM0E/view-displays-view";
+
+    /**
      * @param id            the Wicket markup id
      * @param userIriString the user IRI
      */
@@ -60,7 +66,7 @@ public class AboutUserPanel extends Panel {
         View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(presetsView)).resourceWithProfile(IndividualAgent.get(userIriString)).id(userIriString).contextId(userIriString).build());
 
-        View vdView = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
+        View vdView = View.get(USER_VIEW_DISPLAYS_VIEW);
         add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", userIriString), new ViewDisplay(vdView)).resourceWithProfile(IndividualAgent.get(userIriString)).id(userIriString).contextId(userIriString).build());
     }
 

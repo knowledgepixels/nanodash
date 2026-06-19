@@ -75,7 +75,21 @@ public class QueryApiAccess {
     // resolution in a run-once sub-SELECT so the cross-repo lookup federates once for the
     // whole view set instead of once per referenced view -- cut a 44-display page from
     // ~4.5s to ~1.7s (the per-view federation round-trips were the dominant cost).
-    public static final String GET_VIEW_DISPLAYS = "RAy49uUd2fPLHJAZ_7QKDtIDVgqaQ589OgQhMwNamKy-4/get-view-displays";
+    // RAlOsra- (supersedes the broken RAyXaBuR, which had a double-slash op IRI from a trailing
+    // slash on the sub: prefix) gates the view-version-resolution npx:invalidates filters on the
+    // version nanopub's own signing pubkey (issue #487); no-regression verified across resources
+    // incl. a 45-display user page.
+    public static final String GET_VIEW_DISPLAYS = "RAlOsra-TR9Wh-GEnt2HcFpMc6Hb7QcA3r2bdD81_B_GA/get-view-displays";
+    // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
+    // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
+    // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
+    // rendered Content views match the space ref shown. Both params concrete so the 4-SERVICE
+    // federation propagates. Column-identical to get-view-displays. Source at
+    // docs/queries/get-view-displays-ref.trig. See docs/space-ref-identity.md.
+    // RAny-yPb (supersedes RA8iqtd) gates the view-version-resolution npx:invalidates filters on
+    // the version nanopub's own signing pubkey (issue #487; the row-level filters were already
+    // gated). No-regression verified against RA8iqtd across spaces.
+    public static final String GET_VIEW_DISPLAYS_REF = "RAny-yPbLANY44GhO7fAjEShY-k5D_DTQhyHaVz3ZRxQo/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -86,7 +100,14 @@ public class QueryApiAccess {
     // ref). Published as an independent nanopub (no npx:supersedes). Active query used by
     // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
     // docs/space-ref-identity.md.
-    public static final String GET_SPACES_REF = "RAD5KmWO6uqjM04tK7tb2IREgbxA1GTGyRhaRjjaVIKPw/get-spaces";
+    // v4 (RAyXmrfs, supersedes RAD5KmWO) gates the npx:invalidates filter on a shared signing
+    // pubkey between invalidator and the space-definition nanopub (issue #487).
+    public static final String GET_SPACES_REF = "RAyXmrfs8HeSJWGxz2dFX7qhMIsvTMzWro0J6EyBvsNu8/get-spaces";
+    // Disambiguation claimants: one row per ref (root definition) claiming a space IRI, with that
+    // ref's validated admins (admins_multi_iri). Pass the space IRI; replaces the per-ref
+    // get-space-admins fan-out with a single fetch. Which ref is the representative (default) is
+    // decided client-side. Source at docs/queries/list-space-claimants.trig.
+    public static final String LIST_SPACE_CLAIMANTS = "RApsQhJnK7MV5fHzFQe4GsnsUdf_HvPT186E02JE-4CTY/list-space-claimants";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
@@ -113,13 +134,77 @@ public class QueryApiAccess {
     // (i.e. the agent's key has a trust-approved AccountState from an accepted intro). Shows
     // every self-declared member while flagging the un-introduced ones, rather than hiding
     // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
-    public static final String GET_SPACE_MEMBERS_REF = "RAqp9TSM4oAwvJ0UQrvZ-qzEuS4R8zpsuD_lw1lyW5MOw/get-space-members";
+    // RA2eGba0 (supersedes RAqp9TSM) gates the npx:invalidates filter on a shared signing pubkey
+    // between invalidator and the member declaration (issue #487).
+    public static final String GET_SPACE_MEMBERS_REF = "RA2eGba0_0GLtyFWPH2PZe76G0d8azkHaojNCgacifTyI/get-space-members";
     // Ref-scoped observers (Stage 2): takes the ref's root nanopub (root_np), lists observers
     // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
     // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
     // Observers view's table (the view nanopub is left untouched). Published independently.
-    // Source at docs/queries/list-space-observers-ref.trig.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RARc37t3fXMzrFP-PYsdmIqsDdloZaNklY4eYxpUKaLHI/list-space-observers";
+    // v3 (RAZ41V9K, supersedes RA58KSjh) (a) resolves owl:sameAs space aliases via the ref's
+    // validated npa:sameAsSpace edges, so observer roles declared against an alias IRI of the
+    // space are included, and (b) lists EVERY observer-tier association — no longer hiding users
+    // who also hold a higher-tier (admin/maintainer/member) role, so an admin who is also a
+    // participant appears here for that participant role. The built-in admin property and
+    // genuine higher-tier role declarations are still excluded; non-approved higher-tier claims
+    // go to LIST_SPACE_NON_APPROVED_REF. v4 (RAobkcQi, supersedes RAZ41V9K) gates the
+    // npx:invalidates filter on a shared signing pubkey (npa:hasValidSignatureForPublicKeyHash)
+    // between invalidator and target, so a foreign-key retraction can no longer hide an observer
+    // (issue #487; mirrors the materializer's #112 same-publisher gate). Source at
+    // docs/queries/list-space-observers-ref-v4.trig.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAobkcQijd4C02lIu-NRz-dhlp8MzPKFau3EO7r3-7hSo/list-space-observers";
+
+    // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
+    // instantiation (admin/maintainer/member) that is NOT in the validated state — a
+    // self-assigned or otherwise ungranted claim awaiting approval by an equal-or-higher-tier
+    // member. Observer-tier roles are excluded (self-assignable, so they need no approval and
+    // are listed by LIST_SPACE_OBSERVERS_REF). Only admin claims are detectable today (the live
+    // repo materialises every declaration as ObserverRole). Drives the "❓ Pending
+    // Admins/Maintainers/Members" view. v3 (RA2BnCGv, supersedes RAZMAChi) resolves owl:sameAs
+    // space aliases via the ref's validated npa:sameAsSpace edges, so a higher-tier claim made
+    // against an alias IRI of the space is detected. v4 (RAwv7GRc, supersedes RA2BnCGv) gates the
+    // npx:invalidates filter on a shared signing pubkey between invalidator and target, so a
+    // foreign-key retraction can no longer suppress a pending claim (issue #487; mirrors the
+    // materializer's #112 same-publisher gate). Source at
+    // docs/queries/list-space-non-approved-ref-v4.trig.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RAwv7GRcjaiG3tcrtWiayQdwqOS2qeatEh4qiOGvB7pNg/list-space-non-approved";
+
+    // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
+    // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
+    // (root_np), resolves the ref via npa:rootNanopub, and scopes by npa:forSpaceRef (members,
+    // roles) or the ref-level npa:hasSubSpace / npa:hasMaintainedResource edge (sub-spaces,
+    // maintained resources), so a ?root=-pinned space page shows only that one ref's listings
+    // rather than merging all refs claiming the IRI. Column-compatible with the IRI-keyed view
+    // queries, so they drive the existing view nanopubs unchanged (the observers pattern). Used
+    // by AboutSpacePanel with an IRI-keyed fallback when the ref root is unknown. Published
+    // independently (no npx:supersedes). Sources at docs/queries/list-*-ref.trig. See
+    // docs/space-ref-identity.md.
+    public static final String LIST_SPACE_MEMBERS_REF = "RAXhi9zBXJ2mZVmjBm_MZk1xM6OCxxVyr5B3xNYdy6boQ/list-space-members";
+    public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
+    public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
+    public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
+
+    // Ref-scoped view displays for a space. Unlike the LIST_*_REF above this is NOT a single-param
+    // root_np query: view displays aren't materialised into the spaces repo, so the query is a
+    // 4-SERVICE federated join, and federation only propagates CONCRETE (VALUES) bindings into the
+    // sub-services. A single auto-detecting param fails (a service-derived resource IRI doesn't push
+    // into the branches → 0 rows). So this takes TWO concrete params — the space IRI (resource) and
+    // the ref's root nanopub (root_np) — and resolves the ref + scopes the authority gate to
+    // npa:forSpaceRef INSIDE the /repo/spaces service. Column-identical to list-view-displays (its
+    // spaces-only companion), so it drives the existing view-displays view unchanged. Used by
+    // AboutSpacePanel with both params; falls back to the IRI-keyed query when the ref root is
+    // unknown. Source at docs/queries/list-view-displays-ref.trig (regenerate from the latest
+    // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
+    public static final String LIST_VIEW_DISPLAYS_REF = "RAKfr2_TxPCXE-u-Ol0UDb2-8U8sej8aqKhD32EtDTob0/list-view-displays";
+
+    // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
+    // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
+    // graph (nanopub-query #122 ref-stamps each admin-authored assignment per ref), with
+    // latest-by-date-per-(preset,resource) + npa:isActivated gating (a deactivation is a newer
+    // admin-authored row). Column-identical to the IRI-keyed list-preset-assignments, so it drives
+    // the existing Preset assignments view unchanged. Used by AboutSpacePanel with an IRI-keyed
+    // fallback when the ref root is unknown. Source at docs/queries/list-preset-assignments-ref.trig.
+    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RAeLNbudAq68NdqfIL3mtT2YeLnIHZ5T52Qwl_rJzMJJk/list-preset-assignments";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

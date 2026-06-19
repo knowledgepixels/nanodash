@@ -88,7 +88,6 @@ details summary {
   cursor: pointer;
   color: #0B73DA;
   font-weight: 700;
-  margin-top: 0.5em;
 }
 
 :root {
@@ -1198,6 +1197,56 @@ select {
 
 .status {
   color: #888888;
+}
+
+.ref-conflict-notice {
+  color: #8a6d3b;
+  background: #fcf3e3;
+  border: 1px solid #f0d9a8;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.ref-conflict-notice > summary {
+  cursor: pointer;
+}
+
+.ref-conflict-notice[open] > summary {
+  margin-bottom: 8px;
+}
+
+.ref-conflict-notice .claimant-table {
+  margin-bottom: 0;
+  color: #333;
+}
+
+.default-ref {
+  background: #e7f1ff;
+  color: #2c5aa0;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.current-ref {
+  background: #e3f3e3;
+  color: #2f6b2f;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.claimant-view {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.claimant-table td a {
+  margin-right: 2px;
 }
 
 #content-pane {

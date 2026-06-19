@@ -221,6 +221,24 @@ public class SpaceMemberRole implements Serializable {
      * @return true if the viewer is entitled
      */
     public static boolean isViewerEntitled(Set<IRI> requiredVisibility, IRI viewer, Space governingSpace, boolean viewerIsOwner) {
+        return isViewerEntitled(requiredVisibility, viewer, governingSpace, viewerIsOwner, null);
+    }
+
+    /**
+     * Like {@link #isViewerEntitled(Set, IRI, Space, boolean)} but scopes the governing
+     * space's authority to a specific ref (root definition) — the claimant a
+     * {@code ?root=}-pinned page is viewing — so a viewer's tier/role is read from that ref
+     * rather than the space's representative one. A null/empty {@code refRoot} resolves to the
+     * representative ref (identical to the four-argument overload). See docs/space-ref-identity.md.
+     *
+     * @param requiredVisibility the set of {@code gen:isVisibleTo} IRIs (may be empty)
+     * @param viewer             the current viewer IRI, or null if anonymous
+     * @param governingSpace     the governing space, or null when there is none
+     * @param viewerIsOwner      whether the viewer owns the resource (for user pages)
+     * @param refRoot            the ref's root nanopub to scope authority to, or null
+     * @return true if the viewer is entitled under that ref
+     */
+    public static boolean isViewerEntitled(Set<IRI> requiredVisibility, IRI viewer, Space governingSpace, boolean viewerIsOwner, String refRoot) {
         if (requiredVisibility == null || requiredVisibility.isEmpty()) return true;
         // gen:EveryoneRole is the explicit "no restriction" value (the default the
         // view-creation template emits since it cannot leave the statement optional);
@@ -240,11 +258,17 @@ public class SpaceMemberRole implements Serializable {
             return false;
         }
         if (viewer == null) return false;
+        // Without a pinned ref, resolve against the space's representative ref via the bare
+        // accessors (identical to the pre-ref-scoping behaviour); only a pinned ref takes the
+        // ref-scoped overloads. See docs/space-ref-identity.md.
+        boolean pinned = refRoot != null && !refRoot.isEmpty();
         for (IRI req : requiredVisibility) {
             if (isTier(req)) {
-                if (governingSpace.userTier(viewer) >= tierRank(req)) return true;
-            } else if (governingSpace.viewerHoldsRole(viewer, req)) {
-                return true;
+                int tier = pinned ? governingSpace.userTier(viewer, refRoot) : governingSpace.userTier(viewer);
+                if (tier >= tierRank(req)) return true;
+            } else {
+                boolean holds = pinned ? governingSpace.viewerHoldsRole(viewer, req, refRoot) : governingSpace.viewerHoldsRole(viewer, req);
+                if (holds) return true;
             }
         }
         return false;
@@ -261,11 +285,27 @@ public class SpaceMemberRole implements Serializable {
      * @return true if the current viewer is entitled
      */
     public static boolean isViewerEntitled(Set<IRI> requiredVisibility, AbstractResourceWithProfile resource) {
+        return isViewerEntitled(requiredVisibility, resource, null);
+    }
+
+    /**
+     * Like {@link #isViewerEntitled(Set, AbstractResourceWithProfile)} but scopes the
+     * governing space's authority to a specific ref (root definition), so action visibility
+     * on a {@code ?root=}-pinned page reflects the claimant being viewed rather than the
+     * space's representative ref. A null/empty {@code refRoot} behaves identically to the
+     * single-argument overload. See docs/space-ref-identity.md.
+     *
+     * @param requiredVisibility the set of {@code gen:isVisibleTo} IRIs (may be empty)
+     * @param resource           the resource the action is being rendered for, or null
+     * @param refRoot            the ref's root nanopub to scope authority to, or null
+     * @return true if the current viewer is entitled under that ref
+     */
+    public static boolean isViewerEntitled(Set<IRI> requiredVisibility, AbstractResourceWithProfile resource, String refRoot) {
         if (requiredVisibility == null || requiredVisibility.isEmpty()) return true;
         Space governingSpace = (resource instanceof Space s) ? s : (resource != null ? resource.getSpace() : null);
         IRI viewer = NanodashSession.getCurrentUserIriOrNull();
         boolean viewerIsOwner = viewer != null && resource instanceof IndividualAgent ia && ia.isCurrentUser();
-        return isViewerEntitled(requiredVisibility, viewer, governingSpace, viewerIsOwner);
+        return isViewerEntitled(requiredVisibility, viewer, governingSpace, viewerIsOwner, refRoot);
     }
 
     /**

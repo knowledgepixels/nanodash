@@ -71,22 +71,50 @@ public class SpacePage extends NanodashPage {
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
 
+        // Optional ?root=<NPID> pins the page to a specific ref (one of the IRI's claimants);
+        // validated against the known refs. null = the representative (default) ref. Carried
+        // across tab switches so the pinned ref survives navigation.
+        String rootParam = parameters.get("root").toString(null);
+        final String effectiveRoot = (rootParam != null && !rootParam.isEmpty()
+                && space.getRefRoots().contains(rootParam)) ? rootParam : null;
+
         List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             // Top-level space (no superspace): show only the tab strip, no breadcrumb.
             add(new TitleBar("titlebar", this, null)
-                    .setTabs(new ResourceTabs("tabs", "space", space.getId(), activeTab)));
+                    .setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         } else {
             superSpaces.add(space);
             add(new TitleBar("titlebar", this, null,
                     superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
-            ).setTabs(new ResourceTabs("tabs", "space", space.getId(), activeTab)));
+            ).setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
+
+        // Disambiguation notice: shown when viewing a specific claimant (ref pinned) or the
+        // default view of an identifier with conflicting claimants. It's a collapsible
+        // <details>: the summary carries the text, expanding it reveals the full claimants
+        // table inline (no separate page). See docs/space-ref-identity.md.
+        String bannerText = "";
+        if (effectiveRoot != null) {
+            bannerText = "Viewing 1 of " + space.getRefCount()
+                    + " definitions (" + shortNp(effectiveRoot) + "). ";
+        } else if (space.hasConflictingRefs()) {
+            bannerText = "⚠ " + space.getRefCount()
+                    + " definitions claim this identifier, with different admins; showing the default. ";
+        }
+        boolean showNotice = !bannerText.isEmpty();
+        WebMarkupContainer refConflictNotice = new WebMarkupContainer("ref-conflict");
+        refConflictNotice.setVisible(showNotice);
+        refConflictNotice.add(new Label("ref-conflict-text", bannerText));
+        refConflictNotice.add(showNotice
+                ? new SpaceClaimantsPanel("claimants-panel", space, effectiveRoot)
+                : new EmptyPanel("claimants-panel"));
+        add(refConflictNotice);
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
@@ -96,7 +124,7 @@ public class SpacePage extends NanodashPage {
                 // The panel constructor resolves view nanopubs over the network when
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
-                add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject()),
+                add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject(), effectiveRoot),
                         AboutSpacePanel.SPACE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
                         AboutSpacePanel.MEMBERS_VIEW, AboutSpacePanel.OBSERVERS_VIEW));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
@@ -109,7 +137,12 @@ public class SpacePage extends NanodashPage {
         }
         add(new EmptyPanel("otherTab").setVisible(false));
 
-        if (space.isDataInitialized()) {
+        if (effectiveRoot != null) {
+            // Pinned to a specific claimant: render that ref's view displays, not the
+            // representative ref's (the IRI-keyed singleton). Fetched on demand. See
+            // docs/space-ref-identity.md.
+            contentContainer.add(new ViewList("views", space, space.getTopLevelViewDisplays(effectiveRoot), effectiveRoot));
+        } else if (space.isDataInitialized()) {
             contentContainer.add(new ViewList("views", space));
         } else {
             contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
@@ -141,6 +174,13 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /** A short, human-scannable form of a nanopub IRI (its artifact-code prefix). */
+    private static String shortNp(String npIri) {
+        int i = Math.max(npIri.lastIndexOf('/'), npIri.lastIndexOf('#'));
+        String code = i < 0 ? npIri : npIri.substring(i + 1);
+        return code.length() > 16 ? code.substring(0, 16) + "…" : code;
     }
 
     /**

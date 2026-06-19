@@ -223,4 +223,27 @@ class SpaceMemberRoleTest {
         assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, space, false));
     }
 
+    @Test
+    void pinnedRefScopesTierToThatRef() {
+        // When a ref is pinned (?root=), authority is read from that ref, not the
+        // representative one: a viewer who is an admin under the representative ref but
+        // holds no role under the pinned ref does not pass a member-tier gate.
+        String pinnedRef = "https://w3id.org/np/PINNED";
+        Space space = mock(Space.class);
+        when(space.userTier(VIEWER)).thenReturn(4); // admin under the representative ref
+        when(space.userTier(VIEWER, pinnedRef)).thenReturn(SpaceMemberRole.EVERYONE_RANK); // pinned ref
+        assertFalse(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.MEMBER_ROLE), VIEWER, space, false, pinnedRef));
+        // ...and the un-pinned check still uses the representative ref's bare accessor.
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(KPXL_TERMS.MEMBER_ROLE), VIEWER, space, false));
+    }
+
+    @Test
+    void pinnedRefScopesSpecificRoleToThatRef() {
+        IRI customRole = Values.iri("https://example.org/newsletterEditor");
+        String pinnedRef = "https://w3id.org/np/PINNED";
+        Space space = mock(Space.class);
+        when(space.viewerHoldsRole(VIEWER, customRole, pinnedRef)).thenReturn(true);
+        assertTrue(SpaceMemberRole.isViewerEntitled(Set.of(customRole), VIEWER, space, false, pinnedRef));
+    }
+
 }

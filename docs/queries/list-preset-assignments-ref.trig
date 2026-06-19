@@ -1,0 +1,66 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-preset-assignments a grlc:grlc-query;
+    dct:description "Lists the presets assigned in a given space ref (space IRI + root definition). Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and reads the server-materialised npa:PresetAssignment rows scoped by npa:forSpaceRef from the trust-validated current space-state graph (only admin-authored assignments are materialised, so this is authorisation-scoped). Per (preset, resource) only the latest assignment by dct:created counts, and the preset is listed only when that latest row is still activated (npa:isActivated true) — a deactivation is a newer admin-authored row with npa:isActivated false. Columns match the IRI-keyed list-preset-assignments (preset, preset_label, deactivatePreset, added_by, date_added, np, np_label) so it drives the existing Preset assignments view unchanged. Ref-scoped variant: shows only that one ref's assignments rather than merging all refs claiming the IRI.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List preset assignments (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select ?preset (sample(?lbl) as ?preset_label) (str(?preset) as ?deactivatePreset)
+       (sample(?user) as ?added_by) (?date as ?date_added) ?np (\"^\" as ?np_label)
+where {
+  values ?_root_np_multi_iri {}
+  graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri . }
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+  graph ?g {
+    ?paRef a npa:PresetAssignment ; npa:forSpaceRef ?ref ; npa:ofPreset ?preset ; npa:forResource ?resource ;
+           npa:isActivated ?activated ; npa:viaNanopub ?np ; dct:created ?date .
+  }
+  filter(?activated = true)
+  filter not exists {
+    graph ?g { ?pa2 a npa:PresetAssignment ; npa:forSpaceRef ?ref ; npa:ofPreset ?preset ; npa:forResource ?resource ; dct:created ?date2 . }
+    filter(?date2 > ?date)
+  }
+  optional { graph npa:graph { ?np npx:signedBy ?user } }
+  optional { ?pnp npx:embeds ?preset ; np:hasAssertion ?pa . graph ?pa { ?preset rdfs:label ?lbl } }
+}
+group by ?preset ?date ?np
+order by desc(?date)""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-19T08:01:45Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-preset-assignments .
+}

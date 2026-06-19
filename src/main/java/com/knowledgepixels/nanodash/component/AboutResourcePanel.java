@@ -21,6 +21,13 @@ public class AboutResourcePanel extends Panel {
     public static final String MAINTAINED_RESOURCE_INFO_VIEW = "https://w3id.org/np/RAqKkqvOFWWCDJ4LOa6rrgQJMFbDnoaG56zkIBN5AMBZw/maintained-resource-info-view-kind";
 
     /**
+     * View listing a maintained resource's configured view displays. Mirrors the space
+     * view-displays view but its "add view display" action links the maintained-resource-
+     * specific creation template.
+     */
+    public static final String MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAZOxROZRaxSeoeO05iI0tKpDIy2mEN3jlUuVIo0uZN1I/view-displays-view";
+
+    /**
      * @param id       the Wicket markup id
      * @param resource the maintained resource whose About listings to render
      */
@@ -34,7 +41,7 @@ public class AboutResourcePanel extends Panel {
         View presetsView = View.get(AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
 
-        View vdView = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
+        View vdView = View.get(MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW);
         add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
     }
 

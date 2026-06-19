@@ -223,7 +223,7 @@ public class QueryResultList extends QueryResult {
                     for (IRI actionIri : view.getViewEntryActionList()) {
                         // Per-action role gating (docs/role-specific-views.md): skip an
                         // action whose gen:isVisibleTo the viewer does not satisfy.
-                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile)) continue;
+                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
                         // TODO Copied code and adjusted from QueryResultTableBuilder:
                         Template t = view.getTemplateForAction(actionIri);
                         if (t == null) continue;

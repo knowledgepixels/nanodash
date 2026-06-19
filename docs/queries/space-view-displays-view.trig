@@ -1,0 +1,61 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:add-view-display-action a gen:ViewResultAction;
+    rdfs:label "➕ add view display";
+    gen:hasActionTemplate <https://w3id.org/np/RAwPPxDxkXwgWwYhmvzi6SUs8djPZS4IgWJdp2G0blqoQ>;
+    gen:hasActionTemplatePartField "void";
+    gen:hasActionTemplateQueryMapping "void";
+    gen:hasActionTemplateTargetField "resource";
+    gen:isVisibleTo gen:MaintainerRole .
+
+  sub:deactivate-action a gen:ViewEntryAction;
+    rdfs:label "deactivate";
+    gen:hasActionTemplate <https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4>;
+    gen:hasActionTemplatePartField "void";
+    gen:hasActionTemplateQueryMapping "deactivateView:view";
+    gen:hasActionTemplateTargetField "resource";
+    gen:isVisibleTo gen:MaintainerRole .
+
+  sub:view-displays-view a gen:ResourceView, gen:TabularView;
+    dct:isVersionOf sub:space-view-displays-view-kind;
+    dct:title "🖵 View displays";
+    rdfs:label "View displays view (space)";
+    gen:appliesToInstancesOf gen:Space;
+    gen:hasStructuralPosition "5.5.viewDisplays";
+    gen:hasViewAction sub:add-view-display-action, sub:deactivate-action;
+    gen:hasViewQuery <https://w3id.org/np/RAe63temfrauWIRVIpGa5booRJgioepZSg8t54lgMxmNo/list-view-displays>;
+    gen:hasViewQueryTargetField "resource" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-19T11:12:10Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:view-displays-view;
+    npx:introduces sub:space-view-displays-view-kind;
+    rdfs:label "View displays view (space)" .
+}
