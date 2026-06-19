@@ -1,0 +1,62 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:add-preset-action a gen:ViewResultAction;
+    rdfs:label "➕ add preset";
+    gen:hasActionTemplate <https://w3id.org/np/RAEKxVpk1FHItIKnTCAwfAqwmuM9FUCw7HKlIyzUB2oSc>;
+    gen:hasActionTemplatePartField "void";
+    gen:hasActionTemplateQueryMapping "void";
+    gen:hasActionTemplateTargetField "resource";
+    gen:isVisibleTo gen:MaintainerRole .
+
+  sub:deactivate-action a gen:ViewEntryAction;
+    rdfs:label "❌ deactivate";
+    gen:hasActionTemplate <https://w3id.org/np/RAFzdaAgvIUvpzMz98mlyO__xETbCxdMY_Dj4G9aZYO_Q>;
+    gen:hasActionTemplatePartField "void";
+    gen:hasActionTemplateQueryMapping "deactivatePreset:preset";
+    gen:hasActionTemplateTargetField "resource";
+    gen:isVisibleTo gen:MaintainerRole .
+
+  sub:preset-assignments-view a gen:ResourceView, gen:TabularView;
+    dct:isVersionOf sub:user-preset-assignments-view-kind;
+    dct:title "🪟 Assigned presets";
+    rdfs:label "Assigned presets view (user)";
+    gen:appliesToInstancesOf gen:IndividualAgent;
+    gen:hasDisplayWidth gen:ColumnWidth06of12;
+    gen:hasStructuralPosition "5.4.presets";
+    gen:hasViewAction sub:add-preset-action, sub:deactivate-action;
+    gen:hasViewQuery <https://w3id.org/np/RAZYHKDeAsHTPN5IsXNKa0rZwmhiWklXcnxOU7IBS4vtk/list-preset-assignments>;
+    gen:hasViewQueryTargetField "resource" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-19T13:18:21Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:preset-assignments-view;
+    npx:introduces sub:user-preset-assignments-view-kind;
+    rdfs:label "Assigned presets view (user)" .
+}

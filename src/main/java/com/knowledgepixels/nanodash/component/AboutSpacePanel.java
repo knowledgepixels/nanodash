@@ -36,7 +36,7 @@ public class AboutSpacePanel extends Panel {
     /**
      * View listing the presets assigned to a resource (issue #302).
      */
-    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RA1kCQYXscKPY_qDvQ-WAKhoVomrTQLSt91JSD4Y03CKI/preset-assignments-view";
+    public static final String PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAhYRi-oLmLALs9HYunZu73cQSh6Z-eLP6QGlUkLMwSL0/preset-assignments-view";
 
     /**
      * View listing a space's assigned roles as a table (role, schema:name, and a
@@ -150,7 +150,7 @@ public class AboutSpacePanel extends Panel {
             vdParams.put("root_np", refRoot);
             vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS_REF, vdParams);
         } else {
-            vdQuery = new QueryRef(vdView.getQuery().getQueryId(), "resource", space.getId());
+            vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS, "resource", space.getId());
         }
         add(QueryResultTableBuilder.create("viewdisplays", vdQuery, new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
 

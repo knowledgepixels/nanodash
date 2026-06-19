@@ -3,13 +3,11 @@ package com.knowledgepixels.nanodash.page;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.QueryApiAccess;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
@@ -23,10 +21,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
@@ -66,7 +62,6 @@ public class ResourcePartPage extends NanodashPage {
         final String contextId = parameters.get("context").toString();
         final String nanopubId;
         String label = parameters.get("label").isEmpty() ? id.replaceFirst("^.*[#/]([^#/]+)$", "$1") : parameters.get("label").toString();
-        String description = null;
         Set<IRI> classes = new HashSet<>();
 
         resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
@@ -105,9 +100,6 @@ public class ResourcePartPage extends NanodashPage {
                 if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
                 }
-                if (st.getPredicate().equals(SKOS.DEFINITION) || st.getPredicate().equals(DCTERMS.DESCRIPTION) || st.getPredicate().equals(RDFS.COMMENT)) {
-                    description = st.getObject().stringValue();
-                }
                 if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                     classes.add(objIri);
                 }
@@ -118,12 +110,6 @@ public class ResourcePartPage extends NanodashPage {
 //        if (getDefResp == null || getDefResp.getData().isEmpty()) {
 //            throw new RestartResponseException(ExplorePage.class, parameters);
 //        }
-
-        if (description != null) {
-            add(new Label("description", description));
-        } else {
-            add(new Label("description").setVisible(false));
-        }
 
         List<NanodashPageRef> breadCrumb;
         if (resourceWithProfile.getSpace() != null) {
@@ -149,24 +135,6 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
-        boolean showButton = false;
-        if (resourceWithProfile instanceof IndividualAgent ia) {
-            showButton = ia.isCurrentUser();
-        } else if (resourceWithProfile.getSpace() != null) {
-            showButton = SpaceMemberRole.isCurrentUserAdmin(resourceWithProfile.getSpace());
-        } else if (resourceWithProfile instanceof Space s) {
-            showButton = SpaceMemberRole.isCurrentUserAdmin(s);
-        }
-        add(new AddViewDisplayButton("addviewdisplay",
-                "https://w3id.org/np/RAZg-r7oQjVZ3Ewy7pUzd9eINl6fCa3HGclTsDeRag5to",
-                "latest",
-                resourceWithProfile.getId(),
-                resourceWithProfile.getId(),
-                new PageParameters()
-                        .set("part", id)
-                        .set("refresh-upon-publish", resourceWithProfile.getId())
-        ).setVisible(showButton));
-
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
@@ -176,7 +144,7 @@ public class ResourcePartPage extends NanodashPage {
             // aren't freshly cached, which would block the initial page render; the
             // view-id list must mirror the panel's View.get calls.
             add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
-                    AboutPartPanel.PART_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
+                    AboutPartPanel.PART_INFO_VIEW, AboutResourcePanel.MAINTAINED_RESOURCE_PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
         } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
             // The panel constructor resolves a view nanopub over the network when
