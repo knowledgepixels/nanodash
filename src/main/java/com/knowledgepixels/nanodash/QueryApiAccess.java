@@ -208,7 +208,10 @@ public class QueryApiAccess {
     // RAPTW1r (supersedes RAKfr2) renames the ?shown_here column to ?displayed_here.
     // RABbLjtr (derived from RAPTW1r) adds a ?position_label column (first 3 chars of the
     // structural position) so the position cell shows e.g. "1.1" with the full literal on hover.
-    public static final String LIST_VIEW_DISPLAYS_REF = "RABbLjtr5cnacM86zWTW4L9lAnuMn2CgYd2SIBn72o-q4/list-view-displays";
+    // RA7kxCE (derived from RABbLjtr) re-projects the ?deactivateView column through the outer
+    // aggregation, which RABbLjtr dropped — without it the per-row "deactivate" action's
+    // deactivateView:view mapping is empty and the action is hidden on every row.
+    public static final String LIST_VIEW_DISPLAYS_REF = "RA7kxCEthFUOWjpJzZAN3b1edSOnQScmsZxfU6_wkKvZU/list-view-displays";
 
     // IRI-keyed view-displays listing (resource param), used for users / maintained resources and
     // the space ref-less fallback. Like LIST_VIEW_DISPLAYS_REF it carries a ?displayed_here flag
@@ -218,7 +221,12 @@ public class QueryApiAccess {
     // position) so the position cell shows e.g. "1.1" with the full literal on hover. Now also the
     // query backing the user/maintained view-displays views (gen:hasViewQuery), driven there as a
     // proper view; still used directly here for the space ref-less fallback.
-    public static final String LIST_VIEW_DISPLAYS = "RAnAZ-HUtuG-Maw5vf7-4UNisl-1D3NugOIyvz-4yN6F8/list-view-displays";
+    // RAUeYda (derived from RAnAZ-HU) re-projects the ?deactivateView column through the outer
+    // aggregation, which RAnAZ-HU dropped — without it the per-row "deactivate" action's
+    // deactivateView:view mapping is empty and the action is hidden on every row. The user and
+    // maintained-resource view nanopubs are superseded in lockstep to point their gen:hasViewQuery
+    // at this version (RAqqGNrE / RAm3FCo1).
+    public static final String LIST_VIEW_DISPLAYS = "RAUeYdadBYw_WNsIIQhjUMjKgw8sKVrM_QaLI6J-FuDhw/list-view-displays";
 
     // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
     // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
