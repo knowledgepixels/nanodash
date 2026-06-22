@@ -104,6 +104,12 @@ public class QueryResultItemList extends QueryResult {
                     } else if (value.matches("https?://.*")) {
                         item.add(new NanodashLink("listItem", value, null, null, entryLabel, contextId));
                         return;
+                    } else if (entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(value)) {
+                        // Separate display label for a (non-IRI) literal value; the full
+                        // literal is shown on hover via the standard styled tooltip.
+                        String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + Strings.escapeMarkup(entryLabel) + "</span>";
+                        item.add(new Label("listItem", html).setEscapeModelStrings(false));
+                        return;
                     } else {
                         item.add(new Label("listItem", value));
                         return;
