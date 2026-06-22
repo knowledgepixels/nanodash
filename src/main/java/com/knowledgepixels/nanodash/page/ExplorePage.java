@@ -254,7 +254,7 @@ public class ExplorePage extends NanodashPage {
                 HttpServletRequest httpRequest = (HttpServletRequest) getRequest().getContainerRequest();
                 mimeType = MIMEParse.bestMatch(Utils.SUPPORTED_TYPES_LIST, httpRequest.getHeader("Accept"));
             } catch (Exception ex) {
-                logger.error("Error determining MIME type from Accept header.", ex);
+                logger.info("Error determining MIME type from Accept header.", ex);
             }
             if (!mimeType.equals(Utils.TYPE_HTML)) {
                 logger.info("Non-HTML content type: {}", mimeType);
