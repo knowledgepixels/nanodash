@@ -1109,8 +1109,9 @@ input[type=radio] + label strong {
 .inline-list .actionmenu-button,
 .paragraph-header .actionmenu-button {
   border-color: transparent;
-  /* Resting state (no border): a lighter, semi-transparent chevron; full color on hover. */
-  color: rgba(11, 115, 218, 0.4);
+  /* Resting state (no border): a bare chevron at full color, matching the menu text
+     and the standard dropdown button; the border outline appears on hover. */
+  color: #0B73DA;
 }
 
 .result-table .actionmenu:hover .actionmenu-button,
