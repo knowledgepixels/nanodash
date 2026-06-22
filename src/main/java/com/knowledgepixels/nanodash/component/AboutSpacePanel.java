@@ -137,22 +137,15 @@ public class AboutSpacePanel extends Panel {
                 : new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId());
         add(QueryResultTableBuilder.create("roles", rolesQuery, new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build());
 
-        // View displays aren't materialised into the spaces repo, so the ref-scoped variant is a
-        // federated join taking two concrete params — the space IRI and the ref's root nanopub —
-        // and gating the authorised signers on the ref's admins/maintainers (npa:forSpaceRef). Falls
-        // back to the IRI-keyed query (admins merged across refs) when the ref root is unknown. The
-        // view nanopub is left untouched.
+        // The view nanopub's hasViewQuery is the ref-scoped list-view-displays query (a federated
+        // join gating authorised signers on the ref's admins/maintainers via npa:forSpaceRef); supply
+        // the pinned-or-representative ref as root_np. View displays aren't materialised into the
+        // spaces repo, so this stays a federated join rather than a local lookup.
         View vdView = View.get(VIEW_DISPLAYS_VIEW);
-        QueryRef vdQuery;
-        if (refRoot != null && !refRoot.isEmpty()) {
-            Multimap<String, String> vdParams = ArrayListMultimap.create();
-            vdParams.put("resource", space.getId());
-            vdParams.put("root_np", refRoot);
-            vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS_REF, vdParams);
-        } else {
-            vdQuery = new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS, "resource", space.getId());
-        }
-        add(QueryResultTableBuilder.create("viewdisplays", vdQuery, new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
+        Multimap<String, String> vdParams = ArrayListMultimap.create();
+        vdParams.put("resource", space.getId());
+        if (refRoot != null && !refRoot.isEmpty()) vdParams.put("root_np", refRoot);
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
 
         // "Users" section: admins/maintainers/members, then observers.
 

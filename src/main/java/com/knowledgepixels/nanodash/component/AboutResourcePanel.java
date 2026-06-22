@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -48,8 +50,16 @@ public class AboutResourcePanel extends Panel {
         View presetsView = View.get(MAINTAINED_RESOURCE_PRESET_ASSIGNMENTS_VIEW);
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
 
+        // The view nanopub's hasViewQuery is the ref-scoped list-view-displays query; supply the
+        // owning space's representative ref as root_np so authority (who may add/deactivate displays)
+        // is read from that ref, consistent with space pages — the query resolves the maintained
+        // resource to its space via npa:isMaintainedBy.
         View vdView = View.get(MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
+        String refRoot = resource.getSpace() != null ? resource.getSpace().getRefRootId() : null;
+        Multimap<String, String> vdParams = ArrayListMultimap.create();
+        vdParams.put("resource", resource.getId());
+        if (refRoot != null && !refRoot.isEmpty()) vdParams.put("root_np", refRoot);
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).refRoot(refRoot).build());
     }
 
 }

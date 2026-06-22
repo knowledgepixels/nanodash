@@ -125,6 +125,15 @@ public class ViewList extends Panel {
                                 } else {
                                     queryRefParams.put(view.getQueryField() + "Np", npId);
                                 }
+                            } else if (paramName.equals("root_np")) {
+                                // Auto-fill the ref scope (root nanopub) from the page's effective ref,
+                                // the same way the resource IRI above is filled, so a content-tab view
+                                // whose query opts into ref-scoping is scoped without the panel threading
+                                // it. Left empty when no ref is known (an optional placeholder tolerates
+                                // the empty VALUES; the ref-scoped query then yields its no-ref result).
+                                if (refRoot != null && !refRoot.isEmpty()) {
+                                    queryRefParams.put("root_np", refRoot);
+                                }
                             } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
                                 item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
                                 logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
