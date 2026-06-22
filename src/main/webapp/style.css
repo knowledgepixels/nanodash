@@ -1591,6 +1591,15 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   top: 100%;
 }
 
+/* Auto-width variant (e.g. literal-value label tooltips): box hugs its content
+   up to a max instead of a fixed min-width, so short values don't show empty space. */
+.tooltip .tooltiptext.tooltiptext-auto {
+  min-width: 0;
+  width: max-content;
+  max-width: 500px;
+  white-space: normal;
+}
+
 a.tooltiptext {
   font-family: "Noto Emoji", Martian, monaco, monospace !important;
 }

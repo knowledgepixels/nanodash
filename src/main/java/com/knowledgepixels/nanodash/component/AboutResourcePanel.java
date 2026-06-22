@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -50,7 +49,7 @@ public class AboutResourcePanel extends Panel {
         add(QueryResultTableBuilder.create("presets", new QueryRef(presetsView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(presetsView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
 
         View vdView = View.get(MAINTAINED_RESOURCE_VIEW_DISPLAYS_VIEW);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(QueryApiAccess.LIST_VIEW_DISPLAYS, "resource", resource.getId()), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), "resource", resource.getId()), new ViewDisplay(vdView)).resourceWithProfile(resource).id(resource.getId()).contextId(resource.getId()).build());
     }
 
 }

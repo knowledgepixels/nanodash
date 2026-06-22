@@ -210,10 +210,20 @@ public class QueryResultList extends QueryResult {
                                 components.add(new NanodashLink("component", entryValue, null, null, entryLabel, contextId));
                             }
                         } else {
-                            if (Utils.looksLikeHtml(entryValue)) {
-                                entryValue = Utils.sanitizeHtml(entryValue);
+                            String entryLabel = entry.get(key + "_label");
+                            boolean hasLabel = entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(entryValue);
+                            String display = hasLabel ? entryLabel : entryValue;
+                            if (Utils.looksLikeHtml(display)) {
+                                display = Utils.sanitizeHtml(display);
+                            } else if (hasLabel) {
+                                display = Strings.escapeMarkup(display).toString();
                             }
-                            components.add(new Label("component", entryValue).setEscapeModelStrings(false));
+                            if (hasLabel) {
+                                // Separate display label for a (non-IRI) literal value; the full
+                                // literal is shown on hover via the standard styled tooltip.
+                                display = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(entryValue) + "</span>" + display + "</span>";
+                            }
+                            components.add(new Label("component", display).setEscapeModelStrings(false));
                         }
                     }
                 }

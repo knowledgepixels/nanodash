@@ -405,7 +405,14 @@ public class QueryResultTable extends QueryResult {
                         String label = truncateLabel(rowModel.getObject().get(key + "_label"));
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {
-                        if (key.startsWith("pubkey")) {
+                        String litLabel = rowModel.getObject().get(key + "_label");
+                        if (litLabel != null && !litLabel.isBlank() && !litLabel.equals(value)) {
+                            // Separate display label for a (non-IRI) literal value; the full
+                            // literal is shown on hover via the standard styled tooltip.
+                            String labelHtml = Utils.looksLikeHtml(litLabel) ? Utils.sanitizeHtml(litLabel) : Strings.escapeMarkup(litLabel).toString();
+                            String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + labelHtml + "</span>";
+                            cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
+                        } else if (key.startsWith("pubkey")) {
                             cellItem.add(new Label(componentId, value).add(new AttributeAppender("style", "overflow-wrap: anywhere;")));
                         } else if (Utils.isDateTimeLiteral(value)) {
                             // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.

@@ -206,18 +206,26 @@ public class QueryApiAccess {
     // unknown. Source at docs/queries/list-view-displays-ref.trig (regenerate from the latest
     // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
     // RAPTW1r (supersedes RAKfr2) renames the ?shown_here column to ?displayed_here.
-    public static final String LIST_VIEW_DISPLAYS_REF = "RAPTW1rmsOd0XOYdYO1cXU0aXGaxFYsSJykJWSoDf1uqw/list-view-displays";
+    // RABbLjtr (derived from RAPTW1r) adds a ?position_label column (first 3 chars of the
+    // structural position) so the position cell shows e.g. "1.1" with the full literal on hover.
+    public static final String LIST_VIEW_DISPLAYS_REF = "RABbLjtr5cnacM86zWTW4L9lAnuMn2CgYd2SIBn72o-q4/list-view-displays";
 
     // IRI-keyed view-displays listing (resource param), used for users / maintained resources and
     // the space ref-less fallback. Like LIST_VIEW_DISPLAYS_REF it carries a ?displayed_here flag
     // (✓ when the display applies to the resource itself, blank for part-level displays).
     // RAxKzcn supersedes the list-view-displays head RAdWeDNF (renames ?shown_here → ?displayed_here).
-    public static final String LIST_VIEW_DISPLAYS = "RAxKzcnWKNa_ufbAR_v2P8_eefeOIoEmRzKuEA9sm0IIQ/list-view-displays";
+    // RAnAZ-HU (derived from RAxKzcn) adds a ?position_label column (first 3 chars of the structural
+    // position) so the position cell shows e.g. "1.1" with the full literal on hover. Now also the
+    // query backing the user/maintained view-displays views (gen:hasViewQuery), driven there as a
+    // proper view; still used directly here for the space ref-less fallback.
+    public static final String LIST_VIEW_DISPLAYS = "RAnAZ-HUtuG-Maw5vf7-4UNisl-1D3NugOIyvz-4yN6F8/list-view-displays";
 
     // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
     // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
-    // ?shown_here → ?displayed_here).
-    public static final String LIST_PART_VIEW_DISPLAYS = "RAMy6Nufw1pXjtI4SuxFNxLl_6s7-18rFi5jyJ1no5a5A/list-part-view-displays";
+    // ?shown_here → ?displayed_here). RAFkUf3A (derived from RAMy6Nu) adds a ?position_label column
+    // (first 3 chars of the structural position) so the position cell shows e.g. "1.1" with the full
+    // literal on hover.
+    public static final String LIST_PART_VIEW_DISPLAYS = "RAFkUf3AduxwZOfFBz0lVil_2IS2dM83-WAkEjkY3UTYQ/list-part-view-displays";
 
     // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
     // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
