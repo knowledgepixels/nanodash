@@ -194,39 +194,11 @@ public class QueryApiAccess {
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
-    // Ref-scoped view displays for a space. Unlike the LIST_*_REF above this is NOT a single-param
-    // root_np query: view displays aren't materialised into the spaces repo, so the query is a
-    // 4-SERVICE federated join, and federation only propagates CONCRETE (VALUES) bindings into the
-    // sub-services. A single auto-detecting param fails (a service-derived resource IRI doesn't push
-    // into the branches → 0 rows). So this takes TWO concrete params — the space IRI (resource) and
-    // the ref's root nanopub (root_np) — and resolves the ref + scopes the authority gate to
-    // npa:forSpaceRef INSIDE the /repo/spaces service. Column-identical to list-view-displays (its
-    // spaces-only companion), so it drives the existing view-displays view unchanged. Used by
-    // AboutSpacePanel with both params; falls back to the IRI-keyed query when the ref root is
-    // unknown. Source at docs/queries/list-view-displays-ref.trig (regenerate from the latest
-    // list-view-displays by adding the root_np VALUES + ?passedRef resolution + forSpaceRef gate).
-    // RAPTW1r (supersedes RAKfr2) renames the ?shown_here column to ?displayed_here.
-    // RABbLjtr (derived from RAPTW1r) adds a ?position_label column (first 3 chars of the
-    // structural position) so the position cell shows e.g. "1.1" with the full literal on hover.
-    // RA7kxCE (derived from RABbLjtr) re-projects the ?deactivateView column through the outer
-    // aggregation, which RABbLjtr dropped — without it the per-row "deactivate" action's
-    // deactivateView:view mapping is empty and the action is hidden on every row.
-    public static final String LIST_VIEW_DISPLAYS_REF = "RA7kxCEthFUOWjpJzZAN3b1edSOnQScmsZxfU6_wkKvZU/list-view-displays";
-
-    // IRI-keyed view-displays listing (resource param), used for users / maintained resources and
-    // the space ref-less fallback. Like LIST_VIEW_DISPLAYS_REF it carries a ?displayed_here flag
-    // (✓ when the display applies to the resource itself, blank for part-level displays).
-    // RAxKzcn supersedes the list-view-displays head RAdWeDNF (renames ?shown_here → ?displayed_here).
-    // RAnAZ-HU (derived from RAxKzcn) adds a ?position_label column (first 3 chars of the structural
-    // position) so the position cell shows e.g. "1.1" with the full literal on hover. Now also the
-    // query backing the user/maintained view-displays views (gen:hasViewQuery), driven there as a
-    // proper view; still used directly here for the space ref-less fallback.
-    // RAUeYda (derived from RAnAZ-HU) re-projects the ?deactivateView column through the outer
-    // aggregation, which RAnAZ-HU dropped — without it the per-row "deactivate" action's
-    // deactivateView:view mapping is empty and the action is hidden on every row. The user and
-    // maintained-resource view nanopubs are superseded in lockstep to point their gen:hasViewQuery
-    // at this version (RAqqGNrE / RAm3FCo1).
-    public static final String LIST_VIEW_DISPLAYS = "RAUeYdadBYw_WNsIIQhjUMjKgw8sKVrM_QaLI6J-FuDhw/list-view-displays";
+    // View-displays listing queries are no longer referenced here: the About-tab view-displays
+    // tables are view-driven (gen:hasViewQuery on the space/user/maintained view nanopubs), and the
+    // panels pass the resource + (for spaces/maintained) the ref's root nanopub as params. The
+    // ref-scoped query requires root_np; the IRI-keyed variant backs the users' view. See
+    // docs/queries/list-view-displays{,-ref}.trig.
 
     // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
     // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
