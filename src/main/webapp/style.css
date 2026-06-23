@@ -1575,6 +1575,15 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   display: inline-block;
 }
 
+/* In inline-flow contexts (e.g. a NanodashLink in an inline-list), inline-block
+   would shrink-to-fit to the full available width once the trigger text wraps,
+   orphaning trailing content (" · Project [menu]") onto the next line. Plain
+   inline keeps the text flowing; position:relative still anchors .tooltiptext. */
+.inline-list .tooltip,
+.inline .tooltip {
+  display: inline;
+}
+
 .tooltip .tooltiptext {
   font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif;
   font-size: 11pt;
