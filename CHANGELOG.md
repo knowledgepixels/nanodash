@@ -1,3 +1,28 @@
+## [5.1.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.0.0...nanodash-5.1.0) (2026-06-23)
+
+### Features
+
+* drive view-displays tables by the view's query, ref-scope maintained ([a6c43f1](https://github.com/knowledgepixels/nanodash/commit/a6c43f110904b82ac2e01ad86870baa8f6a5b86f))
+* position-column tooltip labels on view-displays tables ([7182433](https://github.com/knowledgepixels/nanodash/commit/718243319c010fd366ace2d3506ae78b8af5ca4f))
+
+### Bug Fixes
+
+* restore per-row deactivate action on view-displays tables ([272d0ef](https://github.com/knowledgepixels/nanodash/commit/272d0ef3763d8738a97222d9d5f88ab49d95770d))
+* restore ref-scoped observers & non-approved lists (RDF4J BIND-in-UNION bug) ([020ccdb](https://github.com/knowledgepixels/nanodash/commit/020ccdbaec56a6e864936b88b62d8d91c4c5d734))
+
+### Build and continuous integration
+
+* **deps:** lock file maintenance ([01712b7](https://github.com/knowledgepixels/nanodash/commit/01712b787218c6d215c10cc68896622a32f43442))
+
+### General maintenance
+
+* Optimized Logging ([808bce0](https://github.com/knowledgepixels/nanodash/commit/808bce0be0eff860d129b98f6a397e8109da62b1))
+* setting next snapshot version [skip ci] ([814d3e7](https://github.com/knowledgepixels/nanodash/commit/814d3e7c7e928871e5024a6c4692ed49b3b9384b))
+
+### Style improvements
+
+* full-color entry-level dropdown chevron at rest ([4c33b80](https://github.com/knowledgepixels/nanodash/commit/4c33b803fc67df3ca6408828c56f52519aa1eb7c)), closes [#0B73DA](https://github.com/knowledgepixels/nanodash/issues/0B73DA)
+
 ## [5.0.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-4.28.0...nanodash-5.0.0) (2026-06-19)
 
 ### ⚠ BREAKING CHANGES
