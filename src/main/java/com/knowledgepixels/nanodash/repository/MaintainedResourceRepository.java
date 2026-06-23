@@ -69,6 +69,13 @@ public class MaintainedResourceRepository {
                 return snapshot;
             }
             Snapshot built = build(resp);
+            if (built == null) {
+                // Spaces weren't loaded yet, so every resource would have been
+                // dropped (each row's space resolved to null). Don't latch this
+                // empty result against the current response identity — return what
+                // we have and rebuild on the next access, once spaces are warm.
+                return snapshot;
+            }
             snapshot = built;
             cachedFor = resp;
             return built;
@@ -87,13 +94,20 @@ public class MaintainedResourceRepository {
         Map<String, MaintainedResource> byNamespace = new HashMap<>();
         Map<Space, List<MaintainedResource>> bySpace = new HashMap<>();
         Set<String> seenResources = new HashSet<>();
+        boolean droppedForMissingSpace = false;
         for (ApiResponseEntry r : resp.getData()) {
             String resourceId = r.get("resource");
             if (resourceId == null || resourceId.isEmpty()) continue;
             if (!seenResources.add(resourceId)) continue; // first row (newest date) wins
             String spaceId = r.get("space");
             Space space = SpaceRepository.get().findById(spaceId);
-            if (space == null) continue;
+            if (space == null) {
+                // Space not (yet) loaded — likely a cold/racing SpaceRepository
+                // rather than a genuinely unknown space. Track it so current()
+                // can avoid latching an under-built snapshot.
+                if (spaceId != null && !spaceId.isEmpty()) droppedForMissingSpace = true;
+                continue;
+            }
             ApiResponseEntry entry = new ApiResponseEntry();
             entry.add("resource", resourceId);
             entry.add("np", r.get("np"));
@@ -108,6 +122,12 @@ public class MaintainedResourceRepository {
                 // TODO Handle conflicts when two resources claim the same namespace:
                 byNamespace.put(resource.getNamespace(), resource);
             }
+        }
+        if (byId.isEmpty() && droppedForMissingSpace) {
+            // Every resource was dropped because its space wasn't resolvable, yet
+            // the response did contain rows — SpaceRepository is cold. Signal "not
+            // ready" so current() doesn't memoise this empty result.
+            return null;
         }
         MaintainedResourceFactory.removeStale(byId.keySet());
         return new Snapshot(byId, byNamespace, bySpace);

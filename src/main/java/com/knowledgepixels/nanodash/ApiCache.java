@@ -41,6 +41,12 @@ public class ApiCache {
     // fresh fetch. Acts as the stale-data fallback during API outages.
     private static final long MAX_CACHE_AGE_MS = 24 * 60 * 60 * 1000;
 
+    // Upper bound a synchronous caller waits for an in-flight refresh started by
+    // another thread when it has nothing cached yet. Without this wait the caller
+    // returns null, letting repositories memoise an empty snapshot (see
+    // retrieveResponseSync).
+    private static final long SYNC_WAIT_FOR_INFLIGHT_MS = 10 * 1000;
+
     private static final Cache<String, ApiResponse> cachedResponses = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
@@ -185,6 +191,23 @@ public class ApiCache {
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
+            }
+        } else if (cachedResponses.getIfPresent(cacheId) == null && isRunning(cacheId)) {
+            // Another thread is doing the first fetch of this query and we have
+            // nothing cached yet. Wait for it rather than returning null: a null
+            // here lets a caller (e.g. SpaceRepository) memoise an EMPTY snapshot,
+            // which then poisons MaintainedResourceRepository.build() and breaks
+            // the home page until the next refresh. This adds no new work; it only
+            // waits on the refresh already in flight.
+            try {
+                long deadline = timeNow + SYNC_WAIT_FOR_INFLIGHT_MS;
+                while (isRunning(cacheId)
+                        && cachedResponses.getIfPresent(cacheId) == null
+                        && System.currentTimeMillis() < deadline) {
+                    Thread.sleep(50);
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
         }
         return cachedResponses.getIfPresent(cacheId);
