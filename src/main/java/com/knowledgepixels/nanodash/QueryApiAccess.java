@@ -157,7 +157,13 @@ public class QueryApiAccess {
     // the query returned ZERO observers for every space. Replaced with a non-union
     // `filter( ?inSpace = ?spaceIri || exists { ... sameAsSpace ... } )`. Source at
     // docs/queries/list-space-observers-ref-v5.trig.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAUQdhb2lwrSA6Vqv96ERyISUhO9U9eOFNWsSe9NMwiWE/list-space-observers";
+    // Latest (RAoW4pMA, nanodash#498): a member is excluded from the observers list only when they
+    // hold a VALIDATED higher tier, read directly off a gen:RoleInstantiation (npa:hasRoleType in
+    // {AdminRole,MaintainerRole,MemberRole}) in the current space state — replacing the global
+    // RoleDeclaration matching that mis-excluded observers whose predicate was declared at a higher
+    // tier by another space (which had returned ZERO observers for spaces like vu/ucds). Enabled by
+    // nanopub-query persisting tier on the instantiation (nanopub-query#125 + #127).
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAoW4pMAwNjx_DZOUGD-2UEioMSDuD_leg3T4SceMiMbA/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -189,7 +195,12 @@ public class QueryApiAccess {
     // by AboutSpacePanel with an IRI-keyed fallback when the ref root is unknown. Published
     // independently (no npx:supersedes). Sources at docs/queries/list-*-ref.trig. See
     // docs/space-ref-identity.md.
-    public static final String LIST_SPACE_MEMBERS_REF = "RAXhi9zBXJ2mZVmjBm_MZk1xM6OCxxVyr5B3xNYdy6boQ/list-space-members";
+    // v3 (RApyKS9D): reads each membership's tier directly off the materialized gen:RoleInstantiation
+    // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
+    // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
+    // RoleAssignment-scoping workaround and the global RoleDeclaration matching that leaked observer-tier
+    // members into the Approved listing. See nanodash#498.
+    public static final String LIST_SPACE_MEMBERS_REF = "RApyKS9DSuA7LusWLrpURfmxQuEg-dbB-MqrneYRxLOOU/list-space-members";
     public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";

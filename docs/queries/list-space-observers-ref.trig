@@ -4,6 +4,7 @@
 @prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix orcid: <https://orcid.org/> .
@@ -19,9 +20,9 @@ sub:Head {
 
 sub:assertion {
   sub:list-space-observers a grlc:grlc-query;
-    dct:description "Lists the observers of a given space ref (space IRI + root definition): agents holding an observer-tier role and no validated admin/maintainer/member role. Pass the ref's root nanopub (root_np). Per (member, role) only the latest role-instantiation nanopub is returned (by dct:created), so a role re-asserted several times shows once. Unlike list-space-observers (validated-only), this also includes self-declared observers whose key is not trust-validated (no accepted introduction), flagging them in the headerless ?unverified_noheader column. The role label is pinned to the role the space actually assigned (RoleAssignment), correct even when several declarations share a property. Ref-scoped; shows un-introduced observers rather than hiding them.";
+    dct:description "Lists every observer-tier role association of a space ref (validated plus un-introduced self-declared, flagged via the headerless column). Excludes a member only when they hold a VALIDATED higher tier read off a gen:RoleInstantiation (npa:hasRoleType) in the current space state. Published as RAoW4pMA (nanodash#498).";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
-    rdfs:label "List space observers (ref-scoped, with validation flag)";
+    rdfs:label "List space observers (ref-scoped, all observer-tier associations, with validation flag)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
     grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix dct: <http://purl.org/dc/terms/>
@@ -46,17 +47,15 @@ where {
       graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri ; npa:spaceIri ?spaceIri . }
       graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
       graph npa:spacesGraph {
-        ?ri a gen:RoleInstantiation ; npa:forSpace ?spaceIri ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?inSpace ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
             (npa:regularProperty|npa:inverseProperty) ?roleProp .
       }
+      filter( ?inSpace = ?spaceIri || exists { graph ?g { ?inSpace npa:sameAsSpace ?ref } } )
       filter exists { graph npa:spacesGraph { ?rdf a npa:RoleDeclaration ; npa:hasRoleType gen:ObserverRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } }
-      filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp . } }
-      filter not exists {
-        graph ?g { ?hri npa:forSpaceRef ?ref ; npa:forAgent ?member ; (npa:regularProperty|npa:inverseProperty) ?hp . }
-        graph npa:spacesGraph { ?hrd a npa:RoleDeclaration ; (gen:hasRegularProperty|gen:hasInverseProperty) ?hp .
-          { ?hrd npa:hasRoleType gen:MemberRole } union { ?hrd npa:hasRoleType gen:MaintainerRole } }
-      }
-      filter not exists { graph ?g { ?ari npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:inverseProperty gen:hasAdmin . } }
+      filter(?roleProp != gen:hasAdmin)
+      filter not exists { graph ?g { ?vriH a gen:RoleInstantiation ; npa:forSpaceRef ?ref ; npa:forAgent ?member .
+        { ?vriH npa:hasRoleType gen:AdminRole } union { ?vriH npa:hasRoleType gen:MaintainerRole } union { ?vriH npa:hasRoleType gen:MemberRole } } }
+      filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp ; npa:hasValidSignatureForPublicKeyHash ?invpk . ?grantNp npa:hasValidSignatureForPublicKeyHash ?invpk . } }
       bind(if(exists { graph ?g { ?vri npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:viaNanopub ?grantNp } }, 1, 0) as ?val0)
       optional { graph npa:graph { ?grantNp dct:created ?dateNp } }
       optional {
@@ -84,7 +83,7 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
 
-  this: dct:created "2026-06-16T12:42:36Z"^^xsd:dateTime;
+  this: dct:created "2026-06-23T19:50:34Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
     npx:embeds sub:list-space-observers .
