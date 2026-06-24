@@ -362,13 +362,20 @@ public class QueryResultTable extends QueryResult {
                                 components.add(new NanodashLink("component", part, null, null, label, contextId));
                             } else {
                                 String label = truncateLabel(rawLabel);
-                                String display = label != null ? label : Utils.unescapeMultiValue(part);
-                                if (Utils.looksLikeHtml(display)) {
-                                    components.add(new Label("component", Utils.sanitizeHtml(display))
-                                            .setEscapeModelStrings(false)
-                                            .add(new AttributeAppender("class", "cell-data-html")));
+                                String unescaped = Utils.unescapeMultiValue(part);
+                                if (label == null && Utils.isDateTimeLiteral(unescaped)) {
+                                    // Friendly relative time, matching single-value cells.
+                                    components.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped))
+                                            .setEscapeModelStrings(false));
                                 } else {
-                                    components.add(new Label("component", display));
+                                    String display = label != null ? label : unescaped;
+                                    if (Utils.looksLikeHtml(display)) {
+                                        components.add(new Label("component", Utils.sanitizeHtml(display))
+                                                .setEscapeModelStrings(false)
+                                                .add(new AttributeAppender("class", "cell-data-html")));
+                                    } else {
+                                        components.add(new Label("component", display));
+                                    }
                                 }
                             }
                         }
@@ -380,13 +387,13 @@ public class QueryResultTable extends QueryResult {
                         String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                         List<Component> components = new ArrayList<>();
                         for (int i = 0; i < parts.length; i++) {
-                            String display;
-                            if (labels != null && i < labels.length && !labels[i].isBlank()) {
-                                display = Utils.unescapeMultiValue(labels[i]);
-                            } else {
-                                display = Utils.unescapeMultiValue(parts[i]);
-                            }
-                            if (Utils.looksLikeHtml(display)) {
+                            boolean hasLabel = labels != null && i < labels.length && !labels[i].isBlank();
+                            String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
+                            if (!hasLabel && Utils.isDateTimeLiteral(display)) {
+                                // Friendly relative time, matching single-value cells.
+                                components.add(new Label("component", Utils.friendlyDateHtml(display, display))
+                                        .setEscapeModelStrings(false));
+                            } else if (Utils.looksLikeHtml(display)) {
                                 components.add(new Label("component", Utils.sanitizeHtml(display))
                                         .setEscapeModelStrings(false)
                                         .add(new AttributeAppender("class", "cell-data-html")));
