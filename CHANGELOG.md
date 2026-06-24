@@ -1,3 +1,19 @@
+## [5.1.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.0...nanodash-5.1.1) (2026-06-24)
+
+### Bug Fixes
+
+* keep tooltip inline in inline-flow contexts ([13e6d44](https://github.com/knowledgepixels/nanodash/commit/13e6d44c970ff501ea1ed9809cfe6906271e6ca9))
+* prevent cold-cache race that breaks the home page ([2c1d298](https://github.com/knowledgepixels/nanodash/commit/2c1d2987823e99ca7ec9a8adc2c2e0d84c9dc02f))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([8ad7554](https://github.com/knowledgepixels/nanodash/commit/8ad75548fbd4b122e5f8c68c84d070b449e3419a))
+
+### Refactoring
+
+* read role labels from schema:name only in member/observer listings ([f31a0dd](https://github.com/knowledgepixels/nanodash/commit/f31a0dddfadfd0fdcc025f6bffd24293d9c3bb1a))
+* read space role tier off the RoleInstantiation in member/observer listings ([998caf0](https://github.com/knowledgepixels/nanodash/commit/998caf0df4310320f6036810111b00abc1f747db)), closes [nanopub-query#125](https://github.com/knowledgepixels/nanopub-query/issues/125) [#127](https://github.com/knowledgepixels/nanodash/issues/127)
+
 ## [5.1.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.0.0...nanodash-5.1.0) (2026-06-23)
 
 ### Features
