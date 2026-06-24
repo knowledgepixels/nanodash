@@ -28,6 +28,7 @@ import java.util.*;
  */
 public class TemplateContext implements Serializable {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TemplateContext.class);
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private final ContextType contextType;
@@ -472,7 +473,17 @@ public class TemplateContext implements Serializable {
      */
     public void fill(List<Statement> statements) throws UnificationException {
         for (StatementItem si : statementItems) {
-            si.fill(statements);
+            // Isolate each statement: a unification failure on one must not abort the rest,
+            // otherwise every later template statement is left unmatched. Roll back any partial
+            // statement consumption so the next statement sees an intact pool.
+            List<Statement> statementsBefore = new ArrayList<>(statements);
+            try {
+                si.fill(statements);
+            } catch (UnificationException ex) {
+                logger.warn("Could not fill statement; continuing with the remaining statements", ex);
+                statements.clear();
+                statements.addAll(statementsBefore);
+            }
         }
         for (StatementItem si : statementItems) {
             si.fillFinished();

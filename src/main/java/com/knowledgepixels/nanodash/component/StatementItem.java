@@ -258,11 +258,28 @@ public class StatementItem extends Panel {
         if (!isRepeatable()) return;
         while (true) {
             Set<IRI> modelsBefore = new HashSet<>(context.getComponentModels().keySet());
+            List<Statement> statementsBefore = new ArrayList<>(statements);
             RepetitionGroup newGroup = new RepetitionGroup();
+            boolean filled;
             if (newGroup.matches(statements)) {
-                newGroup.fill(statements);
-                addRepetitionGroup(newGroup);
+                try {
+                    newGroup.fill(statements);
+                    filled = true;
+                } catch (UnificationException ex) {
+                    // matches() validates unifiability statelessly, but fill() mutates shared
+                    // placeholder models via unifyWith as it goes, so binding an earlier part can
+                    // make a later one non-unifiable ("seemed to work but then didn't"). Treat this
+                    // like end-of-repetitions rather than letting it abort the whole template fill:
+                    // roll back the partial statement consumption and discard the trial group.
+                    logger.warn("Repetition fill failed after matches() succeeded for {}; stopping repetitions of this statement", statementId, ex);
+                    statements.clear();
+                    statements.addAll(statementsBefore);
+                    filled = false;
+                }
             } else {
+                filled = false;
+            }
+            if (!filled) {
                 newGroup.disconnect();
                 // The trial group's constructor registered fresh (empty) component
                 // models for its narrow-scope placeholders (e.g. public-key__N). If
@@ -273,6 +290,7 @@ public class StatementItem extends Panel {
                 context.getComponentModels().keySet().retainAll(modelsBefore);
                 return;
             }
+            addRepetitionGroup(newGroup);
         }
     }
 
