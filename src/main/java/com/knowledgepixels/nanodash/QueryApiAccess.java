@@ -162,8 +162,9 @@ public class QueryApiAccess {
     // {AdminRole,MaintainerRole,MemberRole}) in the current space state — replacing the global
     // RoleDeclaration matching that mis-excluded observers whose predicate was declared at a higher
     // tier by another space (which had returned ZERO observers for spaces like vu/ucds). Enabled by
-    // nanopub-query persisting tier on the instantiation (nanopub-query#125 + #127).
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAoW4pMAwNjx_DZOUGD-2UEioMSDuD_leg3T4SceMiMbA/list-space-observers";
+    // nanopub-query persisting tier on the instantiation (nanopub-query#125 + #127). Latest
+    // (RAZNHDFQ, supersedes RAoW4pMA) drops the role-label coalesce to read schema:name only.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAZNHDFQj9EUF6d3MJtKhFpd6cip5EcRiS-jjMNRyNMMg/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -199,8 +200,9 @@ public class QueryApiAccess {
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
     // RoleAssignment-scoping workaround and the global RoleDeclaration matching that leaked observer-tier
-    // members into the Approved listing. See nanodash#498.
-    public static final String LIST_SPACE_MEMBERS_REF = "RApyKS9DSuA7LusWLrpURfmxQuEg-dbB-MqrneYRxLOOU/list-space-members";
+    // members into the Approved listing. See nanodash#498. Latest (RA7E54m5, supersedes RApyKS9D)
+    // drops the role-label coalesce to read schema:name only.
+    public static final String LIST_SPACE_MEMBERS_REF = "RA7E54m5Hb413Ud-0T9HEiH9wnxlJXBkcUT701NDaUGQk/list-space-members";
     public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";

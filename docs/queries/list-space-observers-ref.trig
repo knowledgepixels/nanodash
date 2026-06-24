@@ -20,7 +20,7 @@ sub:Head {
 
 sub:assertion {
   sub:list-space-observers a grlc:grlc-query;
-    dct:description "Lists every observer-tier role association of a space ref (validated plus un-introduced self-declared, flagged via the headerless column). Excludes a member only when they hold a VALIDATED higher tier read off a gen:RoleInstantiation (npa:hasRoleType) in the current space state. Published as RAoW4pMA (nanodash#498).";
+    dct:description "Lists every observer-tier role association of a space ref (validated plus un-introduced self-declared, flagged via the headerless column). Excludes a member only when they hold a VALIDATED higher tier read off a gen:RoleInstantiation (npa:hasRoleType) in the current space state. Role labels read from schema:name only. Published as RAZNHDFQ (supersedes RAoW4pMA; nanodash#498).";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "List space observers (ref-scoped, all observer-tier associations, with validation flag)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
@@ -62,10 +62,7 @@ where {
         graph ?g { ?raRole a gen:RoleAssignment ; npa:forSpaceRef ?ref ; gen:hasRole ?role . }
         graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; npa:role ?role ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp . }
         graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
-        optional { graph ?role_a { ?role schema:name ?rlS } }
-        optional { graph ?role_a { ?role rdfs:label ?rlA } }
-        optional { graph ?role_a { ?role dct:title ?rlB } }
-        bind(coalesce(?rlS, ?rlA, ?rlB) as ?rl)
+        optional { graph ?role_a { ?role schema:name ?rl } }
       }
     }
     group by ?member ?roleProp

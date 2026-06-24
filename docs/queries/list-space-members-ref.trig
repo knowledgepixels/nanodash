@@ -20,7 +20,7 @@ sub:Head {
 
 sub:assertion {
   sub:list-space-members a grlc:grlc-query;
-    dct:description "Lists the members (admin/maintainer/member tier) of a space ref with their highest tier and role-assignment links. Reads tier directly off each validated gen:RoleInstantiation (npa:hasRoleType / gen:hasRole) in the current space state; observer-tier excluded. Published as RApyKS9D (nanodash#498).";
+    dct:description "Lists the members (admin/maintainer/member tier) of a space ref with their highest tier and role-assignment links. Reads tier directly off each validated gen:RoleInstantiation (npa:hasRoleType / gen:hasRole) in the current space state; observer-tier excluded. Role labels read from schema:name only. Published as RA7E54m5 (supersedes RApyKS9D; nanodash#498).";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "List space members (ref-scoped)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
@@ -58,10 +58,7 @@ select ?member ?tier ?role_assignments_multi_iri ?role_assignments_label_multi w
             graph ?g { ?ri gen:hasRole ?role . }
             graph npa:spacesGraph { ?rd npa:role ?role ; npa:viaNanopub ?roleNp . }
             graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
-            optional { graph ?role_a { ?role schema:name ?rlS } }
-            optional { graph ?role_a { ?role rdfs:label ?rlA } }
-            optional { graph ?role_a { ?role dct:title ?rlB } }
-            bind(coalesce(?rlS,?rlA,?rlB) as ?rl)
+            optional { graph ?role_a { ?role schema:name ?rl } }
           }
           bind(if(?rt=gen:AdminRole,\"admin\",coalesce(?rl,\"role\")) as ?roleLabel0)
         }
