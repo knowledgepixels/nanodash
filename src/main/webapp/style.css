@@ -1838,7 +1838,7 @@ hr {
 }
 
 .message.plain {
-  background: white;
+  background: none;
   margin: 0;
   padding: 0;
 }
