@@ -1019,11 +1019,21 @@ public class Template implements Serializable {
     }
 
     private IRI transform(IRI iri) {
-        if (iri.stringValue().matches(".*__[0-9]+")) {
-            // TODO: Check that this double-underscore pattern isn't used otherwise:
-            return vf.createIRI(iri.stringValue().replaceFirst("__[0-9]+$", ""));
+        String s = iri.stringValue();
+        // Map a rendered IRI back to its template form for map lookups (label, type,
+        // datatype, …). RepetitionGroup.transform expands the template's "~~ARTIFACTCODE~~"
+        // placeholder to the target-namespace "~~~ARTIFACTCODE~~~" form and appends a "__N"
+        // repetition suffix; both must be undone here or the lookup keyed on the template
+        // form (e.g. an attached rdfs:label) is missed.
+        if (s.contains("~~~ARTIFACTCODE~~~")) {
+            s = s.replace("~~~ARTIFACTCODE~~~", "~~ARTIFACTCODE~~");
         }
-        return iri;
+        if (s.matches(".*__[0-9]+")) {
+            // TODO: Check that this double-underscore pattern isn't used otherwise:
+            s = s.replaceFirst("__[0-9]+$", "");
+        }
+        if (s.equals(iri.stringValue())) return iri;
+        return vf.createIRI(s);
     }
 
     private StatementComparator statementComparator = new StatementComparator();
