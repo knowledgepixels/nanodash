@@ -110,6 +110,10 @@ public class QueryResultItemList extends QueryResult {
                         String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + Strings.escapeMarkup(entryLabel) + "</span>";
                         item.add(new Label("listItem", html).setEscapeModelStrings(false));
                         return;
+                    } else if (Utils.isDateTimeLiteral(value)) {
+                        // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
+                        item.add(new Label("listItem", Utils.friendlyDateHtml(value, value)).setEscapeModelStrings(false));
+                        return;
                     } else {
                         item.add(new Label("listItem", value));
                         return;
