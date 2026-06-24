@@ -13,6 +13,8 @@ import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -77,7 +79,13 @@ public class IriItem extends AbstractContextComponent {
             // Capitalize first letter of label if at subject position:
             labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
         }
+        boolean hadIndexPlaceholder = labelString.contains("%I%");
         labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
+        // Auto-number repeated local resources so each expansion of a repeatable group is
+        // distinguishable (e.g. "the context-specific alias 1", "… 2"). Skip when the label
+        // already injects the index via %I%. The index/count are read lazily at render time
+        // (see the link model below) because they change as repetitions are added/removed.
+        final boolean autoNumber = template.isLocalResource(iri) && !hadIndexPlaceholder;
 
         String iriString = iri.stringValue();
         String description = "";
@@ -117,7 +125,21 @@ public class IriItem extends AbstractContextComponent {
         } else {
             href = NanodashLink.getPageUrl(iriString);
         }
-        ExternalLink linkComp = new ExternalLink("link", href, labelString.replaceFirst(" - .*$", ""));
+        final String linkLabelBase = labelString.replaceFirst(" - .*$", "");
+        IModel<String> linkLabelModel;
+        if (autoNumber) {
+            // Append the 1-based repetition index, but only once there is more than one
+            // repetition. Read lazily so the number stays correct as groups are added/removed.
+            linkLabelModel = (IModel<String>) () -> {
+                if (rg.getRepetitionCount() > 1) {
+                    return linkLabelBase + " " + (rg.getRepeatIndex() + 1);
+                }
+                return linkLabelBase;
+            };
+        } else {
+            linkLabelModel = Model.of(linkLabelBase);
+        }
+        ExternalLink linkComp = new ExternalLink("link", Model.of(href), linkLabelModel);
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-assertion "));
             iri = LocalUri.of("assertion");

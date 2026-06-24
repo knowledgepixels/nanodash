@@ -153,6 +153,7 @@ public class Template implements Serializable {
      * @return the transformed IRI, or the original IRI if no transformation is needed.
      */
     public IRI getFirstOccurrence(IRI iri) {
+        iri = transform(iri);
         for (IRI i : getStatementIris()) {
             if (statementMap.containsKey(i)) {
                 // grouped statement

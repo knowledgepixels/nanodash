@@ -449,6 +449,15 @@ public class StatementItem extends Panel {
         }
 
         /**
+         * Returns the total number of repetition groups for this statement.
+         *
+         * @return the number of repetition groups
+         */
+        public int getRepetitionCount() {
+            return StatementItem.this.getRepetitionCount();
+        }
+
+        /**
          * Returns true if the repeat index if the first one.
          *
          * @return true if the repeat index is 0, false otherwise
