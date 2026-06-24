@@ -654,25 +654,16 @@ public class StatementItem extends Panel {
          */
         public boolean matches(List<Statement> statements) {
             if (filled) return false;
-            List<Statement> st = new ArrayList<>(statements);
-            for (StatementPartItem p : statementParts) {
-                Statement matchedStatement = null;
-                for (Statement s : st) {
-                    if (
-                            p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
-                            p.getSubject().isUnifiableWith(s.getSubject()) &&
-                            p.getObject().isUnifiableWith(s.getObject())) {
-                        matchedStatement = s;
-                        break;
-                    }
-                }
-                if (matchedStatement == null) {
-                    return false;
-                } else {
-                    st.remove(matchedStatement);
-                }
+            // matches() must agree with fill(): because fill() binds shared placeholder models as it
+            // goes, a valid assignment can only be confirmed by actually simulating those bindings.
+            // We do exactly that (with backtracking) but on a copy and then restore the models, so
+            // matches() stays side-effect free.
+            Map<IRI, Object> snapshot = snapshotModels();
+            try {
+                return assignParts(0, new ArrayList<>(statements));
+            } finally {
+                restoreModels(snapshot);
             }
-            return true;
         }
 
         /**
@@ -683,26 +674,80 @@ public class StatementItem extends Panel {
          */
         public void fill(List<Statement> statements) throws UnificationException {
             if (filled) throw new UnificationException("Already filled");
-            for (StatementPartItem p : statementParts) {
-                Statement matchedStatement = null;
-                for (Statement s : statements) {
-                    if (
-                            p.getPredicate().isUnifiableWith(s.getPredicate()) &&  // checking predicate first optimizes performance
-                            p.getSubject().isUnifiableWith(s.getSubject()) &&
-                            p.getObject().isUnifiableWith(s.getObject())) {
-                        p.getPredicate().unifyWith(s.getPredicate());
-                        p.getSubject().unifyWith(s.getSubject());
-                        p.getObject().unifyWith(s.getObject());
-                        matchedStatement = s;
-                        break;
-                    }
+            // Backtracking assignment: a greedy first-match can bind a shared placeholder in a way
+            // that blocks a later part even though a consistent assignment exists. assignParts tries
+            // alternatives and rolls back the model bindings between attempts. On success the matched
+            // statements are removed from the list and the winning bindings are kept.
+            if (!assignParts(0, statements)) {
+                throw new UnificationException("Unification seemed to work but then didn't");
+            }
+            filled = true;
+        }
+
+        /**
+         * Tries to assign each remaining statement part (from index {@code partIndex} on) to a distinct
+         * statement in {@code available} such that all bindings of shared placeholder models are mutually
+         * consistent. Uses backtracking: on a failed branch the model bindings are restored and the next
+         * candidate is tried. On success the chosen statements are removed from {@code available} and the
+         * winning bindings remain applied to the component models.
+         *
+         * @param partIndex the index of the next statement part to assign
+         * @param available the statements still available for assignment (mutated in place)
+         * @return true if all remaining parts could be assigned consistently
+         */
+        private boolean assignParts(int partIndex, List<Statement> available) {
+            if (partIndex == statementParts.size()) return true;
+            StatementPartItem p = statementParts.get(partIndex);
+            for (int i = 0; i < available.size(); i++) {
+                Statement s = available.get(i);
+                Map<IRI, Object> snapshot = snapshotModels();
+                if (unifyPart(p.getPredicate(), s.getPredicate())  // checking predicate first optimizes performance
+                        && unifyPart(p.getSubject(), s.getSubject())
+                        && unifyPart(p.getObject(), s.getObject())) {
+                    available.remove(i);
+                    if (assignParts(partIndex + 1, available)) return true;
+                    available.add(i, s);
                 }
-                if (matchedStatement == null) {
-                    throw new UnificationException("Unification seemed to work but then didn't");
-                } else {
-                    statements.remove(matchedStatement);
-                }
-                filled = true;
+                restoreModels(snapshot);
+            }
+            return false;
+        }
+
+        /**
+         * Checks unifiability and, if unifiable, applies the binding. Returns false instead of throwing,
+         * so the caller can backtrack. (A partial binding left behind here is rolled back by the caller's
+         * model snapshot.)
+         */
+        private boolean unifyPart(ValueItem item, Value v) {
+            if (!item.isUnifiableWith(v)) return false;
+            try {
+                item.unifyWith(v);
+                return true;
+            } catch (UnificationException ex) {
+                return false;
+            }
+        }
+
+        /**
+         * Snapshots the current values of all shared component models, so a trial binding can be rolled back.
+         */
+        private Map<IRI, Object> snapshotModels() {
+            Map<IRI, Object> snapshot = new HashMap<>();
+            for (Map.Entry<IRI, IModel<?>> e : context.getComponentModels().entrySet()) {
+                snapshot.put(e.getKey(), e.getValue().getObject());
+            }
+            return snapshot;
+        }
+
+        /**
+         * Restores component model values captured by {@link #snapshotModels()}.
+         */
+        @SuppressWarnings("unchecked")
+        private void restoreModels(Map<IRI, Object> snapshot) {
+            Map<IRI, IModel<?>> models = context.getComponentModels();
+            for (Map.Entry<IRI, Object> e : snapshot.entrySet()) {
+                IModel<?> m = models.get(e.getKey());
+                if (m != null) ((IModel<Object>) m).setObject(e.getValue());
             }
         }
 
