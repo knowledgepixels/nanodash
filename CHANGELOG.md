@@ -1,3 +1,28 @@
+## [5.1.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.1...nanodash-5.1.2) (2026-06-25)
+
+### Bug Fixes
+
+* backtracking matcher so grouped shared-placeholder statements unify ([#505](https://github.com/knowledgepixels/nanodash/issues/505)) ([4ad6a6d](https://github.com/knowledgepixels/nanodash/commit/4ad6a6d5a483f4c5b20c784918d329ce8053ec3e))
+* distinguish repeated local resources by index in form labels ([04c8c7c](https://github.com/knowledgepixels/nanodash/commit/04c8c7cfec5cd1104282c3c5a6592179f71950ff))
+* don't abort the whole template fill on one unification failure ([5925d3a](https://github.com/knowledgepixels/nanodash/commit/5925d3a10b0a3e81b5acd1a3c8c40ec05b1b3c5f))
+* map expanded ~~~ARTIFACTCODE~~~ IRIs back to template form for lookups ([592a443](https://github.com/knowledgepixels/nanodash/commit/592a443ad15f682fe7e170d3c2f0e16decf845d2))
+* pretty-print date-time literals in list views ([#496](https://github.com/knowledgepixels/nanodash/issues/496)) ([874416c](https://github.com/knowledgepixels/nanodash/commit/874416c7bdc97b4f4bed1b14d674ac9aa4c7aa54))
+* pretty-print dates in multi-valued table cells and list-view output ([953ac86](https://github.com/knowledgepixels/nanodash/commit/953ac86be672efcc0eae57622328e18b491d3d59))
+* simplify view-display authority gate to hasGoverningSpaceRef ([#510](https://github.com/knowledgepixels/nanodash/issues/510)) ([a8114df](https://github.com/knowledgepixels/nanodash/commit/a8114df176995cd365f5437e366130b279ef6e1b)), closes [nanopub-query#130](https://github.com/knowledgepixels/nanopub-query/issues/130) [#2](https://github.com/knowledgepixels/nanodash/issues/2) [#3](https://github.com/knowledgepixels/nanodash/issues/3)
+
+### Documentation
+
+* add SHACL alignment plan (templates ↔ SHACL) ([8689f6a](https://github.com/knowledgepixels/nanodash/commit/8689f6ad1faed4f4a74512cd23c2f0addfb57a13)), closes [#508](https://github.com/knowledgepixels/nanodash/issues/508) [#509](https://github.com/knowledgepixels/nanodash/issues/509)
+
+### General maintenance
+
+* resync view-displays-view sources to published heads ([#510](https://github.com/knowledgepixels/nanodash/issues/510)) ([913eea0](https://github.com/knowledgepixels/nanodash/commit/913eea075a64a9762d7eca1d0122d3ab000a60bf))
+* setting next snapshot version [skip ci] ([e208410](https://github.com/knowledgepixels/nanodash/commit/e20841014681bbe6226e26f061061e22ead3b163))
+
+### Style improvements
+
+* use background:none for .message.plain ([e9e4732](https://github.com/knowledgepixels/nanodash/commit/e9e4732f1d6bc1f013cc8e3272a6f90798253fe6))
+
 ## [5.1.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.0...nanodash-5.1.1) (2026-06-24)
 
 ### Bug Fixes
