@@ -176,12 +176,18 @@ public class QueryResultList extends QueryResult {
                                     if (label != null && label.equals(part)) label = null;
                                     multiComponents.add(new NanodashLink("component", part, null, null, label, contextId));
                                 } else {
-                                    String display = label != null ? label : Utils.unescapeMultiValue(part);
-                                    boolean isHtml = Utils.looksLikeHtml(display);
-                                    if (isHtml) {
-                                        display = Utils.sanitizeHtml(display);
+                                    String unescaped = Utils.unescapeMultiValue(part);
+                                    if (label == null && Utils.isDateTimeLiteral(unescaped)) {
+                                        // Friendly relative time, matching single-value items.
+                                        multiComponents.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped)).setEscapeModelStrings(false));
+                                    } else {
+                                        String display = label != null ? label : unescaped;
+                                        boolean isHtml = Utils.looksLikeHtml(display);
+                                        if (isHtml) {
+                                            display = Utils.sanitizeHtml(display);
+                                        }
+                                        multiComponents.add(new Label("component", display).setEscapeModelStrings(!isHtml));
                                     }
-                                    multiComponents.add(new Label("component", display).setEscapeModelStrings(!isHtml));
                                 }
                             }
                             components.add(new ComponentSequence("component", ", ", multiComponents));
@@ -192,13 +198,14 @@ public class QueryResultList extends QueryResult {
                             String[] labels = labelValue != null ? labelValue.split("\n", -1) : null;
                             List<Component> multiComponents = new ArrayList<>();
                             for (int i = 0; i < parts.length; i++) {
-                                String display;
-                                if (labels != null && i < labels.length && !labels[i].isBlank()) {
-                                    display = Utils.unescapeMultiValue(labels[i]);
+                                boolean hasLabel = labels != null && i < labels.length && !labels[i].isBlank();
+                                String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
+                                if (!hasLabel && Utils.isDateTimeLiteral(display)) {
+                                    // Friendly relative time, matching single-value items.
+                                    multiComponents.add(new Label("component", Utils.friendlyDateHtml(display, display)).setEscapeModelStrings(false));
                                 } else {
-                                    display = Utils.unescapeMultiValue(parts[i]);
+                                    multiComponents.add(new Label("component", display));
                                 }
-                                multiComponents.add(new Label("component", display));
                             }
                             components.add(new ComponentSequence("component", ", ", multiComponents));
                         } else if (entryValue.matches("https?://.+")) {
@@ -212,18 +219,23 @@ public class QueryResultList extends QueryResult {
                         } else {
                             String entryLabel = entry.get(key + "_label");
                             boolean hasLabel = entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(entryValue);
-                            String display = hasLabel ? entryLabel : entryValue;
-                            if (Utils.looksLikeHtml(display)) {
-                                display = Utils.sanitizeHtml(display);
-                            } else if (hasLabel) {
-                                display = Strings.escapeMarkup(display).toString();
+                            if (!hasLabel && Utils.isDateTimeLiteral(entryValue)) {
+                                // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
+                                components.add(new Label("component", Utils.friendlyDateHtml(entryValue, entryValue)).setEscapeModelStrings(false));
+                            } else {
+                                String display = hasLabel ? entryLabel : entryValue;
+                                if (Utils.looksLikeHtml(display)) {
+                                    display = Utils.sanitizeHtml(display);
+                                } else if (hasLabel) {
+                                    display = Strings.escapeMarkup(display).toString();
+                                }
+                                if (hasLabel) {
+                                    // Separate display label for a (non-IRI) literal value; the full
+                                    // literal is shown on hover via the standard styled tooltip.
+                                    display = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(entryValue) + "</span>" + display + "</span>";
+                                }
+                                components.add(new Label("component", display).setEscapeModelStrings(false));
                             }
-                            if (hasLabel) {
-                                // Separate display label for a (non-IRI) literal value; the full
-                                // literal is shown on hover via the standard styled tooltip.
-                                display = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(entryValue) + "</span>" + display + "</span>";
-                            }
-                            components.add(new Label("component", display).setEscapeModelStrings(false));
                         }
                     }
                 }
