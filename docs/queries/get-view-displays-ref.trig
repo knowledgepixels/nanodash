@@ -31,21 +31,19 @@ select distinct ?display ?view (coalesce(?viewKindOptional, ?view) as ?viewKind)
     graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
     graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
     {
+      # Authority gate (issue #130 / nanodash#510): a single mandatory hop through the
+      # governing space ref, which covers both a maintained resource and a space itself
+      # (the reflexive self-edge), keyed on the role tier materialized on the
+      # RoleInstantiation since #125. Replaces the old bare-IRI isMaintainedBy? hop and the
+      # dead RoleDeclaration maintainer join. Ref variant: the governing ref is pinned to
+      # ?passedRef (resolved from root_np), so authority cannot bleed across rival refs
+      # claiming the same space IRI.
       graph ?stateG {
-        ?_resource_multi_iri npa:isMaintainedBy? ?space .
-        ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?passedRef ; npa:forAgent ?authAgent ;
-            (npa:inverseProperty|npa:regularProperty) ?roleProp .
+        ?_resource_multi_iri npa:hasGoverningSpaceRef ?passedRef .
+        ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?passedRef ; npa:hasRoleType ?roleType ; npa:forAgent ?authAgent .
+        filter(?roleType = gen:AdminRole || ?roleType = gen:MaintainerRole)
         ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
       }
-      optional {
-        graph npa:spacesGraph {
-          ?rd a npa:RoleDeclaration ; npa:forSpace ?space ;
-              npa:hasRoleType gen:MaintainerRole ;
-              (npa:inverseProperty|npa:regularProperty) ?roleProp .
-          bind(true as ?isMaintainer)
-        }
-      }
-      filter(?roleProp = gen:hasAdmin || bound(?isMaintainer))
     } union {
       graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
     }
@@ -131,5 +129,5 @@ order by desc(?date)""" .
 sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-  this: dct:created "2026-06-19T07:32:09Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:get-view-displays; npx:supersedes <https://w3id.org/np/RA8iqtdTrZGOWX1Yf7w_8RgB9brG3COMw9wkbjfl6VeHc> .
+  this: dct:created "2026-06-25T16:05:53Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:get-view-displays; npx:supersedes <https://w3id.org/np/RAIpgHc6ckHcb2yBWM3QJ68xjghrgBdEOQRGFKCGseAcA> .
 }

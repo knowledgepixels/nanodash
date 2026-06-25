@@ -36,21 +36,18 @@ select distinct ?display ?view (coalesce(?viewKindOptional, ?view) as ?viewKind)
   service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
     graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
     {
+      # Authority gate (issue #130 / nanodash#510): a single mandatory hop through the
+      # governing space ref, which covers both a maintained resource and a space itself
+      # (the reflexive self-edge), keyed on the role tier materialized on the
+      # RoleInstantiation since #125. Replaces the old bare-IRI isMaintainedBy? hop and the
+      # dead RoleDeclaration maintainer join. Non-ref variant: any ref claiming the IRI, so
+      # authority merges across refs (the ref variant pins a single ?passedRef instead).
       graph ?stateG {
-        ?_resource_multi_iri npa:isMaintainedBy? ?space .
-        ?ri a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forAgent ?authAgent ;
-            (npa:inverseProperty|npa:regularProperty) ?roleProp .
+        ?_resource_multi_iri npa:hasGoverningSpaceRef ?spaceRef .
+        ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?spaceRef ; npa:hasRoleType ?roleType ; npa:forAgent ?authAgent .
+        filter(?roleType = gen:AdminRole || ?roleType = gen:MaintainerRole)
         ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
       }
-      optional {
-        graph npa:spacesGraph {
-          ?rd a npa:RoleDeclaration ; npa:forSpace ?space ;
-              npa:hasRoleType gen:MaintainerRole ;
-              (npa:inverseProperty|npa:regularProperty) ?roleProp .
-          bind(true as ?isMaintainer)
-        }
-      }
-      filter(?roleProp = gen:hasAdmin || bound(?isMaintainer))
     } union {
       graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
     }
@@ -141,11 +138,11 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
   
-  this: dct:created "2026-06-19T09:55:49Z"^^xsd:dateTime;
+  this: dct:created "2026-06-25T16:05:53Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
     npx:embeds sub:get-view-displays;
-    npx:supersedes <https://w3id.org/np/RAyXaBuRHp2GaCRuKElnkg9bqFqayhoqZqGjpaBgd7DtU>;
+    npx:supersedes <https://w3id.org/np/RAd105Rjy3ZCTGxOqBuXlztyeRG50r7j_CF4dMzERyI00>;
     rdfs:label "Get view displays";
     nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
     nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,

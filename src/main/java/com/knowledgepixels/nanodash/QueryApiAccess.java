@@ -79,7 +79,11 @@ public class QueryApiAccess {
     // slash on the sub: prefix) gates the view-version-resolution npx:invalidates filters on the
     // version nanopub's own signing pubkey (issue #487); no-regression verified across resources
     // incl. a 45-display user page.
-    public static final String GET_VIEW_DISPLAYS = "RAlOsra-TR9Wh-GEnt2HcFpMc6Hb7QcA3r2bdD81_B_GA/get-view-displays";
+    // RA4TGV_z (supersedes RAd105Rj) replaces the bare-IRI isMaintainedBy? authority hop and the
+    // dead RoleDeclaration maintainer arm with a single npa:hasGoverningSpaceRef gate keyed on the
+    // materialized npa:hasRoleType (nanopub-query#130 / issue #510); fixes maintainer visibility and
+    // cross-ref bleed. No-regression verified against RAd105Rj across resources.
+    public static final String GET_VIEW_DISPLAYS = "RA4TGV_zGtvVPjvffGF6OTbNV-ZmjwIdcZ3-JNYdEhpoE/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -89,7 +93,9 @@ public class QueryApiAccess {
     // RAny-yPb (supersedes RA8iqtd) gates the view-version-resolution npx:invalidates filters on
     // the version nanopub's own signing pubkey (issue #487; the row-level filters were already
     // gated). No-regression verified against RA8iqtd across spaces.
-    public static final String GET_VIEW_DISPLAYS_REF = "RAny-yPbLANY44GhO7fAjEShY-k5D_DTQhyHaVz3ZRxQo/get-view-displays";
+    // RAtZbUry (supersedes RAIpgHc6): same hasGoverningSpaceRef gate as get-view-displays, with the
+    // governing ref pinned to ?passedRef so authority cannot bleed across rival refs (issue #510).
+    public static final String GET_VIEW_DISPLAYS_REF = "RAtZbUry42si1BZpBoRBkgbzGweNzfPmOludNIoJYT2VM/get-view-displays";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -218,7 +224,9 @@ public class QueryApiAccess {
     // ?shown_here → ?displayed_here). RAFkUf3A (derived from RAMy6Nu) adds a ?position_label column
     // (first 3 chars of the structural position) so the position cell shows e.g. "1.1" with the full
     // literal on hover.
-    public static final String LIST_PART_VIEW_DISPLAYS = "RAFkUf3AduxwZOfFBz0lVil_2IS2dM83-WAkEjkY3UTYQ/list-part-view-displays";
+    // RAs9S7c9 (supersedes RA2LG9c5) swaps the authority gate to the npa:hasGoverningSpaceRef gate
+    // keyed on materialized npa:hasRoleType (issue #510), preserving the ?position_label column.
+    public static final String LIST_PART_VIEW_DISPLAYS = "RAs9S7c9wdasz2c745f-mBg53JSQ1q20vLLHkmnXCmX2w/list-part-view-displays";
 
     // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
     // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
