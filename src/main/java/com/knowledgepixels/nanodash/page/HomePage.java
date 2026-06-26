@@ -78,54 +78,81 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         final String homeResourceId = NanodashPreferences.get().getHomeResource();
-        MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
-        if (homeResource == null) {
-            String msg = "Configured home resource <code>" + Strings.escapeMarkup(homeResourceId) + "</code> could not be found. " +
-                    "Set the <code>NANODASH_HOME_RESOURCE</code> environment variable to a valid maintained-resource IRI.";
-            add(new Label("views", "<div class=\"row-section\"><div class=\"col-12\"><p class=\"negative\">" + msg + "</p></div></div>").setEscapeModelStrings(false));
+        final MaintainedResourceRepository resourceRepo = MaintainedResourceRepository.get();
+        final MaintainedResource homeResource = resourceRepo.findById(homeResourceId);
+
+        // Rendered only for a genuine misconfiguration (see below): the resource
+        // repository is warm but the configured id is not a known maintained resource.
+        final String notFoundHtml = "<div class=\"row-section\"><div class=\"col-12\"><p class=\"negative\">" +
+                "Configured home resource <code>" + Strings.escapeMarkup(homeResourceId) + "</code> could not be found. " +
+                "Set the <code>NANODASH_HOME_RESOURCE</code> environment variable to a valid maintained-resource IRI." +
+                "</p></div></div>";
+
+        if (homeResource == null && resourceRepo.isReady()) {
+            // The repository has a full snapshot, yet the configured id isn't in it:
+            // a real misconfiguration, not a cold-cache race.
+            add(new Label("views", notFoundHtml).setEscapeModelStrings(false));
             return;
         }
-        homeResource.triggerDataUpdate();
 
+        if (homeResource != null) {
+            homeResource.triggerDataUpdate();
+            if (homeResource.isDataInitialized()) {
+                ViewList viewList = new ViewList("views", homeResource);
+                viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", this));
+                add(viewList);
+                return;
+            }
+        }
+
+        // Either the resource exists but its data isn't initialized yet, or the
+        // repository itself is still cold so findById is transiently null (cache
+        // refresh in flight / racing spaces load). Lazy-load and poll until the data
+        // resolves, rather than declaring a hard "not found" on a transient null. If
+        // the repository warms up without the configured id, the misconfig notice is
+        // shown then.
         final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
-                return MaintainedResourceRepository.get().findById(homeResourceId);
+                return resourceRepo.findById(homeResourceId);
             }
         };
 
-        if (homeResource.isDataInitialized()) {
-            ViewList viewList = new ViewList("views", homeResource);
-            viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", this));
-            add(viewList);
-        } else {
-            add(new AjaxLazyLoadPanel<Component>("views") {
+        add(new AjaxLazyLoadPanel<Component>("views") {
 
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    ViewList viewList = new ViewList(markupId, homeResourceModel.getObject());
-                    viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
-                    return viewList;
+            @Override
+            public Component getLazyLoadComponent(String markupId) {
+                MaintainedResource r = homeResourceModel.getObject();
+                if (r == null) {
+                    return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
                 }
+                ViewList viewList = new ViewList(markupId, r);
+                viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
+                return viewList;
+            }
 
-                @Override
-                protected boolean isContentReady() {
-                    return homeResourceModel.getObject().isDataInitialized();
-                }
+            @Override
+            protected boolean isContentReady() {
+                MaintainedResource r = homeResourceModel.getObject();
+                // isDataInitialized() also kicks off the (idempotent) data load.
+                if (r != null) return r.isDataInitialized();
+                // Resource still unresolved: keep polling while the repository is cold,
+                // and stop (to show the misconfig notice) only once it is warm.
+                return resourceRepo.isReady();
+            }
 
-                @Override
-                public Component getLoadingComponent(String id) {
-                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
-                }
+            @Override
+            public Component getLoadingComponent(String id) {
+                return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+            }
 
-                @Override
-                protected void onDetach() {
-                    homeResourceModel.detach();
-                    super.onDetach();
-                }
+            @Override
+            protected void onDetach() {
+                homeResourceModel.detach();
+                super.onDetach();
+            }
 
-            });
-        }
+        });
     }
 
     /**
