@@ -165,6 +165,22 @@ public class MaintainedResourceRepository {
     }
 
     /**
+     * Whether a complete resource snapshot has been built at least once, i.e. the
+     * spaces-repo response was fetched and at least one row's space resolved (so
+     * {@link #build} latched a real snapshot rather than bailing out). Until this is
+     * true, {@link #findById} can return null simply because the data is still cold
+     * (cache refresh in flight, or a racing {@link SpaceRepository} load), not
+     * because the id is genuinely unknown. Callers can use this to distinguish a
+     * transient "not loaded yet" from a real "not found".
+     *
+     * @return true once a full snapshot has been built and latched
+     */
+    public boolean isReady() {
+        current();
+        return cachedFor != null;
+    }
+
+    /**
      * Invalidate the underlying ApiCache entry, optionally delaying the next refresh.
      *
      * @param waitMillis Delay in milliseconds before the next access may trigger a refresh; 0 for immediate.
