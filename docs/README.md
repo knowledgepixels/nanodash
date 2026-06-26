@@ -11,6 +11,7 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | [presets](presets.md) | ✅ Implemented | Publishable bundles of default views + roles, assignable to (and deactivatable on) resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
 | [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |
 | [role-specific-views](role-specific-views.md) | ✅ Implemented | View **action buttons** gated to a role tier (Maintainer, …) or specific role, via `gen:isVisibleTo` on the action node |
+| [structural-position](structural-position.md) | ✅ Implemented | `gen:hasStructuralPosition` `<section>.<sub>.<label>` strings order & group views on a page; strict format, primary digits 3–7 (intro…outro) in use ([#279](https://github.com/knowledgepixels/nanodash/issues/279)) |
 | [space-ref-identity](space-ref-identity.md) | 🚧 In progress | A space's identity is IRI + root-definition NPID (rival roots = distinct spaces); ref-keyed `SpaceRepository` + ref-scoped per-space authority queries shipped; one-`Space`-per-ref identity + disambiguation UI still to come |
 | [shacl-alignment](shacl-alignment.md) | 📋 Proposed | Build on the SHACL standard: adopt `sh:`/`dash:` constraint terms inside templates (A) and export SHACL shapes for external validation (B) |
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
