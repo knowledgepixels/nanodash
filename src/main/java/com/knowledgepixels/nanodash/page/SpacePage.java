@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -9,6 +11,7 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,6 +22,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The SpacePage class represents a space page in the Nanodash application.
@@ -141,10 +145,35 @@ public class SpacePage extends NanodashPage {
             // Pinned to a specific claimant: render that ref's view displays, not the
             // representative ref's (the IRI-keyed singleton). Fetched on demand. See
             // docs/space-ref-identity.md.
-            contentContainer.add(new ViewList("views", space, space.getTopLevelViewDisplays(effectiveRoot), effectiveRoot));
+            List<ViewDisplay> viewDisplays = space.getTopLevelViewDisplays(effectiveRoot);
+            boolean empty = viewDisplays.isEmpty();
+            if (empty) {
+                contentContainer.add(new WebMarkupContainer("views").setVisible(false));
+            } else {
+                contentContainer.add(new ViewList("views", space, viewDisplays, effectiveRoot));
+            }
+            addUnconfiguredFallback(contentContainer, space, empty);
         } else if (space.isDataInitialized()) {
-            contentContainer.add(new ViewList("views", space));
+            boolean empty = space.getTopLevelViewDisplays().isEmpty();
+            if (empty) {
+                contentContainer.add(new WebMarkupContainer("views").setVisible(false));
+            } else {
+                contentContainer.add(new ViewList("views", space));
+            }
+            addUnconfiguredFallback(contentContainer, space, empty);
         } else {
+            // Data not yet loaded: render the views lazily, then reveal the unconfigured
+            // notice + general-info fallback once we know whether any views exist.
+            final WebMarkupContainer unconfiguredNotice = new WebMarkupContainer("unconfigured-notice");
+            unconfiguredNotice.setVisible(false);
+            unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
+            contentContainer.add(unconfiguredNotice);
+
+            final ViewList generalInfoView = new ViewList("generalinfoview", space, List.of(generalInfoViewDisplay()));
+            generalInfoView.setVisible(false);
+            generalInfoView.setOutputMarkupPlaceholderTag(true);
+            contentContainer.add(generalInfoView);
+
             contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
 
                 @Override
@@ -162,9 +191,47 @@ public class SpacePage extends NanodashPage {
                     return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
                 }
 
+                @Override
+                protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+                    super.onContentLoaded(content, target);
+                    target.ifPresent(t -> {
+                        boolean isEmpty = spaceModel.getObject().getTopLevelViewDisplays().isEmpty();
+                        if (isEmpty) {
+                            t.appendJavaScript("document.getElementById('" + getMarkupId() + "').remove();");
+                        }
+                        unconfiguredNotice.setVisible(isEmpty);
+                        t.add(unconfiguredNotice);
+                        generalInfoView.setVisible(isEmpty);
+                        t.add(generalInfoView);
+                    });
+                }
+
             });
         }
 
+    }
+
+    /**
+     * View shown as a general-information fallback on pages that have no view displays
+     * configured yet.
+     */
+    private static final String GENERAL_INFO_VIEW = "https://w3id.org/np/RA9FKwtTWqknnDrFz1vMNeUdWpYYVQp7sznigpaXlBrU8/resource-info-view";
+
+    private static ViewDisplay generalInfoViewDisplay() {
+        return new ViewDisplay(View.get(GENERAL_INFO_VIEW));
+    }
+
+    /**
+     * Adds the "page not configured yet" notice and the general-information fallback view,
+     * both visible only when the resource has no view displays.
+     */
+    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, AbstractResourceWithProfile resource, boolean empty) {
+        contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
+        if (empty) {
+            contentContainer.add(new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay())));
+        } else {
+            contentContainer.add(new EmptyPanel("generalinfoview").setVisible(false));
+        }
     }
 
     /**
