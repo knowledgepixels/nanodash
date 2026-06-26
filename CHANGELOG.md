@@ -1,3 +1,23 @@
+## [5.2.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.2...nanodash-5.2.0) (2026-06-26)
+
+### Features
+
+* show general-info fallback on unconfigured space/resource pages ([845b620](https://github.com/knowledgepixels/nanodash/commit/845b6204b27614aaa68b3b60e22b950a12e099aa))
+* strip parent/child word overlap in breadcrumb labels ([6f3af46](https://github.com/knowledgepixels/nanodash/commit/6f3af466b5a1a4d2e626e814f54bb5d9debf0fe2))
+
+### Bug Fixes
+
+* don't show "home resource not found" on a cold-cache race ([6d6d7e7](https://github.com/knowledgepixels/nanodash/commit/6d6d7e786731f5716059390be324ca306154c05a))
+* keep .tooltip inline in result-table cells too ([3015bc8](https://github.com/knowledgepixels/nanodash/commit/3015bc86c3fdffdd62ed56eb26ff09da154abef3))
+
+### Documentation
+
+* add structural-position doc ([#279](https://github.com/knowledgepixels/nanodash/issues/279)) ([b43e40a](https://github.com/knowledgepixels/nanodash/commit/b43e40aace9534f5f1184fd73d07f5b5c396a666))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([a6f6a83](https://github.com/knowledgepixels/nanodash/commit/a6f6a8308d51594cb5c92249fb46f6ad6f86daed))
+
 ## [5.1.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.1...nanodash-5.1.2) (2026-06-25)
 
 ### Bug Fixes
