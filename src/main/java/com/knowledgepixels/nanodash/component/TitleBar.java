@@ -97,7 +97,7 @@ public class TitleBar extends Panel {
     }
 
     /**
-     * Flattens a breadcrumb path into the segments to render. Two transforms are
+     * Flattens a breadcrumb path into the segments to render. Three transforms are
      * applied to each ref's label:
      * <ul>
      *   <li>For each non-root crumb, the part it shares with its parent label
@@ -107,6 +107,12 @@ public class TitleBar extends Panel {
      *       (almost) all of the parent and ends on a non-letter/digit boundary
      *       in the child — this also catches singular/plural variations like
      *       parent "Nano Sessions", child "Nano Session #30" → "#30".</li>
+     *   <li>For each non-root crumb, a word-level overlap where the child's
+     *       leading word(s) restate the parent's trailing word(s) is stripped
+     *       (e.g. parent "Abc Def Ghi", child "Ghi Jkl" renders as "Jkl"). The
+     *       longest such parent-suffix/child-prefix overlap wins, matched on
+     *       whole words case-insensitively, and never strips the whole child
+     *       away.</li>
      *   <li>Only the leading segment of the remaining label is kept — the part
      *       before the first list/title separator ({@code ,}, {@code :},
      *       {@code ;}, {@code |}, or a spaced {@code -}) — so each path level
@@ -125,7 +131,9 @@ public class TitleBar extends Panel {
                 continue;
             }
             if (i > 0) {
-                label = stripParentPrefix(pathRefs[i - 1].getLabel(), label);
+                String parentLabel = pathRefs[i - 1].getLabel();
+                label = stripParentPrefix(parentLabel, label);
+                label = stripParentOverlap(parentLabel, label);
             }
             // Show only the leading segment (before the first list/title separator)
             // so each path level renders as one concise crumb — e.g.
@@ -179,6 +187,55 @@ public class TitleBar extends Panel {
         String remainder = child.substring(lcp).replaceAll("^\\s+", "");
         if (remainder.isEmpty()) return child;
         return remainder;
+    }
+
+    /**
+     * If the child label's leading word(s) restate the parent label's trailing
+     * word(s), strips that overlap and returns the remainder. E.g. parent
+     * "Abc Def Ghi", child "Ghi Jkl" → "Jkl", or parent "Knowledge Pixels
+     * Incubator Office Hours", child "Office Hour 24 June 2026" → "24 June 2026".
+     * The overlap is matched on whole words, case-insensitively and tolerating
+     * singular/plural variation ("Hours" ≈ "Hour"); the longest parent-suffix that
+     * matches a child-prefix wins. Returns the child unchanged when there is no
+     * overlap, or when the overlap would consume the whole child label (at least
+     * one word is always kept).
+     */
+    static String stripParentOverlap(String parent, String child) {
+        if (parent == null || parent.isEmpty() || child == null || child.isEmpty()) return child;
+        String[] parentWords = parent.trim().split("\\s+");
+        String[] childWords = child.trim().split("\\s+");
+        // Keep at least one child word, so the overlap can cover at most all but
+        // the last child word.
+        int maxK = Math.min(parentWords.length, childWords.length - 1);
+        for (int k = maxK; k >= 1; k--) {
+            boolean match = true;
+            for (int j = 0; j < k; j++) {
+                if (!wordsEquivalent(parentWords[parentWords.length - k + j], childWords[j])) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                return String.join(" ", java.util.Arrays.asList(childWords).subList(k, childWords.length));
+            }
+        }
+        return child;
+    }
+
+    /**
+     * Whether two breadcrumb words count as the same topic word: equal ignoring
+     * case, or equal once a single trailing plural "s" is dropped from each (so
+     * "Hours" matches "Hour", "Sessions" matches "Session").
+     */
+    private static boolean wordsEquivalent(String a, String b) {
+        if (a.equalsIgnoreCase(b)) return true;
+        return depluralize(a).equalsIgnoreCase(depluralize(b));
+    }
+
+    private static String depluralize(String word) {
+        return word.length() > 1 && (word.endsWith("s") || word.endsWith("S"))
+                ? word.substring(0, word.length() - 1)
+                : word;
     }
 
     /**
