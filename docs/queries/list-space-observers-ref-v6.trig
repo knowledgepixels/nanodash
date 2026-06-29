@@ -1,0 +1,96 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+# Published live as RAQylZL4shGjfhxcBiqoanuY2-cUJcVeWvpZDkfjP9_ko (supersedes RAZNHDFQ).
+# NOTE: the intermediate heads RAoW4pMA (nanopub-query#498) and RAZNHDFQ were published
+# without a source file in this folder, so the on-disk source jumped from v5 to v6. v6 keeps
+# the #498 design (read the validated tier off the gen:RoleInstantiation in the current space
+# state) but scopes the higher-tier exclusion to the SAME role property, fixing the regression
+# where any member who also held a higher-tier role (e.g. an admin who is also a planned
+# attendant) was hidden from the observers list entirely.
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-observers a grlc:grlc-query;
+    dct:description "Lists every observer-tier role association of a space ref (validated plus un-introduced self-declared, flagged via the headerless column). Excludes a member's observer association only when they hold a VALIDATED higher tier THROUGH THE SAME ROLE PROPERTY (npa:hasRoleType on a gen:RoleInstantiation in the current space state). BUGFIX over RAoW4pMA/RAZNHDFQ (nanodash#498): that version excluded the member whenever they held ANY validated higher-tier role, which hid an admin/maintainer/member from the observer list even for a separate, genuinely observer-tier role they hold (e.g. an admin who is also a planned attendant showed nowhere as an observer). Scoping the higher-tier check to the same role property restores the intended behaviour (every observer-tier association is listed) while keeping the #498 tier-collision fix: a property declared as observer globally but validated at a higher tier for this member in this ref is still excluded.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space observers (ref-scoped, all observer-tier associations, with validation flag)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix schema: <http://schema.org/>
+
+select ?member
+       (group_concat(distinct ?latestNp; separator=\" \") as ?role_assignments_multi_iri)
+       (group_concat(distinct ?roleLabel; separator=\"\\n\") as ?role_assignments_label_multi)
+       (if(max(?val) = 0, \"⚠️\", \"\") as ?unverified_noheader)
+where {
+  {
+    select ?member ?roleProp
+           (max(?val0) as ?val)
+           (strafter(max(concat(coalesce(str(?dateNp),\"\"), \" \", str(?grantNp))), \" \") as ?latestNp)
+           (sample(?rl) as ?rlRaw)
+    where {
+      values ?_root_np_multi_iri {}
+      graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri ; npa:spaceIri ?spaceIri . }
+      graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+      graph npa:spacesGraph {
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?inSpace ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
+            (npa:regularProperty|npa:inverseProperty) ?roleProp .
+      }
+      filter( ?inSpace = ?spaceIri || exists { graph ?g { ?inSpace npa:sameAsSpace ?ref } } )
+      filter exists { graph npa:spacesGraph { ?rdf a npa:RoleDeclaration ; npa:hasRoleType gen:ObserverRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } }
+      filter(?roleProp != gen:hasAdmin)
+      filter not exists { graph ?g { ?vriH a gen:RoleInstantiation ; npa:forSpaceRef ?ref ; npa:forAgent ?member ;
+          (npa:regularProperty|npa:inverseProperty) ?roleProp .
+        { ?vriH npa:hasRoleType gen:AdminRole } union { ?vriH npa:hasRoleType gen:MaintainerRole } union { ?vriH npa:hasRoleType gen:MemberRole } } }
+      filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp ; npa:hasValidSignatureForPublicKeyHash ?invpk . ?grantNp npa:hasValidSignatureForPublicKeyHash ?invpk . } }
+      bind(if(exists { graph ?g { ?vri npa:forSpaceRef ?ref ; npa:forAgent ?member ; npa:viaNanopub ?grantNp } }, 1, 0) as ?val0)
+      optional { graph npa:graph { ?grantNp dct:created ?dateNp } }
+      optional {
+        graph ?g { ?raRole a gen:RoleAssignment ; npa:forSpaceRef ?ref ; gen:hasRole ?role . }
+        graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; npa:role ?role ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp . }
+        graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
+        optional { graph ?role_a { ?role schema:name ?rl } }
+      }
+    }
+    group by ?member ?roleProp
+  }
+  bind(coalesce(?rlRaw, \"role\") as ?roleLabel)
+}
+group by ?member
+order by ?unverified_noheader ?member""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-06-29T10:38:53Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-observers;
+    npx:supersedes <https://w3id.org/np/RAZNHDFQj9EUF6d3MJtKhFpd6cip5EcRiS-jjMNRyNMMg> .
+}
