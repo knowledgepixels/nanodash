@@ -236,6 +236,15 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
+        // Lowest-priority rule: a plain term whose namespace is declared by a maintained
+        // resource is shown as a part of that resource. Applies only once the earlier
+        // rules (known resource, explicit part membership of the given context) have not
+        // matched; the incoming context here is typically just the space the user came
+        // from, not the resource that owns the term. Never for nanopub identifiers.
+        if (publishedNanopub == null && !isNanopubId) {
+            ResourcePartPage.forwardToContainingResource(new PageParameters(parameters).set("id", tempRef));
+        }
+
         WebMarkupContainer nanopubSection = new WebMarkupContainer("nanopub-section");
 
         if (np == null) {

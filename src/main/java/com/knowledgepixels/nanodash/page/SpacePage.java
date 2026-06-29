@@ -274,12 +274,7 @@ public class SpacePage extends NanodashPage {
             if (MaintainedResourceRepository.get().findById(id) != null) {
                 throw new RestartResponseException(MaintainedResourcePage.class, parameters);
             }
-            MaintainedResource containingResource = MaintainedResourceRepository.get().findByNamespace(MaintainedResource.getNamespace(id));
-            if (containingResource != null) {
-                PageParameters partParameters = new PageParameters(parameters);
-                partParameters.set("context", containingResource.getId());
-                throw new RestartResponseException(ResourcePartPage.class, partParameters);
-            }
+            ResourcePartPage.forwardToContainingResource(parameters);
             throw new IllegalArgumentException("No space or resource found for id: " + id);
         }
 
