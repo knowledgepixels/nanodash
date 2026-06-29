@@ -168,9 +168,18 @@ public class QueryApiAccess {
     // {AdminRole,MaintainerRole,MemberRole}) in the current space state — replacing the global
     // RoleDeclaration matching that mis-excluded observers whose predicate was declared at a higher
     // tier by another space (which had returned ZERO observers for spaces like vu/ucds). Enabled by
-    // nanopub-query persisting tier on the instantiation (nanopub-query#125 + #127). Latest
-    // (RAZNHDFQ, supersedes RAoW4pMA) drops the role-label coalesce to read schema:name only.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAZNHDFQj9EUF6d3MJtKhFpd6cip5EcRiS-jjMNRyNMMg/list-space-observers";
+    // nanopub-query persisting tier on the instantiation (nanopub-query#125 + #127). RAZNHDFQ
+    // (supersedes RAoW4pMA) drops the role-label coalesce to read schema:name only. Latest
+    // (RAQylZL4, supersedes RAZNHDFQ) BUGFIX: the RAoW4pMA/#498 higher-tier exclusion dropped a
+    // member from the observers list whenever they held ANY validated higher-tier role, so an
+    // admin/maintainer/member who also holds a separate genuinely observer-tier role (e.g. an
+    // admin who is also a planned attendant) was hidden from the observer list entirely — every
+    // observer of a space whose observers are also its admins returned ZERO rows. The check is now
+    // scoped to the SAME role property ((npa:regularProperty|npa:inverseProperty) ?roleProp on
+    // ?vriH), so a higher tier held through a different property no longer suppresses the observer
+    // association, while the #498 tier-collision fix (same property validated at a higher tier)
+    // is preserved.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAQylZL4shGjfhxcBiqoanuY2-cUJcVeWvpZDkfjP9_ko/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
