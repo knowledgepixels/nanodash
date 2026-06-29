@@ -12,6 +12,7 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -54,6 +55,24 @@ public class ResourcePartPage extends NanodashPage {
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
     private AbstractResourceWithProfile resourceWithProfile;
+
+    /**
+     * If the {@code id} in the given parameters falls under a namespace declared by a
+     * maintained resource, forward to this page with that resource set as the
+     * {@code context}. Does nothing if no maintained resource declares the namespace.
+     *
+     * @param parameters page parameters containing the {@code id} to resolve
+     * @throws RestartResponseException if a containing maintained resource is found
+     */
+    public static void forwardToContainingResource(PageParameters parameters) {
+        String id = parameters.get("id").toString();
+        MaintainedResource containingResource = MaintainedResourceRepository.get().findByNamespace(MaintainedResource.getNamespace(id));
+        if (containingResource != null) {
+            PageParameters partParameters = new PageParameters(parameters);
+            partParameters.set("context", containingResource.getId());
+            throw new RestartResponseException(ResourcePartPage.class, partParameters);
+        }
+    }
 
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
