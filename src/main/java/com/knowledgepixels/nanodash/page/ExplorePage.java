@@ -133,15 +133,15 @@ public class ExplorePage extends NanodashPage {
 
         String contextId = parameters.get("context").toString("");
 
-        // Known resources are explored via their own page's Explore tab; forward
-        // there instead of rendering the generic explore page.
+        // Known resources are shown on their own page; forward there (to the default
+        // Content tab) instead of rendering the generic explore page.
         if (publishedNanopub == null) {
             if (SpaceRepository.get().findById(tempRef) != null) {
-                throw new RestartResponseException(SpacePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+                throw new RestartResponseException(SpacePage.class, new PageParameters().set("id", tempRef));
             } else if (MaintainedResourceRepository.get().findById(tempRef) != null) {
-                throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+                throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef));
             } else if (User.getUserData().isUser(tempRef)) {
-                throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef).set("tab", "explore"));
+                throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef));
             }
             // Note: forwarding to the part page when the context is a maintained
             // resource is handled further down (after np resolution), gated on
