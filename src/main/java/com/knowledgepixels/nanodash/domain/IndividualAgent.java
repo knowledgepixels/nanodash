@@ -45,6 +45,20 @@ public class IndividualAgent extends AbstractResourceWithProfile {
     }
 
     /**
+     * Checks whether the given URI is a well-formed ORCID IRI (e.g.
+     * {@code https://orcid.org/0000-0002-1825-0097}). Such IRIs identify
+     * individual agents even when they are not (yet) known users, so links to
+     * them can be routed to the user page (shown as a not-yet-configured profile)
+     * rather than the generic explore page.
+     *
+     * @param uri The URI to check.
+     * @return True if the URI is a well-formed ORCID IRI, false otherwise.
+     */
+    public static boolean isOrcidIri(String uri) {
+        return uri != null && uri.matches("https://orcid\\.org/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]");
+    }
+
+    /**
      * Checks if a given IRI represents a software agent.
      *
      * @param userIri The IRI to check.

@@ -178,8 +178,13 @@ public class NanodashLink extends Panel {
             return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
-        } else if (IndividualAgent.isUser(uri)) {
-            label = User.getShortDisplayName(vf.createIRI(uri));
+        } else if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
+            IRI userIri = vf.createIRI(uri);
+            // Prefer our own known display name; otherwise keep a label supplied by the
+            // caller (e.g. a name resolved by a query) before falling back to the bare id.
+            if (User.getName(userIri) != null || label == null || label.isBlank()) {
+                label = User.getShortDisplayName(userIri);
+            }
             return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
@@ -216,7 +221,7 @@ public class NanodashLink extends Panel {
      * falling back to the Explore page otherwise.
      */
     public static String getPageUrl(String uri) {
-        if (IndividualAgent.isUser(uri)) {
+        if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
             return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
         } else if (SpaceRepository.get().findById(uri) != null) {
             return SpacePage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
