@@ -59,7 +59,7 @@ public class JustPublishedMessagePanel extends Panel {
             Nanopub np = Utils.getAsNanopub(justPublishedId);
             String label = (np != null ? NanopubUtils.getLabel(np) : null);
             if (label == null || label.isEmpty()) label = Utils.getShortNameFromURI(justPublishedId);
-            confirmBox.add(new BookmarkablePageLink<Void>("link", ExplorePage.class, new PageParameters().set("id", justPublishedId)).setBody(Model.of(label)));
+            confirmBox.add(new BookmarkablePageLink<Void>("link", ExplorePage.class, new PageParameters().set("id", justPublishedId)).setBody(Model.of(Utils.truncateLinkLabel(label))));
             // Remember a freshly-published introduction so the warning below clears.
             if (np != null && Utils.usesPredicateInAssertion(np, NPX.DECLARED_BY)) session.setIntroPublishedNow();
         } else {

@@ -125,7 +125,9 @@ public class IriItem extends AbstractContextComponent {
         } else {
             href = NanodashLink.getPageUrl(iriString);
         }
-        final String linkLabelBase = labelString.replaceFirst(" - .*$", "");
+        // Truncate over-long labels for display; the full label stays available on
+        // the entity's own page (shown as its title).
+        final String linkLabelBase = Utils.truncateLinkLabel(labelString.replaceFirst(" - .*$", ""));
         IModel<String> linkLabelModel;
         if (autoNumber) {
             // Append the 1-based repetition index, but only once there is more than one

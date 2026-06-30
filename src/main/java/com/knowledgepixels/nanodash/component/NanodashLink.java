@@ -173,25 +173,25 @@ public class NanodashLink extends Panel {
         if (contextId != null) params.set("context", contextId);
         // TODO Improve this
         if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (IndividualAgent.isUser(uri)) {
             label = User.getShortDisplayName(vf.createIRI(uri));
-            return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
-            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (SpaceRepository.get().findByAltId(uri) != null) {
             Space space = SpaceRepository.get().findByAltId(uri);
             label = space.getLabel();
             params.set("id", space.getId());
-            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else if (MaintainedResourceRepository.get().findById(uri) != null) {
             label = MaintainedResourceRepository.get().findById(uri).getLabel();
-            return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(label));
+            return new BookmarkablePageLink<Void>(markupId, MaintainedResourcePage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
         } else {
             boolean isCaret = "^".equals(label);
             if (!isCaret) params.set("label", label);
@@ -201,7 +201,9 @@ public class NanodashLink extends Panel {
             } else {
                 link = new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true"));
             }
-            link.setBody(Model.of(label));
+            // Truncate only the displayed label; the full label stays in the page
+            // params above so the destination page can still show it as its title.
+            link.setBody(Model.of(Utils.truncateLinkLabel(label)));
             // The "^" source-nanopub caret is styled like the admin lists (subtle, with
             // hover-darken), reusing SourceNanopub's `a.source` styling.
             if (isCaret) link.add(new AttributeAppender("class", "source"));
