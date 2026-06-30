@@ -141,10 +141,20 @@ public class TitleBar extends Panel {
             // "3PFF: the Three Point FAIRification Framework" → "3PFF".
             List<String> segments = splitLabel(label);
             if (!segments.isEmpty()) {
-                parts.add(new CrumbPart(pathRefs[i], segments.get(0)));
+                parts.add(new CrumbPart(pathRefs[i], truncateLabel(segments.get(0))));
             }
         }
         return parts;
+    }
+
+    /**
+     * Truncates an over-long crumb label: labels longer than 60 characters are
+     * cut to 47 characters with an ellipsis ("...") appended, so a single crumb
+     * never blows up the breadcrumb strip. Shorter labels are returned unchanged.
+     */
+    static String truncateLabel(String label) {
+        if (label == null || label.length() <= 60) return label;
+        return label.substring(0, 47).stripTrailing() + "...";
     }
 
     /**
