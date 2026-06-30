@@ -155,15 +155,15 @@ public class ExplorePage extends NanodashPage {
         if (SpaceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
                 var space = SpaceRepository.get().findById(contextId);
-                return "back to " + (space == null ? contextId : space.getLabel());
+                return "back to " + Utils.truncateLinkLabel(space == null ? contextId : space.getLabel());
             })));
         } else if (MaintainedResourceRepository.get().findById(contextId) != null) {
             add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
                 var resource = MaintainedResourceRepository.get().findById(contextId);
-                return "back to " + (resource == null ? contextId : resource.getLabel());
+                return "back to " + Utils.truncateLinkLabel(resource == null ? contextId : resource.getLabel());
             })));
         } else if (IndividualAgent.isUser(contextId)) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> "back to " + User.getShortDisplayName(Utils.vf.createIRI(contextId)))));
+            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> "back to " + Utils.truncateLinkLabel(User.getShortDisplayName(Utils.vf.createIRI(contextId))))));
         } else {
             add(new Label("back-to-context-link").setVisible(false));
         }
@@ -315,8 +315,14 @@ public class ExplorePage extends NanodashPage {
 
         final String ref = tempRef;
         final String shortName;
-        if (publishedNanopub != null) {
-            shortName = NanopubUtils.getLabel(np);
+        // Prefer the resolved nanopub's own (full) label whenever we are exploring the
+        // nanopub itself — this avoids showing the truncated/ellipsised value carried in
+        // the incoming "label" param as the page title. The param is only used as a
+        // fallback for things we cannot resolve here (e.g. plain terms).
+        String npLabel = (np != null && (publishedNanopub != null || ref.equals(np.getUri().stringValue())))
+                ? NanopubUtils.getLabel(np) : null;
+        if (npLabel != null && !npLabel.isBlank()) {
+            shortName = npLabel;
         } else if (parameters.get("label").isEmpty()) {
             shortName = Utils.getShortNameFromURI(ref);
         } else {

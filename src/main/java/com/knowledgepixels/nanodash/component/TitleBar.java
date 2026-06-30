@@ -16,6 +16,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryListPage;
@@ -148,13 +149,12 @@ public class TitleBar extends Panel {
     }
 
     /**
-     * Truncates an over-long crumb label: labels longer than 60 characters are
-     * cut to 47 characters with an ellipsis ("...") appended, so a single crumb
-     * never blows up the breadcrumb strip. Shorter labels are returned unchanged.
+     * Truncates an over-long crumb label so a single crumb never blows up the
+     * breadcrumb strip. Delegates to {@link Utils#truncateLinkLabel(String)} so
+     * breadcrumbs and entity links share one truncation rule.
      */
     static String truncateLabel(String label) {
-        if (label == null || label.length() <= 60) return label;
-        return label.substring(0, 47).stripTrailing() + "...";
+        return Utils.truncateLinkLabel(label);
     }
 
     /**

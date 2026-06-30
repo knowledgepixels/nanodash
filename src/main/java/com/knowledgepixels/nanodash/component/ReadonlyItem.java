@@ -189,12 +189,12 @@ public class ReadonlyItem extends AbstractContextComponent {
                         return foafNameMap.get(obj);
                     }
                     Space space = SpaceRepository.get().findById(obj);
-                    if (space != null) return space.getLabel();
+                    if (space != null) return Utils.truncateLinkLabel(space.getLabel());
                     space = SpaceRepository.get().findByAltId(obj);
-                    if (space != null) return space.getLabel();
+                    if (space != null) return Utils.truncateLinkLabel(space.getLabel());
                     MaintainedResource mr = MaintainedResourceRepository.get().findById(obj);
-                    if (mr != null) return mr.getLabel();
-                    return getLabelString(objIri);
+                    if (mr != null) return Utils.truncateLinkLabel(mr.getLabel());
+                    return Utils.truncateLinkLabel(getLabelString(objIri));
                 }
                 return obj;
             }

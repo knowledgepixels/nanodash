@@ -161,6 +161,21 @@ public class Utils {
     }
 
     /**
+     * Truncates an over-long entity label for display in a link or breadcrumb:
+     * labels longer than 60 characters are cut to 47 characters with an ellipsis
+     * ("...") appended, so a single long label (e.g. a full IRI tail) never blows
+     * up the surrounding UI. Shorter labels are returned unchanged. The full label
+     * stays available on the entity's own page, which shows it as the title.
+     *
+     * @param label the label to truncate, or null
+     * @return the truncated label, or the original if 60 characters or shorter
+     */
+    public static String truncateLinkLabel(String label) {
+        if (label == null || label.length() <= 60) return label;
+        return label.substring(0, 47).stripTrailing() + "...";
+    }
+
+    /**
      * Builds the HTML body for a menu entry whose label may begin with a leading
      * symbol/emoji used as the entry's icon. If {@code label} starts with a token
      * of symbol/emoji characters (no letters or digits) followed by whitespace,
