@@ -105,84 +105,98 @@ public class ViewList extends Panel {
                 groupItem.add(new ListView<ViewDisplay>("views", group) {
                     @Override
                     protected void populateItem(ListItem<ViewDisplay> item) {
-                        View view = item.getModelObject().getView();
-                        Multimap<String, String> queryRefParams = ArrayListMultimap.create();
-                        for (String p : view.getQuery().getPlaceholdersList()) {
-                            String paramName = QueryTemplate.getParamName(p);
-                            if (paramName.equals(view.getQueryField())) {
-                                queryRefParams.put(view.getQueryField(), id);
-                                if (QueryTemplate.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
-                                    // TODO Support this also for maintained resources and users.
-                                    for (String altId : space.getAltIDs()) {
-                                        queryRefParams.put(view.getQueryField(), altId);
+                        // This populate runs at render time (onBeforeRender) and is the only
+                        // view-rendering path without a guard; every other one (the QueryResult
+                        // builders, populateComponent, per-cell populateItem) already degrades a
+                        // failure to an inline error. Without this catch, a single view whose
+                        // build/render dereferences a null takes down the whole page render.
+                        try {
+                            View view = item.getModelObject().getView();
+                            Multimap<String, String> queryRefParams = ArrayListMultimap.create();
+                            for (String p : view.getQuery().getPlaceholdersList()) {
+                                String paramName = QueryTemplate.getParamName(p);
+                                if (paramName.equals(view.getQueryField())) {
+                                    queryRefParams.put(view.getQueryField(), id);
+                                    if (QueryTemplate.isMultiPlaceholder(p) && resourceWithProfile instanceof Space space) {
+                                        // TODO Support this also for maintained resources and users.
+                                        for (String altId : space.getAltIDs()) {
+                                            queryRefParams.put(view.getQueryField(), altId);
+                                        }
                                     }
+                                } else if (paramName.equals(view.getQueryField() + "Namespace") && resourceWithProfile.getNamespace() != null) {
+                                    queryRefParams.put(view.getQueryField() + "Namespace", resourceWithProfile.getNamespace());
+                                } else if (paramName.equals(view.getQueryField() + "Np")) {
+                                    if (!QueryTemplate.isOptionalPlaceholder(p) && npId == null) {
+                                        queryRefParams.put(view.getQueryField() + "Np", "x:");
+                                    } else {
+                                        queryRefParams.put(view.getQueryField() + "Np", npId);
+                                    }
+                                } else if (paramName.equals("root_np")) {
+                                    // Auto-fill the ref scope (root nanopub) from the page's effective ref,
+                                    // the same way the resource IRI above is filled, so a content-tab view
+                                    // whose query opts into ref-scoping is scoped without the panel threading
+                                    // it. Left empty when no ref is known (an optional placeholder tolerates
+                                    // the empty VALUES; the ref-scoped query then yields its no-ref result).
+                                    if (refRoot != null && !refRoot.isEmpty()) {
+                                        queryRefParams.put("root_np", refRoot);
+                                    }
+                                } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
+                                    item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
+                                    logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
+                                    return;
                                 }
-                            } else if (paramName.equals(view.getQueryField() + "Namespace") && resourceWithProfile.getNamespace() != null) {
-                                queryRefParams.put(view.getQueryField() + "Namespace", resourceWithProfile.getNamespace());
-                            } else if (paramName.equals(view.getQueryField() + "Np")) {
-                                if (!QueryTemplate.isOptionalPlaceholder(p) && npId == null) {
-                                    queryRefParams.put(view.getQueryField() + "Np", "x:");
+                            }
+                            QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+                            if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
+                                if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
+                                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
+                                            .resourceWithProfile(resourceWithProfile)
+                                            .pageResource(resourceWithProfile)
+                                            .id(id)
+                                            .contextId(resourceWithProfile.getId())
+                                            .refRoot(refRoot)
+                                            .build());
+                                } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
+                                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
+                                            .resourceWithProfile(resourceWithProfile)
+                                            .contextId(resourceWithProfile.getId())
+                                            .id(id)
+                                            .refRoot(refRoot)
+                                            .build());
+                                } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
+                                    item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
+                                            .pageResource(resourceWithProfile)
+                                            .contextId(resourceWithProfile.getId())
+                                            .id(id)
+                                            .refRoot(refRoot)
+                                            .build());
+                                } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
+                                    item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
+                                            .pageResource(resourceWithProfile)
+                                            .contextId(resourceWithProfile.getId())
+                                            .build());
+                                } else if (view.getViewType().equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
+                                    item.add(QueryResultItemListBuilder.create("view", queryRef, item.getModelObject())
+                                            .resourceWithProfile(resourceWithProfile)
+                                            .pageResource(resourceWithProfile)
+                                            .id(id)
+                                            .contextId(resourceWithProfile.getId())
+                                            .build());
                                 } else {
-                                    queryRefParams.put(view.getQueryField() + "Np", npId);
+                                    item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
+                                    logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
                                 }
-                            } else if (paramName.equals("root_np")) {
-                                // Auto-fill the ref scope (root nanopub) from the page's effective ref,
-                                // the same way the resource IRI above is filled, so a content-tab view
-                                // whose query opts into ref-scoping is scoped without the panel threading
-                                // it. Left empty when no ref is known (an optional placeholder tolerates
-                                // the empty VALUES; the ref-scoped query then yields its no-ref result).
-                                if (refRoot != null && !refRoot.isEmpty()) {
-                                    queryRefParams.put("root_np", refRoot);
-                                }
-                            } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
-                                item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
-                                logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
-                                return;
-                            }
-                        }
-                        QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                        if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
-                            if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
-                                item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                                        .resourceWithProfile(resourceWithProfile)
-                                        .pageResource(resourceWithProfile)
-                                        .id(id)
-                                        .contextId(resourceWithProfile.getId())
-                                        .refRoot(refRoot)
-                                        .build());
-                            } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
-                                item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                                        .resourceWithProfile(resourceWithProfile)
-                                        .contextId(resourceWithProfile.getId())
-                                        .id(id)
-                                        .refRoot(refRoot)
-                                        .build());
-                            } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
-                                item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
-                                        .pageResource(resourceWithProfile)
-                                        .contextId(resourceWithProfile.getId())
-                                        .id(id)
-                                        .refRoot(refRoot)
-                                        .build());
-                            } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
-                                item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
-                                        .pageResource(resourceWithProfile)
-                                        .contextId(resourceWithProfile.getId())
-                                        .build());
-                            } else if (view.getViewType().equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
-                                item.add(QueryResultItemListBuilder.create("view", queryRef, item.getModelObject())
-                                        .resourceWithProfile(resourceWithProfile)
-                                        .pageResource(resourceWithProfile)
-                                        .id(id)
-                                        .contextId(resourceWithProfile.getId())
-                                        .build());
                             } else {
-                                item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
-                                logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
+                                item.add(new Label("view", "<span class=\"negative\">Unsupported view type</span>").setEscapeModelStrings(false));
+                                logger.error("Unsupported view type.");
                             }
-                        } else {
-                            item.add(new Label("view", "<span class=\"negative\">Unsupported view type</span>").setEscapeModelStrings(false));
-                            logger.error("Unsupported view type.");
+                        } catch (Exception ex) {
+                            logger.error("Failed to render view display", ex);
+                            // Guard against a partial add before the failure so we never add a
+                            // second component with the same id.
+                            if (item.get("view") == null) {
+                                item.add(new Label("view", "<span class=\"negative\">Error rendering this view</span>").setEscapeModelStrings(false));
+                            }
                         }
                     }
                 });
