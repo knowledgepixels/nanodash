@@ -203,9 +203,10 @@ public class ValueFiller {
             Set<String> embeddedIriIds = NanopubUtils.getEmbeddedIriIds(fillNp);
             boolean isIntroduced = introducedIriIds.contains(iri.stringValue());
             boolean isEmbedded = embeddedIriIds.contains(iri.stringValue());
-            // When superseding, only introduced IRIs should not be transformed.
-            // Embedded IRIs should always be transformed (like when deriving).
-            if (!isIntroduced || fillMode != FillMode.SUPERSEDE || isEmbedded) {
+            // When superseding or overriding, introduced IRIs should not be transformed
+            // (they keep the source resource's identity). Embedded IRIs should always be
+            // transformed (like when deriving).
+            if (!isIntroduced || (fillMode != FillMode.SUPERSEDE && fillMode != FillMode.OVERRIDE) || isEmbedded) {
                 if (v.stringValue().startsWith(fillNp.getUri().stringValue())) {
                     return LocalUri.of(Utils.getUriPostfix(v.stringValue()));
                 }

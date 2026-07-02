@@ -310,10 +310,14 @@ public class TemplateContext implements Serializable {
         } else if (template.isRootNanopubPlaceholder(iri)) {
             IModel<?> rootModel = componentModels.get(iri);
             String rootValue = (rootModel == null || rootModel.getObject() == null) ? "" : rootModel.getObject().toString();
-            if (rootValue.equals(LocalUri.of("nanopub").stringValue())) {
-                // Sentinel: in supersede/derive mode this means the existing nanopub was the root
+            if (fillMode == FillMode.DERIVE) {
+                // Deriving creates a new resource, so the new nanopub becomes its own root
+                // definition rather than keeping the source's root (issue #527).
+                iri = vf.createIRI(targetNamespace);
+            } else if (rootValue.equals(LocalUri.of("nanopub").stringValue())) {
+                // Sentinel: in supersede/override mode this means the existing nanopub was the root
                 Nanopub ref = getReferenceNanopub();
-                if (ref != null && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.DERIVE)) {
+                if (ref != null && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
                     iri = vf.createIRI(ref.getUri().stringValue());
                 } else {
                     iri = vf.createIRI(targetNamespace);
@@ -364,7 +368,7 @@ public class TemplateContext implements Serializable {
             }
         } else if (template.isLocalResource(iri)) {
             String tfObject = (String) tfObjectGeneric;
-            if (template.isIntroducedResource(iri) && fillMode == FillMode.SUPERSEDE) {
+            if (template.isIntroducedResource(iri) && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
                 if (tf != null && tfObject != null && !tfObject.isEmpty()) {
                     processedValue = vf.createIRI(tfObject);
                 }
