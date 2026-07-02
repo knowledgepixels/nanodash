@@ -39,6 +39,7 @@ public class TemplateContext implements Serializable {
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
+    private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
     private Map<IRI, StatementItem> narrowScopeMap = new HashMap<>();
@@ -264,6 +265,18 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Returns the role-instantiation direction pins collected in this context, mapping
+     * each filled/constant role predicate to its pin class
+     * ({@link com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS#INVERSE_ROLE_PROPERTY}
+     * or {@code REGULAR_ROLE_PROPERTY}). Emitted into pubinfo at publish time; see #525.
+     *
+     * @return a map of predicate IRI to direction-pin class
+     */
+    public Map<IRI, IRI> getRolePropertyPins() {
+        return rolePropertyPins;
+    }
+
+    /**
      * Processes an IRI by applying the template's processing rules.
      *
      * @param iri the IRI to process
@@ -410,6 +423,10 @@ public class TemplateContext implements Serializable {
         }
         if (processedValue instanceof IRI pvIri && template.isEmbeddedResource(iri)) {
             embeddedIris.add(pvIri);
+        }
+        if (processedValue instanceof IRI pvIri) {
+            IRI directionPin = template.getRoleDirectionPin(iri);
+            if (directionPin != null) rolePropertyPins.put(pvIri, directionPin);
         }
         return processedValue;
     }

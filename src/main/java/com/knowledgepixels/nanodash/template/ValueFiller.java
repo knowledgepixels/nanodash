@@ -4,9 +4,11 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -164,7 +166,13 @@ public class ValueFiller {
                 if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE)) return null;
                 if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE)) return null;
                 if (pred.equals(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE)) return null;
+                // Role-instantiation type auto-added by PublishForm alongside the direction pins (#525).
+                if (pred.equals(NPX.HAS_NANOPUB_TYPE) && st.getObject().equals(KPXL_TERMS.ROLE_INSTANTIATION)) return null;
             }
+            // Role-direction pins auto-added by PublishForm; the subject is the (arbitrary)
+            // role predicate, not the nanopub, so this is checked outside the block above (#525).
+            if (pred.equals(RDF.TYPE) && (st.getObject().equals(KPXL_TERMS.INVERSE_ROLE_PROPERTY)
+                    || st.getObject().equals(KPXL_TERMS.REGULAR_ROLE_PROPERTY))) return null;
             if (pred.equals(NPX.HAS_ALGORITHM)) return null;
             if (pred.equals(NPX.HAS_PUBLIC_KEY)) return null;
             if (pred.equals(NPX.HAS_SIGNATURE)) return null;

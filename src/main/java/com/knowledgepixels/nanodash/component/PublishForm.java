@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
@@ -39,6 +40,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
@@ -896,6 +898,7 @@ public class PublishForm extends Panel {
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
+        assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
         assertionContext.propagateStatements(npCreator);
@@ -908,6 +911,15 @@ public class PublishForm extends Panel {
         }
         for (IRI embeddedIri : assertionContext.getEmbeddedIris()) {
             npCreator.addPubinfoStatement(NPX.EMBEDS, embeddedIri);
+        }
+        Map<IRI, IRI> rolePropertyPins = assertionContext.getRolePropertyPins();
+        if (!rolePropertyPins.isEmpty()) {
+            // A role predicate carrying a direction pin makes this a role-instantiation
+            // nanopub; nanopub-query's pin-resolution branch is gated on this type (#525).
+            npCreator.addPubinfoStatement(NPX.HAS_NANOPUB_TYPE, KPXL_TERMS.ROLE_INSTANTIATION);
+            for (Map.Entry<IRI, IRI> pin : rolePropertyPins.entrySet()) {
+                npCreator.addPubinfoStatement(pin.getKey(), RDF.TYPE, pin.getValue());
+            }
         }
         npCreator.addNamespace("this", targetNamespace);
         npCreator.addNamespace("sub", targetNamespace + "/");
