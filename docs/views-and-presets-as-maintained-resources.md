@@ -23,12 +23,43 @@ D's side is about *who speaks for D*, not privilege amplification.
 
 ## Per-pair governance & commit-at-assignment
 
-A kind can be maintained by several spaces **side by side**; the durable unit is the
-`(kind, space-ref)` pair. An assignment references a **concrete version IRI** (not the kind),
-which self-describes both its kind and its defining space — pinning one unambiguous pair.
-Updates then float to the latest authorized version **within that committed pair**. So R's
-admin, by assigning, **delegates update authority to D's representatives** — trusting D's
-authoritative-version process, not its whole membership.
+A kind can be maintained by several spaces **side by side**, so the durable unit is the
+`(kind, space)` pair — not the kind alone. Resolving "latest" against the union of every
+maintaining space's members would be wrong: a member of D2 could override a definition meant
+to be governed by D1. Each version must therefore name the space that governs it.
+
+**The pin lives in the view definition, not the assignment.** A view version nanopub
+self-describes its pair: `dct:isVersionOf → kind` and `gen:governedBy → space`. The publisher —
+a member of that space — declares it once at publish time, and every assignment that pins the
+version inherits the pair for free. An assignment (view display) still just references a
+concrete version IRI and carries no space triple. Latest-resolution then floats **within
+`(kind, space)`**: the newest version of the kind that names the same space and is signed by a
+member+ of it. (This replaces the earlier idea of pinning the space on the assignment, which
+would let two assignments of the same version disagree about its governance.)
+
+**`gen:governedBy` is a label, not a grant.** A self-declared space must never be
+self-authorizing — otherwise anyone forks a version, stamps it "governed by ⟨a space I
+control⟩," and wins. Two independent, already-validated anchors keep it honest:
+1. `<kind> gen:isMaintainedBy <space>` — admin-gated and materialized — confirms the space is
+   entitled to govern the kind.
+2. the winning version is signed by a member+ of that space.
+The `gen:governedBy` triple only selects *which* pair; authority comes entirely from (1)+(2).
+A version naming a space that doesn't maintain the kind, or signed by a non-member, is skipped.
+
+**`gen:governedBy` points at the space ID, not a space-ref (root-def-pinned).** The link
+records the durable space IRI and defers root-def resolution to *resolution time*. A space may
+legitimately need to change its root definition (e.g. after proving control of its URL
+domain); if every view definition had frozen the old root-def ref, all those links would break
+on migration. Instead, resolution maps the space IRI → its currently-authoritative root def,
+then gates on that root's membership. The cost: that mapping must be trustworthy — today it
+leans on the materialized representative root; the intent is to ground it more solidly later
+(domain-control proof) so a conflicting claimant can't hijack the IRI. This is the one
+deliberately-deferred piece.
+
+**Degrades safely.** A version with no `gen:governedBy` falls back: a single-maintainer kind
+still resolves (the space comes from the kind); a multi-maintainer kind with no declaration
+does **not** float — the pinned version stands. So R's admin, by assigning, delegates update
+authority to the named space's members without ever risking a cross-space override.
 
 ## Views vs presets — the one real difference
 
