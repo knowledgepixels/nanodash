@@ -173,11 +173,33 @@ public class IriItem extends AbstractContextComponent {
         if (!(v instanceof IRI)) return false;
         // TODO: Check that template URIs don't have regex characters:
         String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", LocalUri.PREFIX);
+        String vs = v.stringValue();
         if (context.isReadOnly()) {
-            return iriS.equals(v.stringValue().replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", LocalUri.PREFIX));
-        } else {
-            return iriS.equals(v.stringValue());
+            vs = vs.replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", LocalUri.PREFIX);
         }
+        if (iriS.contains(ARTIFACT_CODE_MARKER)) {
+            // A fresh artifact code is minted for this resource at publish time, so the
+            // "~~~ARTIFACTCODE~~~" marker acts as a wildcard: a source resource that already
+            // carries a concrete artifact code (supersede/derive/override) must still unify.
+            return vs.matches(artifactCodeUnifyRegex(iriS));
+        }
+        return iriS.equals(vs);
+    }
+
+    // Marker left in the IRI once StatementItem.transform has expanded a template's
+    // "~~ARTIFACTCODE~~" placeholder (see StatementItem#transform).
+    private static final String ARTIFACT_CODE_MARKER = "~~~ARTIFACTCODE~~~";
+
+    // Turns an IRI holding the artifact-code marker into a regex that matches the same IRI
+    // with any (trusty) artifact code in that position; all other characters stay literal.
+    private static String artifactCodeUnifyRegex(String iriWithMarker) {
+        String[] parts = iriWithMarker.split(java.util.regex.Pattern.quote(ARTIFACT_CODE_MARKER), -1);
+        StringBuilder regex = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) regex.append("[A-Za-z0-9_-]+");
+            regex.append(java.util.regex.Pattern.quote(parts[i]));
+        }
+        return regex.toString();
     }
 
     /**
