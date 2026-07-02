@@ -106,6 +106,17 @@ public class KPXL_TERMS {
 
     public static final IRI HAS_DEFAULT_LICENSE = VocabUtils.createIRI(NAMESPACE, "hasDefaultLicense");
 
+    // Role-instantiation direction pinning (nanodash #525 / nanopub-query #136 Part B).
+    // A role-assigning nanopub can carry a pubinfo pin `<predicate> a
+    // gen:InverseRoleProperty` (or gen:RegularRoleProperty) so nanopub-query's
+    // SpacesExtractor can resolve a custom role predicate's direction from the nanopub
+    // alone. Templates declare the pin as a type on the (constant or placeholder)
+    // predicate; nanodash lifts it into pubinfo and also attaches ROLE_INSTANTIATION,
+    // which the extractor's pin-resolution branch is gated on.
+    public static final IRI ROLE_INSTANTIATION = VocabUtils.createIRI(NAMESPACE, "RoleInstantiation");
+    public static final IRI INVERSE_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "InverseRoleProperty");
+    public static final IRI REGULAR_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "RegularRoleProperty");
+
     // Role tiers (subclasses of gen:SpaceMemberRole; materialized server-side by
     // nanopub-query as the npa:hasRoleType value). Ordered admin > maintainer >
     // member > observer; observer is the default when a role declares no tier.

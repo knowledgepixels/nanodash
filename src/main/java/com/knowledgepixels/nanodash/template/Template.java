@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NTEMPLATE;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -319,6 +320,26 @@ public class Template implements Serializable {
     public boolean isIntroducedResource(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.INTRODUCED_RESOURCE);
+    }
+
+    /**
+     * Returns the role-instantiation direction pin declared on a (predicate) IRI, if
+     * any: {@link KPXL_TERMS#INVERSE_ROLE_PROPERTY} or
+     * {@link KPXL_TERMS#REGULAR_ROLE_PROPERTY}. Templates declare the pin as an
+     * {@code rdf:type} on the predicate (constant or placeholder); nanodash lifts it into
+     * pubinfo at publish time so nanopub-query can resolve a custom role predicate's
+     * direction (see #525).
+     *
+     * @param iri the IRI to check (a predicate constant or placeholder).
+     * @return the pin class, or null if the IRI carries no role-direction pin.
+     */
+    public IRI getRoleDirectionPin(IRI iri) {
+        iri = transform(iri);
+        if (!typeMap.containsKey(iri)) return null;
+        List<IRI> types = typeMap.get(iri);
+        if (types.contains(KPXL_TERMS.INVERSE_ROLE_PROPERTY)) return KPXL_TERMS.INVERSE_ROLE_PROPERTY;
+        if (types.contains(KPXL_TERMS.REGULAR_ROLE_PROPERTY)) return KPXL_TERMS.REGULAR_ROLE_PROPERTY;
+        return null;
     }
 
     /**
