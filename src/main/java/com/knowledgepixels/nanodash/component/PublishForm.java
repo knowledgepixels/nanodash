@@ -96,7 +96,13 @@ public class PublishForm extends Panel {
         /**
          * Derive fill mode
          */
-        DERIVE
+        DERIVE,
+        /**
+         * Override fill mode: like {@link #DERIVE} in that it records a
+         * {@code prov:wasDerivedFrom} link, but (like {@link #SUPERSEDE}) it keeps the
+         * source nanopub's introduced resource IRIs and its root definition nanopub.
+         */
+        OVERRIDE
     }
 
     protected Form<?> form;
@@ -156,6 +162,13 @@ public class PublishForm extends Panel {
             fillNp = Utils.getNanopub(pageParams.get("derive-a").toString());
             fillMode = FillMode.DERIVE;
             fillOnlyAssertion = true;
+        } else if (!pageParams.get("override").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("override").toString());
+            fillMode = FillMode.OVERRIDE;
+        } else if (!pageParams.get("override-a").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("override-a").toString());
+            fillMode = FillMode.OVERRIDE;
+            fillOnlyAssertion = true;
         } else if (!pageParams.get("fill-all").isNull()) {
             // TODO: This is deprecated and should be removed at some point
             fillNp = Utils.getNanopub(pageParams.get("fill-all").toString());
@@ -210,7 +223,7 @@ public class PublishForm extends Panel {
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplate().getId(), c);
             requiredPubInfoContexts.add(c);
-            if (t.equals(LICENSE_PUB_INFO_TEMPLATE) && fillMode != FillMode.SUPERSEDE && fillMode != FillMode.DERIVE) {
+            if (t.equals(LICENSE_PUB_INFO_TEMPLATE) && fillMode != FillMode.SUPERSEDE && fillMode != FillMode.DERIVE && fillMode != FillMode.OVERRIDE) {
                 IRI defaultLicense = User.getDefaultLicense(NanodashSession.get().getUserIri());
                 if (defaultLicense != null) {
                     c.setParam("license", defaultLicense.stringValue());
@@ -223,7 +236,7 @@ public class PublishForm extends Panel {
             pubInfoContextMap.put(supersedesPubInfoTemplateId, c);
             //requiredPubInfoContexts.add(c);
             c.setParam("np", fillNp.getUri().stringValue());
-        } else if (fillMode == FillMode.DERIVE) {
+        } else if (fillMode == FillMode.DERIVE || fillMode == FillMode.OVERRIDE) {
             TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubInfoTemplateId, "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);

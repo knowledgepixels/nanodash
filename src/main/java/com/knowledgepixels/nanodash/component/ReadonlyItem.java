@@ -158,10 +158,10 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
-                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
-                    // No prior value migrated (e.g. supersede with a newer template that added this slot).
-                    // The empty model already resolves to the new nanopub in TemplateContext.processValue,
-                    // so surface that to the user in the form.
+                if (rootResolvesToThisNanopub()) {
+                    // No prior value migrated (e.g. supersede with a newer template that added this slot),
+                    // or we are deriving. Either way the root resolves to the new nanopub in
+                    // TemplateContext.processValue, so surface that to the user in the form.
                     return "this nanopublication";
                 }
                 if (obj != null && obj.equals(LocalUri.of("nanopub").stringValue())) {
@@ -209,7 +209,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
-                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
+                if (rootResolvesToThisNanopub()) {
                     return "This is the identifier for this whole nanopublication.";
                 }
                 if (obj != null && obj.matches("https?://.+")) {
@@ -237,7 +237,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             @Override
             public String getObject() {
                 String obj = getFullValue();
-                if ((obj == null || obj.isEmpty()) && template.isRootNanopubPlaceholder(iri)) {
+                if (rootResolvesToThisNanopub()) {
                     return LocalUri.of("nanopub").stringValue();
                 }
                 if (obj != null && obj.startsWith("\"")) return "";
@@ -328,6 +328,15 @@ public class ReadonlyItem extends AbstractContextComponent {
             s = prefix + s;
         }
         return s;
+    }
+
+    // True when the root-nanopub placeholder will resolve to the new nanopub itself:
+    // either no prior root value was migrated, or we are deriving (which resets the root
+    // to the new nanopub, see TemplateContext.processValue / issue #527).
+    private boolean rootResolvesToThisNanopub() {
+        if (!template.isRootNanopubPlaceholder(iri)) return false;
+        String obj = getFullValue();
+        return obj == null || obj.isEmpty() || context.getFillMode() == PublishForm.FillMode.DERIVE;
     }
 
     private boolean isNanopubValue(Object obj) {

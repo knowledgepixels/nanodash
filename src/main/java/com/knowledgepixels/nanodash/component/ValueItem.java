@@ -52,7 +52,7 @@ public class ValueItem extends AbstractContextComponent {
                 component = new AgentChoiceItem("value", id, iri, rg.isOptional(), this.context);
             } else if (template.isGuidedChoicePlaceholder(iri)) {
                 component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), this.context);
-            } else if (template.isIntroducedResource(iri) && this.context.getFillMode() == FillMode.SUPERSEDE) {
+            } else if (template.isIntroducedResource(iri) && (this.context.getFillMode() == FillMode.SUPERSEDE || this.context.getFillMode() == FillMode.OVERRIDE)) {
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
                 component = new IriTextfieldItem("value", id, iri, rg.isOptional(), this.context);
