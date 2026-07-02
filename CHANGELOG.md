@@ -1,3 +1,29 @@
+## [5.3.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.2.0...nanodash-5.3.0) (2026-07-02)
+
+### Features
+
+* emit role-direction pins in pubinfo from templates ([fefd908](https://github.com/knowledgepixels/nanodash/commit/fefd908b500b6fae07265ff5f1dde8a9694f7b91)), closes [#525](https://github.com/knowledgepixels/nanodash/issues/525) [nanopub-query#136](https://github.com/knowledgepixels/nanopub-query/issues/136)
+* route ORCID URIs to the user page, keeping query-supplied labels ([a71f233](https://github.com/knowledgepixels/nanodash/commit/a71f23398c40b9aa56845b5dfdae2ccb97d07b2d))
+* show namespace-declaring resource's part view for plain terms ([a153928](https://github.com/knowledgepixels/nanodash/commit/a1539286c2aa3a9e3a2bb92dacbcd6010be8cc4f))
+* truncate over-long breadcrumb labels at 47 chars with ellipsis ([22ce805](https://github.com/knowledgepixels/nanodash/commit/22ce80550f4da6aed187d8ad6b05e0386436d278))
+* truncate over-long entity labels in links, buttons, and breadcrumbs ([20df478](https://github.com/knowledgepixels/nanodash/commit/20df478f9905d0bc58def80cf73c09bda5f49188))
+
+### Bug Fixes
+
+* forward known resources to Content tab, not Explore ([6b37b91](https://github.com/knowledgepixels/nanodash/commit/6b37b91fd504314f87225371eab7fc5e22fa1ac2))
+* guard ViewList view rendering so one broken view can't 500 the page ([053a424](https://github.com/knowledgepixels/nanodash/commit/053a42488fde220fade348012f5801a9d02624d6))
+* reset root definition when deriving; add override fill mode ([9063a04](https://github.com/knowledgepixels/nanodash/commit/9063a046146980accb3446ea6d8af61d541b45fc)), closes [#527](https://github.com/knowledgepixels/nanodash/issues/527)
+* show observers who also hold a higher-tier role ([fb4099c](https://github.com/knowledgepixels/nanodash/commit/fb4099cbf101496f0583d9db3efc87bbf6511136)), closes [nanodash#498](https://github.com/knowledgepixels/nanodash/issues/498) [#498](https://github.com/knowledgepixels/nanodash/issues/498)
+
+### Documentation
+
+* add design note for views as space-maintained resources ([3aef35e](https://github.com/knowledgepixels/nanodash/commit/3aef35ec0e985791f268ca2d3df0a1ed3ef2f287))
+* merge views/presets governance into one concise design note ([797989a](https://github.com/knowledgepixels/nanodash/commit/797989a47cb8663f0a89817ab6d20fee4d657a56))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([f31b1ba](https://github.com/knowledgepixels/nanodash/commit/f31b1ba1235f780744b09a4141d4d39be8c9d731))
+
 ## [5.2.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.1.2...nanodash-5.2.0) (2026-06-26)
 
 ### Features
