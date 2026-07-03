@@ -14,7 +14,9 @@ authoritative — instead of leaving definitions as free-floating nanopubs anyon
    existing materializer already validates this (admin-gated) and emits a governing
    space-ref. It also appears in the space's maintained-resources listing.
 2. The **canonical version** is the newest one signed by a representative (admin/maintainer)
-   of the **defining** space — authority-scoped latest-wins. No `npx:supersedes` chain needed.
+   of the **defining** space — authority-scoped latest-wins. No `npx:supersedes` chain needed
+   (versions that don't opt into space governance keep today's supersedes/same-pubkey
+   resolution; see below).
 
 Two distinct spaces are involved: the **defining** space (D) governs which version is
 authoritative; the **applying** resource (R) where a definition is assigned is gated
@@ -46,6 +48,18 @@ control⟩," and wins. Two independent, already-validated anchors keep it honest
 The `gen:governedBy` triple only selects *which* pair; authority comes entirely from (1)+(2).
 A version naming a space that doesn't maintain the kind, or signed by a non-member, is skipped.
 
+**Membership is checked at resolution time.** The winning version must be signed by someone
+who is *currently* a member+ of the governing space, not someone who was at publish time. A
+publisher leaving the space de-canonicalizes their versions from then on; resolution falls
+back to the newest remaining valid version, or ultimately to the pin. This avoids needing
+historical membership snapshots, at the cost of resolution results shifting when membership
+changes.
+
+**The pin is the floor.** If no valid floating candidate exists, the assignment's pinned
+version stands — without re-validating the pin itself. Its legitimacy comes from the gated
+assignment (R's admin chose it), not from the space-based checks; those only decide whether
+anything *newer* may replace it.
+
 **`gen:governedBy` points at the space ID, not a space-ref (root-def-pinned).** The link
 records the durable space IRI and defers root-def resolution to *resolution time*. A space may
 legitimately need to change its root definition (e.g. after proving control of its URL
@@ -56,10 +70,21 @@ leans on the materialized representative root; the intent is to ground it more s
 (domain-control proof) so a conflicting claimant can't hijack the IRI. This is the one
 deliberately-deferred piece.
 
-**Degrades safely.** A version with no `gen:governedBy` falls back: a single-maintainer kind
-still resolves (the space comes from the kind); a multi-maintainer kind with no declaration
-does **not** float — the pinned version stands. So R's admin, by assigning, delegates update
-authority to the named space's members without ever risking a cross-space override.
+**Two resolution modes, chosen by the version.** If the pinned version declares
+`gen:governedBy`, resolution is space-based as above. If it doesn't, the existing mechanism
+applies unchanged: follow the `npx:supersedes` chain restricted to the same pubkey. Space
+governance is thus strictly opt-in per version — it is never inferred from the kind's
+maintainer set. (Inferring it would be fragile: a maintenance claim is gated only by the
+*claiming* space's admin, so a later, unrelated claim on the kind could silently change how
+already-published versions resolve.) So R's admin, by pinning a declared version, delegates
+update authority to the named space's members without ever risking a cross-space override;
+by pinning an undeclared version they delegate to the original publisher's key, as today.
+
+**"Latest" is a claim by the space, not a verifiable ordering.** Without a supersedes chain,
+any member+ of the governing space can republish older content with a fresh timestamp and win
+resolution. That is inside the stated trust boundary — members speak for the space — and the
+registry's rejection of future-dated nanopubs limits timestamp games, but "canonical" should
+be read as *what the space currently endorses*, not as a tamper-proof version order.
 
 ## Views vs presets — the one real difference
 
