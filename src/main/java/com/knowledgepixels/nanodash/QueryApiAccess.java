@@ -114,6 +114,14 @@ public class QueryApiAccess {
     // get-space-admins fan-out with a single fetch. Which ref is the representative (default) is
     // decided client-side. Source at docs/queries/list-space-claimants.trig.
     public static final String LIST_SPACE_CLAIMANTS = "RApsQhJnK7MV5fHzFQe4GsnsUdf_HvPT186E02JE-4CTY/list-space-claimants";
+    // Space-governed view-version resolution: given a definition kind (dct:isVersionOf
+    // target) and its governing space, returns at most one row -- the newest version
+    // declaring gen:governedBy that space, signed by a current member+ of the space's
+    // governing ref, with the kind validated as maintained by the space. Empty result =
+    // the caller keeps its pinned version (the pin is the floor). Source at
+    // docs/queries/get-latest-governed-version.trig; see
+    // docs/views-and-presets-as-maintained-resources.md.
+    public static final String GET_LATEST_GOVERNED_VERSION = "RABmOzHjDWhpqoRJsD4XinfDoxDOxKJ8NgJA826O_I-OI/get-latest-governed-version";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
