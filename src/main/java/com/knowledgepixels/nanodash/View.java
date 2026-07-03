@@ -12,11 +12,15 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.extra.services.ApiResponse;
+import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 import java.io.Serializable;
 import java.util.*;
@@ -121,12 +125,21 @@ public class View implements Serializable {
      *                      the caller already holds a latest-resolved IRI (e.g. from
      *                      the get-view-displays query, which now resolves it
      *                      server-side) to avoid a redundant network round-trip.
+     *                      A version declaring {@code gen:governedBy} still gets the
+     *                      space-based resolution here even with false: its float is
+     *                      not supersedes-based, so the caller's server-side
+     *                      resolution doesn't cover it.
      * @return the View object
      */
     public static View get(String id, boolean resolveLatest) {
         String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
         if (!resolveLatest) {
-            return getExactVersion(id, npId);
+            View exact = getExactVersion(id, npId);
+            if (exact == null || exact.getGoverningSpace() == null || exact.getViewKindIri() == null) {
+                return exact;
+            }
+            // fall through to the memoized latest path, which resolves a governed
+            // version space-based (never supersedes-based) for this pin
         }
         Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
         if (memo != null) {
@@ -143,12 +156,19 @@ public class View implements Serializable {
     }
 
     /**
-     * Resolves a view id to the latest version of its view definition by
-     * following the supersedes chain, falling back to the exact given version
-     * if the lookup fails or doesn't yield a single embedded view IRI. This is
-     * the network-touching part of {@link #get(String)}.
+     * Resolves a view id to the latest version of its view definition, falling
+     * back to the exact given version if the lookup fails or doesn't yield a
+     * single embedded view IRI. This is the network-touching part of
+     * {@link #get(String)}. A version that declares {@code gen:governedBy}
+     * resolves space-based (authority-scoped latest-wins within its
+     * {@code (kind, space)} pair); one that doesn't follows the supersedes
+     * chain as before. See docs/views-and-presets-as-maintained-resources.md.
      */
     private static View resolveLatestVersion(String id, String npId) {
+        View pinned = getExactVersion(id, npId);
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
+            return resolveGovernedVersion(pinned);
+        }
         // Automatically selecting latest version of view definition:
         // TODO This should be made configurable at some point, so one can make it a fixed version.
         try {
@@ -171,7 +191,36 @@ public class View implements Serializable {
         } catch (Exception ex) {
             logger.error("Error resolving latest version for view: {}", id, ex);
         }
-        return getExactVersion(id, npId);
+        return pinned;
+    }
+
+    /**
+     * Resolves the latest space-governed version of the pinned view's
+     * {@code (kind, space)} pair: the newest version declaring the same kind and
+     * governing space, signed by a current member+ of that space, with the kind
+     * validated as maintained by the space — all checked server-side by the
+     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. The pin is the
+     * floor: on an empty result (or any failure) the pinned version stands,
+     * un-revalidated.
+     */
+    private static View resolveGovernedVersion(View pinned) {
+        try {
+            Multimap<String, String> params = ArrayListMultimap.create();
+            params.put("kind", pinned.getViewKindIri().stringValue());
+            params.put("space", pinned.getGoverningSpace().stringValue());
+            ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params), false);
+            if (resp != null && !resp.getData().isEmpty()) {
+                String latestId = resp.getData().get(0).get("version");
+                if (latestId != null && !latestId.isEmpty() && !latestId.equals(pinned.getId())) {
+                    String latestNpId = latestId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+                    View resolved = getExactVersion(latestId, latestNpId);
+                    if (resolved != null) return resolved;
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("Error resolving governed version for view: {}", pinned.getId(), ex);
+        }
+        return pinned;
     }
 
     /**
@@ -218,6 +267,7 @@ public class View implements Serializable {
     private String id;
     private Nanopub nanopub;
     private IRI viewKind;
+    private IRI governingSpace;
     private String label;
     private String title = "View";
     private GrlcQuery query;
@@ -254,6 +304,8 @@ public class View implements Serializable {
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
                     viewKind = objIri;
+                } else if (st.getPredicate().equals(KPXL_TERMS.GOVERNED_BY) && st.getObject() instanceof IRI objIri) {
+                    governingSpace = objIri;
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
@@ -354,6 +406,17 @@ public class View implements Serializable {
 
     public IRI getViewKindIri() {
         return viewKind;
+    }
+
+    /**
+     * Gets the space governing this view version's {@code (kind, space)} pair via
+     * {@code gen:governedBy}, or null if the version doesn't opt into space
+     * governance (in which case latest-version resolution stays supersedes-based).
+     *
+     * @return the governing space IRI, or null
+     */
+    public IRI getGoverningSpace() {
+        return governingSpace;
     }
 
     /**

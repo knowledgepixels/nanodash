@@ -1,0 +1,54 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+sub:assertion {
+  sub:get-latest-governed-version a grlc:grlc-query;
+    dct:description "Resolves the canonical (latest authorized) version of a space-governed view definition, per docs/views-and-presets-as-maintained-resources.md in the nanodash repo. Takes the definition's kind IRI (its dct:isVersionOf target; kind) and the governing space IRI (space) and returns at most one row: the newest version nanopub that (a) declares dct:isVersionOf <kind> plus gen:governedBy <space>, and (b) is signed by a pubkey of a CURRENT member+ (admin/maintainer/member, not observer) of that space's governing ref -- with the kind validated as a maintained resource of the space (npa:isMaintainedBy + npa:hasGoverningSpaceRef in the materialized state graph; the two anchors that make gen:governedBy a label, not a grant). The RoleInstantiation's npa:forSpace/npa:forSpaceRef pair ties the governing ref to the given space IRI, so a multi-maintainer kind never floats across pairs. An empty result means no valid floating candidate: the caller keeps its pinned version (the pin is the floor and is not re-validated here). Versions retracted by their own signing key are skipped. Hosted on the spaces repo; the version/pubkey lookup federates to the gen:ResourceView type repo with kind and space as text-substituted constants, so the federated scan stays narrow.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get latest governed version";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix dct: <http://purl.org/dc/terms/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+
+select distinct ?version ?date ?np ("^" as ?np_label) where {
+  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+  graph ?stateG {
+    ?_kind_iri npa:isMaintainedBy ?_space_iri ; npa:hasGoverningSpaceRef ?ref .
+    ?ri a gen:RoleInstantiation ; npa:forSpace ?_space_iri ; npa:forSpaceRef ?ref ;
+        npa:hasRoleType ?tier ; npa:forAgent ?agent .
+    filter(?tier = gen:AdminRole || ?tier = gen:MaintainerRole || ?tier = gen:MemberRole)
+    ?acct a npa:AccountState ; npa:agent ?agent ; npa:pubkey ?pubkey .
+  }
+  service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+    graph npa:graph {
+      ?np npa:hasValidSignatureForPublicKeyHash ?pubkey ;
+          dct:created ?date ;
+          npx:embeds ?version ;
+          np:hasAssertion ?a .
+      filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+    }
+    graph ?a {
+      ?version dct:isVersionOf ?_kind_iri ;
+               gen:governedBy ?_space_iri .
+    }
+  }
+}
+order by desc(?date) desc(?np) limit 1""" .
+}
+sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  this: dct:created "2026-07-03T09:59:49Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:get-latest-governed-version .
+}

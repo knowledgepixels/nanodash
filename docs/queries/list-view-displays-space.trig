@@ -1,6 +1,7 @@
 @prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -17,64 +18,95 @@ sub:Head {
 }
 
 sub:assertion {
-  sub:list-part-view-displays a <https://w3id.org/kpxl/grlc/grlc-query>;
-    dct:description "Lists, for a PART page (a resource viewed as a part of a maintained resource/space/user), the view displays configured on the part's owning resource, flagged for this specific part (read-only). Same display set and admin/maintainer authorization as list-view-displays, keyed on the owning resource (the 'resource' parameter): standalone view displays plus preset-contributed views, deactivations applied, each view resolved to its latest version. The displayed_here column is a flag (check mark, else blank) indicating whether the view is shown on THIS part -- i.e. its appliesToInstancesOf matches one of the part's own classes (the 'partclass' multi-valued parameter), or it is pinned to the part via gen:appliesTo, or its namespace targeting covers the part's IRI (the 'partid' parameter). A hasTopLevelView preset is pinned to the owning resource's own page and is therefore never shown on a part (blank); a hasView preset falls back to the view's own targeting. For blank (not-shown) rows the target_multi_iri column lists the class(es)/namespace(s) the view targets. Rows are ordered shown-here first, then by structural position. Space-governed versions (gen:governedBy, nanodash docs/views-and-presets-as-maintained-resources.md): a referenced version declaring gen:governedBy resolves to the newest version of its (kind, space) pair signed by a current member+ (admin/maintainer/member) of that space -- with the kind validated as a maintained resource of the space -- taking precedence over the supersedes-based head; without a valid governed candidate the pinned version stands.";
+  sub:list-view-displays-space a grlc:grlc-query;
+    dct:description "Space-scoped view displays for a single space ref. Derived from list-view-displays (RAfGpyfUX8qjSMN5-aRWOPeVqHajs3f6zUzcnMuRibk1g) but specialised for gen:Space resources: the authority gate keeps only the governing-space-ref hop -- issue #130's reflexive self-edge already exposes the space's own admins/maintainers there -- and drops the agent-self UNION branch, leaving a single non-UNION join under the variable state graph. This avoids the RDF4J planner timeout documented in nanopub-query doc/sparql-quirks.md (variable hasCurrentSpaceState pointer + multi-join + UNION => intermittent 504) that made the space View-displays view fail intermittently. ?ownClass is folded to the constant gen:Space. Takes the same two concrete inputs (resource = space IRI, root_np = ref root) and returns the same columns as list-view-displays. The outer SELECT collapses multiple attach rows per view deterministically: ?displayed_here via max() (shown if any live path displays it), every other column pinned to the single newest (date_added, np) row via argmax -- replacing the old non-deterministic sample() aggregates. Space-governed versions (gen:governedBy, nanodash docs/views-and-presets-as-maintained-resources.md): a referenced version declaring gen:governedBy resolves to the newest version of its (kind, space) pair signed by a current member+ (admin/maintainer/member) of that space -- with the kind validated as a maintained resource of the space -- taking precedence over the supersedes-based head; without a valid governed candidate the pinned version stands.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
-    rdfs:label "List part view displays";
-    <https://w3id.org/kpxl/grlc/endpoint> <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
-    <https://w3id.org/kpxl/grlc/sparql> """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    rdfs:label "List view displays (space)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix dct: <http://purl.org/dc/terms/>
 prefix np: <http://www.nanopub.org/nschema#>
 prefix npa: <http://purl.org/nanopub/admin/>
 prefix npx: <http://purl.org/nanopub/x/>
 prefix gen: <https://w3id.org/kpxl/gen/terms/>
 
+select ?view
+       (?view_label_g as ?view_label)
+       (?displayed_here_g as ?displayed_here)
+       (?position_g as ?position)
+       (substr(?position_g, 1, 3) as ?position_label)
+       (if(strlen(?via_preset_g) > 0, iri(?via_preset_g), ?undef_vp) as ?via_preset)
+       (?via_preset_label_g as ?via_preset_label)
+       (if(strlen(?added_by_g) > 0, iri(?added_by_g), ?undef_ab) as ?added_by)
+       (?deactivateView_g as ?deactivateView)
+       (?date_added_g as ?date_added)
+       (?np_g as ?np)
+       (?np_label_g as ?np_label) where {
+# Collapse to one deterministic row per ?view. The page can reach a view through several
+# rows (a direct ViewDisplay AND a preset, multiple display nanopubs, class+namespace targets);
+# group by ?view picks ONE. ?displayed_here uses max() = \"shown if displayed via any live path\"
+# (\"\" < the check mark, so max yields the check when any path shows it) and is order-stable.
+# Every other column is pinned to the single newest row via an argmax over (date_added, np) --
+# the same trick already used for ?np -- so the detail columns stay mutually consistent
+# (no value mixed in from a different source row) instead of independently SAMPLE()d at random.
+select ?view
+       (min(?view_label) as ?view_label_g)
+       (max(?displayed_here) as ?displayed_here_g)
+       (strafter(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np), \"\\\\t\", str(?position))), \"\\\\t\"), \"\\\\t\") as ?position_g)
+       (strafter(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np), \"\\\\t\", coalesce(str(?via_preset), \"\"))), \"\\\\t\"), \"\\\\t\") as ?via_preset_g)
+       (strafter(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np), \"\\\\t\", coalesce(str(?via_preset_label), \"\"))), \"\\\\t\"), \"\\\\t\") as ?via_preset_label_g)
+       (strafter(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np), \"\\\\t\", coalesce(str(?added_by), \"\"))), \"\\\\t\"), \"\\\\t\") as ?added_by_g)
+       (strafter(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np), \"\\\\t\", str(?deactivateView))), \"\\\\t\"), \"\\\\t\") as ?deactivateView_g)
+       (max(?date_added) as ?date_added_g)
+       (iri(strafter(max(concat(str(?date_added), \"\\\\t\", str(?np))), \"\\\\t\")) as ?np_g)
+       (\"^\" as ?np_label_g) where {
 select ?view ?view_label ?displayed_here ?position
-       (substr(?position, 1, 3) as ?position_label)
        (if(?displayed_here = \"\", ?target_multi_iri_raw, \"\") as ?target_multi_iri)
        (if(?displayed_here = \"\", ?target_label_multi_raw, \"\") as ?target_label_multi)
-       ?via_preset ?via_preset_label ?added_by ?date_added ?np ?np_label
+       ?via_preset ?via_preset_label ?added_by ?date_added ?deactivateView ?np ?np_label
 where {
  select ?view ?view_label ?position
        (if(bound(?presetScope), ?presetScope,
          if(bound(?preset),
-            if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"\"),
+            if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"✓\"),
           if(?aDApplyHere > 0, \"✓\",
            if(?aDHasTarget > 0, if(?aDMatch > 0, \"✓\", \"\"),
             if(?aDHasApply > 0, \"\",
-             if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"\")))))) as ?displayed_here)
+             if(?aVHasTarget > 0, if(?aVMatch > 0, \"✓\", \"\"), \"✓\")))))) as ?displayed_here)
        ?target_multi_iri_raw ?target_label_multi_raw
        (?preset as ?via_preset) (?preset_label as ?via_preset_label)
        (?user as ?added_by) (?date as ?date_added)
-       ?np (\"^\" as ?np_label) where {
-  select ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
+       ?deactivateView ?np (\"^\" as ?np_label) where {
+  select ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?deactivateView ?np
          (max(?fDApplyHere) as ?aDApplyHere) (max(?fDHasApply) as ?aDHasApply) (max(?fDHasTarget) as ?aDHasTarget)
          (max(?fDMatch) as ?aDMatch) (max(?fVHasTarget) as ?aVHasTarget) (max(?fVMatch) as ?aVMatch)
          (group_concat(distinct ?targetIri; separator=\" \") as ?target_multi_iri_raw)
-         (group_concat(distinct ?targetLabel; separator=\"\\n\") as ?target_label_multi_raw)
+         (group_concat(distinct ?targetLabel; separator=\"\\\\n\") as ?target_label_multi_raw)
   where {
   {
     select ?_resource_multi_iri ?viewRef ?viewLatest ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
-           ?dApply ?dTarget ?effVTarget ?pinSpace ?governedLatest where {
+           ?ownClass ?dApply ?dTarget ?effVTarget ?pinSpace ?governedLatest where {
       values ?_resource_multi_iri {}
+      values ?_root_np_multi_iri {}
       service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
         graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
-        {
-          # Authority gate (issue #130 / nanodash#510): a single mandatory hop through the
-          # governing space ref, which covers both a maintained resource and a space itself
-          # (the reflexive self-edge), keyed on the role tier materialized on the
-          # RoleInstantiation since #125. Replaces the old bare-IRI isMaintainedBy? hop and
-          # the dead RoleDeclaration maintainer join. Non-ref variant: any ref claiming the
-          # IRI, so authority merges across refs (the ref variant pins a single ?passedRef).
-          graph ?stateG {
-            ?_resource_multi_iri npa:hasGoverningSpaceRef ?spaceRef .
-            ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?spaceRef ; npa:hasRoleType ?roleType ; npa:forAgent ?authAgent .
-            filter(?roleType = gen:AdminRole || ?roleType = gen:MaintainerRole)
-            ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
-          }
-        } union {
-          graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
+        graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
+        # Authority gate (space-scoped, no-UNION variant of list-view-displays): a single
+        # mandatory hop through the governing space ref. For a gen:Space resource, issue #130's
+        # reflexive self-edge (?space npa:hasGoverningSpaceRef ?ownRef) already exposes the
+        # space's own admins/maintainers through this same hop, so the agent-self UNION branch
+        # carried by the general list-view-displays is redundant here and is dropped. That leaves
+        # a single non-UNION join under the variable ?stateG, avoiding the RDF4J planner timeout
+        # documented in nanopub-query doc/sparql-quirks.md (variable hasCurrentSpaceState pointer
+        # + multi-join + UNION => intermittent 504). ?ownClass is the constant gen:Space (this
+        # query only backs gen:Space views), so the two ownClass exists-probes are folded away too.
+        graph ?stateG {
+          ?_resource_multi_iri npa:hasGoverningSpaceRef ?passedRef .
+          ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?passedRef ; npa:hasRoleType ?roleType ; npa:forAgent ?authAgent .
+          filter(?roleType = gen:AdminRole || ?roleType = gen:MaintainerRole)
+          ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
         }
+        bind(gen:Space as ?ownClass)
       }
       {
         graph npa:graph {
@@ -138,7 +170,7 @@ where {
             graph ?pa {
               ?preset a gen:Preset .
               optional { ?preset rdfs:label ?preset_label . }
-              { ?preset gen:hasTopLevelView ?viewRef . bind(\"\" as ?presetScope) }
+              { ?preset gen:hasTopLevelView ?viewRef . bind(\"✓\" as ?presetScope) }
               union { ?preset gen:hasView ?viewRef }
             }
           }
@@ -230,26 +262,30 @@ where {
       bind(coalesce(?dispPos, ?effViewPos, \"\") as ?position)
     }
   }
-  values ?__partclass_multi_iri {}
-  bind(if(coalesce(str(?dApply) = str(?_partid_iri), false), 1, 0) as ?fDApplyHere)
+  bind(if(coalesce(str(?dApply) = str(?_resource_multi_iri), false), 1, 0) as ?fDApplyHere)
   bind(if(bound(?dApply), 1, 0) as ?fDHasApply)
   bind(if(bound(?dTarget), 1, 0) as ?fDHasTarget)
-  bind(if(coalesce(?dTarget = ?__partclass_multi_iri, false) || coalesce(strstarts(str(?_partid_iri), str(?dTarget)), false), 1, 0) as ?fDMatch)
+  bind(if(coalesce(str(?dTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?dTarget)), false), 1, 0) as ?fDMatch)
   bind(if(bound(?effVTarget), 1, 0) as ?fVHasTarget)
-  bind(if(coalesce(?effVTarget = ?__partclass_multi_iri, false) || coalesce(strstarts(str(?_partid_iri), str(?effVTarget)), false), 1, 0) as ?fVMatch)
+  bind(if(coalesce(str(?effVTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?effVTarget)), false), 1, 0) as ?fVMatch)
   bind(coalesce(?dTarget, ?effVTarget) as ?targetIri)
   bind(replace(str(?targetIri), \"^.*[/#]\", \"\") as ?targetLocalName)
   bind(if(coalesce(strlen(?targetLocalName) > 0, false), ?targetLocalName, str(?targetIri)) as ?targetLabel)
   bind(if(bound(?pinSpace), coalesce(?governedLatest, ?viewRef), coalesce(?viewLatest, ?viewRef)) as ?view)
+  bind(str(?viewRef) as ?deactivateView)
   }
-  group by ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
+  group by ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?deactivateView ?np
  }
 }
-order by desc(?displayed_here) ?position desc(?date_added)""" .
+}
+group by ?view
+}
+order by desc(?displayed_here) ?position""" .
 }
 
 sub:provenance {
-  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234;
+    prov:wasDerivedFrom <https://w3id.org/np/RAfGpyfUX8qjSMN5-aRWOPeVqHajs3f6zUzcnMuRibk1g> .
 }
 
 sub:pubinfo {
@@ -258,8 +294,7 @@ sub:pubinfo {
   this: dct:created "2026-07-03T13:00:55Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
-    npx:embeds sub:list-part-view-displays;
-    npx:supersedes <https://w3id.org/np/RAs9S7c9wdasz2c745f-mBg53JSQ1q20vLLHkmnXCmX2w>;
-    rdfs:label "List part view displays" .
+    npx:embeds sub:list-view-displays-space;
+    npx:supersedes <https://w3id.org/np/RADjwb3jEpw_WkU7VCDygvkabnHmmKwmLylRtbXamFItM> .
 }
 

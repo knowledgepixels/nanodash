@@ -1,6 +1,5 @@
 @prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
-@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
 @prefix np: <http://www.nanopub.org/nschema#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix nt: <https://w3id.org/np/o/ntemplate/> .
@@ -19,30 +18,32 @@ sub:Head {
 }
 
 sub:assertion {
-  sub:add-view-display-action a gen:ViewResultAction;
+  sub:add-view-display-action a <https://w3id.org/kpxl/gen/terms/ViewResultAction>;
     rdfs:label "➕ add view display";
-    gen:hasActionTemplate <https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g>;
-    gen:hasActionTemplatePartField "void";
-    gen:hasActionTemplateQueryMapping "void";
-    gen:hasActionTemplateTargetField "resource";
-    gen:isVisibleTo gen:MaintainerRole .
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplate> <https://w3id.org/np/RAQhTCHtfzGCj1YiE1LualWcZjg3thlRiquFWUE14UF-g>;
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField> "void";
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplateQueryMapping> "void";
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField> "resource";
+    <https://w3id.org/kpxl/gen/terms/isVisibleTo> <https://w3id.org/kpxl/gen/terms/MaintainerRole> .
   
-  sub:deactivate-action a gen:ViewEntryAction;
-    rdfs:label "deactivate";
-    gen:hasActionTemplate <https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4>;
-    gen:hasActionTemplatePartField "void";
-    gen:hasActionTemplateQueryMapping "deactivateView:view";
-    gen:hasActionTemplateTargetField "resource";
-    gen:isVisibleTo gen:MaintainerRole .
+  sub:deactivate-action a <https://w3id.org/kpxl/gen/terms/ViewEntryAction>;
+    rdfs:label "🚫 deactivate";
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplate> <https://w3id.org/np/RAZ47_4JquvEXk30HYnVeSgFRcQqHtpdibcfBOeqHI2j4>;
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplatePartField> "void";
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplateQueryMapping> "deactivateView:view";
+    <https://w3id.org/kpxl/gen/terms/hasActionTemplateTargetField> "resource";
+    <https://w3id.org/kpxl/gen/terms/isVisibleTo> <https://w3id.org/kpxl/gen/terms/MaintainerRole> .
   
-  sub:view-displays-view a gen:ResourceView, gen:TabularView;
+  sub:view-displays-view a <https://w3id.org/kpxl/gen/terms/ResourceView>, <https://w3id.org/kpxl/gen/terms/TabularView>;
     dct:isVersionOf <https://w3id.org/np/RA1d1qBF8Fk-ZWKtNB-wZd56HrV0wdtJkw0wp58sHxM0E/user-view-displays-view-kind>;
-    dct:title "🖵 View displays";
+    dct:title "⬜ View displays";
     rdfs:label "View displays view (User)";
-    gen:hasStructuralPosition "5.5.viewDisplays";
-    gen:hasViewAction sub:add-view-display-action, sub:deactivate-action;
-    gen:hasViewQuery <https://w3id.org/np/RAF4bDQmpjbUZK_fA2UBzpUAiwm-7WK3BCpOqOfgr0zd4/list-view-displays>;
-    gen:hasViewQueryTargetField "resource" .
+    <https://w3id.org/kpxl/gen/terms/appliesToInstancesOf> <https://w3id.org/kpxl/gen/terms/IndividualAgent>;
+    <https://w3id.org/kpxl/gen/terms/governedBy> <https://w3id.org/spaces/knowledgepixels>;
+    <https://w3id.org/kpxl/gen/terms/hasStructuralPosition> "5.5.viewDisplays";
+    <https://w3id.org/kpxl/gen/terms/hasViewAction> sub:add-view-display-action, sub:deactivate-action;
+    <https://w3id.org/kpxl/gen/terms/hasViewQuery> <https://w3id.org/np/RAIz68nc9V2_cduYc8ptnCmyAKCdmB0mHvDy2eqdWgKYE/list-view-displays>;
+    <https://w3id.org/kpxl/gen/terms/hasViewQueryTargetField> "resource" .
 }
 
 sub:provenance {
@@ -52,15 +53,15 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
   
-  this: dct:created "2026-06-25T16:12:02Z"^^xsd:dateTime;
+  this: dct:created "2026-07-03T13:17:04Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
     npx:embeds sub:view-displays-view;
     npx:introduces <https://w3id.org/np/RA1d1qBF8Fk-ZWKtNB-wZd56HrV0wdtJkw0wp58sHxM0E/user-view-displays-view-kind>;
-    npx:supersedes <https://w3id.org/np/RA-4lD6SrcEplUkOuCs2G-pCe3gSyuMg2qmH5uuTIDzls>;
-    rdfs:label "View displays view (User)";
+    npx:supersedes <https://w3id.org/np/RAg5UFwfYk7jsE6hxv3f6wF_qaT9B6do6bXDEkdSgRZwc>;
     nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
     nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8>,
       <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>, <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
-    nt:wasCreatedFromTemplate <https://w3id.org/np/RA8_hijwsfGCryMYtjtEpec21ZSNY68-qmL0bHRWR0sWM> .
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAr1Krh98VGXbIc7JVSJpH24bWi2JEVRYfvJ_KJq0wJtc> .
 }
+

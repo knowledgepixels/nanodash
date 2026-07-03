@@ -9,10 +9,17 @@
 @prefix orcid: <https://orcid.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
 sub:assertion {
   sub:list-view-displays a grlc:grlc-query;
-    dct:description "Ref-scoped view displays for a single space ref. Like list-view-displays but takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np). The authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) rather than the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate (a single auto-detecting param can't: a service-derived resource IRI does not push into the federated SERVICE blocks). Space-only companion to list-view-displays; same columns. Regenerate from the latest list-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation.";
+    dct:description "Ref-scoped view displays for a single space ref. Like list-view-displays but takes TWO inputs: the space IRI (resource) and the ref's root nanopub (root_np). The authority gate is scoped to admins/maintainers of THAT ref (npa:forSpaceRef resolved from root_np) rather than the space IRI merged across all its refs. Both inputs are concrete (VALUES) so federation bindings propagate (a single auto-detecting param can't: a service-derived resource IRI does not push into the federated SERVICE blocks). Space-only companion to list-view-displays; same columns. Regenerate from the latest list-view-displays by adding the root_np VALUES, the ?passedRef npa:rootNanopub resolution, and npa:forSpaceRef ?passedRef on the gate's RoleInstantiation. Space-governed versions (gen:governedBy, nanodash docs/views-and-presets-as-maintained-resources.md): a referenced version declaring gen:governedBy resolves to the newest version of its (kind, space) pair signed by a current member+ (admin/maintainer/member) of that space -- with the kind validated as a maintained resource of the space -- taking precedence over the supersedes-based head; without a valid governed candidate the pinned version stands.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "List view displays (ref-scoped)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/11daee46fdfff957dc17b46f5dc1a618045afd4f5634d5334ce9db19c3689a3c>;
@@ -60,7 +67,7 @@ where {
   where {
   {
     select ?_resource_multi_iri ?viewRef ?viewLatest ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?np
-           ?ownClass ?dApply ?dTarget ?vTarget where {
+           ?ownClass ?dApply ?dTarget ?effVTarget ?pinSpace ?governedLatest where {
       values ?_resource_multi_iri {}
       values ?_root_np_multi_iri {}
       service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
@@ -194,24 +201,63 @@ where {
                     npx:embeds ?viewLatest ; np:hasAssertion ?hva .
             filter not exists { ?i2 npx:invalidates ?headNp ; npa:hasValidSignatureForPublicKey ?vKey . }
           }
-          graph ?hva { ?viewLatest dct:title ?view_label . }
+          graph ?hva { ?viewLatest dct:title ?supLabel . }
           optional { graph ?hva { ?viewLatest gen:hasStructuralPosition ?viewPos . } }
           optional { graph ?hva { ?viewLatest (gen:appliesToInstancesOf|gen:appliesToNamespace) ?vTarget . } }
         }
       }
-      bind(coalesce(?dispPos, ?viewPos, \"\") as ?position)
+            # Space-governed resolution (gen:governedBy; nanodash docs/views-and-presets-as-
+      # maintained-resources.md): if the pinned version declares a governing space, the
+      # newest version of its (kind, space) pair signed by a current member+ of that
+      # space wins, with the kind validated as maintained by the space. Run-once
+      # sub-select over all governed versions network-wide (gen:governedBy is highly
+      # selective), joined back per pin. No valid candidate -> the pin stands.
+      optional {
+        service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+          graph npa:graph { ?pinNp npx:embeds ?viewRef ; np:hasAssertion ?pinA . }
+          graph ?pinA { ?viewRef dct:isVersionOf ?pinKind ; gen:governedBy ?pinSpace . }
+        }
+        { select ?pinKind ?pinSpace (iri(strafter(max(concat(str(?cDate), \">\", str(?cver))), \">\")) as ?governedLatest) where {
+            service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+              graph npa:graph {
+                ?cnp dct:created ?cDate ; npa:hasValidSignatureForPublicKeyHash ?cpk ; npx:embeds ?cver ; np:hasAssertion ?ca .
+                filter not exists { ?ci npx:invalidates ?cnp ; npa:hasValidSignatureForPublicKeyHash ?cpk . }
+              }
+              graph ?ca { ?cver dct:isVersionOf ?pinKind ; gen:governedBy ?pinSpace . }
+            }
+            service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+              graph npa:graph { <http://purl.org/nanopub/admin/thisRepo> npa:hasCurrentSpaceState ?gsg . }
+              graph ?gsg {
+                ?pinKind npa:isMaintainedBy ?pinSpace ; npa:hasGoverningSpaceRef ?gref .
+                ?gri a gen:RoleInstantiation ; npa:forSpace ?pinSpace ; npa:forSpaceRef ?gref ; npa:hasRoleType ?gtier ; npa:forAgent ?gag .
+                filter(?gtier = gen:AdminRole || ?gtier = gen:MaintainerRole || ?gtier = gen:MemberRole)
+                ?gacct a npa:AccountState ; npa:agent ?gag ; npa:pubkey ?cpk .
+              }
+            }
+          } group by ?pinKind ?pinSpace }
+        service <https://w3id.org/np/l/nanopub-query-1.1/repo/type/ec6722efa3b44e0a18aa63afe5964158a1fdb7f0413ea5f23bfddf5c03ca0221> {
+          graph npa:graph { ?gnp npx:embeds ?governedLatest ; np:hasAssertion ?gva . }
+          graph ?gva { ?governedLatest dct:title ?gTitle . }
+          optional { graph ?gva { ?governedLatest gen:hasStructuralPosition ?gPos . } }
+          optional { graph ?gva { ?governedLatest (gen:appliesToInstancesOf|gen:appliesToNamespace) ?gTarget . } }
+        }
+      }
+      bind(if(bound(?governedLatest), ?gTitle, ?supLabel) as ?view_label)
+      bind(if(bound(?governedLatest), ?gPos, ?viewPos) as ?effViewPos)
+      bind(if(bound(?governedLatest), ?gTarget, ?vTarget) as ?effVTarget)
+      bind(coalesce(?dispPos, ?effViewPos, \"\") as ?position)
     }
   }
   bind(if(coalesce(str(?dApply) = str(?_resource_multi_iri), false), 1, 0) as ?fDApplyHere)
   bind(if(bound(?dApply), 1, 0) as ?fDHasApply)
   bind(if(bound(?dTarget), 1, 0) as ?fDHasTarget)
   bind(if(coalesce(str(?dTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?dTarget)), false), 1, 0) as ?fDMatch)
-  bind(if(bound(?vTarget), 1, 0) as ?fVHasTarget)
-  bind(if(coalesce(str(?vTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?vTarget)), false), 1, 0) as ?fVMatch)
-  bind(coalesce(?dTarget, ?vTarget) as ?targetIri)
+  bind(if(bound(?effVTarget), 1, 0) as ?fVHasTarget)
+  bind(if(coalesce(str(?effVTarget) = str(?ownClass), false) || coalesce(strstarts(str(?_resource_multi_iri), str(?effVTarget)), false), 1, 0) as ?fVMatch)
+  bind(coalesce(?dTarget, ?effVTarget) as ?targetIri)
   bind(replace(str(?targetIri), \"^.*[/#]\", \"\") as ?targetLocalName)
   bind(if(coalesce(strlen(?targetLocalName) > 0, false), ?targetLocalName, str(?targetIri)) as ?targetLabel)
-  bind(coalesce(?viewLatest, ?viewRef) as ?view)
+  bind(if(bound(?pinSpace), coalesce(?governedLatest, ?viewRef), coalesce(?viewLatest, ?viewRef)) as ?view)
   bind(str(?viewRef) as ?deactivateView)
   }
   group by ?view ?view_label ?position ?preset ?preset_label ?presetScope ?user ?date ?deactivateView ?np
@@ -221,8 +267,18 @@ where {
 group by ?view
 order by desc(?displayed_here) ?position""" .
 }
-sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-  this: dct:created "2026-06-25T16:05:53Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:embeds sub:list-view-displays; npx:supersedes <https://w3id.org/np/RAE8SOXg7x9nreFldSIdcCku_fHMeIP1RnXizITBj2ggo> .
+  
+  this: dct:created "2026-07-03T13:00:55Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-view-displays;
+    npx:supersedes <https://w3id.org/np/RAfGpyfUX8qjSMN5-aRWOPeVqHajs3f6zUzcnMuRibk1g> .
 }
+
