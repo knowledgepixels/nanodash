@@ -103,6 +103,54 @@ the **maintaining space's** admins (today it's ungoverned — safe only because 
 float yet); (2) revoke role grants dropped by a new authoritative version, not just add new
 ones; (3) stamp the publisher on the declaration so (1) can check it.
 
+## Minimal implementation (views)
+
+Views only; presets and the materializer are untouched (pinned presets keep working via the
+existing supersedes path).
+
+1. **Vocabulary** (1 line): add `GOVERNED_BY` (`gen:governedBy`) to `KPXL_TERMS.java`, next
+   to the existing `MAINTAINED_RESOURCE`.
+2. **Parse it in `View`** (~5 lines): in the constructor's statement loop (where
+   `dct:isVersionOf` → `viewKind` is parsed), also capture `gen:governedBy` → a
+   `governingSpace` IRI field + getter. `ViewDisplay` stays untouched — assignments carry no
+   space triple.
+3. **One new published query — `get-latest-governed-version(kind, space)`.** The whole
+   resolver lives here; returns at most one row:
+   1. resolve the space IRI → its representative root ref via the spaces graph
+      (`npa:viaNanopub` → `npa:forSpaceRef` → `npa:rootNanopub`);
+   2. check `<kind> gen:isMaintainedBy <space>` against the materialized
+      maintained-resources state (anchor 1);
+   3. among versions with `dct:isVersionOf <kind>` + `gen:governedBy <space>`, keep those
+      whose signer pubkey is a validated member+ (admin/maintainer/member — not observer) of
+      that ref (anchor 2);
+   4. `ORDER BY DESC(?created) LIMIT 1`.
+
+   Host it on the spaces repo with a SERVICE clause out to the main repo for the
+   version/pubkey lookup — ref-resolution and role filtering stay local, and both parameters
+   are bound, so the federated scan is narrow. Plus a constant in `QueryApiAccess`.
+   (Fallback if the query planner chokes: split into two cheap queries and join in Java.)
+4. **Resolution branch in `View.resolveLatestVersion`** (~15 lines); the surrounding
+   stale-while-revalidate memo machinery is reused unchanged:
+   - load the pinned version first (load-then-resolve instead of today's resolve-then-load,
+     to read `governedBy` off the pin);
+   - no `governedBy` → existing supersedes-chain path, verbatim;
+   - has `governedBy` → call the query; row → use that version; empty/error/timeout → pin
+     stands, un-revalidated ("pin is the floor", fails closed).
+5. **Publishing side — nanopub changes, no code**: supersede the view-creation/supersede
+   template to add an optional `sub:view gen:governedBy <space>` statement; optionally
+   pre-fill the space when "add view" is launched from a space context. Declaring the kind
+   as maintained needs nothing new — the existing admin-gated `gen:isMaintainedBy`
+   assignment and materializer validation already cover it.
+
+Out of scope for the minimal version: preset auto-update (the materializer additions above),
+grounding the space-IRI→root-ref mapping beyond the representative root (the
+deliberately-deferred piece; the query reuses today's representative root), and UI surfacing
+of "this view floats under space X".
+
+Deployable in any order except: the query must be live before any view version carries
+`gen:governedBy` — and since no existing version does, current behavior is unchanged from
+day one.
+
 ## Big picture
 
 One model — *definition kind = space-maintained resource, canonical = latest authorized
