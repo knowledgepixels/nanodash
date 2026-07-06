@@ -2,18 +2,15 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
-import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 
@@ -94,7 +91,7 @@ public class TemplateFormPreview extends Panel {
         Form<?> form = new Form<Void>("form");
 
         // Assertion section
-        form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().set("id", templateId)));
+        form.add(PublishForm.newSourceMenu("templatelink", templateId));
         form.add(new Label("templatename", template.getLabel()));
         form.add(new Label("templatedesc", template.getDescription()).setEscapeModelStrings(false));
 
@@ -106,7 +103,7 @@ public class TemplateFormPreview extends Panel {
 
         // Provenance section
         form.add(new Label("prtemplatename", provenanceContext.getTemplate().getLabel()));
-        form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().set("id", provenanceContext.getTemplate().getId())));
+        form.add(PublishForm.newSourceMenu("prtemplatelink", provenanceContext.getTemplate().getId()));
 
         form.add(new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
             protected void populateItem(ListItem<StatementItem> item) {
@@ -119,7 +116,7 @@ public class TemplateFormPreview extends Panel {
             protected void populateItem(ListItem<TemplateContext> item) {
                 TemplateContext pic = item.getModelObject();
                 item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
-                item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().set("id", pic.getTemplate().getId())));
+                item.add(PublishForm.newSourceMenu("pitemplatelink", pic.getTemplate().getId()));
                 item.add(new ListView<StatementItem>("pi-statements", pic.getStatementItems()) {
                     protected void populateItem(ListItem<StatementItem> item) {
                         item.add(item.getModelObject());
