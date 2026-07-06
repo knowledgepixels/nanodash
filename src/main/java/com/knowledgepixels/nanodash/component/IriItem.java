@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -142,6 +143,7 @@ public class IriItem extends AbstractContextComponent {
             linkLabelModel = Model.of(linkLabelBase);
         }
         ExternalLink linkComp = new ExternalLink("link", Model.of(href), linkLabelModel);
+        linkComp.add(NavigationContext.hrefContextFallback());
         if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
             linkComp.add(new AttributeAppender("class", " this-assertion "));
             iri = LocalUri.of("assertion");

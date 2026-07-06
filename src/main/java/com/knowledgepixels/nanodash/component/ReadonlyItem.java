@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
@@ -203,6 +204,7 @@ public class ReadonlyItem extends AbstractContextComponent {
         if (template.isIntroducedResource(iri) || template.isEmbeddedResource(iri)) {
             linkComp.add(AttributeAppender.append("class", "introduced"));
         }
+        linkComp.add(NavigationContext.hrefContextFallback());
         add(linkComp);
         add(new Label("description", new Model<String>() {
 

@@ -13,6 +13,7 @@ import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
@@ -77,12 +78,26 @@ public class NavigationContext {
     }
 
     /**
+     * Whether the given context id is the configured home resource, whose page is the
+     * home page itself rather than its maintained-resource page.
+     *
+     * @param contextId the context resource id
+     * @return true if it is the home resource
+     */
+    public static boolean isHomeResource(String contextId) {
+        return contextId != null && contextId.equals(NanodashPreferences.get().getHomeResource());
+    }
+
+    /**
      * A page reference (link target + label) for the given context id.
      *
      * @param contextId the context resource id
      * @return the page reference, or null if the id cannot be resolved
      */
     public static NanodashPageRef getPageRef(String contextId) {
+        if (isHomeResource(contextId)) {
+            return new NanodashPageRef(HomePage.class, "Home");
+        }
         AbstractResourceWithProfile resource = resolve(contextId);
         if (resource == null) return null;
         return new NanodashPageRef(getPageClass(resource), new PageParameters().set("id", contextId), resource.getLabel());
@@ -124,6 +139,28 @@ public class NavigationContext {
     }
 
     /**
+     * A behavior that appends the page's navigation context to a link whose target is a
+     * URL string (e.g. from {@link com.knowledgepixels.nanodash.component.NanodashLink#getPageUrl(String)})
+     * rather than page parameters, where {@link #pageContextFallback()} cannot apply.
+     * Only internal page URLs (starting with "/") that don't carry a context yet are touched.
+     *
+     * @return the context-fallback behavior
+     */
+    public static Behavior hrefContextFallback() {
+        return new Behavior() {
+            @Override
+            public void onComponentTag(Component component, ComponentTag tag) {
+                if (!(component.getPage() instanceof NanodashPage page)) return;
+                String contextId = page.getContextId();
+                if (contextId == null) return;
+                String href = tag.getAttribute("href");
+                if (href == null || !href.startsWith("/") || href.contains(CONTEXT_PARAM + "=")) return;
+                tag.put("href", href + (href.contains("?") ? "&" : "?") + CONTEXT_PARAM + "=" + Utils.urlEncode(contextId));
+            }
+        };
+    }
+
+    /**
      * Forwards to the page of the context resource (or its part) after a successful
      * publication, with the just-published nanopub shown only in the title bar message;
      * forwards to the home page if no (resolvable) context is set. Always throws.
@@ -141,6 +178,9 @@ public class NavigationContext {
                 // User was on a part page (e.g. paper collection); redirect back to the part page
                 redirectParams.set("id", partId).set(CONTEXT_PARAM, contextId);
                 throw new RestartResponseException(ResourcePartPage.class, redirectParams);
+            }
+            if (isHomeResource(contextId)) {
+                throw new RestartResponseException(HomePage.class, redirectParams);
             }
             redirectParams.set("id", contextId);
             // Return to the tab the action asked for (e.g. "about" for a

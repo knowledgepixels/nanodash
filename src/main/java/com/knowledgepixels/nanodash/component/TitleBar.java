@@ -130,6 +130,7 @@ public class TitleBar extends Panel {
             return new NanodashPageRef(HomePage.class, "Home");
         }
         NanodashPageRef ref = NavigationContext.getPageRef(contextId);
+        if (page instanceof HomePage && ref != null && HomePage.class.equals(ref.getPageClass())) return null;
         if (ref == null) {
             // Stale or not-yet-loaded context id: link via the explore page, which
             // forwards known resources to their own pages once the caches are warm.
