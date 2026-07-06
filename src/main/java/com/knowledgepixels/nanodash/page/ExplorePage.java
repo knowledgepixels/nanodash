@@ -206,18 +206,44 @@ public class ExplorePage extends NanodashPage {
         // Forward to the part page when the explored resource actually qualifies as a
         // part of the context: either explicitly requested via forward-to-part, or
         // whenever the context is a maintained resource. In both cases the membership
-        // is verified below (dct:isPartOf / skos:inScheme or view-display applicability)
-        // rather than assumed from the context type.
+        // is verified below (dct:isPartOf / dct:isVersionOf / skos:inScheme or
+        // view-display applicability) rather than assumed from the context type.
         boolean contextIsMaintainedResource = !contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null;
         if ((parameters.get("forward-to-part").toString("").equals("true") || contextIsMaintainedResource) && !contextId.isEmpty() && publishedNanopub == null) {
             parameters.remove("forward-to-part");
+            AbstractResourceWithProfile contextResource = AbstractResourceWithProfile.get(contextId);
+            if (contextResource instanceof IndividualAgent && !IndividualAgent.isUser(contextId)) {
+                contextResource = null;
+            }
+            // A plain (non-trusty) term IRI doesn't resolve to a nanopub by itself; look
+            // up its defining nanopub among those signed by the context's space members,
+            // the same way ResourcePartPage does.
+            Nanopub termNp = np;
+            if (termNp == null && contextResource != null) {
+                QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", tempRef);
+                if (contextResource.getSpace() != null) {
+                    for (IRI userIri : contextResource.getSpace().getUsers()) {
+                        for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
+                            getDefQuery.getParams().put("pubkey", pubkey);
+                        }
+                    }
+                } else {
+                    for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
+                        getDefQuery.getParams().put("pubkey", pubkey);
+                    }
+                }
+                ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
+                if (getDefResp != null && !getDefResp.getData().isEmpty()) {
+                    termNp = Utils.getAsNanopub(getDefResp.getData().iterator().next().get("np"));
+                }
+            }
             Set<IRI> classes = new HashSet<>();
-            if (np != null) {
-                Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(np);
+            if (termNp != null) {
+                Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(termNp);
                 if (introducedIds.size() == 1 && introducedIds.iterator().next().equals(tempRef)) {
-                    for (Statement st : np.getAssertion()) {
+                    for (Statement st : termNp.getAssertion()) {
                         if (!st.getSubject().stringValue().equals(tempRef)) continue;
-                        if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
+                        if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(DCTERMS.IS_VERSION_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
                             String resourceId = st.getObject().stringValue();
                             if (MaintainedResourceRepository.get().findById(resourceId) == null) continue;
                             throw new RestartResponseException(ResourcePartPage.class, parameters);
@@ -226,10 +252,6 @@ public class ExplorePage extends NanodashPage {
                         }
                     }
                 }
-            }
-            AbstractResourceWithProfile contextResource = AbstractResourceWithProfile.get(contextId);
-            if (contextResource instanceof IndividualAgent && !IndividualAgent.isUser(contextId)) {
-                contextResource = null;
             }
             if (contextResource != null && contextResource.appliesTo(tempRef, classes)) {
                 throw new RestartResponseException(ResourcePartPage.class, parameters);
