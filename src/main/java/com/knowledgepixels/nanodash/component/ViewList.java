@@ -131,6 +131,11 @@ public class ViewList extends Panel {
                                     } else {
                                         queryRefParams.put(view.getQueryField() + "Np", npId);
                                     }
+                                } else if (paramName.equals("context")) {
+                                    // Auto-fill the page's context (the resource maintaining the shown
+                                    // element) so queries like get-part-info can render as content-tab
+                                    // view displays; on a resource's own page this is the resource itself.
+                                    queryRefParams.put("context", resourceWithProfile.getId());
                                 } else if (paramName.equals("root_np")) {
                                     // Auto-fill the ref scope (root nanopub) from the page's effective ref,
                                     // the same way the resource IRI above is filled, so a content-tab view
