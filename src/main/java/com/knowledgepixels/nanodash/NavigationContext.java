@@ -77,12 +77,26 @@ public class NavigationContext {
     }
 
     /**
+     * Whether the given context id is the configured home resource, whose page is the
+     * home page itself rather than its maintained-resource page.
+     *
+     * @param contextId the context resource id
+     * @return true if it is the home resource
+     */
+    public static boolean isHomeResource(String contextId) {
+        return contextId != null && contextId.equals(NanodashPreferences.get().getHomeResource());
+    }
+
+    /**
      * A page reference (link target + label) for the given context id.
      *
      * @param contextId the context resource id
      * @return the page reference, or null if the id cannot be resolved
      */
     public static NanodashPageRef getPageRef(String contextId) {
+        if (isHomeResource(contextId)) {
+            return new NanodashPageRef(HomePage.class, "Home");
+        }
         AbstractResourceWithProfile resource = resolve(contextId);
         if (resource == null) return null;
         return new NanodashPageRef(getPageClass(resource), new PageParameters().set("id", contextId), resource.getLabel());
@@ -141,6 +155,9 @@ public class NavigationContext {
                 // User was on a part page (e.g. paper collection); redirect back to the part page
                 redirectParams.set("id", partId).set(CONTEXT_PARAM, contextId);
                 throw new RestartResponseException(ResourcePartPage.class, redirectParams);
+            }
+            if (isHomeResource(contextId)) {
+                throw new RestartResponseException(HomePage.class, redirectParams);
             }
             redirectParams.set("id", contextId);
             // Return to the tab the action asked for (e.g. "about" for a
