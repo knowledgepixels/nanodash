@@ -35,7 +35,7 @@ public class AboutPartPanel extends Panel {
      * The "⬜ View displays" view for a part: the owning resource's view displays,
      * each flagged for this specific part via the partid/partclass parameters.
      */
-    public static final String PART_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RACcSq7Rz961_1pIB0FYGRbVHAUiVCeXcJsqlCLs0TxpE/part-view-displays-view";
+    public static final String PART_VIEW_DISPLAYS_VIEW = "https://w3id.org/np/RAkvLDMWg1GCSY2RUpvVA0P3th3gzjUcoaXTzqMeFi5OY/part-view-displays-view";
 
     /**
      * @param id          the Wicket markup id
