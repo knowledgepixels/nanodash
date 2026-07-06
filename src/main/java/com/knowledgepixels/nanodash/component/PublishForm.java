@@ -3,11 +3,8 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -490,35 +487,16 @@ public class PublishForm extends Panel {
                             && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
-                    String partId = pageParams.get("part").toString("");
-                    if (!contextId.isEmpty() && pageParams.get("postpub-redirect-url").isEmpty()) {
-                        PageParameters redirectParams = new PageParameters().set("just-published", signedNp.getUri().stringValue());
-                        if (!partId.isEmpty()) {
-                            // User was on a part page (e.g. paper collection); redirect back to the part page
-                            redirectParams.set("id", partId).set("context", contextId);
-                            throw new RestartResponseException(ResourcePartPage.class, redirectParams);
-                        }
-                        redirectParams.set("id", contextId);
-                        // Return to the tab the action asked for (e.g. "about" for a
-                        // space's About-tab role actions); default is the Content tab.
-                        String postpubTab = pageParams.get("postpub-tab").toString("");
-                        if (!postpubTab.isEmpty()) redirectParams.set("tab", postpubTab);
-                        if (SpaceRepository.get().findById(contextId) != null) {
-                            throw new RestartResponseException(SpacePage.class, redirectParams);
-                        }
-                        if (MaintainedResourceRepository.get().findById(contextId) != null) {
-                            throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
-                        }
-                        if (IndividualAgent.isUser(contextId)) {
-                            throw new RestartResponseException(UserPage.class, redirectParams);
-                        }
+                    if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
+                        // Forward to the context resource's page, or home if no context; always throws.
+                        NavigationContext.redirectAfterPublish(signedNp, pageParams);
                     }
+                    // Connector flow: show the connector's own confirmation page.
                     NanodashPage confirmPage = getConfirmPage(signedNp, pageParams);
                     if (confirmPage != null) {
                         throw new RestartResponseException(confirmPage);
                     }
-                    throw new RestartResponseException(ExplorePage.class,
-                            new PageParameters(pageParams).set("id", signedNp.getUri().stringValue()));
+                    NavigationContext.redirectAfterPublish(signedNp, pageParams);
                 }
             }
 
@@ -1022,6 +1000,7 @@ public class PublishForm extends Panel {
     }
 
     private NanodashPage getConfirmPage(Nanopub signedNp, PageParameters pageParams) {
+        if (confirmPageClass == null) return null;
         try {
             return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |

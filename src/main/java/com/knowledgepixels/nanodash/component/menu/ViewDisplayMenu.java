@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component.menu;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -72,10 +73,12 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         for (var entry : queryRef.getParams().entries()) {
             showQueryParams.add("queryparam_" + entry.getKey(), entry.getValue());
         }
-        addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams));
+        addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams)
+                .add(NavigationContext.pageContextFallback()));
 
         addEntry("showView", new BookmarkablePageLink<Void>("showView", ExplorePage.class,
-                new PageParameters().set("id", viewDisplay.getView().getNanopub().getUri())));
+                new PageParameters().set("id", viewDisplay.getView().getNanopub().getUri()))
+                .add(NavigationContext.pageContextFallback()));
 
         IRI nanopubId = viewDisplay.getNanopubId();
 
@@ -168,6 +171,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
 
         BookmarkablePageLink<Void> viewDeclarationLink = new BookmarkablePageLink<>("viewDeclaration", ExplorePage.class,
                 new PageParameters().set("id", nanopubId));
+        viewDeclarationLink.add(NavigationContext.pageContextFallback());
         viewDeclarationLink.setVisible(viewDisplay.getId() != null);
         addEntry("viewDeclaration", viewDeclarationLink);
     }

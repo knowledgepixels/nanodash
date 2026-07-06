@@ -1188,6 +1188,24 @@ select {
   padding-bottom: 0;
 }
 
+/* Full-width pages (#content-pane.full, e.g. query pages): the strip's row follows
+   the content to the left edge instead of centering at the standard width. The 25px
+   here plus the col's 15px padding matches the content start of #content-pane.full
+   (20px margin + 20px padding). */
+.breadcrumbpath.fullwidth .row-section {
+  max-width: none;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+@media screen and (max-width: 768px) {
+  /* #content-pane.full drops to 10px margin + 10px padding on mobile. */
+  .breadcrumbpath.fullwidth .row-section {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
 .breadcrumbpath .nextlevel {
   font-size: 24px;
   margin: -10px 0;

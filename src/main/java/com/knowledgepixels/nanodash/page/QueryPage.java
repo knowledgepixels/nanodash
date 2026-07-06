@@ -65,6 +65,11 @@ public class QueryPage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    @Override
+    public boolean hasFullWidthContent() {
+        return true;
+    }
+
     /**
      * Constructor for the QueryPage.
      *

@@ -47,6 +47,16 @@ public class UserPage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    @Override
+    public String getContextId() {
+        return userIri.stringValue();
+    }
+
+    @Override
+    public boolean isContextPage() {
+        return true;
+    }
+
     private IRI userIri;
     private String pubkeyHashes = "";
 

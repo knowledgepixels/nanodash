@@ -2,15 +2,13 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.domain.IndividualAgent;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
@@ -106,32 +104,15 @@ public class PreviewPage extends NanodashPage {
                             && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
-                    String partId = pageParams.get("part").toString("");
-                    if (!contextId.isEmpty()) {
-                        PageParameters redirectParams = new PageParameters().set("just-published", signedNp.getUri().stringValue());
-                        if (!partId.isEmpty()) {
-                            redirectParams.set("id", partId).set("context", contextId);
-                            throw new RestartResponseException(ResourcePartPage.class, redirectParams);
-                        }
-                        redirectParams.set("id", contextId);
-                        // Return to the tab the action asked for (default Content).
-                        String postpubTab = pageParams.get("postpub-tab").toString("");
-                        if (!postpubTab.isEmpty()) redirectParams.set("tab", postpubTab);
-                        if (SpaceRepository.get().findById(contextId) != null) {
-                            throw new RestartResponseException(SpacePage.class, redirectParams);
-                        }
-                        if (MaintainedResourceRepository.get().findById(contextId) != null) {
-                            throw new RestartResponseException(MaintainedResourcePage.class, redirectParams);
-                        }
-                        if (IndividualAgent.isUser(contextId)) {
-                            throw new RestartResponseException(UserPage.class, redirectParams);
-                        }
+                    if (confirmPageClass != null) {
+                        // Connector flow: show the connector's own confirmation page.
+                        throw new RestartResponseException(
+                                confirmPageClass,
+                                new PageParameters(pageParams).set("id", signedNp.getUri().stringValue())
+                        );
                     }
-
-                    throw new RestartResponseException(
-                            confirmPageClass,
-                            new PageParameters(pageParams).set("id", signedNp.getUri().stringValue())
-                    );
+                    // Forward to the context resource's page, or home if no context; always throws.
+                    NavigationContext.redirectAfterPublish(signedNp, pageParams);
                 } catch (RestartResponseException | RedirectToUrlException ex) {
                     throw ex;
                 } catch (Exception ex) {

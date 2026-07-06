@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultItemListBuilder;
@@ -76,7 +77,8 @@ public class UserListPage extends NanodashPage {
         add(QueryResultItemListBuilder.create("other-users",
                 new QueryRef(nonApprovedUsersView.getQuery().getQueryId()), new ViewDisplay(nonApprovedUsersView)).build());
 
-        add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest", "approve somebody else..."));
+        String contextParam = getContextId() == null ? "" : "&context=" + Utils.urlEncode(getContextId());
+        add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest" + contextParam, "approve somebody else..."));
         //add(new ExternalLink("newgroup", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RAJz6w5cvlsFGkCDtWOUXt2VwEQ3tVGtPdy3atPj_DUhk&template-version=latest", "new group"));
     }
 

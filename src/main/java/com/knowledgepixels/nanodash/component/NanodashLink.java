@@ -1,10 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.connector.ios.DsConfig;
 import com.knowledgepixels.nanodash.connector.ios.DsNanopubPage;
 import com.knowledgepixels.nanodash.connector.pensoft.BdjConfig;
@@ -168,6 +169,16 @@ public class NanodashLink extends Panel {
      * @return a {@link org.apache.wicket.Component} object
      */
     public static Component createLink(String markupId, String uri, String label, String contextId) {
+        Component link = createLinkComponent(markupId, uri, label, contextId);
+        // Fall back to the page's navigation context when the caller didn't supply one
+        // (e.g. nanopub cards), so the target page's back-link still points back here.
+        if (link instanceof BookmarkablePageLink) {
+            link.add(NavigationContext.pageContextFallback());
+        }
+        return link;
+    }
+
+    private static Component createLinkComponent(String markupId, String uri, String label, String contextId) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
         if (contextId != null) params.set("context", contextId);

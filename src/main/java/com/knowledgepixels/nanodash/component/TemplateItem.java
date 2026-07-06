@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.Template;
 import net.trustyuri.TrustyUriUtils;
@@ -30,6 +32,20 @@ public class TemplateItem extends Panel {
     private static final Logger logger = LoggerFactory.getLogger(TemplateItem.class);
 
     /**
+     * Parameters of the publish link, kept so the page's navigation context can be
+     * added in {@link #onInitialize()} (the page is not available in the constructor).
+     */
+    private PageParameters publishLinkParams;
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (getPage() instanceof NanodashPage nanodashPage) {
+            NavigationContext.withContext(publishLinkParams, nanodashPage.getContextId());
+        }
+    }
+
+    /**
      * A single template item in a list, showing the template name, user, and timestamp.
      *
      * @param id    the wicket id of this component
@@ -53,6 +69,7 @@ public class TemplateItem extends Panel {
         params.set("template", entry.get("np"));
         params.set("template-version", "latest");
         if (additionalParams != null) params.mergeWith(additionalParams);
+        publishLinkParams = params;
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
         String label = entry.get("label");
         if (label == null || label.isBlank()) label = TrustyUriUtils.getArtifactCode(entry.get("np")).substring(0, 10);
@@ -102,6 +119,7 @@ public class TemplateItem extends Panel {
         params.set("template", template.getId());
         params.set("template-version", "latest");
         if (additionalParams != null) params.mergeWith(additionalParams);
+        publishLinkParams = params;
         BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("link", PublishPage.class, params);
         l.add(new Label("name", template.getLabel()));
         add(l);

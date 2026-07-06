@@ -14,9 +14,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryListPage;
@@ -56,12 +61,20 @@ public class TitleBar extends Panel {
         // always-on "you haven't published an introduction yet" warning.
         add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
 
-        createNavLink("users", UserListPage.class);
-        createNavLink("connectors", SpaceListPage.class);
-        createNavLink("publish", PublishPage.class).setVisible(!NanodashPreferences.get().isReadOnlyMode());
-        createNavLink("query", QueryListPage.class);
+        // Nav links carry the page's navigation context along, so e.g. publishing via
+        // the "publish" link forwards back to the space/user/resource one came from.
+        PageParameters navParams = NavigationContext.withContext(new PageParameters(), page.getContextId());
+        createNavLink("users", UserListPage.class, navParams);
+        createNavLink("connectors", SpaceListPage.class, navParams);
+        createNavLink("publish", PublishPage.class, navParams).setVisible(!NanodashPreferences.get().isReadOnlyMode());
+        createNavLink("query", QueryListPage.class, navParams);
 
         breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
+        if (page.hasFullWidthContent()) {
+            // Full-width pages (e.g. query pages): the strip's row follows the
+            // content to the left edge instead of centering at the standard width.
+            breadcrumbPath.add(new AttributeAppender("class", " fullwidth"));
+        }
         WebMarkupContainer breadcrumbLinks = new WebMarkupContainer("breadcrumblinks");
         List<CrumbPart> crumbParts = buildCrumbParts(pathRefs);
         if (!crumbParts.isEmpty()) {
@@ -82,12 +95,50 @@ public class TitleBar extends Panel {
             breadcrumbLinks.setVisible(false);
         }
         breadcrumbPath.add(breadcrumbLinks);
+        // Back-to-context link: on pages without a breadcrumb of their own that are not
+        // a context resource's page, show "< XXX" pointing to the navigation context
+        // (or "< Home" if none), so the user can always get back to it.
+        WebMarkupContainer backContextContainer = new WebMarkupContainer("backcontext-container");
+        boolean backCrumbVisible = false;
+        if (crumbParts.isEmpty() && !page.isContextPage()) {
+            NanodashPageRef backRef = createBackContextRef(page);
+            if (backRef != null) {
+                backContextContainer.add(backRef.createComponent("backcontext", Utils.truncateLinkLabel(backRef.getLabel())));
+                backCrumbVisible = true;
+            }
+        }
+        backContextContainer.setVisible(backCrumbVisible);
+        breadcrumbPath.add(backContextContainer);
         // Tab strip placeholder (right side of the strip); replaced via setTabs().
         breadcrumbPath.add(new EmptyPanel("tabs").setVisible(false));
         // The strip shows when there is a breadcrumb to display; setTabs() also
         // forces it visible so a tab strip shows even without a breadcrumb.
-        breadcrumbPath.setVisible(pathRefs.length > 0);
+        breadcrumbPath.setVisible(pathRefs.length > 0 || backCrumbVisible);
         add(breadcrumbPath);
+    }
+
+    /**
+     * The target of the back-to-context link for the given page: the navigation context
+     * resource, the home page if no context is set, or an explore-page link if the
+     * context id cannot (yet) be resolved. Null when the link would point to the page
+     * itself.
+     */
+    private static NanodashPageRef createBackContextRef(NanodashPage page) {
+        String contextId = page.getContextId();
+        if (contextId == null) {
+            if (page instanceof HomePage) return null;
+            return new NanodashPageRef(HomePage.class, "Home");
+        }
+        NanodashPageRef ref = NavigationContext.getPageRef(contextId);
+        if (ref == null) {
+            // Stale or not-yet-loaded context id: link via the explore page, which
+            // forwards known resources to their own pages once the caches are warm.
+            ref = new NanodashPageRef(ExplorePage.class, new PageParameters().set("id", contextId), Utils.getShortNameFromURI(contextId));
+        }
+        if (ref.getPageClass().equals(page.getClass()) && contextId.equals(page.getPageParameters().get("id").toString(""))) {
+            return null;
+        }
+        return ref;
     }
 
     /**
@@ -263,8 +314,8 @@ public class TitleBar extends Panel {
         return this;
     }
 
-    private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass) {
-        BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, pageClass);
+    private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass, PageParameters params) {
+        BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, pageClass, params);
         if (id.equals(highlight)) {
             link.add(new AttributeAppender("class", "selected"));
         }

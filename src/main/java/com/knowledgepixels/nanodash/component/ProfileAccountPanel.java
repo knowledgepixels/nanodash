@@ -65,6 +65,7 @@ public class ProfileAccountPanel extends Panel {
                     + "&param_key-declaration=" + Utils.urlEncode(shortKey)
                     + "&param_key-declaration-ref=" + Utils.urlEncode(shortKey)
                     + "&param_key-location=" + Utils.urlEncode(prefs.getWebsiteUrl())
+                    + "&context=" + Utils.urlEncode(userIriString)
                     + "&postpub-redirect-url=" + Utils.urlEncode(aboutUrl)
                     + "&link-message=" + Utils.urlEncode("Check the checkbox at the end of this page and press 'Publish' to "
                             + "publish this introduction linking your ORCID identifier to the local key used on this site.");
