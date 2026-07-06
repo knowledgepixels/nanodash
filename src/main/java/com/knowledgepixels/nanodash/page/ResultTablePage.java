@@ -27,6 +27,11 @@ public class ResultTablePage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    @Override
+    public boolean hasFullWidthContent() {
+        return true;
+    }
+
     /**
      * Constructor for ResultTablePage.
      *

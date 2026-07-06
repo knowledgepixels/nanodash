@@ -97,7 +97,7 @@ public class QueryResultItemList extends QueryResult {
                         return;
                     } else if (key.endsWith("template_iri")) {
                         String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : value;
-                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
                         String html = "<span class=\"form-icon\"></span> <a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                         item.add(new Label("listItem", html).setEscapeModelStrings(false));
                         return;

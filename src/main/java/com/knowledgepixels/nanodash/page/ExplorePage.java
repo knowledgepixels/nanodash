@@ -16,7 +16,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
@@ -151,22 +150,6 @@ public class ExplorePage extends NanodashPage {
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
         TitleBar titleBar = new TitleBar("titlebar", this, null);
         add(titleBar);
-
-        if (SpaceRepository.get().findById(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", SpacePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
-                var space = SpaceRepository.get().findById(contextId);
-                return "back to " + Utils.truncateLinkLabel(space == null ? contextId : space.getLabel());
-            })));
-        } else if (MaintainedResourceRepository.get().findById(contextId) != null) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", MaintainedResourcePage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> {
-                var resource = MaintainedResourceRepository.get().findById(contextId);
-                return "back to " + Utils.truncateLinkLabel(resource == null ? contextId : resource.getLabel());
-            })));
-        } else if (IndividualAgent.isUser(contextId)) {
-            add(new BookmarkablePageLink<Void>("back-to-context-link", UserPage.class, new PageParameters().set("id", contextId)).setBody(LoadableDetachableModel.of(() -> "back to " + Utils.truncateLinkLabel(User.getShortDisplayName(Utils.vf.createIRI(contextId))))));
-        } else {
-            add(new Label("back-to-context-link").setVisible(false));
-        }
 
         if (User.getUserData().isUser(tempRef)) {
             add(new BookmarkablePageLink<Void>("to-specific-page-link", UserPage.class, parameters).setBody(Model.of("go to user page")));
@@ -323,7 +306,8 @@ public class ExplorePage extends NanodashPage {
             raw.add(createAssertionLink("a-rdfxml-txt", npUri, "rdfxml", true));
             nanopubSection.add(raw);
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
-                nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class, new PageParameters().set("template", np.getUri()))));
+                nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class,
+                        NavigationContext.withContext(new PageParameters().set("template", np.getUri()), getContextId()))));
             } else {
                 nanopubSection.add(new WebMarkupContainer("use-template").setVisible(false));
             }

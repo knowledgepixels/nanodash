@@ -46,7 +46,9 @@ public class PublishPage extends NanodashPage {
             if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
                 add(new DifferentKeyErrorItem("form", parameters));
             } else {
-                add(new PublishForm("form", parameters, getClass(), ExplorePage.class));
+                // No confirm page: after publishing, the form forwards to the context
+                // resource (or home), showing the new nanopub in the title bar message.
+                add(new PublishForm("form", parameters, getClass(), null));
             }
             add(new Label("templatelist").setVisible(false));
         } else {

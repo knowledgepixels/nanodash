@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.FilteredQueryResultDataProvider;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.QueryResultDataProvider;
 import com.knowledgepixels.nanodash.Utils;
@@ -106,6 +107,7 @@ public class QueryResultPlainParagraph extends QueryResult {
                     List<AbstractLink> links = new ArrayList<>();
                     BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class,
                             new PageParameters().set("id", npId));
+                    sourceLink.add(NavigationContext.pageContextFallback());
                     sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                     links.add(sourceLink);
                     header.add(new EntryActionMenu("pnp", links));
@@ -114,7 +116,7 @@ public class QueryResultPlainParagraph extends QueryResult {
                 }
                 item.add(header);
                 String content = item.getModelObject().get("content");
-                item.add(new Label("content", content == null ? null : Utils.sanitizeHtml(content)).setEscapeModelStrings(false));
+                item.add(new Label("content", content == null ? null : withContextInHtmlLinks(Utils.sanitizeHtml(content))).setEscapeModelStrings(false));
             }
         };
     }

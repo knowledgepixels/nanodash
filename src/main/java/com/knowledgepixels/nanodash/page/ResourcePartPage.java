@@ -51,6 +51,12 @@ public class ResourcePartPage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    // getContextId() is inherited: the context param holds the maintaining resource.
+    @Override
+    public boolean isContextPage() {
+        return true;
+    }
+
     /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */

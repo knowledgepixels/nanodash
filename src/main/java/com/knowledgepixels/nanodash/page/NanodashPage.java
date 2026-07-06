@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -111,6 +112,39 @@ public abstract class NanodashPage extends WebPage {
      * @return true if auto-refresh is enabled, false otherwise
      */
     protected boolean hasAutoRefreshEnabled() {
+        return false;
+    }
+
+    /**
+     * The navigation context id (space/user/maintained resource) this page was reached
+     * under. Pages showing a context resource override this to return their own resource
+     * id, so links from them carry the context even without a {@code context} parameter.
+     *
+     * @return the context resource id, or null if none
+     */
+    public String getContextId() {
+        return NavigationContext.getContextId(getPageParameters());
+    }
+
+    /**
+     * Whether this page shows a context resource itself (space, user, maintained
+     * resource, or resource part). Such pages have their own breadcrumb or tab strip and
+     * don't get the title bar's back-to-context link.
+     *
+     * @return true if this is a context resource's own page
+     */
+    public boolean isContextPage() {
+        return false;
+    }
+
+    /**
+     * Whether this page's content pane runs the full viewport width (class
+     * {@code full}), so the title bar's breadcrumb strip should too instead of
+     * centering at the standard content width.
+     *
+     * @return true if this page has full-width content
+     */
+    public boolean hasFullWidthContent() {
         return false;
     }
 

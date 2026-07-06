@@ -12,6 +12,8 @@ import org.nanopub.extra.services.QueryRef;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Abstract base class for displaying query results in different formats.
@@ -156,6 +158,61 @@ public abstract class QueryResult extends Panel {
             parameters.set("context", contextId);
         }
         menuActions.add(new MenuAction(label, pageClass, parameters));
+    }
+
+    /**
+     * The navigation context to stamp on links in result cells: this view's context
+     * resource if bound to one, else the page's navigation context. Only usable at
+     * render time (needs the page).
+     *
+     * @return the context id, or null if neither is set
+     */
+    private String renderContextId() {
+        if (contextId != null) return contextId;
+        if (getPage() instanceof NanodashPage nanodashPage) return nanodashPage.getContextId();
+        return null;
+    }
+
+    /**
+     * The {@code &context=...} URL suffix for template/query links in result cells.
+     * Empty string when no context is set. Only usable at render time (needs the page).
+     *
+     * @return the context URL parameter suffix, possibly empty
+     */
+    protected String templateLinkContextParam() {
+        String ctx = renderContextId();
+        return ctx == null ? "" : "&context=" + Utils.urlEncode(ctx);
+    }
+
+    private static final Pattern INTERNAL_HREF_PATTERN = Pattern.compile("href=\"(/[^\"]*)\"");
+
+    /**
+     * Appends the navigation context to app-internal links ({@code href="/..."}) inside
+     * sanitized result-cell HTML, so ready-made links coming from the query data itself
+     * (e.g. template or query links emitted by the SPARQL) also lead back to the
+     * current context. Links already carrying a context are left alone.
+     *
+     * @param sanitizedHtml the sanitized cell HTML, or null
+     * @return the HTML with context-enriched internal links
+     */
+    protected String withContextInHtmlLinks(String sanitizedHtml) {
+        String ctx = renderContextId();
+        if (ctx == null || sanitizedHtml == null) return sanitizedHtml;
+        String encodedCtx = Utils.urlEncode(ctx);
+        Matcher m = INTERNAL_HREF_PATTERN.matcher(sanitizedHtml);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String url = m.group(1);
+            String replacement = m.group();
+            // The sanitizer escapes "=" as "&#61;", so check both spellings.
+            if (!url.contains("context=") && !url.contains("context&#61;")) {
+                String separator = url.contains("?") ? "&amp;" : "?";
+                replacement = "href=\"" + url + separator + "context=" + encodedCtx + "\"";
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     /**

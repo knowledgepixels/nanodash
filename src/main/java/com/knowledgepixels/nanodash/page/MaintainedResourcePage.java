@@ -42,6 +42,16 @@ public class MaintainedResourcePage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    @Override
+    public String getContextId() {
+        return resourceId;
+    }
+
+    @Override
+    public boolean isContextPage() {
+        return true;
+    }
+
     /**
      * Id of the maintained resource shown on this page. Only the id is held in
      * the page state; the {@link MaintainedResource} itself is re-fetched from

@@ -136,7 +136,7 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("template_iri")) {
                             String templateLabel = entry.get(key + "_label");
                             String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
-                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
+                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest" + templateLinkContextParam();
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
@@ -144,7 +144,7 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("query_iri")) {
                             String queryLabel = entry.get(key + "_label");
                             String displayLabel = queryLabel != null && !queryLabel.isBlank() ? queryLabel : entryValue;
-                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue) + templateLinkContextParam();
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(queryUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new Label("component", linkHtml).setEscapeModelStrings(false));
                         } else if (key.endsWith("_multi_iri")) {
@@ -184,7 +184,7 @@ public class QueryResultList extends QueryResult {
                                         String display = label != null ? label : unescaped;
                                         boolean isHtml = Utils.looksLikeHtml(display);
                                         if (isHtml) {
-                                            display = Utils.sanitizeHtml(display);
+                                            display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
                                         }
                                         multiComponents.add(new Label("component", display).setEscapeModelStrings(!isHtml));
                                     }
@@ -225,7 +225,7 @@ public class QueryResultList extends QueryResult {
                             } else {
                                 String display = hasLabel ? entryLabel : entryValue;
                                 if (Utils.looksLikeHtml(display)) {
-                                    display = Utils.sanitizeHtml(display);
+                                    display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
                                 } else if (hasLabel) {
                                     display = Strings.escapeMarkup(display).toString();
                                 }
@@ -288,6 +288,7 @@ public class QueryResultList extends QueryResult {
                 if (sourceUri != null) {
                     AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,
                             new PageParameters().set("id", sourceUri));
+                    sourceLink.add(NavigationContext.pageContextFallback());
                     sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                     actionLinks.add(sourceLink);
                 }

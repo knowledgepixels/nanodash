@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.action.NanopubAction;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.domain.UserData;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -59,9 +60,13 @@ public class ActionMenu extends Panel {
                         sigkeyParam = "&sigkey=" + URLEncoder.encode(pubkey, UTF_8);
                     }
                 }
+                String contextParam = "";
+                if (getPage() instanceof NanodashPage nanodashPage && nanodashPage.getContextId() != null) {
+                    contextParam = "&context=" + Utils.urlEncode(nanodashPage.getContextId());
+                }
                 String url = location + PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(action.getTemplateUri(n.getNanopub())) +
                              "&" + action.getParamString(n.getNanopub()) +
-                             "&template-version=latest" + sigkeyParam;
+                             "&template-version=latest" + sigkeyParam + contextParam;
                 item.add(new ExternalLink("menuitem", url, action.getLinkLabel(n.getNanopub()) + extraLabel + "..."));
             }
 

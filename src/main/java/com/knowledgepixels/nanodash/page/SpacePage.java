@@ -42,6 +42,16 @@ public class SpacePage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    @Override
+    public String getContextId() {
+        return spaceId;
+    }
+
+    @Override
+    public boolean isContextPage() {
+        return true;
+    }
+
     /**
      * Id of the space shown on this page. Only the id is held in the page
      * state; the {@link Space} itself is re-fetched from the repository on
