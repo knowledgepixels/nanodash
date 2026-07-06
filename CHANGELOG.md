@@ -1,3 +1,32 @@
+## [5.4.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.3.0...nanodash-5.4.0) (2026-07-06)
+
+### Features
+
+* auto-fill 'context' query param for content-tab view displays ([838bd8e](https://github.com/knowledgepixels/nanodash/commit/838bd8e3b6f7721992bb90b3a654346c705fc10a))
+* governed version resolution in the view-displays query family ([60cd505](https://github.com/knowledgepixels/nanodash/commit/60cd5052ad3959c652cf9bba53dad2113e046fbf))
+* persistent navigation context with back-link and post-publish forwarding ([d9131b7](https://github.com/knowledgepixels/nanodash/commit/d9131b7817efe26fbb45d52e4de8e450a831d973))
+* recognize part membership of plain term IRIs via defining nanopub ([5c795b3](https://github.com/knowledgepixels/nanodash/commit/5c795b365d07a0ddc331b29fa15949a9c350488e))
+* replace template-form '^' source links with dropdown menus ([fd800ea](https://github.com/knowledgepixels/nanodash/commit/fd800ea3b85e669abaa60729d669b71790ad166c))
+* resolve space-governed view versions via gen:governedBy ([6975dfc](https://github.com/knowledgepixels/nanodash/commit/6975dfcb7874d626f4073de6f7eedc7c3fd76174))
+
+### Bug Fixes
+
+* keep navigation context on string-built statement links ([0a65bce](https://github.com/knowledgepixels/nanodash/commit/0a65bcede1d37e1ce953e9f1fd15d57a6cb3f4cb))
+* make CI robust against Coveralls outages and flaky version fetch ([535334a](https://github.com/knowledgepixels/nanodash/commit/535334a56e3d53c974cd1a13f117aa17e43be083))
+* treat home resource context as plain Home in navigation ([58b5e64](https://github.com/knowledgepixels/nanodash/commit/58b5e64fc65d17902c875ff702aced5001520151))
+* unify artifact-code placeholder on derive ([#529](https://github.com/knowledgepixels/nanodash/issues/529)) ([342ff73](https://github.com/knowledgepixels/nanodash/commit/342ff7306039744d427286217689fabe9e87952e))
+
+### Documentation
+
+* add minimal implementation sketch for space-governed views ([b4c8b70](https://github.com/knowledgepixels/nanodash/commit/b4c8b70aad203fbc845b22e4ff13c829dbb73826))
+* govern view versions via in-definition space-ID pin ([f888eae](https://github.com/knowledgepixels/nanodash/commit/f888eae91ad4371981d829510c4fdfd2c1a9a287))
+* specify resolution-time membership, pin-as-floor, and opt-in governance modes ([e138572](https://github.com/knowledgepixels/nanodash/commit/e1385726d4c488eed2c9dd81e51eb48eaa46ba4f))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([d61935a](https://github.com/knowledgepixels/nanodash/commit/d61935afef548131395f4bb3ee2fe561a870c7ee))
+* update part view-displays view to latest head ([afb8fc1](https://github.com/knowledgepixels/nanodash/commit/afb8fc1abce6092a52ae285525f8452af0c187e7))
+
 ## [5.3.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.2.0...nanodash-5.3.0) (2026-07-02)
 
 ### Features
