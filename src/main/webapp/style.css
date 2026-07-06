@@ -1100,14 +1100,16 @@ input[type=radio] + label strong {
    chevron — the border only appears on hover (as an outline, not a filled button). */
 .result-table .actionmenu,
 .inline-list .actionmenu,
-.paragraph-header .actionmenu {
+.paragraph-header .actionmenu,
+.graphsubheader .actionmenu {
   position: relative;
   top: -2px;
 }
 
 .result-table .actionmenu-button,
 .inline-list .actionmenu-button,
-.paragraph-header .actionmenu-button {
+.paragraph-header .actionmenu-button,
+.graphsubheader .actionmenu-button {
   border-color: transparent;
   /* Resting state (no border): a bare chevron at full color, matching the menu text
      and the standard dropdown button; the border outline appears on hover. */
@@ -1116,7 +1118,8 @@ input[type=radio] + label strong {
 
 .result-table .actionmenu:hover .actionmenu-button,
 .inline-list .actionmenu:hover .actionmenu-button,
-.paragraph-header .actionmenu:hover .actionmenu-button {
+.paragraph-header .actionmenu:hover .actionmenu-button,
+.graphsubheader .actionmenu:hover .actionmenu-button {
   border-color: #0B73DA;
   background-color: transparent;
   color: #0B73DA;

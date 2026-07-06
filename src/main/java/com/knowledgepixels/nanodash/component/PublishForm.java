@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.page.*;
 import com.knowledgepixels.nanodash.template.*;
 import org.apache.commons.lang3.Strings;
@@ -530,7 +531,7 @@ public class PublishForm extends Panel {
 
         //form.add(new Label("nanopub-namespace", targetNamespaceLabel));
 
-        form.add(new BookmarkablePageLink<Void>("templatelink", ExplorePage.class, new PageParameters().set("id", assertionContext.getTemplate().getId())));
+        form.add(newSourceMenu("templatelink", assertionContext.getTemplate().getId()));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
         form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()).setEscapeModelStrings(false));
@@ -815,6 +816,13 @@ public class PublishForm extends Panel {
         add(feedbackPanel);
     }
 
+    static EntryActionMenu newSourceMenu(String id, String templateId) {
+        BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class, new PageParameters().set("id", templateId));
+        sourceLink.add(NavigationContext.pageContextFallback());
+        sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
+        return new EntryActionMenu(id, List.of(sourceLink));
+    }
+
     private void refreshProvenance(AjaxRequestTarget target) {
         if (target != null) {
             form.remove("prtemplatelink");
@@ -822,7 +830,7 @@ public class PublishForm extends Panel {
             target.add(form);
             target.appendJavaScript("updateElements();");
         }
-        form.add(new BookmarkablePageLink<Void>("prtemplatelink", ExplorePage.class, new PageParameters().set("id", provenanceContext.getTemplate().getId())));
+        form.add(newSourceMenu("prtemplatelink", provenanceContext.getTemplate().getId()));
         ListView<StatementItem> list = new ListView<StatementItem>("pr-statements", provenanceContext.getStatementItems()) {
 
             protected void populateItem(ListItem<StatementItem> item) {
@@ -840,7 +848,7 @@ public class PublishForm extends Panel {
             protected void populateItem(ListItem<TemplateContext> item) {
                 final TemplateContext pic = item.getModelObject();
                 item.add(new Label("pitemplatename", pic.getTemplate().getLabel()));
-                item.add(new BookmarkablePageLink<Void>("pitemplatelink", ExplorePage.class, new PageParameters().set("id", pic.getTemplate().getId())));
+                item.add(newSourceMenu("pitemplatelink", pic.getTemplate().getId()));
                 Label remove = new Label("piremove", "×");
                 item.add(remove);
                 remove.add(new AjaxEventBehavior("click") {
