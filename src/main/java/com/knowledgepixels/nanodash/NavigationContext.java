@@ -13,6 +13,7 @@ import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.nanopub.Nanopub;
@@ -133,6 +134,28 @@ public class NavigationContext {
                         && link.getPageParameters() != null) {
                     withContext(link.getPageParameters(), page.getContextId());
                 }
+            }
+        };
+    }
+
+    /**
+     * A behavior that appends the page's navigation context to a link whose target is a
+     * URL string (e.g. from {@link com.knowledgepixels.nanodash.component.NanodashLink#getPageUrl(String)})
+     * rather than page parameters, where {@link #pageContextFallback()} cannot apply.
+     * Only internal page URLs (starting with "/") that don't carry a context yet are touched.
+     *
+     * @return the context-fallback behavior
+     */
+    public static Behavior hrefContextFallback() {
+        return new Behavior() {
+            @Override
+            public void onComponentTag(Component component, ComponentTag tag) {
+                if (!(component.getPage() instanceof NanodashPage page)) return;
+                String contextId = page.getContextId();
+                if (contextId == null) return;
+                String href = tag.getAttribute("href");
+                if (href == null || !href.startsWith("/") || href.contains(CONTEXT_PARAM + "=")) return;
+                tag.put("href", href + (href.contains("?") ? "&" : "?") + CONTEXT_PARAM + "=" + Utils.urlEncode(contextId));
             }
         };
     }
