@@ -6,6 +6,7 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class WicketApplicationTest {
 
@@ -44,6 +45,9 @@ class WicketApplicationTest {
     @Test
     void getLatestVersionWhenFetchSucceeds() {
         String result = WicketApplication.getLatestVersion();
+        // The fetch hits the live GitHub API and returns null on any failure
+        // (offline, rate-limited CI runner); only assert when it succeeded.
+        assumeTrue(result != null, "latest-version fetch from GitHub API failed; skipping");
         assertTrue(result.matches("\\d+.\\d+(.\\d+)*"));
     }
 

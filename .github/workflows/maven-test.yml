@@ -33,6 +33,8 @@ jobs:
         with:
           parallel: true
           flag-name: run-${{ join(matrix.*, '-') }}
+          # Coverage upload is best-effort: a Coveralls outage must not fail the build.
+          fail-on-error: false
 
   coveralls:
     needs: test
@@ -42,3 +44,4 @@ jobs:
         uses: coverallsapp/github-action@648a8eb78e6d50909eff900e4ec85cab4524a45b # v2.3.6
         with:
           parallel-finished: true
+          fail-on-error: false
