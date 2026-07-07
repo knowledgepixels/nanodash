@@ -182,4 +182,14 @@ public class QueryFormPanel extends Panel {
         add(feedbackPanel);
     }
 
+    /**
+     * Hides the form part, leaving only the title row (with the dropdown menu). Used on
+     * the view-results page for views that are not query-form views: their query
+     * parameters are fixed (carried in the URL), so the fields are not user-facing —
+     * just as they are hidden when the view is shown on a resource page.
+     */
+    public void hideForm() {
+        form.setVisible(false);
+    }
+
 }

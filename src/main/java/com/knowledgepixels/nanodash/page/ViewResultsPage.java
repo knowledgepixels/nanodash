@@ -63,13 +63,22 @@ public class ViewResultsPage extends NanodashPage {
             queryParams.put(param.getKey().replaceFirst("queryparam_", ""), param.getValue());
         }
 
-        add(new QueryFormPanel("queryform", new ViewDisplay(view).withDisplayWidth(12), ArrayListMultimap.create(), queryParams, null));
+        QueryFormPanel formPanel = new QueryFormPanel("queryform", new ViewDisplay(view).withDisplayWidth(12), ArrayListMultimap.create(), queryParams, null);
+        if (!view.hasQueryForm()) {
+            // For a regular view shown full-screen, the query parameters are fixed
+            // (carried in the URL by the full-screen link), so no fields are shown —
+            // just as they are hidden when the view is shown on a resource page.
+            formPanel.hideForm();
+        }
+        add(formPanel);
 
         for (String p : view.getQuery().getPlaceholdersList()) {
             if (QueryTemplate.isOptionalPlaceholder(p)) continue;
             if (MagicQueryParams.isMagic(p)) continue;
             if (!queryParams.containsKey(QueryTemplate.getParamName(p))) {
-                add(new Label("results", "Fill in the form above to see the results."));
+                add(new Label("results", view.hasQueryForm()
+                        ? "Fill in the form above to see the results."
+                        : "Query parameters are missing for this view."));
                 return;
             }
         }
