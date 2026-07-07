@@ -68,7 +68,7 @@ public class QueryResultTable extends QueryResult {
             if (viewDisplay.getTitle() != null) {
                 label = viewDisplay.getTitle();
             }
-            add(new Label("label", label));
+            add(new Label("label", label).setVisible(label != null && !label.isEmpty()));
         }
 
         errorLabel = new Label("error-messages", errorMessages);

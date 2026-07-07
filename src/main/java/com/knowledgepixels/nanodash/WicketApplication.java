@@ -185,6 +185,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(SpacePage.MOUNT_PATH, SpacePage.class);
         mountPage(QueryPage.MOUNT_PATH, QueryPage.class);
         mountPage(QueryListPage.MOUNT_PATH, QueryListPage.class);
+        mountPage(ViewResultsPage.MOUNT_PATH, ViewResultsPage.class);
         mountPage(ListPage.MOUNT_PATH, ListPage.class);
         mountPage(MaintainedResourcePage.MOUNT_PATH, MaintainedResourcePage.class);
         mountPage(ResourcePartPage.MOUNT_PATH, ResourcePartPage.class);

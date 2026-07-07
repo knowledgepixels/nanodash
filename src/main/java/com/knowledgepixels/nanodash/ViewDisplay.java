@@ -312,6 +312,19 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return this;
     }
 
+    /**
+     * Overrides the title shown by the result components. An empty string hides the
+     * title row entirely (used on the view-results page, where the query form above
+     * already shows the view's icon+title).
+     *
+     * @param title the title to show, or "" to hide it
+     * @return this view display, for chaining
+     */
+    public ViewDisplay withTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
     public String getStructuralPosition() {
         if (structuralPosition != null) return structuralPosition;
         if (view == null) return "5.5.default";

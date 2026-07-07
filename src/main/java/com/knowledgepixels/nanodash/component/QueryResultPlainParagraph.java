@@ -50,7 +50,7 @@ public class QueryResultPlainParagraph extends QueryResult {
         if (viewDisplay.getTitle() != null) {
             label = viewDisplay.getTitle();
         }
-        add(new Label("label", label));
+        add(new Label("label", label).setVisible(label != null && !label.isEmpty()));
         setOutputMarkupId(true);
 
         TextField<String> filterField = new TextField<>("filter", filterModel);

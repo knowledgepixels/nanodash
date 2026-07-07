@@ -6,8 +6,8 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -146,51 +146,29 @@ public class ViewList extends Panel {
                                         queryRefParams.put("root_np", refRoot);
                                     }
                                 } else if (!QueryTemplate.isOptionalPlaceholder(p)) {
-                                    item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
-                                    logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
-                                    return;
+                                    // For a query-form view, an unmatched placeholder is not an
+                                    // error: it becomes a form field the user fills in.
+                                    if (!view.hasQueryForm()) {
+                                        item.add(new Label("view", "<span class=\"negative\">Error: Query has non-optional parameter</span>").setEscapeModelStrings(false));
+                                        logger.error("Error: Query has non-optional parameter: {} {}", view.getQuery().getQueryId(), p);
+                                        return;
+                                    }
                                 }
                             }
+                            if (view.hasQueryForm()) {
+                                Component form = new QueryFormPanel("view", item.getModelObject(), queryRefParams, null, resourceWithProfile);
+                                form.add(new AttributeAppender("class", " col-" + item.getModelObject().getDisplayWidth()));
+                                item.add(form);
+                                return;
+                            }
                             QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
-                            if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
-                                if (view.getViewType().equals(KPXL_TERMS.LIST_VIEW)) {
-                                    item.add(QueryResultListBuilder.create("view", queryRef, item.getModelObject())
-                                            .resourceWithProfile(resourceWithProfile)
-                                            .pageResource(resourceWithProfile)
-                                            .id(id)
-                                            .contextId(resourceWithProfile.getId())
-                                            .refRoot(refRoot)
-                                            .build());
-                                } else if (view.getViewType().equals(KPXL_TERMS.TABULAR_VIEW)) {
-                                    item.add(QueryResultTableBuilder.create("view", queryRef, item.getModelObject())
-                                            .resourceWithProfile(resourceWithProfile)
-                                            .contextId(resourceWithProfile.getId())
-                                            .id(id)
-                                            .refRoot(refRoot)
-                                            .build());
-                                } else if (view.getViewType().equals(KPXL_TERMS.PLAIN_PARAGRAPH_VIEW)) {
-                                    item.add(QueryResultPlainParagraphBuilder.create("view", queryRef, item.getModelObject())
-                                            .pageResource(resourceWithProfile)
-                                            .contextId(resourceWithProfile.getId())
-                                            .id(id)
-                                            .refRoot(refRoot)
-                                            .build());
-                                } else if (view.getViewType().equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
-                                    item.add(QueryResultNanopubSetBuilder.create("view", queryRef, item.getModelObject())
-                                            .pageResource(resourceWithProfile)
-                                            .contextId(resourceWithProfile.getId())
-                                            .build());
-                                } else if (view.getViewType().equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
-                                    item.add(QueryResultItemListBuilder.create("view", queryRef, item.getModelObject())
-                                            .resourceWithProfile(resourceWithProfile)
-                                            .pageResource(resourceWithProfile)
-                                            .id(id)
-                                            .contextId(resourceWithProfile.getId())
-                                            .build());
-                                } else {
-                                    item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
-                                    logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
-                                }
+                            Component resultComponent = QueryResultComponentFactory.build("view", queryRef, item.getModelObject(),
+                                    resourceWithProfile, id, resourceWithProfile.getId(), refRoot);
+                            if (resultComponent != null) {
+                                item.add(resultComponent);
+                            } else if (view.getViewType() != null && View.getSupportedViewTypes().contains(view.getViewType())) {
+                                item.add(new Label("view", "<span class=\"negative\">View type \"" + view.getViewType().stringValue() + "\" is supported but its view is not implemented yet</span>").setEscapeModelStrings(false));
+                                logger.error("View type \"{}\" is supported but its view is not implemented yet", view.getViewType().stringValue());
                             } else {
                                 item.add(new Label("view", "<span class=\"negative\">Unsupported view type</span>").setEscapeModelStrings(false));
                                 logger.error("Unsupported view type.");

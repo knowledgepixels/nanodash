@@ -57,6 +57,9 @@ public class QueryResultNanopubSet extends QueryResult {
             titleLabel = viewDisplay.getTitle();
         }
         add(new Label("title", titleLabel));
+        if (titleLabel == null || titleLabel.isEmpty()) {
+            setTitleVisible(false);
+        }
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);

@@ -2409,6 +2409,24 @@ div.navigator .goto a[disabled] {
   margin-left: auto;
 }
 
+.paneltitlerow input.panelfilter {
+  margin: 5px 10px;
+  padding: 2px 5px;
+  font-size: 12px;
+  width: 150px;
+}
+
+/* With the title hidden (e.g. on the view-results page) there is no flex-stretched
+   h4 pushing the filter right, so the filter claims the free space itself and the
+   buttons' auto margin yields to it, keeping the filter next to the dropdown. */
+.paneltitlerow:not(:has(> h4)) > input.panelfilter {
+  margin-left: auto;
+}
+
+.paneltitlerow:not(:has(> h4)):has(> input.panelfilter) > span.buttons {
+  margin-left: 0;
+}
+
 .paneltitlerow > span.buttons:has(~ span.buttons) {
   order: 1;
   margin-left: 0;
