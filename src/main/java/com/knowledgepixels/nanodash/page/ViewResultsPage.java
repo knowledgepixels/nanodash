@@ -63,31 +63,33 @@ public class ViewResultsPage extends NanodashPage {
             queryParams.put(param.getKey().replaceFirst("queryparam_", ""), param.getValue());
         }
 
-        QueryFormPanel formPanel = new QueryFormPanel("queryform", new ViewDisplay(view).withDisplayWidth(12), ArrayListMultimap.create(), queryParams, null);
-        if (!view.hasQueryForm()) {
-            // For a regular view shown full-screen, the query parameters are fixed
-            // (carried in the URL by the full-screen link), so no fields are shown —
-            // just as they are hidden when the view is shown on a resource page.
-            formPanel.hideForm();
+        boolean queryForm = view.hasQueryForm();
+        if (queryForm) {
+            add(new QueryFormPanel("queryform", new ViewDisplay(view).withDisplayWidth(12), ArrayListMultimap.create(), queryParams, null));
+        } else {
+            // A regular view shown full-screen needs no separate query part: its
+            // parameters are fixed (carried in the URL by the full-screen link), so
+            // the result panel below is shown alone, with its own title row.
+            add(new Label("queryform").setVisible(false));
         }
-        add(formPanel);
 
         for (String p : view.getQuery().getPlaceholdersList()) {
             if (QueryTemplate.isOptionalPlaceholder(p)) continue;
             if (MagicQueryParams.isMagic(p)) continue;
             if (!queryParams.containsKey(QueryTemplate.getParamName(p))) {
-                add(new Label("results", view.hasQueryForm()
+                add(new Label("results", queryForm
                         ? "Fill in the form above to see the results."
                         : "Query parameters are missing for this view."));
                 return;
             }
         }
 
-        // The form above already shows the view's icon+title, so the results render
-        // without their own title row. The navigation context (the resource the search
-        // started from) doubles as the id, so view-level actions pre-fill their target
-        // field with it, as they do on the resource's own page.
-        ViewDisplay resultsDisplay = new ViewDisplay(view).withDisplayWidth(12).withTitle("");
+        // With a query form above (which shows the view's icon+title), the results
+        // render without their own title row. The navigation context (the resource the
+        // search started from) doubles as the id, so view-level actions pre-fill their
+        // target field with it, as they do on the resource's own page.
+        ViewDisplay resultsDisplay = new ViewDisplay(view).withDisplayWidth(12);
+        if (queryForm) resultsDisplay.withTitle("");
         QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryParams);
         String contextId = getContextId();
         Component results = QueryResultComponentFactory.build("results", queryRef, resultsDisplay, null, contextId, contextId, null);
