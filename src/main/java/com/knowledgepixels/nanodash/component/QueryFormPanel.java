@@ -4,12 +4,16 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.MagicQueryParams;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.QueryResult;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.ViewResultsPage;
+import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -20,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
 
@@ -73,7 +78,26 @@ public class QueryFormPanel extends Panel {
         add(new Label("label", viewDisplay.getTitle()));
 
         if (pageResource != null && viewDisplay.getNanopubId() != null) {
-            add(new ViewDisplayMenu("np", viewDisplay, new QueryRef(query.getQueryId(), fixedParams), pageResource, List.of()));
+            // The view's result actions become the top entries of the dropdown, as on
+            // regular view displays; the target field is pre-filled with the page's
+            // resource (there are no query results here to map values from).
+            List<QueryResult.MenuAction> menuActions = new ArrayList<>();
+            for (IRI actionIri : view.getViewResultActionList()) {
+                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), pageResource, null)) continue;
+                Template t = view.getTemplateForAction(actionIri);
+                if (t == null) continue;
+                String targetField = view.getTemplateTargetFieldForAction(actionIri);
+                if (targetField == null) targetField = "resource";
+                String label = view.getLabelForAction(actionIri);
+                if (label == null) label = "action...";
+                if (!label.endsWith("...")) label += "...";
+                PageParameters actionParams = new PageParameters().set("template", t.getId())
+                        .set("param_" + targetField, pageResource.getId())
+                        .set("context", pageResource.getId())
+                        .set("template-version", "latest");
+                menuActions.add(new QueryResult.MenuAction(label, PublishPage.class, actionParams));
+            }
+            add(new ViewDisplayMenu("np", viewDisplay, new QueryRef(query.getQueryId(), fixedParams), pageResource, menuActions));
         } else {
             add(new Label("np").setVisible(false));
         }
