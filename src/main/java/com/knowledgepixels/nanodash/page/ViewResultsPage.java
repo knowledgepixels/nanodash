@@ -75,10 +75,13 @@ public class ViewResultsPage extends NanodashPage {
         }
 
         // The form above already shows the view's icon+title, so the results render
-        // without their own title row.
+        // without their own title row. The navigation context (the resource the search
+        // started from) doubles as the id, so view-level actions pre-fill their target
+        // field with it, as they do on the resource's own page.
         ViewDisplay resultsDisplay = new ViewDisplay(view).withDisplayWidth(12).withTitle("");
         QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryParams);
-        Component results = QueryResultComponentFactory.build("results", queryRef, resultsDisplay, null, null, getContextId(), null);
+        String contextId = getContextId();
+        Component results = QueryResultComponentFactory.build("results", queryRef, resultsDisplay, null, contextId, contextId, null);
         if (results == null) {
             // No (or unrecognized) display type on the view: fall back to the plain result table.
             results = QueryResultTableBuilder.create("results", queryRef, resultsDisplay).plain(true).build();
