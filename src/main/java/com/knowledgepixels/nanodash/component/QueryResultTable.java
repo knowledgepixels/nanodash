@@ -344,8 +344,7 @@ public class QueryResultTable extends QueryResult {
                             // SPARQL coalesce often falls back to the URI string itself; treat that as no label
                             // so NanodashLink can derive a short name from the URI.
                             if (rawLabel != null && rawLabel.equals(uri)) rawLabel = null;
-                            String label = truncateLabel(rawLabel);
-                            links.add(new NanodashLink("component", uri, null, null, label, contextId));
+                            links.add(new NanodashLink("component", uri, null, null, rawLabel, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
                     } else if (key.endsWith("_multi_val")) {
@@ -359,10 +358,9 @@ public class QueryResultTable extends QueryResult {
                             String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                             if (part.matches("https?://.+")) {
                                 if (rawLabel != null && rawLabel.equals(part)) rawLabel = null;
-                                String label = truncateLabel(rawLabel);
-                                components.add(new NanodashLink("component", part, null, null, label, contextId));
+                                components.add(new NanodashLink("component", part, null, null, rawLabel, contextId));
                             } else {
-                                String label = truncateLabel(rawLabel);
+                                String label = rawLabel;
                                 String unescaped = Utils.unescapeMultiValue(part);
                                 if (label == null && Utils.isDateTimeLiteral(unescaped)) {
                                     // Friendly relative time, matching single-value cells.
@@ -404,13 +402,13 @@ public class QueryResultTable extends QueryResult {
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("template_iri")) {
-                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
+                        String label = rowModel.getObject().get(key + "_label");
                         if (label == null || label.isBlank()) label = truncateLabel(value);
                         String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
                         String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
                         cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                     } else if (value.matches("https?://.+")) {
-                        String label = truncateLabel(rowModel.getObject().get(key + "_label"));
+                        String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {
                         String litLabel = rowModel.getObject().get(key + "_label");

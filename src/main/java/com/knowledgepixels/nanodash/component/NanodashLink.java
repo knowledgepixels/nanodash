@@ -119,7 +119,8 @@ public class NanodashLink extends Panel {
             add(link);
             add(new Label("description", "links a nanopublication to its pubinfo"));
         } else {
-            if (label == null || label.isBlank()) {
+            final boolean explicitLabel = label != null && !label.isBlank();
+            if (!explicitLabel) {
                 label = Utils.getShortNameFromURI(uri);
                 if (iriObj.equals(User.getSignatureOwnerIri(np))) {
                     // TODO We might want to introduce a "(you)" flag here at some point
@@ -149,7 +150,7 @@ public class NanodashLink extends Panel {
                 }
             }
             String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
-            add(createLink("link", uri, shortLabel, contextId));
+            add(createLink("link", uri, shortLabel, contextId, explicitLabel));
             String description = "";
             if (np != null && uri.startsWith(np.getUri().stringValue())) {
                 description = "This is a local identifier that was minted when the nanopublication was created.";
@@ -169,7 +170,16 @@ public class NanodashLink extends Panel {
      * @return a {@link org.apache.wicket.Component} object
      */
     public static Component createLink(String markupId, String uri, String label, String contextId) {
-        Component link = createLinkComponent(markupId, uri, label, contextId);
+        return createLink(markupId, uri, label, contextId, false);
+    }
+
+    /**
+     * Like {@link #createLink(String, String, String, String)}, but with a flag telling
+     * whether the label was explicitly provided (e.g. returned by a query). Explicit
+     * labels are shown in full; only derived labels are truncated for display.
+     */
+    public static Component createLink(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
+        Component link = createLinkComponent(markupId, uri, label, contextId, explicitLabel);
         // Fall back to the page's navigation context when the caller didn't supply one
         // (e.g. nanopub cards), so the target page's back-link still points back here.
         if (link instanceof BookmarkablePageLink) {
@@ -178,25 +188,26 @@ public class NanodashLink extends Panel {
         return link;
     }
 
-    private static Component createLinkComponent(String markupId, String uri, String label, String contextId) {
+    private static Component createLinkComponent(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
         if (contextId != null) params.set("context", contextId);
         // TODO Improve this
         if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
+            return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(displayLabel(label, explicitLabel)));
         } else if (isNp && uri.startsWith(BdjConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
+            return new BookmarkablePageLink<Void>(markupId, BdjNanopubPage.class, params.set("mode", "final")).setBody(Model.of(displayLabel(label, explicitLabel)));
         } else if (isNp && uri.startsWith(RioConfig.get().getTargetNamespace())) {
-            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(Utils.truncateLinkLabel(label)));
+            return new BookmarkablePageLink<Void>(markupId, RioNanopubPage.class, params.set("mode", "final")).setBody(Model.of(displayLabel(label, explicitLabel)));
         } else if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
             IRI userIri = vf.createIRI(uri);
             // Prefer our own known display name; otherwise keep a label supplied by the
             // caller (e.g. a name resolved by a query) before falling back to the bare id.
             if (User.getName(userIri) != null || label == null || label.isBlank()) {
                 label = User.getShortDisplayName(userIri);
+                explicitLabel = false;
             }
-            return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
+            return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(displayLabel(label, explicitLabel)));
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
             return new BookmarkablePageLink<Void>(markupId, SpacePage.class, params).setBody(Model.of(Utils.truncateLinkLabel(label)));
@@ -217,14 +228,22 @@ public class NanodashLink extends Panel {
             } else {
                 link = new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true"));
             }
-            // Truncate only the displayed label; the full label stays in the page
+            // Truncate only derived labels; the full label stays in the page
             // params above so the destination page can still show it as its title.
-            link.setBody(Model.of(Utils.truncateLinkLabel(label)));
+            link.setBody(Model.of(displayLabel(label, explicitLabel)));
             // The "^" source-nanopub caret is styled like the admin lists (subtle, with
             // hover-darken), reusing SourceNanopub's `a.source` styling.
             if (isCaret) link.add(new AttributeAppender("class", "source"));
             return link;
         }
+    }
+
+    /**
+     * Explicit labels (e.g. returned by a query) are shown in full; labels derived
+     * from the URI or local repositories are truncated for display.
+     */
+    private static String displayLabel(String label, boolean explicit) {
+        return explicit ? label : Utils.truncateLinkLabel(label);
     }
 
     /**
