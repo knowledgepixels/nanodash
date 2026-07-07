@@ -171,6 +171,10 @@ public class QueryFormPanel extends Panel {
         });
         paramContainer.setVisible(!paramFields.isEmpty());
         form.add(paramContainer);
+        // On the standalone results page a form without any fields is redundant (the
+        // results are already shown); embedded on a resource page it stays, since its
+        // Search button is what leads to the full results page.
+        form.setVisible(!(paramFields.isEmpty() && pageResource == null));
         add(form);
 
         feedbackPanel = new FeedbackPanel("feedback");

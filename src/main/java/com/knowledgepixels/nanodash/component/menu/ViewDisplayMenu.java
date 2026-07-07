@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component.menu;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.MagicQueryParams;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NavigationContext;
@@ -14,6 +15,7 @@ import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
+import com.knowledgepixels.nanodash.page.ViewResultsPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -79,6 +81,25 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         addEntry("showView", new BookmarkablePageLink<Void>("showView", ExplorePage.class,
                 new PageParameters().set("id", viewDisplay.getView().getNanopub().getUri()))
                 .add(NavigationContext.pageContextFallback()));
+
+        // Full-screen version of this view on the standalone view-results page, with the
+        // current query parameters carried along (magic ones excluded — the results page
+        // re-binds them from the session, so carrying them would duplicate the bindings).
+        PageParameters fullScreenParams = new PageParameters().set("view", viewDisplay.getView().getId());
+        for (var entry : queryRef.getParams().entries()) {
+            if (MagicQueryParams.isMagic(entry.getKey())) continue;
+            fullScreenParams.add("queryparam_" + entry.getKey(), entry.getValue());
+        }
+        BookmarkablePageLink<Void> fullScreenLink = new BookmarkablePageLink<>("fullScreen", ViewResultsPage.class, fullScreenParams) {
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                // Self-referential on the full-screen page itself.
+                setVisible(!(getPage() instanceof ViewResultsPage));
+            }
+        };
+        fullScreenLink.add(NavigationContext.pageContextFallback());
+        addEntry("fullScreen", fullScreenLink);
 
         IRI nanopubId = viewDisplay.getNanopubId();
 
