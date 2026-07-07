@@ -2,18 +2,26 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Applies a view entry action's per-row query mappings and decides whether the
@@ -111,6 +119,73 @@ class ViewActionMappings {
             if (result.getPostPublishTab() != null) params.set("postpub-tab", result.getPostPublishTab());
             result.addButton(label, PublishPage.class, params);
         }
+    }
+
+    /**
+     * Builds the entry-action links of a view for one result row: one publish-page link
+     * per {@code gen:ViewEntryAction} the viewer is entitled to and whose query mappings
+     * are satisfied by the row (see {@link #applyEntryMappings}). Each link uses the
+     * markup id {@code "link"}, ready for an {@link com.knowledgepixels.nanodash.component.menu.EntryActionMenu}.
+     *
+     * @param view                the view declaring the actions, or null for none
+     * @param row                 the result row the actions apply to
+     * @param queryRef            the query reference backing the component (used for refresh and query mapping)
+     * @param entitlementResource the resource the viewer's entitlement is checked against, or null
+     * @param contextId           the context id, or null if there is no context
+     * @param partId              the part id when shown on a part page, or null
+     * @param refRoot             the pinned ref's root nanopub, or null
+     * @param postPublishTab      the tab to return to after publishing, or null for the default
+     * @return the entry-action links for this row (never null)
+     */
+    static List<AbstractLink> buildEntryActionLinks(View view, ApiResponseEntry row, QueryRef queryRef,
+            AbstractResourceWithProfile entitlementResource, String contextId, String partId, String refRoot, String postPublishTab) {
+        List<AbstractLink> links = new ArrayList<>();
+        if (view == null) return links;
+        for (IRI actionIri : view.getViewEntryActionList()) {
+            // Per-action role gating (docs/role-specific-views.md): skip an action
+            // whose gen:isVisibleTo the viewer does not satisfy.
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), entitlementResource, refRoot)) continue;
+            Template t = view.getTemplateForAction(actionIri);
+            if (t == null) continue;
+            String targetField = view.getTemplateTargetFieldForAction(actionIri);
+            if (targetField == null) targetField = "resource";
+            String label = view.getLabelForAction(actionIri);
+            if (label == null) label = "action...";
+            if (!label.endsWith("...")) label += "...";
+            PageParameters params = new PageParameters().set("template", t.getId())
+                    .set("param_" + targetField, contextId)
+                    .set("context", contextId)
+                    .set("template-version", "latest");
+            if (partId != null && contextId != null && !partId.equals(contextId)) {
+                params.set("part", partId);
+            }
+            String partField = view.getTemplatePartFieldForAction(actionIri);
+            if (partField != null) {
+                // The part field pre-fills a namespaced child IRI (the user fills the suffix).
+                // TODO Find a better way to pass the MaintainedResource object to this method:
+                MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
+                if (r != null && r.getNamespace() != null) {
+                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
+                }
+            }
+            // Apply the action's query mappings; hide the button for this row
+            // if any required mapped value is empty (docs/magic-query-params.md).
+            if (!applyEntryMappings(view, actionIri, row, params)) {
+                continue;
+            }
+            params.set("refresh-upon-publish", queryRef.getAsUrlString());
+            if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
+            AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
+            // A label that starts with a leading symbol/emoji renders that as the entry icon.
+            String iconBody = Utils.menuEntryIconBodyHtml(label);
+            if (iconBody != null) {
+                button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
+            } else {
+                button.setBody(Model.of(label));
+            }
+            links.add(button);
+        }
+        return links;
     }
 
     static boolean applyEntryMappings(View view, IRI actionIri, ApiResponseEntry row, PageParameters params) {

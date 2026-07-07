@@ -2,12 +2,9 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -265,54 +262,8 @@ public class QueryResultTable extends QueryResult {
             try {
                 View view = viewDisplay.getView();
                 if (key.equals(ACTIONS)) {
-                    List<AbstractLink> links = new ArrayList<>();
-                    if (view != null) {
-                        for (IRI actionIri : view.getViewEntryActionList()) {
-                            // Per-action role gating (docs/role-specific-views.md): skip an
-                            // action whose gen:isVisibleTo the viewer does not satisfy.
-                            // Additive — actions without gen:isVisibleTo are unaffected.
-                            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
-                            // TODO Copied code and adjusted from QueryResultTableBuilder:
-                            Template t = view.getTemplateForAction(actionIri);
-                            if (t == null) continue;
-                            String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                            if (targetField == null) targetField = "resource";
-                            String label = view.getLabelForAction(actionIri);
-                            if (label == null) label = "action...";
-                            if (!label.endsWith("...")) label += "...";
-                            PageParameters params = new PageParameters().set("template", t.getId())
-                                    .set("param_" + targetField, contextId)
-                                    .set("context", contextId)
-                                    .set("template-version", "latest");
-                            if (partId != null && contextId != null && !partId.equals(contextId)) {
-                                params.set("part", partId);
-                            }
-                            String partField = view.getTemplatePartFieldForAction(actionIri);
-                            if (partField != null) {
-                                // TODO Find a better way to pass the MaintainedResource object to this method:
-                                MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                                if (r != null && r.getNamespace() != null) {
-                                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                                }
-                            }
-                            // Apply the action's query mappings; hide the button for this row
-                            // if any required mapped value is empty (docs/magic-query-params.md).
-                            if (!ViewActionMappings.applyEntryMappings(view, actionIri, rowModel.getObject(), params)) {
-                                continue;
-                            }
-                            params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                            if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                            AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
-                            // A label that starts with a leading symbol/emoji renders that as the entry icon.
-                            String iconBody = Utils.menuEntryIconBodyHtml(label);
-                            if (iconBody != null) {
-                                button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
-                            } else {
-                                button.setBody(Model.of(label));
-                            }
-                            links.add(button);
-                        }
-                    }
+                    List<AbstractLink> links = ViewActionMappings.buildEntryActionLinks(view, rowModel.getObject(),
+                            queryRef, resourceWithProfile, contextId, partId, refRoot, postPublishTab);
                     // The former "^" source link joins the same dropdown, as a "source" entry.
                     if (sourceColumnKey != null) {
                         String sourceUri = rowModel.getObject().get(sourceColumnKey);

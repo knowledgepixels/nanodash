@@ -107,7 +107,13 @@ public class QueryResultNanopubSet extends QueryResult {
     }
 
     private NanopubResults buildNanopubResults() {
-        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
+        // Each card carries the view's entry actions (applied to its result row) as a
+        // dropdown in its top-right corner, matching the per-row menus of the other
+        // view types.
+        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage,
+                row -> ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(), row, queryRef,
+                        resourceWithProfile != null ? resourceWithProfile : pageResource,
+                        contextId, partId, refRoot, postPublishTab));
         // Tiled (grid) mode deactivated for now — always render this view as a list,
         // regardless of the session's view-mode setting.
         nanopubResults.add(AttributeAppender.append("class", NanopubResults.ViewMode.LIST.getValue()));

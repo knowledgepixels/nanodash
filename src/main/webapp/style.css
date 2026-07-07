@@ -2427,6 +2427,13 @@ div.navigator .goto a[disabled] {
   margin-left: 0;
 }
 
+/* Per-card entry-action dropdown on nanopub-set views, floated into the card's
+   top-right corner above the nanopub content. */
+.nanopub-item > .nanopub-entry-actions {
+  float: right;
+  margin: 2px 4px;
+}
+
 .paneltitlerow > span.buttons:has(~ span.buttons) {
   order: 1;
   margin-left: 0;

@@ -100,19 +100,25 @@ public class QueryResultPlainParagraph extends QueryResult {
                 WebMarkupContainer header = new WebMarkupContainer("header");
                 if (!hasTitle) header.add(new AttributeAppender("class", " no-title"));
                 header.add(new Label("title", title).setVisible(hasTitle));
+                // The view's entry actions, followed by the former "^" source link as a
+                // "source" entry, bundled into a per-paragraph dropdown as in the other
+                // view types.
+                List<AbstractLink> links = ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(),
+                        item.getModelObject(), queryRef,
+                        resourceWithProfile != null ? resourceWithProfile : pageResource,
+                        contextId, partId, refRoot, postPublishTab);
                 String npId = item.getModelObject().get("np");
                 if (npId != null && !npId.isBlank()) {
-                    // The former "^" source link is now the single "source" entry of a
-                    // per-paragraph dropdown, matching the other view types.
-                    List<AbstractLink> links = new ArrayList<>();
                     BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class,
                             new PageParameters().set("id", npId));
                     sourceLink.add(NavigationContext.pageContextFallback());
                     sourceLink.setBody(Model.of("<span class=\"actionmenu-icon\">↗︎</span>source")).setEscapeModelStrings(false);
                     links.add(sourceLink);
-                    header.add(new EntryActionMenu("pnp", links));
-                } else {
+                }
+                if (links.isEmpty()) {
                     header.add(new Label("pnp").setVisible(false));
+                } else {
+                    header.add(new EntryActionMenu("pnp", links));
                 }
                 item.add(header);
                 String content = item.getModelObject().get("content");

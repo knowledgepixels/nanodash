@@ -20,7 +20,10 @@ public class QueryResultNanopubSetBuilder implements Serializable {
     private String contextId = null;
     private final QueryRef queryRef;
     private boolean hasTitle = true;
+    private AbstractResourceWithProfile resourceWithProfile = null;
     private AbstractResourceWithProfile pageResource = null;
+    private String id = null;
+    private String refRoot = null;
     private Long itemsPerPage = null;
 
     private QueryResultNanopubSetBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
@@ -59,6 +62,29 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         return this;
     }
 
+    public QueryResultNanopubSetBuilder resourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
+        this.resourceWithProfile = resourceWithProfile;
+        return this;
+    }
+
+    public QueryResultNanopubSetBuilder id(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * Pins this set to a specific ref (root definition), so action visibility is gated
+     * against that claimant's authority rather than the resource's representative ref.
+     * Null leaves it on the representative ref.
+     *
+     * @param refRoot the ref's root nanopub, or null
+     * @return the current QueryResultNanopubSetBuilder instance
+     */
+    public QueryResultNanopubSetBuilder refRoot(String refRoot) {
+        this.refRoot = refRoot;
+        return this;
+    }
+
     public QueryResultNanopubSetBuilder setItemsPerPage(long itemsPerPage) {
         this.itemsPerPage = itemsPerPage;
         return this;
@@ -84,28 +110,33 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         String colClass = " col-" + viewDisplay.getDisplayWidth();
         long resolvedItemsPerPage = itemsPerPage != null ? itemsPerPage : viewDisplay.getPageSize();
         if (response != null) {
-            QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, resolvedItemsPerPage);
-            queryResultNanopubSet.setContextId(contextId);
-            queryResultNanopubSet.setPageResource(pageResource);
-            queryResultNanopubSet.populateComponent();
-            queryResultNanopubSet.setTitleVisible(hasTitle);
+            QueryResultNanopubSet queryResultNanopubSet = buildNanopubSet(markupId, response, resolvedItemsPerPage);
             queryResultNanopubSet.add(new AttributeAppender("class", colClass));
             return queryResultNanopubSet;
         } else {
             ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
                 @Override
                 public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, resolvedItemsPerPage);
-                    queryResultNanopubSet.setContextId(contextId);
-                    queryResultNanopubSet.setPageResource(pageResource);
-                    queryResultNanopubSet.populateComponent();
-                    queryResultNanopubSet.setTitleVisible(hasTitle);
-                    return queryResultNanopubSet;
+                    return buildNanopubSet(markupId, response, resolvedItemsPerPage);
                 }
             };
             comp.add(new AttributeAppender("class", colClass));
             return comp;
         }
+    }
+
+    private QueryResultNanopubSet buildNanopubSet(String markupId, ApiResponse response, long resolvedItemsPerPage) {
+        QueryResultNanopubSet queryResultNanopubSet = new QueryResultNanopubSet(markupId, queryRef, response, viewDisplay, resolvedItemsPerPage);
+        queryResultNanopubSet.setContextId(contextId);
+        queryResultNanopubSet.setPageResource(pageResource);
+        queryResultNanopubSet.setResourceWithProfile(resourceWithProfile);
+        queryResultNanopubSet.setRefRoot(refRoot);
+        // Result actions become entries of the view's dropdown menu, which
+        // populateComponent() builds — so they are added first.
+        ViewActionMappings.addResultActions(queryResultNanopubSet, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
+        queryResultNanopubSet.populateComponent();
+        queryResultNanopubSet.setTitleVisible(hasTitle);
+        return queryResultNanopubSet;
     }
 
 }

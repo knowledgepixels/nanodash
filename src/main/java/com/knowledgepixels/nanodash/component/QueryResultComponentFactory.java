@@ -63,8 +63,11 @@ public class QueryResultComponentFactory {
                     .build();
         } else if (viewType.equals(KPXL_TERMS.NANOPUB_SET_VIEW)) {
             return QueryResultNanopubSetBuilder.create(markupId, queryRef, viewDisplay)
+                    .resourceWithProfile(resourceWithProfile)
                     .pageResource(resourceWithProfile)
+                    .id(id)
                     .contextId(contextId)
+                    .refRoot(refRoot)
                     .build();
         } else if (viewType.equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
             return QueryResultItemListBuilder.create(markupId, queryRef, viewDisplay)
@@ -72,6 +75,7 @@ public class QueryResultComponentFactory {
                     .pageResource(resourceWithProfile)
                     .id(id)
                     .contextId(contextId)
+                    .refRoot(refRoot)
                     .build();
         }
         return null;
