@@ -29,6 +29,10 @@ public class QueryResultNanopubSet extends QueryResult {
     private Model<String> filterModel = Model.of("");
     private WebMarkupContainer nanopubsContainer;
 
+    // An empty title override (ViewDisplay.withTitle("")) hides the title row; kept as
+    // a flag so the builder's later setTitleVisible(true) doesn't re-show an empty h4.
+    private boolean emptyTitle = false;
+
     /**
      * Constructor for QueryResultList.
      *
@@ -56,10 +60,8 @@ public class QueryResultNanopubSet extends QueryResult {
         if (viewDisplay.getTitle() != null) {
             titleLabel = viewDisplay.getTitle();
         }
+        emptyTitle = (titleLabel == null || titleLabel.isEmpty());
         add(new Label("title", titleLabel));
-        if (titleLabel == null || titleLabel.isEmpty()) {
-            setTitleVisible(false);
-        }
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
@@ -122,8 +124,9 @@ public class QueryResultNanopubSet extends QueryResult {
      * @param hasTitle true to show the title, false to hide it
      */
     public void setTitleVisible(boolean hasTitle) {
-        this.get("title").setVisible(hasTitle);
-        if (!hasTitle) {
+        boolean visible = hasTitle && !emptyTitle;
+        this.get("title").setVisible(visible);
+        if (!visible) {
             viewSelector.add(AttributeAppender.append("class", " no-title"));
         }
     }
