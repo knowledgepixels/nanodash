@@ -109,8 +109,8 @@ public class IriItem extends AbstractContextComponent {
                 iriString = iriString.replace(Utils.getUriPrefix(iriString), LocalUri.PREFIX);
             }
         }
-        if (iriString.startsWith(context.getTemplateId())) {
-            iriString = iriString.replace(context.getTemplateId(), "");
+        if (iriString.startsWith(context.getTemplateNanopubUri())) {
+            iriString = iriString.replace(context.getTemplateNanopubUri(), "");
             if (this.context.getExistingNanopub() != null) {
                 iriString = this.context.getExistingNanopub().getUri().stringValue() + iriString;
             }
@@ -174,7 +174,7 @@ public class IriItem extends AbstractContextComponent {
     public boolean isUnifiableWith(Value v) {
         if (!(v instanceof IRI)) return false;
         // TODO: Check that template URIs don't have regex characters:
-        String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateId() + "[#/]?", LocalUri.PREFIX);
+        String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateNanopubUri() + "[#/]?", LocalUri.PREFIX);
         String vs = v.stringValue();
         if (context.isReadOnly()) {
             vs = vs.replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", LocalUri.PREFIX);

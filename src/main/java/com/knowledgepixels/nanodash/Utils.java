@@ -144,6 +144,19 @@ public class Utils {
     }
 
     /**
+     * Strips a sub-IRI of a nanopublication (e.g. an embedded resource IRI like
+     * {@code <np-uri>/template}) down to the nanopublication ID itself, i.e. up to
+     * and including the trusty artifact code. An ID without a sub-path is returned
+     * unchanged.
+     *
+     * @param id the ID to strip
+     * @return the nanopublication ID
+     */
+    public static String stripToNanopubId(String id) {
+        return id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+    }
+
+    /**
      * URL-encodes the string representation of the given object using UTF-8 encoding.
      *
      * @param o the object to be URL-encoded

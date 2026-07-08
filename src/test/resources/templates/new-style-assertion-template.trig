@@ -1,0 +1,47 @@
+@prefix this: <http://purl.org/nanopub/temp/np001/> .
+@prefix sub: <http://purl.org/nanopub/temp/np001/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+sub:Head {
+  this: a np:Nanopublication ;
+    np:hasAssertion sub:assertion ;
+    np:hasProvenance sub:provenance ;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:template a nt:AssertionTemplate ;
+    dct:isVersionOf sub:test-template-kind ;
+    rdfs:label "Test template with embedded identity" ;
+    dct:description "A test template whose template node is an embedded IRI (not the assertion graph URI), per docs/template-identity-and-governance.md." ;
+    nt:hasStatement sub:st01 .
+
+  sub:st01 rdf:subject sub:thing ;
+    rdf:predicate rdfs:label ;
+    rdf:object sub:name .
+
+  sub:thing a nt:UriPlaceholder ;
+    rdfs:label "URI of the thing to label" .
+
+  sub:name a nt:LiteralPlaceholder ;
+    rdfs:label "label text" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo <https://orcid.org/0000-0002-1267-0234> .
+}
+
+sub:pubinfo {
+  this: dct:created "2026-07-08T00:00:00Z"^^xsd:dateTime ;
+    dct:creator <https://orcid.org/0000-0002-1267-0234> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    npx:embeds sub:template ;
+    npx:introduces sub:test-template-kind .
+}
