@@ -199,6 +199,18 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Returns the URI of the nanopublication containing the template of this
+     * context. Placeholder and other local IRIs of a template are minted under
+     * this URI, so use it (not {@link #getTemplateId()}, which may be an embedded
+     * sub-IRI) wherever a local-IRI prefix is stripped or constructed.
+     *
+     * @return the template's nanopublication URI
+     */
+    public String getTemplateNanopubUri() {
+        return template.getNanopub().getUri().stringValue();
+    }
+
+    /**
      * Sets a parameter for this context.
      *
      * @param name  the name of the parameter

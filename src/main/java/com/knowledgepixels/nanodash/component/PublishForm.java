@@ -241,7 +241,7 @@ public class PublishForm extends Panel {
             c.setParam("np", fillNp.getUri().stringValue());
         }
         for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
-            String latestId = QueryApiAccess.getLatestVersionId(r.stringValue());
+            String latestId = td.getLatestTemplateId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
             TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
@@ -264,7 +264,7 @@ public class PublishForm extends Panel {
         }
         if (fillNp != null && !fillOnlyAssertion) {
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
-                String piTemplateIdLatest = QueryApiAccess.getLatestVersionId(piTemplateId.stringValue());
+                String piTemplateIdLatest = td.getLatestTemplateId(piTemplateId.stringValue());
                 if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) continue;
                 if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
                     // TODO Allow for automatically using latest template version
@@ -333,7 +333,7 @@ public class PublishForm extends Panel {
             c.initStatements();
         }
 
-        String latestAssertionId = QueryApiAccess.getLatestVersionId(assertionContext.getTemplateId());
+        String latestAssertionId = td.getLatestTemplateId(assertionContext.getTemplateId());
         if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
             add(new Label("newversion", "There is a new version of this assertion template:"));
             PageParameters params = new PageParameters(pageParams);
@@ -677,8 +677,11 @@ public class PublishForm extends Panel {
         recommendedPiTemplateOptionIds.add("https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w");
         recommendedPiTemplateOptionIds.add("http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI");
         for (TemplateContext c : pubInfoContexts) {
-            String s = c.getTemplate().getId();
-            handledPiTemplates.put(s, true);
+            // Key both ID forms: the "others" dedup below compares against listing
+            // entries keyed by nanopub URI, which for a template with embedded
+            // identity differs from its canonical ID.
+            handledPiTemplates.put(c.getTemplate().getId(), true);
+            handledPiTemplates.put(c.getTemplate().getNanopub().getUri().stringValue(), true);
         }
         for (String s : recommendedPiTemplateOptionIds) {
             handledPiTemplates.put(s, true);
@@ -721,7 +724,7 @@ public class PublishForm extends Panel {
                         boolean isAlreadyUsed = false;
                         for (TemplateContext c : pubInfoContexts) {
                             // TODO: make this more efficient/nicer
-                            if (c.getTemplate().getId().equals(s)) {
+                            if (c.getTemplate().hasId(s)) {
                                 isAlreadyUsed = true;
                                 break;
                             }
@@ -738,7 +741,7 @@ public class PublishForm extends Panel {
                         boolean isAlreadyUsed = false;
                         for (TemplateContext c : pubInfoContexts) {
                             // TODO: make this more efficient/nicer
-                            if (c.getTemplate().getId().equals(s)) {
+                            if (c.getTemplate().hasId(s)) {
                                 isAlreadyUsed = true;
                                 break;
                             }
@@ -923,12 +926,14 @@ public class PublishForm extends Panel {
         npCreator.addNamespace("this", targetNamespace);
         npCreator.addNamespace("sub", targetNamespace + "/");
         npCreator.addTimestampNow();
-        IRI templateUri = assertionContext.getTemplate().getNanopub().getUri();
+        // The canonical template ID: the embedded template-node IRI for templates
+        // with embedded identity, the nanopub URI for legacy ones.
+        IRI templateUri = vf.createIRI(assertionContext.getTemplate().getId());
         npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, templateUri);
-        IRI prTemplateUri = provenanceContext.getTemplate().getNanopub().getUri();
+        IRI prTemplateUri = vf.createIRI(provenanceContext.getTemplate().getId());
         npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, prTemplateUri);
         for (TemplateContext c : pubInfoContexts) {
-            IRI piTemplateUri = c.getTemplate().getNanopub().getUri();
+            IRI piTemplateUri = vf.createIRI(c.getTemplate().getId());
             npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, piTemplateUri);
         }
         String nanopubLabel = getNanopubLabel(npCreator);
@@ -963,8 +968,8 @@ public class PublishForm extends Panel {
         String nanopubLabel = assertionContext.getTemplate().getNanopubLabelPattern();
         while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
             String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
-            IRI placeholderIriHash = vf.createIRI(assertionContext.getTemplateId() + "#" + placeholderPostfix);
-            IRI placeholderIriSlash = vf.createIRI(assertionContext.getTemplateId() + "/" + placeholderPostfix);
+            IRI placeholderIriHash = vf.createIRI(assertionContext.getTemplateNanopubUri() + "#" + placeholderPostfix);
+            IRI placeholderIriSlash = vf.createIRI(assertionContext.getTemplateNanopubUri() + "/" + placeholderPostfix);
             IRI placeholderIri;
             String placeholderValue = "";
             if (assertionContext.getComponentModels().get(placeholderIriSlash) != null) {

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
 import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -110,7 +111,9 @@ public class TemplateData implements Serializable {
     }
 
     /**
-     * Returns a Template object for the given template ID.
+     * Returns a Template object for the given template ID. The ID may be either
+     * form: the nanopublication URI, or (for templates with embedded identity) the
+     * embedded template-node IRI.
      *
      * @param id the ID of the template
      * @return the Template object if found, or null if not found or invalid
@@ -118,10 +121,18 @@ public class TemplateData implements Serializable {
     public Template getTemplate(String id) {
         Template template = templateMap.get(id);
         if (template != null) return template;
-        if (TrustyUriUtils.isPotentialTrustyUri(id)) {
+        String npId = Utils.stripToNanopubId(id);
+        template = templateMap.get(npId);
+        if (template != null) {
+            templateMap.put(id, template);
+            return template;
+        }
+        if (TrustyUriUtils.isPotentialTrustyUri(npId)) {
             try {
-                Template t = new Template(id);
+                Template t = new Template(npId);
                 templateMap.put(id, t);
+                templateMap.put(npId, t);
+                templateMap.put(t.getId(), t);
                 return t;
             } catch (Exception ex) {
                 logger.error("Exception: {}", ex.getMessage());
@@ -145,11 +156,31 @@ public class TemplateData implements Serializable {
         try {
             Template t = new Template(np);
             templateMap.put(id, t);
+            templateMap.put(t.getId(), t);
             return t;
         } catch (Exception ex) {
             logger.error("Exception registering template from nanopub: {}", ex.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Resolves a template ID to the ID of the latest version of that template,
+     * following the supersedes chain of the containing nanopublication. Accepts
+     * either ID form (nanopublication URI or embedded template-node IRI) and
+     * returns the latest version's canonical ID ({@link Template#getId()}) — so
+     * even when there is no newer version, the given ID is normalized to canonical
+     * form. Falls back to the given ID if the template cannot be loaded.
+     *
+     * @param templateId the ID of the template
+     * @return the canonical ID of the latest version, or the given ID as fallback
+     */
+    public String getLatestTemplateId(String templateId) {
+        String npId = Utils.stripToNanopubId(templateId);
+        String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+        Template latest = getTemplate(latestNpId);
+        if (latest != null) return latest.getId();
+        return templateId;
     }
 
     /**

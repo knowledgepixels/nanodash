@@ -36,7 +36,7 @@ public class TemplateFormPreview extends Panel {
 
         // Register the template from the nanopub so it can be looked up by TemplateContext
         Template template = td.registerTemplate(templateNanopub);
-        String templateId = templateNanopub.getUri().stringValue();
+        String templateId = template.getId();
 
         String targetNamespace = template.getTargetNamespace();
         if (targetNamespace == null) {
@@ -73,7 +73,7 @@ public class TemplateFormPreview extends Panel {
             String rId = r.stringValue();
             boolean alreadyAdded = false;
             for (TemplateContext c : pubInfoContexts) {
-                if (c.getTemplate().getId().equals(rId)) {
+                if (c.getTemplate().hasId(rId)) {
                     alreadyAdded = true;
                     break;
                 }

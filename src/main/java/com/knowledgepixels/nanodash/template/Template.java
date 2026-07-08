@@ -43,6 +43,8 @@ public class Template implements Serializable {
 
     // TODO: Make all these maps more generic and the code simpler:
     private IRI templateIri;
+    private boolean embeddedIdentity = false;
+    private IRI templateKindIri;
     private Map<IRI, List<IRI>> typeMap = new HashMap<>();
     private Map<IRI, List<Value>> possibleValueMap = new HashMap<>();
     private Map<IRI, List<IRI>> possibleValuesToLoadMap = new HashMap<>();
@@ -94,7 +96,8 @@ public class Template implements Serializable {
      * @return true if the template is unlisted, false otherwise.
      */
     public boolean isUnlisted() {
-        return typeMap.get(templateIri).contains(NTEMPLATE.UNLISTED_TEMPLATE);
+        List<IRI> types = typeMap.get(templateIri);
+        return types != null && types.contains(NTEMPLATE.UNLISTED_TEMPLATE);
     }
 
     /**
@@ -107,12 +110,41 @@ public class Template implements Serializable {
     }
 
     /**
-     * Returns the ID of the template, which is the URI of the nanopublication.
+     * Returns the ID of the template: for a template with embedded identity (the
+     * template node is a regular embedded IRI in the assertion), that embedded IRI;
+     * for a legacy template (the template node is the assertion graph URI), the URI
+     * of the nanopublication.
      *
      * @return the ID of the template as a string.
      */
     public String getId() {
+        if (embeddedIdentity) return templateIri.stringValue();
         return nanopub.getUri().toString();
+    }
+
+    /**
+     * Checks whether the given ID refers to this template, in either form: the
+     * template's canonical ID ({@link #getId()}) or its nanopublication URI. Use
+     * this instead of comparing against {@link #getId()} when the ID to compare
+     * comes from outside (page parameters, published references), as those may
+     * carry either form.
+     *
+     * @param id the ID to check
+     * @return true if the ID refers to this template
+     */
+    public boolean hasId(String id) {
+        return id != null && (id.equals(getId()) || id.equals(nanopub.getUri().stringValue()));
+    }
+
+    /**
+     * Returns the template kind IRI, i.e. the stable identifier this template
+     * version declares itself a version of ({@code dct:isVersionOf} on the template
+     * node), or null if it doesn't declare one.
+     *
+     * @return the template kind IRI, or null
+     */
+    public IRI getTemplateKindIri() {
+        return templateKindIri;
     }
 
     /**
@@ -714,18 +746,32 @@ public class Template implements Serializable {
     }
 
     private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
-        boolean isNpTemplate = false;
+        IRI assertionUri = templateNp.getAssertionUri();
+        Set<IRI> templateNodes = new LinkedHashSet<>();
         for (Statement st : templateNp.getAssertion()) {
-            if (st.getSubject().equals(templateNp.getAssertionUri()) && st.getPredicate().equals(RDF.TYPE)) {
-                if (st.getObject().equals(NTEMPLATE.ASSERTION_TEMPLATE) || st.getObject().equals(NTEMPLATE.PROVENANCE_TEMPLATE) || st.getObject().equals(NTEMPLATE.PUBINFO_TEMPLATE)) {
-                    isNpTemplate = true;
-                    break;
-                }
+            if (!st.getPredicate().equals(RDF.TYPE)) continue;
+            if (!(st.getSubject() instanceof IRI subjIri)) continue;
+            if (st.getObject().equals(NTEMPLATE.ASSERTION_TEMPLATE) || st.getObject().equals(NTEMPLATE.PROVENANCE_TEMPLATE) || st.getObject().equals(NTEMPLATE.PUBINFO_TEMPLATE)) {
+                templateNodes.add(subjIri);
             }
         }
 
-        if (isNpTemplate) {
+        if (templateNodes.contains(assertionUri)) {
+            // Legacy shape (template node = assertion graph URI) takes precedence
+            // over any other typed node, so every template that parsed before
+            // embedded identity existed keeps parsing identically.
+            templateIri = assertionUri;
             processNpTemplate(templateNp);
+        } else if (templateNodes.size() == 1) {
+            IRI node = templateNodes.iterator().next();
+            if (!node.stringValue().startsWith(templateNp.getUri().stringValue())) {
+                throw new MalformedTemplateException("Embedded template node must be in the nanopub's namespace: " + node);
+            }
+            templateIri = node;
+            embeddedIdentity = true;
+            processNpTemplate(templateNp);
+        } else if (templateNodes.size() > 1) {
+            throw new MalformedTemplateException("Multiple embedded template nodes found");
         } else {
             // Experimental SHACL-based template:
             processShaclTemplate(templateNp);
@@ -733,7 +779,6 @@ public class Template implements Serializable {
     }
 
     private void processNpTemplate(Nanopub templateNp) {
-        templateIri = templateNp.getAssertionUri();
         for (Statement st : templateNp.getAssertion()) {
             final IRI subj = (IRI) st.getSubject();
             final IRI pred = st.getPredicate();
@@ -754,6 +799,8 @@ public class Template implements Serializable {
                         targetNamespace = objS;
                     } else if (pred.equals(NTEMPLATE.HAS_TARGET_NANOPUB_TYPE)) {
                         targetNanopubTypes.add(objIri);
+                    } else if (pred.equals(DCTERMS.IS_VERSION_OF)) {
+                        templateKindIri = objIri;
                     }
                 } else if (obj instanceof Literal) {
                     if (pred.equals(NTEMPLATE.HAS_TAG)) {
