@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -151,6 +152,24 @@ public class TemplateIdentityTest {
             Template t = new Template(creator.finalizeNanopub());
             assertEquals(TEMPLATE_NODE.stringValue(), t.getId());
         }
+    }
+
+    @Test
+    void governingSpaceParses() throws Exception {
+        IRI space = vf.createIRI("https://w3id.org/spaces/test-space");
+        NanopubCreator creator = newCreator();
+        addTemplateBody(creator, TEMPLATE_NODE);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, space);
+        Template t = new Template(creator.finalizeNanopub());
+        assertEquals(space, t.getGoverningSpace());
+        assertEquals(KIND_IRI, t.getTemplateKindIri());
+    }
+
+    @Test
+    void noGoverningSpaceByDefault() throws Exception {
+        Template t = new Template(embeddedTemplateNanopub());
+        assertNull(t.getGoverningSpace());
     }
 
     @Test

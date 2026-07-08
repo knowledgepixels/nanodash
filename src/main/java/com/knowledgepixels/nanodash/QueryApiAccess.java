@@ -129,7 +129,7 @@ public class QueryApiAccess {
     // the caller keeps its pinned version (the pin is the floor). Source at
     // docs/queries/get-latest-governed-version.trig; see
     // docs/views-and-presets-as-maintained-resources.md.
-    public static final String GET_LATEST_GOVERNED_VERSION = "RABmOzHjDWhpqoRJsD4XinfDoxDOxKJ8NgJA826O_I-OI/get-latest-governed-version";
+    public static final String GET_LATEST_GOVERNED_VERSION = "RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw/get-latest-governed-version";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";

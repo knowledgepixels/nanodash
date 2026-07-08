@@ -1,6 +1,13 @@
 # Templates: embedded identity & space governance
 
-**Status:** design / not yet implemented
+**Status:** partly implemented — embedded identity (rollout steps 1–2) merged in PR #545;
+governed resolution (steps 3–4) live: the generalized `get-latest-governed-version` query
+(`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates), the
+`gen:governedBy` resolution branch in `TemplateData`, and a first governed test pair
+(template `RAiK3l4D…`, kind registered maintained-by knowledgepixels via `RAnUJSnd…`).
+Server-side type inference confirmed to list new-style templates. Remaining: listing-query
+updates (e.g. `get-assertion-templates` reads the label off the assertion URI, so new-style
+templates list with an empty label), migration of real templates, listing dedup (step 5).
 
 ## Goal
 
