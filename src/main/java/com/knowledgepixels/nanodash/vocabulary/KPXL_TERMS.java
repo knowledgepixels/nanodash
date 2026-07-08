@@ -22,6 +22,16 @@ public class KPXL_TERMS {
     public static final IRI PLAIN_PARAGRAPH_VIEW = VocabUtils.createIRI(NAMESPACE, "PlainParagraphView");
     public static final IRI NANOPUB_SET_VIEW = VocabUtils.createIRI(NAMESPACE, "NanopubSetView");
     public static final IRI ITEM_LIST_VIEW = VocabUtils.createIRI(NAMESPACE, "ItemListView");
+
+    /**
+     * Marks a view as a query-form view: instead of query results, it renders a form
+     * for the query's placeholders that are not auto-filled from the page context;
+     * submitting leads to the full results page. Orthogonal to the display types
+     * above (a view can carry both), so the display type determines how the results
+     * page renders. Deliberately not part of {@link com.knowledgepixels.nanodash.View}'s
+     * supported display types.
+     */
+    public static final IRI QUERY_FORM_VIEW = VocabUtils.createIRI(NAMESPACE, "QueryFormView");
     public static final IRI VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "ViewDisplay");
     public static final IRI COLUMN_WIDTH_1_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth01of12");
     public static final IRI COLUMN_WIDTH_2_OF_12 = VocabUtils.createIRI(NAMESPACE, "ColumnWidth02of12");

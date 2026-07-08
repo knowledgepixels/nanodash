@@ -1,11 +1,14 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
+import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,6 +24,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+
+import java.util.List;
 
 /**
  * Component for displaying query results as a vertical item list.
@@ -40,7 +45,7 @@ public class QueryResultItemList extends QueryResult {
         if (viewDisplay.getTitle() != null) {
             label = viewDisplay.getTitle();
         }
-        add(new Label("label", label));
+        add(new Label("label", label).setVisible(label != null && !label.isEmpty()));
         setOutputMarkupId(true);
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
@@ -69,57 +74,15 @@ public class QueryResultItemList extends QueryResult {
             @Override
             protected void populateItem(Item<ApiResponseEntry> item) {
                 ApiResponseEntry entry = item.getModelObject();
-                for (String key : response.getHeader()) {
-                    if (key.endsWith("_label") || key.endsWith("_label_multi")) continue;
-                    String value = entry.get(key);
-                    if (value == null || value.isBlank()) continue;
-                    String entryLabel = entry.get(key + "_label");
-
-                    if (key.endsWith("user_iri")) {
-                        IRI userIri = Utils.vf.createIRI(value);
-                        IRI profilePicIri = User.getProfilePicture(userIri);
-                        String imgSrc;
-                        String iconClass;
-                        if (profilePicIri != null) {
-                            imgSrc = Strings.escapeMarkup(profilePicIri.stringValue()).toString();
-                            iconClass = "user-icon";
-                        } else if (IndividualAgent.isSoftware(userIri)) {
-                            imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString();
-                            iconClass = "bot-icon";
-                        } else {
-                            imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/user-icon.svg", false), null).toString();
-                            iconClass = "user-icon";
-                        }
-                        String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : User.getShortDisplayName(userIri);
-                        String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(value);
-                        String html = "<img class=\"" + iconClass + "\" src=\"" + imgSrc + "\" /> <a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
-                        item.add(new Label("listItem", html).setEscapeModelStrings(false));
-                        return;
-                    } else if (key.endsWith("template_iri")) {
-                        String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : value;
-                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
-                        String html = "<span class=\"form-icon\"></span> <a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
-                        item.add(new Label("listItem", html).setEscapeModelStrings(false));
-                        return;
-                    } else if (value.matches("https?://.*")) {
-                        item.add(new NanodashLink("listItem", value, null, null, entryLabel, contextId));
-                        return;
-                    } else if (entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(value)) {
-                        // Separate display label for a (non-IRI) literal value; the full
-                        // literal is shown on hover via the standard styled tooltip.
-                        String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + Strings.escapeMarkup(entryLabel) + "</span>";
-                        item.add(new Label("listItem", html).setEscapeModelStrings(false));
-                        return;
-                    } else if (Utils.isDateTimeLiteral(value)) {
-                        // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
-                        item.add(new Label("listItem", Utils.friendlyDateHtml(value, value)).setEscapeModelStrings(false));
-                        return;
-                    } else {
-                        item.add(new Label("listItem", value));
-                        return;
-                    }
+                item.add(buildItemComponent(entry));
+                List<AbstractLink> actionLinks = ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(), entry,
+                        queryRef, resourceWithProfile != null ? resourceWithProfile : pageResource,
+                        contextId, partId, refRoot, postPublishTab);
+                if (actionLinks.isEmpty()) {
+                    item.add(new Label("entryActions").setVisible(false));
+                } else {
+                    item.add(new EntryActionMenu("entryActions", actionLinks));
                 }
-                item.add(new Label("listItem", ""));
             }
         };
         dataView.setItemsPerPage(viewDisplay.getPageSize());
@@ -144,5 +107,57 @@ public class QueryResultItemList extends QueryResult {
         itemsContainer.add(noRecordsLabel);
         itemsContainer.add(navigation);
         add(itemsContainer);
+    }
+
+    /**
+     * Builds the row's single linked item (markup id {@code "listItem"}) from the
+     * first non-empty result column.
+     */
+    private Component buildItemComponent(ApiResponseEntry entry) {
+        for (String key : response.getHeader()) {
+            if (key.endsWith("_label") || key.endsWith("_label_multi")) continue;
+            String value = entry.get(key);
+            if (value == null || value.isBlank()) continue;
+            String entryLabel = entry.get(key + "_label");
+
+            if (key.endsWith("user_iri")) {
+                IRI userIri = Utils.vf.createIRI(value);
+                IRI profilePicIri = User.getProfilePicture(userIri);
+                String imgSrc;
+                String iconClass;
+                if (profilePicIri != null) {
+                    imgSrc = Strings.escapeMarkup(profilePicIri.stringValue()).toString();
+                    iconClass = "user-icon";
+                } else if (IndividualAgent.isSoftware(userIri)) {
+                    imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString();
+                    iconClass = "bot-icon";
+                } else {
+                    imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/user-icon.svg", false), null).toString();
+                    iconClass = "user-icon";
+                }
+                String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : User.getShortDisplayName(userIri);
+                String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(value);
+                String html = "<img class=\"" + iconClass + "\" src=\"" + imgSrc + "\" /> <a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
+                return new Label("listItem", html).setEscapeModelStrings(false);
+            } else if (key.endsWith("template_iri")) {
+                String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : value;
+                String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
+                String html = "<span class=\"form-icon\"></span> <a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
+                return new Label("listItem", html).setEscapeModelStrings(false);
+            } else if (value.matches("https?://.*")) {
+                return new NanodashLink("listItem", value, null, null, entryLabel, contextId);
+            } else if (entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(value)) {
+                // Separate display label for a (non-IRI) literal value; the full
+                // literal is shown on hover via the standard styled tooltip.
+                String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + Strings.escapeMarkup(entryLabel) + "</span>";
+                return new Label("listItem", html).setEscapeModelStrings(false);
+            } else if (Utils.isDateTimeLiteral(value)) {
+                // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
+                return new Label("listItem", Utils.friendlyDateHtml(value, value)).setEscapeModelStrings(false);
+            } else {
+                return new Label("listItem", value);
+            }
+        }
+        return new Label("listItem", "");
     }
 }

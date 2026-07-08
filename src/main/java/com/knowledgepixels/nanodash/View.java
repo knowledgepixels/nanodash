@@ -286,6 +286,7 @@ public class View implements Serializable {
     private Map<IRI, List<String>> actionTemplateQueryMappingsMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
+    private boolean queryForm = false;
     private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
 
     private View(String id, Nanopub nanopub) {
@@ -301,6 +302,9 @@ public class View implements Serializable {
                     }
                     if (st.getObject() instanceof IRI objIri && supportedViewTypes.contains(objIri)) {
                         viewType = objIri;
+                    }
+                    if (st.getObject().equals(KPXL_TERMS.QUERY_FORM_VIEW)) {
+                        queryForm = true;
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
                     viewKind = objIri;
@@ -647,6 +651,18 @@ public class View implements Serializable {
      */
     public IRI getViewType() {
         return viewType;
+    }
+
+    /**
+     * Whether this view is additionally typed {@code gen:QueryFormView}: on a resource
+     * page it renders as a form for the query placeholders not auto-filled from the
+     * page context, whose submission leads to the full results page. Orthogonal to
+     * {@link #getViewType()}, which then determines how those results render.
+     *
+     * @return true if this is a query-form view
+     */
+    public boolean hasQueryForm() {
+        return queryForm;
     }
 
     /**

@@ -3,15 +3,12 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.page.UserPage;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
@@ -69,7 +66,7 @@ public class QueryResultList extends QueryResult {
         if (viewDisplay.getTitle() != null) {
             label = viewDisplay.getTitle();
         }
-        add(new Label("label", label));
+        add(new Label("label", label).setVisible(label != null && !label.isEmpty()));
         setOutputMarkupId(true);
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
@@ -239,51 +236,8 @@ public class QueryResultList extends QueryResult {
                         }
                     }
                 }
-                View view = viewDisplay.getView();
-                List<AbstractLink> actionLinks = new ArrayList<>();
-                if (view != null) {
-                    for (IRI actionIri : view.getViewEntryActionList()) {
-                        // Per-action role gating (docs/role-specific-views.md): skip an
-                        // action whose gen:isVisibleTo the viewer does not satisfy.
-                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
-                        // TODO Copied code and adjusted from QueryResultTableBuilder:
-                        Template t = view.getTemplateForAction(actionIri);
-                        if (t == null) continue;
-                        String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                        if (targetField == null) targetField = "resource";
-                        String labelForAction = view.getLabelForAction(actionIri);
-                        if (labelForAction == null) labelForAction = "action...";
-                        if (!labelForAction.endsWith("...")) labelForAction += "...";
-                        PageParameters params = new PageParameters().set("template", t.getId())
-                                .set("param_" + targetField, contextId)
-                                .set("context", contextId)
-                                .set("template-version", "latest");
-                        String partField = view.getTemplatePartFieldForAction(actionIri);
-                        if (partField != null) {
-                            // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                            if (r != null && r.getNamespace() != null) {
-                                params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                            }
-                        }
-                        // Apply the action's query mappings; hide the button for this row
-                        // if any required mapped value is empty (docs/magic-query-params.md).
-                        if (!ViewActionMappings.applyEntryMappings(view, actionIri, entry, params)) {
-                            continue;
-                        }
-                        params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                        AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
-                        // A label that starts with a leading symbol/emoji renders that as the entry icon.
-                        String iconBody = Utils.menuEntryIconBodyHtml(labelForAction);
-                        if (iconBody != null) {
-                            button.setBody(Model.of(iconBody)).setEscapeModelStrings(false);
-                        } else {
-                            button.setBody(Model.of(labelForAction));
-                        }
-                        actionLinks.add(button);
-                    }
-                }
+                List<AbstractLink> actionLinks = ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(), entry,
+                        queryRef, resourceWithProfile, contextId, partId, refRoot, postPublishTab);
                 // The former "^" source link joins the same dropdown, as a "source" entry.
                 if (sourceUri != null) {
                     AbstractLink sourceLink = new BookmarkablePageLink<NanodashPage>("link", ExplorePage.class,

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body>
+
+<wicket:panel>
+  <div class="paneltitlerow">
+    <h4 wicket:id="label">Query form</h4>
+    <span class="buttons"><wicket:container wicket:id="np">[np]</wicket:container></span>
+  </div>
+
+  <form wicket:id="form">
+    <div wicket:id="params">
+      <table class="paramtable">
+        <tbody>
+        <wicket:container wicket:id="paramfields">
+          <wicket:container wicket:id="paramfield">Param field</wicket:container>
+        </wicket:container>
+        </tbody>
+      </table>
+    </div>
+    <input type="submit" class="button" value="Search" style="margin: 0;"/>
+  </form>
+
+  <div wicket:id="feedback" class="negative">feedback messages will be put here</div>
+</wicket:panel>
+
+</body>
+
+</html>

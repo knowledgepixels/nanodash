@@ -236,6 +236,7 @@ public class QueryResultListBuilder implements Serializable {
                 QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                 resultList.setPageResource(pageResource);
                 resultList.setContextId(contextId);
+                ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
                 resultList.add(new AttributeAppender("class", colClass));
                 return resultList;
             } else {
@@ -245,6 +246,7 @@ public class QueryResultListBuilder implements Serializable {
                         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
                         resultList.setPageResource(pageResource);
                         resultList.setContextId(contextId);
+                        ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
                         return resultList;
                     }
                 };

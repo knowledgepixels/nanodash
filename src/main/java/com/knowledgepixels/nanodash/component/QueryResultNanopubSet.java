@@ -29,6 +29,10 @@ public class QueryResultNanopubSet extends QueryResult {
     private Model<String> filterModel = Model.of("");
     private WebMarkupContainer nanopubsContainer;
 
+    // An empty title override (ViewDisplay.withTitle("")) hides the title row; kept as
+    // a flag so the builder's later setTitleVisible(true) doesn't re-show an empty h4.
+    private boolean emptyTitle = false;
+
     /**
      * Constructor for QueryResultList.
      *
@@ -56,6 +60,7 @@ public class QueryResultNanopubSet extends QueryResult {
         if (viewDisplay.getTitle() != null) {
             titleLabel = viewDisplay.getTitle();
         }
+        emptyTitle = (titleLabel == null || titleLabel.isEmpty());
         add(new Label("title", titleLabel));
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
@@ -102,7 +107,13 @@ public class QueryResultNanopubSet extends QueryResult {
     }
 
     private NanopubResults buildNanopubResults() {
-        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage);
+        // Each card carries the view's entry actions (applied to its result row) as a
+        // dropdown in its top-right corner, matching the per-row menus of the other
+        // view types.
+        NanopubResults nanopubResults = NanopubResults.fromApiResponse("nanopubs", filteredDataProvider.getFilteredData(), itemsPerPage,
+                row -> ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(), row, queryRef,
+                        resourceWithProfile != null ? resourceWithProfile : pageResource,
+                        contextId, partId, refRoot, postPublishTab));
         // Tiled (grid) mode deactivated for now — always render this view as a list,
         // regardless of the session's view-mode setting.
         nanopubResults.add(AttributeAppender.append("class", NanopubResults.ViewMode.LIST.getValue()));
@@ -119,8 +130,9 @@ public class QueryResultNanopubSet extends QueryResult {
      * @param hasTitle true to show the title, false to hide it
      */
     public void setTitleVisible(boolean hasTitle) {
-        this.get("title").setVisible(hasTitle);
-        if (!hasTitle) {
+        boolean visible = hasTitle && !emptyTitle;
+        this.get("title").setVisible(visible);
+        if (!visible) {
             viewSelector.add(AttributeAppender.append("class", " no-title"));
         }
     }
