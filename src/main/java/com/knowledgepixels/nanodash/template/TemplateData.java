@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
@@ -165,8 +167,13 @@ public class TemplateData implements Serializable {
     }
 
     /**
-     * Resolves a template ID to the ID of the latest version of that template,
-     * following the supersedes chain of the containing nanopublication. Accepts
+     * Resolves a template ID to the ID of the latest version of that template.
+     * A version declaring {@code gen:governedBy} resolves space-based: the newest
+     * version of its (kind, space) pair signed by a current member+ of the
+     * governing space, checked server-side by the
+     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query, with the pinned
+     * version as the floor on an empty result or failure. A version without it
+     * follows the supersedes chain of the containing nanopublication. Accepts
      * either ID form (nanopublication URI or embedded template-node IRI) and
      * returns the latest version's canonical ID ({@link Template#getId()}) — so
      * even when there is no newer version, the given ID is normalized to canonical
@@ -176,11 +183,41 @@ public class TemplateData implements Serializable {
      * @return the canonical ID of the latest version, or the given ID as fallback
      */
     public String getLatestTemplateId(String templateId) {
+        Template pinned = getTemplate(templateId);
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getTemplateKindIri() != null) {
+            String governedId = resolveGovernedTemplateId(pinned);
+            if (governedId != null) return governedId;
+            return pinned.getId();
+        }
         String npId = Utils.stripToNanopubId(templateId);
         String latestNpId = QueryApiAccess.getLatestVersionId(npId);
         Template latest = getTemplate(latestNpId);
         if (latest != null) return latest.getId();
         return templateId;
+    }
+
+    /**
+     * Resolves the latest space-governed version of the pinned template's
+     * (kind, space) pair, or null if no valid floating candidate is found (the
+     * caller then keeps the pin).
+     */
+    private String resolveGovernedTemplateId(Template pinned) {
+        try {
+            Multimap<String, String> params = ArrayListMultimap.create();
+            params.put("kind", pinned.getTemplateKindIri().stringValue());
+            params.put("space", pinned.getGoverningSpace().stringValue());
+            ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params), false);
+            if (resp != null && !resp.getData().isEmpty()) {
+                String latestId = resp.getData().get(0).get("version");
+                if (latestId != null && !latestId.isEmpty()) {
+                    Template resolved = getTemplate(latestId);
+                    if (resolved != null) return resolved.getId();
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("Error resolving governed version for template: {}", pinned.getId(), ex);
+        }
+        return null;
     }
 
     /**

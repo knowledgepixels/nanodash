@@ -45,6 +45,7 @@ public class Template implements Serializable {
     private IRI templateIri;
     private boolean embeddedIdentity = false;
     private IRI templateKindIri;
+    private IRI governingSpace;
     private Map<IRI, List<IRI>> typeMap = new HashMap<>();
     private Map<IRI, List<Value>> possibleValueMap = new HashMap<>();
     private Map<IRI, List<IRI>> possibleValuesToLoadMap = new HashMap<>();
@@ -145,6 +146,18 @@ public class Template implements Serializable {
      */
     public IRI getTemplateKindIri() {
         return templateKindIri;
+    }
+
+    /**
+     * Returns the space governing this template version ({@code gen:governedBy} on
+     * the template node), or null if it doesn't declare one. A governed version's
+     * latest-resolution floats space-based within its (kind, space) pair instead of
+     * following the supersedes chain; see docs/template-identity-and-governance.md.
+     *
+     * @return the governing space IRI, or null
+     */
+    public IRI getGoverningSpace() {
+        return governingSpace;
     }
 
     /**
@@ -801,6 +814,8 @@ public class Template implements Serializable {
                         targetNanopubTypes.add(objIri);
                     } else if (pred.equals(DCTERMS.IS_VERSION_OF)) {
                         templateKindIri = objIri;
+                    } else if (pred.equals(KPXL_TERMS.GOVERNED_BY)) {
+                        governingSpace = objIri;
                     }
                 } else if (obj instanceof Literal) {
                     if (pred.equals(NTEMPLATE.HAS_TAG)) {
