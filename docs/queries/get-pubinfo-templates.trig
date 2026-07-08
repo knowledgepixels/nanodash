@@ -1,0 +1,66 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication ;
+    np:hasAssertion sub:assertion ;
+    np:hasProvenance sub:provenance ;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:get-pubinfo-templates a grlc:grlc-query ;
+    dct:description "Returns the basic info of all pubinfo templates. Supports both template identity shapes (docs/template-identity-and-governance.md in the nanodash repo): the label is read off the node typed nt:PubinfoTemplate in the assertion -- the assertion graph URI for legacy templates, the embedded template node for templates with embedded identity -- falling back to the assertion graph URI if no typed node is found. Derived from (not superseding) the previous version, which is signed by a different key; consumers pin query IDs explicitly, so both versions stay usable." ;
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0> ;
+    rdfs:label "Get pubinfo templates" ;
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/45a89137e16d91eb7c7229b4e9033f49512604f94b65c7a9e3a093759293095b> ;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix nt: <https://w3id.org/np/o/ntemplate/>
+
+select ?np ?pubkey ?pubkeyhash ?date ?label ?creator where {
+  graph npa:graph {
+    ?np npa:hasValidSignatureForPublicKey ?pubkey .
+    filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKey ?pubkey . }
+    ?np npa:hasValidSignatureForPublicKeyHash ?pubkeyhash .
+    ?np npx:hasNanopubType nt:PubinfoTemplate .
+    ?np dct:created ?date .
+    ?np np:hasAssertion ?a .
+    optional { ?np npx:signedBy ?creator . }
+  }
+  optional { graph ?a { ?tnode a nt:PubinfoTemplate } }
+  bind(coalesce(?tnode, ?a) as ?t)
+  graph ?a { ?t rdfs:label ?label . }
+} order by desc(?date)""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasDerivedFrom <https://w3id.org/np/RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ> ;
+    prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-07-08T13:46:21Z"^^xsd:dateTime ;
+    dct:creator orcid:0000-0002-1267-0234 ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    npx:embeds sub:get-pubinfo-templates ;
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> ;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI> ;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
+}

@@ -53,9 +53,12 @@ public class QueryApiAccess {
     public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
     public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
     public static final String GET_PARTS = "RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts";
-    public static final String GET_ASSERTION_TEMPLATES = "RA6bgrU3Ezfg5VAiLru0BFYHaSj6vZU6jJTscxNl8Wqvc/get-assertion-templates";
-    public static final String GET_PROVENANCE_TEMPLATES = "RA4bt3MQRnEPC2nSsdbCJc74wT-e1w68dSCpYVyvG0274/get-provenance-templates";
-    public static final String GET_PUBINFO_TEMPLATES = "RAMcdiJpvvk8424AJIH1jsDUQVcPYOLRw0DNnZt_ND_LQ/get-pubinfo-templates";
+    // Node-anchored variants (label/tag/unlisted read off the typed template node, so
+    // templates with embedded identity list correctly); derived from, not superseding,
+    // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
+    public static final String GET_ASSERTION_TEMPLATES = "RA3hOquZde_Ngs10XbeA9eVpjgK7VtfoCb6wmloZCQk60/get-assertion-templates";
+    public static final String GET_PROVENANCE_TEMPLATES = "RAVLRWRl5qbZ_6-U6z7ANA2Iv1UEVDVH0FXtVzlvk2G-k/get-provenance-templates";
+    public static final String GET_PUBINFO_TEMPLATES = "RAVRcsr1tYPlGcRTn0ji9KJdEHCTKEYeXCYiEpF5Ivjck/get-pubinfo-templates";
     public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
