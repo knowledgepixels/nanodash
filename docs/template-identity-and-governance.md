@@ -5,9 +5,13 @@ governed resolution (steps 3–4) live: the generalized `get-latest-governed-ver
 (`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates), the
 `gen:governedBy` resolution branch in `TemplateData`, and a first governed test pair
 (template `RAiK3l4D…`, kind registered maintained-by knowledgepixels via `RAnUJSnd…`).
-Server-side type inference confirmed to list new-style templates. Remaining: listing-query
-updates (e.g. `get-assertion-templates` reads the label off the assertion URI, so new-style
-templates list with an empty label), migration of real templates, listing dedup (step 5).
+Server-side type inference confirmed to list new-style templates. The three template
+listing queries are node-anchored (label/tag/unlisted read off the typed template node,
+covering both identity shapes): `get-assertion-templates` `RA3hOquZ…`,
+`get-provenance-templates` `RAVLRWRl…`, `get-pubinfo-templates` `RAVRcsr1…` — derived
+from (not superseding) the originals, which are update-locked to the Nanodash-profile
+key; sources under docs/queries/. Remaining: migration of real templates (only after
+production runs the new parser), listing dedup for governed version pairs (step 5).
 
 ## Goal
 
