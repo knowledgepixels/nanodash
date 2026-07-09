@@ -56,9 +56,13 @@ public class QueryApiAccess {
     // Node-anchored variants (label/tag/unlisted read off the typed template node, so
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
-    public static final String GET_ASSERTION_TEMPLATES = "RA3hOquZde_Ngs10XbeA9eVpjgK7VtfoCb6wmloZCQk60/get-assertion-templates";
-    public static final String GET_PROVENANCE_TEMPLATES = "RAVLRWRl5qbZ_6-U6z7ANA2Iv1UEVDVH0FXtVzlvk2G-k/get-provenance-templates";
-    public static final String GET_PUBINFO_TEMPLATES = "RAVRcsr1tYPlGcRTn0ji9KJdEHCTKEYeXCYiEpF5Ivjck/get-pubinfo-templates";
+    // v3 dedups governed version pairs: a version declaring dct:isVersionOf +
+    // gen:governedBy is listed only if it is its (kind, space) pair's current governed
+    // winner (in-SPARQL Option A of the listing-dedup problem; the nanopub-query#138
+    // canonical-version edge would replace these arms).
+    public static final String GET_ASSERTION_TEMPLATES = "RAoEo6jLZlH6sJeI6Lw3CIBfirDOscT8dI8Mab58BS8Sc/get-assertion-templates";
+    public static final String GET_PROVENANCE_TEMPLATES = "RAl2C9PT3mFS7qADWmzZcxPkWlVjjaGkNE-TAll3yPUk4/get-provenance-templates";
+    public static final String GET_PUBINFO_TEMPLATES = "RAGxzVO9RO7wIoI5rPy3T33CcpbJ44pgdVgpbOPXmDmwY/get-pubinfo-templates";
     public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
