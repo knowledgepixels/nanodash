@@ -1,3 +1,37 @@
+## [5.5.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.4.0...nanodash-5.5.0) (2026-07-09)
+
+### Features
+
+* add full-screen menu entry linking any view to /view-results ([318daa6](https://github.com/knowledgepixels/nanodash/commit/318daa6e63090d3537703cdee5cccedde4193588))
+* add query-form views (gen:QueryFormView) with view-results page ([f137c90](https://github.com/knowledgepixels/nanodash/commit/f137c9052e708246946efa61d9aa154dfc281114))
+* dedup governed version pairs in template listing queries ([f6be247](https://github.com/knowledgepixels/nanodash/commit/f6be24761319be33392c3d3685aacd37a280ba9d)), closes [nanopub-query#138](https://github.com/knowledgepixels/nanopub-query/issues/138)
+* identify templates by embedded IRIs with dual-mode parser ([2842605](https://github.com/knowledgepixels/nanodash/commit/2842605b1e1fb3046056a9d7f24d64de34c4bb75)), closes [#544](https://github.com/knowledgepixels/nanodash/issues/544)
+* list templates via node-anchored listing queries ([68fabfb](https://github.com/knowledgepixels/nanodash/commit/68fabfb6448d90080b8c992578a96c5243f5aa88)), closes [#544](https://github.com/knowledgepixels/nanodash/issues/544) [#545](https://github.com/knowledgepixels/nanodash/issues/545)
+* render view actions for query-form views ([fb53909](https://github.com/knowledgepixels/nanodash/commit/fb5390948762184740d2487829e402c3e0702542))
+* resolve governed template versions space-based ([2691c02](https://github.com/knowledgepixels/nanodash/commit/2691c026aad4441e700ba859f827fab3a853313d)), closes [#531](https://github.com/knowledgepixels/nanodash/issues/531) [#544](https://github.com/knowledgepixels/nanodash/issues/544)
+* show non-query-form views full-screen as a single result panel ([d55ea30](https://github.com/knowledgepixels/nanodash/commit/d55ea30e1dafe87c5c78f60c45760a631bc6138f))
+* support result- and entry-level actions on all view kinds ([39c9ede](https://github.com/knowledgepixels/nanodash/commit/39c9ede0f4dc3a9a424298665d4d49379c6f6980))
+
+### Bug Fixes
+
+* hide query fields for non-query-form views in full-screen mode ([6dd09f8](https://github.com/knowledgepixels/nanodash/commit/6dd09f80b1c6827baf021c475bd8595f1ad222b5))
+* keep empty title hidden on nanopub-set views ([9a0b638](https://github.com/knowledgepixels/nanodash/commit/9a0b638d26490cdd20df629e02991c5d8e23a765))
+* pre-fill view-action target with context on view-results page ([1de19bc](https://github.com/knowledgepixels/nanodash/commit/1de19bcd02d7ef2d7edd80a42a837aa00eb23bff))
+* prevent action menu trigger from submitting enclosing form ([d36913f](https://github.com/knowledgepixels/nanodash/commit/d36913f4a73a694743fe48204f88188c14742243))
+* show explicit query labels in full instead of truncating ([9f72e96](https://github.com/knowledgepixels/nanodash/commit/9f72e966909f04f04bdf29ad48318b93a9ce60eb))
+
+### Documentation
+
+* add design for embedded template identity and space governance ([3cb376d](https://github.com/knowledgepixels/nanodash/commit/3cb376d20eb365eba70c754853c6546f8259cc70)), closes [#544](https://github.com/knowledgepixels/nanodash/issues/544)
+
+### Tests
+
+* pin fill-machinery contract for meta-template node placeholder ([b8f7833](https://github.com/knowledgepixels/nanodash/commit/b8f783355844cfb1d54779658601861653fb6f59))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([ea54c41](https://github.com/knowledgepixels/nanodash/commit/ea54c41b5362940aa57f5154509854a23cc0391a))
+
 ## [5.4.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.3.0...nanodash-5.4.0) (2026-07-06)
 
 ### Features
