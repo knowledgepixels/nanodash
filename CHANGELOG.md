@@ -1,3 +1,13 @@
+## [5.5.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.5.0...nanodash-5.5.1) (2026-07-09)
+
+### Bug Fixes
+
+* keep optional introduced placeholders fillable on supersede ([f265d37](https://github.com/knowledgepixels/nanodash/commit/f265d377447146163a1f3118cd52d7b9a72b3b79)), closes [#549](https://github.com/knowledgepixels/nanodash/issues/549)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([1cb62f1](https://github.com/knowledgepixels/nanodash/commit/1cb62f1986bd8c06e6aed025453b6096797ce72a))
+
 ## [5.5.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.4.0...nanodash-5.5.0) (2026-07-09)
 
 ### Features
