@@ -9,8 +9,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.nanopub.Nanopub;
+import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 /**
@@ -52,7 +55,13 @@ public class ValueItem extends AbstractContextComponent {
                 component = new AgentChoiceItem("value", id, iri, rg.isOptional(), this.context);
             } else if (template.isGuidedChoicePlaceholder(iri)) {
                 component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), this.context);
-            } else if (template.isIntroducedResource(iri) && (this.context.getFillMode() == FillMode.SUPERSEDE || this.context.getFillMode() == FillMode.OVERRIDE)) {
+            } else if (template.isIntroducedResource(iri) && (this.context.getFillMode() == FillMode.SUPERSEDE || this.context.getFillMode() == FillMode.OVERRIDE)
+                    && introducesAnything(this.context.getFillSource())) {
+                // An introduced resource keeps its IRI across versions, so it is pinned
+                // read-only on supersede/override -- but only if the source nanopub
+                // actually introduces something to pin. Otherwise (e.g. an optional
+                // statement whose introduced identifier the old version didn't declare
+                // yet) the field must stay fillable (issue #549).
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
                 component = new IriTextfieldItem("value", id, iri, rg.isOptional(), this.context);
@@ -76,6 +85,16 @@ public class ValueItem extends AbstractContextComponent {
             component = new LiteralItem("value", id, (Literal) value, rg);
         }
         add((Component) component);
+    }
+
+    private static boolean introducesAnything(Nanopub np) {
+        if (np == null) return false;
+        for (Statement st : np.getPubinfo()) {
+            if (st.getSubject().equals(np.getUri()) && st.getPredicate().equals(NPX.INTRODUCES) && st.getObject() instanceof IRI) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
