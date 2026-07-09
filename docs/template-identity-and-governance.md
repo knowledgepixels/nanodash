@@ -10,8 +10,13 @@ listing queries are node-anchored (label/tag/unlisted read off the typed templat
 covering both identity shapes): `get-assertion-templates` `RA3hOquZ…`,
 `get-provenance-templates` `RAVLRWRl…`, `get-pubinfo-templates` `RAVRcsr1…` — derived
 from (not superseding) the originals, which are update-locked to the Nanodash-profile
-key; sources under docs/queries/. Remaining: migration of real templates (only after
-production runs the new parser), listing dedup for governed version pairs (step 5).
+key; sources under docs/queries/. The v3 heads (`RAoEo6jL…`/`RAl2C9PT…`/`RAGxzVO9…`)
+additionally dedup governed version pairs in-SPARQL (a governed version lists only if
+it is its (kind, space) pair's current winner) — the interim Option A; nanopub-query#138
+(re-opened) would replace these per-query arms with one materialized canonical-version
+edge. Remaining: migration of real templates (only after production runs the new
+parser); dedup arms for further listing surfaces as governance adoption grows (template
+views, view listings) — or #138.
 
 ## Goal
 

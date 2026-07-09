@@ -20,7 +20,7 @@ sub:Head {
 
 sub:assertion {
   sub:get-pubinfo-templates a grlc:grlc-query ;
-    dct:description "Returns the basic info of all pubinfo templates. Supports both template identity shapes (docs/template-identity-and-governance.md in the nanodash repo): the label is read off the node typed nt:PubinfoTemplate in the assertion -- the assertion graph URI for legacy templates, the embedded template node for templates with embedded identity -- falling back to the assertion graph URI if no typed node is found. Derived from (not superseding) the previous version, which is signed by a different key; consumers pin query IDs explicitly, so both versions stay usable." ;
+    dct:description "Returns the basic info of all pubinfo templates. Supports both template identity shapes (docs/template-identity-and-governance.md in the nanodash repo): the label is read off the node typed nt:PubinfoTemplate in the assertion -- the assertion graph URI for legacy templates, the embedded template node for templates with embedded identity -- falling back to the assertion graph URI if no typed node is found. Derived from (not superseding) the previous version, which is signed by a different key; consumers pin query IDs explicitly, so both versions stay usable. Governed version pairs are deduplicated: a version declaring dct:isVersionOf plus gen:governedBy is listed only if it is the current governed winner of its (kind, space) pair -- the newest non-invalidated version signed by a current member+ of the governing space, with the kind validated as maintained by that space (computed in a run-once sub-select against the spaces repo, mirroring the get-latest-governed-version resolver). A governed version whose pair does not validate is kept (inert gen:governedBy, matching the resolver's pin-is-the-floor semantics); non-governed versions are unaffected." ;
     dct:license <http://www.apache.org/licenses/LICENSE-2.0> ;
     rdfs:label "Get pubinfo templates" ;
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/type/45a89137e16d91eb7c7229b4e9033f49512604f94b65c7a9e3a093759293095b> ;
@@ -30,6 +30,7 @@ prefix np: <http://www.nanopub.org/nschema#>
 prefix npa: <http://purl.org/nanopub/admin/>
 prefix npx: <http://purl.org/nanopub/x/>
 prefix nt: <https://w3id.org/np/o/ntemplate/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
 
 select ?np ?pubkey ?pubkeyhash ?date ?label ?creator where {
   graph npa:graph {
@@ -44,6 +45,33 @@ select ?np ?pubkey ?pubkeyhash ?date ?label ?creator where {
   optional { graph ?a { ?tnode a nt:PubinfoTemplate } }
   bind(coalesce(?tnode, ?a) as ?t)
   graph ?a { ?t rdfs:label ?label . }
+
+  optional { graph ?a { ?t dct:isVersionOf ?kind ; gen:governedBy ?space . } }
+  optional {
+    {
+      select ?kind ?space (max(concat(str(?gDate), "|", str(?gNp))) as ?winner) where {
+        graph npa:graph {
+          ?gNp npa:hasValidSignatureForPublicKeyHash ?gPubkeyhash ;
+               dct:created ?gDate ;
+               npx:embeds ?gVersion ;
+               np:hasAssertion ?gA .
+          filter not exists { ?gInv npx:invalidates ?gNp ; npa:hasValidSignatureForPublicKeyHash ?gPubkeyhash . }
+        }
+        graph ?gA { ?gVersion dct:isVersionOf ?kind ; gen:governedBy ?space . }
+        service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+          graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+          graph ?stateG {
+            ?kind npa:isMaintainedBy ?space ; npa:hasGoverningSpaceRef ?gRef .
+            ?gRi a gen:RoleInstantiation ; npa:forSpace ?space ; npa:forSpaceRef ?gRef ;
+                 npa:hasRoleType ?gTier ; npa:forAgent ?gAgent .
+            filter(?gTier = gen:AdminRole || ?gTier = gen:MaintainerRole || ?gTier = gen:MemberRole)
+            ?gAcct a npa:AccountState ; npa:agent ?gAgent ; npa:pubkey ?gPubkeyhash .
+          }
+        }
+      } group by ?kind ?space
+    }
+  }
+  filter( !bound(?kind) || !bound(?winner) || concat(str(?date), "|", str(?np)) = ?winner )
 } order by desc(?date)""" .
 }
 
@@ -55,9 +83,10 @@ sub:provenance {
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
 
-  this: dct:created "2026-07-08T13:46:21Z"^^xsd:dateTime ;
+  this: dct:created "2026-07-09T06:11:40Z"^^xsd:dateTime ;
     dct:creator orcid:0000-0002-1267-0234 ;
     dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    npx:supersedes <https://w3id.org/np/RAVRcsr1tYPlGcRTn0ji9KJdEHCTKEYeXCYiEpF5Ivjck> ;
     npx:embeds sub:get-pubinfo-templates ;
     nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> ;
     nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
