@@ -78,8 +78,7 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         final String homeResourceId = NanodashPreferences.get().getHomeResource();
-        final MaintainedResourceRepository resourceRepo = MaintainedResourceRepository.get();
-        final MaintainedResource homeResource = resourceRepo.findById(homeResourceId);
+        final MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
 
         // Rendered only for a genuine misconfiguration (see below): the resource
         // repository is warm but the configured id is not a known maintained resource.
@@ -88,7 +87,7 @@ public class HomePage extends NanodashPage {
                 "Set the <code>NANODASH_HOME_RESOURCE</code> environment variable to a valid maintained-resource IRI." +
                 "</p></div></div>";
 
-        if (homeResource == null && resourceRepo.isReady()) {
+        if (homeResource == null && MaintainedResourceRepository.get().isReady()) {
             // The repository has a full snapshot, yet the configured id isn't in it:
             // a real misconfiguration, not a cold-cache race.
             add(new Label("views", notFoundHtml).setEscapeModelStrings(false));
@@ -111,10 +110,13 @@ public class HomePage extends NanodashPage {
         // resolves, rather than declaring a hard "not found" on a transient null. If
         // the repository warms up without the configured id, the misconfig notice is
         // shown then.
+        // Resolve the repository singleton inside the anonymous classes rather than
+        // capturing it: MaintainedResourceRepository is not Serializable, and a
+        // captured reference makes the whole page fail to serialize to the page store.
         final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
-                return resourceRepo.findById(homeResourceId);
+                return MaintainedResourceRepository.get().findById(homeResourceId);
             }
         };
 
@@ -138,7 +140,7 @@ public class HomePage extends NanodashPage {
                 if (r != null) return r.isDataInitialized();
                 // Resource still unresolved: keep polling while the repository is cold,
                 // and stop (to show the misconfig notice) only once it is warm.
-                return resourceRepo.isReady();
+                return MaintainedResourceRepository.get().isReady();
             }
 
             @Override

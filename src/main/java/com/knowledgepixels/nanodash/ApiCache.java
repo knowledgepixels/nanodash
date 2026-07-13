@@ -2,6 +2,8 @@ package com.knowledgepixels.nanodash;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalCause;
+import com.google.common.cache.RemovalNotification;
 import org.apache.wicket.MetaDataKey;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.eclipse.rdf4j.model.Model;
@@ -50,23 +52,33 @@ public class ApiCache {
     private static final Cache<String, ApiResponse> cachedResponses = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
-        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .removalListener(ApiCache::cleanupMetadataOnRemoval)
         .build();
     private static final Cache<String, Model> cachedRdfModels = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
-        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .removalListener(ApiCache::cleanupMetadataOnRemoval)
         .build();
     private transient static ConcurrentMap<String, Integer> failed = new ConcurrentHashMap<>();
     private static final Cache<String, Map<String, String>> cachedMaps = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
-        .removalListener(n -> cleanupMetadata(n.getKey().toString()))
+        .removalListener(ApiCache::cleanupMetadataOnRemoval)
         .build();
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> runAfter = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
+
+    // Guava fires removal notifications also when an entry is REPLACED (every routine
+    // refresh's put), and processes them lazily during later cache operations. Cleaning
+    // up on a replacement would wipe the metadata of a still-cached entry — in
+    // particular a missing lastRefresh timestamp used to make retrieveResponseSync
+    // throw an NPE on every call until the entry expired.
+    private static void cleanupMetadataOnRemoval(RemovalNotification<String, ?> n) {
+        if (n.getCause() == RemovalCause.REPLACED) return;
+        cleanupMetadata(n.getKey());
+    }
 
     private static void cleanupMetadata(String cacheId) {
         lastRefresh.remove(cacheId);
@@ -151,13 +163,16 @@ public class ApiCache {
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
-        logger.info("Retrieving cached API response synchronously for {}", cacheId);
+        logger.debug("Retrieving cached API response synchronously for {}", cacheId);
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
-            long cacheAge = timeNow - lastRefresh.get(cacheId);
-            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
+            // lastRefresh can be missing for a cached entry (racing invalidation or
+            // refresh); treat that as stale rather than NPEing on the unboxing.
+            Long lastRefreshTime = lastRefresh.get(cacheId);
+            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
+        Integer failedCount = failed.get(cacheId);
+        if (failedCount != null && failedCount > 2) {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
@@ -165,8 +180,9 @@ public class ApiCache {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {
-                if (runAfter.containsKey(cacheId)) {
-                    while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                Long after = runAfter.get(cacheId);
+                if (after != null) {
+                    while (System.currentTimeMillis() < after) {
                         Thread.sleep(100);
                     }
                     runAfter.remove(cacheId);
@@ -222,7 +238,7 @@ public class ApiCache {
     public static ApiResponse retrieveResponseAsync(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
-        logger.info("Retrieving cached API response asynchronously for {}", cacheId);
+        logger.debug("Retrieving cached API response asynchronously for {}", cacheId);
         if (isForcedReload(cacheId)) {
             cachedResponses.invalidate(cacheId);
             lastRefresh.remove(cacheId);
@@ -230,11 +246,12 @@ public class ApiCache {
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
-            long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < MAX_CACHE_AGE_MS;
-            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
+            Long lastRefreshTime = lastRefresh.get(cacheId);
+            isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
+        Integer failedCount = failed.get(cacheId);
+        if (failedCount != null && failedCount > 2) {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
@@ -242,8 +259,9 @@ public class ApiCache {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    if (runAfter.containsKey(cacheId)) {
-                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                    Long after = runAfter.get(cacheId);
+                    if (after != null) {
+                        while (System.currentTimeMillis() < after) {
                             Thread.sleep(100);
                         }
                         runAfter.remove(cacheId);
@@ -312,16 +330,17 @@ public class ApiCache {
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedMaps.getIfPresent(cacheId) != null) {
-            long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < MAX_CACHE_AGE_MS;
-            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
+            Long lastRefreshTime = lastRefresh.get(cacheId);
+            isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
         if (needsRefresh && !isRunning(cacheId)) {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    if (runAfter.containsKey(cacheId)) {
-                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                    Long after = runAfter.get(cacheId);
+                    if (after != null) {
+                        while (System.currentTimeMillis() < after) {
                             Thread.sleep(100);
                         }
                         runAfter.remove(cacheId);
@@ -379,7 +398,7 @@ public class ApiCache {
     public static Model retrieveRdfModelAsync(QueryRef queryRef) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
-        logger.info("Retrieving cached RDF model asynchronously for {}", cacheId);
+        logger.debug("Retrieving cached RDF model asynchronously for {}", cacheId);
         if (isForcedReload(cacheId)) {
             cachedRdfModels.invalidate(cacheId);
             lastRefresh.remove(cacheId);
@@ -387,11 +406,12 @@ public class ApiCache {
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedRdfModels.getIfPresent(cacheId) != null) {
-            long cacheAge = timeNow - lastRefresh.get(cacheId);
-            isCached = cacheAge < MAX_CACHE_AGE_MS;
-            needsRefresh = cacheAge > REFRESH_AGE_THRESHOLD_MS;
+            Long lastRefreshTime = lastRefresh.get(cacheId);
+            isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        if (failed.get(cacheId) != null && failed.get(cacheId) > 2) {
+        Integer failedCount = failed.get(cacheId);
+        if (failedCount != null && failedCount > 2) {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
@@ -399,8 +419,9 @@ public class ApiCache {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    if (runAfter.containsKey(cacheId)) {
-                        while (System.currentTimeMillis() < runAfter.get(cacheId)) {
+                    Long after = runAfter.get(cacheId);
+                    if (after != null) {
+                        while (System.currentTimeMillis() < after) {
                             Thread.sleep(100);
                         }
                         runAfter.remove(cacheId);
