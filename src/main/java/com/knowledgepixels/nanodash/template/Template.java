@@ -791,7 +791,7 @@ public class Template implements Serializable {
         }
     }
 
-    private void processNpTemplate(Nanopub templateNp) {
+    private void processNpTemplate(Nanopub templateNp) throws MalformedTemplateException {
         for (Statement st : templateNp.getAssertion()) {
             final IRI subj = (IRI) st.getSubject();
             final IRI pred = st.getPredicate();
@@ -901,7 +901,11 @@ public class Template implements Serializable {
         // Grouped IRI are added via group, so direct link from template is redundant:
         for (IRI iri : typeMap.keySet()) {
             if (!typeMap.get(iri).contains(NTEMPLATE.GROUPED_STATEMENT)) continue;
-            for (IRI groupedIri : getStatementIris(iri)) {
+            List<IRI> memberIris = getStatementIris(iri);
+            if (memberIris == null) {
+                throw new MalformedTemplateException("Grouped statement has no member statements: " + iri);
+            }
+            for (IRI groupedIri : memberIris) {
                 statementMap.get(templateIri).remove(groupedIri);
             }
         }
