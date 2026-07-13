@@ -31,6 +31,10 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     private static final Map<Class<?>, Map<String, AbstractResourceWithProfile>> instances = new ConcurrentHashMap<>();
 
+    // Backoff after a failed data update, so a persistently failing resource
+    // doesn't respawn an update task on every page poll (~1/s per open page).
+    private static final long FAILED_UPDATE_BACKOFF_MS = 10 * 1000;
+
     private final String id;
     private Space space;
     private ResourceWithProfile data = new ResourceWithProfile();
@@ -121,17 +125,17 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     @Override
     public synchronized Future<?> triggerDataUpdate() {
         if (dataNeedsUpdate) {
+            // Not due yet (delayed forceRefresh or backoff after a failure): don't
+            // occupy a pool thread with sleeping; a later access re-triggers.
+            Long after = runUpdateAfter;
+            if (after != null && System.currentTimeMillis() < after) {
+                return null;
+            }
+            runUpdateAfter = null;
             logger.info("Data needs update for resource {}, starting update thread", id);
             dataNeedsUpdate = false;
             return NanodashThreadPool.submit(() -> {
                 try {
-                    if (runUpdateAfter != null) {
-                        while (System.currentTimeMillis() < runUpdateAfter) {
-                            Thread.sleep(100);
-                        }
-                        runUpdateAfter = null;
-                    }
-
                     ResourceWithProfile newData = new ResourceWithProfile();
 
                     // The query returns both standalone view displays (bound ?display) and
@@ -152,6 +156,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     dataInitialized = true;
                 } catch (Exception ex) {
                     logger.error("Error while trying to update data for resource {}", id, ex);
+                    runUpdateAfter = System.currentTimeMillis() + FAILED_UPDATE_BACKOFF_MS;
                     dataNeedsUpdate = true;
                 }
             });
