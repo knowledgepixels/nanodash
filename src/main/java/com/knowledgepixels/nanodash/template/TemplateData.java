@@ -137,7 +137,7 @@ public class TemplateData implements Serializable {
                 templateMap.put(t.getId(), t);
                 return t;
             } catch (Exception ex) {
-                logger.error("Exception: {}", ex.getMessage());
+                logger.error("Could not load template: {}", npId, ex);
                 return null;
             }
         }

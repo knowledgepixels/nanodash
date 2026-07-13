@@ -184,8 +184,9 @@ public class PublishForm extends Panel {
 
         // TODO Properly integrate this namespace feature:
         String templateId = pageParams.get("template").toString();
-        if (td.getTemplate(templateId).getTargetNamespace() != null) {
-            targetNamespace = td.getTemplate(templateId).getTargetNamespace();
+        Template template = td.getTemplate(templateId);
+        if (template != null && template.getTargetNamespace() != null) {
+            targetNamespace = template.getTargetNamespace();
         }
         if (!pageParams.get("target-namespace").isNull()) {
             targetNamespace = pageParams.get("target-namespace").toString();
