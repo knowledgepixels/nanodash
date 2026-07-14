@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</wicket:remove>
+  <wicket:head>
+    <title>nanodash | Claude chat</title>
+  </wicket:head>
+</head>
+<body>
+<wicket:extend>
+
+  <div class="row-section">
+    <div class="col-12">
+
+      <h2>Chat with Claude Code</h2>
+
+      <p wicket:id="disabledNote"></p>
+
+      <div wicket:id="chat">
+
+        <div wicket:id="chatbox" class="chat-box">
+          <div wicket:id="messages">
+            <div wicket:id="message"></div>
+          </div>
+          <div wicket:id="status" class="chat-status"></div>
+        </div>
+
+        <form wicket:id="form" class="chat-form">
+          <textarea wicket:id="input" rows="3" placeholder="Ask Claude about nanopublications, templates, queries..."></textarea>
+          <button wicket:id="send" type="submit">Send</button>
+        </form>
+
+        <p><a wicket:id="reset" href="#">New conversation</a> (ends the current Claude Code process)</p>
+
+      </div>
+
+    </div>
+  </div>
+
+</wicket:extend>
+</body>
+</html>

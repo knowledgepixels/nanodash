@@ -24,7 +24,21 @@
 			<param-name>applicationClassName</param-name>
 			<param-value>com.knowledgepixels.nanodash.WicketApplication</param-value>
  		</init-param>
+		<init-param>
+			<param-name>ignorePaths</param-name>
+			<param-value>mcp</param-value>
+ 		</init-param>
  	</filter>
+
+	<servlet>
+		<servlet-name>mcp</servlet-name>
+		<servlet-class>com.knowledgepixels.nanodash.chat.McpServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>mcp</servlet-name>
+		<url-pattern>/mcp</url-pattern>
+	</servlet-mapping>
 
   <filter-mapping>
    <filter-name>wicket.nanodash</filter-name>

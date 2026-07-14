@@ -3020,3 +3020,49 @@ a.source:hover {
   }
 
 }
+/* Claude Code chat page */
+
+.chat-box {
+  border: 1px solid #E0E5EB;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  background: white;
+}
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.chat-msg-user {
+  background: #E8F0FE;
+  margin-left: 15%;
+}
+.chat-msg-assistant {
+  background: #F4F6F8;
+  margin-right: 15%;
+}
+.chat-msg-tool {
+  color: #666666;
+  font-family: monospace;
+  font-size: 85%;
+  padding: 2px 12px;
+}
+.chat-msg > div {
+  white-space: pre-wrap;
+}
+.chat-msg-error {
+  background: #FDECEA;
+  color: #B3261E;
+}
+.chat-status {
+  color: #666666;
+  font-style: italic;
+}
+.chat-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+}

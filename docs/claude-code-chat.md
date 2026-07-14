@@ -1,6 +1,6 @@
 # Local Claude Code Chat (MCP + Embedded Chat Panel)
 
-**Status:** 📋 Proposed
+**Status:** 🚧 In progress
 
 Let a locally running Nanodash instance connect to the user's local Claude
 Code installation: a chat panel in the browser sends messages to Claude Code
