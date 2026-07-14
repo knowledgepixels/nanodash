@@ -1,3 +1,23 @@
+## [5.6.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.5.1...nanodash-5.6.0) (2026-07-14)
+
+### Features
+
+* support optional statements inside statement groups ([6243658](https://github.com/knowledgepixels/nanodash/commit/62436580719648de5d3ea940bd1105ea88972861))
+* treat untyped local IRIs in template statements as local resources ([43d0fa1](https://github.com/knowledgepixels/nanodash/commit/43d0fa102a36ee4c2a621e9d3ba8679b84a4a06c)), closes [#551](https://github.com/knowledgepixels/nanodash/issues/551)
+
+### Bug Fixes
+
+* fail cleanly on templates with memberless grouped statements ([51a21ba](https://github.com/knowledgepixels/nanodash/commit/51a21bab762f3b7d562e39cf27f12eb13d013b28))
+* prevent ApiCache metadata wipe on entry replacement causing home page hang ([1a7a7a2](https://github.com/knowledgepixels/nanodash/commit/1a7a7a2cf8c5489d8d321de213e58d9478be6016))
+
+### Documentation
+
+* design draft for optional statements inside statement groups ([d227dbc](https://github.com/knowledgepixels/nanodash/commit/d227dbc32ebcef804c9d0f109456ec40a406f928))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([aeac640](https://github.com/knowledgepixels/nanodash/commit/aeac640f2f471dee3e321cf88475c0bf911ba088))
+
 ## [5.5.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.5.0...nanodash-5.5.1) (2026-07-09)
 
 ### Bug Fixes
