@@ -3050,8 +3050,20 @@ a.source:hover {
   font-size: 85%;
   padding: 2px 12px;
 }
-.chat-msg > div {
+.chat-msg-user > div, .chat-msg-tool > div, .chat-msg-error > div {
   white-space: pre-wrap;
+}
+.chat-msg-assistant p:first-child {
+  margin-top: 0;
+}
+.chat-msg-assistant p:last-child {
+  margin-bottom: 0;
+}
+.chat-msg-assistant pre {
+  overflow-x: auto;
+  background: #FFFFFF;
+  padding: 8px;
+  border-radius: 4px;
 }
 .chat-msg-error {
   background: #FDECEA;

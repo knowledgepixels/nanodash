@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public class ClaudeChatService {
         synchronized (sessions) {
             ClaudeSession session = sessions.get(key);
             if (session == null) {
-                session = new ClaudeSession(buildCommand(), ENV_VARS_TO_SCRUB);
+                session = new ClaudeSession(buildCommand(key), ENV_VARS_TO_SCRUB, getWorkingDir());
                 sessions.put(key, session);
                 logger.info("Started Claude Code chat session for {}", key);
             }
@@ -119,7 +120,21 @@ public class ClaudeChatService {
         if (session != null) session.close();
     }
 
-    private List<String> buildCommand() {
+    /**
+     * The header carrying the chat-session key on MCP requests, so tools like
+     * open_page know which session they act for.
+     */
+    public static final String SESSION_HEADER = "X-Nanodash-Chat-Session";
+
+    private File getWorkingDir() {
+        // A neutral working directory, so the CLI doesn't pick up the CLAUDE.md
+        // or settings of whatever directory the server was started from:
+        File dir = new File(System.getProperty("user.home") + "/.nanodash/claude-chat");
+        dir.mkdirs();
+        return dir;
+    }
+
+    private List<String> buildCommand(String sessionKey) {
         NanodashPreferences prefs = NanodashPreferences.get();
         List<String> command = new ArrayList<>();
         command.add(prefs.getClaudeChatBinary());
@@ -130,7 +145,7 @@ public class ClaudeChatService {
         command.add("stream-json");
         command.add("--verbose");
         command.add("--mcp-config");
-        command.add(buildMcpConfig(prefs));
+        command.add(buildMcpConfig(prefs, sessionKey));
         command.add("--strict-mcp-config");
         command.add("--allowedTools");
         command.add("mcp__nanodash");
@@ -142,11 +157,12 @@ public class ClaudeChatService {
         return command;
     }
 
-    private String buildMcpConfig(NanodashPreferences prefs) {
+    private String buildMcpConfig(NanodashPreferences prefs, String sessionKey) {
         String baseUrl = prefs.getWebsiteUrl();
         if (!baseUrl.endsWith("/")) baseUrl += "/";
         JsonObject headers = new JsonObject();
         headers.addProperty("Authorization", "Bearer " + mcpToken);
+        headers.addProperty(SESSION_HEADER, sessionKey);
         JsonObject nanodash = new JsonObject();
         nanodash.addProperty("type", "http");
         nanodash.addProperty("url", baseUrl + "mcp");

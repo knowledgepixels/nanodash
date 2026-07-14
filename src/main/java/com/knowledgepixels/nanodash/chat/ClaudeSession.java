@@ -9,12 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * One conversation with a local Claude Code instance, backed by a persistent
@@ -32,12 +35,14 @@ public class ClaudeSession {
     private volatile boolean busy = false;
     private volatile long lastActivity = System.currentTimeMillis();
     private volatile String claudeSessionId;
+    private final Queue<String> pendingNavigations = new ConcurrentLinkedQueue<>();
 
-    ClaudeSession(List<String> command, List<String> envVarsToScrub) throws IOException {
+    ClaudeSession(List<String> command, List<String> envVarsToScrub, File workingDir) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(command);
         for (String envVar : envVarsToScrub) {
             pb.environment().remove(envVar);
         }
+        pb.directory(workingDir);
         process = pb.start();
         stdin = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8));
         Thread stdoutReader = new Thread(this::readStdout, "claude-chat-stdout");
@@ -198,6 +203,25 @@ public class ClaudeSession {
      */
     public String getClaudeSessionId() {
         return claudeSessionId;
+    }
+
+    /**
+     * Queue an in-app navigation for the chat panel to execute in the user's
+     * browser on its next poll (the open_page MCP tool lands here).
+     *
+     * @param path the in-app path, starting with "/"
+     */
+    public void requestNavigation(String path) {
+        pendingNavigations.add(path);
+    }
+
+    /**
+     * Take the next queued navigation, if any.
+     *
+     * @return the in-app path or null
+     */
+    public String pollNavigation() {
+        return pendingNavigations.poll();
     }
 
     /**

@@ -15,9 +15,12 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * The read-only tool catalog exposed to Claude Code through the MCP endpoint.
@@ -31,16 +34,18 @@ public class McpTools {
     private static final int MAX_ROWS = 50;
 
     /**
-     * A single MCP tool: its self-description for {@code tools/list} and its executor.
+     * A single MCP tool: its self-description for {@code tools/list} and its
+     * executor, which receives the tool arguments and the chat-session key of
+     * the calling Claude Code process (null when unknown).
      */
     public static class Tool {
 
         public final String name;
         public final String description;
         public final JsonObject inputSchema;
-        public final Function<JsonObject, String> executor;
+        public final BiFunction<JsonObject, String, String> executor;
 
-        Tool(String name, String description, JsonObject inputSchema, Function<JsonObject, String> executor) {
+        Tool(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, String, String> executor) {
             this.name = name;
             this.description = description;
             this.inputSchema = inputSchema;
@@ -74,6 +79,19 @@ public class McpTools {
                 schema(prop("query_id", "string", "full query ID: artifact code, slash, query name", true),
                         prop("params", "object", "query parameters as name/value string pairs", false)),
                 McpTools::runQuery);
+        register("prepare_publication",
+                "Prepare a nanopublication draft: returns the in-app path of the publish form for the given template with the "
+                        + "given placeholder values prefilled. The user reviews, signs, and publishes it themselves through that form; "
+                        + "nothing is published by this tool. Use open_page with the returned path to show the form to the user. "
+                        + "Placeholder names are the local names of the template's placeholder IRIs (inspect them with get_template).",
+                schema(prop("template", "string", "the assertion template URI", true),
+                        prop("params", "object", "placeholder name/value string pairs to prefill", false)),
+                McpTools::preparePublication);
+        register("open_page",
+                "Navigate the user's browser to an in-app Nanodash page (e.g. '/explore?id=...', a path returned by prepare_publication, "
+                        + "or any other Nanodash path). The chat page executes the navigation within a few seconds.",
+                schema(prop("path", "string", "the in-app path to open, starting with '/'", true)),
+                McpTools::openPage);
     }
 
     /**
@@ -95,11 +113,11 @@ public class McpTools {
         return tools.values();
     }
 
-    private static void register(String name, String description, JsonObject inputSchema, Function<JsonObject, String> executor) {
+    private static void register(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, String, String> executor) {
         tools.put(name, new Tool(name, description, inputSchema, executor));
     }
 
-    private static String searchNanopubs(JsonObject args) {
+    private static String searchNanopubs(JsonObject args, String sessionKey) {
         String query = requireString(args, "query");
         Multimap<String, String> params = HashMultimap.create();
         params.put("query", query);
@@ -107,7 +125,7 @@ public class McpTools {
         return rowsToJson(forcedGet(new QueryRef(QueryApiAccess.FULLTEXT_SEARCH, params)));
     }
 
-    private static String getNanopub(JsonObject args) {
+    private static String getNanopub(JsonObject args, String sessionKey) {
         String uri = requireString(args, "uri");
         Nanopub np = Utils.getAsNanopub(uri);
         if (np == null) {
@@ -116,7 +134,7 @@ public class McpTools {
         return toTrig(np);
     }
 
-    private static String listTemplates(JsonObject args) {
+    private static String listTemplates(JsonObject args, String sessionKey) {
         String type = args.has("type") ? args.get("type").getAsString() : "assertion";
         TemplateData td = TemplateData.get();
         var rows = switch (type) {
@@ -133,7 +151,7 @@ public class McpTools {
         return array.toString();
     }
 
-    private static String getTemplate(JsonObject args) {
+    private static String getTemplate(JsonObject args, String sessionKey) {
         String uri = requireString(args, "uri");
         Template template = TemplateData.get().getTemplate(uri);
         if (template == null) {
@@ -147,7 +165,7 @@ public class McpTools {
         return result.toString();
     }
 
-    private static String runQuery(JsonObject args) {
+    private static String runQuery(JsonObject args, String sessionKey) {
         String queryId = requireString(args, "query_id");
         if (!queryId.matches("^RA[A-Za-z0-9-_]{43}/[^/#]+$")) {
             throw new IllegalArgumentException("Not a full query ID of the form 'RA.../query-name': " + queryId);
@@ -159,6 +177,46 @@ public class McpTools {
             }
         }
         return rowsToJson(forcedGet(new QueryRef(queryId, params)));
+    }
+
+    private static String preparePublication(JsonObject args, String sessionKey) {
+        String templateUri = requireString(args, "template");
+        Template template = TemplateData.get().getTemplate(templateUri);
+        if (template == null) {
+            throw new IllegalArgumentException("Not a known template URI: " + templateUri);
+        }
+        StringBuilder path = new StringBuilder("/publish?template=" + urlEncode(template.getId()));
+        if (args.has("params")) {
+            for (Map.Entry<String, com.google.gson.JsonElement> e : args.getAsJsonObject("params").entrySet()) {
+                path.append("&param_").append(e.getKey()).append("=").append(urlEncode(e.getValue().getAsString()));
+            }
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("path", path.toString());
+        result.addProperty("note", "Prefilled publish form for template '" + template.getLabel()
+                + "'. Nothing is published yet: show it to the user with open_page; they review, sign, and publish there.");
+        return result.toString();
+    }
+
+    private static String openPage(JsonObject args, String sessionKey) {
+        String path = requireString(args, "path");
+        if (!path.startsWith("/") || path.startsWith("//") || path.contains("\\") || path.contains("'")) {
+            throw new IllegalArgumentException("Only in-app paths starting with '/' can be opened: " + path);
+        }
+        ClaudeSession session = sessionKey == null ? null : ClaudeChatService.get().getSession(sessionKey);
+        if (session == null) {
+            throw new IllegalStateException("No active chat session found to navigate.");
+        }
+        session.requestNavigation(path);
+        return "Navigation queued: the user's browser will open " + path + " within a few seconds.";
+    }
+
+    private static String urlEncode(String s) {
+        try {
+            return URLEncoder.encode(s, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static ApiResponse forcedGet(QueryRef queryRef) {

@@ -1,9 +1,12 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.chat.ChatMessage;
 import com.knowledgepixels.nanodash.chat.ClaudeChatService;
 import com.knowledgepixels.nanodash.chat.ClaudeSession;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -39,6 +42,13 @@ public class ClaudeChatPage extends NanodashPage {
     public static final String MOUNT_PATH = "/claudechat";
 
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
+
+    private static final Parser markdownParser = Parser.builder().build();
+    private static final HtmlRenderer markdownRenderer = HtmlRenderer.builder().build();
+
+    private static String renderMarkdown(String markdown) {
+        return Utils.sanitizeHtml(markdownRenderer.render(markdownParser.parse(markdown)));
+    }
 
     private final IModel<String> inputModel = Model.of("");
 
@@ -76,7 +86,19 @@ public class ClaudeChatPage extends NanodashPage {
 
         WebMarkupContainer chatbox = new WebMarkupContainer("chatbox");
         chatbox.setOutputMarkupId(true);
-        chatbox.add(new AjaxSelfUpdatingTimerBehavior(POLL_INTERVAL));
+        chatbox.add(new AjaxSelfUpdatingTimerBehavior(POLL_INTERVAL) {
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                ClaudeSession s = ClaudeChatService.get().getSession(sessionKey);
+                String path = s == null ? null : s.pollNavigation();
+                if (path != null) {
+                    // Path is validated by the open_page tool: in-app, no quotes or backslashes.
+                    target.appendJavaScript("window.location = '" + path + "';");
+                }
+            }
+
+        });
         chat.add(chatbox);
 
         chatbox.add(new ListView<ChatMessage>("messages", (IModel<List<ChatMessage>>) () -> {
@@ -87,7 +109,11 @@ public class ClaudeChatPage extends NanodashPage {
             @Override
             protected void populateItem(ListItem<ChatMessage> item) {
                 ChatMessage message = item.getModelObject();
-                item.add(new Label("message", message.getText()));
+                if (message.getKind() == ChatMessage.Kind.ASSISTANT) {
+                    item.add(new Label("message", renderMarkdown(message.getText())).setEscapeModelStrings(false));
+                } else {
+                    item.add(new Label("message", message.getText()));
+                }
                 item.add(new AttributeModifier("class", "chat-msg chat-msg-" + message.getKind().toString().toLowerCase()));
             }
 

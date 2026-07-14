@@ -57,7 +57,7 @@ public class McpServlet extends HttpServlet {
             case "initialize" -> result(id, initialize());
             case "ping" -> result(id, new JsonObject());
             case "tools/list" -> result(id, toolsList());
-            case "tools/call" -> result(id, toolsCall(params));
+            case "tools/call" -> result(id, toolsCall(params, req.getHeader(ClaudeChatService.SESSION_HEADER)));
             default -> error(id, -32601, "Method not found: " + method);
         };
         sendJson(resp, response);
@@ -90,7 +90,7 @@ public class McpServlet extends HttpServlet {
         return r;
     }
 
-    private JsonObject toolsCall(JsonObject params) {
+    private JsonObject toolsCall(JsonObject params, String sessionKey) {
         String name = params.has("name") ? params.get("name").getAsString() : "";
         JsonObject arguments = params.has("arguments") ? params.getAsJsonObject("arguments") : new JsonObject();
         McpTools.Tool tool = McpTools.get(name);
@@ -101,7 +101,7 @@ public class McpServlet extends HttpServlet {
             isError = true;
         } else {
             try {
-                text = tool.executor.apply(arguments);
+                text = tool.executor.apply(arguments, sessionKey);
             } catch (Exception ex) {
                 logger.error("MCP tool {} failed", name, ex);
                 text = "Error: " + ex.getMessage();
