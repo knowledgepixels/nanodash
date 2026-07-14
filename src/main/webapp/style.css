@@ -1803,6 +1803,14 @@ a[href=""] {
   display: none;
 }
 
+/* Mark of an optional member statement inside a (required) group: rendered inline
+   at the end of that member's line, unlike the group-level mark, which is
+   absolutely positioned on the group box. */
+.optional-part-label {
+  position: static;
+  margin-left: 6px;
+}
+
 .separate-statement {
   border-top: 1px solid rgba(0, 0, 0, 0.3);
   padding-top: 10px;

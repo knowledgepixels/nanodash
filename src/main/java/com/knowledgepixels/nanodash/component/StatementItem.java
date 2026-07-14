@@ -117,7 +117,7 @@ public class StatementItem extends Panel {
             if (isGrouped() && !first) {
                 viewElements.add(new HorizontalLine("statement"));
             }
-            viewElements.addAll(r.getStatementParts());
+            viewElements.addAll(r.getShownStatementParts());
             boolean isOnly = repetitionGroups.size() == 1;
             boolean isLast = repetitionGroups.get(repetitionGroups.size() - 1) == r;
             r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast);
@@ -338,6 +338,9 @@ public class StatementItem extends Panel {
         private List<StatementPartItem> statementParts;
         private List<ValueItem> localItems = new ArrayList<>();
         private boolean filled = false;
+        // Optional group members that were left unassigned by a successful fill();
+        // read-only rendering hides these rows:
+        private Set<IRI> unmatchedParts = new HashSet<>();
 
         private List<ValueItem> items = new ArrayList<>();
 
@@ -386,6 +389,8 @@ public class StatementItem extends Panel {
 //                    optionalMark.setVisible(false);
 //                }
 
+                boolean isMemberOptional = isGrouped() && getTemplate().isOptionalStatement(s);
+
                 if (!context.isReadOnly() && isOptional && isLastLine) {
                     optionalMark = new Label("label", "(optional)");
                 } else {
@@ -393,6 +398,14 @@ public class StatementItem extends Panel {
                     optionalMark.setVisible(false);
                 }
                 statement.add(optionalMark);
+                // Member-level mark, rendered inline on the member's own line; unlike the
+                // group-level mark it holds per repetition, so it is never toggled off:
+                Label partOptionalMark = new Label("part-label", "(optional)");
+                partOptionalMark.setVisible(!context.isReadOnly() && isMemberOptional);
+                statement.add(partOptionalMark);
+                if (!context.isReadOnly() && isMemberOptional) {
+                    statement.add(new AttributeAppender("class", " nanopub-optional-part"));
+                }
                 if (isLastLine) {
                     addRepetitionButton = new Label("add-repetition", "+");
                     statement.add(addRepetitionButton);
@@ -454,6 +467,25 @@ public class StatementItem extends Panel {
          */
         public List<StatementPartItem> getStatementParts() {
             return statementParts;
+        }
+
+        /**
+         * Returns the statement parts to render: in read-only contexts, optional group
+         * members that were left unassigned by fill() are hidden; in editable contexts
+         * (fresh publish, derive, update) all parts are shown, with skipped members
+         * rendering as empty fields.
+         *
+         * @return a list of StatementPartItem objects to render
+         */
+        private List<StatementPartItem> getShownStatementParts() {
+            if (!context.isReadOnly() || unmatchedParts.isEmpty()) return statementParts;
+            List<StatementPartItem> shown = new ArrayList<>();
+            for (int i = 0; i < statementParts.size(); i++) {
+                if (!unmatchedParts.contains(statementPartIds.get(i))) {
+                    shown.add(statementParts.get(i));
+                }
+            }
+            return shown;
         }
 
         /**
@@ -563,6 +595,19 @@ public class StatementItem extends Panel {
             return false;
         }
 
+        /**
+         * Checks if the given member statement is effectively optional in this repetition group:
+         * either the whole group is optional or the member itself carries the optional flag.
+         * Unlike group-level optionality, the member-level flag holds per repetition, so it is
+         * not affected by the number of repetition groups.
+         *
+         * @param partId the IRI of the member statement to check
+         * @return true if the member statement is effectively optional, false otherwise
+         */
+        public boolean isOptionalPart(IRI partId) {
+            return isOptional() || getTemplate().isOptionalStatement(partId);
+        }
+
         private Value transform(Value value) {
             if (!(value instanceof IRI)) {
                 return value;
@@ -592,6 +637,11 @@ public class StatementItem extends Panel {
                 IRI subj = context.processIri((IRI) transform(t.getSubject(s)));
                 IRI pred = context.processIri((IRI) transform(t.getPredicate(s)));
                 Value obj = context.processValue(transform(t.getObject(s)));
+                if (isGrouped() && t.isOptionalStatement(s) && (subj == null || pred == null || obj == null)) {
+                    // Optional group member without all elements resolved: drop just this
+                    // triple; the rest of the group is still emitted.
+                    continue;
+                }
                 if (context.getType() == ContextType.ASSERTION) {
                     npCreator.addAssertionStatement(subj, pred, obj);
                 } else if (context.getType() == ContextType.PROVENANCE) {
@@ -618,6 +668,9 @@ public class StatementItem extends Panel {
 
         private boolean hasEmptyElements() {
             for (IRI s : statementPartIds) {
+                // Optional group members may stay empty; they are dropped at triple-creation
+                // time and must not block or drop the rest of the group:
+                if (isGrouped() && getTemplate().isOptionalStatement(s)) continue;
                 if (context.processIri((IRI) transform(getTemplate().getSubject(s))) == null) return true;
                 if (context.processIri((IRI) transform(getTemplate().getPredicate(s))) == null) return true;
                 if (context.processValue(transform(getTemplate().getObject(s))) == null) return true;
@@ -659,10 +712,17 @@ public class StatementItem extends Panel {
             // We do exactly that (with backtracking) but on a copy and then restore the models, so
             // matches() stays side-effect free.
             Map<IRI, Object> snapshot = snapshotModels();
+            Set<IRI> unmatchedBefore = new HashSet<>(unmatchedParts);
             try {
-                return assignParts(0, new ArrayList<>(statements));
+                List<Statement> copy = new ArrayList<>(statements);
+                // A match must consume at least one statement: with optional members, an
+                // assignment that skips every part would otherwise "match" without evidence,
+                // which would also keep the repetition loop in fill() spinning forever.
+                return assignParts(0, copy) && copy.size() < statements.size();
             } finally {
                 restoreModels(snapshot);
+                unmatchedParts.clear();
+                unmatchedParts.addAll(unmatchedBefore);
             }
         }
 
@@ -678,7 +738,9 @@ public class StatementItem extends Panel {
             // that blocks a later part even though a consistent assignment exists. assignParts tries
             // alternatives and rolls back the model bindings between attempts. On success the matched
             // statements are removed from the list and the winning bindings are kept.
-            if (!assignParts(0, statements)) {
+            unmatchedParts.clear();
+            int sizeBefore = statements.size();
+            if (!assignParts(0, statements) || statements.size() == sizeBefore) {
                 throw new UnificationException("Unification seemed to work but then didn't");
             }
             filled = true;
@@ -709,6 +771,15 @@ public class StatementItem extends Panel {
                     available.add(i, s);
                 }
                 restoreModels(snapshot);
+            }
+            IRI partId = statementPartIds.get(partIndex);
+            if (isGrouped() && getTemplate().isOptionalStatement(partId)) {
+                // Optional group member with no consistent candidate: leave it unassigned and
+                // move on. Trying all candidates first (above) keeps fills maximal — a member
+                // is only skipped when no consistent assignment exists.
+                unmatchedParts.add(partId);
+                if (assignParts(partIndex + 1, available)) return true;
+                unmatchedParts.remove(partId);
             }
             return false;
         }

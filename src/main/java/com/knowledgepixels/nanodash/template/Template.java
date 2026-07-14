@@ -898,13 +898,49 @@ public class Template implements Serializable {
 //				!assertionTypes.contains(NTEMPLATE.PROVENANCE_TEMPLATE) && !assertionTypes.contains(PUBINFO_TEMPLATE))) {
 //			throw new MalformedTemplateException("Unknown template type");
 //		}
-        // Grouped IRI are added via group, so direct link from template is redundant:
+        List<IRI> groupIris = new ArrayList<>();
         for (IRI iri : typeMap.keySet()) {
-            if (!typeMap.get(iri).contains(NTEMPLATE.GROUPED_STATEMENT)) continue;
+            if (typeMap.get(iri).contains(NTEMPLATE.GROUPED_STATEMENT)) groupIris.add(iri);
+        }
+        // Nested groups and repeatable members are out of scope (the group is the unit of
+        // repetition); ignore such member flags with a warning instead of half-rendering:
+        for (IRI iri : groupIris) {
+            if (!isGroupedStatement(iri)) continue;
             List<IRI> memberIris = getStatementIris(iri);
             if (memberIris == null) {
                 throw new MalformedTemplateException("Grouped statement has no member statements: " + iri);
             }
+            for (IRI member : memberIris) {
+                List<IRI> memberTypes = typeMap.get(member);
+                if (memberTypes == null) continue;
+                if (memberTypes.remove(NTEMPLATE.GROUPED_STATEMENT)) {
+                    logger.warn("Ignoring nested nt:GroupedStatement flag on member {} of group {}", member, iri);
+                }
+                if (memberTypes.remove(NTEMPLATE.REPEATABLE_STATEMENT)) {
+                    logger.warn("Ignoring nt:RepeatableStatement flag on member {} of group {}", member, iri);
+                }
+            }
+        }
+        for (IRI iri : groupIris) {
+            if (!isGroupedStatement(iri)) continue;
+            List<IRI> memberIris = getStatementIris(iri);
+            // A group needs at least one required member: an all-optional group would match zero
+            // statements, making its presence meaningless and repetition detection non-terminating.
+            // Degrade to group-level optionality (today's semantics) instead of rejecting:
+            boolean hasRequiredMember = false;
+            for (IRI member : memberIris) {
+                if (!isOptionalStatement(member)) hasRequiredMember = true;
+            }
+            if (!hasRequiredMember) {
+                logger.warn("All members of group {} are optional; treating the group itself as optional instead", iri);
+                if (!isOptionalStatement(iri)) {
+                    addType(iri, NTEMPLATE.OPTIONAL_STATEMENT);
+                }
+                for (IRI member : memberIris) {
+                    typeMap.get(member).remove(NTEMPLATE.OPTIONAL_STATEMENT);
+                }
+            }
+            // Grouped IRI are added via group, so direct link from template is redundant:
             for (IRI groupedIri : memberIris) {
                 statementMap.get(templateIri).remove(groupedIri);
             }

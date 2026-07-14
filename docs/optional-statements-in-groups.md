@@ -1,6 +1,7 @@
 # Optional statements inside statement groups
 
-**Status:** design draft — not implemented.
+**Status:** implemented (template parsing, publish path, form UI, fill/unification);
+end-to-end verification on a live instance with a published test template still pending.
 
 ## Goal
 

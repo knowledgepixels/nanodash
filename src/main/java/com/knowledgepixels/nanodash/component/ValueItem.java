@@ -50,11 +50,11 @@ public class ValueItem extends AbstractContextComponent {
                     component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
                 }
             } else if (template.isRestrictedChoicePlaceholder(iri)) {
-                component = new RestrictedChoiceItem("value", id, iri, rg.isOptional(), this.context);
+                component = new RestrictedChoiceItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isAgentPlaceholder(iri)) {
-                component = new AgentChoiceItem("value", id, iri, rg.isOptional(), this.context);
+                component = new AgentChoiceItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isGuidedChoicePlaceholder(iri)) {
-                component = new GuidedChoiceItem("value", id, iri, rg.isOptional(), this.context);
+                component = new GuidedChoiceItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isIntroducedResource(iri) && (this.context.getFillMode() == FillMode.SUPERSEDE || this.context.getFillMode() == FillMode.OVERRIDE)
                     && introducesAnything(this.context.getFillSource())) {
                 // An introduced resource keeps its IRI across versions, so it is pinned
@@ -64,20 +64,20 @@ public class ValueItem extends AbstractContextComponent {
                 // yet) the field must stay fillable (issue #549).
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
-                component = new IriTextfieldItem("value", id, iri, rg.isOptional(), this.context);
+                component = new IriTextfieldItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLongLiteralPlaceholder(iri)) {
-                component = new LiteralTextareaItem("value", iri, rg.isOptional(), this.context);
+                component = new LiteralTextareaItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLiteralPlaceholder(iri)) {
                 // TODO add all date time types
                 if (XSD.DATE.equals(template.getDatatype(iri))) {
-                    component = new LiteralDateItem("value", iri, rg.isOptional(), this.context);
+                    component = new LiteralDateItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 } else if (XSD.DATETIME.equals(template.getDatatype(iri))) {
-                    component = new LiteralDateTimeItem("value", iri, rg.isOptional(), this.context);
+                    component = new LiteralDateTimeItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 } else {
-                    component = new LiteralTextfieldItem("value", iri, rg.isOptional(), this.context);
+                    component = new LiteralTextfieldItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 }
             } else if (template.isPlaceholder(iri)) {
-                component = new ValueTextfieldItem("value", id, iri, rg.isOptional(), this.context);
+                component = new ValueTextfieldItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
             } else {
                 component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
             }
