@@ -789,6 +789,44 @@ public class Template implements Serializable {
             // Experimental SHACL-based template:
             processShaclTemplate(templateNp);
         }
+        tagUntypedLocalIrisAsLocalResources(templateNp);
+    }
+
+    // Local IRIs in used statement positions that carry no identity type (no placeholder
+    // type, not a Local/Introduced/Embedded Resource) are automatically treated as Local
+    // Resources, so every produced nanopub mints them under its own namespace instead of
+    // copying the template-local IRI verbatim (see issue #551).
+    private void tagUntypedLocalIrisAsLocalResources(Nanopub templateNp) {
+        List<IRI> topIris = statementMap.get(templateIri);
+        if (topIris == null) return;
+        String npUri = templateNp.getUri().stringValue();
+        List<IRI> statementIris = new ArrayList<>();
+        for (IRI iri : topIris) {
+            if (statementMap.containsKey(iri)) {
+                // grouped statement
+                statementIris.addAll(statementMap.get(iri));
+            } else {
+                statementIris.add(iri);
+            }
+        }
+        for (IRI st : statementIris) {
+            tagIfUntypedLocal(statementSubjects.get(st), npUri);
+            tagIfUntypedLocal(statementPredicates.get(st), npUri);
+            tagIfUntypedLocal(statementObjects.get(st), npUri);
+        }
+    }
+
+    private void tagIfUntypedLocal(Value value, String npUri) {
+        if (!(value instanceof IRI iri)) return;
+        String s = iri.stringValue();
+        // Only sub-IRIs of the template nanopub are local; the nanopub URI itself is a
+        // global reference to the template and stays verbatim:
+        if (!s.startsWith(npUri) || s.length() == npUri.length()) return;
+        if (iri.equals(templateIri)) return;
+        // Statement/group identifiers referenced as values stay untouched:
+        if (statementMap.containsKey(iri) || statementSubjects.containsKey(iri)) return;
+        if (isPlaceholder(iri) || isLocalResource(iri) || isIntroducedResource(iri) || isEmbeddedResource(iri)) return;
+        addType(iri, NTEMPLATE.LOCAL_RESOURCE);
     }
 
     private void processNpTemplate(Nanopub templateNp) throws MalformedTemplateException {
