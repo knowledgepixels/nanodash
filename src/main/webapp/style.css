@@ -3078,3 +3078,60 @@ a.source:hover {
   box-sizing: border-box;
   margin-bottom: 6px;
 }
+
+/* Docked chat panel */
+
+.claude-chat-dock {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1500;
+}
+.chat-expand-btn {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0B73DA;
+  color: white;
+  font-size: 22px;
+  text-align: center;
+  line-height: 48px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.chat-expand-btn:hover {
+  text-decoration: none;
+  color: white;
+}
+.claude-chat-dock .chat-body {
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  background: white;
+  border: 1px solid #E0E5EB;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  padding: 10px;
+}
+.claude-chat-dock .chat-box {
+  max-height: 45vh;
+  min-height: 80px;
+}
+.chat-dock-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.chat-dock-header .chat-dock-title {
+  font-weight: bold;
+  flex: 1;
+}
+.chat-dock-header a {
+  text-decoration: none;
+  font-size: 110%;
+}
+.chat-reset {
+  margin-left: 12px;
+  font-size: 90%;
+}

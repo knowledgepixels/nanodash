@@ -6,6 +6,8 @@ import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.chat.ClaudeChatService;
+import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.CssHeaderItem;
@@ -55,6 +57,25 @@ public abstract class NanodashPage extends WebPage {
         super(parameters);
         markIfBrowserReload();
         ensureRefreshed();
+        add(new ClaudeChatPanel("claudechat", true) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(ClaudeChatService.get().isEnabled() && hasClaudeChatDock());
+            }
+
+        });
+    }
+
+    /**
+     * Whether this page shows the docked Claude chat panel (when the feature
+     * is enabled). Pages that embed the chat themselves can switch it off.
+     *
+     * @return true to show the docked panel
+     */
+    protected boolean hasClaudeChatDock() {
+        return true;
     }
 
     /**
