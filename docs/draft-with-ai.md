@@ -291,7 +291,8 @@ The two designs are largely compatible, not alternatives:
 **Follow-ups:**
 
 - Additional provider implementations (OpenAI, Gemini, OpenAI-compatible)
-- MCP server for local Claude Code users (Tier 2, orthogonal)
+- MCP server for local Claude Code users (Tier 2, orthogonal; now designed in
+  [claude-code-chat](claude-code-chat.md))
 - Deep-link hand-off (#434, still useful for local-agent users)
 - Whole-space-aware drafting with 1M-context models
 - Fine-grained audit logging
