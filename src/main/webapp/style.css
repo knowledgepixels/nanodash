@@ -3073,6 +3073,10 @@ a.source:hover {
   color: #666666;
   font-style: italic;
 }
+.chat-interrupt {
+  font-style: normal;
+  font-size: 90%;
+}
 .chat-form textarea {
   width: 100%;
   box-sizing: border-box;

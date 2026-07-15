@@ -83,6 +83,10 @@ claude --print \
   process alive across turns; each chat message is written as a JSON user
   message to stdin, response/tool-use events stream back as
   newline-delimited JSON on stdout. No per-turn process startup cost.
+- **Page context:** each user message is prefixed (invisibly to the user)
+  with a bracketed context line naming the in-app path the chat panel was
+  on when the message was sent, so Claude can resolve "this page" / "this
+  nanopub" references without asking.
 - **Session lifecycle:** processes are reaped after an idle timeout; the
   Claude session ID (from the init event) is remembered so a reaped
   conversation can be revived with `--resume <id>`.
@@ -97,6 +101,13 @@ claude --print \
 - **Feature detection:** the whole feature is off unless (a) it is enabled
   in the Nanodash config and (b) the `claude` binary is found (configurable
   path). Hosted multi-user instances keep it off (see Security).
+- **Domain background:** a curated background text (nanopub anatomy, trusty
+  URIs and supersede/retract semantics, template placeholders, query
+  parameter naming, useful Nanodash paths, and the "you never publish —
+  the human does" rule) is shipped as a classpath resource
+  (`chat/background.md`) and passed via `--append-system-prompt`. It is
+  deliberately small and contains no CLI/signing instructions: the
+  subprocess has no Bash or file tools, and publishing stays human-only.
 
 ### 2. MCP endpoint (`/mcp`)
 
@@ -140,7 +151,8 @@ First wave, read-only (safe under `dontAsk`):
 | --- | --- |
 | `search_nanopubs` | free-text / typed search via the existing query APIs |
 | `get_nanopub` | fetch a nanopub as TriG by URI |
-| `list_templates` / `get_template` | discover and inspect assertion templates |
+| `get_latest_version` | resolve a nanopub URI to its latest version (supersedes chain) |
+| `list_templates` / `get_template` | discover and inspect assertion templates; `get_template` resolves to the latest version |
 | `get_space` | space info, members, views for a space IRI |
 | `run_query` | run a published grlc query with parameters |
 
@@ -148,7 +160,7 @@ Second wave, action tools:
 
 | Tool | Does |
 | --- | --- |
-| `prepare_publication` | build + validate a draft from template/params; returns a `/view?_nanopub_trig=...` preview URL. **Does not publish.** |
+| `prepare_publication` | build a prefilled `/publish?template=...&param_...` form path from template (resolved to latest version) + params. **Does not publish.** |
 | `open_page` | enqueue a browser navigation for the chat panel to execute |
 
 Publishing itself is deliberately **not** a tool in v1: `prepare_publication`
@@ -160,6 +172,10 @@ signed flow. This keeps the human signature step human.
 - A docked panel (or dedicated page, for v1) with a message list, input box,
   and a visible "Claude is using tool X..." activity line driven by the
   tool-use events in the output stream.
+- A **stop button** shown while Claude is working: it sends a
+  `control_request` with subtype `interrupt` over the subprocess's stdin
+  (the stream-json control protocol), ending the turn with whatever was
+  produced so far; the session stays usable.
 - **Streaming to the browser:** v1 uses `AjaxSelfUpdatingTimerBehavior`
   polling the session's message queue -- dead simple, no new infrastructure.
   Upgrade path: Wicket native WebSocket (`wicket-native-websocket-*`) or a
@@ -179,10 +195,12 @@ This feature hands a web page a channel into a process that runs as the
 local user. The containment story:
 
 - **Tool allowlist, not denylist:** the subprocess runs with
-  `--allowedTools "mcp__nanodash__*"` and `--permission-mode dontAsk` --
-  everything not allowlisted is denied. No `Bash`, no file tools, no
-  `WebFetch` unless deliberately enabled in config. Without this, a chat
-  message could ask Claude to run arbitrary shell commands.
+  `--allowedTools mcp__nanodash mcp__nanodash__* WebFetch` -- everything
+  not allowlisted is denied (headless mode denies instead of prompting).
+  No `Bash`, no file tools. Without this, a chat message could ask Claude
+  to run arbitrary shell commands. `WebFetch` is read-only and lets Claude
+  look at external resources nanopubs point to; the explicit allow rule
+  covers all domains.
 - **Local-only by design:** the feature is opt-in config, intended for
   `localhost` instances. On hosted multi-user instances it must stay off:
   every visitor would share one machine's Claude subscription (against its

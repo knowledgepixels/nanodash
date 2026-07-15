@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.chat.ChatMessage;
 import com.knowledgepixels.nanodash.chat.ClaudeChatService;
 import com.knowledgepixels.nanodash.chat.ClaudeSession;
 import com.knowledgepixels.nanodash.page.ClaudeChatPage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -143,6 +144,24 @@ public class ClaudeChatPanel extends Panel {
             return s != null && s.isBusy() ? "Claude is working..." : "";
         }));
 
+        chatbox.add(new AjaxLink<Void>("interrupt") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ClaudeSession s = ClaudeChatService.get().getSession(sessionKey);
+                if (s != null) s.interrupt();
+                target.add(chatbox);
+            }
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                ClaudeSession s = ClaudeChatService.get().getSession(sessionKey);
+                setVisible(s != null && s.isBusy());
+            }
+
+        });
+
         // Poll for new messages and queued navigations; only re-render (and
         // re-scroll) the chat box when something actually changed.
         body.add(new AbstractAjaxTimerBehavior(POLL_INTERVAL) {
@@ -178,7 +197,7 @@ public class ClaudeChatPanel extends Panel {
                 String text = inputModel.getObject();
                 if (text == null || text.isBlank()) return;
                 try {
-                    ClaudeChatService.get().getOrCreateSession(sessionKey).sendUserMessage(text.trim());
+                    ClaudeChatService.get().getOrCreateSession(sessionKey).sendUserMessage(text.trim(), getCurrentPagePath());
                     inputModel.setObject("");
                 } catch (IOException ex) {
                     logger.error("Could not start Claude Code process", ex);
@@ -203,6 +222,19 @@ public class ClaudeChatPanel extends Panel {
 
     private boolean isExpanded() {
         return !docked || NanodashSession.get().isClaudeChatDockExpanded();
+    }
+
+    /**
+     * The in-app path of the page this panel is on (e.g. "/explore?id=..."),
+     * sent along with each chat message so Claude knows what the user is
+     * looking at.
+     *
+     * @return the path, or null if not on a Nanodash page
+     */
+    private String getCurrentPagePath() {
+        if (!(getPage() instanceof NanodashPage page)) return null;
+        String params = Utils.getPageParametersAsString(page.getPageParameters());
+        return page.getMountPath() + (params.isEmpty() ? "" : "?" + params);
     }
 
     private static void appendScrollToBottom(AjaxRequestTarget target, WebMarkupContainer chatbox) {

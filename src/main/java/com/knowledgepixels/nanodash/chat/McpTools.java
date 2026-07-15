@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -66,12 +67,19 @@ public class McpTools {
                 "Fetch a nanopublication by URI and return its full content in TriG format.",
                 schema(prop("uri", "string", "the nanopublication URI (trusty URI)", true)),
                 McpTools::getNanopub);
+        register("get_latest_version",
+                "Resolve a nanopublication URI to its latest version, following supersedes chains. Use this before "
+                        + "referring to, updating, or superseding a nanopub that might have newer versions (e.g. queries or views). "
+                        + "Template URIs are resolved automatically by get_template and prepare_publication.",
+                schema(prop("uri", "string", "the nanopublication URI (trusty URI)", true)),
+                McpTools::getLatestVersion);
         register("list_templates",
                 "List published nanopublication templates of a given kind (assertion, provenance, or pubinfo).",
                 schema(prop("type", "string", "template kind: 'assertion' (default), 'provenance', or 'pubinfo'", false)),
                 McpTools::listTemplates);
         register("get_template",
-                "Fetch a nanopublication template by URI: returns its label, description, and full TriG content of its latest version.",
+                "Fetch a nanopublication template by URI: the URI is resolved to the template's latest version, whose "
+                        + "label, description, and full TriG content are returned (the 'id' field is the resolved version).",
                 schema(prop("uri", "string", "the template URI (nanopublication URI)", true)),
                 McpTools::getTemplate);
         register("run_query",
@@ -80,10 +88,11 @@ public class McpTools {
                         prop("params", "object", "query parameters as name/value string pairs", false)),
                 McpTools::runQuery);
         register("prepare_publication",
-                "Prepare a nanopublication draft: returns the in-app path of the publish form for the given template with the "
-                        + "given placeholder values prefilled. The user reviews, signs, and publishes it themselves through that form; "
-                        + "nothing is published by this tool. Use open_page with the returned path to show the form to the user. "
-                        + "Placeholder names are the local names of the template's placeholder IRIs (inspect them with get_template).",
+                "Prepare a nanopublication draft: returns the in-app path of the publish form for the given template (resolved "
+                        + "to its latest version) with the given placeholder values prefilled. The user reviews, signs, and publishes "
+                        + "it themselves through that form; nothing is published by this tool. Use open_page with the returned path "
+                        + "to show the form to the user. Placeholder names are the local names of the template's placeholder IRIs "
+                        + "(inspect them with get_template).",
                 schema(prop("template", "string", "the assertion template URI", true),
                         prop("params", "object", "placeholder name/value string pairs to prefill", false)),
                 McpTools::preparePublication);
@@ -134,6 +143,20 @@ public class McpTools {
         return toTrig(np);
     }
 
+    private static String getLatestVersion(JsonObject args, String sessionKey) {
+        String uri = requireString(args, "uri");
+        String npId = Utils.stripToNanopubId(uri);
+        if (!TrustyUriUtils.isPotentialTrustyUri(npId)) {
+            throw new IllegalArgumentException("Not a trusty nanopublication URI: " + uri);
+        }
+        String latest = QueryApiAccess.getLatestVersionId(npId);
+        JsonObject result = new JsonObject();
+        result.addProperty("requested", uri);
+        result.addProperty("latest", latest);
+        result.addProperty("isLatest", npId.equals(latest));
+        return result.toString();
+    }
+
     private static String listTemplates(JsonObject args, String sessionKey) {
         String type = args.has("type") ? args.get("type").getAsString() : "assertion";
         TemplateData td = TemplateData.get();
@@ -153,7 +176,7 @@ public class McpTools {
 
     private static String getTemplate(JsonObject args, String sessionKey) {
         String uri = requireString(args, "uri");
-        Template template = TemplateData.get().getTemplate(uri);
+        Template template = getLatestTemplate(uri);
         if (template == null) {
             throw new IllegalArgumentException("Not a known template URI: " + uri);
         }
@@ -181,7 +204,7 @@ public class McpTools {
 
     private static String preparePublication(JsonObject args, String sessionKey) {
         String templateUri = requireString(args, "template");
-        Template template = TemplateData.get().getTemplate(templateUri);
+        Template template = getLatestTemplate(templateUri);
         if (template == null) {
             throw new IllegalArgumentException("Not a known template URI: " + templateUri);
         }
@@ -209,6 +232,18 @@ public class McpTools {
         }
         session.requestNavigation(path);
         return "Navigation queued: the user's browser will open " + path + " within a few seconds.";
+    }
+
+    /**
+     * Load the template for the given ID, resolved to its latest version
+     * (supersedes chain or space-governed resolution), falling back to the
+     * pinned version if the latest cannot be loaded.
+     */
+    private static Template getLatestTemplate(String templateUri) {
+        TemplateData td = TemplateData.get();
+        Template template = td.getTemplate(td.getLatestTemplateId(templateUri));
+        if (template == null) template = td.getTemplate(templateUri);
+        return template;
     }
 
     private static String urlEncode(String s) {

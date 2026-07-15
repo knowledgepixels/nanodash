@@ -35,6 +35,8 @@ public class ClaudeSession {
     private volatile boolean busy = false;
     private volatile long lastActivity = System.currentTimeMillis();
     private volatile String claudeSessionId;
+    private volatile boolean interruptRequested = false;
+    private int controlRequestCounter = 0;
     private final Queue<String> pendingNavigations = new ConcurrentLinkedQueue<>();
 
     ClaudeSession(List<String> command, List<String> envVarsToScrub, File workingDir) throws IOException {
@@ -56,9 +58,11 @@ public class ClaudeSession {
     /**
      * Send a user message to Claude. Ignored if the process has died.
      *
-     * @param text the user's chat message
+     * @param text        the user's chat message
+     * @param currentPage the in-app path the user is currently on, or null;
+     *                    sent to Claude as context but not shown in the chat
      */
-    public synchronized void sendUserMessage(String text) {
+    public synchronized void sendUserMessage(String text, String currentPage) {
         touch();
         addMessage(ChatMessage.Kind.USER, text);
         if (!process.isAlive()) {
@@ -66,9 +70,14 @@ public class ClaudeSession {
             return;
         }
         busy = true;
+        interruptRequested = false;
+        String contentText = text;
+        if (currentPage != null && !currentPage.isBlank()) {
+            contentText = "[Context: the user is currently on the Nanodash page " + currentPage + "]\n\n" + text;
+        }
         JsonObject content = new JsonObject();
         content.addProperty("role", "user");
-        content.addProperty("content", text);
+        content.addProperty("content", contentText);
         JsonObject message = new JsonObject();
         message.addProperty("type", "user");
         message.add("message", content);
@@ -80,6 +89,28 @@ public class ClaudeSession {
             logger.error("Could not write to Claude Code process", ex);
             busy = false;
             addMessage(ChatMessage.Kind.ERROR, "Could not send message to Claude Code: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Ask Claude to stop working on the current response (the turn ends with
+     * whatever was produced so far). No-op if Claude is not busy.
+     */
+    public synchronized void interrupt() {
+        if (!busy || !process.isAlive()) return;
+        interruptRequested = true;
+        JsonObject request = new JsonObject();
+        request.addProperty("subtype", "interrupt");
+        JsonObject message = new JsonObject();
+        message.addProperty("type", "control_request");
+        message.addProperty("request_id", "nanodash-" + (++controlRequestCounter));
+        message.add("request", request);
+        try {
+            stdin.write(message.toString());
+            stdin.write("\n");
+            stdin.flush();
+        } catch (IOException ex) {
+            logger.error("Could not send interrupt to Claude Code process", ex);
         }
     }
 
@@ -142,7 +173,11 @@ public class ClaudeSession {
             }
             case "result" -> {
                 busy = false;
-                if (event.has("is_error") && event.get("is_error").getAsBoolean()) {
+                if (interruptRequested) {
+                    // An interrupted turn may end with an error-flavored result; don't show it as one.
+                    interruptRequested = false;
+                    addMessage(ChatMessage.Kind.TOOL, "(interrupted)");
+                } else if (event.has("is_error") && event.get("is_error").getAsBoolean()) {
                     String result = getString(event, "result");
                     addMessage(ChatMessage.Kind.ERROR, result == null ? "Claude Code reported an error." : result);
                 }

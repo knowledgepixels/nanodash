@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HexFormat;
@@ -150,11 +152,42 @@ public class ClaudeChatService {
         command.add("--allowedTools");
         command.add("mcp__nanodash");
         command.add("mcp__nanodash__*");
+        command.add("WebFetch");
+        String background = getBackgroundPrompt();
+        if (background != null) {
+            command.add("--append-system-prompt");
+            command.add(background);
+        }
         if (prefs.getClaudeChatModel() != null) {
             command.add("--model");
             command.add(prefs.getClaudeChatModel());
         }
         return command;
+    }
+
+    private static String backgroundPrompt;
+    private static boolean backgroundPromptLoaded = false;
+
+    /**
+     * Get the domain background appended to the Claude Code system prompt:
+     * nanopub basics and how to use the Nanodash tools (background.md resource).
+     *
+     * @return the background text, or null if the resource is missing
+     */
+    private static synchronized String getBackgroundPrompt() {
+        if (!backgroundPromptLoaded) {
+            backgroundPromptLoaded = true;
+            try (InputStream in = ClaudeChatService.class.getResourceAsStream("background.md")) {
+                if (in != null) {
+                    backgroundPrompt = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                } else {
+                    logger.warn("Claude chat background.md resource not found; starting sessions without background prompt");
+                }
+            } catch (IOException ex) {
+                logger.error("Could not read Claude chat background.md resource", ex);
+            }
+        }
+        return backgroundPrompt;
     }
 
     private String buildMcpConfig(NanodashPreferences prefs, String sessionKey) {
