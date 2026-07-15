@@ -160,7 +160,7 @@ under `…#comment__2__lang`). Properties this inherits for free:
 - **Per-repetition tags:** each repetition group has its own derived key, so
   repetition 1 can be `@de` and repetition 2 `@fr`.
 - **URL-parameter prefill:** the same postfix-named parameter convention gives
-  `?comment=Haus&comment__lang=de` with no extra code beyond the usual
+  `?param_comment=Haus&param_comment__lang=de` with no extra code beyond the usual
   `hasParam`/`getParam` lookup in the component constructor.
 - **No collisions with the repetition machinery:** `finalizeStatements` probes only
   numeric suffixes (`postfix + "__" + i`, `TemplateContext.java:120-128`), and
@@ -279,7 +279,7 @@ Each step compiles and is testable on its own:
 2. **Form UI + publish path:** dropdown component with model/param wiring,
    validation, `processValue` change. Manual check in the dev jetty: enter text, pick
    tag, publish; verify `@tag` in the published TriG; repetition with two languages;
-   `?comment__lang=de` prefill.
+   `?param_comment__lang=de` prefill.
 3. **Fill/unification:** relaxation in `LiteralTextfieldItem` and `ReadonlyItem`.
    Tests: view a nanopub with `@fr` under an unrestricted picker (unifies, tag
    shown); under a restricted set excluding `fr` (falls back to generic display);
