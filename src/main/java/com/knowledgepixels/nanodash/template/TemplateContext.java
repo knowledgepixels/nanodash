@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.*;
@@ -259,6 +260,23 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Suffix under which the language-tag model of a language-tag-selectable literal
+     * placeholder is keyed in the component models (appended after any repetition suffix).
+     */
+    public static final String LANGUAGE_SUFFIX = "__lang";
+
+    /**
+     * Returns the component-model key for the language tag of the given literal
+     * placeholder IRI, which must already carry its repetition suffix if any.
+     *
+     * @param iri the (repetition-suffixed) literal placeholder IRI
+     * @return the derived key for the language-tag model
+     */
+    public static IRI getLanguageModelKey(IRI iri) {
+        return vf.createIRI(iri.stringValue() + LANGUAGE_SUFFIX);
+    }
+
+    /**
      * Returns the introduced IRIs in this context.
      *
      * @return a set of introduced IRIs
@@ -406,8 +424,14 @@ public class TemplateContext implements Serializable {
             } else {
                 String tfObject = (String) tfObjectGeneric;
                 if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                    if (datatype != null) {
-                        processedValue = vf.createLiteral(tfObject, datatype);
+                    if (template.isLanguageTagSelectable(iri)) {
+                        IModel<?> langModel = componentModels.get(getLanguageModelKey(iri));
+                        Object chosenTag = (langModel == null) ? null : langModel.getObject();
+                        if (chosenTag != null && !chosenTag.toString().isEmpty()) {
+                            processedValue = vf.createLiteral(tfObject, Literals.normalizeLanguageTag(chosenTag.toString()));
+                        }
+                        // No tag chosen: leave the value unresolved rather than emitting an
+                        // untagged literal; form validation blocks this case on submit.
                     } else if (languageTag != null) {
                         processedValue = vf.createLiteral(tfObject, languageTag);
                     } else {

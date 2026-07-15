@@ -528,22 +528,26 @@ public class StatementItem extends Panel {
         private void remove() {
             String thisSuffix = getRepeatSuffix();
             for (IRI iriBase : iriSet) {
-                IRI thisIri = vf.createIRI(iriBase + thisSuffix);
-                if (context.getComponentModels().containsKey(thisIri)) {
-                    IModel swapModel1 = (IModel) context.getComponentModels().get(thisIri);
-                    for (int i = getRepeatIndex() + 1; i < repetitionGroups.size(); i++) {
-                        IModel swapModel2 = (IModel) context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i)));
-                        if (swapModel1 != null && swapModel2 != null) {
-                            swapModel1.setObject(swapModel2.getObject());
+                // Shift the value model and any derived model (e.g. the language-tag
+                // model of a language-tag-selectable literal placeholder) alike.
+                for (String derived : new String[]{"", TemplateContext.LANGUAGE_SUFFIX}) {
+                    IRI thisIri = vf.createIRI(iriBase + thisSuffix + derived);
+                    if (context.getComponentModels().containsKey(thisIri)) {
+                        IModel swapModel1 = (IModel) context.getComponentModels().get(thisIri);
+                        for (int i = getRepeatIndex() + 1; i < repetitionGroups.size(); i++) {
+                            IModel swapModel2 = (IModel) context.getComponentModels().get(vf.createIRI(iriBase + getRepeatSuffix(i) + derived));
+                            if (swapModel1 != null && swapModel2 != null) {
+                                swapModel1.setObject(swapModel2.getObject());
+                            }
+                            // Drop any retained rawInput so the shifted model value is rendered
+                            // instead of the user's previous (post-validation-error) entry.
+                            clearInputForModel(swapModel1);
+                            swapModel1 = swapModel2;
                         }
-                        // Drop any retained rawInput so the shifted model value is rendered
-                        // instead of the user's previous (post-validation-error) entry.
-                        clearInputForModel(swapModel1);
-                        swapModel1 = swapModel2;
-                    }
-                    if (swapModel1 != null) {
-                        swapModel1.setObject(null);
-                        clearInputForModel(swapModel1);
+                        if (swapModel1 != null) {
+                            swapModel1.setObject(null);
+                            clearInputForModel(swapModel1);
+                        }
                     }
                 }
             }
