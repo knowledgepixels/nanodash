@@ -55,6 +55,7 @@ public class NanodashPreferences implements Serializable {
     private boolean claudeChatEnabled = false;
     private String claudeChatBinary = "claude";
     private String claudeChatModel;
+    private boolean mcpRemoteEnabled = false;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -318,6 +319,31 @@ public class NanodashPreferences implements Serializable {
      */
     public void setClaudeChatModel(String claudeChatModel) {
         this.claudeChatModel = claudeChatModel;
+    }
+
+    /**
+     * Check whether remote MCP access with per-user API tokens is enabled.
+     *
+     * Lets users point their own AI agents at this instance's /mcp endpoint;
+     * independent of the local Claude chat feature (either can be enabled
+     * without the other). See docs/remote-mcp.md.
+     *
+     * @return true if remote MCP access is enabled
+     */
+    public boolean isMcpRemoteEnabled() {
+        if ("true".equals(System.getenv("NANODASH_MCP_REMOTE_ENABLED"))) {
+            return true;
+        }
+        return mcpRemoteEnabled;
+    }
+
+    /**
+     * Set whether remote MCP access with per-user API tokens is enabled.
+     *
+     * @param mcpRemoteEnabled true to enable
+     */
+    public void setMcpRemoteEnabled(boolean mcpRemoteEnabled) {
+        this.mcpRemoteEnabled = mcpRemoteEnabled;
     }
 
     public String getHomeResource() {

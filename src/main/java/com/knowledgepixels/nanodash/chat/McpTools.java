@@ -36,17 +36,17 @@ public class McpTools {
 
     /**
      * A single MCP tool: its self-description for {@code tools/list} and its
-     * executor, which receives the tool arguments and the chat-session key of
-     * the calling Claude Code process (null when unknown).
+     * executor, which receives the tool arguments and the authenticated
+     * {@link McpCaller}.
      */
     public static class Tool {
 
         public final String name;
         public final String description;
         public final JsonObject inputSchema;
-        public final BiFunction<JsonObject, String, String> executor;
+        public final BiFunction<JsonObject, McpCaller, String> executor;
 
-        Tool(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, String, String> executor) {
+        Tool(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, McpCaller, String> executor) {
             this.name = name;
             this.description = description;
             this.inputSchema = inputSchema;
@@ -94,11 +94,13 @@ public class McpTools {
                         + "to show the form to the user. Placeholder names are the local names of the template's placeholder IRIs "
                         + "(inspect them with get_template).",
                 schema(prop("template", "string", "the assertion template URI", true),
-                        prop("params", "object", "placeholder name/value string pairs to prefill", false)),
+                        prop("params", "object", "placeholder name/value pairs to prefill; each value is a string, or an "
+                                + "array of strings to fill multiple rows of a repeatable statement", false)),
                 McpTools::preparePublication);
         register("open_page",
                 "Navigate the user's browser to an in-app Nanodash page (e.g. '/explore?id=...', a path returned by prepare_publication, "
-                        + "or any other Nanodash path). The chat page executes the navigation within a few seconds.",
+                        + "or any other Nanodash path). A Nanodash page the user has open in their browser executes the navigation "
+                        + "within a few seconds.",
                 schema(prop("path", "string", "the in-app path to open, starting with '/'", true)),
                 McpTools::openPage);
     }
@@ -122,11 +124,11 @@ public class McpTools {
         return tools.values();
     }
 
-    private static void register(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, String, String> executor) {
+    private static void register(String name, String description, JsonObject inputSchema, BiFunction<JsonObject, McpCaller, String> executor) {
         tools.put(name, new Tool(name, description, inputSchema, executor));
     }
 
-    private static String searchNanopubs(JsonObject args, String sessionKey) {
+    private static String searchNanopubs(JsonObject args, McpCaller caller) {
         String query = requireString(args, "query");
         Multimap<String, String> params = HashMultimap.create();
         params.put("query", query);
@@ -134,7 +136,7 @@ public class McpTools {
         return rowsToJson(forcedGet(new QueryRef(QueryApiAccess.FULLTEXT_SEARCH, params)));
     }
 
-    private static String getNanopub(JsonObject args, String sessionKey) {
+    private static String getNanopub(JsonObject args, McpCaller caller) {
         String uri = requireString(args, "uri");
         Nanopub np = Utils.getAsNanopub(uri);
         if (np == null) {
@@ -143,7 +145,7 @@ public class McpTools {
         return toTrig(np);
     }
 
-    private static String getLatestVersion(JsonObject args, String sessionKey) {
+    private static String getLatestVersion(JsonObject args, McpCaller caller) {
         String uri = requireString(args, "uri");
         String npId = Utils.stripToNanopubId(uri);
         if (!TrustyUriUtils.isPotentialTrustyUri(npId)) {
@@ -157,7 +159,7 @@ public class McpTools {
         return result.toString();
     }
 
-    private static String listTemplates(JsonObject args, String sessionKey) {
+    private static String listTemplates(JsonObject args, McpCaller caller) {
         String type = args.has("type") ? args.get("type").getAsString() : "assertion";
         TemplateData td = TemplateData.get();
         var rows = switch (type) {
@@ -174,7 +176,7 @@ public class McpTools {
         return array.toString();
     }
 
-    private static String getTemplate(JsonObject args, String sessionKey) {
+    private static String getTemplate(JsonObject args, McpCaller caller) {
         String uri = requireString(args, "uri");
         Template template = getLatestTemplate(uri);
         if (template == null) {
@@ -188,7 +190,7 @@ public class McpTools {
         return result.toString();
     }
 
-    private static String runQuery(JsonObject args, String sessionKey) {
+    private static String runQuery(JsonObject args, McpCaller caller) {
         String queryId = requireString(args, "query_id");
         if (!queryId.matches("^RA[A-Za-z0-9-_]{43}/[^/#]+$")) {
             throw new IllegalArgumentException("Not a full query ID of the form 'RA.../query-name': " + queryId);
@@ -202,7 +204,7 @@ public class McpTools {
         return rowsToJson(forcedGet(new QueryRef(queryId, params)));
     }
 
-    private static String preparePublication(JsonObject args, String sessionKey) {
+    private static String preparePublication(JsonObject args, McpCaller caller) {
         String templateUri = requireString(args, "template");
         Template template = getLatestTemplate(templateUri);
         if (template == null) {
@@ -211,7 +213,18 @@ public class McpTools {
         StringBuilder path = new StringBuilder("/publish?template=" + urlEncode(template.getId()));
         if (args.has("params")) {
             for (Map.Entry<String, com.google.gson.JsonElement> e : args.getAsJsonObject("params").entrySet()) {
-                path.append("&param_").append(e.getKey()).append("=").append(urlEncode(e.getValue().getAsString()));
+                if (e.getValue().isJsonArray()) {
+                    // An array fills the rows of a repeatable statement: the publish
+                    // form maps param_x to the first row and param_x__N to row N+1,
+                    // creating the extra rows as needed.
+                    JsonArray values = e.getValue().getAsJsonArray();
+                    for (int i = 0; i < values.size(); i++) {
+                        String key = i == 0 ? e.getKey() : e.getKey() + "__" + i;
+                        path.append("&param_").append(key).append("=").append(urlEncode(values.get(i).getAsString()));
+                    }
+                } else {
+                    path.append("&param_").append(e.getKey()).append("=").append(urlEncode(e.getValue().getAsString()));
+                }
             }
         }
         JsonObject result = new JsonObject();
@@ -221,17 +234,25 @@ public class McpTools {
         return result.toString();
     }
 
-    private static String openPage(JsonObject args, String sessionKey) {
+    private static String openPage(JsonObject args, McpCaller caller) {
         String path = requireString(args, "path");
         if (!path.startsWith("/") || path.startsWith("//") || path.contains("\\") || path.contains("'")) {
             throw new IllegalArgumentException("Only in-app paths starting with '/' can be opened: " + path);
         }
-        ClaudeSession session = sessionKey == null ? null : ClaudeChatService.get().getSession(sessionKey);
-        if (session == null) {
-            throw new IllegalStateException("No active chat session found to navigate.");
+        if (caller != null && caller.chatSessionKey() != null) {
+            ClaudeSession session = ClaudeChatService.get().getSession(caller.chatSessionKey());
+            if (session == null) {
+                throw new IllegalStateException("No active chat session found to navigate.");
+            }
+            session.requestNavigation(path);
+            return "Navigation queued: the user's browser will open " + path + " within a few seconds.";
         }
-        session.requestNavigation(path);
-        return "Navigation queued: the user's browser will open " + path + " within a few seconds.";
+        if (caller != null && caller.userIri() != null) {
+            RemoteAgentService.get().requestNavigation(caller.userIri(), path);
+            return "Navigation queued: it takes effect in a Nanodash browser tab the user has open on this site. "
+                    + "If nothing happens within a few seconds, ask the user to open or reload a Nanodash page once.";
+        }
+        throw new IllegalStateException("No session or user context to navigate for.");
     }
 
     /**

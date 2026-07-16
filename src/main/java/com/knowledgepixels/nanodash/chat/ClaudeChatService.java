@@ -165,29 +165,49 @@ public class ClaudeChatService {
         return command;
     }
 
-    private static String backgroundPrompt;
-    private static boolean backgroundPromptLoaded = false;
+    private static final Map<String, String> loadedResources = new ConcurrentHashMap<>();
 
     /**
-     * Get the domain background appended to the Claude Code system prompt:
-     * nanopub basics and how to use the Nanodash tools (background.md resource).
+     * Get the client-neutral domain background (background.md resource):
+     * nanopub basics and how to use the Nanodash tools. Served as the MCP
+     * {@code instructions} to all clients of the /mcp endpoint.
      *
      * @return the background text, or null if the resource is missing
      */
-    private static synchronized String getBackgroundPrompt() {
-        if (!backgroundPromptLoaded) {
-            backgroundPromptLoaded = true;
-            try (InputStream in = ClaudeChatService.class.getResourceAsStream("background.md")) {
+    public static String getCoreBackground() {
+        return loadResource("background.md");
+    }
+
+    /**
+     * Get the domain background appended to the local Claude Code subprocess's
+     * system prompt: the core background plus the local-chat addendum
+     * (background-local.md resource). The subprocess additionally receives the
+     * core once more as MCP instructions, which is accepted redundancy.
+     *
+     * @return the background text, or null if both resources are missing
+     */
+    private static String getBackgroundPrompt() {
+        String core = loadResource("background.md");
+        String local = loadResource("background-local.md");
+        if (core == null) return local;
+        if (local == null) return core;
+        return core + "\n\n" + local;
+    }
+
+    private static String loadResource(String name) {
+        // An empty string caches a failed load, so it isn't retried per call.
+        String content = loadedResources.computeIfAbsent(name, (n) -> {
+            try (InputStream in = ClaudeChatService.class.getResourceAsStream(n)) {
                 if (in != null) {
-                    backgroundPrompt = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-                } else {
-                    logger.warn("Claude chat background.md resource not found; starting sessions without background prompt");
+                    return new String(in.readAllBytes(), StandardCharsets.UTF_8);
                 }
+                logger.warn("Claude chat resource {} not found", n);
             } catch (IOException ex) {
-                logger.error("Could not read Claude chat background.md resource", ex);
+                logger.error("Could not read Claude chat resource {}", n, ex);
             }
-        }
-        return backgroundPrompt;
+            return "";
+        });
+        return content.isEmpty() ? null : content;
     }
 
     private String buildMcpConfig(NanodashPreferences prefs, String sessionKey) {

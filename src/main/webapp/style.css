@@ -3139,3 +3139,23 @@ a.source:hover {
   margin-left: 12px;
   font-size: 90%;
 }
+
+/* Personal API tokens for remote MCP access (own About tab) */
+
+.api-token-list {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+.api-token-list td {
+  padding: 2px 16px 2px 0;
+}
+.api-token-reveal {
+  background: #FFFFFF;
+  border: 1px solid #0B73DA40;
+  border-radius: 4px;
+  padding: 4px 12px;
+  margin: 12px 0;
+}
+.api-token-reveal code {
+  overflow-wrap: anywhere;
+}

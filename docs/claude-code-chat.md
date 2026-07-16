@@ -104,10 +104,13 @@ claude --print \
 - **Domain background:** a curated background text (nanopub anatomy, trusty
   URIs and supersede/retract semantics, template placeholders, query
   parameter naming, useful Nanodash paths, and the "you never publish —
-  the human does" rule) is shipped as a classpath resource
-  (`chat/background.md`) and passed via `--append-system-prompt`. It is
-  deliberately small and contains no CLI/signing instructions: the
-  subprocess has no Bash or file tools, and publishing stays human-only.
+  the human does" rule) is shipped as classpath resources: a client-neutral
+  core (`chat/background.md`), which the `/mcp` endpoint also serves to all
+  clients as MCP `instructions`, plus a local-chat addendum
+  (`chat/background-local.md`); the subprocess gets both via
+  `--append-system-prompt`. It is deliberately small and contains no
+  CLI/signing instructions: the subprocess has no Bash or file tools, and
+  publishing stays human-only.
 
 ### 2. MCP endpoint (`/mcp`)
 
@@ -143,6 +146,12 @@ claude mcp add --transport http nanodash http://localhost:37373/mcp
 and get "Claude Code with Nanodash tools" -- which is precisely Tier 2 of
 #434. The chat panel is an optional layer on top.
 
+This standalone value extends to hosted multi-user instances: with
+[remote MCP access](remote-mcp.md) enabled, users generate personal API
+tokens and point their own agents (local Claude Code, Claude API
+`mcp_servers`, any bearer-token MCP client) at the instance's `/mcp` —
+without the chat panel or server-side subprocesses being involved at all.
+
 ### 3. Tool catalog
 
 First wave, read-only (safe under `dontAsk`):
@@ -160,7 +169,7 @@ Second wave, action tools:
 
 | Tool | Does |
 | --- | --- |
-| `prepare_publication` | build a prefilled `/publish?template=...&param_...` form path from template (resolved to latest version) + params. **Does not publish.** |
+| `prepare_publication` | build a prefilled `/publish?template=...&param_...` form path from template (resolved to latest version) + params; array values fill the rows of repeatable statements (`param_x`, `param_x__1`, ...). **Does not publish.** |
 | `open_page` | enqueue a browser navigation for the chat panel to execute |
 
 Publishing itself is deliberately **not** a tool in v1: `prepare_publication`
@@ -201,15 +210,18 @@ local user. The containment story:
   to run arbitrary shell commands. `WebFetch` is read-only and lets Claude
   look at external resources nanopubs point to; the explicit allow rule
   covers all domains.
-- **Local-only by design:** the feature is opt-in config, intended for
-  `localhost` instances. On hosted multi-user instances it must stay off:
-  every visitor would share one machine's Claude subscription (against its
-  terms) and one machine's process privileges. The Tier 3 design is the
-  hosted answer.
-- **MCP endpoint auth:** `/mcp` accepts only requests bearing a
-  per-process random token that Nanodash generates at startup and injects
-  into the spawned process's `--mcp-config` headers. Other local processes
-  (or other browser tabs) can't drive the tools directly.
+- **Local-only by design:** the *chat* feature is opt-in config, intended
+  for `localhost` instances. On hosted multi-user instances it must stay
+  off: every visitor would share one machine's Claude subscription (against
+  its terms) and one machine's process privileges. The Tier 3 design is the
+  hosted answer for a built-in chat; [remote MCP access](remote-mcp.md) is
+  the hosted answer for bring-your-own-agent.
+- **MCP endpoint auth:** `/mcp` accepts two credentials: the per-process
+  random token that Nanodash generates at startup and injects into the
+  spawned process's `--mcp-config` headers (so other local processes or
+  browser tabs can't drive the tools directly), and — only when
+  [remote MCP access](remote-mcp.md) is enabled — users' personal API
+  tokens, which resolve to the owning user.
 - **UI commands are a fixed vocabulary** (navigate to an in-app path), not
   arbitrary JavaScript.
 

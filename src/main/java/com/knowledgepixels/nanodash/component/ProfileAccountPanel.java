@@ -114,6 +114,11 @@ public class ProfileAccountPanel extends Panel {
         // Signing key: public key + (local mode) the local key-file path.
         add(new ProfileSigItem("sigpart"));
 
+        // Personal API tokens for remote MCP access, when that is enabled.
+        ApiTokenPanel apiTokens = new ApiTokenPanel("apitokens", userIriString);
+        apiTokens.setVisible(prefs.isMcpRemoteEnabled());
+        add(apiTokens);
+
         // Recommended actions — hard-coded here (formerly the 👉 Recommended-actions
         // view/query). One bullet per applicable case, computed from the session's
         // introduction/approval state. The "create" case is the Create Introduction
