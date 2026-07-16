@@ -1,0 +1,32 @@
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+
+  <a wicket:id="expand" href="#" class="chat-expand-btn" title="Chat with Claude Code">&#128172;</a>
+
+  <div wicket:id="body" class="chat-body">
+
+    <div wicket:id="header" class="chat-dock-header">
+      <span class="chat-dock-title">Claude chat</span>
+      <a wicket:id="fullview" title="Open as full page">&#10530;</a>
+      <a wicket:id="collapse" href="#" title="Collapse">&#8211;</a>
+    </div>
+
+    <div wicket:id="chatbox" class="chat-box">
+      <div wicket:id="messages">
+        <div wicket:id="message"></div>
+      </div>
+      <div class="chat-status"><span wicket:id="status"></span> <a wicket:id="interrupt" href="#" class="chat-interrupt" title="Stop Claude's current response">&#9209; stop</a></div>
+    </div>
+
+    <form wicket:id="form" class="chat-form">
+      <textarea wicket:id="input" rows="3" placeholder="Ask Claude about nanopublications, templates, queries..."></textarea>
+      <button wicket:id="send" type="submit">Send</button>
+      <a wicket:id="reset" href="#" class="chat-reset">New conversation</a>
+    </form>
+
+  </div>
+
+</wicket:panel>
+</body>
+</html>

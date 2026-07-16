@@ -2,12 +2,18 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.chat.ClaudeChatService;
+import com.knowledgepixels.nanodash.chat.RemoteAgentService;
+import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
@@ -21,6 +27,7 @@ import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ResourceBundle;
 
 /**
@@ -55,6 +62,56 @@ public abstract class NanodashPage extends WebPage {
         super(parameters);
         markIfBrowserReload();
         ensureRefreshed();
+        add(new ClaudeChatPanel("claudechat", true) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(ClaudeChatService.get().isEnabled() && hasClaudeChatDock());
+            }
+
+        });
+        addRemoteNavigationPollIfNeeded();
+    }
+
+    /**
+     * Lets a remote AI agent acting for the logged-in user steer this browser
+     * tab via the open_page tool (see docs/remote-mcp.md). The poll is only
+     * attached when, at render time, the user's agent has been active within
+     * the last 30 minutes — so pages of uninvolved users never poll — and it
+     * stops itself once that window lapses. A page rendered before the agent's
+     * first call doesn't poll until the user next navigates or reloads.
+     */
+    private void addRemoteNavigationPollIfNeeded() {
+        if (!NanodashPreferences.get().isMcpRemoteEnabled()) return;
+        var userIriObj = NanodashSession.get().getUserIri();
+        if (userIriObj == null) return;
+        final String userIri = userIriObj.stringValue();
+        if (!RemoteAgentService.get().isRecentlyActive(userIri)) return;
+        add(new AbstractAjaxTimerBehavior(Duration.ofSeconds(3)) {
+
+            @Override
+            protected void onTimer(AjaxRequestTarget target) {
+                String path = RemoteAgentService.get().pollNavigation(userIri);
+                if (path != null) {
+                    // Path is validated by the open_page tool: in-app, no quotes or backslashes.
+                    target.appendJavaScript("window.location = '" + path + "';");
+                } else if (!RemoteAgentService.get().isRecentlyActive(userIri)) {
+                    stop(target);
+                }
+            }
+
+        });
+    }
+
+    /**
+     * Whether this page shows the docked Claude chat panel (when the feature
+     * is enabled). Pages that embed the chat themselves can switch it off.
+     *
+     * @return true to show the docked panel
+     */
+    protected boolean hasClaudeChatDock() {
+        return true;
     }
 
     /**

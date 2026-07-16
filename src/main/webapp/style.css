@@ -3020,3 +3020,142 @@ a.source:hover {
   }
 
 }
+/* Claude Code chat page */
+
+.chat-box {
+  border: 1px solid #E0E5EB;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  background: white;
+}
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.chat-msg-user {
+  background: #E8F0FE;
+  margin-left: 15%;
+}
+.chat-msg-assistant {
+  background: #F4F6F8;
+  margin-right: 15%;
+}
+.chat-msg-tool {
+  color: #666666;
+  font-family: monospace;
+  font-size: 85%;
+  padding: 2px 12px;
+}
+.chat-msg-user > div, .chat-msg-tool > div, .chat-msg-error > div {
+  white-space: pre-wrap;
+}
+.chat-msg-assistant p:first-child {
+  margin-top: 0;
+}
+.chat-msg-assistant p:last-child {
+  margin-bottom: 0;
+}
+.chat-msg-assistant pre {
+  overflow-x: auto;
+  background: #FFFFFF;
+  padding: 8px;
+  border-radius: 4px;
+}
+.chat-msg-error {
+  background: #FDECEA;
+  color: #B3261E;
+}
+.chat-status {
+  color: #666666;
+  font-style: italic;
+}
+.chat-interrupt {
+  font-style: normal;
+  font-size: 90%;
+}
+.chat-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+}
+
+/* Docked chat panel */
+
+.claude-chat-dock {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1500;
+}
+.chat-expand-btn {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0B73DA;
+  color: white;
+  font-size: 22px;
+  text-align: center;
+  line-height: 48px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.chat-expand-btn:hover {
+  text-decoration: none;
+  color: white;
+}
+.claude-chat-dock .chat-body {
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  background: white;
+  border: 1px solid #E0E5EB;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  padding: 10px;
+}
+.claude-chat-dock .chat-box {
+  max-height: 45vh;
+  min-height: 80px;
+}
+.chat-dock-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.chat-dock-header .chat-dock-title {
+  font-weight: bold;
+  flex: 1;
+}
+.chat-dock-header a {
+  text-decoration: none;
+  font-size: 110%;
+}
+.chat-reset {
+  margin-left: 12px;
+  font-size: 90%;
+}
+
+/* Personal API tokens for remote MCP access (own About tab) */
+
+.api-token-list {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+.api-token-list td {
+  padding: 2px 16px 2px 0;
+}
+.api-token-reveal {
+  background: #FFFFFF;
+  border: 1px solid #0B73DA40;
+  border-radius: 4px;
+  padding: 4px 12px;
+  margin: 12px 0;
+}
+.api-token-reveal code {
+  overflow-wrap: anywhere;
+}

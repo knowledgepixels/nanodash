@@ -52,6 +52,10 @@ public class NanodashPreferences implements Serializable {
     private String umamiScriptUrl;
     private String umamiWebsiteId;
     private String homeResource = "https://w3id.org/spaces/knowledgepixels/nanodash/r/home";
+    private boolean claudeChatEnabled = false;
+    private String claudeChatBinary = "claude";
+    private String claudeChatModel;
+    private boolean mcpRemoteEnabled = false;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -251,6 +255,95 @@ public class NanodashPreferences implements Serializable {
      */
     public void setUmamiWebsiteId(String umamiWebsiteId) {
         this.umamiWebsiteId = umamiWebsiteId;
+    }
+
+    /**
+     * Check whether the local Claude Code chat feature is enabled.
+     *
+     * Intended for locally running single-user instances only; see
+     * docs/claude-code-chat.md.
+     *
+     * @return true if the Claude chat feature is enabled
+     */
+    public boolean isClaudeChatEnabled() {
+        if ("true".equals(System.getenv("NANODASH_CLAUDE_CHAT_ENABLED"))) {
+            return true;
+        }
+        return claudeChatEnabled;
+    }
+
+    /**
+     * Set whether the local Claude Code chat feature is enabled.
+     *
+     * @param claudeChatEnabled true to enable
+     */
+    public void setClaudeChatEnabled(boolean claudeChatEnabled) {
+        this.claudeChatEnabled = claudeChatEnabled;
+    }
+
+    /**
+     * Get the command to run the Claude Code CLI.
+     *
+     * @return the binary name or path (default "claude")
+     */
+    public String getClaudeChatBinary() {
+        String s = System.getenv("NANODASH_CLAUDE_CHAT_BINARY");
+        if (s != null && !s.isBlank()) return s;
+        return claudeChatBinary;
+    }
+
+    /**
+     * Set the command to run the Claude Code CLI.
+     *
+     * @param claudeChatBinary the binary name or path
+     */
+    public void setClaudeChatBinary(String claudeChatBinary) {
+        this.claudeChatBinary = claudeChatBinary;
+    }
+
+    /**
+     * Get the model override for Claude Code chat sessions.
+     *
+     * @return the model name, or null to use the CLI's default
+     */
+    public String getClaudeChatModel() {
+        String s = System.getenv("NANODASH_CLAUDE_CHAT_MODEL");
+        if (s != null && !s.isBlank()) return s;
+        return claudeChatModel;
+    }
+
+    /**
+     * Set the model override for Claude Code chat sessions.
+     *
+     * @param claudeChatModel the model name
+     */
+    public void setClaudeChatModel(String claudeChatModel) {
+        this.claudeChatModel = claudeChatModel;
+    }
+
+    /**
+     * Check whether remote MCP access with per-user API tokens is enabled.
+     *
+     * Lets users point their own AI agents at this instance's /mcp endpoint;
+     * independent of the local Claude chat feature (either can be enabled
+     * without the other). See docs/remote-mcp.md.
+     *
+     * @return true if remote MCP access is enabled
+     */
+    public boolean isMcpRemoteEnabled() {
+        if ("true".equals(System.getenv("NANODASH_MCP_REMOTE_ENABLED"))) {
+            return true;
+        }
+        return mcpRemoteEnabled;
+    }
+
+    /**
+     * Set whether remote MCP access with per-user API tokens is enabled.
+     *
+     * @param mcpRemoteEnabled true to enable
+     */
+    public void setMcpRemoteEnabled(boolean mcpRemoteEnabled) {
+        this.mcpRemoteEnabled = mcpRemoteEnabled;
     }
 
     public String getHomeResource() {

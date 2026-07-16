@@ -17,6 +17,6 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | [shacl-alignment](shacl-alignment.md) | 📋 Proposed | Build on the SHACL standard: adopt `sh:`/`dash:` constraint terms inside templates (A) and export SHACL shapes for external validation (B) |
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
 | [draft-with-ai](draft-with-ai.md) | 📋 Proposed | Server-side "Draft with AI" nanopub authoring |
-| [claude-code-chat](claude-code-chat.md) | 📋 Proposed | Chat panel backed by the user's local Claude Code, acting on Nanodash via an MCP endpoint (Tier 2 of [#434](https://github.com/knowledgepixels/nanodash/issues/434)) |
+| [claude-code-chat](claude-code-chat.md) | 🚧 In progress | Chat panel backed by the user's local Claude Code, acting on Nanodash via an MCP endpoint (Tier 2 of [#434](https://github.com/knowledgepixels/nanodash/issues/434)) |
 
 When a doc's status changes, update both its `**Status:**` line and the row here.
