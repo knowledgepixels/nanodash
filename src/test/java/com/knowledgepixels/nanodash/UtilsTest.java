@@ -823,4 +823,127 @@ class UtilsTest {
         assertEquals("trailing\\", Utils.unescapeMultiValue("trailing\\"));
     }
 
+    @Test
+    void isDateLiteral_basicExamples() {
+        assertTrue(Utils.isDateLiteral("2026-01-30"));
+        assertTrue(Utils.isDateLiteral("2026-01-30Z"));
+        assertTrue(Utils.isDateLiteral("2026-01-30+02:00"));
+        assertFalse(Utils.isDateLiteral("2026-01-30T12:00:00"));
+    }
+
+    @Test
+    void isDateTimeLiteral_basicExamples() {
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00Z"));
+    }
+
+    @Test
+    void isDateLiteral_acceptsValidDates() {
+        assertTrue(Utils.isDateLiteral("2026-01-30"));
+        assertTrue(Utils.isDateLiteral("2024-02-29")); // leap day
+        assertTrue(Utils.isDateLiteral("2026-01-30Z"));
+        assertTrue(Utils.isDateLiteral("2026-01-30+02:00"));
+        assertTrue(Utils.isDateLiteral("2026-01-30-05:00"));
+    }
+
+    @Test
+    void isDateTimeLiteral_acceptsValidDateTimes() {
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00.123"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00Z"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00.123Z"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00+02:00"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00-05:00"));
+    }
+
+    @Test
+    void isDateLiteralHandlesNullAndBlank() {
+        assertFalse(Utils.isDateLiteral(null));
+        assertFalse(Utils.isDateLiteral(""));
+        assertFalse(Utils.isDateLiteral("   "));
+    }
+
+    @Test
+    void isDateLiteralRejectsInvalidCalendarDates() {
+        assertFalse(Utils.isDateLiteral("2026-02-30"));
+        assertFalse(Utils.isDateLiteral("2026-13-01"));
+        assertFalse(Utils.isDateLiteral("2026-00-10"));
+    }
+
+    @Test
+    void isDateLiteralAcceptsLeapDayAndRejectsNonLeapDay() {
+        assertTrue(Utils.isDateLiteral("2024-02-29"));
+        assertFalse(Utils.isDateLiteral("2025-02-29"));
+    }
+
+    @Test
+    void isDateLiteralRejectsWrongShapes() {
+        assertFalse(Utils.isDateLiteral("2026-1-30"));     // month not zero-padded
+        assertFalse(Utils.isDateLiteral("26-01-30"));      // year too short
+        assertFalse(Utils.isDateLiteral("2026/01/30"));    // wrong separator
+        assertFalse(Utils.isDateLiteral("2026-01-30T00:00:00")); // datetime, not date
+    }
+
+    @Test
+    void isDateTimeLiteralHandlesNullAndBlank() {
+        assertFalse(Utils.isDateTimeLiteral(null));
+        assertFalse(Utils.isDateTimeLiteral(""));
+        assertFalse(Utils.isDateTimeLiteral("   "));
+    }
+
+    @Test
+    void isDateTimeLiteralRejectsDateOnlyValues() {
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30"));
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30Z"));
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30+02:00"));
+    }
+
+    @Test
+    void isDateTimeLiteralAcceptsFractionalSecondsAndOffsets() {
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00.123"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00.123Z"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00+02:00"));
+        assertTrue(Utils.isDateTimeLiteral("2026-01-30T12:00:00-05:30"));
+    }
+
+    @Test
+    void isDateTimeLiteralRejectsInvalidDateTimeValues() {
+        assertFalse(Utils.isDateTimeLiteral("2026-02-30T12:00:00")); // invalid date
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30T25:00:00")); // invalid hour
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30T12:60:00")); // invalid minute
+        assertFalse(Utils.isDateTimeLiteral("2026-01-30T12:00"));    // incomplete time
+    }
+
+    @Test
+    void isDate_acceptsDateAndDateTimeValues() {
+        assertTrue(Utils.isDate("2026-01-30"));
+        assertTrue(Utils.isDate("2026-01-30Z"));
+        assertTrue(Utils.isDate("2026-01-30+02:00"));
+
+        assertTrue(Utils.isDate("2026-01-30T12:00:00"));
+        assertTrue(Utils.isDate("2026-01-30T12:00:00.123"));
+        assertTrue(Utils.isDate("2026-01-30T12:00:00Z"));
+        assertTrue(Utils.isDate("2026-01-30T12:00:00+02:00"));
+    }
+
+    @Test
+    void isDate_rejectsInvalidValues() {
+        assertFalse(Utils.isDate(null));
+        assertFalse(Utils.isDate(""));
+        assertFalse(Utils.isDate("   "));
+
+        assertFalse(Utils.isDate("2026-02-30")); // invalid date
+        assertFalse(Utils.isDate("2026-01-30T25:00:00")); // invalid time
+        assertFalse(Utils.isDate("not-a-date"));
+    }
+
+    @Test
+    void isDate_rejectsNonIsoShapes() {
+        assertFalse(Utils.isDate("2026/01/30"));
+        assertFalse(Utils.isDate("2026-1-30"));
+        assertFalse(Utils.isDate("30-01-2026"));
+        assertFalse(Utils.isDate("2026-01-30 12:00:00")); // missing T
+    }
+
 }
