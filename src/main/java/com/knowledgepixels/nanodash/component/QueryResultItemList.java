@@ -8,12 +8,12 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.Model;
@@ -115,9 +115,13 @@ public class QueryResultItemList extends QueryResult {
      */
     private Component buildItemComponent(ApiResponseEntry entry) {
         for (String key : response.getHeader()) {
-            if (key.endsWith("_label") || key.endsWith("_label_multi")) continue;
+            if (key.endsWith("_label") || key.endsWith("_label_multi")) {
+                continue;
+            }
             String value = entry.get(key);
-            if (value == null || value.isBlank()) continue;
+            if (value == null || value.isBlank()) {
+                continue;
+            }
             String entryLabel = entry.get(key + "_label");
 
             if (key.endsWith("user_iri")) {
@@ -151,7 +155,7 @@ public class QueryResultItemList extends QueryResult {
                 // literal is shown on hover via the standard styled tooltip.
                 String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + Strings.escapeMarkup(entryLabel) + "</span>";
                 return new Label("listItem", html).setEscapeModelStrings(false);
-            } else if (Utils.isDateTimeLiteral(value)) {
+            } else if (Utils.isDate(value)) {
                 // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
                 return new Label("listItem", Utils.friendlyDateHtml(value, value)).setEscapeModelStrings(false);
             } else {
