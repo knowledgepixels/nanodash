@@ -4,18 +4,14 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
-import com.knowledgepixels.nanodash.page.ExplorePage;
-import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.QueryPage;
-import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.page.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigatorLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -34,11 +30,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Component for displaying query results in a list format.
@@ -152,11 +144,15 @@ public class QueryResultList extends QueryResult {
                             List<Component> links = new ArrayList<>();
                             for (int i = 0; i < uris.length; i++) {
                                 String uri = uris[i];
-                                if (uri.isBlank()) continue;
+                                if (uri.isBlank()) {
+                                    continue;
+                                }
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 // SPARQL coalesce often falls back to the URI string itself; treat that as no label
                                 // so NanodashLink can derive a short name from the URI.
-                                if (label != null && label.equals(uri)) label = null;
+                                if (label != null && label.equals(uri)) {
+                                    label = null;
+                                }
                                 links.add(new NanodashLink("component", uri, null, null, label, contextId));
                             }
                             components.add(new ComponentSequence("component", ", ", links));
@@ -170,11 +166,13 @@ public class QueryResultList extends QueryResult {
                                 String part = parts[i];
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 if (part.matches("https?://.+")) {
-                                    if (label != null && label.equals(part)) label = null;
+                                    if (label != null && label.equals(part)) {
+                                        label = null;
+                                    }
                                     multiComponents.add(new NanodashLink("component", part, null, null, label, contextId));
                                 } else {
                                     String unescaped = Utils.unescapeMultiValue(part);
-                                    if (label == null && Utils.isDateTimeLiteral(unescaped)) {
+                                    if (label == null && Utils.isDate(unescaped)) {
                                         // Friendly relative time, matching single-value items.
                                         multiComponents.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped)).setEscapeModelStrings(false));
                                     } else {
@@ -197,7 +195,7 @@ public class QueryResultList extends QueryResult {
                             for (int i = 0; i < parts.length; i++) {
                                 boolean hasLabel = labels != null && i < labels.length && !labels[i].isBlank();
                                 String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
-                                if (!hasLabel && Utils.isDateTimeLiteral(display)) {
+                                if (!hasLabel && Utils.isDate(display)) {
                                     // Friendly relative time, matching single-value items.
                                     multiComponents.add(new Label("component", Utils.friendlyDateHtml(display, display)).setEscapeModelStrings(false));
                                 } else {
@@ -216,7 +214,7 @@ public class QueryResultList extends QueryResult {
                         } else {
                             String entryLabel = entry.get(key + "_label");
                             boolean hasLabel = entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(entryValue);
-                            if (!hasLabel && Utils.isDateTimeLiteral(entryValue)) {
+                            if (!hasLabel && Utils.isDate(entryValue)) {
                                 // Show a friendly relative time (client-side); raw ISO value stays as no-script fallback.
                                 components.add(new Label("component", Utils.friendlyDateHtml(entryValue, entryValue)).setEscapeModelStrings(false));
                             } else {
