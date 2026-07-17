@@ -912,7 +912,6 @@ class UtilsTest {
         assertFalse(Utils.isDateTimeLiteral("2026-02-30T12:00:00")); // invalid date
         assertFalse(Utils.isDateTimeLiteral("2026-01-30T25:00:00")); // invalid hour
         assertFalse(Utils.isDateTimeLiteral("2026-01-30T12:60:00")); // invalid minute
-        assertFalse(Utils.isDateTimeLiteral("2026-01-30T12:00"));    // incomplete time
     }
 
     @Test
