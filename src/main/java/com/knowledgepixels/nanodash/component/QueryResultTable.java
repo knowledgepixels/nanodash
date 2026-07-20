@@ -11,7 +11,10 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IStyledColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -19,13 +22,12 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
+import org.apache.wicket.util.string.Strings;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -36,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static com.knowledgepixels.nanodash.component.DateTimeCalendarCell.DISPLAY_PATTERN;
 
 /**
  * Component for displaying query results in a table format.
@@ -80,7 +84,9 @@ public class QueryResultTable extends QueryResult {
                 if (filteredDataProvider != null && table != null) {
                     filteredDataProvider.setFilterText(filterModel.getObject());
                     target.add(table);
-                    if (noRecordsLabel != null) target.add(noRecordsLabel);
+                    if (noRecordsLabel != null) {
+                        target.add(noRecordsLabel);
+                    }
                 }
             }
         });
@@ -99,7 +105,9 @@ public class QueryResultTable extends QueryResult {
         }
         errorMessages.setObject(s);
         errorLabel.setVisible(true);
-        if (table != null) table.setVisible(false);
+        if (table != null) {
+            table.setVisible(false);
+        }
     }
 
     @Override
@@ -115,7 +123,9 @@ public class QueryResultTable extends QueryResult {
             // column; it becomes the "source" entry of this row's actions dropdown.
             sourceColumnKey = null;
             for (String h : response.getHeader()) {
-                if (h.equals("np") || h.equals("nps")) sourceColumnKey = h;
+                if (h.equals("np") || h.equals("nps")) {
+                    sourceColumnKey = h;
+                }
             }
             // Whether any rendered column carries a visible header label. If none do
             // (every column is "_noheader"), the entire header row is dropped — see the
@@ -123,7 +133,7 @@ public class QueryResultTable extends QueryResult {
             boolean anyHeaderShown = false;
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label") || h.endsWith("_label_multi")
-                        || hiddenColumns.contains(h) || h.equals(sourceColumnKey)) {
+                    || hiddenColumns.contains(h) || h.equals(sourceColumnKey)) {
                     continue;
                 }
                 // A trailing "_noheader" hides this column's header label while still
@@ -153,7 +163,7 @@ public class QueryResultTable extends QueryResult {
             // A single trailing dropdown column bundling this row's entry-level actions
             // and its "source" link, shown whenever either is present.
             boolean hasEntryActions = viewDisplay.getView() != null
-                    && !viewDisplay.getView().getViewEntryActionList().isEmpty();
+                                      && !viewDisplay.getView().getViewEntryActionList().isEmpty();
             if (hasEntryActions || sourceColumnKey != null) {
                 columns.add(new Column("", Column.ACTIONS, "cell-right"));
             }
@@ -290,11 +300,15 @@ public class QueryResultTable extends QueryResult {
                         List<Component> links = new ArrayList<>();
                         for (int i = 0; i < uris.length; i++) {
                             String uri = uris[i];
-                            if (uri.isBlank()) continue;
+                            if (uri.isBlank()) {
+                                continue;
+                            }
                             String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                             // SPARQL coalesce often falls back to the URI string itself; treat that as no label
                             // so NanodashLink can derive a short name from the URI.
-                            if (rawLabel != null && rawLabel.equals(uri)) rawLabel = null;
+                            if (rawLabel != null && rawLabel.equals(uri)) {
+                                rawLabel = null;
+                            }
                             links.add(new NanodashLink("component", uri, null, null, rawLabel, contextId));
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", links));
@@ -308,18 +322,21 @@ public class QueryResultTable extends QueryResult {
                             String part = parts[i];
                             String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                             if (part.matches("https?://.+")) {
-                                if (rawLabel != null && rawLabel.equals(part)) rawLabel = null;
+                                if (rawLabel != null && rawLabel.equals(part)) {
+                                    rawLabel = null;
+                                }
                                 components.add(new NanodashLink("component", part, null, null, rawLabel, contextId));
                             } else {
                                 String label = rawLabel;
                                 String unescaped = Utils.unescapeMultiValue(part);
                                 if (label == null && Utils.isDateTimeLiteral(unescaped)) {
                                     // Friendly relative time, matching single-value cells.
-                                    components.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped))
-                                            .setEscapeModelStrings(false));
+                                    components.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped)).setEscapeModelStrings(false));
                                 } else {
                                     String display = label != null ? label : unescaped;
-                                    if (Utils.looksLikeHtml(display)) {
+                                    if (DISPLAY_PATTERN.matcher(display).matches()) {
+                                        components.add(new DateTimeCalendarCell("component", display));
+                                    } else if (Utils.looksLikeHtml(display)) {
                                         components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
                                                 .setEscapeModelStrings(false)
                                                 .add(new AttributeAppender("class", "cell-data-html")));
@@ -341,8 +358,7 @@ public class QueryResultTable extends QueryResult {
                             String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
                             if (!hasLabel && Utils.isDateTimeLiteral(display)) {
                                 // Friendly relative time, matching single-value cells.
-                                components.add(new Label("component", Utils.friendlyDateHtml(display, display))
-                                        .setEscapeModelStrings(false));
+                                components.add(new Label("component", Utils.friendlyDateHtml(display, display)).setEscapeModelStrings(false));
                             } else if (Utils.looksLikeHtml(display)) {
                                 components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
                                         .setEscapeModelStrings(false)
@@ -354,7 +370,9 @@ public class QueryResultTable extends QueryResult {
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("template_iri")) {
                         String label = rowModel.getObject().get(key + "_label");
-                        if (label == null || label.isBlank()) label = truncateLabel(value);
+                        if (label == null || label.isBlank()) {
+                            label = truncateLabel(value);
+                        }
                         String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
                         String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
                         cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
