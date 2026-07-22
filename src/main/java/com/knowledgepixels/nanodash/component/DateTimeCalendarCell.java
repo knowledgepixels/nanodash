@@ -36,17 +36,18 @@ public class DateTimeCalendarCell extends Panel {
     public record ParsedEvent(OffsetDateTime start, OffsetDateTime end) {
     }
 
-    public DateTimeCalendarCell(String id, String displayValue) {
+    public DateTimeCalendarCell(String id, String displayValue, String title, String location) {
         super(id);
 
         // Show the original display string unchanged.
         add(new Label("dateLabel", displayValue));
 
         ParsedEvent event = parseDisplayString(displayValue);
+        String summary = title != null && !title.isBlank() ? title : displayValue;
 
         List<CalendarAction> actions = new ArrayList<>();
-        actions.add(new CalendarAction("📥 Download .ics", buildIcsDataUri(event, displayValue)));
-        actions.add(new CalendarAction("📅 Add to Google Calendar", buildGoogleCalendarUrl(event, displayValue)));
+        actions.add(new CalendarAction("📥 Download .ics", buildIcsDataUri(event, summary, location)));
+        actions.add(new CalendarAction("📅 Add to Google Calendar", buildGoogleCalendarUrl(event, summary, location)));
 
         add(new CalendarDropdown("calendarMenu", actions));
     }
@@ -83,18 +84,19 @@ public class DateTimeCalendarCell extends Panel {
         return new ParsedEvent(startOdt, endOdt);
     }
 
-    private static String buildIcsDataUri(ParsedEvent event, String displayValue) {
-        String ics = buildIcsContent(event, displayValue);
+    private static String buildIcsDataUri(ParsedEvent event, String summary, String location) {
+        String ics = buildIcsContent(event, summary, location);
         String b64 = Base64.getEncoder().encodeToString(ics.getBytes(StandardCharsets.UTF_8));
         return "data:text/calendar;charset=utf-8;base64," + b64;
     }
 
-    private static String buildIcsContent(ParsedEvent event, String summary) {
+    private static String buildIcsContent(ParsedEvent event, String summary, String location) {
         String dtStart = event.start().withOffsetSameInstant(ZoneOffset.UTC).format(ICS_UTC);
         String dtEnd = event.end().withOffsetSameInstant(ZoneOffset.UTC).format(ICS_UTC);
         String dtStamp = OffsetDateTime.now(ZoneOffset.UTC).format(ICS_UTC);
         String uid = UUID.randomUUID() + "@nanodash";
         String safeSummary = icsEscape(summary);
+        String safeLocation = isUri(location) ? icsEscape(location) : null;
 
         return "BEGIN:VCALENDAR\r\n"
                + "VERSION:2.0\r\n"
@@ -107,6 +109,7 @@ public class DateTimeCalendarCell extends Panel {
                + "DTSTART:" + dtStart + "\r\n"
                + "DTEND:" + dtEnd + "\r\n"
                + "SUMMARY:" + safeSummary + "\r\n"
+               + (safeLocation != null ? "LOCATION:" + safeLocation + "\r\n" : "")
                + "END:VEVENT\r\n"
                + "END:VCALENDAR\r\n";
     }
@@ -120,16 +123,25 @@ public class DateTimeCalendarCell extends Panel {
                 .replace("\r", "\\n");
     }
 
-    private static String buildGoogleCalendarUrl(ParsedEvent event, String summary) {
+    private static String buildGoogleCalendarUrl(ParsedEvent event, String summary, String location) {
         // Google Calendar format: yyyyMMdd'T'HHmmss'Z'
         String dtStart = event.start().withOffsetSameInstant(ZoneOffset.UTC).format(ICS_UTC);
         String dtEnd = event.end().withOffsetSameInstant(ZoneOffset.UTC).format(ICS_UTC);
         String dates = dtStart + "/" + dtEnd;
-        return "https://calendar.google.com/calendar/render?action=TEMPLATE"
-               + "&dates=" + URLEncoder.encode(dates, StandardCharsets.UTF_8)
-               + "&text=" + URLEncoder.encode(summary, StandardCharsets.UTF_8);
+        String url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+                     + "&dates=" + URLEncoder.encode(dates, StandardCharsets.UTF_8)
+                     + "&text=" + URLEncoder.encode(summary, StandardCharsets.UTF_8);
+        if (isUri(location)) {
+            url += "&location=" + URLEncoder.encode(location, StandardCharsets.UTF_8);
+        }
+        return url;
     }
 
-    public record CalendarAction(String label, String url) implements Serializable {}
+    private static boolean isUri(String value) {
+        return value != null && value.matches("https?://.+");
+    }
+
+    public record CalendarAction(String label, String url) implements Serializable {
+    }
 
 }

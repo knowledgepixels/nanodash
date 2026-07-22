@@ -2,9 +2,12 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -56,6 +59,8 @@ public class QueryResultTable extends QueryResult {
     private Model<String> filterModel = Model.of("");
     // The source-nanopub column ("np"/"nps"), folded into the per-row actions dropdown.
     private String sourceColumnKey;
+    private boolean isEvent;
+    private String eventLocation = null;
 
     QueryResultTable(String id, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, boolean plain) {
         super(id, queryRef, response, viewDisplay);
@@ -237,6 +242,37 @@ public class QueryResultTable extends QueryResult {
         }
     }
 
+    private void precomputeEventLocations(ApiResponse response) {
+        for (ApiResponseEntry row : response.getData()) {
+            String location = extractLocationFromRow(row);
+            if (location != null && !location.isBlank()) {
+                eventLocation = location;
+                break;
+            }
+        }
+    }
+
+    private String extractLocationFromRow(ApiResponseEntry row) {
+        String property = row.get("Property_noheader");
+        if (!"http://schema.org/location".equals(property)) {
+            return null;
+        }
+
+        String value = row.get("Value_multi_val_noheader");
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        // If multi-value, pick first non-empty line.
+        for (String part : value.split("\n", -1)) {
+            String v = Utils.unescapeMultiValue(part).trim();
+            if (!v.isEmpty()) {
+                return v;
+            }
+        }
+        return null;
+    }
+
     private class Column extends AbstractColumn<ApiResponseEntry, String> implements IStyledColumn<ApiResponseEntry, String> {
 
         private String key;
@@ -270,6 +306,7 @@ public class QueryResultTable extends QueryResult {
         @Override
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
             try {
+                isEvent = KPXL_TERMS.EVENT.toString().equals(((Space) resourceWithProfile).getType());
                 View view = viewDisplay.getView();
                 if (key.equals(ACTIONS)) {
                     List<AbstractLink> links = ViewActionMappings.buildEntryActionLinks(view, rowModel.getObject(),
@@ -335,7 +372,12 @@ public class QueryResultTable extends QueryResult {
                                 } else {
                                     String display = label != null ? label : unescaped;
                                     if (DISPLAY_PATTERN.matcher(display).matches()) {
-                                        components.add(new DateTimeCalendarCell("component", display));
+                                        components.add(new DateTimeCalendarCell(
+                                                "component",
+                                                display,
+                                                resourceWithProfile.getLabel(),
+                                                eventLocation
+                                        ));
                                     } else if (Utils.looksLikeHtml(display)) {
                                         components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
                                                 .setEscapeModelStrings(false)
@@ -416,6 +458,18 @@ public class QueryResultTable extends QueryResult {
 
     private static String truncateLabel(String label) {
         return Utils.truncateLabel(label);
+    }
+
+    @Override
+    public void setResourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
+        super.setResourceWithProfile(resourceWithProfile);
+
+        if (resourceWithProfile instanceof Space space) {
+            isEvent = KPXL_TERMS.EVENT.toString().equals(space.getType());
+            if (isEvent) {
+                precomputeEventLocations(response);
+            }
+        }
     }
 
 }
