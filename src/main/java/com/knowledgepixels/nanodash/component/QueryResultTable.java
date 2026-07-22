@@ -59,7 +59,6 @@ public class QueryResultTable extends QueryResult {
     private Model<String> filterModel = Model.of("");
     // The source-nanopub column ("np"/"nps"), folded into the per-row actions dropdown.
     private String sourceColumnKey;
-    private boolean isEvent;
     private String eventLocation = null;
 
     QueryResultTable(String id, QueryRef queryRef, ApiResponse response, ViewDisplay viewDisplay, boolean plain) {
@@ -306,7 +305,6 @@ public class QueryResultTable extends QueryResult {
         @Override
         public void populateItem(Item<ICellPopulator<ApiResponseEntry>> cellItem, String componentId, IModel<ApiResponseEntry> rowModel) {
             try {
-                isEvent = KPXL_TERMS.EVENT.toString().equals(((Space) resourceWithProfile).getType());
                 View view = viewDisplay.getView();
                 if (key.equals(ACTIONS)) {
                     List<AbstractLink> links = ViewActionMappings.buildEntryActionLinks(view, rowModel.getObject(),
@@ -465,7 +463,7 @@ public class QueryResultTable extends QueryResult {
         super.setResourceWithProfile(resourceWithProfile);
 
         if (resourceWithProfile instanceof Space space) {
-            isEvent = KPXL_TERMS.EVENT.toString().equals(space.getType());
+            boolean isEvent = KPXL_TERMS.EVENT.toString().equals(space.getType());
             if (isEvent) {
                 precomputeEventLocations(response);
             }
