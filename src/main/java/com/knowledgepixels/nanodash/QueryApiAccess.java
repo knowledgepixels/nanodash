@@ -31,7 +31,7 @@ public class QueryApiAccess {
     public static final String GET_LATEST_NANOPUBS_BY_TYPE = "RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type";
     public static final String GET_LATEST_VERSION_OF_NP = "RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np";
     public static final String GET_ALL_USER_INTROS = "RAjHh6P11QFUaoPiMRBavdAnTq4YMJW4PB85oVFSBfYjU/get-all-user-intros";
-    public static final String GET_ALL_USER_PROFILE_PICS= "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
+    public static final String GET_ALL_USER_PROFILE_PICS = "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
     public static final String GET_ALL_USER_DEFAULT_LICENSE = "RA-_IwzReR2_HfTLz4YcNM6Mh3Vt16y0RUS12tpJTN9FI/get-all-user-default-license";
     public static final String GET_SUGGESTED_TEMPLATES_TO_GET_STARTED = "RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started";
     public static final String GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS = "RAhI-C2KsqS_IvnxwyBrbMFsoj65dhLWE_CBo_KtcVEVA/get-monthly-type-overview-by-pubkeys";
@@ -90,7 +90,7 @@ public class QueryApiAccess {
     // dead RoleDeclaration maintainer arm with a single npa:hasGoverningSpaceRef gate keyed on the
     // materialized npa:hasRoleType (nanopub-query#130 / issue #510); fixes maintainer visibility and
     // cross-ref bleed. No-regression verified against RAd105Rj across resources.
-        // RArKslem (supersedes RA4TGV_z) adds space-governed version resolution (gen:governedBy;
+    // RArKslem (supersedes RA4TGV_z) adds space-governed version resolution (gen:governedBy;
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
@@ -106,7 +106,7 @@ public class QueryApiAccess {
     // gated). No-regression verified against RA8iqtd across spaces.
     // RAtZbUry (supersedes RAIpgHc6): same hasGoverningSpaceRef gate as get-view-displays, with the
     // governing ref pinned to ?passedRef so authority cannot bleed across rival refs (issue #510).
-        // RActfK6C (supersedes RAtZbUry) adds space-governed version resolution (gen:governedBy;
+    // RActfK6C (supersedes RAtZbUry) adds space-governed version resolution (gen:governedBy;
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
@@ -258,7 +258,7 @@ public class QueryApiAccess {
     // literal on hover.
     // RAs9S7c9 (supersedes RA2LG9c5) swaps the authority gate to the npa:hasGoverningSpaceRef gate
     // keyed on materialized npa:hasRoleType (issue #510), preserving the ?position_label column.
-        // RAKHyaoB (supersedes RAs9S7c9) adds space-governed version resolution (gen:governedBy;
+    // RAKHyaoB (supersedes RAs9S7c9) adds space-governed version resolution (gen:governedBy;
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
@@ -292,7 +292,9 @@ public class QueryApiAccess {
         while (System.currentTimeMillis() < deadline) {
             try {
                 ApiResponse resp = QueryApiAccess.get(queryRef);
-                if (resp != null) return resp;
+                if (resp != null) {
+                    return resp;
+                }
             } catch (Exception ex) {
                 logger.error("Error while forcing API get for query {}", queryRef, ex);
             }
@@ -336,7 +338,7 @@ public class QueryApiAccess {
             try {
                 ApiResponse r = ApiCache.retrieveResponseSync(new QueryRef(GET_LATEST_VERSION_OF_NP, "np", nanopubId), false);
                 if (r != null && r.getData().size() == 1) {
-                    String l = r.getData().get(0).get("latest");
+                    String l = r.getData().getFirst().get("latest");
                     latestVersionMap.put(nanopubId, Pair.of(currentTime, l));
                 }
             } catch (Exception ex) {
@@ -354,8 +356,12 @@ public class QueryApiAccess {
      * @return The query ID, or null if the IRI is invalid.
      */
     public static String getQueryId(IRI queryIri) {
-        if (queryIri == null) return null;
-        if (!queryIri.stringValue().matches(queryIriPattern)) return null;
+        if (queryIri == null) {
+            return null;
+        }
+        if (!queryIri.stringValue().matches(queryIriPattern)) {
+            return null;
+        }
         return queryIri.stringValue().replaceFirst(queryIriPattern, "$2/$3");
     }
 
@@ -366,8 +372,12 @@ public class QueryApiAccess {
      * @return The query name, or null if the IRI is invalid.
      */
     public static String getQueryName(IRI queryIri) {
-        if (queryIri == null) return null;
-        if (!queryIri.stringValue().matches(queryIriPattern)) return null;
+        if (queryIri == null) {
+            return null;
+        }
+        if (!queryIri.stringValue().matches(queryIriPattern)) {
+            return null;
+        }
         return queryIri.stringValue().replaceFirst(queryIriPattern, "$3");
     }
 
