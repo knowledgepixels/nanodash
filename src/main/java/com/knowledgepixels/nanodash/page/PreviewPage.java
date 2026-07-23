@@ -1,14 +1,10 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.NavigationContext;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.WicketApplication;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
 import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
@@ -73,6 +69,11 @@ public class PreviewPage extends NanodashPage {
             @Override
             protected void onSubmit() {
                 try {
+                    if (!canStillPublish(signedNp)) {
+                        feedbackPanel.error("This nanopublication is no longer the latest version, so it cannot be published from preview.");
+                        return;
+                    }
+
                     String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
@@ -101,7 +102,7 @@ public class PreviewPage extends NanodashPage {
                     // data so the page we redirect to reflects the just-published change,
                     // not only the specific view query that was acted on.
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                        && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
                     if (confirmPageClass != null) {
@@ -170,6 +171,23 @@ public class PreviewPage extends NanodashPage {
         } else {
             add(new WebMarkupContainer("template-form-preview-section").setVisible(false));
         }
+    }
+
+    private boolean canStillPublish(Nanopub signedNp) {
+        // The source nanopub being superseded is stored under the "supersede" page param
+        // (retrieved from the preview session, which was saved in PublishForm)
+        NanodashSession.PreviewNanopub preview = NanodashSession.get().getPreviewNanopub(signedNp.getUri().stringValue());
+        if (preview == null) {
+            return true; // session expired – can't verify, allow optimistically
+        }
+
+        String sourceNpId = preview.getPageParams().get("supersede").toString("");
+        if (sourceNpId.isEmpty()) {
+            // Not a supersede operation, no version check needed
+            return true;
+        }
+
+        return QueryApiAccess.getLatestVersionId(sourceNpId).equals(sourceNpId);
     }
 
 }
