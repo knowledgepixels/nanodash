@@ -1108,48 +1108,10 @@ public class PublishForm extends Panel {
         return false;
     }
 
-    private String getPublishBlockReason(ApiResponse response, String sourceNpId) {
-        List<String> latest = new ArrayList<>();
-        List<String> retractions = new ArrayList<>();
-
-        if (response == null) {
-            return "This nanopublication does not seem fully published yet. Please wait a minute and try again.";
-        }
-
-        for (ApiResponseEntry e : response.getData()) {
-            String newerVersion = e.get("newerVersion");
-            String retractedBy = e.get("retractedBy");
-            String supersededBy = e.get("supersededBy");
-
-            if (retractedBy.isEmpty() && supersededBy.isEmpty()) {
-                latest.add(newerVersion);
-            } else if (!retractedBy.isEmpty() && supersededBy.isEmpty()) {
-                retractions.add(retractedBy);
-            }
-        }
-
-        if (latest.isEmpty() && retractions.isEmpty()) {
-            return "This nanopublication does not seem fully published yet. Please wait a minute and try again.";
-        }
-
-        if (!latest.isEmpty()) {
-            if (latest.size() == 1 && sourceNpId.equals(latest.get(0))) {
-                return null;
-            }
-            return "Cannot continue: the selected nanopublication is not the latest version.";
-        }
-
-        return "Cannot continue: the selected nanopublication has been retracted.";
-    }
-
     private boolean canPublishFromSource(String sourceNpId) {
-        final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_NEWER_VERSIONS_OF_NP, "np", sourceNpId);
-        ApiCache.clearCache(queryRef, 0);
-        ApiResponse fresh = ApiCache.retrieveResponseSync(queryRef, true);
-
-        String reason = getPublishBlockReason(fresh, sourceNpId);
-        if (reason != null) {
-            feedbackPanel.error(reason);
+        String latestNpId = QueryApiAccess.getLatestVersionId(sourceNpId);
+        if (!sourceNpId.equals(latestNpId)) {
+            feedbackPanel.error("The nanopublication you are trying to supersede or retract is not the latest version.");
             return false;
         }
         return true;
