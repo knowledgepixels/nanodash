@@ -465,14 +465,11 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
-                if (fillMode == FillMode.SUPERSEDE) {
+                if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
                     String npUri = fillNp.getUri().stringValue();
                     if (!canPublishFromSource(npUri)) {
                         return;
                     }
-                }
-                if (!canPublishFromParam(pageParams)) {
-                    return;
                 }
 
                 if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
@@ -839,15 +836,11 @@ public class PublishForm extends Panel {
             @Override
             public void onSubmit() {
                 try {
-                    if (fillMode == FillMode.SUPERSEDE) {
+                    if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
                         String npUri = fillNp.getUri().stringValue();
                         if (!canPublishFromSource(npUri)) {
                             return;
                         }
-                    }
-
-                    if (!canPublishFromParam(pageParams)) {
-                        return;
                     }
 
                     Nanopub np = createNanopub();
@@ -1111,18 +1104,10 @@ public class PublishForm extends Panel {
     private boolean canPublishFromSource(String sourceNpId) {
         String latestNpId = QueryApiAccess.getLatestVersionId(sourceNpId);
         if (!sourceNpId.equals(latestNpId)) {
-            feedbackPanel.error("The nanopublication you are trying to supersede or retract is not the latest version.");
+            feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
             return false;
         }
         return true;
-    }
-
-    private boolean canPublishFromParam(PageParameters pageParams) {
-        String npUri = pageParams.get("param_nanopubToBeRetracted").toString("");
-        if (npUri.isEmpty()) {
-            return true;
-        }
-        return canPublishFromSource(npUri);
     }
 
 }

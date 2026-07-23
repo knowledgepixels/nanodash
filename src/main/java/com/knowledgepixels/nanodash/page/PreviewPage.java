@@ -183,7 +183,11 @@ public class PreviewPage extends NanodashPage {
 
         String sourceNpId = preview.getPageParams().get("supersede").toString("");
         if (sourceNpId.isEmpty()) {
-            // Not a supersede operation, no version check needed
+            sourceNpId = preview.getPageParams().get("override").toString("");
+        }
+
+        if (sourceNpId.isEmpty()) {
+            // Not a supersede/override operation, no version check needed
             return true;
         }
 
