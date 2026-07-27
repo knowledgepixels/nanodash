@@ -391,17 +391,15 @@ public class TemplateContext implements Serializable {
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languageTag = template.getLanguageTag(iri);
-            if (datatype != null) {
-                if (datatype.equals(XSD.DATETIME)) {
-                    ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
-                    if (tfObject != null) {
-                        processedValue = vf.createLiteral(tfObject);
-                    }
-                } else if (datatype.equals(XSD.DATE)) {
-                    Date tfObject = (Date) tfObjectGeneric;
-                    if (tfObject != null) {
-                        processedValue = vf.createLiteral(LiteralDateItem.format.format(tfObject), datatype);
-                    }
+            if (XSD.DATETIME.equals(datatype)) {
+                ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
+                if (tfObject != null) {
+                    processedValue = vf.createLiteral(tfObject);
+                }
+            } else if (XSD.DATE.equals(datatype)) {
+                Date tfObject = (Date) tfObjectGeneric;
+                if (tfObject != null) {
+                    processedValue = vf.createLiteral(LiteralDateItem.format.format(tfObject), datatype);
                 }
             } else {
                 String tfObject = (String) tfObjectGeneric;
