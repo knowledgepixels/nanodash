@@ -44,6 +44,10 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -184,7 +188,9 @@ public class Utils {
      * @return the truncated label, or the original if 60 characters or shorter
      */
     public static String truncateLinkLabel(String label) {
-        if (label == null || label.length() <= 60) return label;
+        if (label == null || label.length() <= 60) {
+            return label;
+        }
         return label.substring(0, 47).stripTrailing() + "...";
     }
 
@@ -200,7 +206,9 @@ public class Utils {
      * @return the icon+text HTML body to render with escaping disabled, or null
      */
     public static String menuEntryIconBodyHtml(String label) {
-        if (label == null) return null;
+        if (label == null) {
+            return null;
+        }
         int sp = -1;
         for (int i = 0; i < label.length(); i++) {
             if (Character.isWhitespace(label.charAt(i))) {
@@ -208,14 +216,19 @@ public class Utils {
                 break;
             }
         }
-        if (sp <= 0) return null;
+        if (sp <= 0) {
+            return null;
+        }
         String icon = label.substring(0, sp);
         String rest = label.substring(sp).replaceFirst("^\\s+", "");
-        if (rest.isEmpty()) return null;
+        if (rest.isEmpty()) {
+            return null;
+        }
         // Only a pure symbol/emoji token (no letters or digits) counts as an icon.
-        if (icon.codePoints().anyMatch(Character::isLetterOrDigit)) return null;
-        return "<span class=\"actionmenu-icon\">" + Strings.escapeMarkup(icon) + "</span>"
-                + Strings.escapeMarkup(rest);
+        if (icon.codePoints().anyMatch(Character::isLetterOrDigit)) {
+            return null;
+        }
+        return "<span class=\"actionmenu-icon\">" + Strings.escapeMarkup(icon) + "</span>" + Strings.escapeMarkup(rest);
     }
 
     /**
@@ -240,7 +253,9 @@ public class Utils {
             URIBuilder u = new URIBuilder(base);
             for (String key : parameters.getNamedKeys()) {
                 for (StringValue value : parameters.getValues(key)) {
-                    if (!value.isNull()) u.addParameter(key, value.toString());
+                    if (!value.isNull()) {
+                        u.addParameter(key, value.toString());
+                    }
                 }
             }
             return u.build().toString();
@@ -275,13 +290,17 @@ public class Utils {
         String s = getShortPubkeyName(pubkeyOrPubkeyhash);
         NanodashSession session = NanodashSession.get();
         List<String> l = new ArrayList<>();
-        if (pubkeyOrPubkeyhash.equals(session.getPubkeyString()) || pubkeyOrPubkeyhash.equals(session.getPubkeyhash()))
+        if (pubkeyOrPubkeyhash.equals(session.getPubkeyString()) || pubkeyOrPubkeyhash.equals(session.getPubkeyhash())) {
             l.add("local");
+        }
         // TODO: Make this more efficient:
         String hashed = Utils.createSha256HexHash(pubkeyOrPubkeyhash);
-        if (User.getPubkeyhashes(user, true).contains(pubkeyOrPubkeyhash) || User.getPubkeyhashes(user, true).contains(hashed))
+        if (User.getPubkeyhashes(user, true).contains(pubkeyOrPubkeyhash) || User.getPubkeyhashes(user, true).contains(hashed)) {
             l.add("approved");
-        if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
+        }
+        if (!l.isEmpty()) {
+            s += " (" + String.join("/", l) + ")";
+        }
         return s;
     }
 
@@ -305,8 +324,12 @@ public class Utils {
      */
     public static String getPubkeyLocationName(String pubkeyhash, String fallback) {
         IRI keyLocation = User.getUserData().getKeyLocationForPubkeyHash(pubkeyhash);
-        if (keyLocation == null) return fallback;
-        if (keyLocation.stringValue().equals("http://localhost:37373/")) return "localhost";
+        if (keyLocation == null) {
+            return fallback;
+        }
+        if (keyLocation.stringValue().equals("http://localhost:37373/")) {
+            return "localhost";
+        }
         return keyLocation.stringValue().replaceFirst("https?://(nanobench\\.)?(nanodash\\.(?=.*\\..))?(.*[^/])/?$", "$3");
     }
 
@@ -321,10 +344,16 @@ public class Utils {
         String s = getPubkeyLocationName(pubkeyhash);
         NanodashSession session = NanodashSession.get();
         List<String> l = new ArrayList<>();
-        if (pubkeyhash.equals(session.getPubkeyhash())) l.add("local");
+        if (pubkeyhash.equals(session.getPubkeyhash())) {
+            l.add("local");
+        }
         // TODO: Make this more efficient:
-        if (User.getPubkeyhashes(user, true).contains(pubkeyhash)) l.add("approved");
-        if (!l.isEmpty()) s += " (" + String.join("/", l) + ")";
+        if (User.getPubkeyhashes(user, true).contains(pubkeyhash)) {
+            l.add("approved");
+        }
+        if (!l.isEmpty()) {
+            s += " (" + String.join("/", l) + ")";
+        }
         return s;
     }
 
@@ -337,10 +366,18 @@ public class Utils {
      */
     public static boolean hasNanodashLocation(String pubkeyhash) {
         IRI keyLocation = User.getUserData().getKeyLocationForPubkeyHash(pubkeyhash);
-        if (keyLocation == null) return true; // potentially a Nanodash location
-        if (keyLocation.stringValue().contains("nanodash")) return true;
-        if (keyLocation.stringValue().contains("nanobench")) return true;
-        if (keyLocation.stringValue().contains(":37373")) return true;
+        if (keyLocation == null) {
+            return true; // potentially a Nanodash location
+        }
+        if (keyLocation.stringValue().contains("nanodash")) {
+            return true;
+        }
+        if (keyLocation.stringValue().contains("nanobench")) {
+            return true;
+        }
+        if (keyLocation.stringValue().contains(":37373")) {
+            return true;
+        }
         return false;
     }
 
@@ -362,7 +399,9 @@ public class Utils {
      */
     public static String getUriPostfix(Object uri) {
         String s = uri.toString();
-        if (s.contains("#")) return s.replaceFirst("^.*#(.*)$", "$1");
+        if (s.contains("#")) {
+            return s.replaceFirst("^.*#(.*)$", "$1");
+        }
         return s.replaceFirst("^.*/(.*)$", "$1");
     }
 
@@ -374,7 +413,9 @@ public class Utils {
      */
     public static String getUriPrefix(Object uri) {
         String s = uri.toString();
-        if (s.contains("#")) return s.replaceFirst("^(.*#).*$", "$1");
+        if (s.contains("#")) {
+            return s.replaceFirst("^(.*#).*$", "$1");
+        }
         return s.replaceFirst("^(.*/).*$", "$1");
     }
 
@@ -426,7 +467,9 @@ public class Utils {
      * @return the Nanopub object if found, or null if not a known nanopublication
      */
     public static Nanopub getAsNanopub(String uri) {
-        if (uri == null) return null;
+        if (uri == null) {
+            return null;
+        }
         if (TrustyUriUtils.isPotentialTrustyUri(uri)) {
             try {
                 return Utils.getNanopub(uri);
@@ -437,17 +480,7 @@ public class Utils {
         return null;
     }
 
-    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder()
-            .allowCommonBlockElements()
-            .allowCommonInlineFormattingElements()
-            .allowUrlProtocols("https", "http", "mailto")
-            .allowElements("a")
-            .allowAttributes("href").onElements("a")
-            .allowElements("img")
-            .allowAttributes("src").onElements("img")
-            .allowElements("pre")
-            .requireRelNofollowOnLinks()
-            .toFactory();
+    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder().allowCommonBlockElements().allowCommonInlineFormattingElements().allowUrlProtocols("https", "http", "mailto").allowElements("a").allowAttributes("href").onElements("a").allowElements("img").allowAttributes("src").onElements("img").allowElements("pre").requireRelNofollowOnLinks().toFactory();
 
     /**
      * Sanitizes raw HTML input to ensure safe rendering.
@@ -469,21 +502,45 @@ public class Utils {
         return LEADING_TAG.matcher(value).find();
     }
 
-    /**
-     * Matches an xsd:dateTime-style literal with a time component, e.g.
-     * "2026-04-16T08:27:12.954Z" or "2026-04-16T08:27:12+02:00".
-     */
-    private static final Pattern DATETIME_LITERAL =
-            Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$");
+    public static boolean isDate(String value) {
+        return isDateLiteral(value) || isDateTimeLiteral(value);
+    }
+
+    public static boolean isDateLiteral(String value) {
+        if (value == null || value.isBlank() || value.contains("T")) {
+            return false;
+        }
+        try {
+            DateTimeFormatter.ISO_DATE.parse(value);
+            return true;
+        } catch (DateTimeParseException ex) {
+            return false;
+        }
+    }
 
     /**
      * Checks whether a (raw query-result) string looks like an ISO-8601 date-time literal.
      *
      * @param value the string to check
-     * @return true if the string parses as an xsd:dateTime-style value
+     * @return true if the string parses as a xsd:dateTime-style value
      */
     public static boolean isDateTimeLiteral(String value) {
-        return value != null && DATETIME_LITERAL.matcher(value).matches();
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+
+        try {
+            OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            return true;
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return true;
+        } catch (DateTimeParseException ignored) {
+            return false;
+        }
     }
 
     /**
@@ -498,8 +555,7 @@ public class Utils {
      * @return an HTML {@code <time>} element string (caller must render with escaping disabled)
      */
     public static String friendlyDateHtml(String isoValue, String fallbackText) {
-        return "<time class=\"friendly-date\" datetime=\"" + Strings.escapeMarkup(isoValue) + "\">"
-                + Strings.escapeMarkup(fallbackText) + "</time>";
+        return "<time class=\"friendly-date\" datetime=\"" + Strings.escapeMarkup(isoValue) + "\">" + Strings.escapeMarkup(fallbackText) + "</time>";
     }
 
     /**
@@ -511,7 +567,9 @@ public class Utils {
     public static String getPageParametersAsString(PageParameters params) {
         String s = "";
         for (String n : params.getNamedKeys()) {
-            if (!s.isEmpty()) s += "&";
+            if (!s.isEmpty()) {
+                s += "&";
+            }
             s += n + "=" + URLEncoder.encode(params.get(n).toString(), Charsets.UTF_8);
         }
         return s;
@@ -524,14 +582,7 @@ public class Utils {
      * @param selectItem the Select2Choice component to set the escape markup for
      */
     public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" +
-                                                 "return markup" +
-                                                 ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" +
-                                                 ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" +
-                                                 ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" +
-                                                 ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" +
-                                                 ";}"
-        );
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -596,12 +647,18 @@ public class Utils {
     public static List<IRI> getTypes(Nanopub np) {
         List<IRI> l = new ArrayList<>();
         for (IRI t : NanopubUtils.getTypes(np)) {
-            if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) continue;
-            if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED))
+            if (t.equals(FIP.AVAILABLE_FAIR_ENABLING_RESOURCE)) {
                 continue;
-            if (t.equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE)) continue;
-            if (t.equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED))
+            }
+            if (t.equals(FIP.FAIR_ENABLING_RESOURCE_TO_BE_DEVELOPED)) {
                 continue;
+            }
+            if (t.equals(FIP.AVAILABLE_FAIR_SUPPORTING_RESOURCE)) {
+                continue;
+            }
+            if (t.equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED)) {
+                continue;
+            }
             l.add(t);
         }
         return l;
@@ -614,14 +671,24 @@ public class Utils {
      * @return a label for the type, potentially truncated
      */
     public static String getTypeLabel(IRI typeIri) {
-        if (typeIri.equals(FIP.FAIR_ENABLING_RESOURCE)) return "FER";
-        if (typeIri.equals(FIP.FAIR_SUPPORTING_RESOURCE)) return "FSR";
-        if (typeIri.equals(FIP.FAIR_IMPLEMENTATION_PROFILE)) return "FIP";
-        if (typeIri.equals(NPX.DECLARED_BY)) return "user intro";
+        if (typeIri.equals(FIP.FAIR_ENABLING_RESOURCE)) {
+            return "FER";
+        }
+        if (typeIri.equals(FIP.FAIR_SUPPORTING_RESOURCE)) {
+            return "FSR";
+        }
+        if (typeIri.equals(FIP.FAIR_IMPLEMENTATION_PROFILE)) {
+            return "FIP";
+        }
+        if (typeIri.equals(NPX.DECLARED_BY)) {
+            return "user intro";
+        }
         String l = typeIri.stringValue();
         l = l.replaceFirst("^.*[/#]([^/#]+)[/#]?$", "$1");
         l = l.replaceFirst("^(.+)Nanopub$", "$1");
-        if (l.length() > 25) l = l.substring(0, 20) + "...";
+        if (l.length() > 25) {
+            l = l.substring(0, 20) + "...";
+        }
         return l;
     }
 
@@ -632,13 +699,19 @@ public class Utils {
      * @return a label for the URI, potentially truncated
      */
     public static String getUriLabel(String uri) {
-        if (uri == null) return "";
+        if (uri == null) {
+            return "";
+        }
         String uriLabel = uri;
         if (uriLabel.matches(".*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43}([^A-Za-z0-9-_].*)?")) {
             String newUriLabel = uriLabel.replaceFirst("(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{8})[A-Za-z0-9-_]{35}([^A-Za-z0-9-_].*)?", "$1...$2");
-            if (newUriLabel.length() <= 70) return newUriLabel;
+            if (newUriLabel.length() <= 70) {
+                return newUriLabel;
+            }
         }
-        if (uriLabel.length() > 70) return uri.substring(0, 30) + "..." + uri.substring(uri.length() - 30);
+        if (uriLabel.length() > 70) {
+            return uri.substring(0, 30) + "..." + uri.substring(uri.length() - 30);
+        }
         return uriLabel;
     }
 
@@ -777,13 +850,7 @@ public class Utils {
     /**
      * Comma-separated list of supported MIME types for nanopublications.
      */
-    public static final String SUPPORTED_TYPES =
-            TYPE_TRIG + "," +
-            TYPE_JELLY + "," +
-            TYPE_JSONLD + "," +
-            TYPE_NQUADS + "," +
-            TYPE_TRIX + "," +
-            TYPE_HTML;
+    public static final String SUPPORTED_TYPES = TYPE_TRIG + "," + TYPE_JELLY + "," + TYPE_JSONLD + "," + TYPE_NQUADS + "," + TYPE_TRIX + "," + TYPE_HTML;
 
     /**
      * List of supported MIME types for nanopublications.
@@ -881,8 +948,7 @@ public class Utils {
                 logger.warn("Library instance list is empty; using {} unvalidated: {}", envVarName, envValue);
                 return ensureTrailingSlash(envValue);
             }
-            logger.warn("{}={} is not in the library instance list {}; falling back to first library instance",
-                    envVarName, envValue, instances);
+            logger.warn("{}={} is not in the library instance list {}; falling back to first library instance", envVarName, envValue, instances);
             return ensureTrailingSlash(instances.get(0));
         }
         if (!instances.isEmpty()) {
@@ -897,13 +963,17 @@ public class Utils {
     private static boolean containsNormalized(List<String> urls, String target) {
         String normTarget = normalizeUrl(target);
         for (String url : urls) {
-            if (normalizeUrl(url).equals(normTarget)) return true;
+            if (normalizeUrl(url).equals(normTarget)) {
+                return true;
+            }
         }
         return false;
     }
 
     private static String normalizeUrl(String url) {
-        if (url == null) return "";
+        if (url == null) {
+            return "";
+        }
         return url.trim().replaceFirst("/+$", "").toLowerCase(Locale.ROOT);
     }
 
@@ -912,7 +982,9 @@ public class Utils {
     }
 
     private static String trimToNull(String s) {
-        if (s == null) return null;
+        if (s == null) {
+            return null;
+        }
         s = s.trim();
         return s.isEmpty() ? null : s;
     }
