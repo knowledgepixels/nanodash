@@ -10,7 +10,7 @@ public class ApprovalAction extends NanopubAction {
     /**
      * The URI of the template for the approval action.
      */
-    public static final String TEMPLATE_URI = "http://purl.org/np/RAsmppaxXZ613z9olynInTqIo0oiCelsbONDi2c5jlEMg";
+    public static final String TEMPLATE_URI = "https://w3id.org/np/RAkhTlKa-i0miq_DN3V4HSv-btlDgwzg8qPUesrsJ0k9Q";
 
     /**
      * {@inheritDoc}

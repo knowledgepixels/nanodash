@@ -10,7 +10,7 @@ public class CommentAction extends NanopubAction {
     /**
      * The URI of the template for the comment action.
      */
-    public static final String TEMPLATE_URI = "http://purl.org/np/RAqfUmjV05ruLK3Efq2kCODsHfY16LJGO3nAwDi5rmtv0";
+    public static final String TEMPLATE_URI = "https://w3id.org/np/RAaqrSEatLCNYWZb6VigZk_ttPrtNSyvhhFSgunSybPEs";
 
     /**
      * {@inheritDoc}
