@@ -10,7 +10,7 @@ public class RetractionAction extends NanopubAction {
     /**
      * The URI of the template used for retraction actions.
      */
-    public static final String TEMPLATE_URI = "http://purl.org/np/RAvySE8-JDPqaPnm_XShAa-aVuDZ2iW2z7Oc1Q9cfvxZE";
+    public static final String TEMPLATE_URI = "https://w3id.org/np/RAZl7bwTcLA5M5uLy5WCPuz8QEejBYEQnVNkL_d1lbj4Y";
 
     /**
      * {@inheritDoc}
