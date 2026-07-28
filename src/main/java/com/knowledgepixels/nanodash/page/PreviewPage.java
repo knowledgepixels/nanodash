@@ -1,14 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.NanodashSession;
-import com.knowledgepixels.nanodash.NanopubElement;
-import com.knowledgepixels.nanodash.NavigationContext;
-import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.WicketApplication;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.component.NanopubItem;
-import com.knowledgepixels.nanodash.component.TemplateFormPreview;
-import com.knowledgepixels.nanodash.component.TitleBar;
+import java.util.Set;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
@@ -31,7 +24,16 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.component.TemplateFormPreview;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 
 public class PreviewPage extends NanodashPage {
 
@@ -73,6 +75,11 @@ public class PreviewPage extends NanodashPage {
             @Override
             protected void onSubmit() {
                 try {
+                    if (!canStillPublish(signedNp)) {
+                        feedbackPanel.error("This nanopublication is no longer the latest version, so it cannot be published from preview.");
+                        return;
+                    }
+
                     String npUrl = PublishNanopub.publish(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
@@ -170,6 +177,16 @@ public class PreviewPage extends NanodashPage {
         } else {
             add(new WebMarkupContainer("template-form-preview-section").setVisible(false));
         }
+    }
+
+    private boolean canStillPublish(Nanopub signedNp) {
+        // The source nanopub being superseded or overridden is stored in the page params
+        // (retrieved from the preview session, which was saved in PublishForm)
+        NanodashSession.PreviewNanopub preview = NanodashSession.get().getPreviewNanopub(signedNp.getUri().stringValue());
+        if (preview == null) {
+            return true; // session expired – can't verify, allow optimistically
+        }
+        return !PublishForm.isSourceOutdated(preview.getPageParams());
     }
 
 }
