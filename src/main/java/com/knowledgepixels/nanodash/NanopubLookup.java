@@ -1,6 +1,10 @@
 package com.knowledgepixels.nanodash;
 
+import net.trustyuri.ArtifactCode;
+import net.trustyuri.ModuleDirectory;
+import net.trustyuri.TrustyUriModule;
 import net.trustyuri.TrustyUriUtils;
+import net.trustyuri.rdf.RdfModule;
 import org.nanopub.Nanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +14,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 /**
  * The outcome of looking up a nanopublication by its identifier.
@@ -35,14 +38,6 @@ public class NanopubLookup {
      * from the cache if the user tries again.
      */
     public static final long DEFAULT_TIMEOUT_MS = 15_000;
-
-    /**
-     * A last path segment that is apparently an attempt at an RDF-module artifact code
-     * (starts with "RA", made up of artifact-code characters, roughly the right length)
-     * without being a valid one — typically a truncated or mistyped copy-paste. A valid
-     * code is "RA" followed by exactly 43 characters.
-     */
-    private static final Pattern APPARENT_ARTIFACT_CODE = Pattern.compile("^RA[A-Za-z0-9\\-_]{28,58}$");
 
     /**
      * Why a lookup did or didn't produce a nanopublication.
@@ -169,15 +164,14 @@ public class NanopubLookup {
 
     /**
      * Checks whether the given identifier could denote a nanopublication, i.e. whether it
-     * ends in a valid trusty URI artifact code. This says nothing about whether such a
-     * nanopublication exists.
+     * ends in a valid artifact code of the RDF module — the only kind a nanopublication
+     * carries. This says nothing about whether such a nanopublication exists.
      *
      * @param id the identifier to check
      * @return true if the identifier is a well-formed nanopublication identifier
      */
     public static boolean isPotentialNanopubId(String id) {
-        if (id == null || id.isBlank()) return false;
-        return TrustyUriUtils.isPotentialTrustyUri(id);
+        return nanopubArtifactCode(id) != null;
     }
 
     /**
@@ -190,9 +184,48 @@ public class NanopubLookup {
      * @return true if the identifier looks like a malformed nanopublication identifier
      */
     public static boolean looksLikeMalformedNanopubId(String id) {
-        if (id == null || id.isBlank() || isPotentialNanopubId(id)) return false;
-        String lastSegment = id.replaceFirst("^.*[/#]", "");
-        return APPARENT_ARTIFACT_CODE.matcher(lastSegment).matches();
+        // Claims our module, yet doesn't form a valid artifact code for it: a trusty URI
+        // that lost or gained characters on the way.
+        return moduleOf(id) instanceof RdfModule && nanopubArtifactCode(id) == null;
+    }
+
+    /**
+     * Returns the artifact code the given identifier ends in, as long as it is a valid one
+     * of the RDF module — the only kind a nanopublication carries. Anything else yields
+     * null: no artifact code at all, a malformed one, or one of another trusty URI module,
+     * which then denotes something other than a nanopublication.
+     *
+     * @param id the identifier to take apart
+     * @return the artifact code, or null if the identifier doesn't carry one of ours
+     */
+    private static ArtifactCode nanopubArtifactCode(String id) {
+        String artifactCode = trailingArtifactCode(id);
+        if (artifactCode == null || !TrustyUriUtils.isPotentialArtifactCode(artifactCode)) return null;
+        ArtifactCode code = ArtifactCode.of(artifactCode);
+        return code.getModule() instanceof RdfModule ? code : null;
+    }
+
+    /**
+     * Returns the trusty URI module the given identifier claims by the prefix of its
+     * trailing artifact code, whether or not that code is well-formed.
+     *
+     * @param id the identifier to take apart
+     * @return the module, or null if the identifier claims none
+     */
+    private static TrustyUriModule moduleOf(String id) {
+        String artifactCode = trailingArtifactCode(id);
+        return artifactCode == null ? null : ModuleDirectory.getModule(TrustyUriUtils.getModuleId(artifactCode));
+    }
+
+    /**
+     * Returns the artifact-code-shaped tail of the given identifier, valid or not.
+     *
+     * @param id the identifier to take apart
+     * @return the tail, or null if the identifier doesn't end in one
+     */
+    private static String trailingArtifactCode(String id) {
+        if (id == null || id.isBlank()) return null;
+        return TrustyUriUtils.getArtifactCode(id);
     }
 
     /**

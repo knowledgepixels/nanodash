@@ -31,6 +31,24 @@ class NanopubLookupTest {
     }
 
     @Test
+    void idOfAnyWrongLengthIsRecognizedAsMalformedNanopubId() {
+        for (String wrongLength : new String[]{VALID_ID.substring(0, VALID_ID.length() - 18), VALID_ID + "abc"}) {
+            assertFalse(NanopubLookup.isPotentialNanopubId(wrongLength), wrongLength);
+            assertTrue(NanopubLookup.looksLikeMalformedNanopubId(wrongLength), wrongLength);
+        }
+    }
+
+    // Artifact codes of other trusty URI modules (files, for one) denote things that are
+    // not nanopublications, whole or broken, so neither predicate claims them.
+    @Test
+    void artifactCodeOfAnotherModuleIsNoNanopubId() {
+        String fileModuleId = VALID_ID.replaceFirst("/RA", "/FA");
+        assertFalse(NanopubLookup.isPotentialNanopubId(fileModuleId));
+        assertFalse(NanopubLookup.looksLikeMalformedNanopubId(fileModuleId));
+        assertFalse(NanopubLookup.looksLikeMalformedNanopubId(TRUNCATED_ID.replaceFirst("/RA", "/FA")));
+    }
+
+    @Test
     void plainTermIriIsNeitherValidNorMalformedNanopubId() {
         for (String termIri : new String[]{"http://example.com/my-term", "https://w3id.org/np/RAFl3dEa/term", "https://orcid.org/0000-0000-0000-0000"}) {
             assertFalse(NanopubLookup.isPotentialNanopubId(termIri), termIri);
