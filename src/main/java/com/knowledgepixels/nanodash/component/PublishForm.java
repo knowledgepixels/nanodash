@@ -61,6 +61,7 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -81,6 +82,7 @@ public class PublishForm extends Panel {
 
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
+    private static final String INVALID_TEMPLATE_MESSAGE = "This form is based on an invalid template and cannot be published.";
     // Page parameters that make the form supersede or override an existing nanopublication
     // ("fill" is the deprecated form of "supersede"):
     private static final String[] sourceParamKeys = new String[]{"supersede", "supersede-a", "override", "override-a", "fill"};
@@ -108,6 +110,16 @@ public class PublishForm extends Panel {
          * definition nanopub.
          */
         OVERRIDE
+    }
+
+    /**
+     * A problem reported by {@link Template#getStatementErrors()}, together with the part of the
+     * nanopublication ("Assertion", "Provenance", "Publication info") whose template has it.
+     *
+     * @param part    the nanopublication part the offending template defines
+     * @param message the description of the problem
+     */
+    public record TemplateError(String part, String message) implements Serializable {
     }
 
     protected Form<?> form;
@@ -453,6 +465,30 @@ public class PublishForm extends Panel {
 
         });
 
+        // Statements of the involved templates that cannot produce valid RDF, e.g. a literal
+        // placeholder in subject position. Such a template silently publishes something other
+        // than what it describes, so the problem is spelled out above the form:
+        List<TemplateError> templateErrors = new ArrayList<>();
+        collectTemplateErrors("Assertion", assertionContext, templateErrors);
+        collectTemplateErrors("Provenance", provenanceContext, templateErrors);
+        for (TemplateContext c : pubInfoContexts) {
+            collectTemplateErrors("Publication info", c, templateErrors);
+        }
+        if (!templateErrors.isEmpty()) {
+            add(new Label("template-error-intro", "This form is based on an invalid template and will not produce the nanopublication it describes:"));
+        } else {
+            add(new Label("template-error-intro", "").setVisible(false));
+        }
+        add(new ListView<TemplateError>("template-errors", templateErrors) {
+
+            @Override
+            protected void populateItem(ListItem<TemplateError> item) {
+                item.add(new Label("template-error-part", item.getModelObject().part() + ": "));
+                item.add(new Label("template-error", item.getModelObject().message()));
+            }
+
+        });
+
         // Finalize statements, which picks up parameter values in repetitions:
         assertionContext.finalizeStatements();
         provenanceContext.finalizeStatements();
@@ -473,6 +509,12 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
+                // The publish button is hidden in this case, but the form can still be
+                // submitted by pressing Enter in one of its fields:
+                if (!templateErrors.isEmpty()) {
+                    feedbackPanel.error(INVALID_TEMPLATE_MESSAGE);
+                    return;
+                }
                 // Re-check here too: a newer version might have appeared while the form was open.
                 if (!canPublishFromSource(pageParams)) {
                     return;
@@ -835,11 +877,29 @@ public class PublishForm extends Panel {
         form.add(piTemplateChoice);
         refreshPubInfo(null);
 
-        form.add(consentCheck);
+        // An invalid template cannot produce the nanopublication it describes, so there is
+        // nothing to consent to, publish or preview; the reasons are listed above the form.
+        boolean publishingDisabled = !templateErrors.isEmpty();
 
-        form.add(new Button("preview-button") {
+        WebMarkupContainer consentSection = new WebMarkupContainer("consent-section");
+        consentSection.add(consentCheck);
+        consentSection.setVisible(!publishingDisabled);
+        form.add(consentSection);
+
+        WebMarkupContainer buttonSection = new WebMarkupContainer("button-section");
+        buttonSection.setVisible(!publishingDisabled);
+        form.add(buttonSection);
+
+        form.add(new Label("publishing-disabled", "Publishing is disabled because of the template errors listed above.")
+                .setVisible(publishingDisabled));
+
+        buttonSection.add(new Button("preview-button") {
             @Override
             public void onSubmit() {
+                if (!templateErrors.isEmpty()) {
+                    feedbackPanel.error(INVALID_TEMPLATE_MESSAGE);
+                    return;
+                }
                 try {
                     // Re-check here too: a newer version might have appeared while the form was open.
                     if (!canPublishFromSource(pageParams)) {
@@ -952,6 +1012,13 @@ public class PublishForm extends Panel {
             pubInfoContexts.add(c);
         }
         return c;
+    }
+
+    private static void collectTemplateErrors(String part, TemplateContext context, List<TemplateError> errors) {
+        if (context == null || context.getTemplate() == null) return;
+        for (String error : context.getTemplate().getStatementErrors()) {
+            errors.add(new TemplateError(part, error));
+        }
     }
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {

@@ -71,6 +71,11 @@ public class Template implements Serializable {
     private Map<IRI, IRI> statementSubjects = new HashMap<>();
     private Map<IRI, IRI> statementPredicates = new HashMap<>();
     private Map<IRI, Value> statementObjects = new HashMap<>();
+    // Subject/predicate values that are not IRIs (i.e. literals), which is invalid RDF but
+    // does occur in published templates. Kept apart from the maps above so the rest of the
+    // code keeps seeing IRIs, and reported by getStatementErrors().
+    private Map<IRI, Value> nonIriStatementSubjects = new HashMap<>();
+    private Map<IRI, Value> nonIriStatementPredicates = new HashMap<>();
     private Map<IRI, Integer> statementOrder = new HashMap<>();
     private IRI defaultProvenance;
     private List<IRI> requiredPubInfoElements = new ArrayList<>();
@@ -365,6 +370,94 @@ public class Template implements Serializable {
      */
     public Value getObject(IRI statementIri) {
         return statementObjects.get(statementIri);
+    }
+
+    /**
+     * Returns the subject of a statement as the template declares it, which may be a literal
+     * and therefore invalid in that position (in which case {@link #getSubject(IRI)} is null).
+     * Use this for rendering, so that an invalid subject is shown to the user instead of
+     * silently disappearing; see {@link #getStatementErrors()}.
+     *
+     * @param statementIri the IRI of the statement to retrieve.
+     * @return the declared subject of the statement, or null if the statement declares none.
+     */
+    public Value getDeclaredSubject(IRI statementIri) {
+        IRI subj = statementSubjects.get(statementIri);
+        if (subj != null) return subj;
+        return nonIriStatementSubjects.get(statementIri);
+    }
+
+    /**
+     * Returns the predicate of a statement as the template declares it, which may be a literal
+     * and therefore invalid in that position (in which case {@link #getPredicate(IRI)} is null).
+     * See {@link #getDeclaredSubject(IRI)}.
+     *
+     * @param statementIri the IRI of the statement to retrieve.
+     * @return the declared predicate of the statement, or null if the statement declares none.
+     */
+    public Value getDeclaredPredicate(IRI statementIri) {
+        IRI pred = statementPredicates.get(statementIri);
+        if (pred != null) return pred;
+        return nonIriStatementPredicates.get(statementIri);
+    }
+
+    /**
+     * Returns human-readable descriptions of the statements of this template that cannot
+     * produce valid RDF, because their subject or predicate is a literal, is a placeholder
+     * that can only be filled with a literal, or is missing altogether. Only URIs are allowed
+     * in subject and predicate position.
+     *
+     * @return the error descriptions, empty if all statements are well-formed.
+     */
+    public List<String> getStatementErrors() {
+        List<String> errors = new ArrayList<>();
+        List<IRI> topIris = getStatementIris();
+        if (topIris == null) return errors;
+        int i = 0;
+        for (IRI top : topIris) {
+            i++;
+            List<IRI> memberIris = getStatementIris(top);
+            if (memberIris == null) {
+                collectStatementErrors(top, "Statement " + i, errors);
+            } else {
+                int j = 0;
+                for (IRI member : memberIris) {
+                    j++;
+                    collectStatementErrors(member, "Statement " + i + "." + j, errors);
+                }
+            }
+        }
+        return errors;
+    }
+
+    private void collectStatementErrors(IRI statementIri, String statementNumber, List<String> errors) {
+        String statementName = statementNumber + " (" + getLocalName(statementIri) + ")";
+        collectPositionError(getDeclaredSubject(statementIri), "subject", statementName, errors);
+        collectPositionError(getDeclaredPredicate(statementIri), "predicate", statementName, errors);
+    }
+
+    private void collectPositionError(Value value, String position, String statementName, List<String> errors) {
+        if (value == null) {
+            errors.add(statementName + ": no " + position + " is defined.");
+        } else if (value instanceof Literal) {
+            errors.add(statementName + ": the literal " + describeValue(value) + " is used in " + position +
+                    " position, but only URIs are allowed there.");
+        } else if (isLiteralPlaceholder((IRI) value)) {
+            errors.add(statementName + ": the literal placeholder " + describeValue(value) + " is used in " + position +
+                    " position, but only URIs are allowed there.");
+        }
+    }
+
+    private String describeValue(Value value) {
+        if (value instanceof Literal) return "\"" + value.stringValue() + "\"";
+        String label = getLabel((IRI) value);
+        String localName = getLocalName(value);
+        if (label == null) return localName;
+        return "\"" + label + "\" (" + localName + ")";
+    }
+
+    private String getLocalName(Value value) {
+        return value.stringValue().replaceFirst("^.*[/#]", "");
     }
 
     /**
@@ -966,10 +1059,18 @@ public class Template implements Serializable {
                 prefixLabelMap.put(subj, objS);
             } else if (pred.equals(NTEMPLATE.HAS_REGEX) && obj instanceof Literal) {
                 regexMap.put(subj, objS);
-            } else if (pred.equals(RDF.SUBJECT) && obj instanceof IRI objIri) {
-                statementSubjects.put(subj, objIri);
-            } else if (pred.equals(RDF.PREDICATE) && obj instanceof IRI objIri) {
-                statementPredicates.put(subj, objIri);
+            } else if (pred.equals(RDF.SUBJECT)) {
+                if (obj instanceof IRI objIri) {
+                    statementSubjects.put(subj, objIri);
+                } else {
+                    nonIriStatementSubjects.put(subj, obj);
+                }
+            } else if (pred.equals(RDF.PREDICATE)) {
+                if (obj instanceof IRI objIri) {
+                    statementPredicates.put(subj, objIri);
+                } else {
+                    nonIriStatementPredicates.put(subj, obj);
+                }
             } else if (pred.equals(RDF.OBJECT)) {
                 statementObjects.put(subj, obj);
             } else if (pred.equals(NTEMPLATE.HAS_DEFAULT_VALUE)) {
@@ -1231,6 +1332,10 @@ public class Template implements Serializable {
     }
 
     private IRI transform(IRI iri) {
+        // A template can leave a statement part undefined (see getStatementErrors()), in which
+        // case the null propagates here through getSubject()/getPredicate(). Let the type and
+        // label lookups below answer "no" for it instead of failing to render the whole form.
+        if (iri == null) return null;
         String s = iri.stringValue();
         // Map a rendered IRI back to its template form for map lookups (label, type,
         // datatype, …). RepetitionGroup.transform expands the template's "~~ARTIFACTCODE~~"
