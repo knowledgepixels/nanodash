@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.connector;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.component.OutdatedSourceErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -33,7 +34,8 @@ public class GenPublishPage extends ConnectorPage {
     /**
      * Constructor for the GenPublishPage.
      *
-     * @param parameters Page parameters containing the necessary information to render the page.
+     * @param parameters Page parameters containing the necessary information to
+     * render the page.
      */
     public GenPublishPage(final PageParameters parameters) {
         super(parameters);
@@ -49,7 +51,12 @@ public class GenPublishPage extends ConnectorPage {
 
         if (parameters.get("template").toString() != null) {
             parameters.set("template-version", "latest");
-            add(new PublishForm("form", parameters, getClass(), GenConnectPage.class));
+            if (PublishForm.isSourceOutdated(parameters)) {
+                // Don't even show the form: superseding/overriding is only possible on the latest version.
+                add(new OutdatedSourceErrorItem("form", parameters, getClass()));
+            } else {
+                add(new PublishForm("form", parameters, getClass(), GenConnectPage.class));
+            }
         } else {
             throw new RuntimeException("no template parameter");
         }
@@ -63,15 +70,16 @@ public class GenPublishPage extends ConnectorPage {
     /**
      * {@inheritDoc}
      * <p>
-     * Renders the head section of the page, including custom JavaScript functions.
+     * Renders the head section of the page, including custom JavaScript
+     * functions.
      */
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
         // TODO: There is probably a better place to define this function:
         response.render(JavaScriptHeaderItem.forScript(
-                "function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }\n" +
-                //"$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
+                "function disableTooltips() { $('.select2-selection__rendered').prop('title', ''); }\n"
+                + //"$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
                 "",
                 "custom-functions"));
     }

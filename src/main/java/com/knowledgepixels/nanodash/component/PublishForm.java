@@ -1,12 +1,14 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
-import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PreviewPage;
 import com.knowledgepixels.nanodash.template.*;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -79,6 +81,10 @@ public class PublishForm extends Panel {
 
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
+    // Page parameters that make the form supersede or override an existing nanopublication
+    // ("fill" is the deprecated form of "supersede"):
+    private static final String[] sourceParamKeys = new String[]{"supersede", "supersede-a", "override", "override-a", "fill"};
+
     /**
      * Fill modes for the nanopublication to be created.
      */
@@ -97,8 +103,9 @@ public class PublishForm extends Panel {
         DERIVE,
         /**
          * Override fill mode: like {@link #DERIVE} in that it records a
-         * {@code prov:wasDerivedFrom} link, but (like {@link #SUPERSEDE}) it keeps the
-         * source nanopub's introduced resource IRIs and its root definition nanopub.
+         * {@code prov:wasDerivedFrom} link, but (like {@link #SUPERSEDE}) it
+         * keeps the source nanopub's introduced resource IRIs and its root
+         * definition nanopub.
          */
         OVERRIDE
     }
@@ -116,10 +123,13 @@ public class PublishForm extends Panel {
     /**
      * Constructor for the PublishForm.
      *
-     * @param id               the Wicket component ID
-     * @param pageParams       the parameters for the page, which may include information on how to fill the form
-     * @param publishPageClass the class of the page to redirect to after successful publication
-     * @param confirmPageClass the class of the confirmation page to show after publication
+     * @param id the Wicket component ID
+     * @param pageParams the parameters for the page, which may include
+     * information on how to fill the form
+     * @param publishPageClass the class of the page to redirect to after
+     * successful publication
+     * @param confirmPageClass the class of the confirmation page to show after
+     * publication
      */
     public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass) {
         super(id);
@@ -243,7 +253,9 @@ public class PublishForm extends Panel {
         }
         for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
             String latestId = td.getLatestTemplateId(r.stringValue());
-            if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) continue;
+            if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
+                continue;
+            }
             TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplateId(), c);
@@ -251,7 +263,9 @@ public class PublishForm extends Panel {
         }
         Map<Integer, TemplateContext> piParamIdMap = new HashMap<>();
         for (String k : pageParams.getNamedKeys()) {
-            if (!k.matches("pitemplate[1-9][0-9]*")) continue;
+            if (!k.matches("pitemplate[1-9][0-9]*")) {
+                continue;
+            }
             Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
             String tid = pageParams.get(k).toString();
             // TODO Allow for automatically using latest template version:
@@ -266,7 +280,9 @@ public class PublishForm extends Panel {
         if (fillNp != null && !fillOnlyAssertion) {
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
                 String piTemplateIdLatest = td.getLatestTemplateId(piTemplateId.stringValue());
-                if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) continue;
+                if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) {
+                    continue;
+                }
                 if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
                     // TODO Allow for automatically using latest template version
                     createPubInfoContext(piTemplateId.stringValue());
@@ -289,14 +305,20 @@ public class PublishForm extends Panel {
             int i = 0;
             for (ApiResponseEntry e : resp.getData()) {
                 String mapsToSuffix = "";
-                if (i > 0) mapsToSuffix = "__" + i;
+                if (i > 0) {
+                    mapsToSuffix = "__" + i;
+                }
                 assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
                 i++;
             }
         }
         for (String k : pageParams.getNamedKeys()) {
-            if (k.startsWith("param_")) assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
-            if (k.startsWith("prparam_")) provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
+            if (k.startsWith("param_")) {
+                assertionContext.setParam(k.substring(6), pageParams.get(k).toString());
+            }
+            if (k.startsWith("prparam_")) {
+                provenanceContext.setParam(k.substring(8), pageParams.get(k).toString());
+            }
             if (k.matches("piparam[1-9][0-9]*_.*")) {
                 Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
                 if (!piParamIdMap.containsKey(i)) {
@@ -451,6 +473,11 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
+                // Re-check here too: a newer version might have appeared while the form was open.
+                if (!canPublishFromSource(pageParams)) {
+                    return;
+                }
+
                 if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
                     feedbackPanel.error("You need to check the checkbox that you understand the consequences.");
                     return;
@@ -531,7 +558,6 @@ public class PublishForm extends Panel {
         form.setOutputMarkupId(true);
 
         //form.add(new Label("nanopub-namespace", targetNamespaceLabel));
-
         form.add(newSourceMenu("templatelink", assertionContext.getTemplate().getId()));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
@@ -573,13 +599,17 @@ public class PublishForm extends Panel {
 
             for (ApiResponseEntry t : td.getProvenanceTemplates()) {
                 String tid = t.get("np");
-                if (handledProvTemplates.containsKey(tid)) continue;
+                if (handledProvTemplates.containsKey(tid)) {
+                    continue;
+                }
                 provTemplateOptionIds.add(tid);
                 handledProvTemplates.put(tid, true);
             }
         } else {
             for (String s : pageParams.get("prtemplate-options").toString().split(" ")) {
-                if (handledProvTemplates.containsKey(s)) continue;
+                if (handledProvTemplates.containsKey(s)) {
+                    continue;
+                }
                 recommendedProvTemplateOptionIds.add(s);
                 handledProvTemplates.put(s, true);
             }
@@ -589,9 +619,13 @@ public class PublishForm extends Panel {
 
             @Override
             public String getDisplayValue(String object) {
-                if (object == null || object.isEmpty()) return "";
+                if (object == null || object.isEmpty()) {
+                    return "";
+                }
                 Template t = td.getTemplate(object);
-                if (t != null) return t.getLabel();
+                if (t != null) {
+                    return t.getLabel();
+                }
                 return object;
             }
 
@@ -607,7 +641,9 @@ public class PublishForm extends Panel {
 
             @Override
             public void query(String term, int page, Response<String> response) {
-                if (term == null) term = "";
+                if (term == null) {
+                    term = "";
+                }
                 term = term.toLowerCase();
                 if (pageParams.get("prtemplate").toString() != null) {
                     // Using this work-around with "——" because 'optgroup' is not available through Wicket's Select2 classes
@@ -690,7 +726,9 @@ public class PublishForm extends Panel {
 
         for (ApiResponseEntry entry : td.getPubInfoTemplates()) {
             String tid = entry.get("np");
-            if (handledPiTemplates.containsKey(tid)) continue;
+            if (handledPiTemplates.containsKey(tid)) {
+                continue;
+            }
             piTemplateOptionIds.add(tid);
             handledPiTemplates.put(tid, true);
         }
@@ -699,9 +737,13 @@ public class PublishForm extends Panel {
 
             @Override
             public String getDisplayValue(String object) {
-                if (object == null || object.isEmpty()) return "";
+                if (object == null || object.isEmpty()) {
+                    return "";
+                }
                 Template t = td.getTemplate(object);
-                if (t != null) return t.getLabel();
+                if (t != null) {
+                    return t.getLabel();
+                }
                 return object;
             }
 
@@ -717,7 +759,9 @@ public class PublishForm extends Panel {
 
             @Override
             public void query(String term, int page, Response<String> response) {
-                if (term == null) term = "";
+                if (term == null) {
+                    term = "";
+                }
                 term = term.toLowerCase();
                 if (!recommendedPiTemplateOptionIds.isEmpty()) {
                     response.add("—— recommended ——");
@@ -730,7 +774,9 @@ public class PublishForm extends Panel {
                                 break;
                             }
                         }
-                        if (isAlreadyUsed) continue;
+                        if (isAlreadyUsed) {
+                            continue;
+                        }
                         if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
                             response.add(s);
                         }
@@ -747,7 +793,9 @@ public class PublishForm extends Panel {
                                 break;
                             }
                         }
-                        if (isAlreadyUsed) continue;
+                        if (isAlreadyUsed) {
+                            continue;
+                        }
                         if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
                             response.add(s);
                         }
@@ -793,6 +841,11 @@ public class PublishForm extends Panel {
             @Override
             public void onSubmit() {
                 try {
+                    // Re-check here too: a newer version might have appeared while the form was open.
+                    if (!canPublishFromSource(pageParams)) {
+                        return;
+                    }
+
                     Nanopub np = createNanopub();
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
@@ -865,7 +918,9 @@ public class PublishForm extends Panel {
                     }
 
                 });
-                if (requiredPubInfoContexts.contains(pic)) remove.setVisible(false);
+                if (requiredPubInfoContexts.contains(pic)) {
+                    remove.setVisible(false);
+                }
                 item.add(new ListView<StatementItem>("pi-statements", pic.getStatementItems()) {
 
                     protected void populateItem(ListItem<StatementItem> item) {
@@ -957,7 +1012,9 @@ public class PublishForm extends Panel {
     }
 
     private String getNanopubLabel(NanopubCreator npCreator) {
-        if (assertionContext.getTemplate().getNanopubLabelPattern() == null) return null;
+        if (assertionContext.getTemplate().getNanopubLabelPattern() == null) {
+            return null;
+        }
 
         Map<IRI, String> labelMap = new HashMap<>();
         for (Statement st : npCreator.getCurrentPubinfoStatements()) {
@@ -979,21 +1036,29 @@ public class PublishForm extends Panel {
                 placeholderIri = placeholderIriHash;
             }
             IModel<String> m = (IModel<String>) assertionContext.getComponentModels().get(placeholderIri);
-            if (m != null) placeholderValue = m.orElse("").getObject();
-            if (placeholderValue == null) placeholderValue = "";
+            if (m != null) {
+                placeholderValue = m.orElse("").getObject();
+            }
+            if (placeholderValue == null) {
+                placeholderValue = "";
+            }
             String placeholderLabel = placeholderValue;
             if (assertionContext.getTemplate().isUriPlaceholder(placeholderIri)) {
                 try {
                     // TODO Fix this. It doesn't work for placeholders with auto-encode placeholders, etc.
                     //      Not sure we need labels for these, but this code should be improved anyway.
                     String prefix = assertionContext.getTemplate().getPrefix(placeholderIri);
-                    if (prefix != null) placeholderValue = prefix + placeholderValue;
+                    if (prefix != null) {
+                        placeholderValue = prefix + placeholderValue;
+                    }
                     IRI placeholderValueIri = vf.createIRI(placeholderValue);
                     String l = assertionContext.getTemplate().getLabel(placeholderValueIri);
                     if (labelMap.containsKey(placeholderValueIri)) {
                         l = labelMap.get(placeholderValueIri);
                     }
-                    if (l == null) l = GuidedChoiceItem.getLabel(placeholderValue);
+                    if (l == null) {
+                        l = GuidedChoiceItem.getLabel(placeholderValue);
+                    }
                     if (assertionContext.getTemplate().isAgentPlaceholder(placeholderIri) && !placeholderValue.isEmpty()) {
                         l = User.getName(vf.createIRI(placeholderValue));
                     }
@@ -1007,18 +1072,22 @@ public class PublishForm extends Panel {
                 }
             }
             placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
-            if (placeholderLabel.length() > 100) placeholderLabel = placeholderLabel.substring(0, 97) + "...";
+            if (placeholderLabel.length() > 100) {
+                placeholderLabel = placeholderLabel.substring(0, 97) + "...";
+            }
             nanopubLabel = Strings.CS.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
         }
         return nanopubLabel;
     }
 
     private NanodashPage getConfirmPage(Nanopub signedNp, PageParameters pageParams) {
-        if (confirmPageClass == null) return null;
+        if (confirmPageClass == null) {
+            return null;
+        }
         try {
             return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-                 InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             logger.error("Could not create instance of confirmation page: {}", ex.getMessage());
         }
         return null;
@@ -1033,6 +1102,64 @@ public class PublishForm extends Panel {
     // if the user browses other pages in parallel:
     protected boolean getStatelessHint() {
         return false;
+    }
+
+    private boolean canPublishFromSource(PageParameters pageParams) {
+        if (!isSourceOutdated(pageParams)) {
+            return true;
+        }
+        feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
+        return false;
+    }
+
+    /**
+     * Returns the ID of the nanopublication that the given page parameters ask
+     * to supersede or override, or null if they ask for neither.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @return the ID of the nanopublication to be superseded or overridden, or
+     * null
+     */
+    public static String getSupersededOrOverriddenNanopubId(PageParameters pageParams) {
+        for (String key : sourceParamKeys) {
+            if (!pageParams.get(key).isEmpty()) {
+                return pageParams.get(key).toString();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether the given page parameters ask to supersede or override a
+     * nanopublication that is not the latest version anymore. Only the latest
+     * version can be superseded or overridden.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @return true if a newer version of the nanopublication to be superseded
+     * or overridden exists
+     */
+    public static boolean isSourceOutdated(PageParameters pageParams) {
+        String sourceNpId = getSupersededOrOverriddenNanopubId(pageParams);
+        return sourceNpId != null && !sourceNpId.equals(QueryApiAccess.getLatestVersionId(sourceNpId));
+    }
+
+    /**
+     * Returns a copy of the given page parameters where the nanopublication to
+     * be superseded or overridden is replaced by the given one.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @param npId the ID of the nanopublication to supersede or override
+     * instead
+     * @return the adjusted copy of the page parameters
+     */
+    public static PageParameters withSourceNanopub(PageParameters pageParams, String npId) {
+        PageParameters newParams = new PageParameters(pageParams);
+        for (String key : sourceParamKeys) {
+            if (!newParams.get(key).isEmpty()) {
+                newParams.set(key, npId);
+            }
+        }
+        return newParams;
     }
 
 }
