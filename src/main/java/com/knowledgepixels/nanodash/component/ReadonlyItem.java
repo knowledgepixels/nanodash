@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -411,7 +412,17 @@ public class ReadonlyItem extends AbstractContextComponent {
             }
             String languagetag = template.getLanguageTag(iri);
             IRI datatype = template.getDatatype(iri);
-            if (languagetag != null) {
+            if (template.isLanguageTagSelectable(iri)) {
+                // Any tag from the allowed set unifies (any tag at all if unrestricted);
+                // a declared nt:hasLanguageTag is only the picker's default.
+                if (vL.getLanguage().isEmpty()) {
+                    return false;
+                }
+                List<String> possibleTags = template.getPossibleLanguageTags(iri);
+                if (possibleTags != null && !possibleTags.contains(Literals.normalizeLanguageTag(vL.getLanguage().get()))) {
+                    return false;
+                }
+            } else if (languagetag != null) {
                 if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
                     return false;
                 }

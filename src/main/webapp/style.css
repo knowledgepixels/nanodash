@@ -892,6 +892,12 @@ a.actionlink {
   border-top: solid 1px #aaa;
 }
 
+/* Language-tag pickers get a compact dropdown (overrides the general min-width above
+   and the mobile override further down): */
+.select2-dropdown.select2-dropdown--below.langtag-dropdown {
+  min-width: 12em !important;
+}
+
 button.select2-selection__clear {
   color: #888;
 }
