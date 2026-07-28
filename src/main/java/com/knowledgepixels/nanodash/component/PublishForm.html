@@ -14,6 +14,12 @@
 
 <p><span wicket:id="newversion" class="negative">information about new versions of templates will be put here:</span> <a wicket:id="newversionlink">switch to latest version</a></p>
 
+<p><span wicket:id="template-error-intro" class="negative">template error intro will be put here</span></p>
+
+<ul>
+<li wicket:id="template-errors"><span wicket:id="template-error-part" class="negative">Assertion: </span><span wicket:id="template-error" class="negative">template error message</span></li>
+</ul>
+
 <p><span wicket:id="warnings" class="negative">warning messages will be put here</span></p>
 
 <ul>
@@ -126,17 +132,19 @@
 </button>
 </p>
 
-<p>
+<p wicket:id="consent-section">
 <input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
 <label for="consentcheck">
 I understand that published data cannot be fully removed (only retracted or superseded by new versions), and is publicly connected to my personal identifier.
 </label>
 </p>
 
-<p class="center">
+<p wicket:id="button-section" class="center">
 <input type="submit" class="button" value="Publish" onclick="this.value='Publishing\u2026'; this.disabled=true; this.form.submit();" />
 <button wicket:id="preview-button" type="submit" class="button light">Preview</button>
 </p>
+
+<p wicket:id="publishing-disabled" class="center negative">reason why publishing is disabled will be put here</p>
 
 </form>
 

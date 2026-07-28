@@ -81,8 +81,13 @@ public class ValueItem extends AbstractContextComponent {
             } else {
                 component = new IriItem("value", id, iri, id.equals("obj"), statementPartId, rg);
             }
+        } else if (value instanceof Literal literal) {
+            component = new LiteralItem("value", id, literal, rg);
         } else {
-            component = new LiteralItem("value", id, (Literal) value, rg);
+            // The template declares no value at all for this position (e.g. a statement
+            // without rdf:subject). Render a marker rather than failing to render the whole
+            // form; Template.getStatementErrors() reports what is missing.
+            component = new MissingValueItem("value");
         }
         add((Component) component);
     }

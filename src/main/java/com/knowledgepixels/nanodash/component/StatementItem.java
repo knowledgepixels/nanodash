@@ -352,9 +352,12 @@ public class StatementItem extends Panel {
         public RepetitionGroup() {
             statementParts = new ArrayList<>();
             for (IRI s : statementPartIds) {
+                // Declared subject/predicate: a template can (invalidly) put a literal there,
+                // and rendering it shows the user what is wrong; Template.getStatementErrors()
+                // spells it out.
                 StatementPartItem statement = new StatementPartItem("statement",
-                        makeValueItem("subj", getTemplate().getSubject(s), s),
-                        makeValueItem("pred", getTemplate().getPredicate(s), s),
+                        makeValueItem("subj", getTemplate().getDeclaredSubject(s), s),
+                        makeValueItem("pred", getTemplate().getDeclaredPredicate(s), s),
                         makeValueItem("obj", getTemplate().getObject(s), s)
                 );
                 statementParts.add(statement);
