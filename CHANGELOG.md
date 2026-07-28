@@ -1,3 +1,42 @@
+## [5.7.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.6.0...nanodash-5.7.0) (2026-07-28)
+
+### Features
+
+* allow artifact-code wildcard IRIs in local-resource choice dropdowns ([86a7489](https://github.com/knowledgepixels/nanodash/commit/86a74897b737318980de8b422a5be20cdb0deae8))
+* language-tag picker for literal placeholders ([f07c8a0](https://github.com/knowledgepixels/nanodash/commit/f07c8a0b6d2d46693c37205affbea96f2bb42486))
+* **PreviewPage:** prevent publishing of non-latest nanopublications from preview ([b9effcb](https://github.com/knowledgepixels/nanodash/commit/b9effcbbae3d93989b9ae72a56f4d288028b3577))
+* **PublishForm, GenPublishPage, PreviewPage, PublishPage:** implement checks for superseding/overriding only on the latest nanopublication version ([3b44daf](https://github.com/knowledgepixels/nanodash/commit/3b44daf57dd0d24dd811cf1c47d303b3c0ba27c9))
+* **PublishForm, PreviewPage:** add check for latest nanopublication version when overriding in addition to superseding (no longer checking on retraction) ([fa5d246](https://github.com/knowledgepixels/nanodash/commit/fa5d24620c530fb21f9030b41fd7e67c88808f7c))
+* **PublishForm:** disable preview/publish on update/retract action of a nanopub that has a newer version ([2a50c2b](https://github.com/knowledgepixels/nanodash/commit/2a50c2b04e6203c79af0b456e10d15c39ff74f9c))
+* report and block templates with literals in subject/predicate position ([b0ec11f](https://github.com/knowledgepixels/nanodash/commit/b0ec11f36d2d7bead9682ac9157b64deaa76897d))
+* **Utils:** add date checker for date only literals ([74eb7eb](https://github.com/knowledgepixels/nanodash/commit/74eb7eb680bbb8176e3c42bf024070d0677dd1a9))
+
+### Bug Fixes
+
+* keep literal placeholder values with datatypes other than date/dateTime ([30114c1](https://github.com/knowledgepixels/nanodash/commit/30114c1ee78112a63c031ac4a7b3a09796cb25fd)), closes [#564](https://github.com/knowledgepixels/nanodash/issues/564)
+* reinstate typed-literal branch lost in [#559](https://github.com/knowledgepixels/nanodash/issues/559) merge ([20aada9](https://github.com/knowledgepixels/nanodash/commit/20aada9091c1bb2c7a0b733ce0efb0fc8ef28a1e)), closes [#565](https://github.com/knowledgepixels/nanodash/issues/565) [#564](https://github.com/knowledgepixels/nanodash/issues/564)
+
+### Documentation
+
+* design for language-tag picker on literal placeholders ([809bff5](https://github.com/knowledgepixels/nanodash/commit/809bff55b85f634e74e79387a9d6420872f63353))
+* design for local Claude Code chat via MCP (Tier 2 of [#434](https://github.com/knowledgepixels/nanodash/issues/434)) ([e89f67f](https://github.com/knowledgepixels/nanodash/commit/e89f67f90fcfffee171155eacb29bc44bfb46960))
+
+### Tests
+
+* add date and datetime literal validation tests ([89d3522](https://github.com/knowledgepixels/nanodash/commit/89d3522386b7c3f12a4a28e9672db74f0d9d4163))
+* **UtilsTest:** remove test for incomplete time ([b16ec84](https://github.com/knowledgepixels/nanodash/commit/b16ec84aa08e879cfeb9529fe65bb3e24df2539a))
+
+### General maintenance
+
+* add OutdatedSourceErrorItem panel to handle non-latest nanopublication errors ([f8be3d5](https://github.com/knowledgepixels/nanodash/commit/f8be3d5f8ab0dc93023cc10f476839fde61b7d42))
+* **NanopubAction:** update template URI for approval, comment, and retraction ([e44cc4a](https://github.com/knowledgepixels/nanodash/commit/e44cc4aa916ceef7f348bfcd1bb4a807a53a41a6))
+* **QueryResult:** update date handling to use consistent date format for date/datetime literals ([660f206](https://github.com/knowledgepixels/nanodash/commit/660f206493e786bffe47a1f63eee6e078d49c6f7))
+* setting next snapshot version [skip ci] ([16a3e7a](https://github.com/knowledgepixels/nanodash/commit/16a3e7a11bf148bae3af2c11ca0252c656958e20))
+
+### Refactoring
+
+* **PublishForm:** reuse existing method for latest version check ([cc4285c](https://github.com/knowledgepixels/nanodash/commit/cc4285c5c18a95f4ef27f15d610f4b18a6fc7703))
+
 ## [5.6.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.5.1...nanodash-5.6.0) (2026-07-14)
 
 ### Features
