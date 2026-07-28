@@ -39,4 +39,17 @@ public class NanodashThreadPool {
         return POOL.submit(task);
     }
 
+    /**
+     * Submits a task that produces a result. Note that under the caller-runs policy a
+     * task may end up running in the calling thread when the pool is saturated, in which
+     * case waiting on the returned future with a timeout doesn't bound the wait.
+     *
+     * @param task the task to run
+     * @param <T>  the type of the task's result
+     * @return a future holding the task's result
+     */
+    public static <T> Future<T> submit(Callable<T> task) {
+        return POOL.submit(task);
+    }
+
 }
