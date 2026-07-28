@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
@@ -251,6 +252,17 @@ public class SpacePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * The absolute URL of the page for a given space. Absolute because it is embedded in
+     * calendar entries handed to third-party services, where a relative link is useless.
+     *
+     * @param spaceId the space IRI
+     * @return the full URL, including scheme and host
+     */
+    public static String urlFor(String spaceId) {
+        return Utils.absolutePageUrl(SpacePage.class, new PageParameters().add("id", spaceId));
     }
 
     /** A short, human-scannable form of a nanopub IRI (its artifact-code prefix). */
