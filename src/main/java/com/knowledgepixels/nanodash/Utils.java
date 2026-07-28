@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.Url;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.string.Strings;
@@ -154,6 +156,42 @@ public class Utils {
      */
     public static String stripToNanopubId(String id) {
         return id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+    }
+
+    // Wicket URL-encodes the session into a path parameter when the client has not (yet)
+    // returned a cookie. Harmless for a link the browser follows, poisonous for a URL that
+    // outlives the request — see absolutePageUrl.
+    private static final Pattern JSESSIONID_PATTERN = Pattern.compile(";jsessionid=[^?/;]*", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * The absolute URL of a mounted page, for handing to something outside this request:
+     * embedding in a downloaded file, giving to a third-party service to fetch, or showing
+     * the user to copy.
+     *
+     * <p>Any {@code ;jsessionid=} Wicket added is stripped. Such a URL is not merely ugly —
+     * it is bound to one visitor's session, so a calendar feed URL carrying one would break
+     * once the session expired, and would hand out a live session identifier to anyone the
+     * user shared it with.</p>
+     *
+     * @param pageClass the mounted page
+     * @param params    the page parameters
+     * @return the full URL, including scheme and host
+     */
+    public static String absolutePageUrl(Class<? extends org.apache.wicket.Page> pageClass, PageParameters params) {
+        RequestCycle cycle = RequestCycle.get();
+        String url = cycle.urlFor(pageClass, params).toString();
+        return stripSessionId(cycle.getUrlRenderer().renderFullUrl(Url.parse(url)));
+    }
+
+    /**
+     * Removes a {@code ;jsessionid=...} path parameter from a URL. See
+     * {@link #absolutePageUrl} for why this must happen before a URL leaves the request.
+     *
+     * @param url the URL, possibly session-decorated
+     * @return the URL without its session id
+     */
+    static String stripSessionId(String url) {
+        return JSESSIONID_PATTERN.matcher(url).replaceAll("");
     }
 
     /**
