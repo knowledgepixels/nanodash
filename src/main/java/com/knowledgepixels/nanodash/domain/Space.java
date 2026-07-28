@@ -9,6 +9,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -39,6 +40,12 @@ public class Space extends AbstractResourceWithProfile {
     // Core data — derived directly from the root nanopub assertion.
     private final List<String> altIds = new ArrayList<>();
     private final List<IRI> rootAdmins = new ArrayList<>();
+    // Every rdf:type the root definition asserts of this space. The ?type column of the
+    // get-spaces query cannot stand in for this: a root nanopub that declares several
+    // npx:hasNanopubType values (e.g. a space definition that also carries a preset
+    // assignment) yields one query row per type, of which only one becomes the
+    // representative — so getType() may report any one of them. See isOfType.
+    private final Set<IRI> declaredTypes = new HashSet<>();
     private String description = null;
     private Calendar startDate, endDate;
     private IRI defaultProvenance = null;
@@ -126,6 +133,7 @@ public class Space extends AbstractResourceWithProfile {
             this.rootNanopub = Utils.getAsNanopub(newNpId);
             altIds.clear();
             rootAdmins.clear();
+            declaredTypes.clear();
             description = null;
             startDate = null;
             endDate = null;
@@ -341,6 +349,24 @@ public class Space extends AbstractResourceWithProfile {
      */
     public String getType() {
         return type;
+    }
+
+    /**
+     * Whether the root definition asserts the given {@code rdf:type} of this space.
+     *
+     * <p>Prefer this over comparing against {@link #getType()} when the answer has to be
+     * right. {@code getType()} comes from the {@code ?type} column of the get-spaces query,
+     * which emits one row per {@code npx:hasNanopubType} of the declaring nanopub; when a
+     * root definition carries several — a space that also declares a preset assignment
+     * publishes {@code Event}, {@code PresetAssignment} and {@code ActivatedPresetAssignment}
+     * from a single nanopub — only one row survives as the representative, and it need not
+     * be the semantic one. This reads the assertion instead, which lists them all.</p>
+     *
+     * @param typeIri the type to test for
+     * @return true if the root definition types this space as {@code typeIri}
+     */
+    public boolean isOfType(IRI typeIri) {
+        return declaredTypes.contains(typeIri);
     }
 
     /**
@@ -763,7 +789,9 @@ public class Space extends AbstractResourceWithProfile {
     private void readCoreData() {
         for (Statement st : rootNanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(getId())) {
-                if (st.getPredicate().equals(OWL.SAMEAS) && st.getObject() instanceof IRI objIri) {
+                if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI typeIri) {
+                    declaredTypes.add(typeIri);
+                } else if (st.getPredicate().equals(OWL.SAMEAS) && st.getObject() instanceof IRI objIri) {
                     altIds.add(objIri.stringValue());
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
