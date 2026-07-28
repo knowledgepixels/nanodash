@@ -432,6 +432,8 @@ public class TemplateContext implements Serializable {
                         // untagged literal; form validation blocks this case on submit.
                     } else if (languageTag != null) {
                         processedValue = vf.createLiteral(tfObject, languageTag);
+                    } else if (datatype != null) {
+                        processedValue = vf.createLiteral(tfObject, datatype);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
