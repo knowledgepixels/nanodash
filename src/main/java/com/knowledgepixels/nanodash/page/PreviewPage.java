@@ -1,10 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.*;
-import com.knowledgepixels.nanodash.component.NanopubItem;
-import com.knowledgepixels.nanodash.component.TemplateFormPreview;
-import com.knowledgepixels.nanodash.component.TitleBar;
-import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import java.util.Set;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
@@ -27,7 +24,16 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.NanopubItem;
+import com.knowledgepixels.nanodash.component.PublishForm;
+import com.knowledgepixels.nanodash.component.TemplateFormPreview;
+import com.knowledgepixels.nanodash.component.TitleBar;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 
 public class PreviewPage extends NanodashPage {
 
@@ -102,7 +108,7 @@ public class PreviewPage extends NanodashPage {
                     // data so the page we redirect to reflects the just-published change,
                     // not only the specific view query that was acted on.
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                        && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
                     if (confirmPageClass != null) {
@@ -174,24 +180,13 @@ public class PreviewPage extends NanodashPage {
     }
 
     private boolean canStillPublish(Nanopub signedNp) {
-        // The source nanopub being superseded is stored under the "supersede" page param
+        // The source nanopub being superseded or overridden is stored in the page params
         // (retrieved from the preview session, which was saved in PublishForm)
         NanodashSession.PreviewNanopub preview = NanodashSession.get().getPreviewNanopub(signedNp.getUri().stringValue());
         if (preview == null) {
             return true; // session expired – can't verify, allow optimistically
         }
-
-        String sourceNpId = preview.getPageParams().get("supersede").toString("");
-        if (sourceNpId.isEmpty()) {
-            sourceNpId = preview.getPageParams().get("override").toString("");
-        }
-
-        if (sourceNpId.isEmpty()) {
-            // Not a supersede/override operation, no version check needed
-            return true;
-        }
-
-        return QueryApiAccess.getLatestVersionId(sourceNpId).equals(sourceNpId);
+        return !PublishForm.isSourceOutdated(preview.getPageParams());
     }
 
 }

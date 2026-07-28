@@ -81,6 +81,10 @@ public class PublishForm extends Panel {
 
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
+    // Page parameters that make the form supersede or override an existing nanopublication
+    // ("fill" is the deprecated form of "supersede"):
+    private static final String[] sourceParamKeys = new String[]{"supersede", "supersede-a", "override", "override-a", "fill"};
+
     /**
      * Fill modes for the nanopublication to be created.
      */
@@ -99,8 +103,9 @@ public class PublishForm extends Panel {
         DERIVE,
         /**
          * Override fill mode: like {@link #DERIVE} in that it records a
-         * {@code prov:wasDerivedFrom} link, but (like {@link #SUPERSEDE}) it keeps the
-         * source nanopub's introduced resource IRIs and its root definition nanopub.
+         * {@code prov:wasDerivedFrom} link, but (like {@link #SUPERSEDE}) it
+         * keeps the source nanopub's introduced resource IRIs and its root
+         * definition nanopub.
          */
         OVERRIDE
     }
@@ -118,10 +123,13 @@ public class PublishForm extends Panel {
     /**
      * Constructor for the PublishForm.
      *
-     * @param id               the Wicket component ID
-     * @param pageParams       the parameters for the page, which may include information on how to fill the form
-     * @param publishPageClass the class of the page to redirect to after successful publication
-     * @param confirmPageClass the class of the confirmation page to show after publication
+     * @param id the Wicket component ID
+     * @param pageParams the parameters for the page, which may include
+     * information on how to fill the form
+     * @param publishPageClass the class of the page to redirect to after
+     * successful publication
+     * @param confirmPageClass the class of the confirmation page to show after
+     * publication
      */
     public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass) {
         super(id);
@@ -465,11 +473,9 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
-                if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
-                    String npUri = fillNp.getUri().stringValue();
-                    if (!canPublishFromSource(npUri)) {
-                        return;
-                    }
+                // Re-check here too: a newer version might have appeared while the form was open.
+                if (!canPublishFromSource(pageParams)) {
+                    return;
                 }
 
                 if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
@@ -507,7 +513,7 @@ public class PublishForm extends Panel {
                     // typically its Content tab — reflects the just-published change, not
                     // only the specific view query that was acted on.
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                        && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
@@ -552,7 +558,6 @@ public class PublishForm extends Panel {
         form.setOutputMarkupId(true);
 
         //form.add(new Label("nanopub-namespace", targetNamespaceLabel));
-
         form.add(newSourceMenu("templatelink", assertionContext.getTemplate().getId()));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
@@ -836,11 +841,9 @@ public class PublishForm extends Panel {
             @Override
             public void onSubmit() {
                 try {
-                    if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
-                        String npUri = fillNp.getUri().stringValue();
-                        if (!canPublishFromSource(npUri)) {
-                            return;
-                        }
+                    // Re-check here too: a newer version might have appeared while the form was open.
+                    if (!canPublishFromSource(pageParams)) {
+                        return;
                     }
 
                     Nanopub np = createNanopub();
@@ -1083,8 +1086,8 @@ public class PublishForm extends Panel {
         }
         try {
             return (NanodashPage) confirmPageClass.getConstructor(Nanopub.class, PageParameters.class).newInstance(signedNp, pageParams);
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-                 InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             logger.error("Could not create instance of confirmation page: {}", ex.getMessage());
         }
         return null;
@@ -1101,13 +1104,62 @@ public class PublishForm extends Panel {
         return false;
     }
 
-    private boolean canPublishFromSource(String sourceNpId) {
-        String latestNpId = QueryApiAccess.getLatestVersionId(sourceNpId);
-        if (!sourceNpId.equals(latestNpId)) {
-            feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
-            return false;
+    private boolean canPublishFromSource(PageParameters pageParams) {
+        if (!isSourceOutdated(pageParams)) {
+            return true;
         }
-        return true;
+        feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
+        return false;
+    }
+
+    /**
+     * Returns the ID of the nanopublication that the given page parameters ask
+     * to supersede or override, or null if they ask for neither.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @return the ID of the nanopublication to be superseded or overridden, or
+     * null
+     */
+    public static String getSupersededOrOverriddenNanopubId(PageParameters pageParams) {
+        for (String key : sourceParamKeys) {
+            if (!pageParams.get(key).isEmpty()) {
+                return pageParams.get(key).toString();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether the given page parameters ask to supersede or override a
+     * nanopublication that is not the latest version anymore. Only the latest
+     * version can be superseded or overridden.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @return true if a newer version of the nanopublication to be superseded
+     * or overridden exists
+     */
+    public static boolean isSourceOutdated(PageParameters pageParams) {
+        String sourceNpId = getSupersededOrOverriddenNanopubId(pageParams);
+        return sourceNpId != null && !sourceNpId.equals(QueryApiAccess.getLatestVersionId(sourceNpId));
+    }
+
+    /**
+     * Returns a copy of the given page parameters where the nanopublication to
+     * be superseded or overridden is replaced by the given one.
+     *
+     * @param pageParams the page parameters of the publish page
+     * @param npId the ID of the nanopublication to supersede or override
+     * instead
+     * @return the adjusted copy of the page parameters
+     */
+    public static PageParameters withSourceNanopub(PageParameters pageParams, String npId) {
+        PageParameters newParams = new PageParameters(pageParams);
+        for (String key : sourceParamKeys) {
+            if (!newParams.get(key).isEmpty()) {
+                newParams.set(key, npId);
+            }
+        }
+        return newParams;
     }
 
 }
