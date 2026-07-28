@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  </wicket:remove>
+  <wicket:head>
+    <title>Nanopublication not found | nanodash</title>
+  </wicket:head>
+</head>
+<body>
+<wicket:extend>
+
+  <div class="row-section">
+    <div class="col-12">
+      <h2>🔍 Nanopublication not found</h2>
+      <div class="message">
+        <p>The nanopublication you are looking for couldn't be found on the network.</p>
+        <p wicket:id="explanation"></p>
+        <p><code wicket:id="nanopub-id"></code></p>
+      </div>
+      <p>
+        <a class="button" href="." wicket:id="retry-link">try again</a>
+        <a class="button" href="." wicket:id="home-link">to the homepage</a>
+      </p>
+    </div>
+  </div>
+
+</wicket:extend>
+</body>
+</html>

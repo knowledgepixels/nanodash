@@ -147,6 +147,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(ErrorPage.MOUNT_PATH, ErrorPage.class);
         mountPage("/error/404", ErrorPage.class);
         mountPage("/error/500", ErrorPage.class);
+        mountPage(NanopubNotFoundPage.MOUNT_PATH, NanopubNotFoundPage.class);
 
         mountPage(UserPage.MOUNT_PATH, UserPage.class);
         mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);

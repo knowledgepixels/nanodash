@@ -1,5 +1,11 @@
 package com.knowledgepixels.nanodash.utils;
 
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.core.request.handler.IPageClassRequestHandler;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.IRequestHandlerDelegate;
+import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -61,6 +67,32 @@ public class TestUtils {
 
     public static void fillPubInfoGraph(NanopubCreator creator) throws NanopubAlreadyFinalizedException {
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), anyIri, anyIri));
+    }
+
+    /**
+     * Returns the request handler a page forward was made to, unwrapping the decorators
+     * Wicket puts around it.
+     */
+    private static IPageClassRequestHandler forwardHandler(RestartResponseException ex) {
+        IRequestHandler handler = ex.getReplacementRequestHandler();
+        while (handler instanceof IRequestHandlerDelegate delegate) {
+            handler = delegate.getDelegateHandler();
+        }
+        return (IPageClassRequestHandler) handler;
+    }
+
+    /**
+     * Returns the page a forward was made to.
+     */
+    public static Class<? extends IRequestablePage> forwardedPageClass(RestartResponseException ex) {
+        return forwardHandler(ex).getPageClass();
+    }
+
+    /**
+     * Returns the parameters a forward was made with.
+     */
+    public static PageParameters forwardedPageParameters(RestartResponseException ex) {
+        return forwardHandler(ex).getPageParameters();
     }
 
 }
