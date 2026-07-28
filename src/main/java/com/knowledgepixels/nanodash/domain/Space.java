@@ -6,10 +6,13 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -48,6 +51,11 @@ public class Space extends AbstractResourceWithProfile {
     private final Set<IRI> declaredTypes = new HashSet<>();
     private String description = null;
     private Calendar startDate, endDate;
+    // Whether the start/end date was given as a bare xsd:date rather than an xsd:dateTime.
+    // A date denotes a day, not an instant: an event described that way is an all-day one,
+    // and rendering it as a timed event would place it at midnight. See CalendarEvent.
+    private boolean startDateOnly, endDateOnly;
+    private String location = null;
     private IRI defaultProvenance = null;
 
     // Derived data — admins / members / roles loaded from the spaces repo and
@@ -137,6 +145,9 @@ public class Space extends AbstractResourceWithProfile {
             description = null;
             startDate = null;
             endDate = null;
+            startDateOnly = false;
+            endDateOnly = false;
+            location = null;
             defaultProvenance = null;
             readCoreData();
             setDataNeedsUpdate();
@@ -385,6 +396,37 @@ public class Space extends AbstractResourceWithProfile {
      */
     public Calendar getEndDate() {
         return endDate;
+    }
+
+    /**
+     * Whether the start date denotes a whole day ({@code xsd:date}) rather than a point in
+     * time ({@code xsd:dateTime}) — i.e. whether this is an all-day event.
+     *
+     * @return true if the start date carries no time of day.
+     */
+    public boolean isStartDateOnly() {
+        return startDateOnly;
+    }
+
+    /**
+     * Whether the end date denotes a whole day ({@code xsd:date}) rather than a point in
+     * time ({@code xsd:dateTime}). For an all-day event this names the <em>last</em> day,
+     * inclusive.
+     *
+     * @return true if the end date carries no time of day.
+     */
+    public boolean isEndDateOnly() {
+        return endDateOnly;
+    }
+
+    /**
+     * Get the location of the space, as declared with {@code schema:location} in its root
+     * definition. May be a place name or a URL (e.g. a video call).
+     *
+     * @return The location, or null if not set.
+     */
+    public String getLocation() {
+        return location;
     }
 
     /**
@@ -796,17 +838,13 @@ public class Space extends AbstractResourceWithProfile {
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
                     description = st.getObject().stringValue();
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/startDate")) {
-                    try {
-                        startDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
-                    } catch (IllegalArgumentException ex) {
-                        logger.error("Failed to parse date {}", st.getObject().stringValue());
-                    }
+                    startDate = parseSchemaDate(st.getObject());
+                    startDateOnly = startDate != null && isDateOnly(st.getObject());
                 } else if (st.getPredicate().stringValue().equals("http://schema.org/endDate")) {
-                    try {
-                        endDate = DatatypeConverter.parseDateTime(st.getObject().stringValue());
-                    } catch (IllegalArgumentException ex) {
-                        logger.error("Failed to parse date {}", st.getObject().stringValue());
-                    }
+                    endDate = parseSchemaDate(st.getObject());
+                    endDateOnly = endDate != null && isDateOnly(st.getObject());
+                } else if (st.getPredicate().stringValue().equals("http://schema.org/location")) {
+                    location = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ADMIN) && st.getObject() instanceof IRI obj) {
                     if (!rootAdmins.contains(obj)) rootAdmins.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
@@ -814,6 +852,39 @@ public class Space extends AbstractResourceWithProfile {
                 }
             }
         }
+    }
+
+    /**
+     * Parses a {@code schema:startDate}/{@code schema:endDate} value, which may be given
+     * either as an {@code xsd:dateTime} or as a bare {@code xsd:date}. Both are accepted;
+     * {@link #isDateOnly} records which one it was.
+     *
+     * @return the parsed value, or null if it is neither
+     */
+    private static Calendar parseSchemaDate(Value value) {
+        String lexical = value.stringValue();
+        try {
+            return DatatypeConverter.parseDateTime(lexical);
+        } catch (IllegalArgumentException ex) {
+            try {
+                return DatatypeConverter.parseDate(lexical);
+            } catch (IllegalArgumentException ex2) {
+                logger.error("Failed to parse date {}", lexical);
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Whether a date value denotes a whole day rather than a point in time. Decided on the
+     * declared datatype where there is one, falling back to the lexical form (an
+     * {@code xsd:dateTime} always carries the time-separating "T").
+     */
+    private static boolean isDateOnly(Value value) {
+        if (value instanceof Literal literal && literal.getDatatype() != null) {
+            return XSD.DATE.equals(literal.getDatatype());
+        }
+        return !value.stringValue().contains("T");
     }
 
 }
