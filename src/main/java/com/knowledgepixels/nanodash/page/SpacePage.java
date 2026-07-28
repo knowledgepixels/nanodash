@@ -108,6 +108,9 @@ public class SpacePage extends NanodashPage {
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        // "Add to calendar" for an event, "Subscribe to events" for a space containing
+        // events; invisible for spaces that have neither. See CalendarMenu.forSpace.
+        add(CalendarMenu.forSpace("calendarmenu", space));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
         // Disambiguation notice: shown when viewing a specific claimant (ref pinned) or the
