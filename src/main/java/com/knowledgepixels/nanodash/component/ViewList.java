@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -112,6 +113,14 @@ public class ViewList extends Panel {
                         // build/render dereferences a null takes down the whole page render.
                         try {
                             View view = item.getModelObject().getView();
+                            if (KPXL_TERMS.HEADER_VIEW.equals(view.getViewType())) {
+                                // Header views have no query (issue #572), so they skip all the
+                                // query machinery below and render directly.
+                                Component header = new HeaderViewPanel("view", item.getModelObject(), resourceWithProfile, id, resourceWithProfile.getId(), refRoot);
+                                header.add(new AttributeAppender("class", " col-" + item.getModelObject().getDisplayWidth() + " section-header"));
+                                item.add(header);
+                                return;
+                            }
                             Multimap<String, String> queryRefParams = ArrayListMultimap.create();
                             for (String p : view.getQuery().getPlaceholdersList()) {
                                 String paramName = QueryTemplate.getParamName(p);

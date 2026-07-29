@@ -51,7 +51,8 @@ public class ViewResultsPage extends NanodashPage {
 
         String viewId = parameters.get("view").toString();
         View view = (viewId == null ? null : View.get(viewId));
-        if (view == null) {
+        if (view == null || view.getQuery() == null) {
+            // Query-less (header) views have no full-screen results to show.
             add(new Label("queryform").setVisible(false));
             add(new Label("results", "<span class=\"negative\">View not found: " + Strings.escapeMarkup(String.valueOf(viewId)) + "</span>").setEscapeModelStrings(false));
             return;

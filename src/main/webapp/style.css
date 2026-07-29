@@ -274,6 +274,33 @@ details summary {
   padding-bottom: 6px;
 }
 
+/* Header views (issue #572): the title row is a flex row like .paneltitlerow, so
+   the view-display menu sits right-aligned outside the h3 (keeping it in the body
+   font); the underline moves from the h3 to the row so it still spans full width. */
+[class*="col-"].section-header .view-header-titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  border-bottom: 2px solid #bdbdbd;
+  /* ...and the trimmed space goes below the line instead. */
+  margin-bottom: 15px;
+}
+
+[class*="col-"].section-header .view-header-titlerow h3 {
+  flex: 1;
+  border-bottom: none;
+  /* The h3's default bottom margin now falls inside the row, above the border,
+     so trim it to keep the title close to the line. */
+  margin-bottom: 5px;
+  padding-bottom: 0;
+}
+
+/* Description text of a header view, shown below the title. */
+[class*="col-"].section-header p.view-header-description {
+  margin: 0 0 5px 0;
+  color: #666;
+}
+
 /* View groups (ViewList): lay the view panels out on a 12-column grid instead of
    floats, so panels of different heights don't leave float-drop whitespace gaps.
    Each .listview item wraps a single col-N view panel; the item mirrors the

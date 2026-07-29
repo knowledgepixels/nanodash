@@ -38,7 +38,8 @@ public class View implements Serializable {
             KPXL_TERMS.LIST_VIEW,
             KPXL_TERMS.PLAIN_PARAGRAPH_VIEW,
             KPXL_TERMS.NANOPUB_SET_VIEW,
-            KPXL_TERMS.ITEM_LIST_VIEW
+            KPXL_TERMS.ITEM_LIST_VIEW,
+            KPXL_TERMS.HEADER_VIEW
     );
 
     static Map<IRI, Integer> columnWidths = new HashMap<>();
@@ -270,6 +271,7 @@ public class View implements Serializable {
     private IRI governingSpace;
     private String label;
     private String title = "View";
+    private String description;
     private GrlcQuery query;
     private String queryField = "resource";
     private Integer pageSize;
@@ -314,6 +316,8 @@ public class View implements Serializable {
                     label = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
+                } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                    description = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY)) {
                     query = GrlcQuery.get(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY_TARGET_FIELD)) {
@@ -373,7 +377,8 @@ public class View implements Serializable {
             }
         }
         if (!viewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
-        if (query == null) throw new IllegalArgumentException("Query not found: " + id);
+        // Header views are the one display type without a query (issue #572).
+        if (query == null && !KPXL_TERMS.HEADER_VIEW.equals(viewType)) throw new IllegalArgumentException("Query not found: " + id);
     }
 
     /**
@@ -442,9 +447,19 @@ public class View implements Serializable {
     }
 
     /**
+     * Gets the description of the View ({@code dct:description}), shown below the
+     * title for header views.
+     *
+     * @return the description, or null if none is declared
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
      * Gets the GrlcQuery associated with the View.
      *
-     * @return the GrlcQuery associated with the View
+     * @return the GrlcQuery associated with the View, or null for a header view
      */
     public GrlcQuery getQuery() {
         return query;
