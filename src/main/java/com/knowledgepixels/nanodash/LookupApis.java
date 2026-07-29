@@ -126,7 +126,7 @@ public class LookupApis {
                     }
                 }
             } else if (apiString.startsWith("https://api.openaire.eu/graph/v")) {
-                String type = apiString.replaceFirst("^https://api\\.openaire\\.eu/graph/(v[0-9]+/[a-zA-Z]+).*$", "$1");
+                String type = apiString.replaceFirst("^https://api\\.openaire\\.eu/graph/(v[0-9]+/[^/#?]+).*$", "$1");
                 for (Object obj : new JSONObject(respString).getJSONArray("results")) {
                     if (obj instanceof JSONObject jsonObj) {
                         String uri = "https://api.openaire.eu/graph/" + type + "/" + jsonObj.getString("id");
