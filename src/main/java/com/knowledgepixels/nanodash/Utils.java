@@ -51,6 +51,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -116,7 +117,8 @@ public class Utils {
         return TrustyUriUtils.getArtifactCode(npId.toString()).substring(0, 10);
     }
 
-    private static Map<String, Nanopub> nanopubs = new HashMap<>();
+    // Concurrent, as retrieval also happens on background threads (see NanopubLookup):
+    private static Map<String, Nanopub> nanopubs = new ConcurrentHashMap<>();
 
     /**
      * Adds a nanopublication to the local cache so it can be retrieved immediately

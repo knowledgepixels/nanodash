@@ -164,7 +164,7 @@ public class ExplorePage extends NanodashPage {
 
         Map<String, String> nanopubParams = new HashMap<>();
         nanopubParams.put("ref", tempRef);
-        Nanopub np = Utils.getAsNanopub(tempRef);
+        Nanopub np = resolveNanopub(tempRef);
         boolean isNanopubId = (np != null);
         if (isNanopubId) {
             tempRef = np.getUri().stringValue();
@@ -392,6 +392,33 @@ public class ExplorePage extends NanodashPage {
         nanopubSection.setVisible(contentTab && hasNanopub);
         infoSection.setVisible(publishedNanopub == null && contentTab && !hasNanopub);
         referencesSection.setVisible(!contentTab);
+    }
+
+    /**
+     * Resolves the explored reference to the nanopublication it denotes, if it denotes
+     * one. Plain term IRIs resolve to null and are then shown as things rather than as
+     * nanopublications. A reference that is meant to denote a nanopublication but doesn't
+     * resolve leaves nothing to show, so it is sent to the "not found" page instead —
+     * or, when the identifier itself is broken, to the error page telling the user what
+     * is wrong with it.
+     *
+     * @param ref the explored reference
+     * @return the nanopublication, or null if the reference doesn't denote one
+     */
+    private Nanopub resolveNanopub(String ref) {
+        // A nanopublication published a moment ago is at hand already, and isn't
+        // necessarily retrievable from the network yet:
+        if (publishedNanopub != null) return publishedNanopub;
+        if (NanopubLookup.isPotentialNanopubId(ref)) {
+            NanopubLookup lookup = NanopubLookup.lookUp(ref);
+            if (lookup.isFound()) return lookup.getNanopub();
+            NanopubNotFoundPage.forwardFor(lookup);
+        } else if (NanopubLookup.looksLikeMalformedNanopubId(ref)) {
+            // Apparently a nanopublication link that got mangled on the way; the lookup
+            // reports what is wrong with it without going to the network.
+            NanopubNotFoundPage.forwardFor(NanopubLookup.lookUp(ref));
+        }
+        return null;
     }
 
     /**
