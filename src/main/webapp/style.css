@@ -274,6 +274,42 @@ details summary {
   padding-bottom: 6px;
 }
 
+/* View groups (ViewList): lay the view panels out on a 12-column grid instead of
+   floats, so panels of different heights don't leave float-drop whitespace gaps.
+   Each .listview item wraps a single col-N view panel; the item mirrors the
+   panel's width class as its grid span, and the panel then fills its item. */
+.view-group {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: start;
+}
+
+.view-group::after {
+  content: none;
+}
+
+.view-group > .listview {
+  grid-column: span 12;
+  min-width: 0;
+}
+
+.view-group > .listview > [class*="col-"] {
+  float: none;
+  width: 100%;
+}
+
+.view-group > .listview:has(> .col-1) { grid-column: span 1; }
+.view-group > .listview:has(> .col-2) { grid-column: span 2; }
+.view-group > .listview:has(> .col-3) { grid-column: span 3; }
+.view-group > .listview:has(> .col-4) { grid-column: span 4; }
+.view-group > .listview:has(> .col-5) { grid-column: span 5; }
+.view-group > .listview:has(> .col-6) { grid-column: span 6; }
+.view-group > .listview:has(> .col-7) { grid-column: span 7; }
+.view-group > .listview:has(> .col-8) { grid-column: span 8; }
+.view-group > .listview:has(> .col-9) { grid-column: span 9; }
+.view-group > .listview:has(> .col-10) { grid-column: span 10; }
+.view-group > .listview:has(> .col-11) { grid-column: span 11; }
+
 .columncontainer {
   display: flex;
   column-gap: 60px;
@@ -2824,6 +2860,9 @@ a.source:hover {
   [class*="col-"] {
     width: 100% !important;
     float: none;
+  }
+  .view-group > .listview {
+    grid-column: span 12 !important;
   }
 
   /* 2. Columncontainer (flex 2-col layout, used in TemplateList) */
