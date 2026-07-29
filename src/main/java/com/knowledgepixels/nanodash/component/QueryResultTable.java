@@ -329,8 +329,7 @@ public class QueryResultTable extends QueryResult {
                                 String unescaped = Utils.unescapeMultiValue(part);
                                 if (label == null && Utils.isDate(unescaped)) {
                                     // Friendly relative time, matching single-value cells.
-                                    components.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped))
-                                            .setEscapeModelStrings(false));
+                                    components.add(new Label("component", Utils.friendlyDateHtml(unescaped, unescaped)).setEscapeModelStrings(false));
                                 } else {
                                     String display = label != null ? label : unescaped;
                                     if (Utils.looksLikeHtml(display)) {
@@ -355,8 +354,7 @@ public class QueryResultTable extends QueryResult {
                             String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
                             if (!hasLabel && Utils.isDate(display)) {
                                 // Friendly relative time, matching single-value cells.
-                                components.add(new Label("component", Utils.friendlyDateHtml(display, display))
-                                        .setEscapeModelStrings(false));
+                                components.add(new Label("component", Utils.friendlyDateHtml(display, display)).setEscapeModelStrings(false));
                             } else if (Utils.looksLikeHtml(display)) {
                                 components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
                                         .setEscapeModelStrings(false)

@@ -1181,6 +1181,48 @@ input[type=radio] + label strong {
   color: #0B73DA;
 }
 
+/* A dropdown trigger carrying a visible label rather than a bare chevron, for menus
+   that are a primary offer rather than a secondary action (e.g. the calendar menu next
+   to an event title). The chevron follows the label instead of standing in for it. */
+.actionmenu-button-labeled {
+  font-weight: 400;
+  padding: 0 8px;
+}
+
+.actionmenu-button-labeled::before {
+  content: none;
+}
+
+.actionmenu-button-labeled::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 6px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
+}
+
+/* Actions sitting next to a resource title: kept at body size and weight so they read
+   as a control rather than as part of the heading. */
+.title-actions {
+  font-size: 11pt;
+  font-weight: 400;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+/* The calendar menu opens below its label; unlike the row-corner menus it is anchored
+   at its left edge, since it sits at the start of a wide header rather than at the end. */
+.calendar-menu .actionmenu-content {
+  right: auto;
+  left: 0;
+}
+
 
 .invalid, select.invalid + span > span > span, input.invalid + label {
   border-color: #A01208 !important;
