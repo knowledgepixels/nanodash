@@ -42,7 +42,9 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
      *
      * @param id           the Wicket component ID
      * @param viewDisplay  the view display this menu acts on (must have a non-null nanopub)
-     * @param queryRef     the query reference used by this view display
+     * @param queryRef     the query reference used by this view display, or null for a
+     *                     query-less view (a header view), which hides the
+     *                     query-dependent entries (show query, full screen, refresh)
      * @param pageResource the page-level resource used to determine whether "adjust" is visible
      * @param viewActions  the view-level actions to show as top entries (may be empty)
      */
@@ -71,12 +73,16 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         separator.setVisible(!viewActions.isEmpty());
         addEntry("separator", separator);
 
-        PageParameters showQueryParams = new PageParameters().set("id", queryRef.getQueryId());
-        for (var entry : queryRef.getParams().entries()) {
-            showQueryParams.add("queryparam_" + entry.getKey(), entry.getValue());
+        if (queryRef != null) {
+            PageParameters showQueryParams = new PageParameters().set("id", queryRef.getQueryId());
+            for (var entry : queryRef.getParams().entries()) {
+                showQueryParams.add("queryparam_" + entry.getKey(), entry.getValue());
+            }
+            addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams)
+                    .add(NavigationContext.pageContextFallback()));
+        } else {
+            addEntry("showQuery", new WebMarkupContainer("showQuery").setVisible(false));
         }
-        addEntry("showQuery", new BookmarkablePageLink<Void>("showQuery", QueryPage.class, showQueryParams)
-                .add(NavigationContext.pageContextFallback()));
 
         addEntry("showView", new BookmarkablePageLink<Void>("showView", ExplorePage.class,
                 new PageParameters().set("id", viewDisplay.getView().getNanopub().getUri()))
@@ -85,21 +91,25 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         // Full-screen version of this view on the standalone view-results page, with the
         // current query parameters carried along (magic ones excluded — the results page
         // re-binds them from the session, so carrying them would duplicate the bindings).
-        PageParameters fullScreenParams = new PageParameters().set("view", viewDisplay.getView().getId());
-        for (var entry : queryRef.getParams().entries()) {
-            if (MagicQueryParams.isMagic(entry.getKey())) continue;
-            fullScreenParams.add("queryparam_" + entry.getKey(), entry.getValue());
-        }
-        BookmarkablePageLink<Void> fullScreenLink = new BookmarkablePageLink<>("fullScreen", ViewResultsPage.class, fullScreenParams) {
-            @Override
-            protected void onConfigure() {
-                super.onConfigure();
-                // Self-referential on the full-screen page itself.
-                setVisible(!(getPage() instanceof ViewResultsPage));
+        if (queryRef != null) {
+            PageParameters fullScreenParams = new PageParameters().set("view", viewDisplay.getView().getId());
+            for (var entry : queryRef.getParams().entries()) {
+                if (MagicQueryParams.isMagic(entry.getKey())) continue;
+                fullScreenParams.add("queryparam_" + entry.getKey(), entry.getValue());
             }
-        };
-        fullScreenLink.add(NavigationContext.pageContextFallback());
-        addEntry("fullScreen", fullScreenLink);
+            BookmarkablePageLink<Void> fullScreenLink = new BookmarkablePageLink<>("fullScreen", ViewResultsPage.class, fullScreenParams) {
+                @Override
+                protected void onConfigure() {
+                    super.onConfigure();
+                    // Self-referential on the full-screen page itself.
+                    setVisible(!(getPage() instanceof ViewResultsPage));
+                }
+            };
+            fullScreenLink.add(NavigationContext.pageContextFallback());
+            addEntry("fullScreen", fullScreenLink);
+        } else {
+            addEntry("fullScreen", new WebMarkupContainer("fullScreen").setVisible(false));
+        }
 
         IRI nanopubId = viewDisplay.getNanopubId();
 
@@ -187,7 +197,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                 setResponsePage(getPage().getClass(), getPage().getPageParameters());
             }
         };
-        refreshLink.setVisible(session.getUserIri() != null);
+        refreshLink.setVisible(session.getUserIri() != null && queryRef != null);
         addEntry("refreshNow", refreshLink);
 
         BookmarkablePageLink<Void> viewDeclarationLink = new BookmarkablePageLink<>("viewDeclaration", ExplorePage.class,
