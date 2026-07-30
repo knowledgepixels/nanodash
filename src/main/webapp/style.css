@@ -1119,6 +1119,9 @@ input[type=radio] + label strong {
   /* The chevron button sits at the right of its row, so the menu opens leftward
      (its right edge anchored to the button) rather than overflowing rightward. */
   right: 0;
+  /* Menus can sit inside a heading (e.g. next to a space title); their entries
+     stay in the body font rather than inheriting the heading's. */
+  font-family: Inter, Verdana, Helvetica, sans-serif, "Noto Emoji";
   border-color: #0B73DA !important;
   border-style: solid !important;
   border-width: 1px !important;
@@ -1218,32 +1221,6 @@ input[type=radio] + label strong {
   color: #0B73DA;
 }
 
-/* A dropdown trigger carrying a visible label rather than a bare chevron, for menus
-   that are a primary offer rather than a secondary action (e.g. the calendar menu next
-   to an event title). The chevron follows the label instead of standing in for it. */
-.actionmenu-button-labeled {
-  font-weight: 400;
-  padding: 0 8px;
-}
-
-.actionmenu-button-labeled::before {
-  content: none;
-}
-
-.actionmenu-button-labeled::after {
-  content: "";
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  margin-left: 6px;
-  border-right: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  transform: rotate(45deg);
-  vertical-align: middle;
-  position: relative;
-  top: -2px;
-}
-
 /* Actions sitting next to a resource title: kept at body size and weight so they read
    as a control rather than as part of the heading. */
 .title-actions {
@@ -1253,11 +1230,61 @@ input[type=radio] + label strong {
   vertical-align: middle;
 }
 
-/* The calendar menu opens below its label; unlike the row-corner menus it is anchored
-   at its left edge, since it sits at the start of a wide header rather than at the end. */
-.calendar-menu .actionmenu-content {
-  right: auto;
-  left: 0;
+/* Nested submenu inside a dropdown (e.g. the calendar menu): a group row whose entries
+   open in a flyout to the right on hover (nanodash.js flips it leftward when the right
+   edge lacks room). The flyout is deliberately NOT an .actionmenu-content, so the
+   menu-wide hover rule doesn't open it along with its parent; the entry links inside
+   still match the .actionmenu-content descendant rules. */
+.actionmenu-subitem {
+  position: relative;
+  display: block;
+}
+
+.actionmenu-subitem .actionmenu-sublabel {
+  color: #0b73da;
+  font-weight: bold;
+  padding: 8px 24px 8px 32px;
+  display: block;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Right-pointing chevron marking the row as opening a submenu. */
+.actionmenu-subitem .actionmenu-sublabel::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 8px;
+  border-right: 1px solid currentColor;
+  border-top: 1px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.actionmenu-subitem:hover > .actionmenu-sublabel {
+  background-color: #0B73DA;
+  color: #fff;
+}
+
+.actionmenu-subcontent {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -1px;
+  border: 1px solid #0B73DA;
+  border-radius: 2px;
+  background-color: #fff;
+  width: max-content;
+  max-width: 90vw;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.actionmenu-subitem:hover > .actionmenu-subcontent {
+  display: block;
 }
 
 
