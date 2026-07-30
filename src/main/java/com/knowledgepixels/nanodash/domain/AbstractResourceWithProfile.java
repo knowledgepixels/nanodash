@@ -303,19 +303,22 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         // Null on a cold cache or a failed (flaky federated) fetch — yield nothing for now; the
         // cache refreshes asynchronously and the page's auto-refresh repopulates it.
         if (response == null) return list;
+        // The unresolved query variant returns ?view as the referenced version, leaving
+        // latest-version resolution to us (View.get with resolveLatest=true, memoized;
+        // it also covers space-governed pins); the older resolved heads return ?view
+        // already latest-resolved server-side, so it is passed through as-is.
+        boolean viewsPreResolved = !QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED.equals(ref.getQueryId());
         for (ApiResponseEntry r : response.getData()) {
             try {
                 String display = r.get("display");
                 if (display != null && !display.isEmpty()) {
-                    // The query resolves ?view to its latest version server-side, so
-                    // pass it through to avoid a separate per-view latest-version lookup.
-                    list.add(ViewDisplay.get(display, r.get("view")));
+                    list.add(ViewDisplay.get(display, viewsPreResolved ? r.get("view") : null));
                 } else {
                     String view = r.get("view");
                     if (view == null || view.isEmpty()) continue;
                     boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
                     boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
-                    ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated);
+                    ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated, !viewsPreResolved);
                     if (vd != null) list.add(vd);
                 }
             } catch (IllegalArgumentException ex) {
@@ -329,7 +332,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         Multimap<String, String> params = ArrayListMultimap.create();
         params.put("resource", id);
         params.put("root_np", refRoot);
-        return new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS_REF, params);
+        return new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED, params);
     }
 
     /**

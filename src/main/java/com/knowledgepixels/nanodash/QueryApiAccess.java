@@ -111,6 +111,15 @@ public class QueryApiAccess {
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
     public static final String GET_VIEW_DISPLAYS_REF = "RActfK6Cb1qEPe6in0Ug7IThR_ckkgdNl0mKqF_HOGkqM/get-view-displays";
+    // Test head for dropping the server-side view-version resolution (its run-once resolution
+    // sub-select was the query's dominant cost, linear in the repo-wide view count; see
+    // nanopub-query doc/design-view-head-materialization.md): same inputs as GET_VIEW_DISPLAYS_REF
+    // and same columns plus ?viewKind and ?governedBySpace, but ?view carries the referenced
+    // version UNRESOLVED — except for gen:governedBy pins, where it is the space-governed
+    // resolution. Supersedes-head resolution happens caller-side per view (View.get with
+    // resolveLatest=true, memoized), which also covers the governed case, so the extra columns
+    // need not be consulted.
+    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAXdRFNLE1jB_NTaWrwIC9965SmZdZKB96VFnj1HvjdbY/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
