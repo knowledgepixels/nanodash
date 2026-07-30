@@ -176,9 +176,9 @@ public class ResourcePartPage extends NanodashPage {
             // it isn't freshly cached, which would block the initial page render.
             add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, id),
                     ReferencesPage.REFERENCES_VIEW));
-        } else if (activeTab == ResourceTabs.Tab.RAW) {
+        } else if (activeTab == ResourceTabs.Tab.DOWNLOAD) {
             contentContainer.setVisible(false);
-            add(new DownloadRdfLinks("otherTab", "part", id, resourceWithProfile.getId()));
+            add(new DownloadLinks("otherTab", "part", id, resourceWithProfile.getId()));
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {

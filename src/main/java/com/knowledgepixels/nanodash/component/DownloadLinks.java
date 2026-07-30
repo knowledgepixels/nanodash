@@ -1,18 +1,28 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.page.DownloadDocPage;
 import com.knowledgepixels.nanodash.page.DownloadRdfPage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.Set;
+
 /**
- * A reusable panel that renders the raw page content as RDF download links,
- * grouped into "Full nanopublications" and "Assertions only". Used on the Raw
- * tab page (and a few list pages) to download all nanopubs on the page. Each
- * format has a native-type link and a text/plain link (txt) that always displays
- * in the browser.
+ * A reusable panel that renders the page content as download links: document
+ * formats (PDF, RTF, HTML) and RDF formats grouped into "Full nanopublications"
+ * and "Assertions only". Used on the Download tab page to download the page's
+ * content. Each RDF format has a native-type link and a text/plain link (txt)
+ * that always displays in the browser.
  */
-public class DownloadRdfLinks extends Panel {
+public class DownloadLinks extends Panel {
+
+    /**
+     * The page types the document export supports (list-page filters have no
+     * matching document export, so the document section is hidden for them).
+     */
+    private static final Set<String> DOC_TYPES = Set.of("user", "space", "resource", "part");
 
     /**
      * Creates download links for a top-level page (user, space, or resource).
@@ -21,7 +31,7 @@ public class DownloadRdfLinks extends Panel {
      * @param type     "user", "space", or "resource"
      * @param id       the resource identifier
      */
-    public DownloadRdfLinks(String markupId, String type, String id) {
+    public DownloadLinks(String markupId, String type, String id) {
         this(markupId, type, id, null);
     }
 
@@ -33,7 +43,7 @@ public class DownloadRdfLinks extends Panel {
      * @param id        the part identifier
      * @param contextId the context resource ID (required for type=part)
      */
-    public DownloadRdfLinks(String markupId, String type, String id, String contextId) {
+    public DownloadLinks(String markupId, String type, String id, String contextId) {
         this(markupId, baseParams(type, id, contextId));
     }
 
@@ -43,8 +53,16 @@ public class DownloadRdfLinks extends Panel {
      * @param markupId   the Wicket markup ID
      * @param baseParams parameters common to all links (type, id, filters, etc.)
      */
-    public DownloadRdfLinks(String markupId, PageParameters baseParams) {
+    public DownloadLinks(String markupId, PageParameters baseParams) {
         super(markupId);
+
+        // Document format links
+        WebMarkupContainer docSection = new WebMarkupContainer("doc-section");
+        docSection.setVisible(DOC_TYPES.contains(baseParams.get("type").toString("")));
+        docSection.add(createDocLink("doc-pdf", baseParams, "pdf"));
+        docSection.add(createDocLink("doc-rtf", baseParams, "rtf"));
+        docSection.add(createDocLink("doc-html", baseParams, "html"));
+        add(docSection);
 
         // Full nanopublication links (graph-aware formats)
         add(createLink("trig", baseParams, "trig", false, false));
@@ -75,6 +93,12 @@ public class DownloadRdfLinks extends Panel {
             params.set("context", contextId);
         }
         return params;
+    }
+
+    private BookmarkablePageLink<Void> createDocLink(String wicketId, PageParameters baseParams, String format) {
+        PageParameters params = new PageParameters(baseParams)
+                .set("format", format);
+        return new BookmarkablePageLink<>(wicketId, DownloadDocPage.class, params);
     }
 
     private BookmarkablePageLink<Void> createLink(String wicketId, PageParameters baseParams,

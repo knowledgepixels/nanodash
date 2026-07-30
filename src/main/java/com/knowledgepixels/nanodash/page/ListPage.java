@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
-import com.knowledgepixels.nanodash.component.DownloadRdfLinks;
 import com.knowledgepixels.nanodash.component.QueryResultNanopubSetBuilder;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.AttributeModifier;

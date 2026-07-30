@@ -150,7 +150,7 @@ public class SpacePage extends NanodashPage {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, spaceId),
                         ReferencesPage.REFERENCES_VIEW));
             } else {
-                add(new DownloadRdfLinks("otherTab", "space", space.getId()));
+                add(new DownloadLinks("otherTab", "space", space.getId()));
             }
             return;
         }

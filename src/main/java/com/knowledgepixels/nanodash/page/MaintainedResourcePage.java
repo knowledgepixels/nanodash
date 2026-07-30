@@ -163,7 +163,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, resourceId),
                         ReferencesPage.REFERENCES_VIEW));
             } else {
-                add(new DownloadRdfLinks("otherTab", "resource", resource.getId()));
+                add(new DownloadLinks("otherTab", "resource", resource.getId()));
             }
         }
     }
