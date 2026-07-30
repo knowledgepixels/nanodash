@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
@@ -49,6 +50,7 @@ public class TemplateContext implements Serializable {
     private Nanopub fillSource;
     private Map<IRI, String> labels;
     private FillMode fillMode = null;
+    private String navigationContextId;
 
     /**
      * Constructor for creating a new template context for filling a template.
@@ -277,6 +279,88 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Suffix under which the chosen base of a space-/namespace-dependent prefix is keyed
+     * in the component models (appended after any repetition suffix).
+     */
+    public static final String PREFIX_SUFFIX = "__prefix";
+
+    /**
+     * Returns the component-model key for the chosen base of the given placeholder's
+     * space-/namespace-dependent prefix. The IRI must already carry its repetition suffix
+     * if any, so each repetition can pick its own base.
+     *
+     * @param iri the (repetition-suffixed) placeholder IRI
+     * @return the derived key for the prefix-base model
+     */
+    public static IRI getPrefixModelKey(IRI iri) {
+        return vf.createIRI(iri.stringValue() + PREFIX_SUFFIX);
+    }
+
+    /**
+     * Sets the navigation context (the {@code context} URL parameter of the page this
+     * context is filled on), which determines the space or maintained resource that
+     * space-/namespace-dependent prefixes resolve against.
+     *
+     * @param navigationContextId the context resource id, or null if the page has none
+     */
+    public void setNavigationContextId(String navigationContextId) {
+        this.navigationContextId = navigationContextId;
+    }
+
+    /**
+     * Returns the navigation context id this context resolves space-/namespace-dependent
+     * prefixes against.
+     *
+     * @return the context resource id, or null if none is set
+     */
+    public String getNavigationContextId() {
+        return navigationContextId;
+    }
+
+    /**
+     * Returns the prefix of the given placeholder, with a space-/namespace-dependent
+     * placeholder ({@link DynamicPrefix#SPACE_TOKEN}, {@link DynamicPrefix#NAMESPACE_TOKEN})
+     * substituted by the base the navigation context — or the user's pick — determines.
+     * Use this instead of {@link Template#getPrefix(IRI)} wherever the prefix is shown to
+     * the user or used to build a value.
+     *
+     * @param iri the placeholder IRI
+     * @return the resolved prefix; null if the template declares none, and also null if it
+     * declares a dynamic one that isn't resolved yet (tell the two apart with
+     * {@link #hasUnresolvedPrefix(IRI)})
+     */
+    public String getPrefix(IRI iri) {
+        String rawPrefix = template.getPrefix(iri);
+        String token = DynamicPrefix.getToken(rawPrefix);
+        if (token == null) return rawPrefix;
+        String base = resolvePrefixBase(token, iri);
+        if (base == null) return null;
+        return rawPrefix.replace(token, base);
+    }
+
+    /**
+     * Whether the given placeholder's prefix is space-/namespace-dependent and its base is
+     * not (yet) determined, i.e. the page carries no usable navigation context and the user
+     * hasn't picked one.
+     *
+     * @param iri the placeholder IRI
+     * @return true if the prefix is dynamic and unresolved
+     */
+    public boolean hasUnresolvedPrefix(IRI iri) {
+        String token = DynamicPrefix.getToken(template.getPrefix(iri));
+        return token != null && resolvePrefixBase(token, iri) == null;
+    }
+
+    private String resolvePrefixBase(String token, IRI iri) {
+        String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
+        if (base != null && !base.isEmpty()) return base;
+        IModel<?> model = componentModels.get(getPrefixModelKey(iri));
+        Object chosen = (model == null) ? null : model.getObject();
+        if (chosen == null || chosen.toString().isEmpty()) return null;
+        return chosen.toString();
+    }
+
+    /**
      * Returns the introduced IRIs in this context.
      *
      * @return a set of introduced IRIs
@@ -368,33 +452,56 @@ public class TemplateContext implements Serializable {
         if (template.isRestrictedChoicePlaceholder(iri)) {
             String tfObject = (String) tfObjectGeneric;
             if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = template.getPrefix(iri);
+                String prefix = getPrefix(iri);
+                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) prefix = targetNamespace;
-                if (tfObject.matches("https?://.+")) prefix = "";
-                String v = prefix + tf.getObject();
-                if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                if (v.matches("https?://.*")) {
-                    processedValue = vf.createIRI(v);
-                } else {
-                    processedValue = vf.createLiteral(tfObject);
+                if (template.isLocalResource(iri)) {
+                    prefix = targetNamespace;
+                    unresolvedPrefix = false;
+                }
+                if (tfObject.matches("https?://.+")) {
+                    prefix = "";
+                    unresolvedPrefix = false;
+                }
+                // An unresolved space-/namespace-dependent prefix would mint the resource
+                // under the wrong namespace; leave the value unset instead. Form validation
+                // blocks publishing in this state.
+                if (!unresolvedPrefix) {
+                    String v = prefix + tf.getObject();
+                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
+                    if (v.matches("https?://.*")) {
+                        processedValue = vf.createIRI(v);
+                    } else {
+                        processedValue = vf.createLiteral(tfObject);
+                    }
                 }
             }
         } else if (template.isUriPlaceholder(iri)) {
             String tfObject = (String) tfObjectGeneric;
             if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = template.getPrefix(iri);
+                String prefix = getPrefix(iri);
+                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) prefix = targetNamespace;
+                if (template.isLocalResource(iri)) {
+                    prefix = targetNamespace;
+                    unresolvedPrefix = false;
+                }
                 String v;
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tfObject.matches("https?://.+")) prefix = "";
+                    if (tfObject.matches("https?://.+")) {
+                        prefix = "";
+                        unresolvedPrefix = false;
+                    }
                     v = prefix + tf.getObject();
                 }
-                if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                processedValue = vf.createIRI(v);
+                // See the restricted-choice branch above: an unresolved dynamic prefix
+                // leaves the value unset rather than minting a wrongly-namespaced IRI.
+                if (!unresolvedPrefix) {
+                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
+                    processedValue = vf.createIRI(v);
+                }
             }
         } else if (template.isLocalResource(iri)) {
             String tfObject = (String) tfObjectGeneric;
