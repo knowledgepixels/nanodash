@@ -94,20 +94,21 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * {@link com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile} as
      * standalone displays.</p>
      *
-     * @param resourceId  the resource the preset is assigned to
-     * @param viewIri     the resolved view IRI (a {@code gen:hasView} /
-     *                    {@code gen:hasTopLevelView} target of the preset)
-     * @param topLevel    whether this came from {@code gen:hasTopLevelView} (shown
-     *                    at the top level of the resource page) vs. {@code gen:hasView}
-     *                    (shown at the part level, for parts matching the view's own
-     *                    class/namespace targeting)
-     * @param deactivated whether the underlying preset assignment is deactivated
+     * @param resourceId    the resource the preset is assigned to
+     * @param viewIri       the view IRI (a {@code gen:hasView} /
+     *                      {@code gen:hasTopLevelView} target of the preset)
+     * @param topLevel      whether this came from {@code gen:hasTopLevelView} (shown
+     *                      at the top level of the resource page) vs. {@code gen:hasView}
+     *                      (shown at the part level, for parts matching the view's own
+     *                      class/namespace targeting)
+     * @param deactivated   whether the underlying preset assignment is deactivated
+     * @param resolveLatest whether to resolve {@code viewIri} to its latest version
+     *                      here; pass false when the query already resolved it
+     *                      server-side, true for the unresolved query variant
      * @return the ViewDisplay, or null if the view could not be resolved
      */
-    public static ViewDisplay forPresetView(String resourceId, String viewIri, boolean topLevel, boolean deactivated) {
-        // viewIri is already latest-resolved by the get-view-displays query, so load
-        // it directly without a separate latest-version lookup.
-        View view = View.get(viewIri, false);
+    public static ViewDisplay forPresetView(String resourceId, String viewIri, boolean topLevel, boolean deactivated, boolean resolveLatest) {
+        View view = View.get(viewIri, resolveLatest);
         if (view == null) {
             logger.error("Couldn't resolve preset view: {}", viewIri);
             return null;
