@@ -1,3 +1,49 @@
+## [5.8.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.7.0...nanodash-5.8.0) (2026-07-30)
+
+### Features
+
+* add calendar dropdown action for adding en Event to the calendar (through .ics file or Google calendar) ([8dd6c0b](https://github.com/knowledgepixels/nanodash/commit/8dd6c0b08d69293dd71a549c7550be9461bce86f))
+* add Google, Outlook and webcal calendar URL builders ([c4b5364](https://github.com/knowledgepixels/nanodash/commit/c4b5364801a84e7dec710e25a39069ac21a8950e))
+* add iCalendar event model and RFC 5545 writer ([8c3fdb2](https://github.com/knowledgepixels/nanodash/commit/8c3fdb224b2a18a4ed9d4d658e77370eadef15bc))
+* enhance calendar event functionality with title and location support ([88702c6](https://github.com/knowledgepixels/nanodash/commit/88702c6a7218a5db20f396a3c0f5f46bca9a520a))
+* **ErrorPage:** show details about what went wrong ([3bee6c9](https://github.com/knowledgepixels/nanodash/commit/3bee6c9c98a9d4aeb5f2ec2e6c877122af2613b3)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **NanopubLookup:** classify why a nanopub lookup failed, under a time budget ([c89c4c1](https://github.com/knowledgepixels/nanodash/commit/c89c4c164af49ebae169d756f607d33fadc6120f)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **NanopubNotFoundPage:** add page for nanopubs missing from the network ([cce4cd1](https://github.com/knowledgepixels/nanodash/commit/cce4cd1d31ba7035733b6388642579b46d8376fe)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* offer add-to-calendar and subscribe-to-events on space pages ([f5f73f6](https://github.com/knowledgepixels/nanodash/commit/f5f73f64e279446303227548afad9fe64d1a5042))
+* read event location and all-day dates from space definitions ([4f8a593](https://github.com/knowledgepixels/nanodash/commit/4f8a593004c820ef10d13e78b3157057b0edb4dd))
+* serve space calendars and event feeds at /calendar.ics ([0f12b70](https://github.com/knowledgepixels/nanodash/commit/0f12b70b2e9b24b4f94a6c7c0da63b89df7c3303))
+* **spaces:** turn calendar menu into space title menu with submenus and config shortcuts ([fb66363](https://github.com/knowledgepixels/nanodash/commit/fb66363caf1bdf1f11373003cfffa114dc4da06b))
+* **views:** add header views (gen:HeaderView) with title, description, and actions ([fb645b7](https://github.com/knowledgepixels/nanodash/commit/fb645b71589c9e5727d060c815889935b0ff5ca1)), closes [#572](https://github.com/knowledgepixels/nanodash/issues/572) [#572](https://github.com/knowledgepixels/nanodash/issues/572)
+* **views:** switch Content-tab displays to unresolved query with client-side version resolution ([23f7114](https://github.com/knowledgepixels/nanodash/commit/23f71146011200880b893aa88c064fec4e77c70b))
+
+### Bug Fixes
+
+* **ExplorePage, ViewPage:** route unresolvable nanopubs to the not-found page ([b78e1f6](https://github.com/knowledgepixels/nanodash/commit/b78e1f6851a4513486d544a2aa8f5333f423bcb6)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **lookup:** allow hyphens in OpenAIRE endpoint path when deriving URIs ([fbb044e](https://github.com/knowledgepixels/nanodash/commit/fbb044e4eb4f9a713ad7afe51161549e4b90deec))
+* remove event identification logic from Column populateItem class ([dc69da0](https://github.com/knowledgepixels/nanodash/commit/dc69da0636f4d7a355f760a2a662e56bde0469be))
+* resolve space types from the root assertion ([fc2f1b9](https://github.com/knowledgepixels/nanodash/commit/fc2f1b954fa25bb3ae8961e6fea1544901945822))
+* strip session ids from absolute page URLs ([61ed9db](https://github.com/knowledgepixels/nanodash/commit/61ed9dbeaf2f4e293962b42f32ec5d36e012e7d7))
+* **views:** lay out view groups on CSS grid to avoid float-drop whitespace ([b2e9062](https://github.com/knowledgepixels/nanodash/commit/b2e90625b5ea685e404d0cb558fb7ff1c55a1edb))
+
+### Documentation
+
+* describe the calendar integration design ([a9753da](https://github.com/knowledgepixels/nanodash/commit/a9753da6e22c9574f91c8636ae12acc0b73d51b8))
+
+### General maintenance
+
+* add calendar dropdown component for action selection ([1398ec7](https://github.com/knowledgepixels/nanodash/commit/1398ec7ba03233257fc06185b9936267c99427b5))
+* add DateTimeCalendarCell component with .ics download and Google Calendar integration ([704fade](https://github.com/knowledgepixels/nanodash/commit/704fade0102ef9603bd454d3c2659198e84cbdd4))
+* setting next snapshot version [skip ci] ([fa1e6a0](https://github.com/knowledgepixels/nanodash/commit/fa1e6a04722ec8f946b12417eaa187faf265214b))
+
+### Style improvements
+
+* **views:** tighten view item padding, add 30px gap above section headers ([e0df9c1](https://github.com/knowledgepixels/nanodash/commit/e0df9c1c1ab9454e317979b804cfc046e7b398d2))
+
+### Refactoring
+
+* drop datetime-string sniffing for calendar cells ([2cbaf8a](https://github.com/knowledgepixels/nanodash/commit/2cbaf8aeb53db0706951ca955eb643ad09a59fa7))
+* **NanopubLookup:** identify artifact codes via trustyuri-java ([bc4a73e](https://github.com/knowledgepixels/nanodash/commit/bc4a73ef1e0e0ce43f321d01c86aa3e5ff2c6721)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+
 ## [5.7.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.6.0...nanodash-5.7.0) (2026-07-28)
 
 ### Features
