@@ -323,6 +323,16 @@ details summary {
 .view-group > .listview > [class*="col-"] {
   float: none;
   width: 100%;
+  /* Tighter vertical rhythm than the general 15px column padding; horizontal
+     padding stays at 15px so panels keep aligned with the other page columns. */
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Section headers (incl. header views) separate the sections, so give them a
+   clearly larger gap above than the regular view items' padding. */
+.view-group > .listview > [class*="col-"].section-header {
+  padding-top: 30px;
 }
 
 .view-group > .listview:has(> .col-1) { grid-column: span 1; }
