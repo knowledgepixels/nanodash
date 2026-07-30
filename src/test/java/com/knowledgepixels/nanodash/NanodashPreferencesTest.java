@@ -221,6 +221,30 @@ class NanodashPreferencesTest {
         assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
     }
 
+    // Whether an address was configured at all is a different question from what it is: a URL
+    // handed to an outside fetcher must not be built on the localhost fallback. See
+    // Utils.absolutePageUrl.
+    @Test
+    void getConfiguredWebsiteUrlIsNullWhenNothingSetsOne() {
+        assertNull(get().getConfiguredWebsiteUrl());
+    }
+
+    @Test
+    void getConfiguredWebsiteUrlFromSystemEnv() {
+        envVars.set("NANODASH_WEBSITE_URL", "https://nanodash.example.org/");
+        assertEquals("https://nanodash.example.org/", get().getConfiguredWebsiteUrl());
+    }
+
+    @Test
+    void getConfiguredWebsiteUrlFromPreferencesFile() throws IOException {
+        Files.copy(
+                Path.of("src/test/resources/nanodash-preferences-test.yml"),
+                new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH).toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+        assertEquals("http://localhost:37373/", get().getConfiguredWebsiteUrl());
+    }
+
     @Test
     void getOrcidClientIdWithDefaultValue() {
         NanodashPreferences preferences = get();

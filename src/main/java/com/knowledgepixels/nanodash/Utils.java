@@ -52,6 +52,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -169,6 +170,9 @@ public class Utils {
     // outlives the request — see absolutePageUrl.
     private static final Pattern JSESSIONID_PATTERN = Pattern.compile(";jsessionid=[^?/;]*", Pattern.CASE_INSENSITIVE);
 
+    // Splits an absolute URL into its origin (scheme and authority) and everything after it.
+    private static final Pattern ORIGIN_PATTERN = Pattern.compile("^([a-zA-Z][a-zA-Z0-9+.\\-]*://[^/?#]*)(.*)$");
+
     /**
      * The absolute URL of a mounted page, for handing to something outside this request:
      * embedding in a downloaded file, giving to a third-party service to fetch, or showing
@@ -179,6 +183,11 @@ public class Utils {
      * once the session expired, and would hand out a live session identifier to anyone the
      * user shared it with.</p>
      *
+     * <p>The host comes from the configured website URL where there is one, not from the
+     * request. Behind a reverse proxy the request reveals only how the proxy reached this
+     * container — {@code http://127.0.1.1:37373/} — which is useless to a calendar client or
+     * to Google, both of which have to fetch the URL themselves from outside.</p>
+     *
      * @param pageClass the mounted page
      * @param params    the page parameters
      * @return the full URL, including scheme and host
@@ -186,7 +195,37 @@ public class Utils {
     public static String absolutePageUrl(Class<? extends org.apache.wicket.Page> pageClass, PageParameters params) {
         RequestCycle cycle = RequestCycle.get();
         String url = cycle.urlFor(pageClass, params).toString();
-        return stripSessionId(cycle.getUrlRenderer().renderFullUrl(Url.parse(url)));
+        String requestUrl = stripSessionId(cycle.getUrlRenderer().renderFullUrl(Url.parse(url)));
+        return rebaseOnWebsiteUrl(requestUrl, NanodashPreferences.get().getConfiguredWebsiteUrl());
+    }
+
+    /**
+     * Moves a request-derived absolute URL onto the address this instance is published at.
+     *
+     * <p>Only the origin is taken from the website URL; the path and query stay as Wicket
+     * rendered them, so the mount paths remain the single source of truth for where a page
+     * lives. A website URL that carries a path of its own (an instance published under
+     * {@code /nanodash/}, say) has it prefixed, unless the request path already includes it
+     * because the servlet container is mounted there too.</p>
+     *
+     * @param requestUrl the absolute URL derived from the current request
+     * @param websiteUrl the configured website URL, or null when this instance has none
+     * @return the URL rebased on the website URL, or {@code requestUrl} unchanged if there is
+     *         no usable website URL
+     */
+    static String rebaseOnWebsiteUrl(String requestUrl, String websiteUrl) {
+        if (websiteUrl == null || websiteUrl.isBlank()) return requestUrl;
+        Matcher website = ORIGIN_PATTERN.matcher(websiteUrl.trim());
+        Matcher request = ORIGIN_PATTERN.matcher(requestUrl);
+        if (!website.matches() || !request.matches()) {
+            logger.warn("Cannot rebase '{}' on website URL '{}'; leaving it as it is", requestUrl, websiteUrl);
+            return requestUrl;
+        }
+        String prefix = website.group(2).replaceFirst("[?#].*$", "").replaceFirst("/+$", "");
+        String rest = request.group(2);
+        boolean alreadyPrefixed = rest.equals(prefix) || rest.startsWith(prefix + "/")
+                || rest.startsWith(prefix + "?") || rest.startsWith(prefix + "#");
+        return website.group(1) + (alreadyPrefixed ? "" : prefix) + rest;
     }
 
     /**
