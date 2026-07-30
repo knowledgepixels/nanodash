@@ -135,8 +135,8 @@ public class DynamicPrefixPublishTest {
         ((IModel<Object>) context.getComponentModels().get(RESOURCE)).setObject(value);
     }
 
-    private void pickPrefixBase(TemplateContext context, String base) {
-        context.getComponentModels().put(TemplateContext.getPrefixModelKey(RESOURCE), Model.of(base));
+    private void pickPrefixBase(TemplateContext context, String rawPrefix, String base) {
+        context.getComponentModels().put(TemplateContext.getPrefixModelKey(DynamicPrefix.getToken(rawPrefix)), Model.of(base));
     }
 
     private Nanopub publish(TemplateContext context) throws Exception {
@@ -202,7 +202,7 @@ public class DynamicPrefixPublishTest {
     void withoutNavigationContextThePickedBaseIsUsed() throws Exception {
         TemplateContext context = contextWith("~~SPACE~~/r/", null);
         assertTrue(context.hasUnresolvedPrefix(RESOURCE));
-        pickPrefixBase(context, "https://w3id.org/space/other");
+        pickPrefixBase(context, "~~SPACE~~/r/", "https://w3id.org/space/other");
         assertEquals("https://w3id.org/space/other/r/", context.getPrefix(RESOURCE));
         setText(context, "thing");
         assertEquals(vf.createIRI("https://w3id.org/space/other/r/thing"), partOf(publish(context)));

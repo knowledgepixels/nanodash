@@ -279,21 +279,25 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Suffix under which the chosen base of a space-/namespace-dependent prefix is keyed
-     * in the component models (appended after any repetition suffix).
+     * Suffix of the URL parameter that pre-fills the chosen base of a
+     * space-/namespace-dependent prefix, appended to a placeholder's postfix
+     * (e.g. {@code param_resource__prefix}).
      */
     public static final String PREFIX_SUFFIX = "__prefix";
 
     /**
-     * Returns the component-model key for the chosen base of the given placeholder's
-     * space-/namespace-dependent prefix. The IRI must already carry its repetition suffix
-     * if any, so each repetition can pick its own base.
+     * Returns the component-model key for the base chosen for the given
+     * space-/namespace-dependent prefix placeholder. The key is derived from the
+     * <em>token</em>, not from the placeholder, so every field whose prefix depends on the
+     * same thing shares one model: picking a space in one picker sets it for all of them
+     * (and for every repetition), which is what the shared-model AJAX refresh in the form
+     * items keys on.
      *
-     * @param iri the (repetition-suffixed) placeholder IRI
+     * @param token the token, as returned by {@link DynamicPrefix#getToken(String)}
      * @return the derived key for the prefix-base model
      */
-    public static IRI getPrefixModelKey(IRI iri) {
-        return vf.createIRI(iri.stringValue() + PREFIX_SUFFIX);
+    public static IRI getPrefixModelKey(String token) {
+        return vf.createIRI(LocalUri.PREFIX + "prefix-base/" + token.replace("~", ""));
     }
 
     /**
@@ -333,7 +337,7 @@ public class TemplateContext implements Serializable {
         String rawPrefix = template.getPrefix(iri);
         String token = DynamicPrefix.getToken(rawPrefix);
         if (token == null) return rawPrefix;
-        String base = resolvePrefixBase(token, iri);
+        String base = resolvePrefixBase(token);
         if (base == null) return null;
         return rawPrefix.replace(token, base);
     }
@@ -348,13 +352,13 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasUnresolvedPrefix(IRI iri) {
         String token = DynamicPrefix.getToken(template.getPrefix(iri));
-        return token != null && resolvePrefixBase(token, iri) == null;
+        return token != null && resolvePrefixBase(token) == null;
     }
 
-    private String resolvePrefixBase(String token, IRI iri) {
+    private String resolvePrefixBase(String token) {
         String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
         if (base != null && !base.isEmpty()) return base;
-        IModel<?> model = componentModels.get(getPrefixModelKey(iri));
+        IModel<?> model = componentModels.get(getPrefixModelKey(token));
         Object chosen = (model == null) ? null : model.getObject();
         if (chosen == null || chosen.toString().isEmpty()) return null;
         return chosen.toString();

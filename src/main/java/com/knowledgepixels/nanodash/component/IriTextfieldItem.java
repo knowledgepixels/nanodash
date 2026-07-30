@@ -143,17 +143,21 @@ public class IriTextfieldItem extends AbstractContextComponent {
      */
     @SuppressWarnings("unchecked")
     private void initPrefixChoice(ExternalLink prefixTooltip) {
-        IRI prefixModelKey = TemplateContext.getPrefixModelKey(iri);
+        final String token = dynamicPrefixToken;
+        // One model per token, shared by every field whose prefix depends on the same
+        // thing, so a base picked in one picker applies to all of them.
+        IRI prefixModelKey = TemplateContext.getPrefixModelKey(token);
         IModel<String> baseModel = (IModel<String>) context.getComponentModels().get(prefixModelKey);
         if (baseModel == null) {
             baseModel = Model.of("");
             context.getComponentModels().put(prefixModelKey, baseModel);
-            String prefixParam = Utils.getUriPostfix(iri) + TemplateContext.PREFIX_SUFFIX;
-            if (context.hasParam(prefixParam)) {
-                baseModel.setObject(context.getParam(prefixParam));
-            }
         }
-        final String token = dynamicPrefixToken;
+        // Any of the sharing placeholders may carry the pre-fill parameter; the first
+        // one that does wins, and later ones leave an already-chosen base alone.
+        String prefixParam = Utils.getUriPostfix(iri) + TemplateContext.PREFIX_SUFFIX;
+        if (baseModel.getObject().isEmpty() && context.hasParam(prefixParam)) {
+            baseModel.setObject(context.getParam(prefixParam));
+        }
         prefixChoice = new Select2Choice<String>("prefixchoice", baseModel, new PrefixChoiceProvider(token)) {
 
             // The base is needed exactly when the postfix field holds something that isn't
@@ -182,8 +186,21 @@ public class IriTextfieldItem extends AbstractContextComponent {
         prefixChoice.add(new InvalidityHighlighting());
         prefixChoice.add(new OnChangeAjaxBehavior() {
 
+            // Every other picker on the same token holds the very same model, so refresh
+            // them (and their prefix tooltips) the way shared placeholder fields are
+            // refreshed elsewhere -- otherwise they'd keep showing the old base until the
+            // next full render.
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                for (Component c : context.getComponents()) {
+                    if (c == prefixChoice) continue;
+                    if (c.getDefaultModel() == prefixChoice.getModel()) {
+                        c.modelChanged();
+                        target.add(c);
+                        IriTextfieldItem sibling = c.findParent(IriTextfieldItem.class);
+                        if (sibling != null) target.add(sibling.get("prefixtooltiptext"));
+                    }
+                }
                 target.add(prefixTooltip);
             }
 

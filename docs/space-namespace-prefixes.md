@@ -58,11 +58,18 @@ from a space page) stays a single-field form.
   declares an unresolved dynamic one; `hasUnresolvedPrefix(IRI)` tells the two apart.
   The navigation context is handed to the context via `setNavigationContextId`, which
   `PublishForm` fills from its page parameters.
-- **The picked base** lives in a component model keyed `<placeholder-iri>__prefix`
-  (`TemplateContext.getPrefixModelKey`), derived *after* repetition suffixing — the same
-  convention as the language-tag picker's `__lang` key, and with the same properties: a
-  per-repetition base, prefill via the URL parameter `param_<postfix>__prefix`, and
-  invisibility to the repetition machinery (which only probes numeric suffixes).
+- **The picked base** lives in a component model keyed by the **token**, not by the
+  placeholder (`TemplateContext.getPrefixModelKey(token)` → `local:prefix-base/SPACE`,
+  `local:prefix-base/NAMESPACE`). Every field whose prefix depends on the same thing —
+  including every repetition, and including fields with different suffixes such as
+  `~~SPACE~~/` and `~~SPACE~~/r/` — therefore shares **one** model instance. That is what
+  makes picking a space in one dropdown apply to all of them: the pickers share a model, so
+  the same shared-model AJAX refresh the form already uses for placeholders that appear in
+  several statements (`c.getDefaultModel() == choice.getModel()`) reaches every other
+  picker, and each field keeps its own suffix on top of the shared base. `~~SPACE~~` and
+  `~~NAMESPACE~~` keep separate models — they are different things picked from different
+  lists. The base is prefillable via the URL parameter `param_<postfix>__prefix` on any of
+  the sharing placeholders (first one wins).
 - **`IriTextfieldItem`** renders the picker (a select2 dropdown, `prefixchoice`) when the
   prefix is dynamic and the navigation context resolves nothing. The dropdown is required
   exactly when the paired text field holds something that isn't already a full URI, so an
