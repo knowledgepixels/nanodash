@@ -191,6 +191,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(MaintainedResourcePage.MOUNT_PATH, MaintainedResourcePage.class);
         mountPage(ResourcePartPage.MOUNT_PATH, ResourcePartPage.class);
         mountPage(DownloadRdfPage.MOUNT_PATH, DownloadRdfPage.class);
+        mountPage(DownloadDocPage.MOUNT_PATH, DownloadDocPage.class);
         mountPage(CalendarFeedPage.MOUNT_PATH, CalendarFeedPage.class);
 
         getCspSettings().blocking().disabled();

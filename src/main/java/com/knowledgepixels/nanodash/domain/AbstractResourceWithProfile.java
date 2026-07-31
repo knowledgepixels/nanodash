@@ -294,6 +294,27 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     }
 
     /**
+     * Fetches the applicable view displays synchronously from the API, bypassing the async
+     * singleton data. Used by the download pages, which need the displays within the current
+     * request; the resolution mirrors the page rendering (ref-scoped query for spaces,
+     * preset-supplied views, per-view-kind latest-wins).
+     *
+     * @param partId      the part IRI, or null for the resource's top-level displays
+     * @param partClasses the part's classes (ignored for top-level, where the resource's
+     *                    own classes are used)
+     * @return the applicable view displays, sorted by structural position
+     */
+    public List<ViewDisplay> fetchViewDisplaysSync(String partId, Set<IRI> partClasses) {
+        String vdRefRoot = getViewDisplayRefRoot();
+        QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
+                ? viewDisplaysRefQueryRef(vdRefRoot)
+                : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
+        boolean toplevel = (partId == null);
+        return filterViewDisplays(buildViewDisplays(vdQuery), toplevel,
+                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses);
+    }
+
+    /**
      * Builds {@link ViewDisplay} objects from a get-view-displays(-ref) query result (standalone
      * displays with a bound {@code ?display}, and preset-supplied views with an unbound one).
      */

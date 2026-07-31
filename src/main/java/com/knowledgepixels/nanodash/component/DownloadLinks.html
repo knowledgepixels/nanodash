@@ -1,15 +1,23 @@
 <wicket:panel>
   <div class="row-section">
-    <div class="col-12 raw-content">
-    <h4 class="raw-subtitle">Full nanopublications</h4>
-    <ul class="raw-formats">
+    <div class="col-12 download-content">
+    <wicket:container wicket:id="doc-section">
+    <h4 class="download-subtitle">Document formats</h4>
+    <ul class="download-formats">
+      <li><a href="#" wicket:id="doc-pdf">PDF</a></li>
+      <li><a href="#" wicket:id="doc-rtf">RTF</a> (opens in Word and LibreOffice)</li>
+      <li><a href="#" target="_blank" wicket:id="doc-html">HTML</a></li>
+    </ul>
+    </wicket:container>
+    <h4 class="download-subtitle">Full nanopublications (RDF)</h4>
+    <ul class="download-formats">
       <li><a href="#" target="_blank" wicket:id="trig">TriG</a> (<a href="#" target="_blank" wicket:id="trig-txt">txt</a>)</li>
       <li><a href="#" target="_blank" wicket:id="jsonld">JSON-LD</a> (<a href="#" target="_blank" wicket:id="jsonld-txt">txt</a>)</li>
       <li><a href="#" target="_blank" wicket:id="nq">N-Quads</a> (<a href="#" target="_blank" wicket:id="nq-txt">txt</a>)</li>
       <li><a href="#" target="_blank" wicket:id="trix">TriX</a> (<a href="#" target="_blank" wicket:id="trix-txt">txt</a>)</li>
     </ul>
-    <h4 class="raw-subtitle">Assertions only</h4>
-    <ul class="raw-formats">
+    <h4 class="download-subtitle">Assertions only (RDF)</h4>
+    <ul class="download-formats">
       <li><a href="#" target="_blank" wicket:id="turtle">Turtle</a> (<a href="#" target="_blank" wicket:id="turtle-txt">txt</a>)</li>
       <li><a href="#" target="_blank" wicket:id="a-jsonld">JSON-LD</a> (<a href="#" target="_blank" wicket:id="a-jsonld-txt">txt</a>)</li>
       <li><a href="#" target="_blank" wicket:id="nt">N-Triples</a> (<a href="#" target="_blank" wicket:id="nt-txt">txt</a>)</li>

@@ -881,23 +881,23 @@ span.prelink {
   text-align: right;
 }
 
-/* Gray italic "– About" / "– Raw" suffix appended to a page title */
+/* Gray italic "– About" / "– Download" suffix appended to a page title */
 .title-suffix {
   color: #888888;
   font-style: italic;
   font-weight: normal;
 }
 
-/* Raw page content: subtitles + format link lists */
-.raw-subtitle {
+/* Download page content: subtitles + format link lists */
+.download-subtitle {
   font-weight: 700;
   margin: 0.7em 0 0.2em;
 }
-.raw-formats {
+.download-formats {
   margin: 0 0 0.5em;
   padding-left: 1.4em;
 }
-.raw-formats li {
+.download-formats li {
   line-height: 1.7;
 }
 
