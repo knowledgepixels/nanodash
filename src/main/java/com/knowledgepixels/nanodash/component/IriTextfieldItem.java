@@ -81,10 +81,17 @@ public class IriTextfieldItem extends AbstractContextComponent {
         // use case of the dynamic prefix, and such placeholders are typically declared
         // nt:LocalResource + nt:IntroducedResource (issue #571).
         dynamicPrefixToken = DynamicPrefix.getToken(template.getPrefix(iri));
+        // The navigation context takes precedence; only when it determines no base does the
+        // user get to pick one.
+        boolean showPrefixChoice = dynamicPrefixToken != null
+                && DynamicPrefix.resolveFromContext(dynamicPrefixToken, context.getNavigationContextId()) == null;
         String prefix = prefixModel.getObject();
         String prefixLabel = template.getPrefixLabel(iri);
         Label prefixLabelComp;
-        if (prefixLabel == null) {
+        // The picker names what is being chosen and shows the chosen base, so the template's
+        // static prefix label would only duplicate it (and read as a stray word in front of
+        // a dropdown).
+        if (prefixLabel == null || showPrefixChoice) {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
@@ -127,10 +134,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             textfield.add(AttributeAppender.append("class", "introduced"));
         }
         add(textfield);
-        // The navigation context takes precedence; only when it determines no base does the
-        // user get to pick one.
-        if (dynamicPrefixToken != null
-                && DynamicPrefix.resolveFromContext(dynamicPrefixToken, context.getNavigationContextId()) == null) {
+        if (showPrefixChoice) {
             initPrefixChoice(prefixTooltip);
         } else {
             add(new WebMarkupContainer("prefixchoice").setVisible(false));

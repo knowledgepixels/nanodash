@@ -88,6 +88,7 @@ public class IriTextfieldPrefixItemTest {
         creator.addAssertionStatement(st1, RDF.OBJECT, RESOURCE);
         creator.addAssertionStatement(RESOURCE, RDF.TYPE, NTEMPLATE.URI_PLACEHOLDER);
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
+        creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX_LABEL, vf.createLiteral("Class"));
         creator.addAssertionStatement(RESOURCE, RDFS.LABEL, vf.createLiteral("resource"));
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -230,6 +231,40 @@ public class IriTextfieldPrefixItemTest {
         context.initStatements();
         tester.startComponentInPage(new IriTextfieldItem("value", "obj", RESOURCE, true, context));
         tester.assertInvisible("value:prefixchoice");
+    }
+
+    /**
+     * The picker already names what is being chosen, so the template's static prefix label
+     * would only duplicate it; it is shown only when no picker is.
+     */
+    @Test
+    void prefixLabelIsHiddenWhenThePickerIsShown() throws Exception {
+        TemplateContext context = contextFor("~~SPACE~~/r/");
+        context.initStatements();
+        tester.startComponentInPage(new IriTextfieldItem("value", "obj", RESOURCE, true, context));
+        tester.assertComponent("value:prefixchoice", Select2Choice.class);
+        tester.assertInvisible("value:prefix");
+    }
+
+    @Test
+    void prefixLabelIsShownWhenTheContextResolvesTheBase() throws Exception {
+        withSpaceContext(SPACE_IRI);
+        TemplateContext context = contextFor("~~SPACE~~/r/");
+        context.setNavigationContextId(SPACE_IRI);
+        context.initStatements();
+        tester.startComponentInPage(new IriTextfieldItem("value", "obj", RESOURCE, true, context));
+        tester.assertInvisible("value:prefixchoice");
+        tester.assertVisible("value:prefix");
+        tester.assertLabel("value:prefix", "Class");
+    }
+
+    @Test
+    void prefixLabelIsShownForAStaticPrefix() throws Exception {
+        TemplateContext context = contextFor("https://example.org/");
+        context.initStatements();
+        tester.startComponentInPage(new IriTextfieldItem("value", "obj", RESOURCE, true, context));
+        tester.assertVisible("value:prefix");
+        tester.assertLabel("value:prefix", "Class");
     }
 
     @Test
