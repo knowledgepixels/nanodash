@@ -76,11 +76,11 @@ public class IriTextfieldItem extends AbstractContextComponent {
             model.setObject(context.getParam(postfix));
         }
         prefixModel = new PrefixModel(iri, context);
-        // A local resource is minted under the target namespace, so its prefix is never
-        // space-/namespace-dependent:
-        if (!template.isLocalResource(iri)) {
-            dynamicPrefixToken = DynamicPrefix.getToken(template.getPrefix(iri));
-        }
+        // Note this deliberately includes local resources: "mint the new resource under the
+        // space / maintained resource instead of under the nanopublication" is the headline
+        // use case of the dynamic prefix, and such placeholders are typically declared
+        // nt:LocalResource + nt:IntroducedResource (issue #571).
+        dynamicPrefixToken = DynamicPrefix.getToken(template.getPrefix(iri));
         String prefix = prefixModel.getObject();
         String prefixLabel = template.getPrefixLabel(iri);
         Label prefixLabelComp;
@@ -290,7 +290,9 @@ public class IriTextfieldItem extends AbstractContextComponent {
 
         @Override
         public String getObject() {
-            if (context.getTemplate().isLocalResource(iri)) {
+            // A dynamic prefix wins over the template-local prefix of a local resource:
+            // it is what the resource will actually be minted under (issue #571).
+            if (!context.hasDynamicPrefix(iri) && context.getTemplate().isLocalResource(iri)) {
                 return Utils.getUriPrefix(iri);
             }
             String prefix = context.getPrefix(iri);
@@ -315,7 +317,9 @@ public class IriTextfieldItem extends AbstractContextComponent {
 
         @Override
         public String getObject() {
-            if (context.getTemplate().isLocalResource(iri)) return LocalUri.PREFIX + "...";
+            if (!context.hasDynamicPrefix(iri) && context.getTemplate().isLocalResource(iri)) {
+                return LocalUri.PREFIX + "...";
+            }
             String prefix = context.getPrefix(iri);
             if (prefix == null || prefix.isEmpty()) return "";
             return prefix + "...";

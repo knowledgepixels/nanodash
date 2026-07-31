@@ -24,6 +24,7 @@ import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -73,6 +74,14 @@ public class DynamicPrefixPublishTest {
      * context for it, set to the given navigation context.
      */
     private TemplateContext contextWith(String prefix, String navigationContextId) throws Exception {
+        return contextWith(prefix, navigationContextId, false);
+    }
+
+    /**
+     * As above, but optionally declaring the placeholder a local + introduced resource, the
+     * shape real "define a new X in this space" templates use.
+     */
+    private TemplateContext contextWith(String prefix, String navigationContextId, boolean localResource) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -92,6 +101,10 @@ public class DynamicPrefixPublishTest {
         creator.addAssertionStatement(ST1, RDF.PREDICATE, HAS_PART);
         creator.addAssertionStatement(ST1, RDF.OBJECT, RESOURCE);
         creator.addAssertionStatement(RESOURCE, RDF.TYPE, NTEMPLATE.URI_PLACEHOLDER);
+        if (localResource) {
+            creator.addAssertionStatement(RESOURCE, RDF.TYPE, NTEMPLATE.LOCAL_RESOURCE);
+            creator.addAssertionStatement(RESOURCE, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
+        }
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
         creator.addAssertionStatement(RESOURCE, RDFS.LABEL, vf.createLiteral("resource"));
         Template template = new Template(creator.finalizeNanopub());
@@ -188,6 +201,44 @@ public class DynamicPrefixPublishTest {
         TemplateContext context = contextWith("~~NAMESPACE~~", resourceIri);
         setText(context, "thing");
         assertEquals(vf.createIRI(resourceIri + "/thing"), partOf(publish(context)));
+    }
+
+    /**
+     * The headline case: a template that introduces a new resource declares it
+     * nt:LocalResource + nt:IntroducedResource *and* gives it a dynamic prefix. The prefix
+     * must win, otherwise the resource is minted under the nanopublication's own namespace
+     * and the declared namespace is silently dropped.
+     */
+    @Test
+    void dynamicPrefixWinsOverLocalResourceMinting() throws Exception {
+        String resourceIri = SPACE_IRI + "/r/test-ontology";
+        withResourceContext(resourceIri, resourceIri, null);
+        TemplateContext context = contextWith("~~NAMESPACE~~", resourceIri, true);
+        assertEquals(resourceIri + "/", context.getPrefix(RESOURCE));
+        setText(context, "my-class");
+        assertEquals(vf.createIRI(resourceIri + "/my-class"), partOf(publish(context)));
+    }
+
+    @Test
+    void dynamicSpacePrefixWinsOverLocalResourceMinting() throws Exception {
+        withSpaceContext(SPACE_IRI);
+        TemplateContext context = contextWith("~~SPACE~~/r/", SPACE_IRI, true);
+        setText(context, "thing");
+        assertEquals(vf.createIRI(SPACE_IRI + "/r/thing"), partOf(publish(context)));
+    }
+
+    /**
+     * A local resource without a dynamic prefix keeps being minted under the target
+     * namespace, exactly as before.
+     */
+    @Test
+    void localResourceWithoutDynamicPrefixIsStillMintedUnderTheTargetNamespace() throws Exception {
+        TemplateContext context = contextWith("https://example.org/", null, true);
+        setText(context, "thing");
+        Value v = partOf(publish(context));
+        assertNotNull(v);
+        assertTrue(v.stringValue().startsWith(Template.DEFAULT_TARGET_NAMESPACE),
+                "expected minting under the target namespace but got " + v);
     }
 
     @Test

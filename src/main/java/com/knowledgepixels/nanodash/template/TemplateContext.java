@@ -343,6 +343,20 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Whether the given placeholder declares a space-/namespace-dependent prefix (resolved
+     * or not). Such a prefix takes precedence over the target namespace a
+     * {@code nt:LocalResource} would otherwise be minted under: declaring one is exactly
+     * how a template says "mint this new resource under the space / maintained resource
+     * instead of under the nanopublication".
+     *
+     * @param iri the placeholder IRI
+     * @return true if the prefix is space-/namespace-dependent
+     */
+    public boolean hasDynamicPrefix(IRI iri) {
+        return DynamicPrefix.getToken(template.getPrefix(iri)) != null;
+    }
+
+    /**
      * Whether the given placeholder's prefix is space-/namespace-dependent and its base is
      * not (yet) determined, i.e. the page carries no usable navigation context and the user
      * hasn't picked one.
@@ -459,7 +473,10 @@ public class TemplateContext implements Serializable {
                 String prefix = getPrefix(iri);
                 boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) {
+                // A dynamic prefix is how a template asks for its new resource to be minted
+                // under the space / maintained resource rather than under the nanopublication,
+                // so it wins over the local-resource default (issue #571).
+                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
                     prefix = targetNamespace;
                     unresolvedPrefix = false;
                 }
@@ -486,7 +503,10 @@ public class TemplateContext implements Serializable {
                 String prefix = getPrefix(iri);
                 boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) {
+                // A dynamic prefix is how a template asks for its new resource to be minted
+                // under the space / maintained resource rather than under the nanopublication,
+                // so it wins over the local-resource default (issue #571).
+                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
                     prefix = targetNamespace;
                     unresolvedPrefix = false;
                 }
