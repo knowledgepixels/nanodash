@@ -64,6 +64,11 @@ public class IriTextfieldItem extends AbstractContextComponent {
         super(id, context);
         this.iri = iriP;
         final Template template = context.getTemplate();
+        // Note this deliberately includes local resources: "mint the new resource under the
+        // space / maintained resource instead of under the nanopublication" is the headline
+        // use case of the dynamic prefix, and such placeholders are typically declared
+        // nt:LocalResource + nt:IntroducedResource (issue #571).
+        dynamicPrefixToken = DynamicPrefix.getToken(template.getPrefix(iri));
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
         boolean modelIsNew = false;
         if (model == null) {
@@ -72,15 +77,16 @@ public class IriTextfieldItem extends AbstractContextComponent {
             modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (modelIsNew && context.hasParam(postfix)) {
+        // A space-/namespace-dependent prefix decides this field's namespace from the
+        // navigation context (or the picker), and the field itself holds only the name
+        // below it. A "param_<postfix>" carrying a value for such a field fights that --
+        // typically with a full IRI, which bypasses the prefix altogether -- so it is
+        // ignored here, leaving the field to be filled the same way whatever the prefix's
+        // trailing path is.
+        if (modelIsNew && dynamicPrefixToken == null && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
         }
         prefixModel = new PrefixModel(iri, context);
-        // Note this deliberately includes local resources: "mint the new resource under the
-        // space / maintained resource instead of under the nanopublication" is the headline
-        // use case of the dynamic prefix, and such placeholders are typically declared
-        // nt:LocalResource + nt:IntroducedResource (issue #571).
-        dynamicPrefixToken = DynamicPrefix.getToken(template.getPrefix(iri));
         // The navigation context takes precedence; only when it determines no base does the
         // user get to pick one.
         boolean showPrefixChoice = dynamicPrefixToken != null

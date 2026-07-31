@@ -241,6 +241,7 @@ public class DynamicPrefixPublishTest {
                 "expected minting under the target namespace but got " + v);
     }
 
+
     @Test
     void namespaceTokenIsUnresolvedUnderASpaceContext() throws Exception {
         withSpaceContext(SPACE_IRI);

@@ -70,6 +70,12 @@ from a space page) stays a single-field form.
   `~~NAMESPACE~~` keep separate models — they are different things picked from different
   lists. The base is prefillable via the URL parameter `param_<postfix>__prefix` on any of
   the sharing placeholders (first one wins).
+- **A field under a dynamic prefix ignores its own `param_<postfix>`.** The field holds
+  only the name below the prefix, and the namespace comes from the context or the picker;
+  a parameter for it — in practice a full IRI — would land in the field and bypass the
+  prefix altogether. Dropping it makes a bare `~~SPACE~~` behave exactly like
+  `~~SPACE~~/r/`, whatever the prefix's trailing path is. Static prefixes are unaffected:
+  `param_<postfix>` prefills them as before.
 - **`IriTextfieldItem`** renders the picker (a select2 dropdown, `prefixchoice`) when the
   prefix is dynamic and the navigation context resolves nothing. The dropdown is required
   exactly when the paired text field holds something that isn't already a full URI, so an

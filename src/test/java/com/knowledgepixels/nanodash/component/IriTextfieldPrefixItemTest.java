@@ -134,6 +134,39 @@ public class IriTextfieldPrefixItemTest {
         assertFalse(context.getComponentModels().containsKey(TemplateContext.getPrefixModelKey(DynamicPrefix.SPACE_TOKEN)));
     }
 
+    /**
+     * A field under a dynamic prefix holds only the name below that prefix, so a
+     * "param_&lt;postfix&gt;" for it is ignored — otherwise a full IRI passed that way would
+     * land in the field and bypass the prefix entirely. Both with and without a resolving
+     * navigation context, so a bare "~~SPACE~~" behaves like "~~SPACE~~/r/" either way.
+     */
+    @Test
+    void valueParamDoesNotPrefillAFieldUnderADynamicPrefix() throws Exception {
+        withSpaceContext(SPACE_IRI);
+        TemplateContext context = contextFor("~~SPACE~~");
+        context.setNavigationContextId(SPACE_IRI);
+        context.setParam("resource", SPACE_IRI);
+        context.initStatements();
+        assertEquals("", context.getComponentModels().get(RESOURCE).getObject());
+        assertEquals(SPACE_IRI, context.getPrefix(RESOURCE));
+    }
+
+    @Test
+    void valueParamDoesNotPrefillAFieldUnderAnUnresolvedDynamicPrefix() throws Exception {
+        TemplateContext context = contextFor("~~SPACE~~/r/");
+        context.setParam("resource", "https://w3id.org/space/elsewhere/r/thing");
+        context.initStatements();
+        assertEquals("", context.getComponentModels().get(RESOURCE).getObject());
+    }
+
+    @Test
+    void valueParamStillPrefillsAFieldUnderAStaticPrefix() throws Exception {
+        TemplateContext context = contextFor("https://example.org/");
+        context.setParam("resource", "thing");
+        context.initStatements();
+        assertEquals("thing", context.getComponentModels().get(RESOURCE).getObject());
+    }
+
     @Test
     void prefixParamPrefillsTheChoice() throws Exception {
         TemplateContext context = contextFor("~~SPACE~~/r/");
