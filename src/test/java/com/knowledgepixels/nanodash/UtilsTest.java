@@ -9,6 +9,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -135,6 +136,22 @@ class UtilsTest {
         String rawHtml = "<a href=\"mailto:test@knowledgepixels.com\">Email</a>";
         String sanitizedHtml = Utils.sanitizeHtml(rawHtml);
         assertEquals("<a href=\"mailto:test&#64;knowledgepixels.com\" rel=\"nofollow\">Email</a>", sanitizedHtml);
+    }
+
+    @Test
+    void isHtmlLiteralRecognizesRdfHtmlDatatype() {
+        assertTrue(Utils.isHtmlLiteral(literal("<p>Hello</p>", RDF.HTML)));
+        assertTrue(Utils.isHtmlLiteral(literal("no tags at all", RDF.HTML)),
+                "the datatype decides, not the content");
+    }
+
+    @Test
+    void isHtmlLiteralRejectsOtherValues() {
+        assertFalse(Utils.isHtmlLiteral(literal("<p>Hello</p>")), "plain string literal");
+        assertFalse(Utils.isHtmlLiteral(literal("<p>Hello</p>", "en")), "language-tagged literal");
+        assertFalse(Utils.isHtmlLiteral(literal("42", XSD.INTEGER)), "other datatype");
+        assertFalse(Utils.isHtmlLiteral(iri("https://example.org/thing")), "IRI");
+        assertFalse(Utils.isHtmlLiteral(null), "null");
     }
 
     @Test
