@@ -3,10 +3,12 @@ package com.knowledgepixels.nanodash.component;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -83,29 +85,49 @@ public class ViewList extends Panel {
             viewDisplays = resourceWithProfile.getPartLevelViewDisplays(partId, partClasses);
         }
 
+        // The fragment identifier of each view display's section, so a single section can
+        // be linked to (e.g. ".../space?id=...#messages"). Computed over the whole list
+        // before grouping, since uniqueness is page-wide. See ViewAnchors.
+        final List<String> anchors = ViewAnchors.forViewDisplays(viewDisplays);
+
         // Group viewDisplays by the first segment of their structural position (e.g. "4" from "4.4.1.papers")
         List<List<ViewDisplay>> groups = new ArrayList<>();
+        // Anchors of the same view displays, grouped in lock-step so a rendered item can
+        // be matched to its anchor by (group index, item index).
+        final List<List<String>> anchorGroups = new ArrayList<>();
         String currentGroupKey = null;
         List<ViewDisplay> currentGroup = null;
-        for (ViewDisplay vd : viewDisplays) {
+        List<String> currentAnchorGroup = null;
+        for (int i = 0; i < viewDisplays.size(); i++) {
+            ViewDisplay vd = viewDisplays.get(i);
             String pos = vd.getStructuralPosition();
             int firstDot = pos.indexOf('.');
             String key = firstDot > 0 ? pos.substring(0, firstDot) : pos;
             if (!key.equals(currentGroupKey)) {
                 currentGroup = new ArrayList<>();
                 groups.add(currentGroup);
+                currentAnchorGroup = new ArrayList<>();
+                anchorGroups.add(currentAnchorGroup);
                 currentGroupKey = key;
             }
             currentGroup.add(vd);
+            currentAnchorGroup.add(anchors.get(i));
         }
 
         add(new ListView<List<ViewDisplay>>("groups", groups) {
             @Override
             protected void populateItem(ListItem<List<ViewDisplay>> groupItem) {
                 List<ViewDisplay> group = groupItem.getModelObject();
+                final List<String> groupAnchors = anchorGroups.get(groupItem.getIndex());
                 groupItem.add(new ListView<ViewDisplay>("views", group) {
                     @Override
                     protected void populateItem(ListItem<ViewDisplay> item) {
+                        // The section's fragment identifier. Set on the item (the element
+                        // wrapping the whole view panel) rather than inside the panel, so
+                        // it is there from the first render even while the panel itself is
+                        // still loading over Ajax.
+                        item.add(AttributeModifier.replace("id", groupAnchors.get(item.getIndex())));
+
                         // This populate runs at render time (onBeforeRender) and is the only
                         // view-rendering path without a guard; every other one (the QueryResult
                         // builders, populateComponent, per-cell populateItem) already degrades a

@@ -132,6 +132,13 @@ full literal on hover. This is computed SPARQL-side as
 `substr(?position, 1, 3)` in `list-view-displays*` (see
 `docs/queries/`) and rendered as a tooltip cell (`QueryApiAccess`).
 
+### The label as a fallback anchor
+
+A view display's section carries a fragment identifier so it can be linked to
+individually; when the display has no title, the `<label>` part of its position
+becomes that anchor (`4.4.papers` → `#papers`). See
+[section-anchors](section-anchors.md).
+
 ## Where it lives
 
 | Concern | Location |

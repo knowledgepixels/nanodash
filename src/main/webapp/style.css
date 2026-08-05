@@ -318,6 +318,38 @@ details summary {
 .view-group > .listview {
   grid-column: span 12;
   min-width: 0;
+  /* Each item carries the section's fragment identifier (see ViewAnchors), so leave a
+     bit of air above it when the browser scrolls a linked section into view. */
+  scroll-margin-top: 16px;
+}
+
+/* The "#" handle appended to a section title (nanodash.js), giving a copyable link to
+   that section. Kept faint until the section is hovered, so it doesn't compete with
+   the title itself. */
+.section-anchor {
+  margin-left: 8px;
+  font-weight: normal;
+  color: #bdbdbd;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.view-group > .listview:hover .section-anchor,
+.section-anchor:focus {
+  opacity: 1;
+}
+
+.section-anchor:hover {
+  color: #4a4a4a;
+  text-decoration: none;
+}
+
+/* Touch devices have no hover to reveal it, so keep it permanently visible there. */
+@media (hover: none) {
+  .section-anchor {
+    opacity: 1;
+  }
 }
 
 .view-group > .listview > [class*="col-"] {
