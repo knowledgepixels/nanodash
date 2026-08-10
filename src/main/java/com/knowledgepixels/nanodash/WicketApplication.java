@@ -147,6 +147,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(ErrorPage.MOUNT_PATH, ErrorPage.class);
         mountPage("/error/404", ErrorPage.class);
         mountPage("/error/500", ErrorPage.class);
+        mountPage(NanopubNotFoundPage.MOUNT_PATH, NanopubNotFoundPage.class);
 
         mountPage(UserPage.MOUNT_PATH, UserPage.class);
         mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);
@@ -191,6 +192,8 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(MaintainedResourcePage.MOUNT_PATH, MaintainedResourcePage.class);
         mountPage(ResourcePartPage.MOUNT_PATH, ResourcePartPage.class);
         mountPage(DownloadRdfPage.MOUNT_PATH, DownloadRdfPage.class);
+        mountPage(DownloadDocPage.MOUNT_PATH, DownloadDocPage.class);
+        mountPage(CalendarFeedPage.MOUNT_PATH, CalendarFeedPage.class);
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.component.DifferentKeyErrorItem;
+import com.knowledgepixels.nanodash.component.OutdatedSourceErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TemplateList;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -48,6 +49,9 @@ public class PublishPage extends NanodashPage {
                 add(new DifferentKeyErrorItem("form", parameters));
             } else if (TemplateData.get().getTemplate(parameters.get("template").toString()) == null) {
                 add(new Label("form", "<p class=\"negative\">Error: This template could not be loaded. It might be invalid or temporarily unavailable.</p>").setEscapeModelStrings(false));
+            } else if (PublishForm.isSourceOutdated(parameters)) {
+                // Don't even show the form: superseding/overriding is only possible on the latest version.
+                add(new OutdatedSourceErrorItem("form", parameters, getClass()));
             } else {
                 // No confirm page: after publishing, the form forwards to the context
                 // resource (or home), showing the new nanopub in the title bar message.

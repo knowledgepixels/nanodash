@@ -2,11 +2,14 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.junit.jupiter.api.Test;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +48,28 @@ class RestrictedChoiceTest {
         List<String> possibleValues = restrictedChoice.getPossibleValues();
 
         assertEquals(List.of("\"value1\"", "\"value2\""), possibleValues);
+    }
+
+    @Test
+    void getPossibleValuesKeepsArtifactCodeWildcardIrisForLocalResources() {
+        TemplateContext mockContext = mock(TemplateContext.class);
+        Template mockTemplate = mock(Template.class);
+        when(mockContext.getTemplate()).thenReturn(mockTemplate);
+        IRI placeholderIri = vf.createIRI("https://knowledgepixels.com/placeholder");
+        IRI refIri = vf.createIRI("https://knowledgepixels.com/ref");
+        when(mockTemplate.getPossibleValues(placeholderIri)).thenReturn(List.of(refIri));
+        when(mockTemplate.isPlaceholder(refIri)).thenReturn(true);
+        when(mockTemplate.isLocalResource(placeholderIri)).thenReturn(true);
+        Map<IRI, IModel<?>> componentModels = new HashMap<>();
+        componentModels.put(refIri, Model.of("https://w3id.org/peh/biochementities/~~ARTIFACTCODE~~"));
+        componentModels.put(vf.createIRI(refIri + "__1"), Model.of("https://w3id.org/peh/terms/BioChemEntity"));
+        componentModels.put(vf.createIRI(refIri + "__2"), Model.of("shortid"));
+        when(mockContext.getComponentModels()).thenReturn((Map) componentModels);
+
+        RestrictedChoice restrictedChoice = new RestrictedChoice(placeholderIri, mockContext);
+
+        assertEquals(List.of("https://w3id.org/peh/biochementities/~~ARTIFACTCODE~~", "shortid"),
+                restrictedChoice.getPossibleValues());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.component.TitleBar;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -13,6 +14,13 @@ public class ErrorPage extends NanodashPage {
      * The mount path for the error page.
      */
     public static final String MOUNT_PATH = "/error";
+
+    /**
+     * Page parameter holding an optional message with details about what went wrong. It
+     * is shown to the user, so it should explain the problem in plain words rather than
+     * expose internals.
+     */
+    public static final String MESSAGE_PARAM = "message";
 
     /**
      * {@inheritDoc}
@@ -31,6 +39,8 @@ public class ErrorPage extends NanodashPage {
     public ErrorPage(final PageParameters parameters) {
         super(parameters);
         add(new TitleBar("titlebar", this, null));
+        String message = parameters.get(MESSAGE_PARAM).toString("");
+        add(new Label("message", message).setVisible(!message.isBlank()));
     }
 
     /**

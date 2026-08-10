@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -8,13 +7,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.QueryRef;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -156,68 +152,6 @@ class DownloadRdfPageTest {
             assertTrue(result.endsWith("]\n"), "should end with ]");
             assertTrue(result.contains("test1"), "should contain first nanopub");
             assertTrue(result.contains("test2"), "should contain second nanopub");
-        }
-    }
-
-    @Nested
-    @DisplayName("retrieveResponseWithWait")
-    class RetrieveResponseWithWaitTest {
-
-        @Test
-        @DisplayName("should return response immediately when available")
-        void returnsImmediately() throws Exception {
-            QueryRef queryRef = mock(QueryRef.class);
-            ApiResponse expected = mock(ApiResponse.class);
-
-            try (MockedStatic<ApiCache> apiCache = mockStatic(ApiCache.class)) {
-                apiCache.when(() -> ApiCache.retrieveResponseSync(queryRef, false)).thenReturn(expected);
-
-                ApiResponse result = (ApiResponse) invokePrivate("retrieveResponseWithWait",
-                        new Class[]{QueryRef.class},
-                        queryRef);
-
-                assertSame(expected, result);
-                apiCache.verify(() -> ApiCache.retrieveResponseSync(queryRef, false), times(1));
-            }
-        }
-
-        @Test
-        @DisplayName("should return null when no result and not running")
-        void returnsNullWhenNotRunning() throws Exception {
-            QueryRef queryRef = mock(QueryRef.class);
-
-            try (MockedStatic<ApiCache> apiCache = mockStatic(ApiCache.class)) {
-                apiCache.when(() -> ApiCache.retrieveResponseSync(queryRef, false)).thenReturn(null);
-                apiCache.when(() -> ApiCache.isRunning(queryRef)).thenReturn(false);
-
-                ApiResponse result = (ApiResponse) invokePrivate("retrieveResponseWithWait",
-                        new Class[]{QueryRef.class},
-                        queryRef);
-
-                assertNull(result);
-            }
-        }
-
-        @Test
-        @DisplayName("should retry and return result when query finishes running")
-        void retriesWhileRunning() throws Exception {
-            QueryRef queryRef = mock(QueryRef.class);
-            ApiResponse expected = mock(ApiResponse.class);
-
-            try (MockedStatic<ApiCache> apiCache = mockStatic(ApiCache.class)) {
-                // First call: null (running), second call: result available
-                apiCache.when(() -> ApiCache.retrieveResponseSync(queryRef, false))
-                        .thenReturn(null)
-                        .thenReturn(expected);
-                apiCache.when(() -> ApiCache.isRunning(queryRef)).thenReturn(true);
-
-                ApiResponse result = (ApiResponse) invokePrivate("retrieveResponseWithWait",
-                        new Class[]{QueryRef.class},
-                        queryRef);
-
-                assertSame(expected, result);
-                apiCache.verify(() -> ApiCache.retrieveResponseSync(queryRef, false), times(2));
-            }
         }
     }
 

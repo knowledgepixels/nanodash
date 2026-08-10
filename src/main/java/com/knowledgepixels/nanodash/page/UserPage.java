@@ -173,7 +173,7 @@ public class UserPage extends NanodashPage {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, userIriString),
                         ReferencesPage.REFERENCES_VIEW));
             } else {
-                add(new DownloadRdfLinks("otherTab", "user", userIriString));
+                add(new DownloadLinks("otherTab", "user", userIriString));
             }
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));

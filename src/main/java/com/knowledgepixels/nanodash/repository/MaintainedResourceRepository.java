@@ -144,6 +144,15 @@ public class MaintainedResourceRepository {
     }
 
     /**
+     * Get all known maintained resources.
+     *
+     * @return The list of maintained resources, in no particular order.
+     */
+    public List<MaintainedResource> findAll() {
+        return new ArrayList<>(current().resourcesById.values());
+    }
+
+    /**
      * Find the maintained resources belonging to a given space.
      *
      * @param space The space to look up.

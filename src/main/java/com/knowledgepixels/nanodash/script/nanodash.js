@@ -149,6 +149,25 @@ $(document).on('mouseenter', '.actionmenu', function () {
   }
 });
 
+// A submenu flyout (e.g. the calendar menu's groups) opens to the right of its
+// parent menu; flip it leftward when the right edge of the viewport lacks room.
+$(document).on('mouseenter', '.actionmenu-subitem', function () {
+  var content = $(this).children('.actionmenu-subcontent');
+  if (!content.length) return;
+  var el = content[0];
+  el.style.left = '';
+  el.style.right = '';
+  var rect = this.getBoundingClientRect();
+  var spaceRight = window.innerWidth - rect.right;
+  if (spaceRight >= 250 || spaceRight >= rect.left) {
+    el.style.left = '100%';
+    el.style.right = 'auto';
+  } else {
+    el.style.left = 'auto';
+    el.style.right = '100%';
+  }
+});
+
 function adjustValueWidths() {
   if (window.innerWidth <= 768) return;
   limit = 251;

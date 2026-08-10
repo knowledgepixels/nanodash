@@ -274,6 +274,79 @@ details summary {
   padding-bottom: 6px;
 }
 
+/* Header views (issue #572): the title row is a flex row like .paneltitlerow, so
+   the view-display menu sits right-aligned outside the h3 (keeping it in the body
+   font); the underline moves from the h3 to the row so it still spans full width. */
+[class*="col-"].section-header .view-header-titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  border-bottom: 2px solid #bdbdbd;
+  /* ...and the trimmed space goes below the line instead. */
+  margin-bottom: 15px;
+}
+
+[class*="col-"].section-header .view-header-titlerow h3 {
+  flex: 1;
+  border-bottom: none;
+  /* The h3's default bottom margin now falls inside the row, above the border,
+     so trim it to keep the title close to the line. */
+  margin-bottom: 5px;
+  padding-bottom: 0;
+}
+
+/* Description text of a header view, shown below the title. */
+[class*="col-"].section-header p.view-header-description {
+  margin: 0 0 5px 0;
+  color: #666;
+}
+
+/* View groups (ViewList): lay the view panels out on a 12-column grid instead of
+   floats, so panels of different heights don't leave float-drop whitespace gaps.
+   Each .listview item wraps a single col-N view panel; the item mirrors the
+   panel's width class as its grid span, and the panel then fills its item. */
+.view-group {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: start;
+}
+
+.view-group::after {
+  content: none;
+}
+
+.view-group > .listview {
+  grid-column: span 12;
+  min-width: 0;
+}
+
+.view-group > .listview > [class*="col-"] {
+  float: none;
+  width: 100%;
+  /* Tighter vertical rhythm than the general 15px column padding; horizontal
+     padding stays at 15px so panels keep aligned with the other page columns. */
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Section headers (incl. header views) separate the sections, so give them a
+   clearly larger gap above than the regular view items' padding. */
+.view-group > .listview > [class*="col-"].section-header {
+  padding-top: 30px;
+}
+
+.view-group > .listview:has(> .col-1) { grid-column: span 1; }
+.view-group > .listview:has(> .col-2) { grid-column: span 2; }
+.view-group > .listview:has(> .col-3) { grid-column: span 3; }
+.view-group > .listview:has(> .col-4) { grid-column: span 4; }
+.view-group > .listview:has(> .col-5) { grid-column: span 5; }
+.view-group > .listview:has(> .col-6) { grid-column: span 6; }
+.view-group > .listview:has(> .col-7) { grid-column: span 7; }
+.view-group > .listview:has(> .col-8) { grid-column: span 8; }
+.view-group > .listview:has(> .col-9) { grid-column: span 9; }
+.view-group > .listview:has(> .col-10) { grid-column: span 10; }
+.view-group > .listview:has(> .col-11) { grid-column: span 11; }
+
 .columncontainer {
   display: flex;
   column-gap: 60px;
@@ -808,23 +881,23 @@ span.prelink {
   text-align: right;
 }
 
-/* Gray italic "– About" / "– Raw" suffix appended to a page title */
+/* Gray italic "– About" / "– Download" suffix appended to a page title */
 .title-suffix {
   color: #888888;
   font-style: italic;
   font-weight: normal;
 }
 
-/* Raw page content: subtitles + format link lists */
-.raw-subtitle {
+/* Download page content: subtitles + format link lists */
+.download-subtitle {
   font-weight: 700;
   margin: 0.7em 0 0.2em;
 }
-.raw-formats {
+.download-formats {
   margin: 0 0 0.5em;
   padding-left: 1.4em;
 }
-.raw-formats li {
+.download-formats li {
   line-height: 1.7;
 }
 
@@ -890,6 +963,12 @@ a.actionlink {
   min-width: 600px !important;
   margin-top: -1px;
   border-top: solid 1px #aaa;
+}
+
+/* Language-tag pickers get a compact dropdown (overrides the general min-width above
+   and the mobile override further down): */
+.select2-dropdown.select2-dropdown--below.langtag-dropdown {
+  min-width: 12em !important;
 }
 
 button.select2-selection__clear {
@@ -1040,6 +1119,9 @@ input[type=radio] + label strong {
   /* The chevron button sits at the right of its row, so the menu opens leftward
      (its right edge anchored to the button) rather than overflowing rightward. */
   right: 0;
+  /* Menus can sit inside a heading (e.g. next to a space title); their entries
+     stay in the body font rather than inheriting the heading's. */
+  font-family: Inter, Verdana, Helvetica, sans-serif, "Noto Emoji";
   border-color: #0B73DA !important;
   border-style: solid !important;
   border-width: 1px !important;
@@ -1137,6 +1219,72 @@ input[type=radio] + label strong {
   border-color: #0B73DA;
   background-color: transparent;
   color: #0B73DA;
+}
+
+/* Actions sitting next to a resource title: kept at body size and weight so they read
+   as a control rather than as part of the heading. */
+.title-actions {
+  font-size: 11pt;
+  font-weight: 400;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+/* Nested submenu inside a dropdown (e.g. the calendar menu): a group row whose entries
+   open in a flyout to the right on hover (nanodash.js flips it leftward when the right
+   edge lacks room). The flyout is deliberately NOT an .actionmenu-content, so the
+   menu-wide hover rule doesn't open it along with its parent; the entry links inside
+   still match the .actionmenu-content descendant rules. */
+.actionmenu-subitem {
+  position: relative;
+  display: block;
+}
+
+.actionmenu-subitem .actionmenu-sublabel {
+  color: #0b73da;
+  font-weight: bold;
+  padding: 8px 24px 8px 32px;
+  display: block;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Right-pointing chevron marking the row as opening a submenu. */
+.actionmenu-subitem .actionmenu-sublabel::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 8px;
+  border-right: 1px solid currentColor;
+  border-top: 1px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.actionmenu-subitem:hover > .actionmenu-sublabel {
+  background-color: #0B73DA;
+  color: #fff;
+}
+
+.actionmenu-subcontent {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -1px;
+  border: 1px solid #0B73DA;
+  border-radius: 2px;
+  background-color: #fff;
+  width: max-content;
+  max-width: 90vw;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.actionmenu-subitem:hover > .actionmenu-subcontent {
+  display: block;
 }
 
 
@@ -2818,6 +2966,9 @@ a.source:hover {
   [class*="col-"] {
     width: 100% !important;
     float: none;
+  }
+  .view-group > .listview {
+    grid-column: span 12 !important;
   }
 
   /* 2. Columncontainer (flex 2-col layout, used in TemplateList) */

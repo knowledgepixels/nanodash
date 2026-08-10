@@ -294,6 +294,27 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     }
 
     /**
+     * Fetches the applicable view displays synchronously from the API, bypassing the async
+     * singleton data. Used by the download pages, which need the displays within the current
+     * request; the resolution mirrors the page rendering (ref-scoped query for spaces,
+     * preset-supplied views, per-view-kind latest-wins).
+     *
+     * @param partId      the part IRI, or null for the resource's top-level displays
+     * @param partClasses the part's classes (ignored for top-level, where the resource's
+     *                    own classes are used)
+     * @return the applicable view displays, sorted by structural position
+     */
+    public List<ViewDisplay> fetchViewDisplaysSync(String partId, Set<IRI> partClasses) {
+        String vdRefRoot = getViewDisplayRefRoot();
+        QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
+                ? viewDisplaysRefQueryRef(vdRefRoot)
+                : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
+        boolean toplevel = (partId == null);
+        return filterViewDisplays(buildViewDisplays(vdQuery), toplevel,
+                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses);
+    }
+
+    /**
      * Builds {@link ViewDisplay} objects from a get-view-displays(-ref) query result (standalone
      * displays with a bound {@code ?display}, and preset-supplied views with an unbound one).
      */
@@ -303,19 +324,22 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         // Null on a cold cache or a failed (flaky federated) fetch — yield nothing for now; the
         // cache refreshes asynchronously and the page's auto-refresh repopulates it.
         if (response == null) return list;
+        // The unresolved query variant returns ?view as the referenced version, leaving
+        // latest-version resolution to us (View.get with resolveLatest=true, memoized;
+        // it also covers space-governed pins); the older resolved heads return ?view
+        // already latest-resolved server-side, so it is passed through as-is.
+        boolean viewsPreResolved = !QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED.equals(ref.getQueryId());
         for (ApiResponseEntry r : response.getData()) {
             try {
                 String display = r.get("display");
                 if (display != null && !display.isEmpty()) {
-                    // The query resolves ?view to its latest version server-side, so
-                    // pass it through to avoid a separate per-view latest-version lookup.
-                    list.add(ViewDisplay.get(display, r.get("view")));
+                    list.add(ViewDisplay.get(display, viewsPreResolved ? r.get("view") : null));
                 } else {
                     String view = r.get("view");
                     if (view == null || view.isEmpty()) continue;
                     boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
                     boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
-                    ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated);
+                    ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated, !viewsPreResolved);
                     if (vd != null) list.add(vd);
                 }
             } catch (IllegalArgumentException ex) {
@@ -329,7 +353,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         Multimap<String, String> params = ArrayListMultimap.create();
         params.put("resource", id);
         params.put("root_np", refRoot);
-        return new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS_REF, params);
+        return new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED, params);
     }
 
     /**

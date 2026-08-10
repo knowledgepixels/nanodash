@@ -68,7 +68,9 @@ public class RestrictedChoice implements Serializable {
         List<String> possibleValuesList = new ArrayList<>();
         for (String s : possibleValues) {
             if (context.getTemplate().isLocalResource(placeholderIri)) {
-                if (s.matches("https?://.+")) continue;
+                // Full URIs are not local, except artifact-code wildcard IRIs, which mint
+                // a new resource per publication just like local short IDs do.
+                if (s.matches("https?://.+") && !s.contains("~~ARTIFACTCODE~~")) continue;
             }
             possibleValuesList.add(s);
         }

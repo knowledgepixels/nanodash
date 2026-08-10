@@ -1,3 +1,88 @@
+## [5.8.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.7.0...nanodash-5.8.0) (2026-07-30)
+
+### Features
+
+* add calendar dropdown action for adding en Event to the calendar (through .ics file or Google calendar) ([8dd6c0b](https://github.com/knowledgepixels/nanodash/commit/8dd6c0b08d69293dd71a549c7550be9461bce86f))
+* add Google, Outlook and webcal calendar URL builders ([c4b5364](https://github.com/knowledgepixels/nanodash/commit/c4b5364801a84e7dec710e25a39069ac21a8950e))
+* add iCalendar event model and RFC 5545 writer ([8c3fdb2](https://github.com/knowledgepixels/nanodash/commit/8c3fdb224b2a18a4ed9d4d658e77370eadef15bc))
+* enhance calendar event functionality with title and location support ([88702c6](https://github.com/knowledgepixels/nanodash/commit/88702c6a7218a5db20f396a3c0f5f46bca9a520a))
+* **ErrorPage:** show details about what went wrong ([3bee6c9](https://github.com/knowledgepixels/nanodash/commit/3bee6c9c98a9d4aeb5f2ec2e6c877122af2613b3)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **NanopubLookup:** classify why a nanopub lookup failed, under a time budget ([c89c4c1](https://github.com/knowledgepixels/nanodash/commit/c89c4c164af49ebae169d756f607d33fadc6120f)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **NanopubNotFoundPage:** add page for nanopubs missing from the network ([cce4cd1](https://github.com/knowledgepixels/nanodash/commit/cce4cd1d31ba7035733b6388642579b46d8376fe)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* offer add-to-calendar and subscribe-to-events on space pages ([f5f73f6](https://github.com/knowledgepixels/nanodash/commit/f5f73f64e279446303227548afad9fe64d1a5042))
+* read event location and all-day dates from space definitions ([4f8a593](https://github.com/knowledgepixels/nanodash/commit/4f8a593004c820ef10d13e78b3157057b0edb4dd))
+* serve space calendars and event feeds at /calendar.ics ([0f12b70](https://github.com/knowledgepixels/nanodash/commit/0f12b70b2e9b24b4f94a6c7c0da63b89df7c3303))
+* **spaces:** turn calendar menu into space title menu with submenus and config shortcuts ([fb66363](https://github.com/knowledgepixels/nanodash/commit/fb66363caf1bdf1f11373003cfffa114dc4da06b))
+* **views:** add header views (gen:HeaderView) with title, description, and actions ([fb645b7](https://github.com/knowledgepixels/nanodash/commit/fb645b71589c9e5727d060c815889935b0ff5ca1)), closes [#572](https://github.com/knowledgepixels/nanodash/issues/572) [#572](https://github.com/knowledgepixels/nanodash/issues/572)
+* **views:** switch Content-tab displays to unresolved query with client-side version resolution ([23f7114](https://github.com/knowledgepixels/nanodash/commit/23f71146011200880b893aa88c064fec4e77c70b))
+
+### Bug Fixes
+
+* **ExplorePage, ViewPage:** route unresolvable nanopubs to the not-found page ([b78e1f6](https://github.com/knowledgepixels/nanodash/commit/b78e1f6851a4513486d544a2aa8f5333f423bcb6)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+* **lookup:** allow hyphens in OpenAIRE endpoint path when deriving URIs ([fbb044e](https://github.com/knowledgepixels/nanodash/commit/fbb044e4eb4f9a713ad7afe51161549e4b90deec))
+* remove event identification logic from Column populateItem class ([dc69da0](https://github.com/knowledgepixels/nanodash/commit/dc69da0636f4d7a355f760a2a662e56bde0469be))
+* resolve space types from the root assertion ([fc2f1b9](https://github.com/knowledgepixels/nanodash/commit/fc2f1b954fa25bb3ae8961e6fea1544901945822))
+* strip session ids from absolute page URLs ([61ed9db](https://github.com/knowledgepixels/nanodash/commit/61ed9dbeaf2f4e293962b42f32ec5d36e012e7d7))
+* **views:** lay out view groups on CSS grid to avoid float-drop whitespace ([b2e9062](https://github.com/knowledgepixels/nanodash/commit/b2e90625b5ea685e404d0cb558fb7ff1c55a1edb))
+
+### Documentation
+
+* describe the calendar integration design ([a9753da](https://github.com/knowledgepixels/nanodash/commit/a9753da6e22c9574f91c8636ae12acc0b73d51b8))
+
+### General maintenance
+
+* add calendar dropdown component for action selection ([1398ec7](https://github.com/knowledgepixels/nanodash/commit/1398ec7ba03233257fc06185b9936267c99427b5))
+* add DateTimeCalendarCell component with .ics download and Google Calendar integration ([704fade](https://github.com/knowledgepixels/nanodash/commit/704fade0102ef9603bd454d3c2659198e84cbdd4))
+* setting next snapshot version [skip ci] ([fa1e6a0](https://github.com/knowledgepixels/nanodash/commit/fa1e6a04722ec8f946b12417eaa187faf265214b))
+
+### Style improvements
+
+* **views:** tighten view item padding, add 30px gap above section headers ([e0df9c1](https://github.com/knowledgepixels/nanodash/commit/e0df9c1c1ab9454e317979b804cfc046e7b398d2))
+
+### Refactoring
+
+* drop datetime-string sniffing for calendar cells ([2cbaf8a](https://github.com/knowledgepixels/nanodash/commit/2cbaf8aeb53db0706951ca955eb643ad09a59fa7))
+* **NanopubLookup:** identify artifact codes via trustyuri-java ([bc4a73e](https://github.com/knowledgepixels/nanodash/commit/bc4a73ef1e0e0ce43f321d01c86aa3e5ff2c6721)), closes [#270](https://github.com/knowledgepixels/nanodash/issues/270)
+
+## [5.7.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.6.0...nanodash-5.7.0) (2026-07-28)
+
+### Features
+
+* allow artifact-code wildcard IRIs in local-resource choice dropdowns ([86a7489](https://github.com/knowledgepixels/nanodash/commit/86a74897b737318980de8b422a5be20cdb0deae8))
+* language-tag picker for literal placeholders ([f07c8a0](https://github.com/knowledgepixels/nanodash/commit/f07c8a0b6d2d46693c37205affbea96f2bb42486))
+* **PreviewPage:** prevent publishing of non-latest nanopublications from preview ([b9effcb](https://github.com/knowledgepixels/nanodash/commit/b9effcbbae3d93989b9ae72a56f4d288028b3577))
+* **PublishForm, GenPublishPage, PreviewPage, PublishPage:** implement checks for superseding/overriding only on the latest nanopublication version ([3b44daf](https://github.com/knowledgepixels/nanodash/commit/3b44daf57dd0d24dd811cf1c47d303b3c0ba27c9))
+* **PublishForm, PreviewPage:** add check for latest nanopublication version when overriding in addition to superseding (no longer checking on retraction) ([fa5d246](https://github.com/knowledgepixels/nanodash/commit/fa5d24620c530fb21f9030b41fd7e67c88808f7c))
+* **PublishForm:** disable preview/publish on update/retract action of a nanopub that has a newer version ([2a50c2b](https://github.com/knowledgepixels/nanodash/commit/2a50c2b04e6203c79af0b456e10d15c39ff74f9c))
+* report and block templates with literals in subject/predicate position ([b0ec11f](https://github.com/knowledgepixels/nanodash/commit/b0ec11f36d2d7bead9682ac9157b64deaa76897d))
+* **Utils:** add date checker for date only literals ([74eb7eb](https://github.com/knowledgepixels/nanodash/commit/74eb7eb680bbb8176e3c42bf024070d0677dd1a9))
+
+### Bug Fixes
+
+* keep literal placeholder values with datatypes other than date/dateTime ([30114c1](https://github.com/knowledgepixels/nanodash/commit/30114c1ee78112a63c031ac4a7b3a09796cb25fd)), closes [#564](https://github.com/knowledgepixels/nanodash/issues/564)
+* reinstate typed-literal branch lost in [#559](https://github.com/knowledgepixels/nanodash/issues/559) merge ([20aada9](https://github.com/knowledgepixels/nanodash/commit/20aada9091c1bb2c7a0b733ce0efb0fc8ef28a1e)), closes [#565](https://github.com/knowledgepixels/nanodash/issues/565) [#564](https://github.com/knowledgepixels/nanodash/issues/564)
+
+### Documentation
+
+* design for language-tag picker on literal placeholders ([809bff5](https://github.com/knowledgepixels/nanodash/commit/809bff55b85f634e74e79387a9d6420872f63353))
+* design for local Claude Code chat via MCP (Tier 2 of [#434](https://github.com/knowledgepixels/nanodash/issues/434)) ([e89f67f](https://github.com/knowledgepixels/nanodash/commit/e89f67f90fcfffee171155eacb29bc44bfb46960))
+
+### Tests
+
+* add date and datetime literal validation tests ([89d3522](https://github.com/knowledgepixels/nanodash/commit/89d3522386b7c3f12a4a28e9672db74f0d9d4163))
+* **UtilsTest:** remove test for incomplete time ([b16ec84](https://github.com/knowledgepixels/nanodash/commit/b16ec84aa08e879cfeb9529fe65bb3e24df2539a))
+
+### General maintenance
+
+* add OutdatedSourceErrorItem panel to handle non-latest nanopublication errors ([f8be3d5](https://github.com/knowledgepixels/nanodash/commit/f8be3d5f8ab0dc93023cc10f476839fde61b7d42))
+* **NanopubAction:** update template URI for approval, comment, and retraction ([e44cc4a](https://github.com/knowledgepixels/nanodash/commit/e44cc4aa916ceef7f348bfcd1bb4a807a53a41a6))
+* **QueryResult:** update date handling to use consistent date format for date/datetime literals ([660f206](https://github.com/knowledgepixels/nanodash/commit/660f206493e786bffe47a1f63eee6e078d49c6f7))
+* setting next snapshot version [skip ci] ([16a3e7a](https://github.com/knowledgepixels/nanodash/commit/16a3e7a11bf148bae3af2c11ca0252c656958e20))
+
+### Refactoring
+
+* **PublishForm:** reuse existing method for latest version check ([cc4285c](https://github.com/knowledgepixels/nanodash/commit/cc4285c5c18a95f4ef27f15d610f4b18a6fc7703))
+
 ## [5.6.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.5.1...nanodash-5.6.0) (2026-07-14)
 
 ### Features

@@ -16,8 +16,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  * Tab strip shown at the top of a resource's page, switching between the
  * <b>Content</b> tab (the rendered view displays), the <b>About</b> tab (the
  * listing of roles/presets/view displays), the <b>Explore</b> tab (the generic
- * exploration panels and references), and the <b>Raw</b> tab (the downloadable
- * RDF of all nanopubs on the page).
+ * exploration panels and references), and the <b>Download</b> tab (the
+ * downloadable document and RDF formats of the page).
  *
  * <p>All tabs are the same page, selected via the {@code tab} query parameter
  * ({@code content} is the default and carries no parameter). Parts
@@ -28,7 +28,7 @@ public class ResourceTabs extends Panel {
     /**
      * Which tab is currently shown (rendered as the selected tab).
      */
-    public enum Tab {CONTENT, ABOUT, EXPLORE, RAW}
+    public enum Tab {CONTENT, ABOUT, EXPLORE, DOWNLOAD}
 
     /**
      * Maps the {@code tab} query parameter to a {@link Tab} (defaulting to
@@ -44,8 +44,9 @@ public class ResourceTabs extends Panel {
                 return Tab.ABOUT;
             case "explore":
                 return Tab.EXPLORE;
-            case "raw":
-                return Tab.RAW;
+            case "download":
+            case "raw": // legacy name of the Download tab, kept for old bookmarks
+                return Tab.DOWNLOAD;
             default:
                 return Tab.CONTENT;
         }
@@ -119,7 +120,7 @@ public class ResourceTabs extends Panel {
             add(new WebMarkupContainer("about-tab").setVisible(false));
         }
         add(tabLink("explore-tab", pageClass, params(resourceId, contextId, "explore", root), active == Tab.EXPLORE));
-        add(tabLink("raw-tab", pageClass, params(resourceId, contextId, "raw", root), active == Tab.RAW));
+        add(tabLink("download-tab", pageClass, params(resourceId, contextId, "download", root), active == Tab.DOWNLOAD));
     }
 
     /**
@@ -127,7 +128,7 @@ public class ResourceTabs extends Panel {
      * standalone {@link ExplorePage}. Unlike the resource variants this carries
      * the page's full parameter set (minus {@code tab}) across tab switches so
      * the resolved id, context and label are preserved, and it has neither an
-     * About nor a Raw tab.
+     * About nor a Download tab.
      *
      * @param id         the Wicket markup id
      * @param baseParams the explore page's parameters to preserve across tabs
@@ -144,7 +145,7 @@ public class ResourceTabs extends Panel {
         add(tabLink("content-tab", ExplorePage.class, contentParams, active == Tab.CONTENT));
         add(new WebMarkupContainer("about-tab").setVisible(false));
         add(tabLink("explore-tab", ExplorePage.class, exploreParams, active == Tab.EXPLORE));
-        add(new WebMarkupContainer("raw-tab").setVisible(false));
+        add(new WebMarkupContainer("download-tab").setVisible(false));
     }
 
     /**
@@ -160,8 +161,8 @@ public class ResourceTabs extends Panel {
                 return " – About";
             case EXPLORE:
                 return " – Explore";
-            case RAW:
-                return " – Raw";
+            case DOWNLOAD:
+                return " – Download";
             default:
                 return "";
         }

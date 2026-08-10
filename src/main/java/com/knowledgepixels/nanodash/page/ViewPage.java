@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Base64;
 
 import com.knowledgepixels.nanodash.NanopubElement;
+import com.knowledgepixels.nanodash.NanopubLookup;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
@@ -62,8 +63,13 @@ public class ViewPage extends NanodashPage {
                 throw new RuntimeException("Failed to parse nanopub from '_nanopub_trig' parameter", ex);
             }
         } else {
-            String ref = parameters.get("id").toString();
-            np = Utils.getAsNanopub(ref);
+            // Nothing to show without the nanopub itself, so a failed lookup goes to the
+            // not-found page (or, for a malformed id, the error page explaining why).
+            NanopubLookup lookup = NanopubLookup.lookUp(parameters.get("id").toString());
+            if (!lookup.isFound()) {
+                NanopubNotFoundPage.forwardFor(lookup);
+            }
+            np = lookup.getNanopub();
         }
         boolean showHeader = "on".equals(parameters.get("show-header").toOptionalString());
         boolean showFooter = "on".equals(parameters.get("show-footer").toOptionalString());

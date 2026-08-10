@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -86,6 +87,18 @@ public class TemplateFormPreview extends Panel {
             c.initStatements();
             c.finalizeStatements();
         }
+
+        // Statements that cannot produce valid RDF (e.g. a literal in subject position) are
+        // listed above the form, which still renders so the problem can be located in it.
+        List<String> statementErrors = template.getStatementErrors();
+        WebMarkupContainer errorSection = new WebMarkupContainer("errors");
+        errorSection.add(new ListView<String>("error", statementErrors) {
+            protected void populateItem(ListItem<String> item) {
+                item.add(new Label("errormessage", item.getModelObject()));
+            }
+        });
+        errorSection.setVisible(!statementErrors.isEmpty());
+        add(errorSection);
 
         // Build the form (needed for Wicket form components to render, but no submit action)
         Form<?> form = new Form<Void>("form");
