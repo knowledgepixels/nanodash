@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GovernedVersions;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import net.trustyuri.TrustyUriUtils;
@@ -109,6 +110,9 @@ public class StatusLine extends Panel {
                 BookmarkablePageLink<Void> link = new BookmarkablePageLink<>("npLink",
                         ExplorePage.class,
                         new PageParameters().add("id", id));
+                // Following a version link shouldn't drop out of the space/user/resource
+                // the nanopublication was reached under.
+                link.add(NavigationContext.pageContextFallback());
                 link.add(new Label("npLabel", shortLabel));
                 item.add(link);
             }
