@@ -13,12 +13,13 @@ import java.util.Set;
  * {@code https://w3id.org/spaces/nanosuggestions#messages}.
  *
  * <p>The anchor of a section is a slug of its <em>title</em> — what the reader sees as
- * the section heading — because that is what makes a shared link self-explanatory.
- * When a view display has no title, the label part of its
- * {@link ViewDisplay#getStructuralPosition() structural position} (e.g. {@code papers}
- * of {@code "4.4.papers"}) is used instead, and failing that the generic
- * {@code "view"}. Anchors are made unique within the page by appending {@code -2},
- * {@code -3}, … to later duplicates.</p>
+ * the section heading — because that is what makes a shared link self-explanatory. That
+ * heading is the view display's own title when it has one, and the label of its query
+ * otherwise, exactly as the view panels render it. When neither yields anything, the
+ * label part of the {@link ViewDisplay#getStructuralPosition() structural position}
+ * (e.g. {@code papers} of {@code "4.4.papers"}) is used instead, and failing that the
+ * generic {@code "view"}. Anchors are made unique within the page by appending
+ * {@code -2}, {@code -3}, … to later duplicates.</p>
  *
  * <p>Anchors are therefore <em>stable as long as the titles are</em>: renaming a view
  * breaks links to it, the same way it does on any documentation site. Positions within
@@ -84,11 +85,34 @@ public class ViewAnchors {
      * @return a non-empty slug
      */
     private static String baseAnchor(ViewDisplay viewDisplay) {
-        String fromTitle = slugify(viewDisplay.getTitle());
+        String fromTitle = slugify(displayedTitle(viewDisplay));
         if (!fromTitle.isEmpty()) return fromTitle;
         String fromPosition = slugify(positionLabel(viewDisplay.getStructuralPosition()));
         if (!fromPosition.isEmpty() && !fromPosition.equals(DEFAULT_POSITION_LABEL)) return fromPosition;
         return FALLBACK_ANCHOR;
+    }
+
+    /**
+     * The heading a view display actually renders. A view display without a title of its
+     * own is not an untitled section: every query-result panel then shows the label of
+     * the view's query as the heading (see e.g.
+     * {@code QueryResultNanopubSet}), so the anchor has to follow the same fallback —
+     * otherwise such a section ends up with the meaningless {@code "view"} anchor while
+     * carrying a perfectly good heading.
+     *
+     * <p>An explicitly empty title ({@code ViewDisplay.withTitle("")}) means "hide the
+     * heading" rather than "no title given", so it does not fall through to the query
+     * label.</p>
+     *
+     * @param viewDisplay the view display
+     * @return the heading text, or null if the section shows none
+     */
+    private static String displayedTitle(ViewDisplay viewDisplay) {
+        if (viewDisplay.getTitle() != null) return viewDisplay.getTitle();
+        View view = viewDisplay.getView();
+        // Header views have no query; the panel then shows the title only, i.e. nothing.
+        if (view == null || view.getQuery() == null) return null;
+        return view.getQuery().getLabel();
     }
 
     /**

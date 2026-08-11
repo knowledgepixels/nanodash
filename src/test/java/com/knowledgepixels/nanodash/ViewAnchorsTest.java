@@ -18,6 +18,19 @@ class ViewAnchorsTest {
         return vd;
     }
 
+    /**
+     * A view display with no title of its own, showing the label of its query as heading.
+     */
+    private static ViewDisplay queryLabelledViewDisplay(String queryLabel, String structuralPosition) {
+        ViewDisplay vd = viewDisplay(null, structuralPosition);
+        GrlcQuery query = mock(GrlcQuery.class);
+        when(query.getLabel()).thenReturn(queryLabel);
+        View view = mock(View.class);
+        when(view.getQuery()).thenReturn(query);
+        when(vd.getView()).thenReturn(view);
+        return vd;
+    }
+
     @Test
     void slugifyMakesFragmentIdentifiersFromTitles() {
         assertEquals("messages", ViewAnchors.slugify("Messages"));
@@ -54,6 +67,19 @@ class ViewAnchorsTest {
                 ViewAnchors.forViewDisplays(List.of(
                         viewDisplay("Highlightings", "4.4.highlightings"),
                         viewDisplay("💬 Messages", "4.5.messages"))));
+    }
+
+    @Test
+    void anchorsComeFromTheQueryLabelWhenTheViewDisplayHasNoTitleOfItsOwn() {
+        // What such a section shows as heading is the query's label (every query-result
+        // panel falls back to it), so that is what the anchor has to be named after.
+        assertEquals(List.of("latest-nanopublications"),
+                ViewAnchors.forViewDisplays(List.of(
+                        queryLabelledViewDisplay("Latest Nanopublications", "5.5.default"))));
+        // An explicitly empty title hides the heading, so it does not reach for the label.
+        ViewDisplay untitled = queryLabelledViewDisplay("Latest Nanopublications", "5.5.default");
+        when(untitled.getTitle()).thenReturn("");
+        assertEquals(List.of("view"), ViewAnchors.forViewDisplays(List.of(untitled)));
     }
 
     @Test

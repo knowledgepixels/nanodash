@@ -80,6 +80,9 @@ function renderFriendlyDates(root) {
 function addSectionAnchors(root) {
   var scope = root || document;
   scope.querySelectorAll(".view-group > .listview[id]").forEach(function (section) {
+    // A section without a real fragment identifier gets no handle: a "#" whose href is
+    // the bare "#" would look like a section link and jump to the top of the page.
+    if (!section.id) return;
     // The panel's own title row; the fallback catches title markup we don't know about.
     var heading = section.querySelector(".paneltitlerow > h3, .paneltitlerow > h4, .paneltitlerow > h5, .view-header-titlerow > h3")
         || section.querySelector("h3, h4, h5");
