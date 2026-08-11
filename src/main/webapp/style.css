@@ -2622,6 +2622,17 @@ div.navigator .goto a[disabled] {
   margin: 0;
 }
 
+/* SVG view figures: scale down diagrams wider than the panel, keep ratio. */
+.svg-view-content {
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.svg-view-content svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .paragraph-header span.buttons {
   float: none;
   margin: 0;

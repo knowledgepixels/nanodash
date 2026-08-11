@@ -69,6 +69,13 @@ public class QueryResultComponentFactory {
                     .contextId(contextId)
                     .refRoot(refRoot)
                     .build();
+        } else if (viewType.equals(KPXL_TERMS.SVG_VIEW)) {
+            return QueryResultSvgBuilder.create(markupId, queryRef, viewDisplay)
+                    .pageResource(resourceWithProfile)
+                    .contextId(contextId)
+                    .id(id)
+                    .refRoot(refRoot)
+                    .build();
         } else if (viewType.equals(KPXL_TERMS.ITEM_LIST_VIEW)) {
             return QueryResultItemListBuilder.create(markupId, queryRef, viewDisplay)
                     .resourceWithProfile(resourceWithProfile)
