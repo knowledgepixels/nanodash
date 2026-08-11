@@ -70,7 +70,9 @@ Authoring notes:
   fit fixed-width boxes.
 
 The figure container (`.svg-view-content`) scales diagrams wider than their panel
-down to fit (`max-width: 100%`).
+down to fit (`max-width: 100%`), and text inside `a` links takes the page's link
+color and hover color via CSS (overriding the SVG's own `fill` attributes, which
+thus serve as the fallback for standalone rendering of the query output).
 
 ## Example
 

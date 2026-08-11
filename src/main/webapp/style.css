@@ -2633,6 +2633,19 @@ div.navigator .goto a[disabled] {
   height: auto;
 }
 
+/* Links in SVG-view figures follow the page's link colors (matching the a /
+   a:hover rules above). CSS overrides the SVG's own fill presentation
+   attributes, which queries keep as a fallback for standalone rendering. */
+.svg-view-content a text,
+.svg-view-content a tspan {
+  fill: #0b73da;
+}
+
+.svg-view-content a:hover text,
+.svg-view-content a:hover tspan {
+  fill: #6eb2f7;
+}
+
 .paragraph-header span.buttons {
   float: none;
   margin: 0;
