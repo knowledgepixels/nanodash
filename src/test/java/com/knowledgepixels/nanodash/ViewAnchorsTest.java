@@ -38,6 +38,10 @@ class ViewAnchorsTest {
         assertEquals("messages", ViewAnchors.slugify("💬 Messages"));
         assertEquals("open-tasks", ViewAnchors.slugify("Open tasks"));
         assertEquals("papers-preprints", ViewAnchors.slugify("Papers & preprints"));
+        // Letterlike emoji decompose into real letters, so they have to go before that:
+        // otherwise "ℹ️ Info" slugs to "i-info" and "™ Trademark" to "tm-trademark".
+        assertEquals("info", ViewAnchors.slugify("ℹ️ Info"));
+        assertEquals("trademark", ViewAnchors.slugify("™ Trademark"));
         // Accents fold onto their base letter rather than being dropped.
         assertEquals("ubersicht", ViewAnchors.slugify("Übersicht"));
     }

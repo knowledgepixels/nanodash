@@ -189,15 +189,19 @@ public class ViewAnchors {
      * Turns a human-readable string into a fragment-identifier slug: lower-case ASCII
      * letters and digits, separated by single hyphens. Accents are folded onto their base
      * letter ("Übersicht" → "ubersicht"); everything else that is not a letter or digit
-     * (spaces, punctuation, emoji — titles here often lead with one) becomes a separator.
-     * A slug starting with a digit is prefixed, so it stays usable as a CSS id selector.
+     * (spaces, punctuation) becomes a separator. A slug starting with a digit is prefixed,
+     * so it stays usable as a CSS id selector.
+     *
+     * <p>Emoji — titles here often lead with one — are dropped up front rather than left
+     * to the non-alphanumeric rule, because the letterlike ones decompose into real
+     * letters: "ℹ️ Info" would otherwise slug to "i-info" and "™" to "tm".</p>
      *
      * @param text the text to slugify, or null
      * @return the slug, possibly empty if the text has no usable characters
      */
     public static String slugify(String text) {
         if (text == null) return "";
-        String slug = Normalizer.normalize(text, Normalizer.Form.NFKD)
+        String slug = Normalizer.normalize(text.replaceAll("\\p{IsExtended_Pictographic}", ""), Normalizer.Form.NFKD)
                 .replaceAll("\\p{M}+", "")
                 .toLowerCase(Locale.ROOT)
                 .replaceAll("[^a-z0-9]+", "-")

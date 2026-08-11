@@ -33,7 +33,9 @@ order:
 Slugging (`ViewAnchors.slugify`) lower-cases, folds accents onto their base
 letter (`Übersicht` → `ubersicht`), and turns every other non-alphanumeric run
 into a single hyphen — so a leading emoji, which view titles often carry, simply
-disappears: `💬 Messages` → `messages`. Slugs are capped at 60 characters at a
+disappears: `💬 Messages` → `messages`. Emoji are dropped *before* that folding,
+because the letterlike ones decompose into real letters and would otherwise leak
+into the anchor: `ℹ️ Info` → `info`, not `i-info`. Slugs are capped at 60 characters at a
 word boundary, and a digit-initial slug gets a `view-` prefix so it stays usable
 as a CSS id selector.
 
