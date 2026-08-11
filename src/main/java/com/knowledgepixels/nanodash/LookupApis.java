@@ -61,6 +61,30 @@ public class LookupApis {
     }
 
     /**
+     * Picks the name to display for a ROR record. The ROR API does not order the names by
+     * display preference, so the entry flagged "ror_display" is used, falling back to a
+     * "label" entry and finally to the first name given.
+     *
+     * @param namesArray the "names" array of a ROR record (must not be empty)
+     * @return the name to show to the user
+     */
+    private static String getRorDisplayName(JSONArray namesArray) {
+        String labelName = null;
+        for (int i = 0; i < namesArray.length(); i++) {
+            JSONObject nameObject = namesArray.getJSONObject(i);
+            JSONArray types = nameObject.optJSONArray("types");
+            if (types == null) continue;
+            for (int j = 0; j < types.length(); j++) {
+                String type = types.getString(j);
+                if ("ror_display".equals(type)) return nameObject.getString("value");
+                if ("label".equals(type) && labelName == null) labelName = nameObject.getString("value");
+            }
+        }
+        if (labelName != null) return labelName;
+        return namesArray.getJSONObject(0).getString("value");
+    }
+
+    /**
      * Fetches possible values from an API based on the provided search term.
      *
      * @param apiString  the API endpoint URL to query
@@ -189,7 +213,7 @@ public class LookupApis {
                     String uri = responseArray.getJSONObject(i).getString("id");
                     JSONArray namesArray = responseArray.getJSONObject(i).getJSONArray("names");
                     if (namesArray.length() == 0) continue;
-                    String label = namesArray.getJSONObject(0).getString("value");
+                    String label = getRorDisplayName(namesArray);
                     if (!values.contains(uri)) {
                         values.add(uri);
                         labelMap.put(uri, label);

@@ -47,6 +47,19 @@ class LookupApisTest {
     private static final String ROR_FIXTURE =
             "{\"items\":[{\"id\":\"https://ror.org/03vek6s52\",\"names\":[{\"value\":\"Harvard University\"}]}]}";
 
+    // The ROR API does not order names by display preference: here the display name comes last.
+    private static final String ROR_TYPED_NAMES_FIXTURE =
+            "{\"items\":[{\"id\":\"https://ror.org/04pp8hn57\",\"names\":[" +
+            "{\"types\":[\"alias\"],\"value\":\"Rijksuniversiteit Utrecht\"}," +
+            "{\"types\":[\"label\"],\"value\":\"Universiteit Utrecht\"}," +
+            "{\"types\":[\"ror_display\",\"label\"],\"value\":\"Utrecht University\"}]}]}";
+
+    // A record with names but no "ror_display" entry falls back to the "label" one.
+    private static final String ROR_NO_DISPLAY_FIXTURE =
+            "{\"items\":[{\"id\":\"https://ror.org/05mggs005\",\"names\":[" +
+            "{\"types\":[\"acronym\"],\"value\":\"PAMM\"}," +
+            "{\"types\":[\"label\"],\"value\":\"Stichting PAMM\"}]}]}";
+
     private static final String OPENAIRE_FIXTURE =
             "{\"results\":[{\"id\":\"abc123\",\"mainTitle\":\"Test Item\"}]}";
 
@@ -242,6 +255,30 @@ class LookupApisTest {
         assertValuesWithLabels(labelMap, values);
         assertTrue(values.stream().allMatch(v -> v.startsWith("https://ror.org/")),
                 "All URIs should be ROR organization URIs");
+    }
+
+    @Test
+    void getPossibleValues_rorPrefersDisplayName() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockHttp(ROR_TYPED_NAMES_FIXTURE)) {
+            LookupApis.getPossibleValues("https://api.ror.org/organizations?query=", "utrecht", labelMap, values);
+        }
+        assertValuesWithLabels(labelMap, values);
+        assertEquals("Utrecht University", labelMap.get("https://ror.org/04pp8hn57"),
+                "The name flagged ror_display should be used, not the first one listed");
+    }
+
+    @Test
+    void getPossibleValues_rorFallsBackToLabelName() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockHttp(ROR_NO_DISPLAY_FIXTURE)) {
+            LookupApis.getPossibleValues("https://api.ror.org/organizations?query=", "pamm", labelMap, values);
+        }
+        assertValuesWithLabels(labelMap, values);
+        assertEquals("Stichting PAMM", labelMap.get("https://ror.org/05mggs005"),
+                "Without a ror_display name, the label name should be used");
     }
 
     @Test
