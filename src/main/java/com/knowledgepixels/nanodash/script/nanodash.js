@@ -71,15 +71,16 @@ function renderFriendlyDates(root) {
   });
 }
 
-/* Section anchors — every view display of a page carries a fragment identifier on its
-   wrapping .listview element (server-side, see ViewAnchors/ViewList), so a single
-   section can be linked to: ".../space?id=...#messages". Here we make that linkable
-   from the page: a "#" handle next to each section title that both navigates to the
-   section and copies the full link. Idempotent, so it can re-run after Wicket AJAX
-   has added more sections. */
+/* Section anchors — every view display of a page carries a fragment identifier
+   (server-side, see ViewAnchors): on its wrapping .listview element where ViewList
+   renders it, and on the panel itself (.view-section) on the pages that build their
+   view panels directly. Either way a single section can be linked to:
+   ".../space?id=...#messages". Here we make that linkable from the page: a "#" handle
+   next to each section title that both navigates to the section and copies the full
+   link. Idempotent, so it can re-run after Wicket AJAX has added more sections. */
 function addSectionAnchors(root) {
   var scope = root || document;
-  scope.querySelectorAll(".view-group > .listview[id]").forEach(function (section) {
+  scope.querySelectorAll(".view-group > .listview[id], .view-section[id]").forEach(function (section) {
     // A section without a real fragment identifier gets no handle: a "#" whose href is
     // the bare "#" would look like a section link and jump to the top of the page.
     if (!section.id) return;

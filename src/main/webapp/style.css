@@ -323,6 +323,12 @@ details summary {
   scroll-margin-top: 16px;
 }
 
+/* Panels that are their own section, on the pages that render view panels directly
+   instead of through ViewList — same air above them when linked to. */
+.view-section {
+  scroll-margin-top: 16px;
+}
+
 /* The "#" handle appended to a section title (nanodash.js), giving a copyable link to
    that section. Kept faint until the section is hovered, so it doesn't compete with
    the title itself. */
@@ -340,6 +346,7 @@ details summary {
 }
 
 .view-group > .listview:hover .section-anchor,
+.view-section:hover .section-anchor,
 .section-anchor:focus {
   opacity: 1;
 }

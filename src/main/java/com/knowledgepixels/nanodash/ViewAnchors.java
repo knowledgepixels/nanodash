@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
+
+import java.io.Serializable;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,18 +68,67 @@ public class ViewAnchors {
      * @return one anchor per view display, in the same order; all distinct
      */
     public static List<String> forViewDisplays(List<ViewDisplay> viewDisplays) {
+        Allocator allocator = new Allocator();
         List<String> anchors = new ArrayList<>(viewDisplays.size());
-        Set<String> used = new HashSet<>(RESERVED_IDS);
         for (ViewDisplay viewDisplay : viewDisplays) {
+            anchors.add(allocator.next(viewDisplay));
+        }
+        return anchors;
+    }
+
+    /**
+     * Class marking an element as a linkable view section for the client side
+     * (see {@code nanodash.js}), used where the section is a view panel rendered directly
+     * by a page rather than a {@code ViewList} item.
+     */
+    public static final String SECTION_CLASS = "view-section";
+
+    /**
+     * Hands out the anchors of one page, keeping them distinct from each other and from
+     * the page chrome's own ids.
+     *
+     * <p>Pages that render their view panels themselves instead of through
+     * {@link com.knowledgepixels.nanodash.component.ViewList} — the list pages, the
+     * explore page, … — have no list item to carry the anchor, so {@link #anchor} puts it
+     * on the panel itself.</p>
+     */
+    public static class Allocator implements Serializable {
+
+        private final Set<String> used = new HashSet<>(RESERVED_IDS);
+
+        /**
+         * The anchor of the next section of the page.
+         *
+         * @param viewDisplay the view display rendered as that section
+         * @return an anchor distinct from every one handed out before it
+         */
+        public String next(ViewDisplay viewDisplay) {
             String base = baseAnchor(viewDisplay);
             String candidate = base;
             int n = 2;
             while (!used.add(candidate)) {
                 candidate = base + "-" + n++;
             }
-            anchors.add(candidate);
+            return candidate;
         }
-        return anchors;
+
+        /**
+         * Makes a view panel a linkable section of the page. The anchor becomes the
+         * panel's <em>markup id</em> rather than a plain {@code id} attribute, so Wicket
+         * addresses the panel by it for its own Ajax updates too and the anchor survives
+         * the lazy load of the query results.
+         *
+         * @param panel       the view panel, as returned by one of the query-result builders
+         * @param viewDisplay the view display it renders
+         * @param <C>         the panel's type
+         * @return the panel, for chaining into {@code add(…)}
+         */
+        public <C extends Component> C anchor(C panel, ViewDisplay viewDisplay) {
+            panel.setMarkupId(next(viewDisplay));
+            panel.add(AttributeAppender.append("class", SECTION_CLASS));
+            return panel;
+        }
+
     }
 
     /**

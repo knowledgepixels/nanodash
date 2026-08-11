@@ -61,12 +61,24 @@ loading over Ajax.
 That covers every page that renders views through `ViewList`: spaces, users,
 maintained resources, projects, and resource parts.
 
+Some pages assemble their view panels themselves instead (the list pages, the
+explore page, …), so there is no list item to carry the anchor. They hand out
+their own anchors with `ViewAnchors.Allocator` — same derivation, same
+page-wide uniqueness — and `Allocator.anchor(panel, viewDisplay)` puts each one
+on the panel, as its **markup id** plus the marker class `view-section`. Using
+the markup id rather than a plain `id` attribute matters: a panel whose query
+results are still loading replaces itself over Ajax, and Wicket addresses it by
+exactly that id, so the anchor survives the swap. Done so far for the user list
+page (`UserListPage`).
+
 ## Linking and scrolling (`nanodash.js`)
 
 - `addSectionAnchors()` appends a faint `#` handle to each section title
-  (`.paneltitlerow > h4`, `.view-header-titlerow > h3`, …) — but only to sections
-  that actually carry a fragment identifier, so a handle is never a link to the
-  bare `#` (i.e. to the top of the page). It is a real link to
+  (`.paneltitlerow > h4`, `.view-header-titlerow > h3`, …) of every section it
+  finds — `.view-group > .listview[id]` for `ViewList` pages, `.view-section[id]`
+  for the panels that are their own section — but only to sections that actually
+  carry a fragment identifier, so a handle is never a link to the bare `#` (i.e.
+  to the top of the page). It is a real link to
   the fragment, and clicking it additionally copies the **absolute** link to the
   clipboard with the usual toast. It is idempotent and re-runs after Wicket Ajax,
   so sections that appear later get their handle too.
@@ -76,8 +88,8 @@ maintained resources, projects, and resource parts.
   target as sections arrive, until the page settles (15 s) or the user scrolls
   themselves — whichever comes first. `hashchange` restarts the tracking.
 
-`.view-group > .listview` carries a `scroll-margin-top` so a linked section
-doesn't land flush against the top of the viewport.
+`.view-group > .listview` and `.view-section` carry a `scroll-margin-top` so a
+linked section doesn't land flush against the top of the viewport.
 
 The handle also has to be the **topmost element** where it is drawn, which is not
 free: a title row can carry positioned overlays — the nanopub-set view pins its
@@ -92,7 +104,7 @@ at `z-index: 1`.
 | Concern | Location |
 | --- | --- |
 | Anchor derivation + uniqueness | `ViewAnchors.java` |
-| Setting the `id` on each section | `component/ViewList.java` |
+| Setting the `id` on each section | `component/ViewList.java`, `ViewAnchors.Allocator` for pages building their own panels (`page/UserListPage.java`) |
 | "#" handle, copy-link, scroll tracking | `script/nanodash.js` |
 | Handle styling + scroll margin | `webapp/style.css` (`.section-anchor`) |
 | Tests | `ViewAnchorsTest`, `component/ViewListAnchorTest` |

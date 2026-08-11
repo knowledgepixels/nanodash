@@ -112,6 +112,16 @@ class ViewAnchorsTest {
     }
 
     @Test
+    void anAllocatorKeepsTheAnchorsOfAPageDistinctAcrossSeparateCalls() {
+        // Pages that build their view panels one by one (the list pages, …) ask for one
+        // anchor at a time, so uniqueness has to hold across calls, not just within a list.
+        ViewAnchors.Allocator allocator = new ViewAnchors.Allocator();
+        assertEquals("messages", allocator.next(viewDisplay("Messages", "4.4.a")));
+        assertEquals("messages-2", allocator.next(viewDisplay("Messages", "4.5.b")));
+        assertEquals("titlebar-2", allocator.next(viewDisplay("Titlebar", "4.6.c")));
+    }
+
+    @Test
     void anchorsNeverShadowThePageChrome() {
         assertEquals(List.of("content-pane-2"),
                 ViewAnchors.forViewDisplays(List.of(viewDisplay("Content pane", "4.4.x"))));
