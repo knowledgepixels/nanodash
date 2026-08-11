@@ -19,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 
 import java.io.Serializable;
 import java.util.*;
@@ -206,17 +204,12 @@ public class View implements Serializable {
      */
     private static View resolveGovernedVersion(View pinned) {
         try {
-            Multimap<String, String> params = ArrayListMultimap.create();
-            params.put("kind", pinned.getViewKindIri().stringValue());
-            params.put("space", pinned.getGoverningSpace().stringValue());
-            ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params), false);
-            if (resp != null && !resp.getData().isEmpty()) {
-                String latestId = resp.getData().get(0).get("version");
-                if (latestId != null && !latestId.isEmpty() && !latestId.equals(pinned.getId())) {
-                    String latestNpId = latestId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-                    View resolved = getExactVersion(latestId, latestNpId);
-                    if (resolved != null) return resolved;
-                }
+            String latestId = GovernedVersions.getLatestVersionIriSync(
+                    pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
+            if (latestId != null && !latestId.equals(pinned.getId())) {
+                String latestNpId = latestId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+                View resolved = getExactVersion(latestId, latestNpId);
+                if (resolved != null) return resolved;
             }
         } catch (Exception ex) {
             logger.error("Error resolving governed version for view: {}", pinned.getId(), ex);
