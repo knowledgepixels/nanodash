@@ -68,8 +68,13 @@ page-wide uniqueness — and `Allocator.anchor(panel, viewDisplay)` puts each on
 on the panel, as its **markup id** plus the marker class `view-section`. Using
 the markup id rather than a plain `id` attribute matters: a panel whose query
 results are still loading replaces itself over Ajax, and Wicket addresses it by
-exactly that id, so the anchor survives the swap. Done so far for the user list
-page (`UserListPage`).
+exactly that id, so the anchor survives the swap.
+
+Done so far for the user list page (`UserListPage`), the About tab of a space
+(`AboutSpacePanel`) and the Explore tab (`ExplorePanel`, which is the Explore tab
+of every resource type). Still uncovered: the space and query list pages, the
+standalone explore/references/result-table/query pages, `ProjectPage`,
+`ListPage`, and `ViewResultsPage`.
 
 ## Linking and scrolling (`nanodash.js`)
 
