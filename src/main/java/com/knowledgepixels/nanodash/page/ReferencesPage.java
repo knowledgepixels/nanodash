@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -44,7 +45,8 @@ public class ReferencesPage extends NanodashPage {
         add(new Label("pagetitle", shortName + " (references) | nanodash"));
         add(new Label("termname", shortName));
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
-        add(new BookmarkablePageLink<Void>("back-link", ExplorePage.class, new PageParameters().set("id", ref)));
+        add(new BookmarkablePageLink<Void>("back-link", ExplorePage.class, new PageParameters().set("id", ref))
+                .add(NavigationContext.pageContextFallback()));
 
         View view = View.get(REFERENCES_VIEW);
         QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), "ref", ref);

@@ -1,8 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GovernedVersions;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
 import net.trustyuri.TrustyUriUtils;
@@ -203,16 +202,11 @@ public class TemplateData implements Serializable {
      */
     private String resolveGovernedTemplateId(Template pinned) {
         try {
-            Multimap<String, String> params = ArrayListMultimap.create();
-            params.put("kind", pinned.getTemplateKindIri().stringValue());
-            params.put("space", pinned.getGoverningSpace().stringValue());
-            ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params), false);
-            if (resp != null && !resp.getData().isEmpty()) {
-                String latestId = resp.getData().get(0).get("version");
-                if (latestId != null && !latestId.isEmpty()) {
-                    Template resolved = getTemplate(latestId);
-                    if (resolved != null) return resolved.getId();
-                }
+            String latestId = GovernedVersions.getLatestVersionIriSync(
+                    pinned.getTemplateKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
+            if (latestId != null) {
+                Template resolved = getTemplate(latestId);
+                if (resolved != null) return resolved.getId();
             }
         } catch (Exception ex) {
             logger.error("Error resolving governed version for template: {}", pinned.getId(), ex);

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -43,6 +44,7 @@ public class ReactionList extends Panel {
                 item.add(new Label("reactiontext", "\"" + e.get("text") + "\" (" + e.get("reltext") + " the nanopublication above)"));
                 params.set("id", e.get("np"));
                 BookmarkablePageLink<Void> l = new BookmarkablePageLink<Void>("reactionlink", ExplorePage.class, params);
+                l.add(NavigationContext.pageContextFallback());
                 String pubkeyhash = Utils.createSha256HexHash(e.get("pubkey"));
                 String username = User.getShortDisplayNameForPubkeyhash(null, pubkeyhash);
                 l.add(new Label("reactionlinktext", "by " + username + " on " + e.get("date").substring(0, 10)));
