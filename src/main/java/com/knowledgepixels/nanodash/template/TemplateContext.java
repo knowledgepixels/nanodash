@@ -527,12 +527,24 @@ public class TemplateContext implements Serializable {
                     processedValue = vf.createIRI(v);
                 }
             }
+        } else if (template.isIntroducedResource(iri)
+                && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
+                && tfObjectGeneric instanceof String pinnedIri && !pinnedIri.isEmpty()) {
+            // An introduced resource keeps its IRI across versions (docs/fill-modes.md), so
+            // supersede/override pin the source's IRI that ValueFiller left in the (read-only)
+            // model. This must not be gated on isLocalResource: LOCAL_RESOURCE is only ever
+            // attached to sub-IRIs of the template nanopub (Template#tagIfUntypedLocal), while a
+            // template may introduce an absolute IRI in a foreign namespace via the
+            // "~~ARTIFACTCODE~~" marker (e.g. "Defining a biochementity"). Those used to fall
+            // through to the catch-all branch, keep the marker, and get a fresh artifact code
+            // substituted at signing time -- minting a new resource instead of a new version.
+            processedValue = vf.createIRI(pinnedIri);
         } else if (template.isLocalResource(iri)) {
-            String tfObject = (String) tfObjectGeneric;
             if (template.isIntroducedResource(iri) && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
-                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                    processedValue = vf.createIRI(tfObject);
-                }
+                // Pinned by the branch above whenever a source IRI is known. With no source
+                // value the slot stays unresolved rather than minting a fresh identity, so an
+                // introduced identifier the old version didn't declare yet stays fillable
+                // (issue #549).
             } else {
                 String prefix = Utils.getUriPrefix(iri);
                 processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));

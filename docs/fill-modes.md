@@ -41,6 +41,16 @@ The source's introduced resource IRIs are **kept** (same identity), and the root
 definition is **kept** (a version chain shares one root). Offered only for your
 own nanopubs. Menu action: `UpdateAction` ("update").
 
+Keeping the introduced IRI applies **however the template declares the introduced
+resource** — as a sub-IRI of the template nanopub (`sub:class`), or as an absolute
+IRI in a foreign namespace carrying the `~~ARTIFACTCODE~~` marker (the idiom used
+by "Defining a biochementity"). The pin lives in `TemplateContext#processValue`
+and is keyed on `isIntroducedResource` alone; it must **not** be gated on
+`isLocalResource`, which `Template#tagIfUntypedLocal` only ever attaches to
+sub-IRIs of the template nanopub. Gating it there made supersede/override silently
+mint a *new* resource for marker-style templates — regression test:
+`OverrideIntroducedResourceIriTest`.
+
 ### Derive
 
 A **new, distinct resource** based on an existing one. `prov:wasDerivedFrom`
