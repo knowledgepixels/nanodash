@@ -37,6 +37,17 @@ public class HomePage extends NanodashPage {
     }
 
     /**
+     * The home page shows the configured home resource, so it is that resource's page
+     * and acts as its navigation context: links from here (including the post-publish
+     * message link) carry the home resource along, even though no {@code context}
+     * parameter is in the URL.
+     */
+    @Override
+    public String getContextId() {
+        return NanodashPreferences.get().getHomeResource();
+    }
+
+    /**
      * Constructor for the home page.
      *
      * @param parameters the page parameters
