@@ -333,6 +333,10 @@ details summary {
   text-decoration: none;
   opacity: 0;
   transition: opacity 0.15s;
+  /* Title rows can carry positioned overlays (the nanopub-set view pins its filter and
+     menu into its row), which would otherwise take the click meant for the handle. */
+  position: relative;
+  z-index: 1;
 }
 
 .view-group > .listview:hover .section-anchor,
@@ -2777,6 +2781,11 @@ td div:has(.button-list) {
   top: 0;
   right: 0;
   padding-right: 0;
+  /* Shrink to its own content. Without this it keeps the 100% width of the base
+     .view-selector rule and, being positioned, lies as an invisible sheet over the whole
+     title row it is pinned to — swallowing every click on the title, including the "#"
+     section handle (see docs/section-anchors.md). */
+  width: auto;
 }
 
 .view-selector.with-source .buttons {

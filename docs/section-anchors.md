@@ -79,6 +79,14 @@ maintained resources, projects, and resource parts.
 `.view-group > .listview` carries a `scroll-margin-top` so a linked section
 doesn't land flush against the top of the viewport.
 
+The handle also has to be the **topmost element** where it is drawn, which is not
+free: a title row can carry positioned overlays — the nanopub-set view pins its
+filter and menu into its row with `.view-selector.with-source` — and such an
+overlay silently takes the click. It is kept off the handle from both sides: the
+overlay shrinks to its own content (`width: auto`, it would otherwise inherit the
+base rule's `width: 100%` and blanket the whole row), and `.section-anchor` sits
+at `z-index: 1`.
+
 ## Where it lives
 
 | Concern | Location |
