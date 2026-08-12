@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryResultItemListBuilder;
 import com.knowledgepixels.nanodash.component.QueryResultListBuilder;
@@ -57,25 +58,34 @@ public class UserListPage extends NanodashPage {
 //
 //		});
 
+        // This page assembles its view panels itself instead of going through ViewList, so
+        // it hands out the section anchors itself too (see docs/section-anchors.md).
+        ViewAnchors.Allocator anchors = new ViewAnchors.Allocator();
+
         View topCreatorsView = View.get("https://w3id.org/np/RACcywnbkn6OAd_6E25qZL9-vdO-UwmpO1vXVWzNWJYLo/top-creators-last-30days");
         QueryRef tcQueryRef = new QueryRef(topCreatorsView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("topcreators", tcQueryRef, new ViewDisplay(topCreatorsView).withDisplayWidth(6)).build());
+        ViewDisplay topCreatorsDisplay = new ViewDisplay(topCreatorsView).withDisplayWidth(6);
+        add(anchors.anchor(QueryResultListBuilder.create("topcreators", tcQueryRef, topCreatorsDisplay).build(), topCreatorsDisplay));
 
         View latestUsersView = View.get("https://w3id.org/np/RAtwNLvsJbz3pk_UxdKSydsghbX6D_60ivTZpDQhK-9zA/latest-users");
         QueryRef luQueryRef = new QueryRef(latestUsersView.getQuery().getQueryId());
-        add(QueryResultListBuilder.create("latestusers", luQueryRef, new ViewDisplay(latestUsersView).withDisplayWidth(6)).build());
+        ViewDisplay latestUsersDisplay = new ViewDisplay(latestUsersView).withDisplayWidth(6);
+        add(anchors.anchor(QueryResultListBuilder.create("latestusers", luQueryRef, latestUsersDisplay).build(), latestUsersDisplay));
 
         View humanUsersView = View.get(HUMAN_USERS_VIEW);
-        add(QueryResultItemListBuilder.create("approved-human-users",
-                new QueryRef(humanUsersView.getQuery().getQueryId()), new ViewDisplay(humanUsersView)).build());
+        ViewDisplay humanUsersDisplay = new ViewDisplay(humanUsersView);
+        add(anchors.anchor(QueryResultItemListBuilder.create("approved-human-users",
+                new QueryRef(humanUsersView.getQuery().getQueryId()), humanUsersDisplay).build(), humanUsersDisplay));
 
         View softwareAgentsView = View.get(SOFTWARE_AGENTS_VIEW);
-        add(QueryResultItemListBuilder.create("approved-software-agents",
-                new QueryRef(softwareAgentsView.getQuery().getQueryId()), new ViewDisplay(softwareAgentsView)).build());
+        ViewDisplay softwareAgentsDisplay = new ViewDisplay(softwareAgentsView);
+        add(anchors.anchor(QueryResultItemListBuilder.create("approved-software-agents",
+                new QueryRef(softwareAgentsView.getQuery().getQueryId()), softwareAgentsDisplay).build(), softwareAgentsDisplay));
 
         View nonApprovedUsersView = View.get(NON_APPROVED_USERS_VIEW);
-        add(QueryResultItemListBuilder.create("other-users",
-                new QueryRef(nonApprovedUsersView.getQuery().getQueryId()), new ViewDisplay(nonApprovedUsersView)).build());
+        ViewDisplay nonApprovedUsersDisplay = new ViewDisplay(nonApprovedUsersView);
+        add(anchors.anchor(QueryResultItemListBuilder.create("other-users",
+                new QueryRef(nonApprovedUsersView.getQuery().getQueryId()), nonApprovedUsersDisplay).build(), nonApprovedUsersDisplay));
 
         String contextParam = getContextId() == null ? "" : "&context=" + Utils.urlEncode(getContextId());
         add(new ExternalLink("approve", PublishPage.MOUNT_PATH + "?template=http://purl.org/np/RA6TVVSnZChEwyxjvFDNAujk1i8sSPnQx60ZQjldtiDkw&template-version=latest" + contextParam, "approve somebody else..."));

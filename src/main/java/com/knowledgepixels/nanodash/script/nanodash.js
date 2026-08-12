@@ -71,16 +71,95 @@ function renderFriendlyDates(root) {
   });
 }
 
+/* Section anchors — every view display of a page carries a fragment identifier
+   (server-side, see ViewAnchors): on its wrapping .listview element where ViewList
+   renders it, and on the panel itself (.view-section) on the pages that build their
+   view panels directly. Either way a single section can be linked to:
+   ".../space?id=...#messages". Here we make that linkable from the page: a "#" handle
+   next to each section title that both navigates to the section and copies the full
+   link. Idempotent, so it can re-run after Wicket AJAX has added more sections. */
+function addSectionAnchors(root) {
+  var scope = root || document;
+  scope.querySelectorAll(".view-group > .listview[id], .view-section[id]").forEach(function (section) {
+    // A section without a real fragment identifier gets no handle: a "#" whose href is
+    // the bare "#" would look like a section link and jump to the top of the page.
+    if (!section.id) return;
+    // The panel's own title row; the fallback catches title markup we don't know about.
+    var heading = section.querySelector(".paneltitlerow > h3, .paneltitlerow > h4, .paneltitlerow > h5, .view-header-titlerow > h3")
+        || section.querySelector("h3, h4, h5");
+    if (!heading || heading.querySelector(".section-anchor")) return;
+    var link = document.createElement("a");
+    link.className = "section-anchor";
+    link.href = "#" + section.id;
+    link.title = "Link to this section";
+    link.setAttribute("aria-label", "Link to this section");
+    link.textContent = "#";
+    link.addEventListener("click", function () {
+      // The href already moves the browser to the section; additionally put the full
+      // link on the clipboard, which is what one actually wants it for.
+      if (!navigator.clipboard) return;
+      var url = window.location.href.split("#")[0] + "#" + section.id;
+      navigator.clipboard.writeText(url).then(function () {
+        showToast("Link to section copied to clipboard!");
+      }, function () { /* clipboard denied: the plain link still works */ });
+    });
+    heading.appendChild(link);
+  });
+}
+
+/* Scrolling to a section that isn't there yet. Most view displays load over Ajax after
+   the initial render, so at the moment the browser handles the fragment its target
+   often does not exist. We therefore keep re-scrolling to it as sections arrive, until
+   the page settles (ANCHOR_SETTLE_MS) or the user scrolls somewhere themselves. */
+var ANCHOR_SETTLE_MS = 15000;
+var anchorTarget = null;
+var anchorDeadline = 0;
+
+function startAnchorTracking() {
+  var hash = window.location.hash.slice(1);
+  if (!hash) {
+    anchorTarget = null;
+    return;
+  }
+  try {
+    anchorTarget = decodeURIComponent(hash);
+  } catch (e) {
+    anchorTarget = hash;
+  }
+  anchorDeadline = Date.now() + ANCHOR_SETTLE_MS;
+  scrollToAnchor();
+}
+
+function scrollToAnchor() {
+  if (!anchorTarget) return;
+  if (Date.now() > anchorDeadline) {
+    anchorTarget = null;
+    return;
+  }
+  var el = document.getElementById(anchorTarget);
+  if (el) el.scrollIntoView();
+}
+
+/* Any deliberate scrolling by the user wins over the pending anchor. */
+["wheel", "touchmove", "keydown"].forEach(function (evt) {
+  window.addEventListener(evt, function () { anchorTarget = null; }, { passive: true });
+});
+window.addEventListener("hashchange", startAnchorTracking);
+
 document.addEventListener("DOMContentLoaded", function() {
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
+  addSectionAnchors();
+  startAnchorTracking();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
   if (typeof Wicket !== "undefined" && Wicket.Event) {
     Wicket.Event.subscribe("/ajax/call/complete", function() {
       wrapLeadingEmoji();
       wrapCellEmoji();
       renderFriendlyDates();
+      addSectionAnchors();
+      scrollToAnchor();
     });
   }
 });
@@ -102,9 +181,11 @@ function updateElements() {
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
+  addSectionAnchors();
   adjustValueWidths();
   setCollapseOverflow();
   collapseNanopubAssertions();
+  scrollToAnchor();
 };
 
 $(document).on('mouseenter', '.tooltip, .expltooltip', function () {

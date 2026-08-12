@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.Space;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -105,6 +106,10 @@ public class AboutSpacePanel extends Panel {
         // below uses its IRI-keyed query. See docs/space-ref-identity.md.
         final String refRoot = effectiveRoot != null ? effectiveRoot : space.getRefRootId();
 
+        // This tab builds its view panels itself rather than going through ViewList, so it
+        // hands out the section anchors itself too (see docs/section-anchors.md).
+        ViewAnchors.Allocator anchors = new ViewAnchors.Allocator();
+
         // "Structure" section: key-value info, presets, assigned roles, view displays.
 
         // The info view leads the section (to the left of the presets). Its query is
@@ -115,13 +120,15 @@ public class AboutSpacePanel extends Panel {
         Multimap<String, String> infoParams = ArrayListMultimap.create();
         infoParams.put("space", space.getId());
         infoParams.put("spaceNp", effectiveRoot != null ? effectiveRoot : space.getNanopubId());
-        add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
+        ViewDisplay infoDisplay = new ViewDisplay(infoView);
+        add(anchors.anchor(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), infoDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build(), infoDisplay));
 
         View presetsView = View.get(PRESET_ASSIGNMENTS_VIEW);
         QueryRef presetsQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_PRESET_ASSIGNMENTS_REF, "root_np", refRoot)
                 : new QueryRef(presetsView.getQuery().getQueryId(), "resource", space.getId());
-        add(QueryResultTableBuilder.create("presets", presetsQuery, new ViewDisplay(presetsView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
+        ViewDisplay presetsDisplay = new ViewDisplay(presetsView);
+        add(anchors.anchor(QueryResultTableBuilder.create("presets", presetsQuery, presetsDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build(), presetsDisplay));
 
         View rolesView = View.get(SPACE_ROLES_VIEW);
         // Drive the roles table from the ref-scoped query (scoped by npa:forSpaceRef) so a
@@ -135,7 +142,8 @@ public class AboutSpacePanel extends Panel {
         QueryRef rolesQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_ROLES_REF, "root_np", refRoot)
                 : new QueryRef(rolesView.getQuery().getQueryId(), "space", space.getId());
-        add(QueryResultTableBuilder.create("roles", rolesQuery, new ViewDisplay(rolesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build());
+        ViewDisplay rolesDisplay = new ViewDisplay(rolesView);
+        add(anchors.anchor(QueryResultTableBuilder.create("roles", rolesQuery, rolesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), rolesDisplay));
 
         // The view nanopub's hasViewQuery is the ref-scoped list-view-displays query (a federated
         // join gating authorised signers on the ref's admins/maintainers via npa:forSpaceRef); supply
@@ -145,7 +153,8 @@ public class AboutSpacePanel extends Panel {
         Multimap<String, String> vdParams = ArrayListMultimap.create();
         vdParams.put("resource", space.getId());
         if (refRoot != null && !refRoot.isEmpty()) vdParams.put("root_np", refRoot);
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build());
+        ViewDisplay vdDisplay = new ViewDisplay(vdView);
+        add(anchors.anchor(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), vdDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).refRoot(refRoot).build(), vdDisplay));
 
         // "Users" section: admins/maintainers/members, then observers.
 
@@ -156,7 +165,8 @@ public class AboutSpacePanel extends Panel {
         QueryRef membersQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_MEMBERS_REF, "root_np", refRoot)
                 : new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId());
-        add(QueryResultTableBuilder.create("members", membersQuery, new ViewDisplay(membersView)).build());
+        ViewDisplay membersDisplay = new ViewDisplay(membersView);
+        add(anchors.anchor(QueryResultTableBuilder.create("members", membersQuery, membersDisplay).build(), membersDisplay));
 
         // Non-approved (pending) higher-tier role claims, between members and observers.
         // Ref-scoped (root_np), like the observers table below; there is no IRI-keyed
@@ -169,7 +179,8 @@ public class AboutSpacePanel extends Panel {
         QueryRef nonApprovedQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_NON_APPROVED_REF, "root_np", refRoot)
                 : new QueryRef(QueryApiAccess.LIST_SPACE_NON_APPROVED_REF);
-        add(QueryResultTableBuilder.create("pendingmembers", nonApprovedQuery, new ViewDisplay(nonApprovedView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build());
+        ViewDisplay nonApprovedDisplay = new ViewDisplay(nonApprovedView);
+        add(anchors.anchor(QueryResultTableBuilder.create("pendingmembers", nonApprovedQuery, nonApprovedDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), nonApprovedDisplay));
 
         View observersView = View.get(OBSERVERS_VIEW);
         // Drive the Observers table from the ref-scoped query that also includes un-introduced
@@ -179,7 +190,8 @@ public class AboutSpacePanel extends Panel {
         QueryRef observersQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_OBSERVERS_REF, "root_np", refRoot)
                 : new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId());
-        add(QueryResultTableBuilder.create("observers", observersQuery, new ViewDisplay(observersView)).build());
+        ViewDisplay observersDisplay = new ViewDisplay(observersView);
+        add(anchors.anchor(QueryResultTableBuilder.create("observers", observersQuery, observersDisplay).build(), observersDisplay));
 
         // "Sub-units" section: sub-spaces and maintained resources, side by side
         // (both views declare 6/12 width). resourceWithProfile/id/contextId let the
@@ -194,13 +206,15 @@ public class AboutSpacePanel extends Panel {
         QueryRef subSpacesQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SUB_SPACES_REF, "root_np", refRoot)
                 : new QueryRef(subSpacesView.getQuery().getQueryId(), "space", space.getId());
-        add(QueryResultListBuilder.create("subspaces", subSpacesQuery, new ViewDisplay(subSpacesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build());
+        ViewDisplay subSpacesDisplay = new ViewDisplay(subSpacesView);
+        add(anchors.anchor(QueryResultListBuilder.create("subspaces", subSpacesQuery, subSpacesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), subSpacesDisplay));
 
         View maintainedResourcesView = View.get(MAINTAINED_RESOURCES_VIEW);
         QueryRef maintainedResourcesQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_MAINTAINED_RESOURCES_REF, "root_np", refRoot)
                 : new QueryRef(maintainedResourcesView.getQuery().getQueryId(), "space", space.getId());
-        add(QueryResultListBuilder.create("maintainedresources", maintainedResourcesQuery, new ViewDisplay(maintainedResourcesView)).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build());
+        ViewDisplay maintainedResourcesDisplay = new ViewDisplay(maintainedResourcesView);
+        add(anchors.anchor(QueryResultListBuilder.create("maintainedresources", maintainedResourcesQuery, maintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), maintainedResourcesDisplay));
     }
 
 }
