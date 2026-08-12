@@ -571,6 +571,58 @@ public class Utils {
         return htmlSanitizePolicy.sanitize(rawHtml);
     }
 
+    // A conservative static-SVG subset for SVG views (QueryResultSvg): basic shapes,
+    // text, grouping, and links. Everything not allowed is dropped — in particular
+    // script/foreignObject/style and all event handlers, plus use/image, whose
+    // href would reach outside the sanitized document. Attribute-name matching is
+    // case-sensitive and the matched spelling is emitted verbatim, so the camelCase
+    // SVG attributes are listed in both spellings (browsers also map the lowercase
+    // form back via the SVG attribute-adjustment table, but the camelCase form
+    // works everywhere, including XML contexts).
+    private static final PolicyFactory svgSanitizePolicy = new HtmlPolicyBuilder()
+            .allowUrlProtocols("https", "http")
+            .allowElements("svg", "g", "defs", "marker", "title", "desc",
+                    "rect", "circle", "ellipse", "line", "polyline", "polygon", "path",
+                    "text", "tspan", "a")
+            .allowWithoutAttributes("svg", "g", "defs", "title", "desc", "text", "tspan", "a")
+            .allowAttributes("viewbox", "viewBox", "width", "height",
+                    "preserveaspectratio", "preserveAspectRatio", "xmlns",
+                    "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry",
+                    "d", "points", "dx", "dy", "transform",
+                    "fill", "fill-opacity", "fill-rule",
+                    "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
+                    "stroke-linejoin", "stroke-dasharray", "opacity",
+                    "font-family", "font-size", "font-weight", "font-style",
+                    "text-anchor", "dominant-baseline", "text-decoration",
+                    "marker-start", "marker-mid", "marker-end",
+                    "markerwidth", "markerWidth", "markerheight", "markerHeight",
+                    "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
+                    "id")
+            .globally()
+            .allowAttributes("href").onElements("a")
+            .toFactory();
+
+    // XML-style self-closed tags (<rect .../>): the HTML-parsing sanitizer ignores
+    // the slash on non-void elements and would re-parent all following siblings as
+    // children of the "unclosed" element — which in SVG makes them invisible (shape
+    // elements don't render children). Expanded to explicit end tags before
+    // sanitizing. Quoted attribute values (which may contain ">") are matched as
+    // units so the tag end is found correctly.
+    private static final Pattern SELF_CLOSED_TAG = Pattern.compile("<([a-zA-Z][a-zA-Z0-9-]*)((?:[^<>\"']|\"[^\"]*\"|'[^']*')*)/>");
+
+    /**
+     * Sanitizes SVG markup (as produced by an SVG view's query) down to a static
+     * subset that is safe to embed inline: shapes, text, grouping, and http(s)
+     * links, with no scripting, styling, or external-reference capability.
+     *
+     * @param rawSvg the raw SVG markup
+     * @return sanitized SVG markup
+     */
+    public static String sanitizeSvg(String rawSvg) {
+        String normalized = SELF_CLOSED_TAG.matcher(rawSvg).replaceAll("<$1$2></$1>");
+        return svgSanitizePolicy.sanitize(normalized);
+    }
+
     /**
      * Checks if a given string is likely to be HTML content.
      *

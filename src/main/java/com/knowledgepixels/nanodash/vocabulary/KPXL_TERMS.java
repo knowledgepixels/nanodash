@@ -24,6 +24,15 @@ public class KPXL_TERMS {
     public static final IRI ITEM_LIST_VIEW = VocabUtils.createIRI(NAMESPACE, "ItemListView");
 
     /**
+     * A view whose query returns ready-to-embed SVG markup in an {@code svg} result
+     * column, rendered inline after sanitization (one figure per result row, with an
+     * optional {@code title} column as its heading). Unlike the other display types,
+     * the query computes the visual itself — e.g. a diagram laid out in SPARQL from
+     * the underlying data.
+     */
+    public static final IRI SVG_VIEW = VocabUtils.createIRI(NAMESPACE, "SvgView");
+
+    /**
      * A view that renders just a section header at its structural position — a title,
      * an optional description text, and optional result-level actions — with no query
      * (issue #572). The only display type for which {@code gen:hasViewQuery} is absent.
