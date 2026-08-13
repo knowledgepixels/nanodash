@@ -70,6 +70,18 @@ public class KPXL_TERMS {
     // Resource types (the values used in gen:appliesToInstancesOf).
     public static final IRI SPACE = VocabUtils.createIRI(NAMESPACE, "Space");
     public static final IRI MAINTAINED_RESOURCE = VocabUtils.createIRI(NAMESPACE, "MaintainedResource");
+
+    /**
+     * Predicate connecting a space IRI to the URI of its root nanopub in
+     * space-declaring nanopubs.
+     */
+    public static final IRI HAS_ROOT_DEFINITION = VocabUtils.createIRI(NAMESPACE, "hasRootDefinition");
+
+    /**
+     * Predicate connecting a maintained resource to the space maintaining it in
+     * maintained-resource-declaring nanopubs.
+     */
+    public static final IRI IS_MAINTAINED_BY = VocabUtils.createIRI(NAMESPACE, "isMaintainedBy");
     public static final IRI INDIVIDUAL_AGENT = VocabUtils.createIRI(NAMESPACE, "IndividualAgent");
     public static final IRI EVENT = VocabUtils.createIRI(NAMESPACE, "Event");
 
