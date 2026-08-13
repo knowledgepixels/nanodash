@@ -61,7 +61,7 @@ public class ProfilePage extends NanodashPage {
 
         final boolean loginMode = NanodashPreferences.get().isOrcidLoginMode();
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         // Past the guard above the user has no ORCID iD yet, so this page only helps
         // them obtain one: a login link in ORCID-login mode, or a manual entry form in

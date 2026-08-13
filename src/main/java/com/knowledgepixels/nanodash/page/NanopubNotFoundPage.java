@@ -80,7 +80,7 @@ public class NanopubNotFoundPage extends NanodashPage {
      */
     public NanopubNotFoundPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         String id = parameters.get(ID_PARAM).toString("");
         timedOut = parameters.get(TIMEOUT_PARAM).toBoolean(false);

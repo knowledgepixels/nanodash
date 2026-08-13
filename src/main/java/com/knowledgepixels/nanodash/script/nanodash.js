@@ -393,10 +393,6 @@ function showMore(el) {
   }
 }
 
-function toggleMobileNav() {
-  $('#titlebar').toggleClass('nav-open');
-}
-
 // Show a transient, auto-dismissing message at the top of the viewport, styled
 // like the post-publish confirmation box. Used e.g. for the "link copied"
 // feedback instead of a blocking alert().

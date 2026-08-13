@@ -49,7 +49,7 @@ public class PreviewPage extends NanodashPage {
     public PreviewPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, "preview"));
+        add(new TitleBar("titlebar", this));
 
         String previewId = parameters.get("id").toString();
         if (previewId == null) {

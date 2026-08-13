@@ -72,11 +72,12 @@ the markup id rather than a plain `id` attribute matters: a panel whose query
 results are still loading replaces itself over Ajax, and Wicket addresses it by
 exactly that id, so the anchor survives the swap.
 
-Done so far for the user list page (`UserListPage`), the About tab of a space
-(`AboutSpacePanel`) and the Explore tab (`ExplorePanel`, which is the Explore tab
-of every resource type). Still uncovered: the space and query list pages, the
-standalone explore/references/result-table/query pages, `ProjectPage`,
-`ListPage`, and `ViewResultsPage`.
+Done so far for the About tab of a space (`AboutSpacePanel`) and the Explore
+tab (`ExplorePanel`, which is the Explore tab of every resource type). Still
+uncovered: the standalone explore/references/result-table/query pages,
+`ProjectPage`, `ListPage`, and `ViewResultsPage`. (The user/space/query list
+pages that were early adopters have been retired; their content lives on the
+home page as regular `ViewList` sections now.)
 
 ## Linking and scrolling (`nanodash.js`)
 
@@ -111,7 +112,7 @@ at `z-index: 1`.
 | Concern | Location |
 | --- | --- |
 | Anchor derivation + uniqueness | `ViewAnchors.java` |
-| Setting the `id` on each section | `component/ViewList.java`, `ViewAnchors.Allocator` for pages building their own panels (`page/UserListPage.java`) |
+| Setting the `id` on each section | `component/ViewList.java`, `ViewAnchors.Allocator` for pages building their own panels (e.g. `component/AboutSpacePanel.java`) |
 | "#" handle, copy-link, scroll tracking | `script/nanodash.js` |
 | Handle styling + scroll margin | `webapp/style.css` (`.section-anchor`) |
 | Tests | `ViewAnchorsTest`, `component/ViewListAnchorTest` |

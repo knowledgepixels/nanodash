@@ -39,7 +39,7 @@ public class TestPage extends NanodashPage {
     public TestPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         final QueryRef queryRef = new QueryRef(QueryApiAccess.GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS, "pubkey", "1162349fdeaf431e71ab55898cb2a425b971d466150c2aa5b3c1beb498045a37");
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);

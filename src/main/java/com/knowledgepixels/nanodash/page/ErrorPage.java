@@ -38,7 +38,7 @@ public class ErrorPage extends NanodashPage {
      */
     public ErrorPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         String message = parameters.get(MESSAGE_PARAM).toString("");
         add(new Label("message", message).setVisible(!message.isBlank()));
     }

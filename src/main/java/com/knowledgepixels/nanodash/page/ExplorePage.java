@@ -148,7 +148,7 @@ public class ExplorePage extends NanodashPage {
         }
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
-        TitleBar titleBar = new TitleBar("titlebar", this, null);
+        TitleBar titleBar = new TitleBar("titlebar", this);
         add(titleBar);
 
         if (User.getUserData().isUser(tempRef)) {

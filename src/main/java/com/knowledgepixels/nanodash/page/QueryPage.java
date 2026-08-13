@@ -78,7 +78,7 @@ public class QueryPage extends NanodashPage {
      */
     public QueryPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         add(new Label("pagetitle", "Query Info | nanodash"));
 
         String id = parameters.get("id").toString();

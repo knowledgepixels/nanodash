@@ -47,7 +47,7 @@ public class ViewResultsPage extends NanodashPage {
     public ViewResultsPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         String viewId = parameters.get("view").toString();
         View view = (viewId == null ? null : View.get(viewId));

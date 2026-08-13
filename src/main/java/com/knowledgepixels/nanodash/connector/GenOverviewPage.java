@@ -56,7 +56,7 @@ public class GenOverviewPage extends ConnectorPage {
         final String journalId = params.get("journal").toString();
         config = ConnectorConfig.get(journalId);
 
-        add(new TitleBar("titlebar", this, "connectors"));
+        add(new TitleBar("titlebar", this));
         add(new Image("logo", new PackageResourceReference(getConfig().getClass(), getConfig().getLogoFileName())));
 
         if (getConfig().getTechnicalEditorIds().contains(NanodashSession.get().getUserIri())) {

@@ -55,7 +55,7 @@ public class HomePage extends NanodashPage {
     public HomePage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         final NanodashSession session = NanodashSession.get();
         String v = WicketApplication.getThisVersion();
         String lv = WicketApplication.getLatestVersion();
