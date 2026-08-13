@@ -90,6 +90,7 @@ public class NanodashSession extends WebSession {
 
     private String userDir = System.getProperty("user.home") + "/.nanopub/";
     private NanopubResults.ViewMode nanopubResultsViewMode = NanopubResults.ViewMode.LIST;
+    private boolean claudeChatDockExpanded = false;
 
     private KeyPair keyPair;
     private IRI userIri;
@@ -453,6 +454,24 @@ public class NanodashSession extends WebSession {
      */
     public NanopubResults.ViewMode getNanopubResultsViewMode() {
         return this.nanopubResultsViewMode;
+    }
+
+    /**
+     * Whether the docked Claude chat panel is expanded on this session's pages.
+     *
+     * @return true if expanded
+     */
+    public boolean isClaudeChatDockExpanded() {
+        return claudeChatDockExpanded;
+    }
+
+    /**
+     * Set whether the docked Claude chat panel is expanded.
+     *
+     * @param claudeChatDockExpanded true to expand
+     */
+    public void setClaudeChatDockExpanded(boolean claudeChatDockExpanded) {
+        this.claudeChatDockExpanded = claudeChatDockExpanded;
     }
 
     // --- Preview nanopub support ---
