@@ -10,13 +10,22 @@ import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * The navigation context: the space, user, or maintained resource a page was reached
@@ -161,14 +170,30 @@ public class NavigationContext {
     }
 
     /**
+     * Delay before the repository caches may re-fetch after a publication, giving the
+     * network time to ingest the just-published nanopub; matches the delay used for the
+     * other post-publish refresh notifications.
+     */
+    private static final long INGEST_WAIT_MS = 5 * 1000;
+
+    /**
+     * Additional delay for the second resolution attempt when the introduced space or
+     * maintained resource has not appeared after the first one.
+     */
+    private static final long INGEST_RETRY_WAIT_MS = 3 * 1000;
+
+    /**
      * Forwards to the page of the context resource (or its part) after a successful
      * publication, with the just-published nanopub shown only in the title bar message;
-     * forwards to the home page if no (resolvable) context is set. Always throws.
+     * forwards to the home page if no (resolvable) context is set. A nanopub that
+     * declares a space or maintained resource forwards to that resource's own page
+     * instead (issue #594). Always throws.
      *
      * @param signedNp   the just-published nanopub
      * @param pageParams the parameters of the publish form's page
      */
     public static void redirectAfterPublish(Nanopub signedNp, PageParameters pageParams) {
+        redirectToDeclaredResource(signedNp, pageParams);
         String npUri = signedNp.getUri().stringValue();
         String contextId = getContextId(pageParams);
         if (contextId != null) {
@@ -193,6 +218,112 @@ public class NavigationContext {
             }
         }
         throw new RestartResponseException(HomePage.class, new PageParameters().set("just-published", npUri));
+    }
+
+    /**
+     * Forwards to the page of the space or maintained resource the just-published
+     * nanopub declares (newly introduced or updated), if there is exactly one and it is
+     * not the context page we would forward to anyway (issue #594). The repository
+     * caches are invalidated with a short delay so the network has time to ingest the
+     * nanopub; the {@code findById} lookups below then block until that delay has
+     * passed and fresh data is fetched, so the target page shows the new state. Returns
+     * without effect — falling back to the normal context/home forward — when the
+     * nanopub declares no such resource or the resource does not appear in the
+     * repositories even after a second refresh round.
+     * <p>
+     * Detection mirrors nanopub-query's SpacesExtractor: the nanopub type set must
+     * contain {@code gen:Space} (space declarations, keyed by the subjects of
+     * {@code rdf:type gen:Space} and {@code gen:hasRootDefinition} assertion triples)
+     * or {@code gen:MaintainedResource}/{@code gen:isMaintainedBy} (resource
+     * declarations, keyed by the subjects of {@code gen:isMaintainedBy} triples) —
+     * anything else would not be ingested as a space/resource, so forwarding to its
+     * page would lead nowhere.
+     *
+     * @param signedNp   the just-published nanopub
+     * @param pageParams the parameters of the publish form's page
+     */
+    private static void redirectToDeclaredResource(Nanopub signedNp, PageParameters pageParams) {
+        // An explicitly requested post-publish redirect stays authoritative.
+        if (!pageParams.get("postpub-redirect-url").isEmpty()) return;
+        String spaceId = getDeclaredSpaceId(signedNp);
+        boolean isSpaceNanopub = spaceId != null;
+        String targetId = isSpaceNanopub ? spaceId : getDeclaredMaintainedResourceId(signedNp);
+        if (targetId == null) return;
+        // The normal forward already goes to this page (and the publish flow has already
+        // set up its refresh), including the postpub-tab handling the declared-resource
+        // forward doesn't have; the home resource's page is the home page itself.
+        if (targetId.equals(getContextId(pageParams)) || isHomeResource(targetId)) return;
+        if (AbstractResourceWithProfile.isResourceWithProfile(targetId)) {
+            // Update of an already-known space/resource: also refresh its profile data.
+            WicketApplication.get().notifyNanopubPublished(signedNp, targetId, INGEST_WAIT_MS);
+        } else {
+            WicketApplication.get().notifyNanopubPublished(signedNp,
+                    isSpaceNanopub ? "spaces" : "maintainedResources", INGEST_WAIT_MS);
+        }
+        boolean found = declaredResourceExists(isSpaceNanopub, targetId);
+        if (!found) {
+            // Not ingested within the first delay: give it one more, shorter round.
+            if (isSpaceNanopub) {
+                SpaceRepository.get().forceRootRefresh(INGEST_RETRY_WAIT_MS);
+            } else {
+                MaintainedResourceRepository.get().forceRootRefresh(INGEST_RETRY_WAIT_MS);
+            }
+            found = declaredResourceExists(isSpaceNanopub, targetId);
+        }
+        if (!found) return;
+        PageParameters redirectParams = new PageParameters()
+                .set("id", targetId)
+                .set("just-published", signedNp.getUri().stringValue());
+        Class<? extends NanodashPage> pageClass = isSpaceNanopub ? SpacePage.class : MaintainedResourcePage.class;
+        throw new RestartResponseException(pageClass, redirectParams);
+    }
+
+    private static boolean declaredResourceExists(boolean isSpaceNanopub, String targetId) {
+        if (isSpaceNanopub) return SpaceRepository.get().findById(targetId) != null;
+        return MaintainedResourceRepository.get().findById(targetId) != null;
+    }
+
+    /**
+     * The id of the space the given nanopub declares: the subject of its
+     * {@code rdf:type gen:Space} and {@code gen:hasRootDefinition} assertion triples,
+     * provided the nanopub is typed {@code gen:Space} (otherwise nanopub-query would
+     * not ingest it as a space declaration).
+     *
+     * @param np the nanopub to inspect
+     * @return the declared space id, or null if the nanopub declares no space or more than one
+     */
+    static String getDeclaredSpaceId(Nanopub np) {
+        if (!Utils.isNanopubOfClass(np, KPXL_TERMS.SPACE)) return null;
+        Set<String> ids = new LinkedHashSet<>();
+        for (Statement st : np.getAssertion()) {
+            if (!(st.getSubject() instanceof IRI subj)) continue;
+            if ((RDF.TYPE.equals(st.getPredicate()) && KPXL_TERMS.SPACE.equals(st.getObject()))
+                    || KPXL_TERMS.HAS_ROOT_DEFINITION.equals(st.getPredicate())) {
+                ids.add(subj.stringValue());
+            }
+        }
+        return ids.size() == 1 ? ids.iterator().next() : null;
+    }
+
+    /**
+     * The id of the maintained resource the given nanopub declares: the subject of its
+     * {@code gen:isMaintainedBy} assertion triple, provided the nanopub is typed
+     * {@code gen:MaintainedResource} or {@code gen:isMaintainedBy} (the two shapes
+     * nanopub-query ingests as maintained-resource declarations).
+     *
+     * @param np the nanopub to inspect
+     * @return the declared resource id, or null if the nanopub declares no maintained resource or more than one
+     */
+    static String getDeclaredMaintainedResourceId(Nanopub np) {
+        if (!Utils.isNanopubOfClass(np, KPXL_TERMS.MAINTAINED_RESOURCE)
+                && !Utils.isNanopubOfClass(np, KPXL_TERMS.IS_MAINTAINED_BY)) return null;
+        Set<String> ids = new LinkedHashSet<>();
+        for (Statement st : np.getAssertion()) {
+            if (st.getSubject() instanceof IRI subj && KPXL_TERMS.IS_MAINTAINED_BY.equals(st.getPredicate())) {
+                ids.add(subj.stringValue());
+            }
+        }
+        return ids.size() == 1 ? ids.iterator().next() : null;
     }
 
 }
