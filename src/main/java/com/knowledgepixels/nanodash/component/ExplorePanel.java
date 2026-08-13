@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.page.ReferencesPage;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -21,8 +22,13 @@ public class ExplorePanel extends Panel {
     public ExplorePanel(String id, String ref) {
         super(id);
 
+        // This panel builds its view panel itself rather than going through ViewList, so it
+        // hands out the section anchor itself too (see docs/section-anchors.md).
+        ViewAnchors.Allocator anchors = new ViewAnchors.Allocator();
+
         View refView = View.get(ReferencesPage.REFERENCES_VIEW);
-        add(QueryResultTableBuilder.create("references", new QueryRef(refView.getQuery().getQueryId(), "ref", ref), new ViewDisplay(refView)).build());
+        ViewDisplay refDisplay = new ViewDisplay(refView);
+        add(anchors.anchor(QueryResultTableBuilder.create("references", new QueryRef(refView.getQuery().getQueryId(), "ref", ref), refDisplay).build(), refDisplay));
     }
 
 }

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.github.jsonldjava.shaded.com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -77,7 +78,7 @@ public class QueryPage extends NanodashPage {
      */
     public QueryPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         add(new Label("pagetitle", "Query Info | nanodash"));
 
         String id = parameters.get("id").toString();
@@ -96,7 +97,8 @@ public class QueryPage extends NanodashPage {
         }
 
         add(new Label("querylabel", q.getLabel()));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue()))
+                .add(NavigationContext.pageContextFallback()));
         // TODO Replace hard-coded domain with dynamic solution:
         add(new ExternalLink("openapi-this", "https://query.knowledgepixels.com/openapi/?url=spec/" + id));
         add(new ExternalLink("openapi-latest", "https://query.knowledgepixels.com/openapi/?url=spec/" + id + "%3Fapi-version=latest"));

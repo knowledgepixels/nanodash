@@ -1,0 +1,40 @@
+@prefix this: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA> .
+@prefix sub: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:template a nt:AssertionTemplate;
+    rdfs:label "A space-governed template";
+    dct:isVersionOf sub:templateKind;
+    gen:governedBy <https://w3id.org/spaces/knowledgepixels/nanoarguments> .
+
+  # Not embedded, so not a governed definition of this nanopublication:
+  sub:somethingElse dct:isVersionOf sub:otherKind;
+    gen:governedBy <https://w3id.org/spaces/knowledgepixels/other> .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  this: dct:created "2026-07-13T07:07:32.752Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    npx:embeds sub:template;
+    npx:introduces sub:templateKind .
+}

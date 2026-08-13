@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
@@ -43,7 +44,9 @@ public class SpaceClaimantsPanel extends Panel {
                 // The currently-shown ref: the pinned one, or the representative when not pinned.
                 boolean current = effectiveRoot != null ? c.getRootNp().equals(effectiveRoot) : c.isRepresentative();
                 item.add(new BookmarkablePageLink<Void>("root-link", ExplorePage.class,
-                        new PageParameters().add("id", c.getRootNp())).setBody(Model.of(shortNp(c.getRootNp()))));
+                        new PageParameters().add("id", c.getRootNp()))
+                        .setBody(Model.of(shortNp(c.getRootNp())))
+                        .add(NavigationContext.pageContextFallback()));
                 item.add(new WebMarkupContainer("default").setVisible(c.isRepresentative()));
                 item.add(new WebMarkupContainer("current").setVisible(current));
                 // No "view this space" on the row you're already viewing.

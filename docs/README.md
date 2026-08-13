@@ -7,10 +7,11 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 
 | Doc | Status | Summary |
 | --- | --- | --- |
-| [userlist-views](userlist-views.md) | ✅ Implemented | Human / Software / Non-Approved user lists as published views on `UserListPage` |
+| [userlist-views](userlist-views.md) | ✅ Implemented | Human / Software / Non-Approved user lists as published views (now displayed on the home page; `UserListPage` retired) |
 | [presets](presets.md) | ✅ Implemented | Publishable bundles of default views + roles, assignable to (and deactivatable on) resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
 | [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |
 | [role-specific-views](role-specific-views.md) | ✅ Implemented | View **action buttons** gated to a role tier (Maintainer, …) or specific role, via `gen:isVisibleTo` on the action node |
+| [section-anchors](section-anchors.md) | ✅ Implemented | Display views generate fragment identifiers (`…/spaces/nanosuggestions#messages`) from their titles, with a copy-link handle and Ajax-aware scrolling |
 | [structural-position](structural-position.md) | ✅ Implemented | `gen:hasStructuralPosition` `<section>.<sub>.<label>` strings order & group views on a page; strict format, primary digits 3–7 (intro…outro) in use ([#279](https://github.com/knowledgepixels/nanodash/issues/279)) |
 | [space-namespace-prefixes](space-namespace-prefixes.md) | ✅ Implemented | `nt:hasPrefix "~~SPACE~~/"` / `"~~NAMESPACE~~"` mint resources under the space or maintained resource the form was opened from, with a picker when the `context` param determines none ([#571](https://github.com/knowledgepixels/nanodash/issues/571)) |
 | [fill-modes](fill-modes.md) | ✅ Implemented | Publish-form fill modes (use / supersede / derive / override): which IDs & root definition are kept vs. re-minted; derive now resets root, new `override` mode added ([#527](https://github.com/knowledgepixels/nanodash/issues/527)) |

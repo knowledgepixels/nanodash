@@ -42,7 +42,7 @@ public class ClaudeChatPage extends NanodashPage {
     public ClaudeChatPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         boolean enabled = ClaudeChatService.get().isEnabled();
         add(new Label("disabledNote",

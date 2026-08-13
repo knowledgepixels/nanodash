@@ -44,7 +44,7 @@ public class NanodashPreferences implements Serializable {
 
     private List<String> nanopubActions = new ArrayList<>();
     private boolean readOnlyMode = false;
-    private String websiteUrl = "http://localhost:37373/";
+    private String websiteUrl;
     private boolean orcidLoginMode = false;
     private String orcidClientId;
     private String orcidClientSecret;
@@ -57,6 +57,9 @@ public class NanodashPreferences implements Serializable {
     private String claudeChatModel;
     private boolean mcpRemoteEnabled = false;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
+
+    /** Where an instance is assumed to be reachable when nothing says otherwise: a local run. */
+    public static final String DEFAULT_WEBSITE_URL = "http://localhost:37373/";
 
     /**
      * Return the list of nanopub actions.
@@ -106,16 +109,35 @@ public class NanodashPreferences implements Serializable {
     /**
      * Get the website URL.
      *
-     * @return the website URL
+     * @return the website URL, falling back to {@link #DEFAULT_WEBSITE_URL} when this instance
+     *         has not been told where it is reachable
      */
     public String getWebsiteUrl() {
+        String s = getConfiguredWebsiteUrl();
+        if (s != null) return s;
+        logger.debug("No website URL configured, using default: {}", DEFAULT_WEBSITE_URL);
+        return DEFAULT_WEBSITE_URL;
+    }
+
+    /**
+     * The website URL as actually configured for this instance, from the
+     * {@code NANODASH_WEBSITE_URL} environment variable or the preferences file — or null if
+     * neither sets one.
+     *
+     * <p>Distinct from {@link #getWebsiteUrl()} because a caller that builds URLs for the
+     * outside world must be able to tell a real deployment address from the localhost
+     * fallback: guessing {@code localhost} would be worse than deriving the address from the
+     * request. See {@link Utils#absolutePageUrl}.</p>
+     *
+     * @return the configured website URL, or null when unconfigured
+     */
+    public String getConfiguredWebsiteUrl() {
         String s = System.getenv("NANODASH_WEBSITE_URL");
         if (s != null && !s.isBlank()) {
             logger.debug("Found environment variable NANODASH_WEBSITE_URL with value: {}", s);
             return s;
         }
-        logger.debug("Environment variable NANODASH_WEBSITE_URL not set, using default: {}", websiteUrl);
-        return websiteUrl;
+        return (websiteUrl == null || websiteUrl.isBlank()) ? null : websiteUrl;
     }
 
     /**

@@ -318,6 +318,49 @@ details summary {
 .view-group > .listview {
   grid-column: span 12;
   min-width: 0;
+  /* Each item carries the section's fragment identifier (see ViewAnchors), so leave a
+     bit of air above it when the browser scrolls a linked section into view. */
+  scroll-margin-top: 16px;
+}
+
+/* Panels that are their own section, on the pages that render view panels directly
+   instead of through ViewList — same air above them when linked to. */
+.view-section {
+  scroll-margin-top: 16px;
+}
+
+/* The "#" handle appended to a section title (nanodash.js), giving a copyable link to
+   that section. Kept faint until the section is hovered, so it doesn't compete with
+   the title itself. */
+.section-anchor {
+  margin-left: 8px;
+  font-weight: normal;
+  color: #bdbdbd;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  /* Title rows can carry positioned overlays (the nanopub-set view pins its filter and
+     menu into its row), which would otherwise take the click meant for the handle. */
+  position: relative;
+  z-index: 1;
+}
+
+.view-group > .listview:hover .section-anchor,
+.view-section:hover .section-anchor,
+.section-anchor:focus {
+  opacity: 1;
+}
+
+.section-anchor:hover {
+  color: #4a4a4a;
+  text-decoration: none;
+}
+
+/* Touch devices have no hover to reveal it, so keep it permanently visible there. */
+@media (hover: none) {
+  .section-anchor {
+    opacity: 1;
+  }
 }
 
 .view-group > .listview > [class*="col-"] {
@@ -346,18 +389,6 @@ details summary {
 .view-group > .listview:has(> .col-9) { grid-column: span 9; }
 .view-group > .listview:has(> .col-10) { grid-column: span 10; }
 .view-group > .listview:has(> .col-11) { grid-column: span 11; }
-
-.columncontainer {
-  display: flex;
-  column-gap: 60px;
-  row-gap: 15px;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.columnelement {
-  width: 45%;
-}
 
 html {
   height: 100%;
@@ -406,7 +437,7 @@ p.center {
   text-align: center;
 }
 
-.logo-menu > .logo {
+#titlebar .logo {
   display: inline-block;
   background-image: url("images/logo-icon.svg");
   background-size: contain;
@@ -423,53 +454,6 @@ p.center {
   width: 21.72mm;
   height: 6mm;
   vertical-align: middle;
-}
-
-.logo-menu {
-  display: inline-block;
-  position: relative;
-  vertical-align: middle;
-}
-
-.logo-menu .logo {
-  cursor: pointer;
-}
-
-.logo-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: white;
-  border: 1px solid #E0E5EB;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  z-index: 1000;
-  min-width: 140px;
-  padding: 4px 0;
-  font-family: "Noto Emoji", Martian, monaco, monospace;
-  font-size: 14px;
-}
-
-.logo-menu:hover .logo-dropdown {
-  display: block;
-}
-
-.logo-dropdown a {
-  display: block;
-  padding: 8px 16px;
-  color: #1A1F23;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.logo-dropdown a:hover {
-  background-color: #F3F6F9;
-  color: #0b73da;
-}
-
-.logo-dropdown a.selected {
-  color: #0b73da;
 }
 
 section {
@@ -552,8 +536,10 @@ table.paramtable {
   max-width: 100%;
 }
 
-table.paramtable td {
-  background: white;
+table.paramtable tbody tr:nth-child(even) {
+  /* No zebra stripe in parameter forms; transparent (not white) so the
+     background of grey striped sections shows through. */
+  background-color: transparent;
 }
 
 div.large-table table {
@@ -2622,6 +2608,30 @@ div.navigator .goto a[disabled] {
   margin: 0;
 }
 
+/* SVG view figures: scale down diagrams wider than the panel, keep ratio. */
+.svg-view-content {
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.svg-view-content svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Links in SVG-view figures follow the page's link colors (matching the a /
+   a:hover rules above). CSS overrides the SVG's own fill presentation
+   attributes, which queries keep as a fallback for standalone rendering. */
+.svg-view-content a text,
+.svg-view-content a tspan {
+  fill: #0b73da;
+}
+
+.svg-view-content a:hover text,
+.svg-view-content a:hover tspan {
+  fill: #6eb2f7;
+}
+
 .paragraph-header span.buttons {
   float: none;
   margin: 0;
@@ -2745,6 +2755,11 @@ td div:has(.button-list) {
   top: 0;
   right: 0;
   padding-right: 0;
+  /* Shrink to its own content. Without this it keeps the 100% width of the base
+     .view-selector rule and, being positioned, lies as an invisible sheet over the whole
+     title row it is pinned to — swallowing every click on the title, including the "#"
+     section handle (see docs/section-anchors.md). */
+  width: auto;
 }
 
 .view-selector.with-source .buttons {
@@ -2971,20 +2986,12 @@ a.source:hover {
     grid-column: span 12 !important;
   }
 
-  /* 2. Columncontainer (flex 2-col layout, used in TemplateList) */
-  .columncontainer {
-    column-gap: 15px;
-  }
-  .columnelement {
-    width: 100%;
-  }
-
-  /* 3. Nanopub grid (4-col → 2-col) */
+  /* 2. Nanopub grid (4-col → 2-col) */
   .flex-container .nanopub-item {
     flex: 0 0 calc(50% - 20px);
   }
 
-  /* 4. Fixed-width form elements */
+  /* 3. Fixed-width form elements */
   select {
     width: 300px;
     max-width: 100%;
@@ -3017,7 +3024,7 @@ a.source:hover {
     white-space: normal;
   }
 
-  /* 5. Tooltips */
+  /* 4. Tooltips */
   .tooltip .tooltiptext {
     min-width: 0;
     max-width: none;
@@ -3028,12 +3035,12 @@ a.source:hover {
     margin-left: 0;
   }
 
-  /* 6. Select2 dropdown */
+  /* 5. Select2 dropdown */
   .select2-dropdown.select2-dropdown--below {
     min-width: 300px !important;
   }
 
-  /* 7. Overflow-prone elements */
+  /* 6. Overflow-prone elements */
   .uri {
     white-space: normal;
     overflow-wrap: anywhere;
@@ -3086,13 +3093,13 @@ a.source:hover {
     min-width: 0;
   }
 
-  /* 8. Tables */
+  /* 7. Tables */
   table {
     display: block;
     overflow-x: auto;
     overflow-y: hidden;
   }
-  /* 9. Progress stepper */
+  /* 8. Progress stepper */
   .progress .progress-item:first-child {
     margin-left: 0;
   }
@@ -3105,13 +3112,13 @@ a.source:hover {
     font-size: 8pt;
   }
 
-  /* 10. Filter section (flex on narrow screens) */
+  /* 9. Filter section (flex on narrow screens) */
   .filter-section {
     flex-direction: column;
     gap: 12px;
   }
 
-  /* 11. Mobile Navigation */
+  /* 10. Mobile title bar */
   #titlebar {
     display: flex;
     flex-wrap: wrap;
@@ -3143,33 +3150,6 @@ a.source:hover {
   .nav-profile .profilelink {
     float: none;
   }
-  .logo-menu {
-    position: static;
-  }
-  .logo-menu:hover .logo-dropdown {
-    display: none;
-  }
-
-  /* Nav open state */
-  #titlebar.nav-open .logo-dropdown {
-    display: block;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: none;
-    border-top: 1px solid #E0E5EB;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    min-width: unset;
-    border-radius: 0;
-    padding: 4px 0;
-    z-index: 1000;
-  }
-  #titlebar.nav-open .logo-dropdown a {
-    padding: 12px 16px;
-  }
-
 }
 /* Claude Code chat page */
 

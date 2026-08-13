@@ -148,7 +148,7 @@ public class ExplorePage extends NanodashPage {
         }
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
-        TitleBar titleBar = new TitleBar("titlebar", this, null);
+        TitleBar titleBar = new TitleBar("titlebar", this);
         add(titleBar);
 
         if (User.getUserData().isUser(tempRef)) {
@@ -343,7 +343,7 @@ public class ExplorePage extends NanodashPage {
         if (publishedNanopub != null) {
             add(new Label("statusLine").setVisible(false));
         } else if (np != null && SignatureUtils.seemsToHaveSignature(np)) {
-            add(StatusLine.createComponent("statusLine", np.getUri().stringValue()));
+            add(StatusLine.createComponent("statusLine", np));
         } else {
             add(new Label("statusLine").setVisible(false));
         }

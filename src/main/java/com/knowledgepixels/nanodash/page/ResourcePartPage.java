@@ -151,7 +151,7 @@ public class ResourcePartPage extends NanodashPage {
         breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
         NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
-        add(new TitleBar("titlebar", this, null,
+        add(new TitleBar("titlebar", this,
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 

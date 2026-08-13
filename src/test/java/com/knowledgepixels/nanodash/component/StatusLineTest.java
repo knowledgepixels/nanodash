@@ -1,11 +1,17 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.GovernedVersions;
 import org.apache.wicket.Component;
 import org.apache.wicket.util.tester.WicketTester;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.nanopub.Nanopub;
+import org.nanopub.NanopubImpl;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+
+import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,8 +34,9 @@ class StatusLineTest {
     }
 
     @Test
-    void createComponentReturnsNonNullComponent() throws InterruptedException {
-        Component component = StatusLine.createComponent("statusLine", "https://w3id.org/np/RA58YcJyv1h-UmS8jI6UfFP6_LTAh59GTgpU_4lvBv7a4");
+    void createComponentReturnsNonNullComponent() throws Exception {
+        Nanopub np = new NanopubImpl(new File("src/test/resources/np-statusline-example.trig"), RDFFormat.TRIG);
+        Component component = StatusLine.createComponent("statusLine", np);
         assertNotNull(component);
 
         ((ApiResultComponent) component).getLazyLoadComponent("statusLine");
@@ -50,7 +57,7 @@ class StatusLineTest {
     void statusLineDisplaysNewerVersionLinkWhenNewerVersionExists() {
         ApiResponse response = new ApiResponse();
         response.getData().add(entry(TRUSTY_A, "", ""));
-        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response);
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, null);
 
         wicketTester.startComponentInPage(statusLine);
         String renderedHtml = wicketTester.getLastResponseAsString();
@@ -62,7 +69,7 @@ class StatusLineTest {
     void statusLineDisplaysRetractionMessageWhenRetracted() {
         ApiResponse response = new ApiResponse();
         response.getData().add(entry("", TRUSTY_A, ""));
-        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response);
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, null);
 
         wicketTester.startComponentInPage(statusLine);
         String renderedHtml = wicketTester.getLastResponseAsString();
@@ -75,7 +82,7 @@ class StatusLineTest {
         ApiResponse response = new ApiResponse();
         response.getData().add(entry(TRUSTY_A, "", ""));
         response.getData().add(entry(TRUSTY_B, "", ""));
-        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response);
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, null);
 
         wicketTester.startComponentInPage(statusLine);
         String renderedHtml = wicketTester.getLastResponseAsString();
@@ -86,12 +93,30 @@ class StatusLineTest {
     @Test
     void statusLineDisplaysMessageWhenNotProperlyPublished() {
         ApiResponse response = new ApiResponse();
-        StatusLine statusLine = new StatusLine("testMarkupId", "testNpId", response);
+        StatusLine statusLine = new StatusLine("testMarkupId", "testNpId", response, null);
 
         wicketTester.startComponentInPage(statusLine);
         String renderedHtml = wicketTester.getLastResponseAsString();
 
         assertTrue(renderedHtml.contains("This nanopublication doesn't seem to be properly published (yet)."));
+    }
+
+    @Test
+    void governedLookupDoesNotOverrideRetractionMessage() throws Exception {
+        // A governed definition that has been retracted keeps the retraction as its
+        // status: the governed lookup only overrides the "latest version" verdict
+        // (and, being guarded on that verdict, isn't even issued here).
+        Nanopub governed = new NanopubImpl(new File("src/test/resources/np-governed-definition.trig"), RDFFormat.TRIG);
+        GovernedVersions.GovernedRef governedRef = GovernedVersions.findGovernedRef(governed);
+        assertNotNull(governedRef);
+        ApiResponse response = new ApiResponse();
+        response.getData().add(entry("", TRUSTY_A, ""));
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, governedRef);
+
+        wicketTester.startComponentInPage(statusLine);
+        String renderedHtml = wicketTester.getLastResponseAsString();
+
+        assertTrue(renderedHtml.contains("This nanopublication has been <strong>retracted</strong>:"));
     }
 
 }
