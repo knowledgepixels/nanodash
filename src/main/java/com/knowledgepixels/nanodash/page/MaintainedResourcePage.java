@@ -83,7 +83,7 @@ public class MaintainedResourcePage extends NanodashPage {
         List<AbstractResourceWithProfile> superSpaces = resource.getAllSuperSpacesUntilRoot();
         superSpaces.add(resource.getSpace());
         superSpaces.add(resource);
-        add(new TitleBar("titlebar", this, null,
+        add(new TitleBar("titlebar", this,
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 

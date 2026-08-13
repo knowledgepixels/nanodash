@@ -96,11 +96,11 @@ public class SpacePage extends NanodashPage {
         List<AbstractResourceWithProfile> superSpaces = space.getAllSuperSpacesUntilRoot();
         if (superSpaces.isEmpty()) {
             // Top-level space (no superspace): show only the tab strip, no breadcrumb.
-            add(new TitleBar("titlebar", this, null)
+            add(new TitleBar("titlebar", this)
                     .setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         } else {
             superSpaces.add(space);
-            add(new TitleBar("titlebar", this, null,
+            add(new TitleBar("titlebar", this,
                     superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
             ).setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         }

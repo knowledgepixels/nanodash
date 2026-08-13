@@ -29,7 +29,7 @@ public class GroupDemoPage extends NanodashPage {
     public GroupDemoPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
     }
 
 }

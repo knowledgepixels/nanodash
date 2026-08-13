@@ -62,7 +62,7 @@ public class ProjectPage extends NanodashPage {
         project = Project.get(projectId);
         Nanopub np = project.getRootNanopub();
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
         add(new Label("projectname", project.getLabel()));

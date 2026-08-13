@@ -67,9 +67,7 @@ public class ChannelPage extends NanodashPage {
         userIri = Utils.vf.createIRI(parameters.get("id").toString());
         NanodashSession session = NanodashSession.get();
 
-        String pageType = "users";
-        if (session.getUserIri() != null && userIri.equals(session.getUserIri())) pageType = "mychannel";
-        add(new TitleBar("titlebar", this, pageType));
+        add(new TitleBar("titlebar", this));
 
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (channel) | nanodash"));

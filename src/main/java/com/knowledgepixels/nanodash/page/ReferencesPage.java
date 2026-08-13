@@ -30,7 +30,7 @@ public class ReferencesPage extends NanodashPage {
     public ReferencesPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         String ref = parameters.get("id").toString();
         ref = ref.replaceFirst(";jsessionid.*$", "");

@@ -151,20 +151,23 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
 
         mountPage(UserPage.MOUNT_PATH, UserPage.class);
         mountPage(ChannelPage.MOUNT_PATH, ChannelPage.class);
-        mountPage(SearchPage.MOUNT_PATH, SearchPage.class);
         mountPage(ExplorePage.MOUNT_PATH, ExplorePage.class);
         mountPage(ReferencesPage.MOUNT_PATH, ReferencesPage.class);
         mountPage(PublishPage.MOUNT_PATH, PublishPage.class);
         mountPage(PreviewPage.MOUNT_PATH, PreviewPage.class);
         mountPage(ProfilePage.MOUNT_PATH, ProfilePage.class);
-        mountPage(UserListPage.MOUNT_PATH, UserListPage.class);
         mountPage(GroupDemoPage.MOUNT_PATH, GroupDemoPage.class);
         mountPage(GroupDemoPageSoc.MOUNT_PATH, GroupDemoPageSoc.class);
         mountPage(OrcidLinkingPage.MOUNT_PATH, OrcidLinkingPage.class);
         mountPage(OrcidLoginPage.MOUNT_PATH, OrcidLoginPage.class);
-        mountPage(SpaceListPage.MOUNT_PATH, SpaceListPage.class);
         mountPage(MyChannelPage.MOUNT_PATH, MyChannelPage.class);
         mountPage(TermForwarder.MOUNT_PATH, TermForwarder.class);
+        // The URLs of the retired list pages forward to the home page, which
+        // shows their content as view sections now.
+        mountPage(HomeForwarder.UserList.MOUNT_PATH, HomeForwarder.UserList.class);
+        mountPage(HomeForwarder.SpaceList.MOUNT_PATH, HomeForwarder.SpaceList.class);
+        mountPage(HomeForwarder.QueryList.MOUNT_PATH, HomeForwarder.QueryList.class);
+        mountPage(HomeForwarder.Search.MOUNT_PATH, HomeForwarder.Search.class);
         mountPage(ViewPage.MOUNT_PATH, ViewPage.class);
         mountPage(GetViewPage.MOUNT_PATH, GetViewPage.class);
         mountPage(DsOverviewPage.MOUNT_PATH, DsOverviewPage.class);
@@ -185,7 +188,6 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(ProjectPage.MOUNT_PATH, ProjectPage.class);
         mountPage(SpacePage.MOUNT_PATH, SpacePage.class);
         mountPage(QueryPage.MOUNT_PATH, QueryPage.class);
-        mountPage(QueryListPage.MOUNT_PATH, QueryListPage.class);
         mountPage(ViewResultsPage.MOUNT_PATH, ViewResultsPage.class);
         mountPage(ListPage.MOUNT_PATH, ListPage.class);
         mountPage(MaintainedResourcePage.MOUNT_PATH, MaintainedResourcePage.class);

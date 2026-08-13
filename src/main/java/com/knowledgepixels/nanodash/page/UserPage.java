@@ -79,8 +79,7 @@ public class UserPage extends NanodashPage {
         if (!pubkeyHashes.isEmpty()) pubkeyHashes = pubkeyHashes.substring(1);
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
-        String pageType = "users";
-        add(new TitleBar("titlebar", this, pageType)
+        add(new TitleBar("titlebar", this)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
         IRI profilePictureIri = User.getProfilePicture(userIri);
