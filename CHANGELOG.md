@@ -1,3 +1,19 @@
+## [5.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.9.0...nanodash-5.10.0) (2026-08-14)
+
+### Features
+
+* chat context, latest-version tools, WebFetch, stop button ([622d3b2](https://github.com/knowledgepixels/nanodash/commit/622d3b218c8bb65337b098082e02ed19561f3f2d))
+* chat with local Claude Code via MCP endpoint ([8ed1c60](https://github.com/knowledgepixels/nanodash/commit/8ed1c60626212990fac36d2674d7d6627986606f))
+* docked Claude chat panel on all pages ([df950e1](https://github.com/knowledgepixels/nanodash/commit/df950e1a3d65163bad3030c10527557305e4849d))
+* forward to declared space/resource page after publishing ([7405eca](https://github.com/knowledgepixels/nanodash/commit/7405eca202f6d3f19ac38860c20f016daa70ebfd)), closes [#594](https://github.com/knowledgepixels/nanodash/issues/594)
+* markdown chat rendering, open_page + prepare_publication tools ([e2ea211](https://github.com/knowledgepixels/nanodash/commit/e2ea211db94729f94048428cb962a663137ef056))
+* remote MCP access with per-user tokens, repeatable-row prefill ([e21decf](https://github.com/knowledgepixels/nanodash/commit/e21decfbafd97a58314404c95246ac12807e7b16))
+* replace nav tabs with home-page view sections ([210a3a5](https://github.com/knowledgepixels/nanodash/commit/210a3a5b7832582f8444ad593765838e257fff4a))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([42c63b2](https://github.com/knowledgepixels/nanodash/commit/42c63b2fef1aa391e73fb183442bc0dcc3fa5ca0))
+
 ## [5.9.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.8.0...nanodash-5.9.0) (2026-08-12)
 
 ### Features
