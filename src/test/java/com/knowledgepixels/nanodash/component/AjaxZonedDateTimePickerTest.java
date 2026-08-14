@@ -17,9 +17,11 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,21 +78,70 @@ public class AjaxZonedDateTimePickerTest {
     }
 
     @Test
-    void resolveZoneChoiceFollowsDaylightSavingTime() {
-        List<? extends ZoneId> choices = zoneChoices();
-        ZoneId rome = ZoneId.of("Europe/Rome");
-        assertEquals(ZoneOffset.ofHours(2), AjaxZonedDateTimePicker.resolveZoneChoice(rome, choices, SUMMER));
-        assertEquals(ZoneOffset.ofHours(1), AjaxZonedDateTimePicker.resolveZoneChoice(rome, choices, WINTER));
+    void unusualOffsetOfExistingValueIsAddedToTheChoices() {
+        AjaxZonedDateTimePicker picker = newPicker(ZonedDateTime.parse("2020-05-17T10:15:00+01:23"));
+        ZoneOffset offset = ZoneOffset.ofHoursMinutes(1, 23);
+        assertEquals(offset, picker.getZoneDropDown().getModelObject());
+        assertTrue(picker.getZoneDropDown().getChoices().contains(offset), "the value's offset must be selectable");
     }
 
     @Test
-    void resolveZoneChoiceHandlesOffsetsAndUnknownZones() {
+    void choicesAreOrderedByOffset() {
         List<? extends ZoneId> choices = zoneChoices();
-        assertEquals(ZoneOffset.UTC, AjaxZonedDateTimePicker.resolveZoneChoice(ZoneOffset.UTC, choices, SUMMER));
-        assertEquals(ZoneOffset.ofHours(-4), AjaxZonedDateTimePicker.resolveZoneChoice(ZoneOffset.ofHours(-4), choices, SUMMER));
-        assertNull(AjaxZonedDateTimePicker.resolveZoneChoice(null, choices, SUMMER));
-        // An offset that no zone has as its standard offset cannot be matched:
-        assertNull(AjaxZonedDateTimePicker.resolveZoneChoice(ZoneOffset.ofHoursMinutes(7, 7), choices, SUMMER));
+        List<Integer> offsets = choices.stream().map(zone -> ((ZoneOffset) zone).getTotalSeconds()).toList();
+        assertEquals(offsets.stream().sorted().toList(), offsets);
+        assertTrue(choices.contains(ZoneOffset.UTC));
+    }
+
+    @Test
+    void zonesAreGroupedByTheOffsetTheyAreCurrentlyAt() {
+        ZoneId rome = ZoneId.of("Europe/Rome");
+        assertTrue(AjaxZonedDateTimePicker.getZonesByCurrentOffset(SUMMER).get(ZoneOffset.ofHours(2)).contains(rome));
+        assertTrue(AjaxZonedDateTimePicker.getZonesByCurrentOffset(WINTER).get(ZoneOffset.ofHours(1)).contains(rome));
+        assertFalse(AjaxZonedDateTimePicker.getZonesByCurrentOffset(SUMMER).get(ZoneOffset.ofHours(1)).contains(rome));
+    }
+
+    @Test
+    void legacyAndArtificialZonesAreLeftOut() {
+        List<String> ids = AjaxZonedDateTimePicker.getZonesByCurrentOffset(SUMMER).values().stream()
+                .flatMap(List::stream).map(ZoneId::getId).toList();
+        assertTrue(ids.contains("America/New_York"));
+        for (String excluded : new String[]{"US/Eastern", "Etc/GMT+3", "CET", "Japan", "UTC"}) {
+            assertFalse(ids.contains(excluded), excluded + " must not be used as an example zone");
+        }
+    }
+
+    @Test
+    void labelsNameThePlacesAtTheOffset() {
+        ZoneOffset summerOffsetOfRome = ZoneOffset.ofHours(2);
+        List<ZoneId> atOffset = AjaxZonedDateTimePicker.getZonesByCurrentOffset(SUMMER).get(summerOffsetOfRome);
+        assertEquals("UTC+02:00 — Paris, Berlin, Madrid",
+                AjaxZonedDateTimePicker.getZoneChoiceLabel(summerOffsetOfRome, atOffset, null));
+        // The user's own place is named first, so that they recognize their preselected zone:
+        assertEquals("UTC+02:00 — Rome, Paris, Berlin",
+                AjaxZonedDateTimePicker.getZoneChoiceLabel(summerOffsetOfRome, atOffset, ZoneId.of("Europe/Rome")));
+    }
+
+    @Test
+    void labelsNameNeitherDuplicateNorObscurePlaces() {
+        Map<ZoneOffset, List<ZoneId>> groups = AjaxZonedDateTimePicker.getZonesByCurrentOffset(SUMMER);
+        // Asia/Calcutta is a duplicate of Asia/Kolkata, and there are a dozen more zones at +05:30:
+        ZoneOffset offset = ZoneOffset.ofHoursMinutes(5, 30);
+        assertEquals("UTC+05:30 — Kolkata, Colombo", AjaxZonedDateTimePicker.getZoneChoiceLabel(offset, groups.get(offset), null));
+        // Every offset a place is at is named by at least one of them:
+        for (Map.Entry<ZoneOffset, List<ZoneId>> group : groups.entrySet()) {
+            String label = AjaxZonedDateTimePicker.getZoneChoiceLabel(group.getKey(), group.getValue(), null);
+            assertTrue(label.contains(" — "), "no place is named for " + group.getKey() + ": " + label);
+        }
+    }
+
+    @Test
+    void offsetsAreLabelledAsUtcOffsets() {
+        assertEquals("UTC", AjaxZonedDateTimePicker.getOffsetLabel(ZoneOffset.UTC));
+        assertEquals("UTC+05:30", AjaxZonedDateTimePicker.getOffsetLabel(ZoneOffset.ofHoursMinutes(5, 30)));
+        assertEquals("UTC-03:30", AjaxZonedDateTimePicker.getOffsetLabel(ZoneOffset.ofHoursMinutes(-3, -30)));
+        // Offsets without any place at them are labelled by the offset alone:
+        assertEquals("UTC+01:23", AjaxZonedDateTimePicker.getZoneChoiceLabel(ZoneOffset.ofHoursMinutes(1, 23), List.of(), null));
     }
 
     @Test

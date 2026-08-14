@@ -25,6 +25,41 @@ import java.util.stream.Collectors;
 
 public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> implements AbstractTextComponent.ITextFormatProvider {
 
+    private static final int MAX_LABEL_ZONES = 3;
+
+    // The prefixes of the regular zone ids; all others are legacy aliases (US/Eastern), single-country
+    // names (Japan), or artificial zones (Etc/GMT+3, CET), which we don't want to name in the labels.
+    private static final List<String> REGION_PREFIXES = List.of("Africa/", "America/", "Antarctica/",
+            "Arctic/", "Asia/", "Atlantic/", "Australia/", "Europe/", "Indian/", "Pacific/");
+
+    // The only places we name in the labels, most widely known first. Naming just these keeps the
+    // labels free of the duplicate (Asia/Calcutta), obsolete (Australia/North) and remote
+    // (Antarctica/DumontDUrville) zone ids that a zone list is otherwise full of. The tail of the
+    // list is what gives the more unusual offsets a place name at all.
+    private static final List<String> WELL_KNOWN_ZONES = List.of(
+            "Europe/London", "America/New_York", "Asia/Tokyo", "Europe/Paris", "Asia/Shanghai",
+            "America/Los_Angeles", "America/Chicago", "Europe/Berlin", "Europe/Madrid", "Europe/Rome",
+            "Europe/Amsterdam", "Europe/Lisbon", "Europe/Athens", "Europe/Istanbul", "Europe/Kyiv",
+            "Europe/Moscow", "Africa/Lagos", "Africa/Cairo", "Africa/Nairobi", "Africa/Johannesburg",
+            "Africa/Casablanca", "Africa/Accra", "America/Toronto", "America/Vancouver",
+            "America/Mexico_City", "America/Denver", "America/Phoenix", "America/Halifax",
+            "America/Bogota", "America/Lima", "America/Santiago", "America/Sao_Paulo",
+            "America/Argentina/Buenos_Aires", "America/Anchorage", "Asia/Jerusalem", "Asia/Dubai",
+            "Asia/Baghdad", "Asia/Tehran", "Asia/Karachi", "Asia/Kolkata", "Asia/Dhaka",
+            "Asia/Bangkok", "Asia/Jakarta", "Asia/Ho_Chi_Minh", "Asia/Hong_Kong", "Asia/Singapore",
+            "Asia/Manila", "Asia/Seoul", "Australia/Perth", "Australia/Adelaide", "Australia/Brisbane",
+            "Australia/Sydney", "Pacific/Auckland", "Pacific/Honolulu", "Atlantic/Reykjavik",
+            // Below: places that are the only ones to give their offset a name.
+            "America/St_Johns", "America/Puerto_Rico", "America/Caracas", "America/Noronha",
+            "America/Nuuk", "America/Adak", "Atlantic/Azores", "Atlantic/Cape_Verde",
+            "Atlantic/South_Georgia", "Asia/Baku", "Europe/Samara", "Asia/Kabul", "Asia/Tashkent",
+            "Asia/Yekaterinburg", "Asia/Colombo", "Asia/Kathmandu", "Asia/Almaty", "Asia/Yangon",
+            "Asia/Yakutsk", "Asia/Vladivostok", "Asia/Magadan", "Asia/Kamchatka", "Indian/Maldives",
+            "Australia/Eucla", "Australia/Darwin", "Australia/Lord_Howe", "Pacific/Guam",
+            "Pacific/Noumea", "Pacific/Fiji", "Pacific/Chatham", "Pacific/Apia", "Pacific/Tongatapu",
+            "Pacific/Kiritimati", "Pacific/Pago_Pago", "Pacific/Niue", "Pacific/Tahiti",
+            "Pacific/Marquesas", "Pacific/Gambier", "Pacific/Pitcairn");
+
     private final Logger logger = LoggerFactory.getLogger(AjaxZonedDateTimePicker.class);
     private IModel<ZonedDateTime> zonedDateTimeModel = Model.of((ZonedDateTime) null);
     private IModel<ZoneId> zoneIdModel = Model.of((ZoneId) null);
@@ -73,19 +108,20 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         };
 
         this.zonedDateTimeModel = model;
+
+        Instant now = Instant.now();
+        Map<ZoneOffset, List<ZoneId>> timezoneGroups = getZonesByCurrentOffset(now);
+        this.zones = new ArrayList<>(timezoneGroups.keySet());
+        sortByOffset(zones, now);
+
         if (this.zonedDateTimeModel.getObject() != null) {
             this.zoneIdModel = Model.of(model.getObject().getZone());
-        }
-
-        Map<ZoneOffset, List<ZoneId>> timezoneGroups = ZoneId.getAvailableZoneIds().stream()
-                .map(ZoneId::of)
-                .collect(Collectors.groupingBy(x -> x.getRules().getStandardOffset(Instant.now())));
-        this.zones = new ArrayList<>(timezoneGroups.keySet());
-        zones.sort(Comparator.comparing(zoneId -> zoneId.getRules().getStandardOffset(Instant.now()).getTotalSeconds()));
-
-        if (zoneIdModel.getObject() == null) {
+            // An existing value can carry an offset that no zone is currently at, and the dropdown
+            // has to show it nonetheless:
+            ensureZoneChoice(zoneIdModel.getObject(), now);
+        } else {
             // No zone given by an existing value, so we preselect the one the user is most likely in:
-            zoneIdModel.setObject(resolveZoneChoice(getUserZoneId(), zones, Instant.now()));
+            zoneIdModel.setObject(selectZoneChoice(getUserZoneId(), now));
             zoneIsDefault = true;
             if (getClientZoneId() == null) {
                 // The client's zone isn't known yet (typically the first page view of a session), so
@@ -100,10 +136,7 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         }
 
         this.zoneDropDown = new DropDownChoice<>("timezone-dropdown", zoneIdModel, zones,
-                (IChoiceRenderer<ZoneId>) zoneId -> String.format("%s : %s", zoneId, timezoneGroups.get(zoneId).stream()
-                        .map(ZoneId::getId)
-                        .limit(3)
-                        .collect(Collectors.joining(", ")))
+                (IChoiceRenderer<ZoneId>) zoneId -> getZoneChoiceLabel(zoneId, timezoneGroups.getOrDefault(zoneId, List.of()), getUserZoneId())
         );
 
         this.zoneDropDown.setOutputMarkupId(true);
@@ -117,6 +150,89 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         });
         add(zoneDropDown);
         add(dateTimePicker);
+    }
+
+    /**
+     * Groups all time zones by the offset they are currently at, so that a zone is found under the
+     * offset it is really at right now, including daylight saving time. Legacy and artificial zone
+     * ids (like {@code US/Eastern} or {@code Etc/GMT+3}) are left out: they duplicate the regular
+     * zones, and would offer offsets that no place is at.
+     *
+     * @param instant the instant to determine the zones' offsets at
+     * @return the zones of each currently used offset
+     */
+    public static Map<ZoneOffset, List<ZoneId>> getZonesByCurrentOffset(Instant instant) {
+        return ZoneId.getAvailableZoneIds().stream()
+                .filter(id -> REGION_PREFIXES.stream().anyMatch(id::startsWith))
+                .map(ZoneId::of)
+                .collect(Collectors.groupingBy(zoneId -> zoneId.getRules().getOffset(instant)));
+    }
+
+    /**
+     * Returns the label of the given zone choice, for example {@code "UTC+02:00 — Rome, Paris,
+     * Berlin"}: the offset, followed by the places that are currently at it. The user's own place is
+     * named first, so that they recognize the zone that is preselected for them.
+     *
+     * @param choice   the zone choice to label
+     * @param atOffset the zones that are currently at the choice's offset
+     * @param userZone the user's own time zone, or null if unknown
+     * @return the label of the given zone choice
+     */
+    public static String getZoneChoiceLabel(ZoneId choice, List<ZoneId> atOffset, ZoneId userZone) {
+        String examples = atOffset.stream()
+                .filter(zoneId -> getExampleRank(zoneId, userZone) < Integer.MAX_VALUE)
+                .sorted(Comparator.comparingInt(zoneId -> getExampleRank(zoneId, userZone)))
+                .limit(MAX_LABEL_ZONES)
+                .map(AjaxZonedDateTimePicker::getPlaceName)
+                .collect(Collectors.joining(", "));
+        String offsetLabel = getOffsetLabel(choice);
+        return examples.isEmpty() ? offsetLabel : offsetLabel + " — " + examples;
+    }
+
+    /**
+     * Returns the offset as shown in the dropdown, for example {@code "UTC-05:30"} or, for the zero
+     * offset, just {@code "UTC"}.
+     *
+     * @param zone the zone to label
+     * @return the label of the given zone's offset
+     */
+    public static String getOffsetLabel(ZoneId zone) {
+        int seconds = (zone instanceof ZoneOffset offset ? offset : zone.getRules().getOffset(Instant.now())).getTotalSeconds();
+        if (seconds == 0) return "UTC";
+        return String.format("UTC%s%02d:%02d", seconds < 0 ? "-" : "+", Math.abs(seconds) / 3600, Math.abs(seconds) % 3600 / 60);
+    }
+
+    /**
+     * Returns the place of the given zone as shown in the labels, for example {@code "New York"} for
+     * {@code America/New_York}.
+     */
+    private static String getPlaceName(ZoneId zoneId) {
+        String id = zoneId.getId();
+        return id.substring(id.lastIndexOf('/') + 1).replace('_', ' ');
+    }
+
+    /**
+     * Ranks the given zone as an example in a label: the user's own zone comes first, followed by
+     * the well-known ones in their given order, followed by all others.
+     */
+    private static int getExampleRank(ZoneId zoneId, ZoneId userZone) {
+        if (zoneId.equals(userZone)) return -1;
+        int index = WELL_KNOWN_ZONES.indexOf(zoneId.getId());
+        return index < 0 ? Integer.MAX_VALUE : index;
+    }
+
+    /**
+     * Adds the given zone to the choices if it isn't among them already, keeping them ordered by
+     * offset.
+     */
+    private void ensureZoneChoice(ZoneId zone, Instant instant) {
+        if (zone == null || zones.contains(zone)) return;
+        zones.add(zone);
+        sortByOffset(zones, instant);
+    }
+
+    private static void sortByOffset(List<ZoneId> zones, Instant instant) {
+        zones.sort(Comparator.comparingInt(zoneId -> zoneId.getRules().getOffset(instant).getTotalSeconds()));
     }
 
     /**
@@ -144,22 +260,13 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
     }
 
     /**
-     * Returns the entry of the given zone choices that matches the given zone at the given instant.
-     * The choices are offsets, so we match the offset the zone is actually at (including daylight
-     * saving time), and fall back to its standard offset if that isn't among the choices.
-     *
-     * @param zone    the zone to match
-     * @param choices the available zone choices
-     * @param instant the instant to determine the zone's offset at
-     * @return the matching choice, or null if there is none
+     * Returns the choice for the given zone, which is the offset that zone is at at the given
+     * instant, daylight saving time included, and makes sure it is among the choices.
      */
-    public static ZoneId resolveZoneChoice(ZoneId zone, List<? extends ZoneId> choices, Instant instant) {
-        if (zone == null) return null;
+    private ZoneOffset selectZoneChoice(ZoneId zone, Instant instant) {
         ZoneOffset offset = zone.getRules().getOffset(instant);
-        if (choices.contains(offset)) return offset;
-        ZoneOffset standardOffset = zone.getRules().getStandardOffset(instant);
-        if (choices.contains(standardOffset)) return standardOffset;
-        return null;
+        ensureZoneChoice(offset, instant);
+        return offset;
     }
 
     /**
@@ -170,8 +277,8 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         if (!zoneIsDefault) return;
         TimeZone timeZone = clientInfo.getProperties().getTimeZone();
         if (timeZone == null) return;
-        ZoneId choice = resolveZoneChoice(timeZone.toZoneId(), zones, Instant.now());
-        if (choice == null || choice.equals(zoneIdModel.getObject())) return;
+        ZoneId choice = selectZoneChoice(timeZone.toZoneId(), Instant.now());
+        if (choice.equals(zoneIdModel.getObject())) return;
         logger.info("Setting time zone to the one reported by the browser: {}", choice);
         zoneIdModel.setObject(choice);
         // The date/time fields keep the local time the user sees, so only the zone needs repainting:
