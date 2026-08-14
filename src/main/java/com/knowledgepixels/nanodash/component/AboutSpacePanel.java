@@ -80,7 +80,7 @@ public class AboutSpacePanel extends Panel {
      * View listing the resources maintained by a space, built on the
      * list-maintained-resources query.
      */
-    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RA4mk84QDZ4njO5N1sryJ5_wbyG7bAisL4BIAsNoISt-Y/maintained-resources-view";
+    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAPUs5_CXMs_13QpU0RQch8LB28MN61p-j0945_STg8BE/maintained-resources-view";
 
     /**
      * @param id    the Wicket markup id
