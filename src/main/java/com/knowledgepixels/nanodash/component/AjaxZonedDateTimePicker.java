@@ -11,13 +11,16 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.util.convert.converter.DateConverter;
 import org.apache.wicket.util.convert.converter.ZonedDateTimeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDateTimePicker;
 import org.wicketstuff.kendo.ui.form.datetime.DateTimePicker;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
@@ -65,13 +68,16 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
     private IModel<ZoneId> zoneIdModel = Model.of((ZoneId) null);
     private IModel<Date> dateModel = Model.of((Date) null);
     private final DropDownChoice<ZoneId> zoneDropDown;
-    private final DateTimePicker dateTimePicker;
+    private DateTimePicker dateTimePicker;
     private final List<ZoneId> zones;
     private String datePattern, timePattern;
 
     // True as long as the selected zone is just our default guess, i.e. neither the user nor an
     // existing value has determined it. Only then may the detected client zone still overrule it.
     private boolean zoneIsDefault;
+
+    // Whether the time field asks for seconds, which it only does for a value that has them.
+    private boolean secondsShown;
 
     public AjaxZonedDateTimePicker(String id, IModel<ZonedDateTime> model, String datePattern, String timePattern) {
         super(id);
@@ -82,30 +88,8 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         }
         this.datePattern = datePattern;
         this.timePattern = timePattern;
-        this.dateTimePicker = new AjaxDateTimePicker("datetime", dateModel, datePattern, timePattern) {
-            @Override
-            protected void onInitialize() {
-                super.onInitialize();
-                // Prevent Edge's autofill from overwriting the Kendo-formatted date/time values with a mismatched format:
-                datePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
-                datePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
-                timePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
-                timePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
-            }
-            @Override
-            public void onValueChanged(IPartialPageRequestHandler handler) {
-                Date selectedDate = this.getModelObject();
-                if (zoneIdModel.getObject() == null) {
-                    dateTimePicker.setModelObject(selectedDate);
-                    logger.info("Date selected without timezone: {}", dateModel.getObject());
-                } else {
-                    ZonedDateTime currentZonedDateTime = LocalDateTime.ofInstant(selectedDate.toInstant(), ZoneId.systemDefault()).atZone(zoneIdModel.getObject());
-                    zonedDateTimeModel.setObject(currentZonedDateTime);
-                    logger.info("Date selected: {}", dateModel.getObject());
-                    logger.info("Selected datetime with current timezone: {}", zonedDateTimeModel.getObject());
-                }
-            }
-        };
+        this.secondsShown = hasSeconds(timePattern) || hasSeconds(model.getObject());
+        this.dateTimePicker = newDateTimePicker();
 
         this.zonedDateTimeModel = model;
 
@@ -150,6 +134,107 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         });
         add(zoneDropDown);
         add(dateTimePicker);
+    }
+
+    /**
+     * Creates the date and time fields, asking for seconds or not, as {@link #secondsShown} has it.
+     */
+    private DateTimePicker newDateTimePicker() {
+        return new AjaxDateTimePicker("datetime", dateModel, datePattern, getTimePattern()) {
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                // Prevent Edge's autofill from overwriting the Kendo-formatted date/time values with a mismatched format:
+                datePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
+                datePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
+                timePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
+                timePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
+            }
+            @Override
+            @SuppressWarnings("unchecked")
+            public <C> IConverter<C> getConverter(Class<C> type) {
+                if (Date.class.isAssignableFrom(type)) {
+                    return (IConverter<C>) newDateTimeConverter();
+                }
+                return super.getConverter(type);
+            }
+            @Override
+            public void onValueChanged(IPartialPageRequestHandler handler) {
+                Date selectedDate = this.getModelObject();
+                if (zoneIdModel.getObject() == null) {
+                    this.setModelObject(selectedDate);
+                    logger.info("Date selected without timezone: {}", dateModel.getObject());
+                } else {
+                    ZonedDateTime currentZonedDateTime = LocalDateTime.ofInstant(selectedDate.toInstant(), ZoneId.systemDefault()).atZone(zoneIdModel.getObject());
+                    zonedDateTimeModel.setObject(currentZonedDateTime);
+                    logger.info("Date selected: {}", dateModel.getObject());
+                    logger.info("Selected datetime with current timezone: {}", zonedDateTimeModel.getObject());
+                }
+            }
+        };
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Starts asking for seconds as soon as the value at hand has them, so that a value which does
+     * carry seconds is shown in full and can be edited, rather than appearing rounded to the minute.
+     */
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        if (!secondsShown && hasSeconds(getModelObject())) {
+            secondsShown = true;
+            dateTimePicker = newDateTimePicker();
+            addOrReplace(dateTimePicker);
+        }
+    }
+
+    /**
+     * Returns a converter for the date and time fields that accepts a time with seconds as well, so
+     * that a user who types them is taken at their word by a field that only asks for minutes.
+     */
+    private IConverter<Date> newDateTimeConverter() {
+        List<String> patterns = new ArrayList<>();
+        patterns.add(datePattern + " " + getTimePattern());
+        if (!secondsShown) patterns.add(datePattern + " " + withSeconds(timePattern));
+        return new DateConverter() {
+            @Override
+            public DateFormat getDateFormat(Locale locale) {
+                return new SimpleDateFormat(patterns.get(0), locale != null ? locale : Locale.getDefault());
+            }
+
+            @Override
+            public Date convertToObject(String value, Locale locale) {
+                if (value == null || value.trim().isEmpty()) return null;
+                for (String pattern : patterns) {
+                    ParsePosition position = new ParsePosition(0);
+                    Date date = new SimpleDateFormat(pattern, locale != null ? locale : Locale.getDefault()).parse(value, position);
+                    if (date != null && position.getIndex() == value.length()) return date;
+                }
+                throw newConversionException("Cannot parse '" + value + "' as a date and time", value, locale);
+            }
+        };
+    }
+
+    /**
+     * Returns the pattern the time field is asking for, which is the given one plus seconds where
+     * the value has them.
+     */
+    private String getTimePattern() {
+        return secondsShown ? withSeconds(timePattern) : timePattern;
+    }
+
+    private static String withSeconds(String timePattern) {
+        return hasSeconds(timePattern) ? timePattern : timePattern + ":ss";
+    }
+
+    private static boolean hasSeconds(String timePattern) {
+        return timePattern.contains("s");
+    }
+
+    private static boolean hasSeconds(ZonedDateTime value) {
+        return value != null && (value.getSecond() != 0 || value.getNano() != 0);
     }
 
     /**
@@ -318,7 +403,7 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
     @Override
     public String getTextFormat() {
         logger.info("Getting text format.");
-        return String.format("%s %s", this.datePattern, this.timePattern);
+        return String.format("%s %s", this.datePattern, this.getTimePattern());
     }
 
     @Override

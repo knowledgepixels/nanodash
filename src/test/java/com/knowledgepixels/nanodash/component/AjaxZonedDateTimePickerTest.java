@@ -4,6 +4,8 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +19,12 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AjaxZonedDateTimePickerTest {
 
     private static final String DATE_PATTERN = "d MMM yyyy";
-    private static final String TIME_PATTERN = "HH:mm:ss";
+    private static final String TIME_PATTERN = "HH:mm";
 
     private static final Instant SUMMER = Instant.parse("2026-07-01T12:00:00Z");
     private static final Instant WINTER = Instant.parse("2026-01-01T12:00:00Z");
@@ -174,6 +178,46 @@ public class AjaxZonedDateTimePickerTest {
         AjaxZonedDateTimePicker nextPicker = newPicker(null);
         assertEquals(ZoneId.of("America/New_York").getRules().getOffset(Instant.now()), nextPicker.getZoneDropDown().getModelObject());
         assertTrue(nextPicker.getBehaviors(AjaxClientInfoBehavior.class).isEmpty());
+    }
+
+    @Test
+    void secondsAreNotAskedForByDefault() {
+        AjaxZonedDateTimePicker picker = newPicker(null);
+        tester.startComponentInPage(picker);
+        assertEquals("d MMM yyyy HH:mm", picker.getTextFormat());
+        // A time picked without seconds is a time at zero seconds:
+        AjaxDateTimePicker dateTimePicker = (AjaxDateTimePicker) picker.getDateTimePicker();
+        dateTimePicker.setModelObject(Date.from(LocalDateTime.of(2026, 5, 17, 10, 15).atZone(ZoneId.systemDefault()).toInstant()));
+        dateTimePicker.onValueChanged(null);
+        assertEquals(0, picker.getModelObject().getSecond());
+    }
+
+    @Test
+    void secondsAreAskedForOnceTheValueHasThem() {
+        assertEquals("d MMM yyyy HH:mm:ss", newPicker(ZonedDateTime.parse("2020-05-17T10:15:30Z")).getTextFormat());
+        // A value that arrives after the picker was built, as when filling in an existing nanopub:
+        AjaxZonedDateTimePicker picker = newPicker(null);
+        tester.startComponentInPage(picker);
+        assertEquals("d MMM yyyy HH:mm", picker.getTextFormat());
+        picker.setModelObject(ZonedDateTime.parse("2020-05-17T10:15:30Z"));
+        tester.startComponentInPage(picker);
+        assertEquals("d MMM yyyy HH:mm:ss", picker.getTextFormat());
+        tester.assertContains("10:15:30");
+    }
+
+    @Test
+    void typedSecondsAreTakenByAFieldThatOnlyAsksForMinutes() {
+        AjaxZonedDateTimePicker picker = newPicker(null);
+        tester.startComponentInPage(picker);
+        IConverter<Date> converter = picker.getDateTimePicker().getConverter(Date.class);
+        assertEquals(LocalDateTime.of(2026, 5, 17, 10, 15, 0), toLocalDateTime(converter.convertToObject("17 May 2026 10:15", Locale.US)));
+        assertEquals(LocalDateTime.of(2026, 5, 17, 10, 15, 30), toLocalDateTime(converter.convertToObject("17 May 2026 10:15:30", Locale.US)));
+        assertNull(converter.convertToObject("", Locale.US));
+        assertThrows(ConversionException.class, () -> converter.convertToObject("17 May 2026 10:15 pm-ish", Locale.US));
+    }
+
+    private LocalDateTime toLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
     @Test
