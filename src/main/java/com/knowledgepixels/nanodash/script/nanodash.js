@@ -188,6 +188,18 @@ function updateElements() {
   scrollToAnchor();
 };
 
+/* Kendo's date and time pickers only open their popup from the button beside the field, so
+   clicking the field itself does nothing visible. Clicking a date or time field looks like it
+   should offer the calendar or the clock, so here it does. Delegated from the document, so
+   pickers that arrive with a Wicket AJAX response are covered too. */
+$(document).on('click', 'input.k-input-inner', function () {
+  var field = $(this);
+  var picker = field.data('kendoDatePicker') || field.data('kendoTimePicker') || field.data('kendoDateTimePicker');
+  if (!picker || typeof picker.open !== 'function') return;
+  if (picker.popup && picker.popup.visible()) return;
+  picker.open();
+});
+
 $(document).on('mouseenter', '.tooltip, .expltooltip', function () {
   var tip = $(this).children('.tooltiptext, .expltooltiptext');
   if (!tip.length) return;
