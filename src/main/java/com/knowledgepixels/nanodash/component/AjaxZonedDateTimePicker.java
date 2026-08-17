@@ -514,12 +514,20 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         };
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Keeps the date and time fields on the value, in both directions: a value that is cleared
+     * empties them too, rather than leaving them showing a date the field no longer holds.
+     */
     @Override
     public FormComponent<ZonedDateTime> setModelObject(ZonedDateTime zonedDateTime) {
         if (zonedDateTime != null) {
             dateTimePicker.setModelObject(Date.from(zonedDateTime.toLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
             zoneDropDown.setModelObject(zonedDateTime.getZone());
             zoneIsDefault = false;
+        } else {
+            dateTimePicker.setModelObject(null);
         }
         return super.setModelObject(zonedDateTime);
     }

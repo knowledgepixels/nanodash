@@ -189,6 +189,27 @@ class DateTimeKeepValueTest {
     }
 
     /**
+     * The same, with the rest of the form left invalid so that Wicket does not get as far as
+     * updating the form's models. Clearing the value has to empty the fields by itself, or the
+     * date stays on screen as a value the field no longer holds.
+     */
+    @Test
+    void emptyingADateTimeClearsTheFieldsEvenIfTheFormIsInvalid() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Dtm05", true);
+        picker().setModelObject(ZonedDateTime.parse("2026-08-17T14:30+02:00"));
+
+        // The other fields are left empty, so the form does not validate:
+        FormTester form = tester.newFormTester("panel:form");
+        form.setValue(DATE_FIELD, "");
+        form.setValue(TIME_FIELD, "");
+        form.submit();
+
+        assertNull(picker().getModelObject());
+        assertEquals("", renderedValue(DATE_FIELD));
+        assertEquals("", renderedValue(TIME_FIELD));
+    }
+
+    /**
      * An ajax request that does not carry the date and time fields (the zone dropdown, the client
      * time zone, another field on the form) must leave the entered value alone.
      */
