@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.LiteralDateItem;
+import com.knowledgepixels.nanodash.component.LiteralDateTimeItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
@@ -555,7 +556,7 @@ public class TemplateContext implements Serializable {
             if (XSD.DATETIME.equals(datatype)) {
                 ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
                 if (tfObject != null) {
-                    processedValue = vf.createLiteral(tfObject);
+                    processedValue = vf.createLiteral(LiteralDateTimeItem.format.format(tfObject), datatype);
                 }
             } else if (XSD.DATE.equals(datatype)) {
                 Date tfObject = (Date) tfObjectGeneric;

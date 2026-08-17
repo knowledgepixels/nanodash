@@ -15,8 +15,10 @@ import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 
 /**
  * A component that represents a text field for entering literal values.
@@ -24,9 +26,22 @@ import java.time.ZonedDateTime;
 public class LiteralDateTimeItem extends AbstractContextComponent {
 
     private final static Logger logger = LoggerFactory.getLogger(LiteralDateTimeItem.class);
-    public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+    /**
+     * How a date-time value is written into a literal. Seconds are always written, so that a time
+     * entered without them is recorded as :00 rather than left out, and a fraction of a second is
+     * written only where the value has one.
+     */
+    public static final DateTimeFormatter format = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+            .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+            .appendOffsetId()
+            .toFormatter();
     private final String DATE_PATTERN = "d MMM yyyy";
-    private final String TIME_PATTERN = "HH:mm:ss";
+    // Seconds are left out: they are hardly ever what a user wants to fill in, and they end up as
+    // :00 in the literal. The picker asks for them anyway once a value has them (see
+    // AjaxZonedDateTimePicker#onConfigure), and takes them when they are typed.
+    private final String TIME_PATTERN = "HH:mm";
 
     private AjaxZonedDateTimePicker zonedDateTimePicker;
     private final Label datatypeComp;

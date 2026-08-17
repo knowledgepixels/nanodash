@@ -2780,6 +2780,33 @@ td div:has(.button-list) {
   width: 100% !important;
 }
 
+/* Time zone picker: the whole box opens the dropdown, the globe included. The select covers the
+   box, and the globe is drawn on top of it without taking the clicks for itself; the select's own
+   arrow is hidden, as the globe is the button this box shows. The tag is in the selector below to
+   outweigh Kendo's own .k-input {width: 100%} whichever way round the stylesheets are loaded. */
+span.timezone-picker {
+  width: 240px;
+  position: relative;
+  cursor: pointer;
+}
+
+.timezone-picker select.k-input-inner {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding-right: 2.5em;
+}
+
+.timezone-picker .k-input-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
 .date-container {
   display: inline-block;
   position: relative;
