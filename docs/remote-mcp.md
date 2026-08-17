@@ -1,6 +1,6 @@
 # Remote MCP Access (Personal API Tokens)
 
-**Status: 🚧 implemented on this branch, verification pending**
+**Status: 🚧 released in 5.10.0 (off by default), end-to-end verification on a hosted instance pending**
 
 Nanodash's `/mcp` endpoint (built for the [local Claude Code chat](claude-code-chat.md))
 can also be opened up on a hosted multi-user instance, so that users point *their own*
@@ -17,17 +17,33 @@ serves tool calls.
 
 ## Enabling
 
-Off by default. In `~/.nanopub/nanodash-preferences.yml`:
+Off by default. On a hosted instance, set the environment variable — for Docker, in
+`docker-compose.override.yml`:
 
+```yaml
+services:
+  nanodash:
+    environment:
+      - NANODASH_MCP_REMOTE_ENABLED=true
 ```
-mcp-remote-enabled: true
+
+Or, for a local run, in `~/.nanopub/nanodash-preferences.yml`:
+
+```yaml
+mcpRemoteEnabled: true
 ```
 
-or via the environment: `NANODASH_MCP_REMOTE_ENABLED=true`.
+Note the camelCase key: preference names are plain Java bean names, and an unknown key
+(such as a kebab-case `mcp-remote-enabled`) is *silently ignored* rather than reported,
+leaving the feature off.
 
-This is independent of `claude-chat-enabled` (the local chat feature): either can be
+This is independent of `claudeChatEnabled` (the local chat feature): either can be
 on without the other. `/mcp` answers if at least one of the two is enabled, and only
-accepts the credentials of the enabled paths.
+accepts the credentials of the enabled paths. While both are off, `/mcp` returns 404.
+
+Nothing else needs configuring: the token store lives in `~/.nanopub` alongside the
+preferences, which the standard Docker setup already persists through its
+`./local-data:/root/.nanopub` volume.
 
 ## Personal API tokens
 

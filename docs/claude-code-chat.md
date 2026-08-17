@@ -227,14 +227,21 @@ local user. The containment story:
 
 ## Configuration
 
+In `~/.nanopub/nanodash-preferences.yml` (camelCase — an unknown key is silently
+ignored rather than reported), each with an environment-variable equivalent:
+
+```yaml
+claudeChatEnabled: false            # master switch (NANODASH_CLAUDE_CHAT_ENABLED)
+claudeChatBinary: claude            # path to the Claude Code CLI (NANODASH_CLAUDE_CHAT_BINARY)
+claudeChatModel:                    # optional --model override (NANODASH_CLAUDE_CHAT_MODEL)
 ```
-claude-chat-enabled: false          # master switch
-claude-chat-binary: claude          # path to the Claude Code CLI
-claude-chat-extra-tools:            # optional additions to the allowlist,
-                                    #   e.g. WebFetch
-claude-chat-model:                  # optional --model override
-claude-chat-idle-timeout: 10m       # subprocess reaping
-```
+
+Not configurable, for the record:
+
+- The **tool allowlist** is fixed at `mcp__nanodash`, `mcp__nanodash__*` and `WebFetch`
+  (`ClaudeChatService.buildCommand`).
+- The **idle timeout** for reaping subprocesses is a hard-coded 10 minutes
+  (`ClaudeChatService.IDLE_TIMEOUT_MILLIS`).
 
 ## Relationship to #434 and draft-with-ai
 
