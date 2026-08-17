@@ -287,7 +287,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.5</version>
         <configuration>
-          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true</argLine>
+          <!-- Tests get a home of their own, so that they neither read the nanopub profile of
+               whoever runs them nor write into it. Without this a test behaves one way on a
+               developer's machine, where a profile is usually set up, and another on CI, where
+               there is none. See TestProfile, which puts a profile of the tests' own in here. -->
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true -Duser.home=${project.build.directory}/test-home</argLine>
         </configuration>
       </plugin>
       <plugin>

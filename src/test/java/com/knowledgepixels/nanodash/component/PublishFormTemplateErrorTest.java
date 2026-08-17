@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.utils.TestApiStubs;
+import com.knowledgepixels.nanodash.utils.TestProfile;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
@@ -10,6 +12,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.nanopub.Nanopub;
@@ -29,10 +32,19 @@ class PublishFormTemplateErrorTest {
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private WicketTester tester;
+    private TestApiStubs apiStubs;
 
     @BeforeEach
     void setUp() {
+        TestProfile.install();
+        apiStubs = TestApiStubs.open();
         tester = new WicketTester(new WicketApplication());
+    }
+
+    @AfterEach
+    void tearDown() {
+        apiStubs.close();
+        tester.destroy();
     }
 
     /**
