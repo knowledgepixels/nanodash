@@ -421,6 +421,82 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Builds the value from what was actually submitted in the date, time and zone fields, as a
+     * {@link FormComponentPanel} is meant to. Reading the model instead would make the value depend
+     * on an ajax call having stored it there first, which loses whatever the user typed straight
+     * into the fields.
+     */
+    @Override
+    public void convertInput() {
+        if (!isDateTimeSubmitted()) {
+            // The date and time fields took no part in this request (an ajax update of some other
+            // component, say), so there is no input to convert: keep the value we have.
+            setConvertedInput(getModelObject());
+            return;
+        }
+        Date date = dateTimePicker.getConvertedInput();
+        if (date == null) {
+            setConvertedInput(null);
+            return;
+        }
+        setConvertedInput(LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).atZone(getSubmittedZone()));
+    }
+
+    /**
+     * Returns whether the date and time fields were submitted in this request, which they are on a
+     * form submit even when the user left them empty.
+     */
+    private boolean isDateTimeSubmitted() {
+        for (String fieldId : new String[]{"datepicker", "timepicker"}) {
+            if (dateTimePicker.get(fieldId) instanceof FormComponent<?> field
+                    && !getRequest().getRequestParameters().getParameterValue(field.getInputName()).isNull()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the zone to read the entered date and time in: the one just submitted, or the one
+     * currently selected if the dropdown was not part of this request.
+     */
+    private ZoneId getSubmittedZone() {
+        ZoneId submitted = zoneDropDown.getConvertedInput();
+        if (submitted != null) return submitted;
+        return zoneIdModel.getObject() != null ? zoneIdModel.getObject() : getUserZoneId();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Leaves the model alone while the date or time field holds something that could not be
+     * converted, such as a date without a time. Wicket skips {@link #convertInput()} for a panel
+     * whose children are in error, so updating the model here would store a null over a value the
+     * user can still see in the fields.
+     */
+    @Override
+    public void updateModel() {
+        if (!isValid()) return;
+        super.updateModel();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Keeps what the user typed in the date and time fields while they are in error. A half-entered
+     * value has no model to fall back on, so clearing the fields' input -- which
+     * {@link FormComponentPanel#clearInput()} does for the whole panel -- is what empties them when
+     * the page comes back with an error, unlike every other field on the form.
+     */
+    @Override
+    public void clearInput() {
+        if (!isValid()) return;
+        super.clearInput();
+    }
+
     @Override
     public <C> IConverter<C> getConverter(Class<C> type) {
         return (IConverter<C>) this.newConverter();
