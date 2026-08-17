@@ -31,6 +31,34 @@ public abstract class ApiResultComponent extends ResultComponent {
     }
 
     /**
+     * Builds the component for a query's results in whichever state its cache is in: the
+     * results themselves when they are current, the previous ones plus a spinner while a
+     * refresh runs (see {@link RefreshingResultPanel}), and only a spinner when nothing is
+     * cached yet. The returned component is the one to style and add, whichever state it is.
+     *
+     * @param markupId the markup ID for the component
+     * @param queryRef the query reference the response belongs to
+     * @param response the current results, or null if the cache has none to serve
+     * @param renderer builds the component showing a set of results
+     * @return the component to show
+     */
+    public static Component create(String markupId, QueryRef queryRef, ApiResponse response, ApiResultRenderer renderer) {
+        if (response != null) {
+            return renderer.render(markupId, response);
+        }
+        ApiResponse staleResponse = ApiCache.retrieveStaleResponse(queryRef);
+        if (staleResponse != null) {
+            return new RefreshingResultPanel(markupId, queryRef, staleResponse, renderer);
+        }
+        return new ApiResultComponent(markupId, queryRef) {
+            @Override
+            public Component getApiResultComponent(String id, ApiResponse r) {
+                return renderer.render(id, r);
+            }
+        };
+    }
+
+    /**
      * {@inheritDoc}
      */
     private static final long LAZY_LOAD_TIMEOUT_MS = 60_000;

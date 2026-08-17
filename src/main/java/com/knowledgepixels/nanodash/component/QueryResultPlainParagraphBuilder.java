@@ -135,54 +135,18 @@ public class QueryResultPlainParagraphBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
-        if (space != null) {
-            if (response != null) {
-                QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
-                resultPlainParagraph.setResourceWithProfile(space);
-                resultPlainParagraph.setPageResource(pageResource);
-                resultPlainParagraph.setContextId(contextId);
-                addResultButtons(resultPlainParagraph);
-                resultPlainParagraph.add(new AttributeAppender("class", colClass));
-                return resultPlainParagraph;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
-                        resultPlainParagraph.setResourceWithProfile(space);
-                        resultPlainParagraph.setPageResource(pageResource);
-                        resultPlainParagraph.setContextId(contextId);
-                        addResultButtons(resultPlainParagraph);
-                        return resultPlainParagraph;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
-            }
-        } else {
-            if (response != null) {
-                QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
-                resultPlainParagraph.setPageResource(pageResource);
-                resultPlainParagraph.setContextId(contextId);
-                addResultButtons(resultPlainParagraph);
-                resultPlainParagraph.add(new AttributeAppender("class", colClass));
-                return resultPlainParagraph;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
-                        resultPlainParagraph.setPageResource(pageResource);
-                        resultPlainParagraph.setContextId(contextId);
-                        addResultButtons(resultPlainParagraph);
-                        return resultPlainParagraph;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
-            }
-        }
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, this::buildPlainParagraph);
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
+    }
+
+    private QueryResultPlainParagraph buildPlainParagraph(String markupId, ApiResponse response) {
+        QueryResultPlainParagraph resultPlainParagraph = new QueryResultPlainParagraph(markupId, queryRef, response, viewDisplay);
+        if (space != null) resultPlainParagraph.setResourceWithProfile(space);
+        resultPlainParagraph.setPageResource(pageResource);
+        resultPlainParagraph.setContextId(contextId);
+        addResultButtons(resultPlainParagraph);
+        return resultPlainParagraph;
     }
 
 }

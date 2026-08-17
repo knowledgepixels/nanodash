@@ -107,22 +107,11 @@ public class QueryResultNanopubSetBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
         long resolvedItemsPerPage = itemsPerPage != null ? itemsPerPage : viewDisplay.getPageSize();
-        if (response != null) {
-            QueryResultNanopubSet queryResultNanopubSet = buildNanopubSet(markupId, response, resolvedItemsPerPage);
-            queryResultNanopubSet.add(new AttributeAppender("class", colClass));
-            return queryResultNanopubSet;
-        } else {
-            ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    return buildNanopubSet(markupId, response, resolvedItemsPerPage);
-                }
-            };
-            comp.add(new AttributeAppender("class", colClass));
-            return comp;
-        }
+        Component comp = ApiResultComponent.create(markupId, queryRef, response,
+                (id, r) -> buildNanopubSet(id, r, resolvedItemsPerPage));
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
     }
 
     private QueryResultNanopubSet buildNanopubSet(String markupId, ApiResponse response, long resolvedItemsPerPage) {

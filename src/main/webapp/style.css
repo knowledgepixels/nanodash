@@ -2388,6 +2388,40 @@ p.waiting {
   padding: 15px;
 }
 
+/* Views whose results are outdated show them right away with this small spinner beside
+   them until the refresh lands (issue #599). It sits in the column's left padding, level
+   with the panel title, so it neither displaces nor covers any of the content; the
+   "view-refreshing" class on the column is what it is positioned against, and both are
+   gone once the panel has settled. */
+.view-refreshing {
+  position: relative;
+}
+
+.refresh-spinner {
+  position: absolute;
+  left: 3px;
+  top: 30px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #ddd;
+  border-top-color: #888;
+  border-radius: 50%;
+  animation: refresh-spin 0.9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .refresh-spinner {
+    animation-duration: 3s;
+  }
+}
+
 span.usertext {
   background: #ffb;
   padding: 3px;
