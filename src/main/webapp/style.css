@@ -787,6 +787,39 @@ span.prelink {
   border: 1px solid #0B73DA;
 }
 
+/* A button that has been pressed and is now waiting on the server — publishing, which
+   signs the nanopublication and sends it to the registry. Grey and no longer a pointer,
+   since it does not take another click, with the same spinner the rest of the app uses
+   for "this is happening" sitting inside it. */
+.button.publishing,
+.button:disabled {
+  background-color: #999;
+  color: #fff;
+  cursor: default;
+}
+
+/* The pointer is still on the button after the click that started it, so this has to
+   outrank the ordinary hover colour below. */
+.button.publishing:hover,
+.button:disabled:hover {
+  background-color: #999;
+}
+
+/* A secondary button stays secondary when it is disabled: an outline that has gone grey,
+   rather than the solid grey of the button actually doing something. */
+.button.light:disabled,
+.button.light:disabled:hover {
+  background-color: transparent;
+  color: #999;
+  border-color: #999;
+}
+
+.button.publishing > .refresh-spinner {
+  border-color: rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  margin-right: 8px;
+}
+
 .button.big {
   /* Same height as a regular/.light button (matching vertical padding + a
      transparent border to offset .light's 1px border); stands out via the solid

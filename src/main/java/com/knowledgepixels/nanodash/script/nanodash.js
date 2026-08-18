@@ -146,6 +146,29 @@ function scrollToAnchor() {
 });
 window.addEventListener("hashchange", startAnchorTracking);
 
+/* Publishing takes a moment — the nanopublication is signed and sent to the registry — and
+   the form is submitted the plain way, so the page stays as it is until the server answers.
+   The button says what is going on for that while, and stops taking clicks: a second one
+   would submit the form again and publish twice. Returns false so the click itself does not
+   submit on top of the submit below. */
+function startPublishing(button) {
+  if (button.disabled) return false;
+  var form = button.form;
+  button.textContent = "Publishing";
+  button.insertBefore(makeSpinner(), button.firstChild);
+  button.classList.add("publishing");
+  // Every button of the form, so the preview button cannot be used to leave mid-publish.
+  form.querySelectorAll("button, input[type=submit]").forEach(function (b) { b.disabled = true; });
+  form.submit();
+  return false;
+}
+
+function makeSpinner() {
+  var spinner = document.createElement("span");
+  spinner.className = "refresh-spinner";
+  return spinner;
+}
+
 /* The client-side half of the "an update is happening" indicator. Ajax updates started
    from inside a view panel — filtering, paging, sorting — get the same spinner in the
    panel's left gutter that the server puts there while a view loads or refreshes
@@ -187,8 +210,7 @@ function showUpdateSpinner(panel) {
   var titleRow = panel.querySelector(".paneltitlerow");
   var title = titleRow ? titleRow.querySelector("h4") : null;
   if (!titleRow) return;
-  var spinner = document.createElement("span");
-  spinner.className = "refresh-spinner";
+  var spinner = makeSpinner();
   spinner.title = "Updating...";
   panel.classList.add("view-refreshing");
   titleRow.insertBefore(spinner, title ? title.nextSibling : titleRow.firstChild);
