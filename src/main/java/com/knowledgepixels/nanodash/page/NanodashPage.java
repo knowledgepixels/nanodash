@@ -19,6 +19,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
@@ -27,6 +28,7 @@ import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.ResourceBundle;
 
@@ -216,6 +218,54 @@ public abstract class NanodashPage extends WebPage {
         super.onRender();
     }
 
+    // How long a stylesheet URL is reused before the file is checked again. Keeps the
+    // stat off every single render without making an edit wait noticeably to show up.
+    private static final long STYLESHEET_STAMP_TTL_MS = 5000;
+
+    private static volatile String stylesheetUrl;
+    private static volatile long stylesheetUrlStampedAt;
+
+    /**
+     * The URL to load style.css from, stamped so that a changed file is a changed URL.
+     * <p>
+     * The app version alone does not do that: it stays the same across every edit of a
+     * snapshot build (and across redeploys of the same release), while the file is served
+     * straight from the webapp directory with only a {@code Last-Modified} header — no
+     * {@code ETag}, no {@code Cache-Control}. Browsers are then free to keep serving their
+     * copy without revalidating, which is why CSS changes used to need a hard refresh.
+     * Stamping the file's own modification time into the query string makes each edit a new
+     * URL that no cache can answer from an old copy.
+     *
+     * @return the stylesheet URL including its cache-busting query string
+     */
+    private static String getStyleSheetUrl() {
+        long now = System.currentTimeMillis();
+        String url = stylesheetUrl;
+        if (url == null || now - stylesheetUrlStampedAt > STYLESHEET_STAMP_TTL_MS) {
+            String version = ResourceBundle.getBundle("nanodash").getString("nanodash.version");
+            long lastModified = getStyleSheetLastModified();
+            url = "style.css?v=" + version + (lastModified > 0 ? "-" + lastModified : "");
+            stylesheetUrl = url;
+            stylesheetUrlStampedAt = now;
+        }
+        return url;
+    }
+
+    /**
+     * @return style.css's last-modified time, or 0 when it cannot be determined (a packed
+     * war, where the file cannot change without a redeploy anyway)
+     */
+    private static long getStyleSheetLastModified() {
+        try {
+            String path = WebApplication.get().getServletContext().getRealPath("/style.css");
+            if (path == null) return 0;
+            return new File(path).lastModified();
+        } catch (Exception ex) {
+            logger.warn("Could not determine the stylesheet's modification time: {}", ex.getMessage());
+            return 0;
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <p>
@@ -224,8 +274,7 @@ public abstract class NanodashPage extends WebPage {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        String version = ResourceBundle.getBundle("nanodash").getString("nanodash.version");
-        response.render(CssHeaderItem.forUrl("style.css?v=" + version));
+        response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
