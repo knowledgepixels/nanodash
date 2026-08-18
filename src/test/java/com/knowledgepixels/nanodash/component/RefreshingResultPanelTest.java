@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -159,6 +160,27 @@ class RefreshingResultPanelTest {
         String markup = tester.getLastResponseAsString();
         assertTrue(markup.contains("refresh-spinner"), markup);
         assertFalse(markup.contains("paneltitlerow"), markup);
+    }
+
+    @Test
+    @DisplayName("a view still waiting for its first results does not hold the thread")
+    void lazyLoadDoesNotBlockOnTheResponse() throws Exception {
+        // A fetch is in flight elsewhere and nothing is cached yet: the state in which the
+        // panel used to sit in a sleep loop, holding a request thread for up to a minute.
+        Field refreshStart = ApiCache.class.getDeclaredField("refreshStart");
+        refreshStart.setAccessible(true);
+        ((ConcurrentMap<String, Long>) refreshStart.get(null)).put(queryRef.getAsUrlString(), System.currentTimeMillis());
+
+        Component panel = ApiResultComponent.create("panel", queryRef, null, "A title", RENDERER);
+        tester.startComponentInPage(panel);
+
+        long start = System.currentTimeMillis();
+        assertFalse(((ApiResultComponent) panel).isContentReady(), "nothing to show yet");
+        Component built = ((ApiResultComponent) panel).getLazyLoadComponent("content");
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertTrue(elapsed < 1000, "must not wait for the response, but took " + elapsed + "ms");
+        assertNotNull(built);
     }
 
     @Test

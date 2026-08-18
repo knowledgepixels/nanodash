@@ -86,30 +86,23 @@ public abstract class ApiResultComponent extends ResultComponent {
         return comp;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    // How long to keep waiting for a first result before giving up on it.
     private static final long LAZY_LOAD_TIMEOUT_MS = 60_000;
 
+    private final long deadline = System.currentTimeMillis() + LAZY_LOAD_TIMEOUT_MS;
+    private boolean queryFailed = false;
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Only builds the component; the waiting is done by the polling in
+     * {@link #isContentReady()}, which returns true exactly when there is something to build
+     * from — or to report.
+     */
     @Override
     public Component getLazyLoadComponent(String markupId) {
-        long deadline = System.currentTimeMillis() + LAZY_LOAD_TIMEOUT_MS;
-        while (System.currentTimeMillis() < deadline) {
-            if (!ApiCache.isRunning(queryRef)) {
-                try {
-                    response = ApiCache.retrieveResponseAsync(queryRef);
-                    if (response != null) break;
-                } catch (Exception ex) {
-                    return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
-                }
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                logger.error("Interrupted while waiting for API response", ex);
-                break;
-            }
+        if (queryFailed) {
+            return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
         }
         if (response == null) {
             logger.error("Timed out waiting for API response for {}", queryRef);
@@ -120,10 +113,24 @@ public abstract class ApiResultComponent extends ResultComponent {
 
     /**
      * {@inheritDoc}
+     * <p>
+     * Asks the cache — which answers without going to the network — and reports "ready" once
+     * it has the results, the query has failed, or the wait has gone on long enough. The
+     * panel's timer calls this about once a second, so waiting costs nothing while it lasts:
+     * this used to be a sleep loop inside {@link #getLazyLoadComponent(String)}, which held a
+     * request thread for up to a minute per view still loading.
      */
     @Override
     protected boolean isContentReady() {
-        return response != null || !ApiCache.isRunning(queryRef);
+        if (response != null || queryFailed) return true;
+        try {
+            response = ApiCache.retrieveResponseAsync(queryRef);
+        } catch (Exception ex) {
+            logger.error("Query failed for {}: {}", queryRef.getAsUrlString(), ex.getMessage());
+            queryFailed = true;
+            return true;
+        }
+        return response != null || System.currentTimeMillis() > deadline;
     }
 
     /**

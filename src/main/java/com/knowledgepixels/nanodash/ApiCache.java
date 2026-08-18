@@ -191,22 +191,38 @@ public class ApiCache {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
+        // Waiting around is for background threads. A request thread must not sit out an
+        // ingest delay or a politeness pause on the user's time: it takes what the cache has
+        // and leaves the refresh to a thread that can afford to wait.
+        boolean onRequestThread = RequestCycle.get() != null;
+        Long after = runAfter.get(cacheId);
+        boolean waitingForIngest = after != null && System.currentTimeMillis() < after;
+        if (onRequestThread && waitingForIngest) {
+            logger.debug("Not waiting out the ingest delay for {} on a request thread", cacheId);
+            // Hand the refresh to the background, where waiting out the delay costs nobody
+            // anything, and answer with what we have meanwhile.
+            retrieveResponseAsync(queryRef);
+            return cachedResponses.getIfPresent(cacheId);
+        }
         if ((needsRefresh || forced) && !isRunning(cacheId)) {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {
-                Long after = runAfter.get(cacheId);
-                if (after != null) {
+                if (waitingForIngest) {
                     while (System.currentTimeMillis() < after) {
                         Thread.sleep(100);
                     }
-                    runAfter.remove(cacheId);
                 }
-                if (failed.get(cacheId) != null) {
-                    // 1 second pause between failed attempts;
-                    Thread.sleep(1000);
+                if (after != null) runAfter.remove(cacheId);
+                if (!onRequestThread) {
+                    if (failed.get(cacheId) != null) {
+                        // 1 second pause between failed attempts;
+                        Thread.sleep(1000);
+                    }
+                    // Jitter, so that background refreshes of many queries do not arrive at
+                    // the API in lockstep. Pure latency on a request thread, so skipped there.
+                    Thread.sleep(100 + new Random().nextLong(400));
                 }
-                Thread.sleep(100 + new Random().nextLong(400));
             } catch (InterruptedException ex) {
                 logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
             }

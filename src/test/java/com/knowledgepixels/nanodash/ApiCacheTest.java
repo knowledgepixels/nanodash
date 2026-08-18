@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -226,6 +228,33 @@ class ApiCacheTest {
 
             assertSame(fresh, result);
             assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID), "the marking should be gone once the refresh has run");
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should not wait out an ingest delay on a request thread")
+    void retrieveResponseSync_doesNotWaitOutIngestDelayOnRequestThread() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 90000L);
+        // A refresh is already in flight, so nothing new is submitted while the test runs.
+        getMap("refreshStart").put(MOCK_CACHE_ID, System.currentTimeMillis());
+        // ...and a publication has just asked for a long pause before the next fetch.
+        ApiCache.clearCache(mockQueryRef, 60000L);
+
+        // A WicketTester binds a request cycle to this thread, which is what marks it as a
+        // thread serving a user rather than a background one.
+        WicketTester tester = new WicketTester();
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            long start = System.currentTimeMillis();
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
+
+            assertSame(cached, result, "the outdated response should be served straight away");
+            assertTrue(elapsed < 1000, "should not have waited for the ingest delay, but took " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+        } finally {
+            tester.destroy();
+            ThreadContext.detach();
         }
     }
 
