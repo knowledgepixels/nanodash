@@ -140,6 +140,28 @@ class RefreshingResultPanelTest {
     }
 
     @Test
+    @DisplayName("with nothing cached, the view's title is shown with the spinner beside it")
+    void coldLoadShowsTitleWithSpinner() {
+        tester.startComponentInPage(
+                ApiResultComponent.create("panel", queryRef, null, "📌 Relevant resources", RENDERER));
+
+        String markup = tester.getLastResponseAsString();
+        assertTrue(markup.contains("Relevant resources"), markup);
+        assertTrue(markup.contains("refresh-spinner"), markup);
+        assertTrue(markup.contains("view-refreshing"), markup);
+    }
+
+    @Test
+    @DisplayName("a view without a title falls back to the bare spinner, the same icon")
+    void coldLoadWithoutTitleShowsBareSpinner() {
+        tester.startComponentInPage(ApiResultComponent.create("panel", queryRef, null, null, RENDERER));
+
+        String markup = tester.getLastResponseAsString();
+        assertTrue(markup.contains("refresh-spinner"), markup);
+        assertFalse(markup.contains("paneltitlerow"), markup);
+    }
+
+    @Test
     @DisplayName("the poll timer stops once every panel has settled")
     void timerStopsWhenNothingIsWaiting() throws Exception {
         startPanel(response("alpha"));

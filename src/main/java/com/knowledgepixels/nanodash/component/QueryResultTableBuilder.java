@@ -121,7 +121,11 @@ public class QueryResultTableBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, this::buildTable);
+        // A plain table (the standalone rendering) drops the title, so the loading state
+        // must not promise one that the loaded table then takes away.
+        boolean showsTitle = resourceWithProfile != null || !plain;
+        Component comp = ApiResultComponent.create(markupId, queryRef, response,
+                showsTitle ? viewDisplay.getTitle() : null, this::buildTable);
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }

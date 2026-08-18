@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.QueryResult;
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -80,11 +82,26 @@ public class RefreshingResultPanel extends Panel {
         this.shownDigest = digest(staleResponse);
         this.deadline = System.currentTimeMillis() + REFRESH_TIMEOUT_MS;
         setOutputMarkupId(true);
-        add(renderer.render(CONTENT_ID, staleResponse));
+        add(showSpinnerOn(renderer.render(CONTENT_ID, staleResponse)));
+        // Fallback for content that has no title row of its own to put a spinner in. The
+        // view components all do, so this normally stays hidden.
         spinner = new WebMarkupContainer("spinner");
         spinner.setOutputMarkupPlaceholderTag(true);
+        spinner.setVisible(false);
         add(spinner);
     }
+
+    // Turns on the spinner the view shows beside its own title, and reports whether the
+    // content actually has one.
+    private Component showSpinnerOn(Component content) {
+        if (content instanceof QueryResult view) {
+            view.setRefreshing(true);
+            hasOwnIndicator = true;
+        }
+        return content;
+    }
+
+    private boolean hasOwnIndicator = false;
 
     /**
      * {@inheritDoc}
@@ -92,9 +109,20 @@ public class RefreshingResultPanel extends Panel {
     @Override
     protected void onComponentTag(ComponentTag tag) {
         super.onComponentTag(tag);
-        // Establishes the containing block the spinner is positioned against; dropped once
-        // the panel has settled and re-rendered.
+        // Marks the panel as updating, for the client-side indicator in nanodash.js (which
+        // then leaves this panel alone rather than adding a second spinner).
         if (refreshing) tag.append("class", "view-refreshing", " ");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        // Only the fallback needs its own spinner: the view components show theirs in their
+        // title row.
+        spinner.setVisible(refreshing && !hasOwnIndicator);
     }
 
     /**
@@ -139,15 +167,21 @@ public class RefreshingResultPanel extends Panel {
         }
         refreshing = false;
         spinner.setVisible(false);
+        // The replacement renders without the spinner, since it is not refreshing anymore.
         addOrReplace(renderer.render(CONTENT_ID, fresh));
         target.add(this);
         return false;
     }
 
-    // Stops waiting without touching the content: hides the spinner (and with it the
-    // "refreshing" class on the panel) and repaints just that.
+    // Stops waiting without touching the content: turns the spinner off and repaints just
+    // that, so whatever the user is doing in the panel is left alone.
     private void settle(AjaxRequestTarget target) {
         refreshing = false;
+        Component content = get(CONTENT_ID);
+        if (content instanceof QueryResult view) {
+            view.setRefreshing(false);
+            target.add(view.getRefreshIndicator());
+        }
         spinner.setVisible(false);
         target.add(spinner);
     }

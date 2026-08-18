@@ -130,7 +130,7 @@ public class QueryResultSvgBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, this::buildSvg);
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg);
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }

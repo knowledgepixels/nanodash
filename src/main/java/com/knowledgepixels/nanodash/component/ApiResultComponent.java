@@ -17,6 +17,7 @@ public abstract class ApiResultComponent extends ResultComponent {
 
     private final QueryRef queryRef;
     private ApiResponse response = null;
+    private String loadingTitle = null;
     private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
 
     /**
@@ -31,18 +32,43 @@ public abstract class ApiResultComponent extends ResultComponent {
     }
 
     /**
+     * Sets the title to show while waiting, so the loading state looks like the loaded one
+     * with the spinner beside its title (see {@link LoadingResultPanel}). Without one, only
+     * the spinner is shown.
+     *
+     * @param loadingTitle the view's title, or null
+     */
+    public final void setLoadingTitle(String loadingTitle) {
+        this.loadingTitle = loadingTitle;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Component getDefaultLoadingComponent(String id) {
+        if (loadingTitle == null || loadingTitle.isBlank()) {
+            return super.getDefaultLoadingComponent(id);
+        }
+        return new LoadingResultPanel(id, loadingTitle);
+    }
+
+    /**
      * Builds the component for a query's results in whichever state its cache is in: the
      * results themselves when they are current, the previous ones plus a spinner while a
-     * refresh runs (see {@link RefreshingResultPanel}), and only a spinner when nothing is
-     * cached yet. The returned component is the one to style and add, whichever state it is.
+     * refresh runs (see {@link RefreshingResultPanel}), and the title plus a spinner when
+     * nothing is cached yet. The returned component is the one to style and add, whichever
+     * state it is.
      *
-     * @param markupId the markup ID for the component
-     * @param queryRef the query reference the response belongs to
-     * @param response the current results, or null if the cache has none to serve
-     * @param renderer builds the component showing a set of results
+     * @param markupId     the markup ID for the component
+     * @param queryRef     the query reference the response belongs to
+     * @param response     the current results, or null if the cache has none to serve
+     * @param loadingTitle the view's title, shown beside the spinner while waiting for a
+     *                     first result; null for views that carry no title
+     * @param renderer     builds the component showing a set of results
      * @return the component to show
      */
-    public static Component create(String markupId, QueryRef queryRef, ApiResponse response, ApiResultRenderer renderer) {
+    public static Component create(String markupId, QueryRef queryRef, ApiResponse response, String loadingTitle, ApiResultRenderer renderer) {
         if (response != null) {
             return renderer.render(markupId, response);
         }
@@ -50,12 +76,14 @@ public abstract class ApiResultComponent extends ResultComponent {
         if (staleResponse != null) {
             return new RefreshingResultPanel(markupId, queryRef, staleResponse, renderer);
         }
-        return new ApiResultComponent(markupId, queryRef) {
+        ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
             @Override
             public Component getApiResultComponent(String id, ApiResponse r) {
                 return renderer.render(id, r);
             }
         };
+        comp.setLoadingTitle(loadingTitle);
+        return comp;
     }
 
     /**

@@ -146,12 +146,108 @@ function scrollToAnchor() {
 });
 window.addEventListener("hashchange", startAnchorTracking);
 
+/* The client-side half of the "an update is happening" indicator. Ajax updates started
+   from inside a view panel — filtering, paging, sorting — get the same spinner in the
+   panel's left gutter that the server puts there while a view loads or refreshes
+   (LoadingResultPanel / RefreshingResultPanel), so every kind of update looks alike.
+   Shown only after a delay: these round trips normally take tens of milliseconds, and a
+   spinner flashing on every keystroke would be worse than none. */
+var UPDATE_SPINNER_DELAY_MS = 250;
+/* Backstop for a call that never reports completion, so a spinner cannot get stuck. */
+var UPDATE_SPINNER_MAX_MS = 30000;
+var updatingPanels = new Map();
+
+function isVisible(el) {
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+/* The view panel an Ajax call was triggered from, or null for calls that belong to no
+   single panel — the page-wide lazy-load and refresh-poll timers among them, which is
+   why they never light up every panel on the page. */
+function findUpdatingPanel(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return null;
+  var el = document.getElementById(id);
+  if (!el) return null;
+  var panel = el.closest('[class*="col-"]');
+  // A view panel is a column with a title row; anything else (a page-level column, a
+  // form) is left alone, since the gutter position is meaningless there.
+  return panel && panel.querySelector(".paneltitlerow") ? panel : null;
+}
+
+function showUpdateSpinner(panel) {
+  var state = updatingPanels.get(panel);
+  if (!state || state.spinner || !panel.isConnected) return;
+  // A spinner the server already put there (the view is loading or refreshing) says the
+  // same thing; a second one would only be noise, and removing it later is not ours to do.
+  var existing = panel.querySelector(".refresh-spinner");
+  if (existing && isVisible(existing)) return;
+  // Right after the title, where the view's own spinner goes; the title row's layout keeps
+  // it clear of the title icon and of the filter and menu on the right.
+  var titleRow = panel.querySelector(".paneltitlerow");
+  var title = titleRow ? titleRow.querySelector("h4") : null;
+  if (!titleRow) return;
+  var spinner = document.createElement("span");
+  spinner.className = "refresh-spinner";
+  spinner.title = "Updating...";
+  panel.classList.add("view-refreshing");
+  titleRow.insertBefore(spinner, title ? title.nextSibling : titleRow.firstChild);
+  state.spinner = spinner;
+}
+
+function hideUpdateSpinner(panel) {
+  var state = updatingPanels.get(panel);
+  updatingPanels.delete(panel);
+  if (!state) return;
+  if (state.showTimer) clearTimeout(state.showTimer);
+  if (state.maxTimer) clearTimeout(state.maxTimer);
+  if (!state.spinner) return;
+  state.spinner.remove();
+  // Only ours to take back: the class may equally have come from the server-rendered
+  // loading state, which removes it itself.
+  if (!panel.querySelector(".refresh-spinner")) {
+    panel.classList.remove("view-refreshing");
+  }
+}
+
+function onUpdateStart(panel) {
+  var state = updatingPanels.get(panel);
+  if (state) {
+    state.count++;
+    return;
+  }
+  state = {count: 1, spinner: null, showTimer: null, maxTimer: null};
+  updatingPanels.set(panel, state);
+  state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
+  state.maxTimer = setTimeout(function () { hideUpdateSpinner(panel); }, UPDATE_SPINNER_MAX_MS);
+}
+
+function onUpdateEnd(panel) {
+  var state = updatingPanels.get(panel);
+  if (!state) return;
+  state.count--;
+  if (state.count <= 0) hideUpdateSpinner(panel);
+}
+
+function trackAjaxUpdates() {
+  if (typeof Wicket === "undefined" || !Wicket.Event) return;
+  Wicket.Event.subscribe("/ajax/call/before", function (jqEvent, attributes) {
+    var panel = findUpdatingPanel(attributes);
+    if (panel) onUpdateStart(panel);
+  });
+  Wicket.Event.subscribe("/ajax/call/complete", function (jqEvent, attributes) {
+    var panel = findUpdatingPanel(attributes);
+    if (panel) onUpdateEnd(panel);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
   startAnchorTracking();
+  trackAjaxUpdates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
   if (typeof Wicket !== "undefined" && Wicket.Event) {
     Wicket.Event.subscribe("/ajax/call/complete", function() {

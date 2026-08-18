@@ -3,6 +3,8 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -57,6 +59,36 @@ public abstract class QueryResult extends Panel {
         this.viewDisplay = viewDisplay;
         this.response = response;
         this.grlcQuery = GrlcQuery.get(queryRef);
+
+        // The spinner shown beside the title while this view's results are being brought up
+        // to date; hidden until someone turns it on (see RefreshingResultPanel). It lives in
+        // the title row, right after the title, where the row's own layout keeps it clear of
+        // everything — see the .refresh-spinner rules in style.css.
+        refreshIndicator = new WebMarkupContainer("refresh-indicator");
+        refreshIndicator.setOutputMarkupPlaceholderTag(true);
+        refreshIndicator.setVisible(false);
+        add(refreshIndicator);
+    }
+
+    private final WebMarkupContainer refreshIndicator;
+
+    /**
+     * Shows or hides the spinner beside this view's title.
+     *
+     * @param refreshing true while the view's results are being brought up to date
+     */
+    public void setRefreshing(boolean refreshing) {
+        refreshIndicator.setVisible(refreshing);
+    }
+
+    /**
+     * The spinner component itself, so a caller that turns it off over Ajax can repaint just
+     * that instead of the whole view.
+     *
+     * @return the refresh indicator
+     */
+    public Component getRefreshIndicator() {
+        return refreshIndicator;
     }
 
     @Override

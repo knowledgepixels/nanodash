@@ -203,7 +203,7 @@ public class SpacePage extends NanodashPage {
 
                 @Override
                 public Component getLoadingComponent(String id) {
-                    return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                    return new Label(id, ResultComponent.getSectionWaitHtml()).setEscapeModelStrings(false);
                 }
 
                 @Override
