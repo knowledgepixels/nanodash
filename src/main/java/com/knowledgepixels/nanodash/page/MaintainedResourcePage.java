@@ -117,12 +117,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 generalInfoView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(generalInfoView);
 
-                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
-
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceModel.getObject());
-                    }
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceModel.getObject())) {
 
                     @Override
                     protected boolean isContentReady() {

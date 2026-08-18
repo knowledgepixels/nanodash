@@ -188,12 +188,7 @@ public class SpacePage extends NanodashPage {
             generalInfoView.setOutputMarkupPlaceholderTag(true);
             contentContainer.add(generalInfoView);
 
-            contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
-
-                @Override
-                public Component getLazyLoadComponent(String markupId) {
-                    return new ViewList(markupId, spaceModel.getObject());
-                }
+            contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, spaceModel.getObject())) {
 
                 @Override
                 protected boolean isContentReady() {

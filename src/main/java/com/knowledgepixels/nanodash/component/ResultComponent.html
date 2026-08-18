@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+
+<!-- Wicket's own lazy-loading panel renders its content inside a div, which would put a
+     view that arrived over Ajax one level deeper in the page than the same view rendered
+     directly — and leave it there. A container instead of an element keeps the two
+     identical. The panel is repainted through its own tag, so nothing needs the div. -->
+<wicket:panel><wicket:container wicket:id="content"></wicket:container></wicket:panel>
+
+</body>
+</html>

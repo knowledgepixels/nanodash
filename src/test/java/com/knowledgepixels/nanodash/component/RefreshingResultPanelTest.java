@@ -148,8 +148,9 @@ class RefreshingResultPanelTest {
 
         String markup = tester.getLastResponseAsString();
         assertTrue(markup.contains("Relevant resources"), markup);
+        // Beside the title, in the title row, exactly as a loaded view shows it.
+        assertTrue(markup.contains("paneltitlerow"), markup);
         assertTrue(markup.contains("refresh-spinner"), markup);
-        assertTrue(markup.contains("view-refreshing"), markup);
     }
 
     @Test

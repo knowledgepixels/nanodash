@@ -184,12 +184,7 @@ public class ResourcePartPage extends NanodashPage {
             if (resourceWithProfile.isDataInitialized()) {
                 contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
             } else {
-                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
-
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
-                    }
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
 
                     @Override
                     protected boolean isContentReady() {

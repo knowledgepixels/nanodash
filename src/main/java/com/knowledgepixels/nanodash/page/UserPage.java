@@ -202,12 +202,7 @@ public class UserPage extends NanodashPage {
                 latestNanopubsView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(latestNanopubsView);
 
-                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
-
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, individualAgent);
-                    }
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, individualAgent)) {
 
                     @Override
                     protected boolean isContentReady() {
