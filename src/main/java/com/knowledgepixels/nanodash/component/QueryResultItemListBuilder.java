@@ -71,21 +71,9 @@ public class QueryResultItemListBuilder implements Serializable {
 
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
-        if (response != null) {
-            Component result = buildItemList(markupId, response);
-            result.add(new AttributeAppender("class", colClass));
-            return result;
-        } else {
-            ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                @Override
-                public Component getApiResultComponent(String id, ApiResponse r) {
-                    return buildItemList(id, r);
-                }
-            };
-            comp.add(new AttributeAppender("class", colClass));
-            return comp;
-        }
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildItemList);
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
     }
 
     private QueryResultItemList buildItemList(String markupId, ApiResponse response) {

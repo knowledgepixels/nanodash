@@ -5,10 +5,15 @@ import com.knowledgepixels.nanodash.domain.User;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.Url;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -52,6 +57,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -118,8 +124,45 @@ public class Utils {
         return TrustyUriUtils.getArtifactCode(npId.toString()).substring(0, 10);
     }
 
-    // Concurrent, as retrieval also happens on background threads (see NanopubLookup):
-    private static Map<String, Nanopub> nanopubs = new ConcurrentHashMap<>();
+    // Nanopublications are immutable, so a cached one never goes out of date and the only
+    // reason to drop one is to keep the cache from growing without end — which it used to,
+    // being a plain map that never evicted. Bounded like the query caches in ApiCache, and
+    // concurrent, as retrieval also happens on background threads (see NanopubLookup).
+    private static final int MAX_CACHED_NANOPUBS = 10_000;
+
+    private static final Cache<String, Nanopub> nanopubs = CacheBuilder.newBuilder()
+            .maximumSize(MAX_CACHED_NANOPUBS)
+            .expireAfterAccess(24, TimeUnit.HOURS)
+            .build();
+
+    // Registry fetches go through our own client rather than the library's shared one
+    // (NanopubUtils.getHttpClient), which allows 10 seconds for each of connecting, reading
+    // and waiting for a pooled connection — up to 30 seconds for a single fetch, on a thread
+    // that may be rendering a page. These bounds are tighter, and in particular a saturated
+    // pool fails fast here instead of queueing threads up behind it.
+    private static final int REGISTRY_CONNECT_TIMEOUT_MS = 5_000;
+    private static final int REGISTRY_SOCKET_TIMEOUT_MS = 10_000;
+    private static final int REGISTRY_CONNECTION_REQUEST_TIMEOUT_MS = 2_000;
+
+    private static final CloseableHttpClient registryHttpClient = HttpClientBuilder.create()
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setConnectTimeout(REGISTRY_CONNECT_TIMEOUT_MS)
+                    .setSocketTimeout(REGISTRY_SOCKET_TIMEOUT_MS)
+                    .setConnectionRequestTimeout(REGISTRY_CONNECTION_REQUEST_TIMEOUT_MS)
+                    .build())
+            .setMaxConnTotal(64)
+            .setMaxConnPerRoute(16)
+            .build();
+
+    /**
+     * The HTTP client to use for registry requests: same behaviour as the library's shared
+     * one, but with tighter timeouts (see {@link #getNanopub(String)}).
+     *
+     * @return the shared registry HTTP client
+     */
+    public static CloseableHttpClient getRegistryHttpClient() {
+        return registryHttpClient;
+    }
 
     /**
      * Adds a nanopublication to the local cache so it can be retrieved immediately
@@ -140,16 +183,20 @@ public class Utils {
      */
     public static Nanopub getNanopub(String uriOrArtifactCode) {
         String artifactCode = GetNanopub.getArtifactCode(uriOrArtifactCode).toString();
-        if (!nanopubs.containsKey(artifactCode)) {
-            for (int i = 0; i < 3; i++) {  // Try 3 times to get nanopub
-                Nanopub np = GetNanopub.get(artifactCode);
-                if (np != null) {
-                    nanopubs.put(artifactCode, np);
-                    break;
-                }
+        Nanopub cached = nanopubs.getIfPresent(artifactCode);
+        if (cached != null) return cached;
+        // A request thread gets one attempt: the retries are there to ride out a flaky
+        // registry, and doing that while a user waits only multiplies the time they spend
+        // looking at nothing. Background threads keep the full three.
+        int attempts = RequestCycle.get() != null ? 1 : 3;
+        for (int i = 0; i < attempts; i++) {
+            Nanopub np = GetNanopub.get(artifactCode, registryHttpClient);
+            if (np != null) {
+                nanopubs.put(artifactCode, np);
+                return np;
             }
         }
-        return nanopubs.get(artifactCode);
+        return null;
     }
 
     /**

@@ -130,28 +130,17 @@ public class QueryResultSvgBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
-        if (response != null) {
-            QueryResultSvg resultSvg = new QueryResultSvg(markupId, queryRef, response, viewDisplay);
-            resultSvg.setPageResource(pageResource);
-            resultSvg.setContextId(contextId);
-            addResultButtons(resultSvg);
-            resultSvg.add(new AttributeAppender("class", colClass));
-            return resultSvg;
-        } else {
-            ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                @Override
-                public Component getApiResultComponent(String markupId, ApiResponse response) {
-                    QueryResultSvg resultSvg = new QueryResultSvg(markupId, queryRef, response, viewDisplay);
-                    resultSvg.setPageResource(pageResource);
-                    resultSvg.setContextId(contextId);
-                    addResultButtons(resultSvg);
-                    return resultSvg;
-                }
-            };
-            comp.add(new AttributeAppender("class", colClass));
-            return comp;
-        }
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg);
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
+    }
+
+    private QueryResultSvg buildSvg(String markupId, ApiResponse response) {
+        QueryResultSvg resultSvg = new QueryResultSvg(markupId, queryRef, response, viewDisplay);
+        resultSvg.setPageResource(pageResource);
+        resultSvg.setContextId(contextId);
+        addResultButtons(resultSvg);
+        return resultSvg;
     }
 
 }

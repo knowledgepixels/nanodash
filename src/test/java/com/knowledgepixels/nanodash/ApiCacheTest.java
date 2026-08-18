@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash;
 
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.nanopub.extra.services.QueryRef;
 import com.google.common.cache.Cache;
 
 import java.lang.reflect.Field;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +37,7 @@ class ApiCacheTest {
         resetMap("lastRefresh");
         resetMap("refreshStart");
         resetMap("runAfter");
+        resetMap("forcedRefresh");
 
         lenient().when(mockQueryRef.getAsUrlString()).thenReturn(MOCK_CACHE_ID);
     }
@@ -46,7 +50,16 @@ class ApiCacheTest {
             cache.invalidateAll();
         } else if (obj instanceof ConcurrentMap<?, ?> map) {
             map.clear();
+        } else if (obj instanceof Set<?> set) {
+            set.clear();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getSet(String fieldName) throws Exception {
+        Field f = ApiCache.class.getDeclaredField(fieldName);
+        f.setAccessible(true);
+        return (Set<String>) f.get(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -176,18 +189,92 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("clearCache should remove cached response for the given QueryRef")
-    void clearCacheRemovesCachedResponse() throws Exception {
+    @DisplayName("clearCache should mark the cached response as outdated, keeping it for the stale-content display")
+    void clearCacheMarksCachedResponseAsOutdated() throws Exception {
         ApiResponse mockResponse = mock(ApiResponse.class);
         ConcurrentMap<String, ApiResponse> cachedResponses = getMap("cachedResponses");
         cachedResponses.put(MOCK_CACHE_ID, mockResponse);
 
-        assertTrue(cachedResponses.containsKey(MOCK_CACHE_ID));
+        ApiCache.clearCache(mockQueryRef, 1000L);
 
-        final long waitTime = 1000L;
-        ApiCache.clearCache(mockQueryRef, waitTime);
+        assertTrue(getSet("forcedRefresh").contains(MOCK_CACHE_ID));
+        assertSame(mockResponse, ApiCache.retrieveStaleResponse(mockQueryRef));
+    }
 
-        assertFalse(cachedResponses.containsKey(MOCK_CACHE_ID));
+    @Test
+    @DisplayName("retrieveStaleResponse should return the cached response however outdated, and null when nothing is cached")
+    void retrieveStaleResponseReturnsAnyCachedResponse() throws Exception {
+        assertNull(ApiCache.retrieveStaleResponse(mockQueryRef));
+
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 48 * 60 * 60 * 1000L);
+
+        assertSame(cached, ApiCache.retrieveStaleResponse(mockQueryRef));
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should re-fetch a cache marked by clearCache instead of serving the kept response")
+    void retrieveResponseSync_refreshesResponseMarkedByClearCache() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        // Young enough to be served without the marking.
+        putCachedResponse(stale, 5000L);
+        ApiCache.clearCache(mockQueryRef, 0L);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            assertSame(fresh, result);
+            assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID), "the marking should be gone once the refresh has run");
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should not wait out an ingest delay on a request thread")
+    void retrieveResponseSync_doesNotWaitOutIngestDelayOnRequestThread() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 90000L);
+        // A refresh is already in flight, so nothing new is submitted while the test runs.
+        getMap("refreshStart").put(MOCK_CACHE_ID, System.currentTimeMillis());
+        // ...and a publication has just asked for a long pause before the next fetch.
+        ApiCache.clearCache(mockQueryRef, 60000L);
+
+        // A WicketTester binds a request cycle to this thread, which is what marks it as a
+        // thread serving a user rather than a background one.
+        WicketTester tester = new WicketTester();
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            long start = System.currentTimeMillis();
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
+
+            assertSame(cached, result, "the outdated response should be served straight away");
+            assertTrue(elapsed < 1000, "should not have waited for the ingest delay, but took " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+        } finally {
+            tester.destroy();
+            ThreadContext.detach();
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should drop the clearCache marking even when the refresh fails")
+    void retrieveResponseSync_dropsMarkingWhenRefreshFails() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        ApiCache.clearCache(mockQueryRef, 0L);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenThrow(new FailedApiCallException(new Exception("API call failed")));
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // The kept response is the outage fallback, but the marking must not survive:
+            // otherwise every later call would re-run the failing query.
+            assertSame(stale, result);
+            assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID));
+        }
     }
 
     @Test

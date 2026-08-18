@@ -787,6 +787,39 @@ span.prelink {
   border: 1px solid #0B73DA;
 }
 
+/* A button that has been pressed and is now waiting on the server — publishing, which
+   signs the nanopublication and sends it to the registry. Grey and no longer a pointer,
+   since it does not take another click, with the same spinner the rest of the app uses
+   for "this is happening" sitting inside it. */
+.button.publishing,
+.button:disabled {
+  background-color: #999;
+  color: #fff;
+  cursor: default;
+}
+
+/* The pointer is still on the button after the click that started it, so this has to
+   outrank the ordinary hover colour below. */
+.button.publishing:hover,
+.button:disabled:hover {
+  background-color: #999;
+}
+
+/* A secondary button stays secondary when it is disabled: an outline that has gone grey,
+   rather than the solid grey of the button actually doing something. */
+.button.light:disabled,
+.button.light:disabled:hover {
+  background-color: transparent;
+  color: #999;
+  border-color: #999;
+}
+
+.button.publishing > .refresh-spinner {
+  border-color: rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  margin-right: 8px;
+}
+
 .button.big {
   /* Same height as a regular/.light button (matching vertical padding + a
      transparent border to offset .light's 1px border); stands out via the solid
@@ -2384,8 +2417,83 @@ p.waiting {
   color: #ccc;
 }
 
-.listview img:not(.user-icon):not(.bot-icon) { /* for wait icon */
+.listview img:not(.user-icon):not(.bot-icon) {
   padding: 15px;
+}
+
+/* The one indicator for "an update is happening", used for every such state: a view
+   waiting for its first results, outdated results being re-queried (issue #599), and any
+   Ajax update inside a view panel (filtering, paging, sorting — see nanodash.js). Keeping
+   a single icon means the user learns one shape rather than three. */
+.refresh-spinner {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #ddd;
+  border-top-color: #888;
+  border-radius: 50%;
+  animation: refresh-spin 0.9s linear infinite;
+  pointer-events: none;
+  vertical-align: middle;
+}
+
+/* Its place on a view panel: in the title row, right after the title. Earlier attempts put
+   it in the column's 15px left padding, but nothing big enough to notice fits there without
+   getting close to the title's leading icon — and how close that looks depends on the emoji
+   font's own side bearings. In the row it takes part in the layout instead of hovering over
+   it, so it cannot collide with anything at any size.
+
+   The auto right margin is what keeps the row from moving when it appears: the title stops
+   growing to fill the row and the spinner absorbs that space instead, so the title stays
+   where it is and the filter field and menu stay where they are. */
+.paneltitlerow > .refresh-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-left: 10px;
+  margin-right: auto;
+  /* Level with the title's text and icon rather than with the row, which reaches lower
+     because of the filter field and the menu: the title's own 22px top margin plus half
+     the difference in height between it and the spinner. */
+  align-self: flex-start;
+  margin-top: 25px;
+  flex: none;
+}
+
+.paneltitlerow:has(> .refresh-spinner) > h4 {
+  flex: 0 1 auto;
+}
+
+/* With the spinner there, its auto right margin is what pushes the rest of the row to the
+   end. The auto left margins that normally do that job have to give way: two auto margins
+   share the free space between them, which would strand the filter field halfway across the
+   row for as long as the spinner shows. */
+.paneltitlerow:has(> .refresh-spinner) > span.buttons,
+.paneltitlerow:not(:has(> h4)):has(> .refresh-spinner) > input.panelfilter {
+  margin-left: 0;
+}
+
+/* Standing on its own — a whole page section or panel body with nothing in it yet — the
+   same spinner is drawn larger: there is no title or message beside it to carry the eye,
+   and none of the gutter's width limit applies. */
+.refresh-spinner.standalone {
+  width: 22px;
+  height: 22px;
+  border-width: 3px;
+  margin: 15px 4px;
+}
+
+@keyframes refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .refresh-spinner {
+    animation-duration: 3s;
+  }
 }
 
 span.usertext {

@@ -97,7 +97,7 @@ class PublishFormTemplateErrorTest {
         // The default provenance and publication-info templates are loaded too, so this also
         // guards against the standard set of templates reporting errors:
         assertFalse(html.contains("based on an invalid template"), html);
-        assertTrue(html.contains("value=\"Publish\""), html);
+        assertTrue(html.contains(">Publish</button>"), html);
         assertTrue(html.contains(">Preview</button>"), html);
         assertTrue(html.contains("I understand that published data"), html);
         assertFalse(html.contains("Publishing is disabled"), html);

@@ -121,66 +121,32 @@ public class QueryResultTableBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
-        if (resourceWithProfile != null) {
-            if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
-                table.setContextId(contextId);
-                table.setPostPublishTab(postPublishTab);
-                table.setRefRoot(refRoot);
-                if (id != null && contextId != null && !id.equals(contextId)) {
-                    table.setPartId(id);
-                }
-                table.setResourceWithProfile(resourceWithProfile);
-                table.setPageResource(resourceWithProfile);
-                ViewActionMappings.addResultActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
-                table.add(new AttributeAppender("class", colClass));
-                return table;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, false);
-                        table.setContextId(contextId);
-                        table.setPostPublishTab(postPublishTab);
-                        table.setRefRoot(refRoot);
-                        if (id != null && contextId != null && !id.equals(contextId)) {
-                            table.setPartId(id);
-                        }
-                        table.setResourceWithProfile(resourceWithProfile);
-                        table.setPageResource(resourceWithProfile);
-                        ViewActionMappings.addResultActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
-                        return table;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
+        // A plain table (the standalone rendering) drops the title, so the loading state
+        // must not promise one that the loaded table then takes away.
+        boolean showsTitle = resourceWithProfile != null || !plain;
+        Component comp = ApiResultComponent.create(markupId, queryRef, response,
+                showsTitle ? viewDisplay.getTitle() : null, this::buildTable);
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
+    }
+
+    private QueryResultTable buildTable(String markupId, ApiResponse response) {
+        // A resource context brings the part id and the resource itself into the table
+        // (and rules out the plain rendering, which is for standalone tables).
+        boolean hasResource = resourceWithProfile != null;
+        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, hasResource ? false : plain);
+        table.setContextId(contextId);
+        table.setPostPublishTab(postPublishTab);
+        table.setRefRoot(refRoot);
+        if (hasResource) {
+            if (id != null && contextId != null && !id.equals(contextId)) {
+                table.setPartId(id);
             }
-        } else {
-            if (response != null) {
-                QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
-                table.setContextId(contextId);
-                table.setPostPublishTab(postPublishTab);
-                table.setRefRoot(refRoot);
-                ViewActionMappings.addResultActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
-                table.add(new AttributeAppender("class", colClass));
-                return table;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultTable table = new QueryResultTable(markupId, queryRef, response, viewDisplay, plain);
-                        table.setContextId(contextId);
-                        table.setPostPublishTab(postPublishTab);
-                        table.setRefRoot(refRoot);
-                        ViewActionMappings.addResultActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
-                        return table;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
-            }
+            table.setResourceWithProfile(resourceWithProfile);
+            table.setPageResource(resourceWithProfile);
         }
+        ViewActionMappings.addResultActions(table, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
+        return table;
     }
 
 }

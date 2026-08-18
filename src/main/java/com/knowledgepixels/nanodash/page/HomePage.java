@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.LazyContentPanel;
 import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
@@ -131,18 +132,15 @@ public class HomePage extends NanodashPage {
             }
         };
 
-        add(new AjaxLazyLoadPanel<Component>("views") {
-
-            @Override
-            public Component getLazyLoadComponent(String markupId) {
-                MaintainedResource r = homeResourceModel.getObject();
-                if (r == null) {
-                    return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
-                }
-                ViewList viewList = new ViewList(markupId, r);
-                viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
-                return viewList;
+        add(new LazyContentPanel("views", markupId -> {
+            MaintainedResource r = homeResourceModel.getObject();
+            if (r == null) {
+                return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
             }
+            ViewList viewList = new ViewList(markupId, r);
+            viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
+            return viewList;
+        }) {
 
             @Override
             protected boolean isContentReady() {
@@ -156,7 +154,7 @@ public class HomePage extends NanodashPage {
 
             @Override
             public Component getLoadingComponent(String id) {
-                return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                return new Label(id, ResultComponent.getSectionWaitHtml()).setEscapeModelStrings(false);
             }
 
             @Override

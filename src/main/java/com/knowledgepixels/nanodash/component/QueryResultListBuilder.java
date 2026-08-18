@@ -110,150 +110,74 @@ public class QueryResultListBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        String colClass = " col-" + viewDisplay.getDisplayWidth();
-        if (resourceWithProfile != null) {
-            if (response != null) {
-                QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                resultList.setResourceWithProfile(resourceWithProfile);
-                resultList.setPageResource(pageResource);
-                resultList.setContextId(contextId);
-                resultList.setPostPublishTab(postPublishTab);
-                resultList.setRefRoot(refRoot);
-                View view = viewDisplay.getView();
-                if (view != null) {
-                    for (IRI actionIri : view.getViewResultActionList()) {
-                        if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
-                        Template t = view.getTemplateForAction(actionIri);
-                        if (t == null) continue;
-                        String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                        if (targetField == null) targetField = "resource";
-                        String label = view.getLabelForAction(actionIri);
-                        if (label == null) label = "action...";
-                        if (!label.endsWith("...")) label += "...";
-                        PageParameters params = new PageParameters().set("template", t.getId())
-                                .set("param_" + targetField, id)
-                                .set("context", contextId)
-                                .set("template-version", "latest");
-                        if (id != null && contextId != null && !id.equals(contextId)) {
-                            params.set("part", id);
-                        }
-                        String partField = view.getTemplatePartFieldForAction(actionIri);
-                        if (partField != null && contextId != null) {
-                            // The part field pre-fills a namespaced child IRI (the user fills the suffix).
-                            // TODO Find a better way to pass the MaintainedResource object to this method:
-                            MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                            String namespace = null;
-                            if (r != null) {
-                                namespace = r.getNamespace();
-                            } else if (resourceWithProfile instanceof Space) {
-                                // The Space-creation templates' `space` placeholder has a fixed
-                                // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
-                                // Nesting the new space's IRI under this space's path makes it a
-                                // sub-space via the prefix match.
-                                namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
-                            }
-                            if (namespace != null) {
-                                params.set("param_" + partField, namespace + "<SET-SUFFIX>");
-                            }
-                        }
-                        String queryMapping = view.getTemplateQueryMapping(actionIri);
-                        if (queryMapping != null && queryMapping.contains(":")) {
-                            params.set("values-from-query", queryRef.getAsUrlString());
-                            params.set("values-from-query-mapping", queryMapping);
-                        }
-                        params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                        if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                        resultList.addButton(label, PublishPage.class, params);
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildList);
+        comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        return comp;
+    }
+
+    private QueryResultList buildList(String markupId, ApiResponse response) {
+        if (resourceWithProfile == null) {
+            QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
+            resultList.setPageResource(pageResource);
+            resultList.setContextId(contextId);
+            ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
+            return resultList;
+        }
+        QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
+        resultList.setResourceWithProfile(resourceWithProfile);
+        resultList.setPageResource(pageResource);
+        resultList.setContextId(contextId);
+        resultList.setPostPublishTab(postPublishTab);
+        resultList.setRefRoot(refRoot);
+        View view = viewDisplay.getView();
+        if (view != null) {
+            for (IRI actionIri : view.getViewResultActionList()) {
+                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
+                Template t = view.getTemplateForAction(actionIri);
+                if (t == null) continue;
+                String targetField = view.getTemplateTargetFieldForAction(actionIri);
+                if (targetField == null) targetField = "resource";
+                String label = view.getLabelForAction(actionIri);
+                if (label == null) label = "action...";
+                if (!label.endsWith("...")) label += "...";
+                PageParameters params = new PageParameters().set("template", t.getId())
+                        .set("param_" + targetField, id)
+                        .set("context", contextId)
+                        .set("template-version", "latest");
+                if (id != null && contextId != null && !id.equals(contextId)) {
+                    params.set("part", id);
+                }
+                String partField = view.getTemplatePartFieldForAction(actionIri);
+                if (partField != null && contextId != null) {
+                    // The part field pre-fills a namespaced child IRI (the user fills the suffix).
+                    // TODO Find a better way to pass the MaintainedResource object to this method:
+                    MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
+                    String namespace = null;
+                    if (r != null) {
+                        namespace = r.getNamespace();
+                    } else if (resourceWithProfile instanceof Space) {
+                        // The Space-creation templates' `space` placeholder has a fixed
+                        // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
+                        // Nesting the new space's IRI under this space's path makes it a
+                        // sub-space via the prefix match.
+                        namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
+                    }
+                    if (namespace != null) {
+                        params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                     }
                 }
-                resultList.add(new AttributeAppender("class", colClass));
-                return resultList;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                        resultList.setResourceWithProfile(resourceWithProfile);
-                        resultList.setPageResource(pageResource);
-                        resultList.setContextId(contextId);
-                        resultList.setPostPublishTab(postPublishTab);
-                        resultList.setRefRoot(refRoot);
-                        View view = viewDisplay.getView();
-                        if (view != null) {
-                            for (IRI actionIri : view.getViewResultActionList()) {
-                                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
-                                Template t = view.getTemplateForAction(actionIri);
-                                if (t == null) continue;
-                                String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                                if (targetField == null) targetField = "resource";
-                                String label = view.getLabelForAction(actionIri);
-                                if (label == null) label = "action...";
-                                if (!label.endsWith("...")) label += "...";
-                                PageParameters params = new PageParameters().set("template", t.getId())
-                                        .set("param_" + targetField, id)
-                                        .set("context", contextId)
-                                        .set("template-version", "latest");
-                                if (id != null && contextId != null && !id.equals(contextId)) {
-                                    params.set("part", id);
-                                }
-                                String partField = view.getTemplatePartFieldForAction(actionIri);
-                                if (partField != null && contextId != null) {
-                                    // The part field pre-fills a namespaced child IRI (the user fills the suffix).
-                                    // TODO Find a better way to pass the MaintainedResource object to this method:
-                                    MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                                    String namespace = null;
-                                    if (r != null) {
-                                        namespace = r.getNamespace();
-                                    } else if (resourceWithProfile instanceof Space) {
-                                        // The Space-creation templates' `space` placeholder has a fixed
-                                        // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
-                                        // Nesting the new space's IRI under this space's path makes it a
-                                        // sub-space via the prefix match.
-                                        namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
-                                    }
-                                    if (namespace != null) {
-                                        params.set("param_" + partField, namespace + "<SET-SUFFIX>");
-                                    }
-                                }
-                                String queryMapping = view.getTemplateQueryMapping(actionIri);
-                                if (queryMapping != null && queryMapping.contains(":")) {
-                                    params.set("values-from-query", queryRef.getAsUrlString());
-                                    params.set("values-from-query-mapping", queryMapping);
-                                }
-                                params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                                if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                                resultList.addButton(label, PublishPage.class, params);
-                            }
-                        }
-                        return resultList;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
-            }
-        } else {
-            if (response != null) {
-                QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                resultList.setPageResource(pageResource);
-                resultList.setContextId(contextId);
-                ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
-                resultList.add(new AttributeAppender("class", colClass));
-                return resultList;
-            } else {
-                ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
-                    @Override
-                    public Component getApiResultComponent(String markupId, ApiResponse response) {
-                        QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-                        resultList.setPageResource(pageResource);
-                        resultList.setContextId(contextId);
-                        ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
-                        return resultList;
-                    }
-                };
-                comp.add(new AttributeAppender("class", colClass));
-                return comp;
+                String queryMapping = view.getTemplateQueryMapping(actionIri);
+                if (queryMapping != null && queryMapping.contains(":")) {
+                    params.set("values-from-query", queryRef.getAsUrlString());
+                    params.set("values-from-query-mapping", queryMapping);
+                }
+                params.set("refresh-upon-publish", queryRef.getAsUrlString());
+                if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
+                resultList.addButton(label, PublishPage.class, params);
             }
         }
+        return resultList;
     }
+
 
 }
