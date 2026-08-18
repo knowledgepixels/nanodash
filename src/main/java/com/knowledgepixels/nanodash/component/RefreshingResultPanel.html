@@ -9,7 +9,10 @@
 
 <wicket:panel>
   <span class="refresh-spinner" wicket:id="spinner" title="Updating..."></span>
-  <div wicket:id="content">...</div>
+  <!-- A container rather than an element: the view renders exactly the markup it would
+       render without this panel around it, so wrapping a view for a refresh does not add a
+       level to the page and shift it about. -->
+  <wicket:container wicket:id="content">...</wicket:container>
 </wicket:panel>
 
 </body>
