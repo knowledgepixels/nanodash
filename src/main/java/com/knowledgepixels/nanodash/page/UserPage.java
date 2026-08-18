@@ -166,8 +166,7 @@ public class UserPage extends NanodashPage {
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
                 add(LazyContentPanel.of("otherTab", markupId -> new AboutUserPanel(markupId, userIriString),
-                        AboutUserPanel.INTRODUCTIONS_VIEW, AboutUserPanel.PROFILE_VIEW,
-                        AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
+                        AboutUserPanel.REQUIRED_VIEWS));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, userIriString),
                         ReferencesPage.REFERENCES_VIEW));

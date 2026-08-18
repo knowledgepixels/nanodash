@@ -158,7 +158,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
                 add(LazyContentPanel.of("otherTab", markupId -> new AboutResourcePanel(markupId, resourceModel.getObject()),
-                        AboutResourcePanel.MAINTAINED_RESOURCE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW));
+                        AboutResourcePanel.REQUIRED_VIEWS));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, resourceId),
                         ReferencesPage.REFERENCES_VIEW));

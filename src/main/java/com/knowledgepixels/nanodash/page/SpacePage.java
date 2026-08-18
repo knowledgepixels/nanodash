@@ -144,8 +144,7 @@ public class SpacePage extends NanodashPage {
                 // they aren't freshly cached, which would block the initial page
                 // render; the view-id list must mirror the panel's View.get calls.
                 add(LazyContentPanel.of("otherTab", markupId -> new AboutSpacePanel(markupId, spaceModel.getObject(), effectiveRoot),
-                        AboutSpacePanel.SPACE_INFO_VIEW, AboutSpacePanel.PRESET_ASSIGNMENTS_VIEW, AboutSpacePanel.SPACE_ROLES_VIEW, AboutSpacePanel.VIEW_DISPLAYS_VIEW,
-                        AboutSpacePanel.MEMBERS_VIEW, AboutSpacePanel.OBSERVERS_VIEW));
+                        AboutSpacePanel.REQUIRED_VIEWS));
             } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
                 add(LazyContentPanel.of("otherTab", markupId -> new ExplorePanel(markupId, spaceId),
                         ReferencesPage.REFERENCES_VIEW));

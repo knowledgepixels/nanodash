@@ -83,6 +83,27 @@ public class AboutSpacePanel extends Panel {
     public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAPUs5_CXMs_13QpU0RQch8LB28MN61p-j0945_STg8BE/maintained-resources-view";
 
     /**
+     * Every view this panel resolves through {@link View#get(String)} when it is built.
+     * The page gates on these: while any of them is unresolved the panel is built in a
+     * follow-up Ajax request, so that resolving them cannot block the page render. Keeping
+     * the list here, next to the constants it names, is what keeps it from drifting out of
+     * step with the panel — a page that gates on the wrong ids either blocks on a view it
+     * did not wait for, or waits forever for one this panel never resolves and so reloads
+     * the tab on every visit.
+     */
+    public static final String[] REQUIRED_VIEWS = {
+            SPACE_INFO_VIEW,
+            PRESET_ASSIGNMENTS_VIEW,
+            SPACE_ROLES_VIEW,
+            VIEW_DISPLAYS_VIEW,
+            MEMBERS_VIEW,
+            NON_APPROVED_VIEW,
+            OBSERVERS_VIEW,
+            SUB_SPACES_VIEW,
+            MAINTAINED_RESOURCES_VIEW,
+    };
+
+    /**
      * @param id    the Wicket markup id
      * @param space the space whose About listings to render
      */
