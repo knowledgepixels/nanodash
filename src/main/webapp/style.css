@@ -2432,6 +2432,15 @@ p.waiting {
   flex: 0 1 auto;
 }
 
+/* With the spinner there, its auto right margin is what pushes the rest of the row to the
+   end. The auto left margins that normally do that job have to give way: two auto margins
+   share the free space between them, which would strand the filter field halfway across the
+   row for as long as the spinner shows. */
+.paneltitlerow:has(> .refresh-spinner) > span.buttons,
+.paneltitlerow:not(:has(> h4)):has(> .refresh-spinner) > input.panelfilter {
+  margin-left: 0;
+}
+
 /* Standing on its own — a whole page section or panel body with nothing in it yet — the
    same spinner is drawn larger: there is no title or message beside it to carry the eye,
    and none of the gutter's width limit applies. */
