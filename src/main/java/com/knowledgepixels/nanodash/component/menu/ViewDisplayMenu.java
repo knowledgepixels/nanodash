@@ -23,6 +23,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -205,11 +206,18 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
             public void onClick(Optional<AjaxRequestTarget> target) {
                 ApiCache.clearCache(queryRef, 0);
                 QueryResult view = findParent(QueryResult.class);
-                // The view sits inside a wrapper while it is being refreshed; that wrapper is
-                // then the piece to replace, so wrappers do not nest.
+                // A view is not always what stands in the page: while it waits for its first
+                // results it is inside Wicket's lazy-loading panel, and while it is being
+                // brought up to date inside a RefreshingResultPanel. Either way the wrapper
+                // is the piece that has to be replaced — replacing what is inside it would
+                // leave the wrapper around it and address an element the browser does not
+                // have, so nothing would change on screen and the markup left behind would
+                // keep linking to components that are no longer there.
                 Component replaceable = view;
-                if (view != null && view.getParent() instanceof RefreshingResultPanel) {
-                    replaceable = view.getParent();
+                while (replaceable != null && "content".equals(replaceable.getId())
+                        && (replaceable.getParent() instanceof RefreshingResultPanel
+                            || replaceable.getParent() instanceof AjaxLazyLoadPanel)) {
+                    replaceable = replaceable.getParent();
                 }
                 Component rebuilt = (view == null ? null : view.rebuild(replaceable.getId()));
                 if (target.isEmpty() || rebuilt == null || !replaceable.getOutputMarkupId()) {
