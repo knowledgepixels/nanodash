@@ -58,7 +58,7 @@ public class UserData implements Serializable {
         // TODO Make nanopublication setting configurable:
         NanopubSetting setting;
         if (pref.getSettingUri() != null) {
-            setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri()));
+            setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri(), Utils.getRegistryHttpClient()));
         } else {
             try {
                 setting = NanopubSetting.getLocalSetting();
@@ -69,7 +69,7 @@ public class UserData implements Serializable {
         String settingId = setting.getNanopub().getUri().stringValue();
         if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
             settingId = QueryApiAccess.getLatestVersionId(settingId);
-            setting = new NanopubSetting(GetNanopub.get(settingId));
+            setting = new NanopubSetting(GetNanopub.get(settingId, Utils.getRegistryHttpClient()));
         }
         logger.info("Using nanopublication setting: {}", settingId);
 

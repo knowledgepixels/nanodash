@@ -18,6 +18,8 @@ import org.mockito.MockedStatic;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.time.ZonedDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -110,6 +112,25 @@ public class LiteralPlaceholderDatatypeTest {
         Literal l = (Literal) result;
         assertEquals("42", l.stringValue());
         assertEquals(XSD.NAMESPACE + "integer", l.getDatatype().stringValue());
+    }
+
+    @Test
+    void dateTimeLiteralAlwaysHasSeconds() throws Exception {
+        mockTemplate(XSD.DATETIME, null);
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        // A time entered without seconds, which is what the picker asks for by default:
+        context.getComponentModels().put(VALUE, Model.of(ZonedDateTime.parse("2026-05-17T10:15+02:00")));
+        Literal l = (Literal) context.processValue(VALUE);
+        assertEquals("2026-05-17T10:15:00+02:00", l.stringValue());
+        assertEquals(XSD.DATETIME, l.getDatatype());
+    }
+
+    @Test
+    void dateTimeLiteralKeepsEnteredSeconds() throws Exception {
+        mockTemplate(XSD.DATETIME, null);
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.getComponentModels().put(VALUE, Model.of(ZonedDateTime.parse("2026-05-17T10:15:30Z")));
+        assertEquals("2026-05-17T10:15:30Z", context.processValue(VALUE).stringValue());
     }
 
     @Test

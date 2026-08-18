@@ -110,11 +110,18 @@ appended. Wicket adds one whenever the client has not returned a cookie — prec
 for a calendar client fetching a feed. Such a URL is bound to one visitor's session: it stops
 working when the session expires, and sharing it hands out a live session identifier.
 
-Scheme and host are taken from the incoming request. **Behind a TLS-terminating reverse
-proxy this needs checking**: nothing in the application reads `X-Forwarded-Proto`, so unless
-the servlet container is configured to honour it, the emitted feed URL will say `http://`.
-The `webcal:` link survives that (the scheme is replaced anyway), but the Outlook subscribe
-link and the copy-feed-URL entry would hand out an `http` address.
+Scheme and host come from `NANODASH_WEBSITE_URL` (or the `websiteUrl` preference), not from
+the incoming request. **A deployment behind a reverse proxy must set it.** The request says
+only how the proxy reached the container — typically `http://127.0.1.1:37373/` — and that is
+useless to the parties who fetch these URLs themselves: the user's calendar client, and
+Google or Outlook on their behalf. Only the origin is taken from the configured URL; the path
+and query stay as Wicket rendered them, and a path in the configured URL (an instance
+published under `/nanodash/`) is prefixed unless the container is mounted there too.
+
+Where nothing is configured, the address is derived from the request as before — a local run
+is then still correct, and guessing the `http://localhost:37373/` default would not be. Under
+a TLS-terminating proxy that unconfigured case also emits `http://`, since nothing in the
+application reads `X-Forwarded-Proto`.
 
 ## Feed contents
 

@@ -201,6 +201,15 @@ public class SpaceRepository {
     }
 
     /**
+     * Get all known spaces, one representative per space IRI (see {@link #reduceByRef}).
+     *
+     * @return The list of spaces, in no particular order.
+     */
+    public List<Space> findAll() {
+        return new ArrayList<>(current().spacesById.values());
+    }
+
+    /**
      * Get a space by one of its alternative IDs.
      *
      * @param altId The alternative ID of the space.

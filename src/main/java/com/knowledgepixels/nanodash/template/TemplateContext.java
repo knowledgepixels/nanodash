@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.LiteralDateItem;
+import com.knowledgepixels.nanodash.component.LiteralDateTimeItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
@@ -49,6 +51,7 @@ public class TemplateContext implements Serializable {
     private Nanopub fillSource;
     private Map<IRI, String> labels;
     private FillMode fillMode = null;
+    private String navigationContextId;
 
     /**
      * Constructor for creating a new template context for filling a template.
@@ -277,6 +280,106 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Suffix of the URL parameter that pre-fills the chosen base of a
+     * space-/namespace-dependent prefix, appended to a placeholder's postfix
+     * (e.g. {@code param_resource__prefix}).
+     */
+    public static final String PREFIX_SUFFIX = "__prefix";
+
+    /**
+     * Returns the component-model key for the base chosen for the given
+     * space-/namespace-dependent prefix placeholder. The key is derived from the
+     * <em>token</em>, not from the placeholder, so every field whose prefix depends on the
+     * same thing shares one model: picking a space in one picker sets it for all of them
+     * (and for every repetition), which is what the shared-model AJAX refresh in the form
+     * items keys on.
+     *
+     * @param token the token, as returned by {@link DynamicPrefix#getToken(String)}
+     * @return the derived key for the prefix-base model
+     */
+    public static IRI getPrefixModelKey(String token) {
+        return vf.createIRI(LocalUri.PREFIX + "prefix-base/" + token.replace("~", ""));
+    }
+
+    /**
+     * Sets the navigation context (the {@code context} URL parameter of the page this
+     * context is filled on), which determines the space or maintained resource that
+     * space-/namespace-dependent prefixes resolve against.
+     *
+     * @param navigationContextId the context resource id, or null if the page has none
+     */
+    public void setNavigationContextId(String navigationContextId) {
+        this.navigationContextId = navigationContextId;
+    }
+
+    /**
+     * Returns the navigation context id this context resolves space-/namespace-dependent
+     * prefixes against.
+     *
+     * @return the context resource id, or null if none is set
+     */
+    public String getNavigationContextId() {
+        return navigationContextId;
+    }
+
+    /**
+     * Returns the prefix of the given placeholder, with a space-/namespace-dependent
+     * placeholder ({@link DynamicPrefix#SPACE_TOKEN}, {@link DynamicPrefix#NAMESPACE_TOKEN})
+     * substituted by the base the navigation context — or the user's pick — determines.
+     * Use this instead of {@link Template#getPrefix(IRI)} wherever the prefix is shown to
+     * the user or used to build a value.
+     *
+     * @param iri the placeholder IRI
+     * @return the resolved prefix; null if the template declares none, and also null if it
+     * declares a dynamic one that isn't resolved yet (tell the two apart with
+     * {@link #hasUnresolvedPrefix(IRI)})
+     */
+    public String getPrefix(IRI iri) {
+        String rawPrefix = template.getPrefix(iri);
+        String token = DynamicPrefix.getToken(rawPrefix);
+        if (token == null) return rawPrefix;
+        String base = resolvePrefixBase(token);
+        if (base == null) return null;
+        return rawPrefix.replace(token, base);
+    }
+
+    /**
+     * Whether the given placeholder declares a space-/namespace-dependent prefix (resolved
+     * or not). Such a prefix takes precedence over the target namespace a
+     * {@code nt:LocalResource} would otherwise be minted under: declaring one is exactly
+     * how a template says "mint this new resource under the space / maintained resource
+     * instead of under the nanopublication".
+     *
+     * @param iri the placeholder IRI
+     * @return true if the prefix is space-/namespace-dependent
+     */
+    public boolean hasDynamicPrefix(IRI iri) {
+        return DynamicPrefix.getToken(template.getPrefix(iri)) != null;
+    }
+
+    /**
+     * Whether the given placeholder's prefix is space-/namespace-dependent and its base is
+     * not (yet) determined, i.e. the page carries no usable navigation context and the user
+     * hasn't picked one.
+     *
+     * @param iri the placeholder IRI
+     * @return true if the prefix is dynamic and unresolved
+     */
+    public boolean hasUnresolvedPrefix(IRI iri) {
+        String token = DynamicPrefix.getToken(template.getPrefix(iri));
+        return token != null && resolvePrefixBase(token) == null;
+    }
+
+    private String resolvePrefixBase(String token) {
+        String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
+        if (base != null && !base.isEmpty()) return base;
+        IModel<?> model = componentModels.get(getPrefixModelKey(token));
+        Object chosen = (model == null) ? null : model.getObject();
+        if (chosen == null || chosen.toString().isEmpty()) return null;
+        return chosen.toString();
+    }
+
+    /**
      * Returns the introduced IRIs in this context.
      *
      * @return a set of introduced IRIs
@@ -368,40 +471,81 @@ public class TemplateContext implements Serializable {
         if (template.isRestrictedChoicePlaceholder(iri)) {
             String tfObject = (String) tfObjectGeneric;
             if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = template.getPrefix(iri);
+                String prefix = getPrefix(iri);
+                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) prefix = targetNamespace;
-                if (tfObject.matches("https?://.+")) prefix = "";
-                String v = prefix + tf.getObject();
-                if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                if (v.matches("https?://.*")) {
-                    processedValue = vf.createIRI(v);
-                } else {
-                    processedValue = vf.createLiteral(tfObject);
+                // A dynamic prefix is how a template asks for its new resource to be minted
+                // under the space / maintained resource rather than under the nanopublication,
+                // so it wins over the local-resource default (issue #571).
+                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
+                    prefix = targetNamespace;
+                    unresolvedPrefix = false;
+                }
+                if (tfObject.matches("https?://.+")) {
+                    prefix = "";
+                    unresolvedPrefix = false;
+                }
+                // An unresolved space-/namespace-dependent prefix would mint the resource
+                // under the wrong namespace; leave the value unset instead. Form validation
+                // blocks publishing in this state.
+                if (!unresolvedPrefix) {
+                    String v = prefix + tf.getObject();
+                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
+                    if (v.matches("https?://.*")) {
+                        processedValue = vf.createIRI(v);
+                    } else {
+                        processedValue = vf.createLiteral(tfObject);
+                    }
                 }
             }
         } else if (template.isUriPlaceholder(iri)) {
             String tfObject = (String) tfObjectGeneric;
             if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = template.getPrefix(iri);
+                String prefix = getPrefix(iri);
+                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
                 if (prefix == null) prefix = "";
-                if (template.isLocalResource(iri)) prefix = targetNamespace;
+                // A dynamic prefix is how a template asks for its new resource to be minted
+                // under the space / maintained resource rather than under the nanopublication,
+                // so it wins over the local-resource default (issue #571).
+                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
+                    prefix = targetNamespace;
+                    unresolvedPrefix = false;
+                }
                 String v;
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tfObject.matches("https?://.+")) prefix = "";
+                    if (tfObject.matches("https?://.+")) {
+                        prefix = "";
+                        unresolvedPrefix = false;
+                    }
                     v = prefix + tf.getObject();
                 }
-                if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                processedValue = vf.createIRI(v);
-            }
-        } else if (template.isLocalResource(iri)) {
-            String tfObject = (String) tfObjectGeneric;
-            if (template.isIntroducedResource(iri) && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
-                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                    processedValue = vf.createIRI(tfObject);
+                // See the restricted-choice branch above: an unresolved dynamic prefix
+                // leaves the value unset rather than minting a wrongly-namespaced IRI.
+                if (!unresolvedPrefix) {
+                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
+                    processedValue = vf.createIRI(v);
                 }
+            }
+        } else if (template.isIntroducedResource(iri)
+                && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
+                && tfObjectGeneric instanceof String pinnedIri && !pinnedIri.isEmpty()) {
+            // An introduced resource keeps its IRI across versions (docs/fill-modes.md), so
+            // supersede/override pin the source's IRI that ValueFiller left in the (read-only)
+            // model. This must not be gated on isLocalResource: LOCAL_RESOURCE is only ever
+            // attached to sub-IRIs of the template nanopub (Template#tagIfUntypedLocal), while a
+            // template may introduce an absolute IRI in a foreign namespace via the
+            // "~~ARTIFACTCODE~~" marker (e.g. "Defining a biochementity"). Those used to fall
+            // through to the catch-all branch, keep the marker, and get a fresh artifact code
+            // substituted at signing time -- minting a new resource instead of a new version.
+            processedValue = vf.createIRI(pinnedIri);
+        } else if (template.isLocalResource(iri)) {
+            if (template.isIntroducedResource(iri) && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
+                // Pinned by the branch above whenever a source IRI is known. With no source
+                // value the slot stays unresolved rather than minting a fresh identity, so an
+                // introduced identifier the old version didn't declare yet stays fillable
+                // (issue #549).
             } else {
                 String prefix = Utils.getUriPrefix(iri);
                 processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
@@ -412,7 +556,7 @@ public class TemplateContext implements Serializable {
             if (XSD.DATETIME.equals(datatype)) {
                 ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
                 if (tfObject != null) {
-                    processedValue = vf.createLiteral(tfObject);
+                    processedValue = vf.createLiteral(LiteralDateTimeItem.format.format(tfObject), datatype);
                 }
             } else if (XSD.DATE.equals(datatype)) {
                 Date tfObject = (Date) tfObjectGeneric;

@@ -41,6 +41,22 @@ public class AboutUserPanel extends Panel {
     public static final String USER_PRESET_ASSIGNMENTS_VIEW = "https://w3id.org/np/RAd0UM_ll5a7Ewpg2VT5azZ7lh3S-K2ASCOIk2AgKfAJY/preset-assignments-view";
 
     /**
+     * Every view this panel resolves through {@link View#get(String)} when it is built.
+     * The page gates on these: while any of them is unresolved the panel is built in a
+     * follow-up Ajax request, so that resolving them cannot block the page render. Keeping
+     * the list here, next to the constants it names, is what keeps it from drifting out of
+     * step with the panel — a page that gates on the wrong ids either blocks on a view it
+     * did not wait for, or waits forever for one this panel never resolves and so reloads
+     * the tab on every visit.
+     */
+    public static final String[] REQUIRED_VIEWS = {
+            PROFILE_VIEW,
+            INTRODUCTIONS_VIEW,
+            USER_PRESET_ASSIGNMENTS_VIEW,
+            USER_VIEW_DISPLAYS_VIEW,
+    };
+
+    /**
      * @param id            the Wicket markup id
      * @param userIriString the user IRI
      */

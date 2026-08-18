@@ -6,8 +6,6 @@ import java.util.List;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -17,25 +15,18 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.QueryListPage;
-import com.knowledgepixels.nanodash.page.SpaceListPage;
-import com.knowledgepixels.nanodash.page.UserListPage;
 
 /**
- * TitleBar is the top bar of the Nanodash application, which contains
- * navigation elements such as profile, my channel, users, connectors,
- * publish, query, and breadcrumb navigation.
+ * TitleBar is the top bar of the Nanodash application, which contains the
+ * logo (linking to the home page), the profile menu, and breadcrumb
+ * navigation.
  */
 public class TitleBar extends Panel {
-
-    private String highlight;
 
     /**
      * The breadcrumb/tab strip row (the grey band just below the nav bar). Holds
@@ -45,29 +36,19 @@ public class TitleBar extends Panel {
     private WebMarkupContainer breadcrumbPath;
 
     /**
-     * Constructs a TitleBar with the specified id, page, highlight element,
-     * and an array of path references for breadcrumb navigation.
+     * Constructs a TitleBar with the specified id, page, and an array of path
+     * references for breadcrumb navigation.
      *
-     * @param id        the component id
-     * @param page      the current Nanodash page
-     * @param highlight the id of the element to highlight
-     * @param pathRefs  an array of NanodashPageRef for breadcrumb navigation
+     * @param id       the component id
+     * @param page     the current Nanodash page
+     * @param pathRefs an array of NanodashPageRef for breadcrumb navigation
      */
-    public TitleBar(String id, NanodashPage page, String highlight, NanodashPageRef... pathRefs) {
+    public TitleBar(String id, NanodashPage page, NanodashPageRef... pathRefs) {
         super(id);
-        this.highlight = highlight;
         add(new ProfileItem("profile", page));
         // Centered title-bar message: the post-publish confirmation and/or the
         // always-on "you haven't published an introduction yet" warning.
         add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
-
-        // Nav links carry the page's navigation context along, so e.g. publishing via
-        // the "publish" link forwards back to the space/user/resource one came from.
-        PageParameters navParams = NavigationContext.withContext(new PageParameters(), page.getContextId());
-        createNavLink("users", UserListPage.class, navParams);
-        createNavLink("connectors", SpaceListPage.class, navParams);
-        createNavLink("publish", PublishPage.class, navParams).setVisible(!NanodashPreferences.get().isReadOnlyMode());
-        createNavLink("query", QueryListPage.class, navParams);
 
         breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
         if (page.hasFullWidthContent()) {
@@ -313,15 +294,6 @@ public class TitleBar extends Panel {
         breadcrumbPath.addOrReplace(tabs);
         breadcrumbPath.setVisible(true);
         return this;
-    }
-
-    private BookmarkablePageLink<Void> createNavLink(String id, Class<? extends WebPage> pageClass, PageParameters params) {
-        BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, pageClass, params);
-        if (id.equals(highlight)) {
-            link.add(new AttributeAppender("class", "selected"));
-        }
-        add(link);
-        return link;
     }
 
 }

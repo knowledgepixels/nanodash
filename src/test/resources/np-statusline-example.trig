@@ -1,0 +1,39 @@
+@prefix this: <https://w3id.org/np/RA58YcJyv1h-UmS8jI6UfFP6_LTAh59GTgpU_4lvBv7a4> .
+@prefix sub: <https://w3id.org/np/RA58YcJyv1h-UmS8jI6UfFP6_LTAh59GTgpU_4lvBv7a4/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix pav: <http://purl.org/pav/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfg: <http://www.w3.org/2004/03/trix/rdfg-1/> .
+@prefix dce: <http://purl.org/dc/elements/1.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  <https://orcid.org/0009-0008-3635-347X> npx:retracts <https://w3id.org/np/RA1Lhd0Rt5xuz63vjeUYgGJrgeUvH-7QKwAiPgj44WWgg> .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo <https://orcid.org/0009-0008-3635-347X> .
+}
+
+sub:pubinfo {
+  this: dct:creator <https://orcid.org/0009-0008-3635-347X> .
+  
+  sub:sig npx:hasAlgorithm "RSA";
+    npx:hasPublicKey "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbztY8l4lWqVF8L/djJ1knoc7Nm5kVHT9NqSe0fXO9Hel3DRO2IyxJYVEvThhllBuHNtZK32ww23AlglArokhxPCSBPKvVgQS6r46khF2D85tnd5htaBq+bfjMqL+LDlQh3LdBpAqrLmsmfsPkU65CCxSGufBs2v39p41z5FkRXE1JKJ/UZe+1OUq+CibjOfo1g1Nz6HO0fZML7GnQBj5X9lvU0llmDk/sqdNMxAJDSQh2/Zh0kz7+Dm7vJOx3mNEXU4FuzVzKBYwTotvEcJod7Vot1fPOJXPGoNDVNKMQffCala9o4pqT739LS7R7ZFVMjzPkLUxYCjnEgOZI5t6wIDAQAB";
+    npx:hasSignature "b02egVbAt/XzvcLq12zscVfRJYYeC/d7Vc8bV+EEoYFT9Mk2zT2eE/wugXCTsB1DalLrtjyHd1r9xiBKyZuj161O8b5KKlYUYvEh4wpnd6xdJevGH9Ad9LK+VI3a5dNXVxJAKlYX87MvuHPohLeu0EHT1IochUDyAVWtU7roHaxJHZ6SB4FnJv6XrJ2detnkx2LeT6nNLUvPxgE62qjdML2hgEhZNDVTCma7/ub6gk0n5MIgtthX8IpafvJH9VvePtZg+L2pp3cGW2MQPFkG7fnnYlli6OX37yu1Q4YAS0JLubqPaUGL4rI82zkIT6CpLhJfU13TruqzzWZE30e1jQ==";
+    npx:hasSignatureTarget this:;
+    npx:signedBy <https://orcid.org/0009-0008-3635-347X> .
+}
+

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.NanopubLookup;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import jakarta.servlet.http.HttpServletResponse;
@@ -79,7 +80,7 @@ public class NanopubNotFoundPage extends NanodashPage {
      */
     public NanopubNotFoundPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         String id = parameters.get(ID_PARAM).toString("");
         timedOut = parameters.get(TIMEOUT_PARAM).toBoolean(false);
@@ -94,6 +95,7 @@ public class NanopubNotFoundPage extends NanodashPage {
         // Retrying is worth offering: a lookup that timed out here keeps running in the
         // background, so the nanopublication may well be in the cache by now.
         add(new BookmarkablePageLink<Void>("retry-link", ExplorePage.class, new PageParameters().set("id", id))
+                .add(NavigationContext.pageContextFallback())
                 .setVisible(!id.isEmpty()));
         add(new BookmarkablePageLink<Void>("home-link", HomePage.class));
     }

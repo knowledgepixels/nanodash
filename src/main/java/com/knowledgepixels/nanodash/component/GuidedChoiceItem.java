@@ -118,7 +118,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             possibleValues.add(v.toString());
         }
 
-        prefix = template.getPrefix(iri);
+        prefix = context.getPrefix(iri);
         if (prefix == null) prefix = "";
         String prefixLabel = template.getPrefixLabel(iri);
         Label prefixLabelComp;

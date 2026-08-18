@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +69,15 @@ public class ApiCache {
     private transient static ConcurrentMap<String, Long> lastRefresh = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> refreshStart = new ConcurrentHashMap<>();
     private transient static ConcurrentMap<String, Long> runAfter = new ConcurrentHashMap<>();
+
+    // Cache ids that must be re-fetched before their entry counts as current again: a
+    // genuine browser reload or an explicit clearCache (e.g. after publishing). The
+    // cached value itself is deliberately kept, so callers can go on showing the
+    // outdated content while the refresh runs instead of only a spinner (issue #599);
+    // it is retrieved with retrieveStaleResponse(). The flag is dropped once a refresh
+    // attempt has completed, successfully or not.
+    private static final Set<String> forcedRefresh = ConcurrentHashMap.newKeySet();
+
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
     // Guava fires removal notifications also when an entry is REPLACED (every routine
@@ -84,6 +94,7 @@ public class ApiCache {
         lastRefresh.remove(cacheId);
         failed.remove(cacheId);
         runAfter.remove(cacheId);
+        forcedRefresh.remove(cacheId);
     }
 
     /**
@@ -169,29 +180,49 @@ public class ApiCache {
             // lastRefresh can be missing for a cached entry (racing invalidation or
             // refresh); treat that as stale rather than NPEing on the unboxing.
             Long lastRefreshTime = lastRefresh.get(cacheId);
-            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
+            // A pending forced refresh (clearCache, e.g. after publishing) always counts as
+            // stale here: the entry is kept only so the UI can show the outdated content,
+            // never to be handed to a synchronous caller as if it were current.
+            needsRefresh = forcedRefresh.contains(cacheId) || lastRefreshTime == null
+                    || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
         Integer failedCount = failed.get(cacheId);
         if (failedCount != null && failedCount > 2) {
             failed.remove(cacheId);
             throw new RuntimeException("Query failed: " + cacheId);
         }
+        // Waiting around is for background threads. A request thread must not sit out an
+        // ingest delay or a politeness pause on the user's time: it takes what the cache has
+        // and leaves the refresh to a thread that can afford to wait.
+        boolean onRequestThread = RequestCycle.get() != null;
+        Long after = runAfter.get(cacheId);
+        boolean waitingForIngest = after != null && System.currentTimeMillis() < after;
+        if (onRequestThread && waitingForIngest) {
+            logger.debug("Not waiting out the ingest delay for {} on a request thread", cacheId);
+            // Hand the refresh to the background, where waiting out the delay costs nobody
+            // anything, and answer with what we have meanwhile.
+            retrieveResponseAsync(queryRef);
+            return cachedResponses.getIfPresent(cacheId);
+        }
         if ((needsRefresh || forced) && !isRunning(cacheId)) {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {
-                Long after = runAfter.get(cacheId);
-                if (after != null) {
+                if (waitingForIngest) {
                     while (System.currentTimeMillis() < after) {
                         Thread.sleep(100);
                     }
-                    runAfter.remove(cacheId);
                 }
-                if (failed.get(cacheId) != null) {
-                    // 1 second pause between failed attempts;
-                    Thread.sleep(1000);
+                if (after != null) runAfter.remove(cacheId);
+                if (!onRequestThread) {
+                    if (failed.get(cacheId) != null) {
+                        // 1 second pause between failed attempts;
+                        Thread.sleep(1000);
+                    }
+                    // Jitter, so that background refreshes of many queries do not arrive at
+                    // the API in lockstep. Pure latency on a request thread, so skipped there.
+                    Thread.sleep(100 + new Random().nextLong(400));
                 }
-                Thread.sleep(100 + new Random().nextLong(400));
             } catch (InterruptedException ex) {
                 logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
             }
@@ -207,18 +238,21 @@ public class ApiCache {
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
+                forcedRefresh.remove(cacheId);
             }
-        } else if (cachedResponses.getIfPresent(cacheId) == null && isRunning(cacheId)) {
-            // Another thread is doing the first fetch of this query and we have
-            // nothing cached yet. Wait for it rather than returning null: a null
-            // here lets a caller (e.g. SpaceRepository) memoise an EMPTY snapshot,
-            // which then poisons MaintainedResourceRepository.build() and breaks
-            // the home page until the next refresh. This adds no new work; it only
-            // waits on the refresh already in flight.
+        } else if (isRunning(cacheId)
+                && (cachedResponses.getIfPresent(cacheId) == null || forcedRefresh.contains(cacheId))) {
+            // Another thread is fetching this query and what we hold is either nothing at
+            // all or an entry that is only being kept for the stale-content display. Wait
+            // for that fetch rather than returning null or the outdated entry: a null here
+            // lets a caller (e.g. SpaceRepository) memoise an EMPTY snapshot, which then
+            // poisons MaintainedResourceRepository.build() and breaks the home page until
+            // the next refresh. This adds no new work; it only waits on the refresh
+            // already in flight.
             try {
                 long deadline = timeNow + SYNC_WAIT_FOR_INFLIGHT_MS;
                 while (isRunning(cacheId)
-                        && cachedResponses.getIfPresent(cacheId) == null
+                        && (cachedResponses.getIfPresent(cacheId) == null || forcedRefresh.contains(cacheId))
                         && System.currentTimeMillis() < deadline) {
                     Thread.sleep(50);
                 }
@@ -240,15 +274,17 @@ public class ApiCache {
         String cacheId = queryRef.getAsUrlString();
         logger.debug("Retrieving cached API response asynchronously for {}", cacheId);
         if (isForcedReload(cacheId)) {
-            cachedResponses.invalidate(cacheId);
-            lastRefresh.remove(cacheId);
+            // Keep the entry (see retrieveStaleResponse) but stop treating it as current,
+            // so the reload re-queries while the outdated content stays on screen.
+            forcedRefresh.add(cacheId);
         }
+        boolean forced = forcedRefresh.contains(cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             Long lastRefreshTime = lastRefresh.get(cacheId);
-            isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
-            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
+            isCached = !forced && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            needsRefresh = forced || lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
         Integer failedCount = failed.get(cacheId);
         if (failedCount != null && failedCount > 2) {
@@ -285,6 +321,9 @@ public class ApiCache {
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
+                    // Dropped on failure too: a query we cannot reach must not keep every
+                    // later render on the stale path, re-submitting a refresh each time.
+                    forcedRefresh.remove(cacheId);
                 }
             });
         }
@@ -400,15 +439,17 @@ public class ApiCache {
         String cacheId = queryRef.getAsUrlString();
         logger.debug("Retrieving cached RDF model asynchronously for {}", cacheId);
         if (isForcedReload(cacheId)) {
-            cachedRdfModels.invalidate(cacheId);
-            lastRefresh.remove(cacheId);
+            // As in retrieveResponseAsync: mark for re-fetch but keep the model, so a failed
+            // refresh still has the previous one to fall back on.
+            forcedRefresh.add(cacheId);
         }
+        boolean forced = forcedRefresh.contains(cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedRdfModels.getIfPresent(cacheId) != null) {
             Long lastRefreshTime = lastRefresh.get(cacheId);
-            isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
-            needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
+            isCached = !forced && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            needsRefresh = forced || lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
         Integer failedCount = failed.get(cacheId);
         if (failedCount != null && failedCount > 2) {
@@ -444,6 +485,7 @@ public class ApiCache {
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
+                    forcedRefresh.remove(cacheId);
                 }
             });
         }
@@ -455,7 +497,24 @@ public class ApiCache {
     }
 
     /**
-     * Clears the cached response for a specific query reference and sets a delay before the next refresh can occur.
+     * Returns whatever response is cached for a query reference, however outdated, without
+     * triggering a refresh or any other side effect. Meant for showing the previous content
+     * while a refresh is in flight (issue #599) — never as a substitute for the current data,
+     * which is what {@link #retrieveResponseAsync(QueryRef)} and
+     * {@link #retrieveResponseSync(QueryRef, boolean)} return.
+     *
+     * @param queryRef The query reference
+     * @return The cached response of any age, or null if nothing is cached.
+     */
+    public static ApiResponse retrieveStaleResponse(QueryRef queryRef) {
+        return cachedResponses.getIfPresent(queryRef.getAsUrlString());
+    }
+
+    /**
+     * Marks the cached response for a specific query reference as outdated and sets a delay
+     * before the next refresh can occur. The previous response is kept and remains available
+     * through {@link #retrieveStaleResponse(QueryRef)} until the refresh lands, but it is no
+     * longer served as current data.
      *
      * @param queryRef   The query reference for which to clear the cache.
      * @param waitMillis The amount of time in milliseconds to wait before allowing the cache to be refreshed again.
@@ -464,7 +523,7 @@ public class ApiCache {
         if (waitMillis < 0) {
             throw new IllegalArgumentException("waitMillis must be non-negative");
         }
-        cachedResponses.invalidate(queryRef.getAsUrlString());
+        forcedRefresh.add(queryRef.getAsUrlString());
         runAfter.put(queryRef.getAsUrlString(), System.currentTimeMillis() + waitMillis);
     }
 

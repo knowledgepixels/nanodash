@@ -4,7 +4,7 @@
   <groupId>com.knowledgepixels</groupId>
   <artifactId>nanodash</artifactId>
   <packaging>war</packaging>
-  <version>5.8.1-SNAPSHOT</version>
+  <version>5.10.1-SNAPSHOT</version>
   <name>nanodash</name>
   <url>https://github.com/knowledgepixels/nanodash</url>
   <licenses>
@@ -67,6 +67,11 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.14.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.24.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

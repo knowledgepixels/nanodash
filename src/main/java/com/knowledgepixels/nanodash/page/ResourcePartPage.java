@@ -151,7 +151,7 @@ public class ResourcePartPage extends NanodashPage {
         breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
         NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
-        add(new TitleBar("titlebar", this, null,
+        add(new TitleBar("titlebar", this,
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
@@ -169,7 +169,7 @@ public class ResourcePartPage extends NanodashPage {
             // aren't freshly cached, which would block the initial page render; the
             // view-id list must mirror the panel's View.get calls.
             add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
-                    AboutPartPanel.PART_INFO_VIEW, AboutResourcePanel.MAINTAINED_RESOURCE_PRESET_ASSIGNMENTS_VIEW, AboutPartPanel.PART_VIEW_DISPLAYS_VIEW));
+                    AboutPartPanel.REQUIRED_VIEWS));
         } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
             // The panel constructor resolves a view nanopub over the network when
@@ -184,12 +184,7 @@ public class ResourcePartPage extends NanodashPage {
             if (resourceWithProfile.isDataInitialized()) {
                 contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
             } else {
-                contentContainer.add(new AjaxLazyLoadPanel<Component>("views") {
-
-                    @Override
-                    public Component getLazyLoadComponent(String markupId) {
-                        return new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes);
-                    }
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
 
                     @Override
                     protected boolean isContentReady() {
@@ -198,7 +193,7 @@ public class ResourcePartPage extends NanodashPage {
 
                     @Override
                     public Component getLoadingComponent(String id) {
-                        return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                        return new Label(id, ResultComponent.getSectionWaitHtml()).setEscapeModelStrings(false);
                     }
 
                 });

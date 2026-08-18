@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.Project;
@@ -61,12 +62,13 @@ public class ProjectPage extends NanodashPage {
         project = Project.get(projectId);
         Nanopub np = project.getRootNanopub();
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
 
         add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
         add(new Label("projectname", project.getLabel()));
         add(new ExternalLink("id", project.getId(), project.getId()));
-        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", np.getUri())));
+        add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", np.getUri()))
+                .add(NavigationContext.pageContextFallback()));
         add(new Label("description", "<span class=\"internal\">" + Utils.sanitizeHtml(project.getDescription()) + "</span>").setEscapeModelStrings(false));
 
         final PageParameters params = new PageParameters();

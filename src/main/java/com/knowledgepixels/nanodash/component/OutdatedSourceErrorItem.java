@@ -5,6 +5,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 
@@ -29,7 +30,8 @@ public class OutdatedSourceErrorItem extends Panel {
         super(id);
         String sourceNpId = PublishForm.getSupersededOrOverriddenNanopubId(pageParams);
         String latestNpId = QueryApiAccess.getLatestVersionId(sourceNpId);
-        add(new BookmarkablePageLink<Void>("latest-link", ExplorePage.class, new PageParameters().set("id", latestNpId)));
+        add(new BookmarkablePageLink<Void>("latest-link", ExplorePage.class, new PageParameters().set("id", latestNpId))
+                .add(NavigationContext.pageContextFallback()));
         add(new BookmarkablePageLink<Void>("latest-action-link", publishPageClass, PublishForm.withSourceNanopub(pageParams, latestNpId)));
     }
 

@@ -71,16 +71,213 @@ function renderFriendlyDates(root) {
   });
 }
 
+/* Section anchors — every view display of a page carries a fragment identifier
+   (server-side, see ViewAnchors): on its wrapping .listview element where ViewList
+   renders it, and on the panel itself (.view-section) on the pages that build their
+   view panels directly. Either way a single section can be linked to:
+   ".../space?id=...#messages". Here we make that linkable from the page: a "#" handle
+   next to each section title that both navigates to the section and copies the full
+   link. Idempotent, so it can re-run after Wicket AJAX has added more sections. */
+function addSectionAnchors(root) {
+  var scope = root || document;
+  scope.querySelectorAll(".view-group > .listview[id], .view-section[id]").forEach(function (section) {
+    // A section without a real fragment identifier gets no handle: a "#" whose href is
+    // the bare "#" would look like a section link and jump to the top of the page.
+    if (!section.id) return;
+    // The panel's own title row; the fallback catches title markup we don't know about.
+    var heading = section.querySelector(".paneltitlerow > h3, .paneltitlerow > h4, .paneltitlerow > h5, .view-header-titlerow > h3")
+        || section.querySelector("h3, h4, h5");
+    if (!heading || heading.querySelector(".section-anchor")) return;
+    var link = document.createElement("a");
+    link.className = "section-anchor";
+    link.href = "#" + section.id;
+    link.title = "Link to this section";
+    link.setAttribute("aria-label", "Link to this section");
+    link.textContent = "#";
+    link.addEventListener("click", function () {
+      // The href already moves the browser to the section; additionally put the full
+      // link on the clipboard, which is what one actually wants it for.
+      if (!navigator.clipboard) return;
+      var url = window.location.href.split("#")[0] + "#" + section.id;
+      navigator.clipboard.writeText(url).then(function () {
+        showToast("Link to section copied to clipboard!");
+      }, function () { /* clipboard denied: the plain link still works */ });
+    });
+    heading.appendChild(link);
+  });
+}
+
+/* Scrolling to a section that isn't there yet. Most view displays load over Ajax after
+   the initial render, so at the moment the browser handles the fragment its target
+   often does not exist. We therefore keep re-scrolling to it as sections arrive, until
+   the page settles (ANCHOR_SETTLE_MS) or the user scrolls somewhere themselves. */
+var ANCHOR_SETTLE_MS = 15000;
+var anchorTarget = null;
+var anchorDeadline = 0;
+
+function startAnchorTracking() {
+  var hash = window.location.hash.slice(1);
+  if (!hash) {
+    anchorTarget = null;
+    return;
+  }
+  try {
+    anchorTarget = decodeURIComponent(hash);
+  } catch (e) {
+    anchorTarget = hash;
+  }
+  anchorDeadline = Date.now() + ANCHOR_SETTLE_MS;
+  scrollToAnchor();
+}
+
+function scrollToAnchor() {
+  if (!anchorTarget) return;
+  if (Date.now() > anchorDeadline) {
+    anchorTarget = null;
+    return;
+  }
+  var el = document.getElementById(anchorTarget);
+  if (el) el.scrollIntoView();
+}
+
+/* Any deliberate scrolling by the user wins over the pending anchor. */
+["wheel", "touchmove", "keydown"].forEach(function (evt) {
+  window.addEventListener(evt, function () { anchorTarget = null; }, { passive: true });
+});
+window.addEventListener("hashchange", startAnchorTracking);
+
+/* Publishing takes a moment — the nanopublication is signed and sent to the registry — and
+   the form is submitted the plain way, so the page stays as it is until the server answers.
+   The button says what is going on for that while, and stops taking clicks: a second one
+   would submit the form again and publish twice. Returns false so the click itself does not
+   submit on top of the submit below. */
+function startPublishing(button) {
+  if (button.disabled) return false;
+  var form = button.form;
+  button.textContent = "Publishing";
+  button.insertBefore(makeSpinner(), button.firstChild);
+  button.classList.add("publishing");
+  // Every button of the form, so the preview button cannot be used to leave mid-publish.
+  form.querySelectorAll("button, input[type=submit]").forEach(function (b) { b.disabled = true; });
+  form.submit();
+  return false;
+}
+
+function makeSpinner() {
+  var spinner = document.createElement("span");
+  spinner.className = "refresh-spinner";
+  return spinner;
+}
+
+/* The client-side half of the "an update is happening" indicator. Ajax updates started
+   from inside a view panel — filtering, paging, sorting — get the same spinner in the
+   panel's left gutter that the server puts there while a view loads or refreshes
+   (LoadingResultPanel / RefreshingResultPanel), so every kind of update looks alike.
+   Shown only after a delay: these round trips normally take tens of milliseconds, and a
+   spinner flashing on every keystroke would be worse than none. */
+var UPDATE_SPINNER_DELAY_MS = 250;
+/* Backstop for a call that never reports completion, so a spinner cannot get stuck. */
+var UPDATE_SPINNER_MAX_MS = 30000;
+var updatingPanels = new Map();
+
+function isVisible(el) {
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+/* The view panel an Ajax call was triggered from, or null for calls that belong to no
+   single panel — the page-wide lazy-load and refresh-poll timers among them, which is
+   why they never light up every panel on the page. */
+function findUpdatingPanel(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return null;
+  var el = document.getElementById(id);
+  if (!el) return null;
+  var panel = el.closest('[class*="col-"]');
+  // A view panel is a column with a title row; anything else (a page-level column, a
+  // form) is left alone, since the gutter position is meaningless there.
+  return panel && panel.querySelector(".paneltitlerow") ? panel : null;
+}
+
+function showUpdateSpinner(panel) {
+  var state = updatingPanels.get(panel);
+  if (!state || state.spinner || !panel.isConnected) return;
+  // A spinner the server already put there (the view is loading or refreshing) says the
+  // same thing; a second one would only be noise, and removing it later is not ours to do.
+  var existing = panel.querySelector(".refresh-spinner");
+  if (existing && isVisible(existing)) return;
+  // Right after the title, where the view's own spinner goes; the title row's layout keeps
+  // it clear of the title icon and of the filter and menu on the right.
+  var titleRow = panel.querySelector(".paneltitlerow");
+  var title = titleRow ? titleRow.querySelector("h4") : null;
+  if (!titleRow) return;
+  var spinner = makeSpinner();
+  spinner.title = "Updating...";
+  panel.classList.add("view-refreshing");
+  titleRow.insertBefore(spinner, title ? title.nextSibling : titleRow.firstChild);
+  state.spinner = spinner;
+}
+
+function hideUpdateSpinner(panel) {
+  var state = updatingPanels.get(panel);
+  updatingPanels.delete(panel);
+  if (!state) return;
+  if (state.showTimer) clearTimeout(state.showTimer);
+  if (state.maxTimer) clearTimeout(state.maxTimer);
+  if (!state.spinner) return;
+  state.spinner.remove();
+  // Only ours to take back: the class may equally have come from the server-rendered
+  // loading state, which removes it itself.
+  if (!panel.querySelector(".refresh-spinner")) {
+    panel.classList.remove("view-refreshing");
+  }
+}
+
+function onUpdateStart(panel) {
+  var state = updatingPanels.get(panel);
+  if (state) {
+    state.count++;
+    return;
+  }
+  state = {count: 1, spinner: null, showTimer: null, maxTimer: null};
+  updatingPanels.set(panel, state);
+  state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
+  state.maxTimer = setTimeout(function () { hideUpdateSpinner(panel); }, UPDATE_SPINNER_MAX_MS);
+}
+
+function onUpdateEnd(panel) {
+  var state = updatingPanels.get(panel);
+  if (!state) return;
+  state.count--;
+  if (state.count <= 0) hideUpdateSpinner(panel);
+}
+
+function trackAjaxUpdates() {
+  if (typeof Wicket === "undefined" || !Wicket.Event) return;
+  Wicket.Event.subscribe("/ajax/call/before", function (jqEvent, attributes) {
+    var panel = findUpdatingPanel(attributes);
+    if (panel) onUpdateStart(panel);
+  });
+  Wicket.Event.subscribe("/ajax/call/complete", function (jqEvent, attributes) {
+    var panel = findUpdatingPanel(attributes);
+    if (panel) onUpdateEnd(panel);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
+  addSectionAnchors();
+  startAnchorTracking();
+  trackAjaxUpdates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
   if (typeof Wicket !== "undefined" && Wicket.Event) {
     Wicket.Event.subscribe("/ajax/call/complete", function() {
       wrapLeadingEmoji();
       wrapCellEmoji();
       renderFriendlyDates();
+      addSectionAnchors();
+      scrollToAnchor();
     });
   }
 });
@@ -102,10 +299,24 @@ function updateElements() {
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
+  addSectionAnchors();
   adjustValueWidths();
   setCollapseOverflow();
   collapseNanopubAssertions();
+  scrollToAnchor();
 };
+
+/* Kendo's date and time pickers only open their popup from the button beside the field, so
+   clicking the field itself does nothing visible. Clicking a date or time field looks like it
+   should offer the calendar or the clock, so here it does. Delegated from the document, so
+   pickers that arrive with a Wicket AJAX response are covered too. */
+$(document).on('click', 'input.k-input-inner', function () {
+  var field = $(this);
+  var picker = field.data('kendoDatePicker') || field.data('kendoTimePicker') || field.data('kendoDateTimePicker');
+  if (!picker || typeof picker.open !== 'function') return;
+  if (picker.popup && picker.popup.visible()) return;
+  picker.open();
+});
 
 $(document).on('mouseenter', '.tooltip, .expltooltip', function () {
   var tip = $(this).children('.tooltiptext, .expltooltiptext');
@@ -310,10 +521,6 @@ function showMore(el) {
     $longLiteral.removeClass('expanded').addClass('collapsed');
     $(el).css('transform', 'scale(1, 1)');
   }
-}
-
-function toggleMobileNav() {
-  $('#titlebar').toggleClass('nav-open');
 }
 
 // Show a transient, auto-dismissing message at the top of the viewport, styled

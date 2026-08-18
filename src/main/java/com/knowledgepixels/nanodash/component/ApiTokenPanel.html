@@ -1,0 +1,32 @@
+<wicket:panel>
+  <div class="account-box">
+    <h4 class="account-box-title">🔑 Remote AI access</h4>
+    <p>
+      Personal API tokens let your own AI agents (e.g. Claude Code) use this site through its
+      MCP endpoint: searching and reading nanopublications, and preparing publications for you
+      to review. Agents can never publish anything themselves.
+    </p>
+    <table class="api-token-list">
+      <tr wicket:id="tokens">
+        <td><span wicket:id="label">label</span></td>
+        <td><code><span wicket:id="hashhint">hash</span>…</code></td>
+        <td>created <span wicket:id="created">date</span></td>
+        <td>last used <span wicket:id="lastused">date</span></td>
+        <td><a wicket:id="revoke" href="#">revoke</a></td>
+      </tr>
+    </table>
+    <form wicket:id="createform">
+      <input wicket:id="labelfield" type="text" size="20" placeholder="label (e.g. 'my laptop')"/>
+      <input wicket:id="create" type="submit" class="button" value="create new token"/>
+    </form>
+    <div wicket:id="newtoken" class="api-token-reveal">
+      <p><strong>Your new token — copy it now, it will not be shown again:</strong></p>
+      <p><code wicket:id="token">token</code></p>
+      <p>MCP endpoint: <code wicket:id="endpoint">url</code></p>
+      <p>Connect your local Claude Code with:</p>
+      <p><code wicket:id="claudecommand">command</code></p>
+      <p>Or use it as <code>authorization_token</code> of an <code>mcp_servers</code> entry in
+        the Claude API.</p>
+    </div>
+  </div>
+</wicket:panel>

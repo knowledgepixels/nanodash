@@ -5,20 +5,22 @@
     <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 </wicket:remove>
   <wicket:head>
-    <title>Spaces | nanodash</title>
+    <title>nanodash | Claude chat</title>
   </wicket:head>
 </head>
 <body>
 <wicket:extend>
 
   <div class="row-section">
+    <div class="col-12">
 
-    <div class="col-12 header">
-      <h2>🌎 Spaces</h2>
+      <h2>Chat with Claude Code</h2>
+
+      <p wicket:id="disabledNote"></p>
+
+      <div wicket:id="chatpanel"></div>
+
     </div>
-
-    <div wicket:id="spaces"></div>
-
   </div>
 
 </wicket:extend>

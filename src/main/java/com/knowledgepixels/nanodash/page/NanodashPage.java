@@ -2,17 +2,24 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.chat.ClaudeChatService;
+import com.knowledgepixels.nanodash.chat.RemoteAgentService;
+import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
@@ -21,6 +28,8 @@ import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.time.Duration;
 import java.util.ResourceBundle;
 
 /**
@@ -55,6 +64,56 @@ public abstract class NanodashPage extends WebPage {
         super(parameters);
         markIfBrowserReload();
         ensureRefreshed();
+        add(new ClaudeChatPanel("claudechat", true) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(ClaudeChatService.get().isEnabled() && hasClaudeChatDock());
+            }
+
+        });
+        addRemoteNavigationPollIfNeeded();
+    }
+
+    /**
+     * Lets a remote AI agent acting for the logged-in user steer this browser
+     * tab via the open_page tool (see docs/remote-mcp.md). The poll is only
+     * attached when, at render time, the user's agent has been active within
+     * the last 30 minutes — so pages of uninvolved users never poll — and it
+     * stops itself once that window lapses. A page rendered before the agent's
+     * first call doesn't poll until the user next navigates or reloads.
+     */
+    private void addRemoteNavigationPollIfNeeded() {
+        if (!NanodashPreferences.get().isMcpRemoteEnabled()) return;
+        var userIriObj = NanodashSession.get().getUserIri();
+        if (userIriObj == null) return;
+        final String userIri = userIriObj.stringValue();
+        if (!RemoteAgentService.get().isRecentlyActive(userIri)) return;
+        add(new AbstractAjaxTimerBehavior(Duration.ofSeconds(3)) {
+
+            @Override
+            protected void onTimer(AjaxRequestTarget target) {
+                String path = RemoteAgentService.get().pollNavigation(userIri);
+                if (path != null) {
+                    // Path is validated by the open_page tool: in-app, no quotes or backslashes.
+                    target.appendJavaScript("window.location = '" + path + "';");
+                } else if (!RemoteAgentService.get().isRecentlyActive(userIri)) {
+                    stop(target);
+                }
+            }
+
+        });
+    }
+
+    /**
+     * Whether this page shows the docked Claude chat panel (when the feature
+     * is enabled). Pages that embed the chat themselves can switch it off.
+     *
+     * @return true to show the docked panel
+     */
+    protected boolean hasClaudeChatDock() {
+        return true;
     }
 
     /**
@@ -159,6 +218,54 @@ public abstract class NanodashPage extends WebPage {
         super.onRender();
     }
 
+    // How long a stylesheet URL is reused before the file is checked again. Keeps the
+    // stat off every single render without making an edit wait noticeably to show up.
+    private static final long STYLESHEET_STAMP_TTL_MS = 5000;
+
+    private static volatile String stylesheetUrl;
+    private static volatile long stylesheetUrlStampedAt;
+
+    /**
+     * The URL to load style.css from, stamped so that a changed file is a changed URL.
+     * <p>
+     * The app version alone does not do that: it stays the same across every edit of a
+     * snapshot build (and across redeploys of the same release), while the file is served
+     * straight from the webapp directory with only a {@code Last-Modified} header — no
+     * {@code ETag}, no {@code Cache-Control}. Browsers are then free to keep serving their
+     * copy without revalidating, which is why CSS changes used to need a hard refresh.
+     * Stamping the file's own modification time into the query string makes each edit a new
+     * URL that no cache can answer from an old copy.
+     *
+     * @return the stylesheet URL including its cache-busting query string
+     */
+    private static String getStyleSheetUrl() {
+        long now = System.currentTimeMillis();
+        String url = stylesheetUrl;
+        if (url == null || now - stylesheetUrlStampedAt > STYLESHEET_STAMP_TTL_MS) {
+            String version = ResourceBundle.getBundle("nanodash").getString("nanodash.version");
+            long lastModified = getStyleSheetLastModified();
+            url = "style.css?v=" + version + (lastModified > 0 ? "-" + lastModified : "");
+            stylesheetUrl = url;
+            stylesheetUrlStampedAt = now;
+        }
+        return url;
+    }
+
+    /**
+     * @return style.css's last-modified time, or 0 when it cannot be determined (a packed
+     * war, where the file cannot change without a redeploy anyway)
+     */
+    private static long getStyleSheetLastModified() {
+        try {
+            String path = WebApplication.get().getServletContext().getRealPath("/style.css");
+            if (path == null) return 0;
+            return new File(path).lastModified();
+        } catch (Exception ex) {
+            logger.warn("Could not determine the stylesheet's modification time: {}", ex.getMessage());
+            return 0;
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <p>
@@ -167,8 +274,7 @@ public abstract class NanodashPage extends WebPage {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        String version = ResourceBundle.getBundle("nanodash").getString("nanodash.version");
-        response.render(CssHeaderItem.forUrl("style.css?v=" + version));
+        response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();

@@ -1,6 +1,6 @@
 # /userlist views — draft queries to publish
 
-**Status:** ✅ Implemented — `UserListPage` renders the Human / Software / Non-Approved lists as published views.
+**Status:** ✅ Implemented — the Human / Software / Non-Approved lists are published views. (Historical note: they were built for `UserListPage`, which has since been retired; the views are now displayed on the home page via view displays.)
 
 Goal: turn the three remaining hard-coded lists on `UserListPage` (👤 Human Users,
 🤖 Software Agents, ❓ Non-Approved Users) into proper views, the same way

@@ -152,6 +152,59 @@ class UtilsTest {
         assertFalse(Utils.isHtmlLiteral(literal("42", XSD.INTEGER)), "other datatype");
         assertFalse(Utils.isHtmlLiteral(iri("https://example.org/thing")), "IRI");
         assertFalse(Utils.isHtmlLiteral(null), "null");
+    void sanitizeSvgKeepsStaticSvgSubset() {
+        String rawSvg = "<svg viewBox=\"0 0 504 900\" width=\"504\" height=\"900\" font-family=\"sans-serif\">"
+                + "<rect x=\"20\" y=\"8\" width=\"464\" height=\"34\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#93c5fd\"></rect>"
+                + "<g transform=\"translate(20,56)\">"
+                + "<line x1=\"0\" y1=\"28\" x2=\"222\" y2=\"28\" stroke=\"#cbd5e1\"></line>"
+                + "<path d=\"M 0 0 L 10 10\" stroke-width=\"2\"></path>"
+                + "<text x=\"10\" y=\"19\" font-size=\"11\" text-anchor=\"middle\">"
+                + "<a href=\"https://w3id.org/fair/fip/terms/Registry\"><tspan x=\"10\" dy=\"15\">Registry</tspan>"
+                + "<title>Registry (full label)</title></a>"
+                + "</text></g></svg>";
+        String sanitized = Utils.sanitizeSvg(rawSvg);
+        for (String kept : new String[] {"<svg", "viewBox=\"0 0 504 900\"", "<rect", "<g", "transform=", "<line",
+                "<path", "d=\"M 0 0 L 10 10\"", "<text", "text-anchor=", "<tspan", "dy=\"15\"",
+                "href=\"https://w3id.org/fair/fip/terms/Registry\"", "Registry",
+                "<title>Registry (full label)</title>"}) {
+            assertTrue(sanitized.contains(kept), "expected to keep: " + kept + " in: " + sanitized);
+        }
+    }
+
+    @Test
+    void sanitizeSvgExpandsSelfClosedElements() {
+        // The HTML-parsing sanitizer ignores XML self-closing on non-void elements;
+        // without normalization the <text> sibling would be swallowed into <rect>
+        // (and so not render, since SVG shapes don't render children).
+        String rawSvg = "<svg><rect width=\"5\" fill=\"#eee\"/><text>hi</text></svg>";
+        String sanitized = Utils.sanitizeSvg(rawSvg);
+        assertTrue(sanitized.contains("</rect><text>hi</text>"), "unexpected: " + sanitized);
+    }
+
+    @Test
+    void sanitizeSvgRemovesScriptingAndStyling() {
+        String rawSvg = "<svg width=\"10\" height=\"10\">"
+                + "<script>alert('XSS')</script>"
+                + "<rect width=\"10\" height=\"10\" onclick=\"alert('XSS')\" style=\"fill:red\"></rect>"
+                + "<foreignObject><body onload=\"alert('XSS')\">x</body></foreignObject>"
+                + "<use href=\"https://evil.example/x.svg#a\"></use>"
+                + "<image href=\"https://evil.example/x.svg\"></image>"
+                + "<style>rect { fill: red; }</style>"
+                + "</svg>";
+        String sanitized = Utils.sanitizeSvg(rawSvg);
+        for (String dropped : new String[] {"<script", "alert", "onclick", "onload", "style", "<foreignObject",
+                "<use", "<image", "evil.example"}) {
+            assertFalse(sanitized.contains(dropped), "expected to drop: " + dropped + " but got: " + sanitized);
+        }
+        assertTrue(sanitized.contains("<rect width=\"10\" height=\"10\""));
+    }
+
+    @Test
+    void sanitizeSvgRemovesUnsafeLinkProtocols() {
+        String rawSvg = "<svg><text><a href=\"javascript:alert('XSS')\"><tspan>click</tspan></a></text></svg>";
+        String sanitized = Utils.sanitizeSvg(rawSvg);
+        assertFalse(sanitized.contains("javascript"), "unexpected: " + sanitized);
+        assertTrue(sanitized.contains("click"));
     }
 
     @Test

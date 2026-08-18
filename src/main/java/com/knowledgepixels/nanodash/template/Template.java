@@ -886,16 +886,59 @@ public class Template implements Serializable {
         return tag;
     }
 
-    private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
-        IRI assertionUri = templateNp.getAssertionUri();
+    /**
+     * Checks whether the given nanopublication contains a full template definition,
+     * i.e. whether it can serve as the source of a fill-in form. Nanopublications
+     * that merely refer to a template - most notably the registration of a template
+     * kind as a maintained resource of a space, which types the kind IRI as a
+     * template but carries no template body - do not qualify.
+     *
+     * @param np the nanopublication to check
+     * @return true if the nanopublication defines a template, false otherwise
+     */
+    public static boolean hasFullTemplateDefinition(Nanopub np) {
+        if (np == null) return false;
+        Set<IRI> templateNodes = getTemplateNodes(np);
+        IRI node;
+        if (templateNodes.contains(np.getAssertionUri())) {
+            node = np.getAssertionUri();
+        } else if (templateNodes.size() == 1) {
+            node = templateNodes.iterator().next();
+            // A template node outside the nanopub's namespace is a reference to a
+            // template defined elsewhere, not a definition (see issue #597):
+            if (!node.stringValue().startsWith(np.getUri().stringValue())) return false;
+        } else if (templateNodes.size() > 1) {
+            return false;
+        } else {
+            // Experimental SHACL-based template: the base node shape carries the definition.
+            for (Statement st : np.getAssertion()) {
+                if (st.getPredicate().equals(SHACL.TARGET_CLASS)) return true;
+            }
+            return false;
+        }
+        // A definition has a body; a bare declaration of the template node does not:
+        for (Statement st : np.getAssertion()) {
+            if (st.getSubject().equals(node) && st.getPredicate().equals(NTEMPLATE.HAS_STATEMENT)) return true;
+        }
+        return false;
+    }
+
+    // The nodes of the assertion that are typed as templates, in the order encountered.
+    private static Set<IRI> getTemplateNodes(Nanopub np) {
         Set<IRI> templateNodes = new LinkedHashSet<>();
-        for (Statement st : templateNp.getAssertion()) {
+        for (Statement st : np.getAssertion()) {
             if (!st.getPredicate().equals(RDF.TYPE)) continue;
             if (!(st.getSubject() instanceof IRI subjIri)) continue;
             if (st.getObject().equals(NTEMPLATE.ASSERTION_TEMPLATE) || st.getObject().equals(NTEMPLATE.PROVENANCE_TEMPLATE) || st.getObject().equals(NTEMPLATE.PUBINFO_TEMPLATE)) {
                 templateNodes.add(subjIri);
             }
         }
+        return templateNodes;
+    }
+
+    private void processTemplate(Nanopub templateNp) throws MalformedTemplateException {
+        IRI assertionUri = templateNp.getAssertionUri();
+        Set<IRI> templateNodes = getTemplateNodes(templateNp);
 
         if (templateNodes.contains(assertionUri)) {
             // Legacy shape (template node = assertion graph URI) takes precedence

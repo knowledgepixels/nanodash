@@ -102,7 +102,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             foafNameMap = Utils.getFoafNameMap(context.getExistingNanopub());
         }
 
-        prefix = template.getPrefix(iri);
+        prefix = context.getPrefix(iri);
         if (prefix == null) prefix = "";
         if (template.isRestrictedChoicePlaceholder(iri)) {
             restrictedChoice = new RestrictedChoice(iri, context);

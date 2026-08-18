@@ -5,10 +5,15 @@ import com.knowledgepixels.nanodash.domain.User;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.Url;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -54,6 +59,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -119,8 +126,45 @@ public class Utils {
         return TrustyUriUtils.getArtifactCode(npId.toString()).substring(0, 10);
     }
 
-    // Concurrent, as retrieval also happens on background threads (see NanopubLookup):
-    private static Map<String, Nanopub> nanopubs = new ConcurrentHashMap<>();
+    // Nanopublications are immutable, so a cached one never goes out of date and the only
+    // reason to drop one is to keep the cache from growing without end — which it used to,
+    // being a plain map that never evicted. Bounded like the query caches in ApiCache, and
+    // concurrent, as retrieval also happens on background threads (see NanopubLookup).
+    private static final int MAX_CACHED_NANOPUBS = 10_000;
+
+    private static final Cache<String, Nanopub> nanopubs = CacheBuilder.newBuilder()
+            .maximumSize(MAX_CACHED_NANOPUBS)
+            .expireAfterAccess(24, TimeUnit.HOURS)
+            .build();
+
+    // Registry fetches go through our own client rather than the library's shared one
+    // (NanopubUtils.getHttpClient), which allows 10 seconds for each of connecting, reading
+    // and waiting for a pooled connection — up to 30 seconds for a single fetch, on a thread
+    // that may be rendering a page. These bounds are tighter, and in particular a saturated
+    // pool fails fast here instead of queueing threads up behind it.
+    private static final int REGISTRY_CONNECT_TIMEOUT_MS = 5_000;
+    private static final int REGISTRY_SOCKET_TIMEOUT_MS = 10_000;
+    private static final int REGISTRY_CONNECTION_REQUEST_TIMEOUT_MS = 2_000;
+
+    private static final CloseableHttpClient registryHttpClient = HttpClientBuilder.create()
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setConnectTimeout(REGISTRY_CONNECT_TIMEOUT_MS)
+                    .setSocketTimeout(REGISTRY_SOCKET_TIMEOUT_MS)
+                    .setConnectionRequestTimeout(REGISTRY_CONNECTION_REQUEST_TIMEOUT_MS)
+                    .build())
+            .setMaxConnTotal(64)
+            .setMaxConnPerRoute(16)
+            .build();
+
+    /**
+     * The HTTP client to use for registry requests: same behaviour as the library's shared
+     * one, but with tighter timeouts (see {@link #getNanopub(String)}).
+     *
+     * @return the shared registry HTTP client
+     */
+    public static CloseableHttpClient getRegistryHttpClient() {
+        return registryHttpClient;
+    }
 
     /**
      * Adds a nanopublication to the local cache so it can be retrieved immediately
@@ -141,16 +185,20 @@ public class Utils {
      */
     public static Nanopub getNanopub(String uriOrArtifactCode) {
         String artifactCode = GetNanopub.getArtifactCode(uriOrArtifactCode).toString();
-        if (!nanopubs.containsKey(artifactCode)) {
-            for (int i = 0; i < 3; i++) {  // Try 3 times to get nanopub
-                Nanopub np = GetNanopub.get(artifactCode);
-                if (np != null) {
-                    nanopubs.put(artifactCode, np);
-                    break;
-                }
+        Nanopub cached = nanopubs.getIfPresent(artifactCode);
+        if (cached != null) return cached;
+        // A request thread gets one attempt: the retries are there to ride out a flaky
+        // registry, and doing that while a user waits only multiplies the time they spend
+        // looking at nothing. Background threads keep the full three.
+        int attempts = RequestCycle.get() != null ? 1 : 3;
+        for (int i = 0; i < attempts; i++) {
+            Nanopub np = GetNanopub.get(artifactCode, registryHttpClient);
+            if (np != null) {
+                nanopubs.put(artifactCode, np);
+                return np;
             }
         }
-        return nanopubs.get(artifactCode);
+        return null;
     }
 
     /**
@@ -171,6 +219,9 @@ public class Utils {
     // outlives the request — see absolutePageUrl.
     private static final Pattern JSESSIONID_PATTERN = Pattern.compile(";jsessionid=[^?/;]*", Pattern.CASE_INSENSITIVE);
 
+    // Splits an absolute URL into its origin (scheme and authority) and everything after it.
+    private static final Pattern ORIGIN_PATTERN = Pattern.compile("^([a-zA-Z][a-zA-Z0-9+.\\-]*://[^/?#]*)(.*)$");
+
     /**
      * The absolute URL of a mounted page, for handing to something outside this request:
      * embedding in a downloaded file, giving to a third-party service to fetch, or showing
@@ -181,6 +232,11 @@ public class Utils {
      * once the session expired, and would hand out a live session identifier to anyone the
      * user shared it with.</p>
      *
+     * <p>The host comes from the configured website URL where there is one, not from the
+     * request. Behind a reverse proxy the request reveals only how the proxy reached this
+     * container — {@code http://127.0.1.1:37373/} — which is useless to a calendar client or
+     * to Google, both of which have to fetch the URL themselves from outside.</p>
+     *
      * @param pageClass the mounted page
      * @param params    the page parameters
      * @return the full URL, including scheme and host
@@ -188,7 +244,37 @@ public class Utils {
     public static String absolutePageUrl(Class<? extends org.apache.wicket.Page> pageClass, PageParameters params) {
         RequestCycle cycle = RequestCycle.get();
         String url = cycle.urlFor(pageClass, params).toString();
-        return stripSessionId(cycle.getUrlRenderer().renderFullUrl(Url.parse(url)));
+        String requestUrl = stripSessionId(cycle.getUrlRenderer().renderFullUrl(Url.parse(url)));
+        return rebaseOnWebsiteUrl(requestUrl, NanodashPreferences.get().getConfiguredWebsiteUrl());
+    }
+
+    /**
+     * Moves a request-derived absolute URL onto the address this instance is published at.
+     *
+     * <p>Only the origin is taken from the website URL; the path and query stay as Wicket
+     * rendered them, so the mount paths remain the single source of truth for where a page
+     * lives. A website URL that carries a path of its own (an instance published under
+     * {@code /nanodash/}, say) has it prefixed, unless the request path already includes it
+     * because the servlet container is mounted there too.</p>
+     *
+     * @param requestUrl the absolute URL derived from the current request
+     * @param websiteUrl the configured website URL, or null when this instance has none
+     * @return the URL rebased on the website URL, or {@code requestUrl} unchanged if there is
+     *         no usable website URL
+     */
+    static String rebaseOnWebsiteUrl(String requestUrl, String websiteUrl) {
+        if (websiteUrl == null || websiteUrl.isBlank()) return requestUrl;
+        Matcher website = ORIGIN_PATTERN.matcher(websiteUrl.trim());
+        Matcher request = ORIGIN_PATTERN.matcher(requestUrl);
+        if (!website.matches() || !request.matches()) {
+            logger.warn("Cannot rebase '{}' on website URL '{}'; leaving it as it is", requestUrl, websiteUrl);
+            return requestUrl;
+        }
+        String prefix = website.group(2).replaceFirst("[?#].*$", "").replaceFirst("/+$", "");
+        String rest = request.group(2);
+        boolean alreadyPrefixed = rest.equals(prefix) || rest.startsWith(prefix + "/")
+                || rest.startsWith(prefix + "?") || rest.startsWith(prefix + "#");
+        return website.group(1) + (alreadyPrefixed ? "" : prefix) + rest;
     }
 
     /**
@@ -532,6 +618,58 @@ public class Utils {
      */
     public static String sanitizeHtml(String rawHtml) {
         return htmlSanitizePolicy.sanitize(rawHtml);
+    }
+
+    // A conservative static-SVG subset for SVG views (QueryResultSvg): basic shapes,
+    // text, grouping, and links. Everything not allowed is dropped — in particular
+    // script/foreignObject/style and all event handlers, plus use/image, whose
+    // href would reach outside the sanitized document. Attribute-name matching is
+    // case-sensitive and the matched spelling is emitted verbatim, so the camelCase
+    // SVG attributes are listed in both spellings (browsers also map the lowercase
+    // form back via the SVG attribute-adjustment table, but the camelCase form
+    // works everywhere, including XML contexts).
+    private static final PolicyFactory svgSanitizePolicy = new HtmlPolicyBuilder()
+            .allowUrlProtocols("https", "http")
+            .allowElements("svg", "g", "defs", "marker", "title", "desc",
+                    "rect", "circle", "ellipse", "line", "polyline", "polygon", "path",
+                    "text", "tspan", "a")
+            .allowWithoutAttributes("svg", "g", "defs", "title", "desc", "text", "tspan", "a")
+            .allowAttributes("viewbox", "viewBox", "width", "height",
+                    "preserveaspectratio", "preserveAspectRatio", "xmlns",
+                    "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry",
+                    "d", "points", "dx", "dy", "transform",
+                    "fill", "fill-opacity", "fill-rule",
+                    "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
+                    "stroke-linejoin", "stroke-dasharray", "opacity",
+                    "font-family", "font-size", "font-weight", "font-style",
+                    "text-anchor", "dominant-baseline", "text-decoration",
+                    "marker-start", "marker-mid", "marker-end",
+                    "markerwidth", "markerWidth", "markerheight", "markerHeight",
+                    "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
+                    "id")
+            .globally()
+            .allowAttributes("href").onElements("a")
+            .toFactory();
+
+    // XML-style self-closed tags (<rect .../>): the HTML-parsing sanitizer ignores
+    // the slash on non-void elements and would re-parent all following siblings as
+    // children of the "unclosed" element — which in SVG makes them invisible (shape
+    // elements don't render children). Expanded to explicit end tags before
+    // sanitizing. Quoted attribute values (which may contain ">") are matched as
+    // units so the tag end is found correctly.
+    private static final Pattern SELF_CLOSED_TAG = Pattern.compile("<([a-zA-Z][a-zA-Z0-9-]*)((?:[^<>\"']|\"[^\"]*\"|'[^']*')*)/>");
+
+    /**
+     * Sanitizes SVG markup (as produced by an SVG view's query) down to a static
+     * subset that is safe to embed inline: shapes, text, grouping, and http(s)
+     * links, with no scripting, styling, or external-reference capability.
+     *
+     * @param rawSvg the raw SVG markup
+     * @return sanitized SVG markup
+     */
+    public static String sanitizeSvg(String rawSvg) {
+        String normalized = SELF_CLOSED_TAG.matcher(rawSvg).replaceAll("<$1$2></$1>");
+        return svgSanitizePolicy.sanitize(normalized);
     }
 
     /**

@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.LazyContentPanel;
 import com.knowledgepixels.nanodash.component.ResultComponent;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
@@ -37,6 +38,17 @@ public class HomePage extends NanodashPage {
     }
 
     /**
+     * The home page shows the configured home resource, so it is that resource's page
+     * and acts as its navigation context: links from here (including the post-publish
+     * message link) carry the home resource along, even though no {@code context}
+     * parameter is in the URL.
+     */
+    @Override
+    public String getContextId() {
+        return NanodashPreferences.get().getHomeResource();
+    }
+
+    /**
      * Constructor for the home page.
      *
      * @param parameters the page parameters
@@ -44,7 +56,7 @@ public class HomePage extends NanodashPage {
     public HomePage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         final NanodashSession session = NanodashSession.get();
         String v = WicketApplication.getThisVersion();
         String lv = WicketApplication.getLatestVersion();
@@ -120,18 +132,15 @@ public class HomePage extends NanodashPage {
             }
         };
 
-        add(new AjaxLazyLoadPanel<Component>("views") {
-
-            @Override
-            public Component getLazyLoadComponent(String markupId) {
-                MaintainedResource r = homeResourceModel.getObject();
-                if (r == null) {
-                    return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
-                }
-                ViewList viewList = new ViewList(markupId, r);
-                viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
-                return viewList;
+        add(new LazyContentPanel("views", markupId -> {
+            MaintainedResource r = homeResourceModel.getObject();
+            if (r == null) {
+                return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
             }
+            ViewList viewList = new ViewList(markupId, r);
+            viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
+            return viewList;
+        }) {
 
             @Override
             protected boolean isContentReady() {
@@ -145,7 +154,7 @@ public class HomePage extends NanodashPage {
 
             @Override
             public Component getLoadingComponent(String id) {
-                return new Label(id, "<div class=\"row-section\"><div class=\"col-12\">" + ResultComponent.getWaitIconHtml() + "</div></div>").setEscapeModelStrings(false);
+                return new Label(id, ResultComponent.getSectionWaitHtml()).setEscapeModelStrings(false);
             }
 
             @Override

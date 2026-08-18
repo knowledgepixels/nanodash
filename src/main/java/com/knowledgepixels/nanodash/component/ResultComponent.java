@@ -1,12 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 
 /**
  * A base class for components that display results from an API call with a loading indicator.
@@ -66,18 +62,52 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
         } else if (waitMessage != null) {
             return new Label(id, getWaitComponentHtml(waitMessage)).setEscapeModelStrings(false);
         } else {
-            return super.getLoadingComponent(id);
+            return getDefaultLoadingComponent(id);
         }
     }
 
     /**
-     * Returns the HTML for a loading icon.
+     * The loading state shown when neither a wait message nor custom markup was set: the
+     * bare spinner. Subclasses override this to show something more specific — see
+     * {@link ApiResultComponent}, which puts the view's title beside it.
+     *
+     * @param id the component id
+     * @return the component to show while waiting
+     */
+    protected Component getDefaultLoadingComponent(String id) {
+        return new Label(id, getStandaloneWaitIconHtml()).setEscapeModelStrings(false);
+    }
+
+    /**
+     * Returns the HTML for the loading icon at the size it takes when it sits next to
+     * something — a wait message, a panel title — where the neighbouring text carries the
+     * eye and the spinner only has to confirm that something is happening.
      *
      * @return a string containing the HTML for the loading icon
      */
     public static String getWaitIconHtml() {
-        IRequestHandler handler = new ResourceReferenceRequestHandler(AbstractDefaultAjaxBehavior.INDICATOR);
-        return "<img alt=\"Loading...\" src=\"" + RequestCycle.get().urlFor(handler) + "\"/>";
+        return "<span class=\"refresh-spinner\" title=\"Updating...\"></span>";
+    }
+
+    /**
+     * Returns the HTML for the loading icon when it stands alone — a whole page section or
+     * panel body with nothing in it yet. Same spinner, drawn larger, because here it is the
+     * only thing on that stretch of the page and a small one is easy to miss.
+     *
+     * @return a string containing the HTML for the loading icon
+     */
+    public static String getStandaloneWaitIconHtml() {
+        return "<span class=\"refresh-spinner standalone\" title=\"Loading...\"></span>";
+    }
+
+    /**
+     * Returns the HTML for a whole page section that is still loading, as the pages' own
+     * lazy-loading panels show it.
+     *
+     * @return a string containing the HTML for the loading section
+     */
+    public static String getSectionWaitHtml() {
+        return "<div class=\"row-section\"><div class=\"col-12\">" + getStandaloneWaitIconHtml() + "</div></div>";
     }
 
     /**
@@ -88,7 +118,7 @@ public abstract class ResultComponent extends AjaxLazyLoadPanel<Component> {
      */
     public static String getWaitComponentHtml(String waitMessage) {
         if (waitMessage == null || waitMessage.isBlank()) {
-            return "<p class=\"waiting nomessage\">" + getWaitIconHtml() + "</p>";
+            return "<p class=\"waiting nomessage\">" + getStandaloneWaitIconHtml() + "</p>";
         }
         return "<p class=\"waiting\">" + waitMessage + " " + getWaitIconHtml() + "</p>";
     }

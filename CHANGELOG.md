@@ -1,3 +1,53 @@
+## [5.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.9.0...nanodash-5.10.0) (2026-08-14)
+
+### Features
+
+* chat context, latest-version tools, WebFetch, stop button ([622d3b2](https://github.com/knowledgepixels/nanodash/commit/622d3b218c8bb65337b098082e02ed19561f3f2d))
+* chat with local Claude Code via MCP endpoint ([8ed1c60](https://github.com/knowledgepixels/nanodash/commit/8ed1c60626212990fac36d2674d7d6627986606f))
+* docked Claude chat panel on all pages ([df950e1](https://github.com/knowledgepixels/nanodash/commit/df950e1a3d65163bad3030c10527557305e4849d))
+* forward to declared space/resource page after publishing ([7405eca](https://github.com/knowledgepixels/nanodash/commit/7405eca202f6d3f19ac38860c20f016daa70ebfd)), closes [#594](https://github.com/knowledgepixels/nanodash/issues/594)
+* markdown chat rendering, open_page + prepare_publication tools ([e2ea211](https://github.com/knowledgepixels/nanodash/commit/e2ea211db94729f94048428cb962a663137ef056))
+* remote MCP access with per-user tokens, repeatable-row prefill ([e21decf](https://github.com/knowledgepixels/nanodash/commit/e21decfbafd97a58314404c95246ac12807e7b16))
+* replace nav tabs with home-page view sections ([210a3a5](https://github.com/knowledgepixels/nanodash/commit/210a3a5b7832582f8444ad593765838e257fff4a))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([42c63b2](https://github.com/knowledgepixels/nanodash/commit/42c63b2fef1aa391e73fb183442bc0dcc3fa5ca0))
+
+## [5.9.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.8.0...nanodash-5.9.0) (2026-08-12)
+
+### Features
+
+* add space-/namespace-dependent prefixes support in templates ([fdaee4e](https://github.com/knowledgepixels/nanodash/commit/fdaee4e8da835db9dcf53aa66124da254f439097))
+* **download:** rename Raw tab to Download and add HTML/RTF/PDF page export ([#578](https://github.com/knowledgepixels/nanodash/issues/578)) ([63bf539](https://github.com/knowledgepixels/nanodash/commit/63bf539229820ab5890b91b91356513d82689a6f))
+* **views:** generate fragment identifiers for display view sections ([65399b8](https://github.com/knowledgepixels/nanodash/commit/65399b882c25976fd7f946ccfe73b9cf31e00233))
+
+### Bug Fixes
+
+* add component model sync for restricted placeholder when context is not defined ([fb28571](https://github.com/knowledgepixels/nanodash/commit/fb28571ad6cbc1f0cdbace70d38a937c83d2b2ee))
+* **calendar:** base subscribe URLs on the configured website URL ([b16d340](https://github.com/knowledgepixels/nanodash/commit/b16d340bec532b07361579e97d4a730ed72056b8))
+* carry the home resource as navigation context on the home page ([53c5aca](https://github.com/knowledgepixels/nanodash/commit/53c5acaea05ff3682c20758f2eb8427ee555dec6))
+* improve dynamic prefix handling for local resources in templates ([dcf2a2a](https://github.com/knowledgepixels/nanodash/commit/dcf2a2a37640eb23a3fe8bbb40870d33400b8b48))
+* keep introduced-resource IRI on supersede/override for marker templates ([0394e6e](https://github.com/knowledgepixels/nanodash/commit/0394e6e7e7c625db04e59e93f3aeaad55b1c8f1c)), closes [TemplateContext#processValue](https://github.com/knowledgepixels/TemplateContext/issues/processValue) [Template#tagIfUntypedLocal](https://github.com/knowledgepixels/Template/issues/tagIfUntypedLocal) [ValueFiller#transform](https://github.com/knowledgepixels/ValueFiller/issues/transform) [#549](https://github.com/knowledgepixels/nanodash/issues/549)
+* **links:** carry the navigation context on version and explore links ([3a3fa90](https://github.com/knowledgepixels/nanodash/commit/3a3fa904ab19a65cbee24d88be6ba8aacd01a7b6))
+* only show the prefixLabel when the context is set ([8c03bd1](https://github.com/knowledgepixels/nanodash/commit/8c03bd169175107ef666169c657e4b1c81d24d0a))
+* prioritize context parameter over param_<postFix> ([614d1ef](https://github.com/knowledgepixels/nanodash/commit/614d1ef338fe9deaefb6e5229915374649834ed9))
+* **status-line:** recognize newer versions governed by a space ([c0fad10](https://github.com/knowledgepixels/nanodash/commit/c0fad10b54940f19386767dd03d246c69eb3af2b)), closes [#584](https://github.com/knowledgepixels/nanodash/issues/584)
+* **views:** anchor the view sections of the About and Explore tabs ([1f97dea](https://github.com/knowledgepixels/nanodash/commit/1f97deaeb9be14084d861c3438916790ee953c4c))
+* **views:** anchor view sections on pages that build their own panels ([470c56b](https://github.com/knowledgepixels/nanodash/commit/470c56b4b3c547698a9b5c5965f4ae166c1d4ed5))
+* **views:** derive section anchors from the heading actually shown ([8a78b29](https://github.com/knowledgepixels/nanodash/commit/8a78b297581961970535499c04fdbe7871134278))
+* **views:** keep letterlike emoji out of section anchors ([9c9cf3f](https://github.com/knowledgepixels/nanodash/commit/9c9cf3faa88d258d98b7014228ae39d52cee03bf))
+* **views:** let clicks reach the section anchor of nanopub-set views ([01b43dc](https://github.com/knowledgepixels/nanodash/commit/01b43dcb99f9d20c32e926b5369e45e97ae24b56))
+
+### Build and continuous integration
+
+* **deps:** lock file maintenance ([bd74f45](https://github.com/knowledgepixels/nanodash/commit/bd74f45d37cc7223f0494e0b54f6682df0c1c318))
+* **release:** update Node.js to v24.11.1 ([bddc31a](https://github.com/knowledgepixels/nanodash/commit/bddc31a24ad07f33821aab578d4b8109cc3bd0ee))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([922f88b](https://github.com/knowledgepixels/nanodash/commit/922f88bc2fcddf329608e3ac704a9b88d6013407))
+
 ## [5.8.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.7.0...nanodash-5.8.0) (2026-07-30)
 
 ### Features

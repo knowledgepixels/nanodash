@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
+import com.knowledgepixels.nanodash.component.RefreshingResultPanel;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -17,6 +18,12 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.QueryPage;
 import com.knowledgepixels.nanodash.page.ViewResultsPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -30,6 +37,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A dropdown menu panel for view displays, replacing the "^" source link.
@@ -190,12 +198,42 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         addToOwnLink.setVisible(showAddToOwn);
         addEntry("addToOwn", addToOwnLink);
 
-        Link<Void> refreshLink = new Link<>("refreshNow") {
+        // Refreshes this one view where it stands. Re-rendering the whole page would work too,
+        // but it takes the reader back to the top of it, away from the view they were looking
+        // at — and re-runs everything else on the page for a refresh they asked of one view.
+        AjaxFallbackLink<Void> refreshLink = new AjaxFallbackLink<>("refreshNow") {
             @Override
-            public void onClick() {
+            public void onClick(Optional<AjaxRequestTarget> target) {
                 ApiCache.clearCache(queryRef, 0);
-                setResponsePage(getPage().getClass(), getPage().getPageParameters());
+                QueryResult view = findParent(QueryResult.class);
+                // A view is not always what stands in the page: while it waits for its first
+                // results it is inside Wicket's lazy-loading panel, and while it is being
+                // brought up to date inside a RefreshingResultPanel. Either way the wrapper
+                // is the piece that has to be replaced — replacing what is inside it would
+                // leave the wrapper around it and address an element the browser does not
+                // have, so nothing would change on screen and the markup left behind would
+                // keep linking to components that are no longer there.
+                Component replaceable = view;
+                while (replaceable != null && "content".equals(replaceable.getId())
+                        && (replaceable.getParent() instanceof RefreshingResultPanel
+                            || replaceable.getParent() instanceof AjaxLazyLoadPanel)) {
+                    replaceable = replaceable.getParent();
+                }
+                Component rebuilt = (view == null ? null : view.rebuild(replaceable.getId()));
+                if (target.isEmpty() || rebuilt == null || !replaceable.getOutputMarkupId()) {
+                    // No Ajax, nothing to rebuild, or nothing in the page to replace: fall
+                    // back to re-rendering the page.
+                    setResponsePage(getPage().getClass(), getPage().getPageParameters());
+                    return;
+                }
+                // The replacement has to answer to the id the browser already has, or the
+                // Ajax response would update an element that is not there and leave the old
+                // markup — and its links, by then removed from the page — on screen.
+                rebuilt.setMarkupId(replaceable.getMarkupId());
+                replaceable.replaceWith(rebuilt);
+                target.get().add(rebuilt);
             }
+
         };
         refreshLink.setVisible(session.getUserIri() != null && queryRef != null);
         addEntry("refreshNow", refreshLink);

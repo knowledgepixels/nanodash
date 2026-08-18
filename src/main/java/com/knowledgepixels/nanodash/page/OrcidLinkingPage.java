@@ -32,7 +32,7 @@ public class OrcidLinkingPage extends NanodashPage {
     public OrcidLinkingPage(final PageParameters parameters) {
         super(parameters);
 
-        add(new TitleBar("titlebar", this, null));
+        add(new TitleBar("titlebar", this));
         if (!NanodashSession.get().isProfileComplete()) {
             throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         }

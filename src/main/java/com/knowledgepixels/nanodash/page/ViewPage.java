@@ -47,7 +47,7 @@ public class ViewPage extends NanodashPage {
      */
     public ViewPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this, "preview"));
+        add(new TitleBar("titlebar", this));
         addNanopubItem(this, parameters);
     }
 

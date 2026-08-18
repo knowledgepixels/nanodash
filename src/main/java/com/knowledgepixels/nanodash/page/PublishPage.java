@@ -4,12 +4,12 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.component.DifferentKeyErrorItem;
 import com.knowledgepixels.nanodash.component.OutdatedSourceErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
-import com.knowledgepixels.nanodash.component.TemplateList;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -22,8 +22,6 @@ public class PublishPage extends NanodashPage {
      * The mount path for the PublishPage.
      */
     public static final String MOUNT_PATH = "/publish";
-
-    private boolean autoRefresh = false;
 
     /**
      * {@inheritDoc}
@@ -41,27 +39,24 @@ public class PublishPage extends NanodashPage {
     public PublishPage(final PageParameters parameters) {
         super(parameters);
 
+        if (parameters.get("template").toString() == null) {
+            // The template list formerly shown here lives on the home page now.
+            throw new RedirectToUrlException(HomePage.MOUNT_PATH);
+        }
         final NanodashSession session = NanodashSession.get();
-        add(new TitleBar("titlebar", this, "publish"));
-        if (parameters.get("template").toString() != null) {
-            session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
-            if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
-                add(new DifferentKeyErrorItem("form", parameters));
-            } else if (TemplateData.get().getTemplate(parameters.get("template").toString()) == null) {
-                add(new Label("form", "<p class=\"negative\">Error: This template could not be loaded. It might be invalid or temporarily unavailable.</p>").setEscapeModelStrings(false));
-            } else if (PublishForm.isSourceOutdated(parameters)) {
-                // Don't even show the form: superseding/overriding is only possible on the latest version.
-                add(new OutdatedSourceErrorItem("form", parameters, getClass()));
-            } else {
-                // No confirm page: after publishing, the form forwards to the context
-                // resource (or home), showing the new nanopub in the title bar message.
-                add(new PublishForm("form", parameters, getClass(), null));
-            }
-            add(new Label("templatelist").setVisible(false));
+        add(new TitleBar("titlebar", this));
+        session.redirectToLoginIfNeeded(MOUNT_PATH, parameters);
+        if (!parameters.get("sigkey").isNull() && !parameters.get("sigkey").toString().equals(session.getPubkeyString())) {
+            add(new DifferentKeyErrorItem("form", parameters));
+        } else if (TemplateData.get().getTemplate(parameters.get("template").toString()) == null) {
+            add(new Label("form", "<p class=\"negative\">Error: This template could not be loaded. It might be invalid or temporarily unavailable.</p>").setEscapeModelStrings(false));
+        } else if (PublishForm.isSourceOutdated(parameters)) {
+            // Don't even show the form: superseding/overriding is only possible on the latest version.
+            add(new OutdatedSourceErrorItem("form", parameters, getClass()));
         } else {
-            autoRefresh = true;
-            add(new Label("form").setVisible(false));
-            add(new TemplateList("templatelist"));
+            // No confirm page: after publishing, the form forwards to the context
+            // resource (or home), showing the new nanopub in the title bar message.
+            add(new PublishForm("form", parameters, getClass(), null));
         }
     }
 
@@ -77,14 +72,6 @@ public class PublishPage extends NanodashPage {
                 //"$(document).ready(function() { $('.select2-static').select2(); });",  // for static select2 textfields
                 "",
                 "custom-functions"));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasAutoRefreshEnabled() {
-        return autoRefresh;
     }
 
 }

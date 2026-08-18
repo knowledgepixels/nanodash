@@ -130,6 +130,9 @@ public class PublishForm extends Panel {
     private final Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
     private final List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
     private String targetNamespace;
+    // The space / maintained resource / user this form was reached under, which
+    // space-/namespace-dependent template prefixes resolve against (see DynamicPrefix):
+    private final String navigationContextId;
     private final Class<? extends WebPage> confirmPageClass;
 
     /**
@@ -147,6 +150,7 @@ public class PublishForm extends Panel {
         super(id);
         setOutputMarkupId(true);
         this.confirmPageClass = confirmPageClass;
+        this.navigationContextId = NavigationContext.getContextId(pageParams);
 
         WebMarkupContainer linkMessageItem = new WebMarkupContainer("link-message-item");
         if (pageParams.get("link-message").isNull()) {
@@ -219,7 +223,7 @@ public class PublishForm extends Panel {
         String targetNamespaceLabel = targetNamespace + "...";
         targetNamespace = targetNamespace + "~~~ARTIFACTCODE~~~/";
 
-        assertionContext = new TemplateContext(ContextType.ASSERTION, templateId, "statement", targetNamespace);
+        assertionContext = newContext(ContextType.ASSERTION, templateId, "statement");
         assertionContext.setFillMode(fillMode);
         final String prTemplateId;
         if (pageParams.get("prtemplate").toString() != null) {
@@ -237,10 +241,10 @@ public class PublishForm extends Panel {
                 prTemplateId = DEFAULT_PROV_TEMPLATE;
             }
         }
-        provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateId, "pr-statement", targetNamespace);
+        provenanceContext = newContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
         for (String t : fixedPubInfoTemplates) {
             // TODO consistently check for latest versions of templates here and below:
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, t, "pi-statement", targetNamespace);
+            TemplateContext c = newContext(ContextType.PUBINFO, t, "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplate().getId(), c);
             requiredPubInfoContexts.add(c);
@@ -252,13 +256,13 @@ public class PublishForm extends Panel {
             }
         }
         if (fillMode == FillMode.SUPERSEDE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, supersedesPubInfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext c = newContext(ContextType.PUBINFO, supersedesPubInfoTemplateId, "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(supersedesPubInfoTemplateId, c);
             //requiredPubInfoContexts.add(c);
             c.setParam("np", fillNp.getUri().stringValue());
         } else if (fillMode == FillMode.DERIVE || fillMode == FillMode.OVERRIDE) {
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, derivesFromPubInfoTemplateId, "pi-statement", targetNamespace);
+            TemplateContext c = newContext(ContextType.PUBINFO, derivesFromPubInfoTemplateId, "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
@@ -268,7 +272,7 @@ public class PublishForm extends Panel {
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
                 continue;
             }
-            TemplateContext c = new TemplateContext(ContextType.PUBINFO, r.stringValue(), "pi-statement", targetNamespace);
+            TemplateContext c = newContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplateId(), c);
             requiredPubInfoContexts.add(c);
@@ -735,7 +739,7 @@ public class PublishForm extends Panel {
                     o = provenanceContext.getTemplate().getId();
                     prTemplateModel.setObject(o);
                 }
-                provenanceContext = new TemplateContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement", targetNamespace);
+                provenanceContext = newContext(ContextType.PROVENANCE, prTemplateModel.getObject(), "pr-statement");
                 provenanceContext.initStatements();
                 refreshProvenance(target);
                 provenanceContext.finalizeStatements();
@@ -865,7 +869,7 @@ public class PublishForm extends Panel {
                     return;
                 }
                 String id = newPiTemplateModel.getObject();
-                TemplateContext c = new TemplateContext(ContextType.PUBINFO, id, "pi-statement", targetNamespace);
+                TemplateContext c = newContext(ContextType.PUBINFO, id, "pi-statement");
                 c.initStatements();
                 pubInfoContexts.add(c);
                 newPiTemplateModel.setObject(null);
@@ -1002,12 +1006,22 @@ public class PublishForm extends Panel {
         }
     }
 
+    /**
+     * Creates a template context for this form, carrying the form's target namespace and
+     * navigation context (the latter resolves space-/namespace-dependent prefixes).
+     */
+    private TemplateContext newContext(ContextType contextType, String templateId, String componentId) {
+        TemplateContext context = new TemplateContext(contextType, templateId, componentId, targetNamespace);
+        context.setNavigationContextId(navigationContextId);
+        return context;
+    }
+
     private TemplateContext createPubInfoContext(String piTemplateId) {
         TemplateContext c;
         if (pubInfoContextMap.containsKey(piTemplateId)) {
             c = pubInfoContextMap.get(piTemplateId);
         } else {
-            c = new TemplateContext(ContextType.PUBINFO, piTemplateId, "pi-statement", targetNamespace);
+            c = newContext(ContextType.PUBINFO, piTemplateId, "pi-statement");
             pubInfoContextMap.put(piTemplateId, c);
             pubInfoContexts.add(c);
         }
@@ -1114,7 +1128,7 @@ public class PublishForm extends Panel {
                 try {
                     // TODO Fix this. It doesn't work for placeholders with auto-encode placeholders, etc.
                     //      Not sure we need labels for these, but this code should be improved anyway.
-                    String prefix = assertionContext.getTemplate().getPrefix(placeholderIri);
+                    String prefix = assertionContext.getPrefix(placeholderIri);
                     if (prefix != null) {
                         placeholderValue = prefix + placeholderValue;
                     }
