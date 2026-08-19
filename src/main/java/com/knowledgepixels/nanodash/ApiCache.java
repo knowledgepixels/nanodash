@@ -11,6 +11,7 @@ import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -201,6 +202,23 @@ public class ApiCache {
             logger.debug("Not waiting out the ingest delay for {} on a request thread", cacheId);
             // Hand the refresh to the background, where waiting out the delay costs nobody
             // anything, and answer with what we have meanwhile.
+            retrieveResponseAsync(queryRef);
+            return cachedResponses.getIfPresent(cacheId);
+        }
+        // A merely outdated entry is served right away on any thread, with the re-fetch
+        // handed to the background, instead of running the query inline: a synchronous
+        // caller that is fine with data from the last refresh cycle must not block on the
+        // network for it, whether it serves a user directly (a request thread) or builds
+        // the state pages are gated on (the repository and resource-data threads). This is
+        // also what lets a restart come back up warm from the persisted snapshot (issue
+        // #570) — every restored entry is older than the refresh threshold, and re-fetching
+        // them synchronously would stall the first page render on the very queries the
+        // snapshot was meant to cover. Callers that genuinely need current data say so, and
+        // keep their blocking fetch: a forced call, or an entry marked by clearCache (e.g.
+        // just after publishing).
+        if (needsRefresh && !forced && !forcedRefresh.contains(cacheId)
+                && cachedResponses.getIfPresent(cacheId) != null) {
+            logger.debug("Serving outdated response for {}, refreshing in the background", cacheId);
             retrieveResponseAsync(queryRef);
             return cachedResponses.getIfPresent(cacheId);
         }
@@ -508,6 +526,98 @@ public class ApiCache {
      */
     public static ApiResponse retrieveStaleResponse(QueryRef queryRef) {
         return cachedResponses.getIfPresent(queryRef.getAsUrlString());
+    }
+
+    /**
+     * The cache content worth carrying across restarts: the query responses and maps together
+     * with when each was last refreshed. The transient bookkeeping (running refreshes, failure
+     * counts, ingest delays, forced-refresh markings) is process-local by nature and stays out.
+     * The cached RDF models are also left out for now: they would need a text serialization of
+     * their own, and their queries re-fetch quickly enough.
+     */
+    static class Snapshot implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Map<String, ApiResponse> responses;
+        private final Map<String, Map<String, String>> maps;
+        private final Map<String, Long> refreshTimes;
+
+        private Snapshot(Map<String, ApiResponse> responses, Map<String, Map<String, String>> maps, Map<String, Long> refreshTimes) {
+            this.responses = responses;
+            this.maps = maps;
+            this.refreshTimes = refreshTimes;
+        }
+
+        boolean isEmpty() {
+            return responses.isEmpty() && maps.isEmpty();
+        }
+
+        int size() {
+            return responses.size() + maps.size();
+        }
+
+    }
+
+    /**
+     * Captures the persistable cache content (see {@link Snapshot}). Entries whose refresh
+     * timestamp is missing — typically because their first fetch is still in flight — are
+     * left out, since without a timestamp the importer could not tell how stale they are.
+     *
+     * @return a snapshot of the current cache content
+     */
+    static Snapshot exportSnapshot() {
+        Map<String, ApiResponse> responses = new HashMap<>(cachedResponses.asMap());
+        Map<String, Map<String, String>> maps = new HashMap<>(cachedMaps.asMap());
+        Map<String, Long> refreshTimes = new HashMap<>();
+        for (String cacheId : responses.keySet()) {
+            Long t = lastRefresh.get(cacheId);
+            if (t != null) refreshTimes.put(cacheId, t);
+        }
+        for (String cacheId : maps.keySet()) {
+            Long t = lastRefresh.get(cacheId);
+            if (t != null) refreshTimes.put(cacheId, t);
+        }
+        responses.keySet().retainAll(refreshTimes.keySet());
+        maps.keySet().retainAll(refreshTimes.keySet());
+        return new Snapshot(responses, maps, refreshTimes);
+    }
+
+    /**
+     * Restores a snapshot into the cache, meant to run once at startup before the instance
+     * serves requests. Each entry keeps its original refresh timestamp, so the normal age
+     * logic takes over from there: anything older than {@link #REFRESH_AGE_THRESHOLD_MS} is
+     * re-fetched in the background on first access while the restored content is shown
+     * meanwhile — the same stale-but-displayable behavior as within a single run.
+     *
+     * <p>Entries already present in the cache are left alone, as are entries older than the
+     * given maximum age or carrying a timestamp from the future (a clock jump must not
+     * produce entries that would count as fresh indefinitely).</p>
+     *
+     * @param snapshot the snapshot to restore
+     * @param maxAgeMs entries whose last refresh lies further back than this are dropped
+     * @return the number of restored entries
+     */
+    static int importSnapshot(Snapshot snapshot, long maxAgeMs) {
+        long timeNow = System.currentTimeMillis();
+        int count = 0;
+        for (Map.Entry<String, ApiResponse> e : snapshot.responses.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (e.getValue() == null || cachedResponses.getIfPresent(e.getKey()) != null) continue;
+            cachedResponses.put(e.getKey(), e.getValue());
+            lastRefresh.putIfAbsent(e.getKey(), t);
+            count++;
+        }
+        for (Map.Entry<String, Map<String, String>> e : snapshot.maps.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (e.getValue() == null || cachedMaps.getIfPresent(e.getKey()) != null) continue;
+            cachedMaps.put(e.getKey(), e.getValue());
+            lastRefresh.putIfAbsent(e.getKey(), t);
+            count++;
+        }
+        return count;
     }
 
     /**

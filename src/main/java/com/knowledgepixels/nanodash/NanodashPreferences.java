@@ -56,7 +56,20 @@ public class NanodashPreferences implements Serializable {
     private String claudeChatBinary = "claude";
     private String claudeChatModel;
     private boolean mcpRemoteEnabled = false;
+    private String apiCacheFile;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
+
+    /**
+     * Default location of the API cache snapshot file, inside {@code ~/.nanopub} — the
+     * directory the standard Docker setup mounts as a volume, so the snapshot survives
+     * container restarts and upgrades without configuration.
+     */
+    public static final String DEFAULT_API_CACHE_PATH = "/.nanopub/nanodash-api-cache.ser";
+
+    /**
+     * Value for {@link #getApiCacheFile()} that disables API cache persistence.
+     */
+    public static final String API_CACHE_DISABLED = "none";
 
     /** Where an instance is assumed to be reachable when nothing says otherwise: a local run. */
     public static final String DEFAULT_WEBSITE_URL = "http://localhost:37373/";
@@ -366,6 +379,32 @@ public class NanodashPreferences implements Serializable {
      */
     public void setMcpRemoteEnabled(boolean mcpRemoteEnabled) {
         this.mcpRemoteEnabled = mcpRemoteEnabled;
+    }
+
+    /**
+     * Get the file where the API cache is persisted across restarts, from the
+     * {@code NANODASH_API_CACHE_FILE} environment variable or the preferences file, falling
+     * back to {@link #DEFAULT_API_CACHE_PATH} in the user's home directory.
+     *
+     * @return the snapshot file path, or null when persistence is disabled with the value
+     *         {@value #API_CACHE_DISABLED}
+     */
+    public String getApiCacheFile() {
+        String s = System.getenv("NANODASH_API_CACHE_FILE");
+        if (s == null || s.isBlank()) s = apiCacheFile;
+        if (s == null || s.isBlank()) s = System.getProperty("user.home") + DEFAULT_API_CACHE_PATH;
+        if (API_CACHE_DISABLED.equalsIgnoreCase(s.trim())) return null;
+        return s;
+    }
+
+    /**
+     * Set the file where the API cache is persisted across restarts.
+     *
+     * @param apiCacheFile the snapshot file path, or {@value #API_CACHE_DISABLED} to disable
+     *                     persistence
+     */
+    public void setApiCacheFile(String apiCacheFile) {
+        this.apiCacheFile = apiCacheFile;
     }
 
     public String getHomeResource() {

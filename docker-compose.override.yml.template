@@ -13,6 +13,10 @@ services:
       # The maintained resource whose view displays are shown on the home page.
       # Default: https://w3id.org/spaces/knowledgepixels/nanodash/r/home
       #- NANODASH_HOME_RESOURCE=https://w3id.org/spaces/your/resource/r/home
+      # Where the query and nanopub caches are snapshotted so restarts/upgrades come
+      # back up warm. Default: ~/.nanopub/nanodash-api-cache.ser (inside the mounted
+      # volume); set to 'none' to disable persistence.
+      #- NANODASH_API_CACHE_FILE=none
 
   backup-keys:
     build: ./backup-keys

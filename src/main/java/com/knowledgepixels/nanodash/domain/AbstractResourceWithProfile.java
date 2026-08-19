@@ -144,14 +144,8 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     // (latest first) so the per-view-kind latest-wins / deactivation
                     // aggregation in getViewDisplays() resolves overrides between presets and
                     // standalone displays correctly, in either direction.
-                    // For a space, scope the displays to its representative ref (root nanopub) so a
-                    // multi-ref identifier doesn't merge displays across rival definitions; other
-                    // resource kinds (and spaces with no known ref root) stay IRI-keyed.
-                    String vdRefRoot = getViewDisplayRefRoot();
-                    QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
-                            ? viewDisplaysRefQueryRef(vdRefRoot)
-                            : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
-                    newData.viewDisplays.addAll(buildViewDisplays(vdQuery));
+                    seedFromCacheIfPossible();
+                    newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef()));
                     data = newData;
                     dataInitialized = true;
                 } catch (Exception ex) {
@@ -162,6 +156,44 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
             });
         }
         return null;
+    }
+
+    /**
+     * The query for this resource's view displays. For a space, scoped to its
+     * representative ref (root nanopub) so a multi-ref identifier doesn't merge displays
+     * across rival definitions; other resource kinds (and spaces with no known ref root)
+     * stay IRI-keyed.
+     */
+    private QueryRef viewDisplaysQueryRef() {
+        String vdRefRoot = getViewDisplayRefRoot();
+        return (vdRefRoot != null && !vdRefRoot.isEmpty())
+                ? viewDisplaysRefQueryRef(vdRefRoot)
+                : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
+    }
+
+    /**
+     * Initializes the resource data from whatever view-displays response the cache still
+     * holds — typically the persisted snapshot right after a restart (issue #570) — so
+     * pages gated on {@link #isDataInitialized()} render their content on the first
+     * request instead of a loading spinner. Purely cache-fed, so it is quick exactly when
+     * it can succeed and does nothing on a genuinely cold cache, where the asynchronous
+     * update (whose fetch also brings seeded data current) remains the only path. The
+     * seeded data doubles as the outage fallback should that fetch fail.
+     */
+    private synchronized void seedFromCacheIfPossible() {
+        if (dataInitialized) return;
+        // A pending delayed refresh (forceRefresh, e.g. just after publishing) must not be
+        // masked by re-seeding the old state as initialized: there the page is meant to
+        // wait for the fresh data. Seeding is for the never-initialized case, where
+        // runUpdateAfter has not been set.
+        if (runUpdateAfter != null) return;
+        QueryRef vdQuery = viewDisplaysQueryRef();
+        ApiResponse cachedResponse = ApiCache.retrieveStaleResponse(vdQuery);
+        if (cachedResponse == null) return;
+        ResourceWithProfile seeded = new ResourceWithProfile();
+        seeded.viewDisplays.addAll(buildViewDisplays(cachedResponse, vdQuery));
+        data = seeded;
+        dataInitialized = true;
     }
 
     /**
@@ -208,6 +240,13 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     @Override
     public boolean isDataInitialized() {
+        // Seeding synchronously (cache-only, no network) is what lets the FIRST render of
+        // a page reach this resource's content: the update below runs asynchronously, so
+        // without the seed that render would fall back to a loading spinner even though
+        // everything it needs is in the (restored) cache.
+        if (!dataInitialized) {
+            seedFromCacheIfPossible();
+        }
         triggerDataUpdate();
         return dataInitialized;
     }
@@ -319,10 +358,13 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * displays with a bound {@code ?display}, and preset-supplied views with an unbound one).
      */
     private List<ViewDisplay> buildViewDisplays(QueryRef ref) {
+        // Null on a cold cache or a failed (flaky federated) fetch — yields nothing for now;
+        // the cache refreshes asynchronously and the page's auto-refresh repopulates it.
+        return buildViewDisplays(ApiCache.retrieveResponseSync(ref, true), ref);
+    }
+
+    private List<ViewDisplay> buildViewDisplays(ApiResponse response, QueryRef ref) {
         List<ViewDisplay> list = new ArrayList<>();
-        ApiResponse response = ApiCache.retrieveResponseSync(ref, true);
-        // Null on a cold cache or a failed (flaky federated) fetch — yield nothing for now; the
-        // cache refreshes asynchronously and the page's auto-refresh repopulates it.
         if (response == null) return list;
         // The unresolved query variant returns ?view as the referenced version, leaving
         // latest-version resolution to us (View.get with resolveLatest=true, memoized;
