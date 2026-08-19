@@ -975,10 +975,14 @@ public class Template implements Serializable {
         }
     }
 
-    // Local IRIs in used statement positions that carry no identity type (no placeholder
-    // type, not a Local/Introduced/Embedded Resource) are automatically treated as Local
+    // Local IRIs in used statement positions that carry no minting-relevant type (no
+    // placeholder type, not a Local Resource) are automatically treated as Local
     // Resources, so every produced nanopub mints them under its own namespace instead of
-    // copying the template-local IRI verbatim (see issue #551).
+    // copying the template-local IRI verbatim (see issue #551). Introduced/Embedded
+    // Resource tags do not exempt an IRI: they only record the resulting IRI for pubinfo
+    // (npx:introduces / npx:embeds) and say nothing about minting; a template-local IRI
+    // tagged only nt:IntroducedResource would otherwise be shared by all produced
+    // nanopubs (see issue #602).
     private void tagUntypedLocalIrisAsLocalResources(Nanopub templateNp) {
         List<IRI> topIris = statementMap.get(templateIri);
         if (topIris == null) return;
@@ -1008,7 +1012,7 @@ public class Template implements Serializable {
         if (iri.equals(templateIri)) return;
         // Statement/group identifiers referenced as values stay untouched:
         if (statementMap.containsKey(iri) || statementSubjects.containsKey(iri)) return;
-        if (isPlaceholder(iri) || isLocalResource(iri) || isIntroducedResource(iri) || isEmbeddedResource(iri)) return;
+        if (isPlaceholder(iri) || isLocalResource(iri)) return;
         addType(iri, NTEMPLATE.LOCAL_RESOURCE);
     }
 
