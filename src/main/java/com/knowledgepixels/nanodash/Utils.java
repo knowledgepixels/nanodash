@@ -165,6 +165,35 @@ public class Utils {
     }
 
     /**
+     * The current nanopub cache content, for persisting across restarts (issue #570; see
+     * {@link ApiCachePersistence}). Nanopubs are immutable, so unlike the query responses
+     * they carry no staleness concerns at all.
+     *
+     * @return a copy of the cached nanopubs, keyed by artifact code
+     */
+    static Map<String, Nanopub> exportCachedNanopubs() {
+        return new HashMap<>(nanopubs.asMap());
+    }
+
+    /**
+     * Restores previously exported nanopubs into the cache, skipping any that are already
+     * cached. Meant to run once at startup, before the instance serves requests.
+     *
+     * @param map the nanopubs to restore, keyed by artifact code
+     * @return the number of restored nanopubs
+     */
+    static int importCachedNanopubs(Map<String, Nanopub> map) {
+        int count = 0;
+        for (Map.Entry<String, Nanopub> e : map.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null) continue;
+            if (nanopubs.getIfPresent(e.getKey()) != null) continue;
+            nanopubs.put(e.getKey(), e.getValue());
+            count++;
+        }
+        return count;
+    }
+
+    /**
      * Adds a nanopublication to the local cache so it can be retrieved immediately
      * without needing to fetch it from the registry.
      *

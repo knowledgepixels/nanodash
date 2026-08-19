@@ -12,6 +12,7 @@ import com.knowledgepixels.nanodash.connector.pensoft.RioOverviewPage;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.events.NanopubPublishedListener;
 import com.knowledgepixels.nanodash.events.NanopubPublishedPublisher;
 import com.knowledgepixels.nanodash.page.*;
@@ -224,12 +225,52 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
 
         registerListeners();
 
+        ApiCachePersistence.init();
+
+        // Warm up the shared state in the background while the server finishes starting, so
+        // the first request doesn't pay for it: the user data, the space and resource
+        // repositories, and the home resource's view displays. Each of these builds from the
+        // restored cache snapshot when one was loaded (issue #570) and from live queries
+        // otherwise; either way the work happens now instead of on the first page render.
+        // Two tasks rather than one: the home resource's data is sub-second when built from
+        // the snapshot, and queueing it behind the user data (which always makes a few live
+        // registry calls) would leave the home page showing its loading spinner for exactly
+        // that long to anyone reloading the moment the server is up.
+        NanodashThreadPool.submit(() -> {
+            try {
+                MaintainedResource homeResource = MaintainedResourceRepository.get()
+                        .findById(NanodashPreferences.get().getHomeResource());
+                if (homeResource != null) homeResource.triggerDataUpdate();
+            } catch (Exception ex) {
+                logger.error("Startup home-resource warm-up failed", ex);
+            }
+        });
+        NanodashThreadPool.submit(() -> {
+            try {
+                User.ensureLoaded();
+            } catch (Exception ex) {
+                logger.error("Startup user-data warm-up failed", ex);
+            }
+        });
+
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
         if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()) {
             logger.info("Umami analytics configured: {}", umamiScriptUrl);
         } else {
             logger.info("Umami analytics not configured (set NANODASH_UMAMI_SCRIPT_URL and NANODASH_UMAMI_WEBSITE_ID)");
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Writes a final API cache snapshot, so a restart or upgrade comes back up with the
+     * content it went down with.
+     */
+    @Override
+    protected void onDestroy() {
+        ApiCachePersistence.shutdown();
+        super.onDestroy();
     }
 
     /**

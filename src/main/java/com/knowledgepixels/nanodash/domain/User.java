@@ -31,17 +31,26 @@ public class User {
         synchronized (User.class) {
             if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
-                userData = new UserData();
+                userData = new UserData(true);
             }
         }
     }
 
     /**
-     * Ensures that the user data is loaded. If not, it refreshes the user data.
+     * Ensures that the user data is loaded. If not, it loads it from the cached query
+     * responses where available — in particular from the persisted snapshot right after a
+     * restart (issue #570) — instead of forcing the fetches like the periodic
+     * {@link #refreshUsers()} cycle does, which would stall the first request (session
+     * creation runs through here) on the network.
      */
     public static void ensureLoaded() {
         if (userData == null) {
-            refreshUsers();
+            synchronized (User.class) {
+                if (userData == null) {
+                    lastRefresh = System.currentTimeMillis();
+                    userData = new UserData(false);
+                }
+            }
         }
     }
 

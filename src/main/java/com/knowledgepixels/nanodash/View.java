@@ -105,6 +105,74 @@ public class View implements Serializable {
     }
 
     /**
+     * The current latest-version resolution memo, for persisting across restarts (issue
+     * #570; see {@link ApiCachePersistence}). Restoring it is what lets pages build their
+     * view panels synchronously right after a restart — {@link #isCached(String)} decides
+     * that — and the stale-while-revalidate handling re-resolves the restored entries in
+     * the background as they are used.
+     *
+     * @return a copy of the memoized resolutions
+     */
+    static Map<String, Pair<Long, View>> exportResolvedViews() {
+        return new HashMap<>(latestResolvedViews.asMap());
+    }
+
+    /**
+     * The current exact-version view cache, for persisting across restarts (issue #570; see
+     * {@link ApiCachePersistence}). These are the constructed View objects the view displays
+     * hand out; rebuilding one involves governed-version lookups and query construction, so
+     * restoring them is what makes a page's views renderable right after a restart. Keyed by
+     * the exact (immutable) version id, so a restored entry can never be out of date.
+     *
+     * @return a copy of the cached views
+     */
+    static Map<String, View> exportViews() {
+        return new HashMap<>(views.asMap());
+    }
+
+    /**
+     * Restores previously exported views into the exact-version cache, skipping any that are
+     * already cached. Meant to run once at startup.
+     *
+     * @param map the views to restore
+     * @return the number of restored views
+     */
+    static int importViews(Map<String, View> map) {
+        int count = 0;
+        for (Map.Entry<String, View> e : map.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null) continue;
+            if (views.getIfPresent(e.getKey()) != null) continue;
+            views.put(e.getKey(), e.getValue());
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Restores previously exported latest-version resolutions, keeping their original
+     * resolution times so the normal re-resolution age logic takes over. Entries already
+     * memoized are left alone, as are entries older than the given maximum age or carrying
+     * a timestamp from the future. Meant to run once at startup.
+     *
+     * @param map      the resolutions to restore
+     * @param maxAgeMs entries resolved further back than this are dropped
+     * @return the number of restored entries
+     */
+    static int importResolvedViews(Map<String, Pair<Long, View>> map, long maxAgeMs) {
+        long timeNow = System.currentTimeMillis();
+        int count = 0;
+        for (Map.Entry<String, Pair<Long, View>> e : map.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null || e.getValue().getLeft() == null || e.getValue().getRight() == null) continue;
+            long t = e.getValue().getLeft();
+            if (t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (latestResolvedViews.getIfPresent(e.getKey()) != null) continue;
+            latestResolvedViews.put(e.getKey(), e.getValue());
+            count++;
+        }
+        return count;
+    }
+
+    /**
      * Get a View by its ID, resolving to the latest version (following the
      * supersedes chain).
      *

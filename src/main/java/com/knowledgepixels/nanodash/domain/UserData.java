@@ -49,10 +49,17 @@ public class UserData implements Serializable {
     private final HashMap<IRI, IRI> defaultLicense = new HashMap<>();
 
     /**
-     * Default constructor for UserData.
+     * Constructor for UserData.
      * Initializes the user data by fetching nanopublications settings.
+     *
+     * @param forced whether the user-detail queries must be re-fetched from the API even
+     *               when a cached response exists. The periodic refresh passes true so each
+     *               cycle actually brings the data current; the initial load passes false so
+     *               it can build from cached responses right away — in particular from the
+     *               persisted snapshot after a restart (issue #570), where forced fetches
+     *               would stall the first request on the network.
      */
-    UserData() {
+    UserData(boolean forced) {
         final NanodashPreferences pref = NanodashPreferences.get();
 
         // TODO Make nanopublication setting configurable:
@@ -116,15 +123,15 @@ public class UserData implements Serializable {
 
         logger.info("Loading user details...");
         // Get latest introductions for all users, including unapproved ones:
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_INTROS), true).getData()) {
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_INTROS), forced).getData()) {
             register(entry);
         }
 
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_PROFILE_PICS), true).getData()) {
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_PROFILE_PICS), forced).getData()) {
             profilePictures.put(Values.iri(entry.get("user")), Values.iri(entry.get("imageUrl")));
         }
 
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_DEFAULT_LICENSE), true).getData()) {
+        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_DEFAULT_LICENSE), forced).getData()) {
             defaultLicense.put(Values.iri(entry.get("user")), Values.iri(entry.get("license")));
         }
     }

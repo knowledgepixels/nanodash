@@ -117,18 +117,23 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("retrieveResponseSync should refresh stale cache and return fresh response through API call")
-    void retrieveResponseSync_refreshesStaleCache() throws Exception {
+    @DisplayName("retrieveResponseSync should serve an outdated response and leave the re-fetch to the background")
+    void retrieveResponseSync_servesOutdatedResponse() throws Exception {
         ApiResponse stale = mock(ApiResponse.class);
-        ApiResponse fresh = mock(ApiResponse.class);
+        // Well past the refresh threshold, as e.g. every entry restored from the
+        // persisted snapshot after a restart is.
         putCachedResponse(stale, 90000L);
+        // A refresh is already in flight, so nothing new is submitted while the test runs.
+        getMap("refreshStart").put(MOCK_CACHE_ID, System.currentTimeMillis());
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
-            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
-
+            long start = System.currentTimeMillis();
             ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
 
-            assertSame(fresh, result);
+            assertSame(stale, result, "the outdated response should be served straight away");
+            assertTrue(elapsed < 1000, "should not have re-fetched inline, but took " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
         }
     }
 
@@ -252,6 +257,29 @@ class ApiCacheTest {
             assertSame(cached, result, "the outdated response should be served straight away");
             assertTrue(elapsed < 1000, "should not have waited for the ingest delay, but took " + elapsed + "ms");
             queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+        } finally {
+            tester.destroy();
+            ThreadContext.detach();
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should still re-fetch a clearCache-marked entry on a request thread")
+    void retrieveResponseSync_stillRefreshesMarkedEntryOnRequestThread() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 90000L);
+        ApiCache.clearCache(mockQueryRef, 0L);
+
+        WicketTester tester = new WicketTester();
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // The marking means the kept entry must not be handed out as current, so the
+            // request thread does wait for the re-fetch here.
+            assertSame(fresh, result);
         } finally {
             tester.destroy();
             ThreadContext.detach();
