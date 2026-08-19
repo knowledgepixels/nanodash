@@ -217,8 +217,7 @@ public class QueryApiAccess {
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
     // self-assigned or otherwise ungranted claim awaiting approval by an equal-or-higher-tier
     // member. Observer-tier roles are excluded (self-assignable, so they need no approval and
-    // are listed by LIST_SPACE_OBSERVERS_REF). Only admin claims are detectable today (the live
-    // repo materialises every declaration as ObserverRole). Drives the "❓ Pending
+    // are listed by LIST_SPACE_OBSERVERS_REF). Drives the "❓ Pending
     // Admins/Maintainers/Members" view. v3 (RA2BnCGv, supersedes RAZMAChi) resolves owl:sameAs
     // space aliases via the ref's validated npa:sameAsSpace edges, so a higher-tier claim made
     // against an alias IRI of the space is detected. v4 (RAwv7GRc, supersedes RA2BnCGv) gates the
@@ -229,9 +228,22 @@ public class QueryApiAccess {
     // sameAsSpace ... }` alias pattern left ?inSpace unbound on RDF4J (BIND in a UNION branch does
     // not see the outer ?spaceIri), so the query returned ZERO rows for every space (no pending
     // claim could ever surface). Replaced with a non-union
-    // `filter( ?inSpace = ?spaceIri || exists { ... sameAsSpace ... } )`. Source at
-    // docs/queries/list-space-non-approved-ref-v5.trig.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RAtSaYBHpb2iG6dwlHRHVfUpygNAKS-3bUa1iV5YNqk3w/list-space-non-approved";
+    // `filter( ?inSpace = ?spaceIri || exists { ... sameAsSpace ... } )`. v6 (RAhSqdJ6, supersedes
+    // RAtSaYBH via the RAPo1zp2 intermediate) adds an approve_np column with the granting
+    // nanopub. Latest (RAVsaIwA, supersedes RAhSqdJ6; issue #603): the admin-only
+    // roleAssignmentTemplate and agent_iri columns are replaced by a per-row
+    // (approve_np, grant_template) pair — the grant nanopub and its own creation template
+    // (nt:wasCreatedFromTemplate, free-form template as fallback) — so the view's approve
+    // action can open the pending grant in derive mode for EVERY tier, not only for admin
+    // grants. The tier column is deterministic (the highest tier among the member's pending
+    // claims, rank-keyed min instead of a flapping sample), and the pair is computed from
+    // the SAME grant via a rank-prefixed concatenated min preferring that highest tier, so
+    // tier, derive target, and template always agree. A grant whose assertion defines a
+    // Space itself (a competing root definition) is not offered for derivation; admin-tier
+    // claims from such definitions pair with the built-in admin-assignment template instead
+    // (the hasAdmin triple unifies), keeping the space-ref-conflict remedy.
+    // Source at docs/queries/list-space-non-approved-ref-v7.trig.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RAVsaIwAWFk9NekiVx-pGN6c1p-CK9ozishyvXcjUtTLc/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
