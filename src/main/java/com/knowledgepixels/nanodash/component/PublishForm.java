@@ -628,18 +628,32 @@ public class PublishForm extends Panel {
         final List<String> recommendedProvTemplateOptionIds = new ArrayList<>();
         final List<String> provTemplateOptionIds = new ArrayList<>();
         if (pageParams.get("prtemplate-options").isNull()) {
-            // TODO Make this dynamic and consider updated templates:
-            recommendedProvTemplateOptionIds.add(DEFAULT_PROV_TEMPLATE);
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
-            recommendedProvTemplateOptionIds.add("https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAjkBbM5yQm7hKH1l_Jk3HAUqWi3Bd57TPmAOZCsZmi_M");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAGXx_k9eQMnXaCbsXMsJbGClwZtQEGNg0GVJu6amdAVw");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA1fnITI3Pu1UQ0CHghNpys3JwQrM32LBnjmDLoayp9-4");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAJgbsGeGdTG-zq_gU0TLw4s3raMgoRk-mPlc2DSLXvE0");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA6SXfhUY-xeblZU8HhPddw6tsu-C5NXevG6C_zv4bMxU");
-            for (String s : recommendedProvTemplateOptionIds) {
+            // TODO Make this dynamic:
+            for (String s : List.of(
+                    DEFAULT_PROV_TEMPLATE,
+                    "http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8",
+                    "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ",
+                    "http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE",
+                    "https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU",
+                    "http://purl.org/np/RAjkBbM5yQm7hKH1l_Jk3HAUqWi3Bd57TPmAOZCsZmi_M",
+                    "http://purl.org/np/RAGXx_k9eQMnXaCbsXMsJbGClwZtQEGNg0GVJu6amdAVw",
+                    "http://purl.org/np/RA1fnITI3Pu1UQ0CHghNpys3JwQrM32LBnjmDLoayp9-4",
+                    "http://purl.org/np/RAJgbsGeGdTG-zq_gU0TLw4s3raMgoRk-mPlc2DSLXvE0",
+                    "http://purl.org/np/RA6SXfhUY-xeblZU8HhPddw6tsu-C5NXevG6C_zv4bMxU")) {
+                // The IDs above are pinned to specific versions; recommend the latest
+                // version of each instead (issue #585):
+                String latest = td.getLatestTemplateId(s);
+                if (!handledProvTemplates.containsKey(latest)) {
+                    recommendedProvTemplateOptionIds.add(latest);
+                    handledProvTemplates.put(latest, true);
+                    Template lt = td.getTemplate(latest);
+                    if (lt != null) {
+                        // Key the nanopub-URI form too: the listing below is keyed by
+                        // nanopub URI, which for a template with embedded identity
+                        // differs from its canonical ID.
+                        handledProvTemplates.put(lt.getNanopub().getUri().stringValue(), true);
+                    }
+                }
                 handledProvTemplates.put(s, true);
             }
 
@@ -752,13 +766,6 @@ public class PublishForm extends Panel {
         final Map<String, Boolean> handledPiTemplates = new HashMap<>();
         final List<String> recommendedPiTemplateOptionIds = new ArrayList<>();
         final List<String> piTemplateOptionIds = new ArrayList<>();
-        // TODO Make this dynamic and consider updated templates:
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAXflINqt3smqxV5Aq7E9lzje4uLdkKIOefa6Bp8oJ8CY");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w");
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI");
         for (TemplateContext c : pubInfoContexts) {
             // Key both ID forms: the "others" dedup below compares against listing
             // entries keyed by nanopub URI, which for a template with embedded
@@ -766,8 +773,26 @@ public class PublishForm extends Panel {
             handledPiTemplates.put(c.getTemplate().getId(), true);
             handledPiTemplates.put(c.getTemplate().getNanopub().getUri().stringValue(), true);
         }
-        for (String s : recommendedPiTemplateOptionIds) {
+        // TODO Make this dynamic:
+        for (String s : List.of(
+                "http://purl.org/np/RAXflINqt3smqxV5Aq7E9lzje4uLdkKIOefa6Bp8oJ8CY",
+                "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ",
+                "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA",
+                "http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4",
+                "https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w",
+                "http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI")) {
+            // The IDs above are pinned to specific versions; recommend the latest
+            // version of each instead (issue #585):
+            String latest = td.getLatestTemplateId(s);
+            if (!recommendedPiTemplateOptionIds.contains(latest)) {
+                recommendedPiTemplateOptionIds.add(latest);
+            }
             handledPiTemplates.put(s, true);
+            handledPiTemplates.put(latest, true);
+            Template lt = td.getTemplate(latest);
+            if (lt != null) {
+                handledPiTemplates.put(lt.getNanopub().getUri().stringValue(), true);
+            }
         }
 
         for (ApiResponseEntry entry : td.getPubInfoTemplates()) {
