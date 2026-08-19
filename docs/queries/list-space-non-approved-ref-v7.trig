@@ -1,0 +1,117 @@
+@prefix this: <http://purl.org/nanopub/temp/np001/> .
+@prefix sub: <http://purl.org/nanopub/temp/np001/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-space-non-approved a grlc:grlc-query;
+    dct:description "Lists the non-approved role claims of a given space ref (space IRI + root definition): agents who hold a higher-tier role instantiation (admin/maintainer/member) that is NOT in the trust-validated current state, i.e. a self-assigned or otherwise ungranted claim awaiting approval by an equal-or-higher-tier member. Pass the ref's root nanopub (root_np). Observer-tier roles are excluded: they are self-assignable, so a self-declared observer needs no approval and is shown by list-space-observers instead. The higher-tier test is generic — the built-in admin property (gen:hasAdmin) OR a RoleDeclaration whose npa:hasRoleType is gen:AdminRole/gen:MaintainerRole/gen:MemberRole. Per (member, role) only the latest role-instantiation nanopub is considered (by dct:created). Returns one row per member with the claimed tier, the grant nanopub(s) with the claimed role's label (role_assignments_multi_iri + role_assignments_label_multi), and a consistent (approve_np, grant_template) pair for the approve action: the granting nanopublication to derive from and the template to open it with. v2: adds the role_assignments columns. v3: resolves owl:sameAs space aliases (via the ref's validated npa:sameAsSpace edges in the current-state graph), so a higher-tier claim made against an alias IRI of the space is detected. v4: the invalidation filter honours an npx:invalidates edge only when the invalidating nanopub shares a signing pubkey (npa:hasValidSignatureForPublicKeyHash) with the grant it targets, so a foreign-key retraction can no longer suppress another agent's claim (issue #487 / same gate as the materializer's #112). v5: BUGFIX — the v3/v4 space-alias resolution used a BIND-in-UNION pattern that RDF4J leaves unbound, so the query returned ZERO rows for every space; replaced with a non-union filter/exists that restores detection while keeping alias resolution. v6: adds an approve_np column holding the granting nanopublication for each pending row. v7 (nanodash issue #603): replaces the admin-only roleAssignmentTemplate and agent_iri columns with a per-row (approve_np, grant_template) pair so the approve action works for EVERY tier, not only for admin grants: grant_template is the grant's own nt:wasCreatedFromTemplate (falling back to the free-form template), letting the approve action open the pending grant in derive mode (approve_np:@derive-a grant_template:@template) so the approver re-publishes the same assertion under their own key — which is exactly what tier validation requires. The tier column is DETERMINISTIC: the highest tier among the member's pending claims (rank-keyed min, not a sample), and the approve pair is computed from the SAME grant via a rank-prefixed concatenated min — preferring the grant of that highest tier — so the displayed tier, the derive target, and the template can never mismatch when a member has pending claims under several role properties. A grant whose assertion defines a Space itself (a root definition, detected via '?s a gen:Space' since gen:hasRootDefinition is absent on older definitions) is not offered for derivation, as deriving it would publish a competing root definition; for admin-tier claims such rows instead pair with the built-in admin-assignment template, so the approve button keeps working as a space-ref-conflict remedy (the hasAdmin triple unifies with that template, the definition's other statements show as unfillable). Rows whose grant is not loaded in this repo, or whose grant is a space definition claiming a non-admin tier, get no pair and hence no approve button.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "List space non-approved role claims (ref-scoped)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix nt: <https://w3id.org/np/o/ntemplate/>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix schema: <http://schema.org/>
+
+select ?member
+       (strafter(min(?tierKey), \" \") as ?tier)
+       (group_concat(distinct ?latestNp; separator=\" \") as ?role_assignments_multi_iri)
+       (group_concat(distinct ?roleLabel; separator=\"\\n\") as ?role_assignments_label_multi)
+       (strbefore(strafter(min(?pair), \" \"), \" \") as ?approve_np)
+       (strafter(strafter(min(?pair), \" \"), \" \") as ?grant_template)
+where {
+  {
+    select ?member ?roleProp
+           (max(?val0) as ?val)
+           (strafter(max(concat(coalesce(str(?dateNp),\"\"), \" \", str(?grantNp))), \" \") as ?latestNp)
+           (sample(?tier0) as ?tierX)
+           (sample(?rl) as ?rlRaw)
+    where {
+      values ?_root_np_multi_iri {}
+      graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri ; npa:spaceIri ?spaceIri . }
+      graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+      graph npa:spacesGraph {
+        ?ri a gen:RoleInstantiation ; npa:forSpace ?inSpace ; npa:forAgent ?member ; npa:viaNanopub ?grantNp ;
+            (npa:regularProperty|npa:inverseProperty) ?roleProp .
+      }
+      filter( ?inSpace = ?spaceIri || exists { graph ?g { ?inSpace npa:sameAsSpace ?ref } } )
+      bind(?roleProp = gen:hasAdmin as ?isAdminProp)
+      bind(exists { graph npa:spacesGraph { ?rdA a npa:RoleDeclaration ; npa:hasRoleType gen:AdminRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } } as ?isAdminDecl)
+      bind(exists { graph npa:spacesGraph { ?rdM a npa:RoleDeclaration ; npa:hasRoleType gen:MaintainerRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } } as ?isMaint)
+      bind(exists { graph npa:spacesGraph { ?rdMe a npa:RoleDeclaration ; npa:hasRoleType gen:MemberRole ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp } } as ?isMemb)
+      filter(?isAdminProp || ?isAdminDecl || ?isMaint || ?isMemb)
+      filter not exists { graph npa:graph { ?invNp npx:invalidates ?grantNp ; npa:hasValidSignatureForPublicKeyHash ?invpk . ?grantNp npa:hasValidSignatureForPublicKeyHash ?invpk . } }
+      bind(if(exists { graph ?g { ?vri npa:forSpaceRef ?ref ; npa:forAgent ?member ; (npa:regularProperty|npa:inverseProperty) ?roleProp } }, 1, 0) as ?val0)
+      optional { graph npa:graph { ?grantNp dct:created ?dateNp } }
+      bind(if(?isAdminProp || ?isAdminDecl, \"Admin\", if(?isMaint, \"Maintainer\", \"Member\")) as ?tier0)
+      optional {
+        graph ?g { ?raRole a gen:RoleAssignment ; npa:forSpaceRef ?ref ; gen:hasRole ?role . }
+        graph npa:spacesGraph { ?rd2 a npa:RoleDeclaration ; npa:role ?role ; (gen:hasRegularProperty|gen:hasInverseProperty) ?roleProp ; npa:viaNanopub ?roleNp . }
+        graph npa:graph { ?roleNp np:hasAssertion ?role_a . }
+        optional { graph ?role_a { ?role schema:name ?rlS } }
+        optional { graph ?role_a { ?role rdfs:label ?rlA } }
+        optional { graph ?role_a { ?role dct:title ?rlB } }
+        bind(coalesce(?rlS, ?rlA, ?rlB) as ?rlResolved)
+      }
+      bind(if(?isAdminProp, \"admin\", ?rlResolved) as ?rl)
+    }
+    group by ?member ?roleProp
+    having (max(?val0) = 0)
+  }
+  bind(coalesce(?rlRaw, \"role\") as ?roleLabel)
+  bind(iri(?latestNp) as ?latestNpIri)
+  optional { graph npa:graph { ?latestNpIri np:hasAssertion ?la . } }
+  bind(exists { graph ?la { ?anySpace a gen:Space . } } as ?isSpaceDef)
+  optional {
+    graph npa:graph { ?latestNpIri np:hasPublicationInfo ?pi . }
+    graph ?pi { ?latestNpIri nt:wasCreatedFromTemplate ?gtmplRaw . }
+  }
+  bind(if(?tierX = \"Admin\", \"1 Admin\", if(?tierX = \"Maintainer\", \"2 Maintainer\", \"3 Member\")) as ?tierKey)
+  bind(if(bound(?la) && !?isSpaceDef,
+          concat(strbefore(?tierKey, \" \"), \" \", ?latestNp, \" \", coalesce(str(?gtmplRaw), \"http://purl.org/np/RACyK2NjqFgezYLiE8FQu7JI0xY1M1aNQbykeCW8oqXkA\")),
+          if(?isSpaceDef && ?tierX = \"Admin\",
+             concat(\"1 \", ?latestNp, \" https://w3id.org/np/RAsOQ7k3GNnuUqZuLm57PWwWopQJR_4onnCpNR457CZg8\"),
+             ?undefPair)) as ?pair)
+}
+group by ?member
+order by ?member""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-08-19T06:58:30Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:list-space-non-approved;
+    npx:supersedes <https://w3id.org/np/RAhSqdJ6w_dpbVwlCLQyp5rqOWGSnG47EL_hULHkspehQ>;
+    rdfs:label "List space non-approved role claims (ref-scoped)";
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8>,
+      <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
+}
