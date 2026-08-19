@@ -1,3 +1,45 @@
+## [5.11.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.10.0...nanodash-5.11.0) (2026-08-19)
+
+### Features
+
+* persist caches across restarts for a warm start ([#570](https://github.com/knowledgepixels/nanodash/issues/570)) ([62cab72](https://github.com/knowledgepixels/nanodash/commit/62cab72de48b9fb82111a39b8257b777146b6102))
+* show outdated view results with a spinner instead of a bare spinner ([#599](https://github.com/knowledgepixels/nanodash/issues/599)) ([b492cd3](https://github.com/knowledgepixels/nanodash/commit/b492cd3d35e5e586bd80667e1bafb4ae142b36ae))
+* show the publish button as busy while publishing ([c748b2e](https://github.com/knowledgepixels/nanodash/commit/c748b2ee6df3db072e5596805c3db4218d346aa9))
+* show the same update indicator for every kind of view update ([e7032d5](https://github.com/knowledgepixels/nanodash/commit/e7032d5abef978c872f0452801444c3f7a303eb5))
+
+### Bug Fixes
+
+* **AjaxZonedDateTimePicker:** empty the fields when the value is cleared ([e56173d](https://github.com/knowledgepixels/nanodash/commit/e56173d4a48a17666cf564c6d6cefdf3d320083b))
+* **AjaxZonedDateTimePicker:** group the zone choices by current offset ([250069d](https://github.com/knowledgepixels/nanodash/commit/250069d5cdad7cb382b7cadadf0cdc4036b2b617))
+* **AjaxZonedDateTimePicker:** keep the entered value when the form comes back ([12fbe7f](https://github.com/knowledgepixels/nanodash/commit/12fbe7f3ad298b7072847ce5edeb8e1fe64c542c))
+* **AjaxZonedDateTimePicker:** open the pickers from field and icon alike ([4687d14](https://github.com/knowledgepixels/nanodash/commit/4687d142528f5b4983b3055c77a54d79010ef0c1))
+* **AjaxZonedDateTimePicker:** preselect the user's time zone ([c6154d0](https://github.com/knowledgepixels/nanodash/commit/c6154d0467d47cdd2dc7329945968ac968e0a3ac)), closes [#596](https://github.com/knowledgepixels/nanodash/issues/596)
+* apply auto Local Resource treatment to introduced/embedded resources ([2528232](https://github.com/knowledgepixels/nanodash/commit/25282321f83e0cc3a5ba4f2e1f57ba20c1e78a8d)), closes [#602](https://github.com/knowledgepixels/nanodash/issues/602)
+* do not add a level to the page when a view is refreshed ([6f94f0d](https://github.com/knowledgepixels/nanodash/commit/6f94f0d74516ed28c38a64b68a13732e80107ae0))
+* **explore:** show "use this template..." only for full template definitions ([3b628ac](https://github.com/knowledgepixels/nanodash/commit/3b628ac6787f92c187b69eeb846935968e8c4214)), closes [#597](https://github.com/knowledgepixels/nanodash/issues/597)
+* give style.css a URL that changes when the file does ([0074711](https://github.com/knowledgepixels/nanodash/commit/00747115722174d669d1254d00b8350d58f6481e))
+* keep the filter field in place while a view's spinner shows ([099c0fa](https://github.com/knowledgepixels/nanodash/commit/099c0fa9d8908e11b00553ed29b08e97da8475c8))
+* **LiteralDateTimeItem:** stop asking for seconds ([60ffc3a](https://github.com/knowledgepixels/nanodash/commit/60ffc3a77d428ecfee7f21e6f80bfdfabf237a22))
+* offer the pending-members approve action for every tier, not only admins ([2c02a2d](https://github.com/knowledgepixels/nanodash/commit/2c02a2d91043a7c12dfaa6c28f90183db777c3ef)), closes [#603](https://github.com/knowledgepixels/nanodash/issues/603) [#603](https://github.com/knowledgepixels/nanodash/issues/603)
+* refresh a view that is inside a wrapper, not the wrapper's content ([069b559](https://github.com/knowledgepixels/nanodash/commit/069b5598c5d22c959c2d816a3a16a5b4e6007ba1))
+* refresh a view where it stands instead of re-rendering the page ([fd4aaa0](https://github.com/knowledgepixels/nanodash/commit/fd4aaa09a033b0c4fbfe87c116ecbbba5c81405e))
+* render a lazily loaded view where a directly rendered one sits ([859e3a9](https://github.com/knowledgepixels/nanodash/commit/859e3a97e7b302900e56f01356fd3d2847895f6a))
+* resolve recommended prov/pubinfo templates to their latest versions ([6e8a2b0](https://github.com/knowledgepixels/nanodash/commit/6e8a2b013a7cb23a0cf589d097d47cc3ae7ebd9a)), closes [#585](https://github.com/knowledgepixels/nanodash/issues/585)
+* stop the About tab from reloading itself on every visit ([3c00049](https://github.com/knowledgepixels/nanodash/commit/3c00049dc43f8d96a750a67071c8c951ae1bd4b2))
+
+### Documentation
+
+* correct preference keys for remote MCP and Claude chat ([8d1be46](https://github.com/knowledgepixels/nanodash/commit/8d1be46f38332edb3688a20f0c3c5621e4a06525))
+
+### Performance improvements
+
+* keep request threads off the network waits ([7b4883f](https://github.com/knowledgepixels/nanodash/commit/7b4883f0a60bd6d277c7bfc35918da69f7167ef2))
+
+### General maintenance
+
+* **AboutSpacePanel:** update maintaine-resources-view URI ([b56f9ee](https://github.com/knowledgepixels/nanodash/commit/b56f9eeb52d7a291ec2f27f00a4419e84fb486f7))
+* setting next snapshot version [skip ci] ([35c9f81](https://github.com/knowledgepixels/nanodash/commit/35c9f81e8317b530d1c99cea714961f3babf41f9))
+
 ## [5.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.9.0...nanodash-5.10.0) (2026-08-14)
 
 ### Features
