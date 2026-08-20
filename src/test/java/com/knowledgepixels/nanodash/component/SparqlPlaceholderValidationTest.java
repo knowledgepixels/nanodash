@@ -23,13 +23,17 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubImpl;
+import org.nanopub.testsuite.NanopubTestSuite;
+import org.nanopub.testsuite.TestSuiteCategory;
+import org.nanopub.testsuite.TestSuiteEntry;
 import org.nanopub.vocabulary.KPXL_GRLC;
 import org.nanopub.vocabulary.NTEMPLATE;
 
-import java.io.File;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -116,11 +120,24 @@ class SparqlPlaceholderValidationTest {
         assertFalse(template.isSparqlPlaceholder(DESCRIPTION_FIELD));
     }
 
+    /**
+     * The artifact code of the published "Defining a grlc query" template, which is what query
+     * nanopublications are created from. It lives in the nanopub test suite rather than in this
+     * repository, so that the fixture is shared with the other implementations instead of being
+     * copied into each of them.
+     */
+    private static final String QUERY_TEMPLATE_CODE = "RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k";
+
     // The synthetic template above is only worth as much as it resembles the real one, so the
-    // published "Defining a grlc query" template is checked as it actually is.
+    // published "Defining a grlc query" template is checked as it actually is. If a later
+    // version of that template moves the SPARQL field, this fails rather than quietly skipping.
     @Test
     void theRealQueryTemplateHasItsSparqlFieldRecognised() throws Exception {
-        Nanopub np = new NanopubImpl(new File("src/test/resources/np-grlc-query-template.trig"), RDFFormat.TRIG);
+        Optional<TestSuiteEntry> entry = NanopubTestSuite.getLatest()
+                .getByArtifactCode(QUERY_TEMPLATE_CODE, TestSuiteCategory.VALID);
+        assumeTrue(entry.isPresent(),
+                "The grlc query template is not in the test suite yet: Nanopublication/nanopub-testsuite#5");
+        Nanopub np = new NanopubImpl(entry.get().toFile(), RDFFormat.TRIG);
         Template template = TemplateTestUtil.parseTemplate(np);
         String base = np.getUri().stringValue() + "/";
         assertTrue(template.isSparqlPlaceholder(vf.createIRI(base + "sparql")));
