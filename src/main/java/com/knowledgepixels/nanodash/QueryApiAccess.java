@@ -94,7 +94,13 @@ public class QueryApiAccess {
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
-    public static final String GET_VIEW_DISPLAYS = "RArKslem_skNR9Q9qEpHhIQbJdP47PxDojp40Z5r11Ubs/get-view-displays";
+    // RAWlJqJ5 (supersedes RArKslem): same semantics, endpoint rebased from the ViewDisplay
+    // type repo onto repo/full, cutting the query from 5 SERVICE clauses to 2 (only the
+    // repo/spaces state lookups remain federated). The per-hop federation was the main
+    // amplifier of the rdf4j connection-pool deadlock behind the fleet-wide /api wedges
+    // (nanopub-query, 2026-08-20 thread dump: 22 of 28 pool-blocked threads were this
+    // query). Validated byte-identical across standalone/preset/governed/self-page cases.
+    public static final String GET_VIEW_DISPLAYS = "RAWlJqJ5afOTN0AIDP3rnSCysQer9B4pmSC6QbzssTAyc/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -119,7 +125,10 @@ public class QueryApiAccess {
     // resolution. Supersedes-head resolution happens caller-side per view (View.get with
     // resolveLatest=true, memoized), which also covers the governed case, so the extra columns
     // need not be consulted.
-    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAXdRFNLE1jB_NTaWrwIC9965SmZdZKB96VFnj1HvjdbY/get-view-displays-unresolved";
+    // RAkIkmSi (supersedes RAXdRFNL): endpoint rebased onto repo/full (5 SERVICE -> 2, see
+    // GET_VIEW_DISPLAYS above); in particular the per-referenced-view pin lookups are now
+    // local joins instead of one federated round-trip per view under a nested-loop join.
+    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAkIkmSiwDT-bgYZhGtknPhpkHsJcx0Q3nP0u8OyO_fZ4/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
