@@ -60,6 +60,33 @@ public class ExplorePage extends NanodashPage {
     private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
 
     /**
+     * The part-of relation as it was written by the term-defining templates for a long time:
+     * {@code http://purl.org/dc/terms/partOf}, a term DCMI never defined — the intended one is
+     * {@link DCTERMS#IS_PART_OF} (#511). Nanopublications are immutable, so the hundreds of
+     * term definitions already published with it stay that way whatever the templates go on to
+     * do, and a reader that only accepts the correct term would stop recognising all of them.
+     * Read both, write only {@code dct:isPartOf} — the same way the published queries spell it
+     * as {@code (dct:partOf|dct:isPartOf)}.
+     */
+    private static final IRI LEGACY_PART_OF = Utils.vf.createIRI("http://purl.org/dc/terms/partOf");
+
+    /**
+     * Whether the given predicate puts its subject inside the resource it points at, and so
+     * makes the subject a part of it: a part of a whole, a version of a versioned resource, or
+     * a concept in a scheme. Includes {@link #LEGACY_PART_OF}, which is how the term-defining
+     * templates wrote the part-of relation for a long time.
+     *
+     * @param predicate the predicate of a statement about the explored resource
+     * @return true if it declares membership of the object resource
+     */
+    static boolean declaresMembership(IRI predicate) {
+        return predicate.equals(DCTERMS.IS_PART_OF)
+                || predicate.equals(LEGACY_PART_OF)
+                || predicate.equals(DCTERMS.IS_VERSION_OF)
+                || predicate.equals(SKOS.IN_SCHEME);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -190,7 +217,8 @@ public class ExplorePage extends NanodashPage {
         // Forward to the part page when the explored resource actually qualifies as a
         // part of the context: either explicitly requested via forward-to-part, or
         // whenever the context is a maintained resource. In both cases the membership
-        // is verified below (dct:isPartOf / dct:isVersionOf / skos:inScheme or
+        // is verified below (dct:isPartOf, incl. its legacy spelling / dct:isVersionOf /
+        // skos:inScheme or
         // view-display applicability) rather than assumed from the context type.
         boolean contextIsMaintainedResource = !contextId.isEmpty() && MaintainedResourceRepository.get().findById(contextId) != null;
         if ((parameters.get("forward-to-part").toString("").equals("true") || contextIsMaintainedResource) && !contextId.isEmpty() && publishedNanopub == null) {
@@ -227,7 +255,7 @@ public class ExplorePage extends NanodashPage {
                 if (introducedIds.size() == 1 && introducedIds.iterator().next().equals(tempRef)) {
                     for (Statement st : termNp.getAssertion()) {
                         if (!st.getSubject().stringValue().equals(tempRef)) continue;
-                        if (st.getPredicate().equals(DCTERMS.IS_PART_OF) || st.getPredicate().equals(DCTERMS.IS_VERSION_OF) || st.getPredicate().equals(SKOS.IN_SCHEME)) {
+                        if (declaresMembership(st.getPredicate())) {
                             String resourceId = st.getObject().stringValue();
                             if (MaintainedResourceRepository.get().findById(resourceId) == null) continue;
                             throw new RestartResponseException(ResourcePartPage.class, parameters);
