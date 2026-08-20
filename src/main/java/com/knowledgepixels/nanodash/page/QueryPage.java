@@ -6,6 +6,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.QueryLoadException;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.QueryParamField;
@@ -78,12 +79,25 @@ public class QueryPage extends NanodashPage {
      */
     public QueryPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this));
-        add(new Label("pagetitle", "Query Info | nanodash"));
 
         String id = parameters.get("id").toString();
         final String queryId = parameters.get("runquery").toString();
         if (id == null) id = queryId;
+
+        // The query is resolved before anything is built, because there is no page to show
+        // without it. Queries are published by anyone, so one that can't be loaded — a broken
+        // identifier, a nanopublication that isn't there, invalid SPARQL — is a normal thing to
+        // run into here, and saying what is wrong with it beats failing to build the page (#284).
+        GrlcQuery q;
+        try {
+            q = GrlcQuery.load(id);
+        } catch (QueryLoadException ex) {
+            throw new RestartResponseException(ErrorPage.class,
+                    new PageParameters().set(ErrorPage.MESSAGE_PARAM, ex.getMessage()));
+        }
+        if (!q.getQueryId().equals(id)) {
+            throw new RestartResponseException(getClass(), parameters.set("id", q.getQueryId()));
+        }
 
         final Multimap<String, String> queryParams = ArrayListMultimap.create();
         for (NamedPair param : parameters.getAllNamed()) {
@@ -91,11 +105,8 @@ public class QueryPage extends NanodashPage {
             queryParams.put(param.getKey().replaceFirst("queryparam_", ""), param.getValue());
         }
 
-        GrlcQuery q = GrlcQuery.get(id);
-        if (!q.getQueryId().equals(id)) {
-            throw new RestartResponseException(getClass(), parameters.set("id", q.getQueryId()));
-        }
-
+        add(new TitleBar("titlebar", this));
+        add(new Label("pagetitle", "Query Info | nanodash"));
         add(new Label("querylabel", q.getLabel()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue()))
                 .add(NavigationContext.pageContextFallback()));
