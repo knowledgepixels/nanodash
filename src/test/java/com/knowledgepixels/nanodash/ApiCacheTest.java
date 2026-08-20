@@ -16,6 +16,7 @@ import org.nanopub.extra.services.QueryRef;
 import com.google.common.cache.Cache;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -158,6 +159,34 @@ class ApiCacheTest {
             assertNull(result);
             ConcurrentMap<String, Integer> failed = getMap("failed");
             assertEquals(1, failed.get(MOCK_CACHE_ID));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveMap should keep the cached map when the refresh fails")
+    void retrieveMap_keepsCachedMapWhenApiCallFails() throws Exception {
+        ConcurrentMap<String, Map<String, String>> cachedMaps = getMap("cachedMaps");
+        ConcurrentMap<String, Long> lastRefresh = getMap("lastRefresh");
+        Map<String, String> cached = Map.of("key", "value");
+        cachedMaps.put(MOCK_CACHE_ID, cached);
+        // Outdated enough to trigger a refresh, but well within the maximum cache age.
+        lastRefresh.put(MOCK_CACHE_ID, System.currentTimeMillis() - 2 * 60 * 1000);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class);
+             MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef))
+                    .thenThrow(new FailedApiCallException(new Exception("API call failed")));
+            // Run the refresh job on this thread, where the mocked API access applies.
+            threadPool.when(() -> NanodashThreadPool.submit(any(Runnable.class))).thenAnswer(inv -> {
+                inv.getArgument(0, Runnable.class).run();
+                return null;
+            });
+
+            Map<String, String> result = ApiCache.retrieveMap(mockQueryRef);
+
+            assertSame(cached, result);
+            assertSame(cached, cachedMaps.get(MOCK_CACHE_ID),
+                    "a failed refresh must not throw away the cached map");
         }
     }
 

@@ -410,7 +410,10 @@ public class ApiCache {
                     ApiCache.updateMap(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedMaps.invalidate(cacheId);
+                    // Keep whatever is cached, as the response and RDF-model paths do: a query we
+                    // cannot reach right now is a reason to go on showing the previous data, never
+                    // to throw it away. Only the refresh timestamp is bumped, so the next attempt
+                    // waits out the usual interval instead of retrying on every access.
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 }  finally {
                     refreshStart.remove(cacheId);
