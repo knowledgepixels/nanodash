@@ -38,14 +38,6 @@ public class GrlcQuery extends QueryTemplate {
     private static final Pattern ARTIFACT_CODE_PATTERN = Pattern.compile("RA[A-Za-z0-9\\-_]{43}");
 
     /**
-     * Picks the numeric character code out of the lexical errors the RDF4J SPARQL parser
-     * reports, which read like {@code Lexical error at line 20, column 56.  Encountered: "..."
-     * (160), after : ""} — where the number in brackets is the code of the character it
-     * tripped over.
-     */
-    private static final Pattern LEXICAL_ERROR_CHARACTER_PATTERN = Pattern.compile("Encountered:[^(]*\\((\\d+)\\)");
-
-    /**
      * Returns a singleton instance of GrlcQuery for the given QueryRef.
      *
      * @param ref the QueryRef object containing the query name
@@ -120,8 +112,8 @@ public class GrlcQuery extends QueryTemplate {
             sparqlFailure = wrapped;
         }
         if (sparqlFailure != null) {
-            String characterHint = explainOffendingCharacter(sparqlFailure.getMessage());
-            String detail = summarize(sparqlFailure.getMessage());
+            String detail = SparqlSyntax.summarize(sparqlFailure.getMessage());
+            String characterHint = SparqlSyntax.explainOffendingCharacter(sparqlFailure.getMessage());
             return "The SPARQL code of the query '" + id + "' is not valid, so the query can't be shown or run."
                     + (detail == null ? "" : " The SPARQL parser reports: " + detail)
                     + (characterHint == null ? "" : " " + characterHint)
@@ -130,53 +122,6 @@ public class GrlcQuery extends QueryTemplate {
         String detail = ex.getMessage();
         if (detail == null || detail.isBlank()) detail = ex.getClass().getSimpleName();
         return "The query '" + id + "' couldn't be loaded: " + detail;
-    }
-
-    /**
-     * Reduces a SPARQL parser failure to the one line that says what it tripped over and
-     * where, leaving out the list of what it was expecting instead. That list runs to dozens
-     * of grammar rules, which is more than an error page can carry; it is kept in the log.
-     *
-     * @param parserMessage the message of the SPARQL parser failure
-     * @return the gist of it as a single sentence, or null if there is nothing to say
-     */
-    private static String summarize(String parserMessage) {
-        if (parserMessage == null) return null;
-        // Lexical errors trail off into a dangling comma, which would run into what follows.
-        String firstLine = parserMessage.split("\\R", 2)[0].trim().replaceAll("[,;:\\s]+$", "");
-        if (firstLine.isEmpty()) return null;
-        return firstLine.endsWith(".") ? firstLine : firstLine + ".";
-    }
-
-    /**
-     * Names the character a SPARQL lexical error tripped over, as long as it is one that
-     * doesn't belong in SPARQL in the first place. Such characters — a non-breaking space, a
-     * typographic quote — look like their plain ASCII counterparts or like nothing at all, so
-     * the parser's report of a numeric character code leaves the author of the query none the
-     * wiser about what to correct.
-     *
-     * @param parserMessage the message of the SPARQL parser failure
-     * @return the explanation, or null if the message doesn't point at such a character
-     */
-    private static String explainOffendingCharacter(String parserMessage) {
-        if (parserMessage == null) return null;
-        Matcher m = LEXICAL_ERROR_CHARACTER_PATTERN.matcher(parserMessage);
-        if (!m.find()) return null;
-        int codePoint;
-        try {
-            codePoint = Integer.parseInt(m.group(1));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
-        // Only non-ASCII characters are worth naming: for the ASCII ones the parser's own
-        // report already shows what is there.
-        if (codePoint < 128 || !Character.isValidCodePoint(codePoint)) return null;
-        String name = Character.getName(codePoint);
-        return "The character in that position is " + String.format("U+%04X", codePoint)
-                + (name == null ? "" : " (" + name + ")")
-                + ", which SPARQL doesn't allow there. Characters like this one tend to slip in when a query is"
-                + " copied from a word processor or a web page, and replacing them with their plain equivalents"
-                + " makes the query valid again.";
     }
 
     /**

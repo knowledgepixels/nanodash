@@ -13,6 +13,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.vocabulary.KPXL_GRLC;
 import org.nanopub.vocabulary.NTEMPLATE;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.slf4j.Logger;
@@ -615,6 +616,38 @@ public class Template implements Serializable {
     public boolean isLongLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.LONG_LITERAL_PLACEHOLDER);
+    }
+
+    /**
+     * Checks whether the given placeholder is filled with the SPARQL code of a query, i.e.
+     * whether the template puts it in object position of a {@code kpxl_grlc:sparql} statement.
+     * <p>
+     * This is what tells a SPARQL field apart from any other long literal, and it has to be
+     * read off the template rather than guessed from the field: only the template knows what
+     * the value it collects is going to mean.
+     *
+     * @param iri the placeholder IRI to check.
+     * @return true if the placeholder holds the SPARQL code of a query.
+     */
+    public boolean isSparqlPlaceholder(IRI iri) {
+        iri = transform(iri);
+        for (IRI i : getStatementIris()) {
+            if (statementMap.containsKey(i)) {
+                // grouped statement
+                for (IRI g : getStatementIris(i)) {
+                    if (isSparqlStatementFor(g, iri)) return true;
+                }
+            } else {
+                // non-grouped statement
+                if (isSparqlStatementFor(i, iri)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSparqlStatementFor(IRI statementIri, IRI iri) {
+        return KPXL_GRLC.SPARQL.equals(statementPredicates.get(statementIri))
+                && iri.equals(statementObjects.get(statementIri));
     }
 
     /**

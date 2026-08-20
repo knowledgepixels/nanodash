@@ -1,0 +1,113 @@
+@prefix this: <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
+@prefix sub: <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix ns1: <http://purl.org/np/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  dct:description rdfs:label "has the description" .
+  
+  dct:license rdfs:label "has the usage license" .
+  
+  rdf:type rdfs:label "is a" .
+  
+  rdfs:label rdfs:label "has the name" .
+  
+  <https://w3id.org/kpxl/grlc/endpoint> rdfs:label "has the endpoint" .
+  
+  <https://w3id.org/kpxl/grlc/grlc-query> rdfs:label "grlc query" .
+  
+  <https://w3id.org/kpxl/grlc/sparql> rdfs:label "has the query" .
+  
+  sub:assertion a nt:AssertionTemplate;
+    rdfs:label "Defining a grlc query";
+    nt:hasStatement sub:st0, sub:st1, sub:st2, sub:st3, sub:st4, sub:st9;
+    nt:hasTag "Queries" .
+  
+  sub:description a nt:LongLiteralPlaceholder;
+    rdfs:label "description of the query" .
+  
+  sub:endpoint a nt:ExternalUriPlaceholder;
+    rdfs:label "endpoint URL";
+    nt:hasDefaultValue <https://w3id.org/np/l/nanopub-query-1.1/repo/full> .
+  
+  sub:license a nt:ExternalUriPlaceholder;
+    rdfs:label "license URL";
+    nt:hasDefaultValue <http://www.apache.org/licenses/LICENSE-2.0> .
+  
+  sub:query a nt:EmbeddedResource, nt:LocalResource, nt:UriPlaceholder;
+    rdfs:label "short ID for query, used as URI suffix" .
+  
+  sub:sparql a nt:LongLiteralPlaceholder;
+    rdfs:label "SPARQL query template" .
+  
+  sub:st0 rdf:object <https://w3id.org/kpxl/grlc/grlc-query>;
+    rdf:predicate rdf:type;
+    rdf:subject sub:query .
+  
+  sub:st1 rdf:object sub:title;
+    rdf:predicate rdfs:label;
+    rdf:subject sub:query .
+  
+  sub:st2 rdf:object sub:description;
+    rdf:predicate dct:description;
+    rdf:subject sub:query .
+  
+  sub:st3 a nt:OptionalStatement;
+    rdf:object sub:endpoint;
+    rdf:predicate <https://w3id.org/kpxl/grlc/endpoint>;
+    rdf:subject sub:query .
+  
+  sub:st4 a nt:OptionalStatement;
+    rdf:object sub:license;
+    rdf:predicate dct:license;
+    rdf:subject sub:query .
+  
+  sub:st9 rdf:object sub:sparql;
+    rdf:predicate <https://w3id.org/kpxl/grlc/sparql>;
+    rdf:subject sub:query .
+  
+  sub:title a nt:LiteralPlaceholder;
+    rdfs:label "title of the query" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  
+  this: dct:created "2025-05-28T14:38:58.062Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:supersedes <https://w3id.org/np/RARuOLDzf45L_wBceBownrcLLvAKP-2yB-uwJJx8H7IWI>;
+    npx:wasCreatedAt <https://nanodash.petapico.org/>;
+    rdfs:label "Template: Defining a grlc query";
+    nt:wasCreatedFromProvenanceTemplate ns1:RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>, <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RA5reLVXOCPQFWr2UiCJb19ES7NwOpQRmudb17e2iB0c4> .
+  
+  sub:sig npx:hasAlgorithm "RSA";
+    npx:hasPublicKey "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCjDGQCS1S+SRnERDuYDXOugdYUP0efEquHJEEHAbU/uLzBVlga89zqrNPCS7fBE6lArBUWEmT8eLKdMapyqvAzI1J3jUWTMhDJF+XFBkUiuiFfNSc4vJJcmi0yujtnuzXsRIG202jyaP4f5ULoskFwaZOSBZJfiE0dsB3D7DTIAQIDAQAB";
+    npx:hasSignature "TUKyY12Jkzi6Q/lAWKD6Ku+WDDMU16lxUDbL2pMDacYev8KrT8xuPlt+8TZSOIl7Dg862KetD9dqPc8sDS7wXXJV57PjFxwQXiic6MWONP2rZv5+CLotQxyHUPJejWObjEKks/OTkqWBOe5giTieDDY5oT/1rg0mEYaPBAPnvag=";
+    npx:hasSignatureTarget this:;
+    npx:signedBy orcid:0000-0002-1267-0234 .
+}
+
