@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
  * <p>
  * Query parsing (SPARQL, endpoint, label, description, placeholders) is inherited from
  * {@link QueryTemplate} in nanopub-java. This subclass adds Nanodash-specific concerns:
- * an instance cache with {@link #get} factory methods, and integration with the
+ * an instance cache with the {@link #get} and {@link #load} factory methods, and integration with the
  * {@link QueryParamField} form components used by the query UI.
  */
 public class GrlcQuery extends QueryTemplate {
@@ -37,6 +38,14 @@ public class GrlcQuery extends QueryTemplate {
     private static final Pattern ARTIFACT_CODE_PATTERN = Pattern.compile("RA[A-Za-z0-9\\-_]{43}");
 
     /**
+     * Picks the numeric character code out of the lexical errors the RDF4J SPARQL parser
+     * reports, which read like {@code Lexical error at line 20, column 56.  Encountered: "..."
+     * (160), after : ""} — where the number in brackets is the code of the character it
+     * tripped over.
+     */
+    private static final Pattern LEXICAL_ERROR_CHARACTER_PATTERN = Pattern.compile("Encountered:[^(]*\\((\\d+)\\)");
+
+    /**
      * Returns a singleton instance of GrlcQuery for the given QueryRef.
      *
      * @param ref the QueryRef object containing the query name
@@ -47,27 +56,127 @@ public class GrlcQuery extends QueryTemplate {
     }
 
     /**
-     * Returns a singleton instance of GrlcQuery for the given query ID.
+     * Returns a singleton instance of GrlcQuery for the given query ID, or null if there is
+     * no query to be had for it. Use {@link #load(String)} instead where the reason matters,
+     * e.g. to tell the user what is wrong with the query.
      *
      * @param id the unique identifier or URI of the query
-     * @return a GrlcQuery instance
+     * @return a GrlcQuery instance, or null if the query couldn't be loaded
      */
     public static GrlcQuery get(String id) {
-        if (id == null) return null;
-        GrlcQuery cached = instanceMap.getIfPresent(id);
-        if (cached == null) {
-            try {
-                GrlcQuery q = new GrlcQuery(id);
-                id = q.getQueryId();
-                cached = instanceMap.getIfPresent(id);
-                if (cached != null) return cached;
-                instanceMap.put(id, q);
-                cached = q;
-            } catch (Exception ex) {
-                logger.warn("Could not load query: {}", id, ex);
-            }
+        try {
+            return load(id);
+        } catch (QueryLoadException ex) {
+            return null;
         }
-        return cached;
+    }
+
+    /**
+     * Returns a singleton instance of GrlcQuery for the given query ID, reporting why it
+     * can't be had when it can't. Queries come from nanopublications that anybody can
+     * publish, so failing to load one says something about that nanopublication rather than
+     * about Nanodash, and the user is better served by being told what is wrong with it than
+     * by a generic error.
+     *
+     * @param id the unique identifier or URI of the query
+     * @return a GrlcQuery instance, never null
+     * @throws QueryLoadException if the query cannot be loaded, with a message explaining why
+     */
+    public static GrlcQuery load(String id) {
+        if (id == null || id.isBlank()) {
+            throw new QueryLoadException("No query was given to show or run.");
+        }
+        GrlcQuery cached = instanceMap.getIfPresent(id);
+        if (cached != null) return cached;
+        GrlcQuery q;
+        try {
+            q = new GrlcQuery(id);
+        } catch (Exception ex) {
+            // Logged in full here, because what is shown to the user is only the gist of it.
+            logger.warn("Could not load query: {}", id, ex);
+            throw new QueryLoadException(explainLoadFailure(id, ex), ex);
+        }
+        // Cached under the normalized ID, so that the different ways of referring to the same
+        // query (URI, ID, containing nanopublication) share one instance.
+        cached = instanceMap.getIfPresent(q.getQueryId());
+        if (cached != null) return cached;
+        instanceMap.put(q.getQueryId(), q);
+        return q;
+    }
+
+    /**
+     * Puts into plain words why the query with the given ID couldn't be loaded, for showing
+     * to the user.
+     *
+     * @param id the query ID or URI that was asked for
+     * @param ex the failure that loading it ran into
+     * @return the explanation
+     */
+    private static String explainLoadFailure(String id, Exception ex) {
+        MalformedQueryException sparqlFailure = null;
+        if (ex instanceof MalformedQueryException direct) {
+            sparqlFailure = direct;
+        } else if (ex.getCause() instanceof MalformedQueryException wrapped) {
+            sparqlFailure = wrapped;
+        }
+        if (sparqlFailure != null) {
+            String characterHint = explainOffendingCharacter(sparqlFailure.getMessage());
+            String detail = summarize(sparqlFailure.getMessage());
+            return "The SPARQL code of the query '" + id + "' is not valid, so the query can't be shown or run."
+                    + (detail == null ? "" : " The SPARQL parser reports: " + detail)
+                    + (characterHint == null ? "" : " " + characterHint)
+                    + " This is a problem with the published query itself, which only a corrected version of it can fix.";
+        }
+        String detail = ex.getMessage();
+        if (detail == null || detail.isBlank()) detail = ex.getClass().getSimpleName();
+        return "The query '" + id + "' couldn't be loaded: " + detail;
+    }
+
+    /**
+     * Reduces a SPARQL parser failure to the one line that says what it tripped over and
+     * where, leaving out the list of what it was expecting instead. That list runs to dozens
+     * of grammar rules, which is more than an error page can carry; it is kept in the log.
+     *
+     * @param parserMessage the message of the SPARQL parser failure
+     * @return the gist of it as a single sentence, or null if there is nothing to say
+     */
+    private static String summarize(String parserMessage) {
+        if (parserMessage == null) return null;
+        // Lexical errors trail off into a dangling comma, which would run into what follows.
+        String firstLine = parserMessage.split("\\R", 2)[0].trim().replaceAll("[,;:\\s]+$", "");
+        if (firstLine.isEmpty()) return null;
+        return firstLine.endsWith(".") ? firstLine : firstLine + ".";
+    }
+
+    /**
+     * Names the character a SPARQL lexical error tripped over, as long as it is one that
+     * doesn't belong in SPARQL in the first place. Such characters — a non-breaking space, a
+     * typographic quote — look like their plain ASCII counterparts or like nothing at all, so
+     * the parser's report of a numeric character code leaves the author of the query none the
+     * wiser about what to correct.
+     *
+     * @param parserMessage the message of the SPARQL parser failure
+     * @return the explanation, or null if the message doesn't point at such a character
+     */
+    private static String explainOffendingCharacter(String parserMessage) {
+        if (parserMessage == null) return null;
+        Matcher m = LEXICAL_ERROR_CHARACTER_PATTERN.matcher(parserMessage);
+        if (!m.find()) return null;
+        int codePoint;
+        try {
+            codePoint = Integer.parseInt(m.group(1));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        // Only non-ASCII characters are worth naming: for the ASCII ones the parser's own
+        // report already shows what is there.
+        if (codePoint < 128 || !Character.isValidCodePoint(codePoint)) return null;
+        String name = Character.getName(codePoint);
+        return "The character in that position is " + String.format("U+%04X", codePoint)
+                + (name == null ? "" : " (" + name + ")")
+                + ", which SPARQL doesn't allow there. Characters like this one tend to slip in when a query is"
+                + " copied from a word processor or a web page, and replacing them with their plain equivalents"
+                + " makes the query valid again.";
     }
 
     /**

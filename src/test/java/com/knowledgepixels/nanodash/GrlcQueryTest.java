@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
 import com.knowledgepixels.nanodash.utils.TestUtils;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.knowledgepixels.nanodash.utils.TestUtils.anyIri;
 import static com.knowledgepixels.nanodash.utils.TestUtils.randomIri;
 import static org.eclipse.rdf4j.model.util.Values.iri;
+import static org.eclipse.rdf4j.model.util.Values.literal;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -31,6 +33,13 @@ class GrlcQueryTest {
     private static final String QUERY_DESCRIPTION = "This query returns all participation links.";
     private static final String QUERY_LABEL = "Get participation links";
     private static final String ENDPOINT = "https://w3id.org/np/l/nanopub-query-1.1/repo/full";
+
+    /**
+     * SPARQL with a non-breaking space (U+00A0) where a plain space belongs — the kind of
+     * character that a query picks up on its way through a word processor, and that the SPARQL
+     * parser rejects with nothing but a numeric character code to go on (#284).
+     */
+    private static final String SPARQL_WITH_NON_BREAKING_SPACE = "select ?thing where { ?thing ?p\u00A0?o }";
 
     @AfterEach
     void tearDown() throws NoSuchFieldException, IllegalAccessException {
@@ -78,6 +87,81 @@ class GrlcQueryTest {
     @Test
     void getNullForNullId() {
         assertNull(GrlcQuery.get((String) null));
+    }
+
+    @Test
+    void getNullForMalformedSparql() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
+            utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(queryNanopubWith(SPARQL_WITH_NON_BREAKING_SPACE));
+            assertNull(GrlcQuery.get(NANOPUB_URI));
+        }
+    }
+
+    // A query whose SPARQL doesn't parse can't be loaded, and the reason is worth passing on:
+    // the query is published by someone else, so the user can only be told what is wrong with
+    // it (#284).
+    @Test
+    void loadExplainsMalformedSparql() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
+            utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(queryNanopubWith(SPARQL_WITH_NON_BREAKING_SPACE));
+
+            QueryLoadException ex = assertThrows(QueryLoadException.class, () -> GrlcQuery.load(NANOPUB_URI));
+            assertTrue(ex.getMessage().contains("SPARQL code"), ex.getMessage());
+            // The offending character is invisible, so naming it is the only way the author of
+            // the query can find it.
+            assertTrue(ex.getMessage().contains("U+00A0"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("NO-BREAK SPACE"), ex.getMessage());
+        }
+    }
+
+    // An ordinary syntax error has nothing invisible about it, so the parser's own report is
+    // passed on as it is.
+    @Test
+    void loadExplainsSyntaxErrorWithoutNamingACharacter() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
+            utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(queryNanopubWith("select ?thing where { ?thing"));
+
+            QueryLoadException ex = assertThrows(QueryLoadException.class, () -> GrlcQuery.load(NANOPUB_URI));
+            assertTrue(ex.getMessage().contains("SPARQL code"), ex.getMessage());
+            assertFalse(ex.getMessage().contains("U+"), ex.getMessage());
+        }
+    }
+
+    @Test
+    void loadExplainsNanopubWithoutQuery() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub nanopub = TestUtils.createNanopub();
+
+        try (MockedStatic<Utils> utilsMock = mockStatic(Utils.class)) {
+            utilsMock.when(() -> Utils.getNanopub(any())).thenReturn(nanopub);
+
+            QueryLoadException ex = assertThrows(QueryLoadException.class, () -> GrlcQuery.load(NANOPUB_URI));
+            assertTrue(ex.getMessage().contains("No query found in nanopublication"), ex.getMessage());
+        }
+    }
+
+    @Test
+    void loadThrowsForMissingId() {
+        assertThrows(QueryLoadException.class, () -> GrlcQuery.load(null));
+        assertThrows(QueryLoadException.class, () -> GrlcQuery.load("  "));
+    }
+
+    @Test
+    void loadThrowsForIdThatIsNotAQueryId() {
+        assertThrows(QueryLoadException.class, () -> GrlcQuery.load("https://example.com/not-a-query"));
+    }
+
+    /**
+     * Builds a nanopublication holding a single query with the given SPARQL code.
+     */
+    private static Nanopub queryNanopubWith(String sparql) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        NanopubCreator creator = TestUtils.getNanopubCreator(NANOPUB_URI);
+        IRI queryUri = iri(NANOPUB_URI + "/" + QUERY_SUFFIX);
+        creator.addAssertionStatement(queryUri, RDF.TYPE, KPXL_GRLC.GRLC_QUERY);
+        creator.addAssertionStatement(queryUri, KPXL_GRLC.SPARQL, literal(sparql));
+        creator.addAssertionStatement(queryUri, KPXL_GRLC.ENDPOINT, iri(ENDPOINT));
+        TestUtils.fillProvenanceGraph(creator);
+        TestUtils.fillPubInfoGraph(creator);
+        return creator.finalizeNanopub();
     }
 
     @Test
