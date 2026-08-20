@@ -1,3 +1,17 @@
+## [5.11.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.11.0...nanodash-5.11.1) (2026-08-20)
+
+### Dependency updates
+
+* **deps:** update nanopub-java to 1.92.0 ([9d812aa](https://github.com/knowledgepixels/nanodash/commit/9d812aa2b4d7cd00ec3875b0055b635a10fa620e))
+
+### Bug Fixes
+
+* keep the cached map when a refresh fails ([c261a06](https://github.com/knowledgepixels/nanodash/commit/c261a0654a43233540a2dd01bd779b9be28681bc))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([375f916](https://github.com/knowledgepixels/nanodash/commit/375f916c07a1beac86c54fdd502452cb67b1bba9))
+
 ## [5.11.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.10.0...nanodash-5.11.0) (2026-08-19)
 
 ### Features
