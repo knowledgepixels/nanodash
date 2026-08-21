@@ -1,6 +1,9 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.utils.TestUtils;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
@@ -8,22 +11,29 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
+import static org.eclipse.rdf4j.model.util.Values.iri;
+import static org.eclipse.rdf4j.model.util.Values.literal;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import org.nanopub.MalformedNanopubException;
+import org.nanopub.Nanopub;
+import org.nanopub.NanopubAlreadyFinalizedException;
+import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.eclipse.rdf4j.model.util.Values.iri;
-import static org.eclipse.rdf4j.model.util.Values.literal;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.knowledgepixels.nanodash.utils.TestUtils;
 
 class UtilsTest {
 
@@ -138,6 +148,22 @@ class UtilsTest {
     }
 
     @Test
+    void isHtmlLiteralRecognizesRdfHtmlDatatype() {
+        assertTrue(Utils.isHtmlLiteral(literal("<p>Hello</p>", RDF.HTML)));
+        assertTrue(Utils.isHtmlLiteral(literal("no tags at all", RDF.HTML)),
+                "the datatype decides, not the content");
+    }
+
+    @Test
+    void isHtmlLiteralRejectsOtherValues() {
+        assertFalse(Utils.isHtmlLiteral(literal("<p>Hello</p>")), "plain string literal");
+        assertFalse(Utils.isHtmlLiteral(literal("<p>Hello</p>", "en")), "language-tagged literal");
+        assertFalse(Utils.isHtmlLiteral(literal("42", XSD.INTEGER)), "other datatype");
+        assertFalse(Utils.isHtmlLiteral(iri("https://example.org/thing")), "IRI");
+        assertFalse(Utils.isHtmlLiteral(null), "null");
+    }
+
+    @Test
     void sanitizeSvgKeepsStaticSvgSubset() {
         String rawSvg = "<svg viewBox=\"0 0 504 900\" width=\"504\" height=\"900\" font-family=\"sans-serif\">"
                 + "<rect x=\"20\" y=\"8\" width=\"464\" height=\"34\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#93c5fd\"></rect>"
@@ -149,10 +175,10 @@ class UtilsTest {
                 + "<title>Registry (full label)</title></a>"
                 + "</text></g></svg>";
         String sanitized = Utils.sanitizeSvg(rawSvg);
-        for (String kept : new String[] {"<svg", "viewBox=\"0 0 504 900\"", "<rect", "<g", "transform=", "<line",
-                "<path", "d=\"M 0 0 L 10 10\"", "<text", "text-anchor=", "<tspan", "dy=\"15\"",
-                "href=\"https://w3id.org/fair/fip/terms/Registry\"", "Registry",
-                "<title>Registry (full label)</title>"}) {
+        for (String kept : new String[]{"<svg", "viewBox=\"0 0 504 900\"", "<rect", "<g", "transform=", "<line",
+            "<path", "d=\"M 0 0 L 10 10\"", "<text", "text-anchor=", "<tspan", "dy=\"15\"",
+            "href=\"https://w3id.org/fair/fip/terms/Registry\"", "Registry",
+            "<title>Registry (full label)</title>"}) {
             assertTrue(sanitized.contains(kept), "expected to keep: " + kept + " in: " + sanitized);
         }
     }
@@ -178,8 +204,8 @@ class UtilsTest {
                 + "<style>rect { fill: red; }</style>"
                 + "</svg>";
         String sanitized = Utils.sanitizeSvg(rawSvg);
-        for (String dropped : new String[] {"<script", "alert", "onclick", "onload", "style", "<foreignObject",
-                "<use", "<image", "evil.example"}) {
+        for (String dropped : new String[]{"<script", "alert", "onclick", "onload", "style", "<foreignObject",
+            "<use", "<image", "evil.example"}) {
             assertFalse(sanitized.contains(dropped), "expected to drop: " + dropped + " but got: " + sanitized);
         }
         assertTrue(sanitized.contains("<rect width=\"10\" height=\"10\""));

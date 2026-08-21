@@ -33,6 +33,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -473,18 +474,22 @@ public class ReadonlyItem extends AbstractContextComponent {
                 linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
                 showMoreLabelLiteral.setVisible(true);
             }
+            boolean renderAsHtml = renderAsHtml(vL);
+            // An rdf:HTML literal gets no datatype marker: the rendered content itself shows
+            // what it is, just as dates are shown without an "(xsd:date)" suffix.
+            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING) && !renderAsHtml;
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
                 languageComp.setVisible(true);
-            } else if (!vL.getDatatype().equals(XSD.STRING)) {
+            } else if (showDatatype) {
                 model.setObject("\"" + vs + "\"");
                 datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
                 datatypeComp.setVisible(true);
             } else {
                 model.setObject("\"" + vs + "\"");
             }
-            if (Utils.looksLikeHtml(vs)) {
+            if (renderAsHtml) {
                 linkComp.setVisible(false);
                 extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);
@@ -493,6 +498,27 @@ public class ReadonlyItem extends AbstractContextComponent {
                 showMoreLabelHTML.setVisible(true);
             }
         }
+    }
+
+    /**
+     * Decides whether a literal's content is to be rendered as HTML rather than escaped.
+     *
+     * <p>The datatype decides: {@code rdf:HTML} on the literal itself, or declared by the
+     * template for this placeholder, means HTML. Only when the template declares no
+     * datatype at all do we fall back to the pattern heuristic, which covers nanopubs
+     * published before HTML content was tagged, and those made without a template
+     * (see issue #378).
+     *
+     * @param literal the literal to be displayed
+     * @return true if the content is to be rendered as HTML
+     */
+    private boolean renderAsHtml(Literal literal) {
+        if (Utils.isHtmlLiteral(literal)) return true;
+        // A language-tagged literal is an rdf:langString, so a datatype the template
+        // declares alongside the tag does not apply to it.
+        IRI declaredDatatype = literal.getLanguage().isPresent() ? null : template.getDatatype(iri);
+        if (declaredDatatype != null) return RDF.HTML.equals(declaredDatatype);
+        return Utils.looksLikeHtml(literal.stringValue());
     }
 
     /**

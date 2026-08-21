@@ -1,7 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import com.knowledgepixels.nanodash.template.UnificationException;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.Literal;
@@ -31,7 +33,15 @@ public class LiteralItem extends Panel implements ContextComponent {
         super(id);
         this.literal = literal;
 //		this.context = rg.getContext();
-        add(new Label(LABEL_ID, literal.stringValue()));
+        if (Utils.isHtmlLiteral(literal)) {
+            // Content tagged as rdf:HTML is rendered as such, not shown as a quoted string
+            // (see issue #378).
+            add(new Label(LABEL_ID, Utils.sanitizeHtml(literal.stringValue()))
+                    .setEscapeModelStrings(false)
+                    .add(new AttributeAppender("class", "internal")));
+        } else {
+            add(new Label(LABEL_ID, "\"" + literal.stringValue() + "\""));
+        }
     }
 
     /**
