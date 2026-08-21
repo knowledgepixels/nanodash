@@ -86,7 +86,7 @@ public class ResourcePartPage extends NanodashPage {
         final String id = parameters.get("id").toString();
         final String contextId = parameters.get("context").toString();
         final String nanopubId;
-        String label = parameters.get("label").isEmpty() ? id.replaceFirst("^.*[#/]([^#/]+)$", "$1") : parameters.get("label").toString();
+        String label = parameters.get("label").isEmpty() ? Utils.getShortNameFromURI(id) : parameters.get("label").toString();
         Set<IRI> classes = new HashSet<>();
 
         resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
