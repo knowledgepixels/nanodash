@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.SparqlSyntax;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -78,6 +79,17 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
                 }
             }
         });
+
+        // A query whose SPARQL doesn't parse can never run, and a nanopublication can't be
+        // edited afterwards: publishing one is a mistake that only a corrected version can
+        // undo. So the same parser that will later decide whether the query works runs here,
+        // while the text can still be changed (#615).
+        if (template.isSparqlPlaceholder(iri)) {
+            tc.add((IValidator<String>) s -> {
+                String problem = SparqlSyntax.checkQuery(s.getValue());
+                if (problem != null) s.error(new ValidationError(problem));
+            });
+        }
 
         tc.add(new OnChangeAjaxBehavior() {
             @Override
