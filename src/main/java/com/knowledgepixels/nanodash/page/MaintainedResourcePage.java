@@ -14,11 +14,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 
 import java.util.List;
@@ -88,6 +90,13 @@ public class MaintainedResourcePage extends NanodashPage {
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
+        // Optional profile picture, left of the title/URI block (issue #632). Shown
+        // plainly, i.e. without the tilted-square mask that user icons get, and simply
+        // omitted when the resource declares none.
+        IRI profilePicture = resource.getProfilePicture();
+        add(profilePicture != null
+                ? new ExternalImage("profilepic", profilePicture.stringValue())
+                : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(PageTitleMenu.forResource("titlemenu", resource));

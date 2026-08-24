@@ -677,6 +677,20 @@ img.thirdparty {
   -webkit-mask-size: contain;
 }
 
+/* Profile pictures of spaces and maintained resources (issue #632): unlike user
+   icons these are shown plainly, without the tilted-square mask, above the title and
+   main URI and flush with them on the left. object-fit: contain keeps wide logos
+   uncropped; with no picture the header is exactly as it was before. */
+.resource-profile-pic {
+  display: block;
+  height: 4.2em;
+  width: auto;
+  max-width: 12em;
+  object-fit: contain;
+  object-position: left;
+  margin: 0 0 0.4em 0;
+}
+
 .api-icon {
   display: inline-block;
   background-image: url("images/api-icon.svg");
