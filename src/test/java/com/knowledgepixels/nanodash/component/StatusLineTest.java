@@ -13,6 +13,8 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.io.File;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,6 +90,40 @@ class StatusLineTest {
         String renderedHtml = wicketTester.getLastResponseAsString();
 
         assertTrue(renderedHtml.contains("This nanopublication has <strong>newer versions</strong>:"));
+    }
+
+    @Test
+    void statusLineIgnoresSelfAndDuplicateRows() {
+        // The query's supersedes path is reflexive and joins on the indexed
+        // signature keys and creation dates, so the nanopublication comes back as
+        // its own "newer version", possibly many times over.
+        ApiResponse response = new ApiResponse();
+        for (int i = 0; i < 12; i++) {
+            response.getData().add(entry(TRUSTY_C, "", ""));
+        }
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, null);
+
+        wicketTester.startComponentInPage(statusLine);
+        String renderedHtml = wicketTester.getLastResponseAsString();
+
+        assertTrue(renderedHtml.contains("This is the latest version."));
+        assertFalse(renderedHtml.contains("newer version"));
+    }
+
+    @Test
+    void statusLineListsEachNewerVersionOnce() {
+        ApiResponse response = new ApiResponse();
+        response.getData().add(entry(TRUSTY_C, "", ""));
+        response.getData().add(entry(TRUSTY_A, "", ""));
+        response.getData().add(entry(TRUSTY_A, "", ""));
+        StatusLine statusLine = new StatusLine("testMarkupId", TRUSTY_C, response, null);
+
+        wicketTester.startComponentInPage(statusLine);
+        String renderedHtml = wicketTester.getLastResponseAsString();
+
+        assertTrue(renderedHtml.contains("This nanopublication has a <strong>newer version</strong>:"));
+        // One rendered link label, not one per duplicate row.
+        assertEquals(1, renderedHtml.split("<span>RAAAAAAAAA</span>", -1).length - 1, renderedHtml);
     }
 
     @Test

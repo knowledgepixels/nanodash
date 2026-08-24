@@ -2727,16 +2727,29 @@ div.navigator .goto a[disabled] {
   height: auto;
 }
 
-/* Links in SVG-view figures follow the page's link colors (matching the a /
-   a:hover rules above). CSS overrides the SVG's own fill presentation
-   attributes, which queries keep as a fallback for standalone rendering. */
+/* Links in SVG figures (both SVG views and inline SVG in HTML snippets) follow
+   the page's link colors (matching the a / a:hover rules above). CSS overrides
+   the SVG's own fill presentation attributes, which queries keep as a fallback
+   for standalone rendering. */
 .svg-view-content a text,
-.svg-view-content a tspan {
+.svg-view-content a tspan,
+.cell-data-html a text,
+.cell-data-html a tspan,
+.inline-list a text,
+.inline-list a tspan,
+.paragraph-content a text,
+.paragraph-content a tspan {
   fill: #0b73da;
 }
 
 .svg-view-content a:hover text,
-.svg-view-content a:hover tspan {
+.svg-view-content a:hover tspan,
+.cell-data-html a:hover text,
+.cell-data-html a:hover tspan,
+.inline-list a:hover text,
+.inline-list a:hover tspan,
+.paragraph-content a:hover text,
+.paragraph-content a:hover tspan {
   fill: #6eb2f7;
 }
 
@@ -3021,6 +3034,16 @@ a.source:hover {
 .cell-data-html span,
 .cell-data-html div {
   margin: 0;
+}
+
+/* Inline SVG in HTML snippets coming from queries (table cells, list entries and
+   paragraph content), scaled down to the available width like SVG-view figures. */
+.cell-data-html svg,
+.inline-list svg,
+.paragraph-content svg {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
 }
 
 /* Advanced/Simple mode toggle */
