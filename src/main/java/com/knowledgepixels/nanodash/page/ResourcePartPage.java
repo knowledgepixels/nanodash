@@ -158,6 +158,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
@@ -182,7 +183,8 @@ public class ResourcePartPage extends NanodashPage {
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {
-                contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
+                contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
+                        markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)));
             } else {
                 contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
 

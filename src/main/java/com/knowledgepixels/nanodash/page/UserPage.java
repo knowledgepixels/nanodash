@@ -102,6 +102,7 @@ public class UserPage extends NanodashPage {
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
         add(new Label("username", displayName));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", IndividualAgent.get(userIriString)));
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
 
@@ -181,7 +182,8 @@ public class UserPage extends NanodashPage {
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
-                    contentContainer.add(new ViewList("views", individualAgent));
+                    contentContainer.add(RefreshingStructurePanel.of("views", individualAgent,
+                            markupId -> new ViewList(markupId, IndividualAgent.get(userIriString))));
                 }
                 contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
                 if (empty) {

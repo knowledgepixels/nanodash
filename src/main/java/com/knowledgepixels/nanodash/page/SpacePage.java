@@ -110,8 +110,8 @@ public class SpacePage extends NanodashPage {
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         // Calendar submenus for (event-containing) event spaces, plus configuration
         // shortcuts for maintainers+; invisible when there is neither. See
-        // SpaceTitleMenu.forSpace.
-        add(SpaceTitleMenu.forSpace("calendarmenu", space));
+        // PageTitleMenu.forSpace.
+        add(PageTitleMenu.forSpace("titlemenu", space));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
         // Disambiguation notice: shown when viewing a specific claimant (ref pinned) or the
@@ -172,7 +172,8 @@ public class SpacePage extends NanodashPage {
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
-                contentContainer.add(new ViewList("views", space));
+                contentContainer.add(RefreshingStructurePanel.of("views", space,
+                        markupId -> new ViewList(markupId, spaceModel.getObject())));
             }
             addUnconfiguredFallback(contentContainer, space, empty);
         } else {

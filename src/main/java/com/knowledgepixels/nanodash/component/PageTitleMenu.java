@@ -1,10 +1,14 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.calendar.CalendarEvent;
 import com.knowledgepixels.nanodash.calendar.CalendarUrls;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.CalendarFeedPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
@@ -14,6 +18,7 @@ import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,23 +37,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import org.apache.wicket.util.visit.IVisitor;
+import org.nanopub.extra.services.QueryRef;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * The dropdown next to a space title: a regular chevron menu (like the other dropdowns)
- * offering the space's calendar actions and, for maintainer-tier members and above, the
+ * The dropdown next to a page title: a regular chevron menu (like the other dropdowns)
+ * offering whatever the page as a whole can be asked to do. Every logged-in viewer gets
+ * "refresh now", the page-level counterpart of a view display's own refresh entry; a space
+ * additionally gets its calendar actions and, for maintainer-tier members and above, the
  * space-configuration shortcuts. Each calendar entry names a group of actions ("add to
  * calendar", "add events to calendar") and opens its entries in a submenu flyout on
  * hover; the configuration shortcuts are plain entries below them.
  *
+ * <p>Just right of the chevron sits the {@link StructureRefreshIndicator}: the spinner
+ * saying the page structure is being recalculated (issue #622).</p>
+ *
  * <p>Each supplied link must use the markup id {@code "link"}; the links are rendered in
  * order as menu entries.</p>
  */
-public class SpaceTitleMenu extends Panel {
+public class PageTitleMenu extends Panel {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpaceTitleMenu.class);
+    private static final Logger logger = LoggerFactory.getLogger(PageTitleMenu.class);
 
     /** A submenu: its label in the top-level dropdown, and the entries of its flyout. */
     private record Group(String label, List<AbstractLink> entries) implements Serializable {
@@ -62,8 +76,12 @@ public class SpaceTitleMenu extends Panel {
         }
     }
 
-    private SpaceTitleMenu(String id, List<Group> groups, List<AbstractLink> extraEntries) {
+    private PageTitleMenu(String id, List<Group> groups, List<AbstractLink> extraEntries, AbstractResourceWithProfile resource, boolean canRefresh) {
         super(id);
+        add(new StructureRefreshIndicator("spinner", resource));
+        add(new WebMarkupContainer("refreshSeparator")
+                .setVisible(canRefresh && !(groups.isEmpty() && extraEntries.isEmpty())));
+        add(refreshNowLink(resource).setVisible(canRefresh));
         add(new DataView<Group>("groups", new ListDataProvider<>(groups)) {
             @Override
             protected void populateItem(Item<Group> groupItem) {
@@ -86,8 +104,56 @@ public class SpaceTitleMenu extends Panel {
     }
 
     /**
+     * Brings the whole page up to date: the resource's own structure (which views it shows)
+     * and every view query rendered on it, then a re-render so each of them comes back
+     * through the refreshing panels — the page keeps what it has on screen and swaps in the
+     * parts that turn out to have changed. The page-level counterpart of a view display's
+     * "refresh now", which does the same for its one query.
+     *
+     * @param resource the page's resource, or null if the page has none
+     * @return the menu entry
+     */
+    private static AbstractLink refreshNowLink(AbstractResourceWithProfile resource) {
+        // Held by id: see StructureRefreshIndicator on why the singleton itself is not kept.
+        final String resourceId = resource == null ? null : resource.getId();
+        return new AjaxFallbackLink<Void>("refreshNow") {
+            @Override
+            public void onClick(Optional<AjaxRequestTarget> target) {
+                AbstractResourceWithProfile r = resourceId == null ? null : AbstractResourceWithProfile.get(resourceId);
+                if (r != null) r.forceRefresh(0);
+                getPage().visitChildren(QueryResult.class, (IVisitor<QueryResult, Void>) (view, visit) -> {
+                    QueryRef queryRef = view.getQueryRef();
+                    if (queryRef != null) ApiCache.clearCache(queryRef, 0);
+                });
+                setResponsePage(getPage().getClass(), getPage().getPageParameters());
+            }
+        };
+    }
+
+    /**
+     * The title menu for a page showing a resource that is not a space: the refresh entry
+     * and the structure spinner. Invisible for viewers who are not logged in, who have
+     * nothing to ask of the page.
+     *
+     * @param id       the Wicket component id
+     * @param resource the resource whose page this is
+     * @return the menu, or an invisible {@link EmptyPanel}
+     */
+    public static Component forResource(String id, AbstractResourceWithProfile resource) {
+        return build(id, new ArrayList<>(), new ArrayList<>(), resource);
+    }
+
+    private static Component build(String id, List<Group> groups, List<AbstractLink> extraEntries, AbstractResourceWithProfile resource) {
+        boolean canRefresh = resource != null && NanodashSession.get().getUserIri() != null;
+        if (groups.isEmpty() && extraEntries.isEmpty() && !canRefresh) {
+            return new EmptyPanel(id).setVisible(false);
+        }
+        return new PageTitleMenu(id, groups, extraEntries, resource, canRefresh);
+    }
+
+    /**
      * The title menu for a space, or an invisible placeholder when there is nothing to
-     * offer: no calendar-relevant dates and no configuration rights.
+     * offer: no calendar-relevant dates, no configuration rights and nobody logged in.
      *
      * <p>An Event space offers its own date as a one-off copy (an {@code .ics} file, or a
      * pre-filled form at Google or Outlook). A space containing Events offers a
@@ -134,10 +200,7 @@ public class SpaceTitleMenu extends Panel {
             if (addViewDisplay != null) extraEntries.add(addViewDisplay);
         }
 
-        if (groups.isEmpty() && extraEntries.isEmpty()) {
-            return new EmptyPanel(id).setVisible(false);
-        }
-        return new SpaceTitleMenu(id, groups, extraEntries);
+        return build(id, groups, extraEntries, space);
     }
 
     /**
