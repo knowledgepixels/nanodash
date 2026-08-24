@@ -122,7 +122,7 @@ public class QueryResultPlainParagraph extends QueryResult {
                 }
                 item.add(header);
                 String content = item.getModelObject().get("content");
-                item.add(new Label("content", content == null ? null : withContextInHtmlLinks(Utils.sanitizeHtml(content))).setEscapeModelStrings(false));
+                item.add(new Label("content", content == null ? null : cellHtml(content)).setEscapeModelStrings(false));
             }
         };
     }

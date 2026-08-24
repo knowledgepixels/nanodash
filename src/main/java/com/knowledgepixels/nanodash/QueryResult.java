@@ -4,11 +4,13 @@ import com.knowledgepixels.nanodash.component.QueryResultComponentFactory;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.PublishPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.Strings;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
@@ -283,6 +285,80 @@ public abstract class QueryResult extends Panel {
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    // An "<a ...>" start tag in sanitized cell HTML, with its attribute part.
+    private static final Pattern ANCHOR_TAG_PATTERN = Pattern.compile("<a\\b([^>]*)>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern HREF_ATTRIBUTE_PATTERN = Pattern.compile("href=\"([^\"]*)\"");
+
+    // The look given to publish links in result content: the small transparent button
+    // used for secondary actions elsewhere in the app.
+    private static final String PUBLISH_BUTTON_CLASSES = "smallbutton button light";
+
+    /**
+     * Prepares raw HTML coming from query data for display in result content: it is
+     * sanitized, its app-internal links get the navigation context, and its links to
+     * the publish form are turned into buttons.
+     *
+     * @param rawHtml the raw HTML from the query data, or null
+     * @return the sanitized and enriched HTML
+     */
+    protected String cellHtml(String rawHtml) {
+        return withPublishLinksAsButtons(withContextInHtmlLinks(Utils.sanitizeHtml(rawHtml)));
+    }
+
+    /**
+     * Shows links to the publish form as buttons, so that the actions a view offers
+     * stand out from the links to content. Only links that don't bring their own class
+     * are styled.
+     *
+     * @param sanitizedHtml the sanitized cell HTML, or null
+     * @return the HTML with publish links marked as buttons
+     */
+    protected static String withPublishLinksAsButtons(String sanitizedHtml) {
+        if (sanitizedHtml == null) return null;
+        Matcher m = ANCHOR_TAG_PATTERN.matcher(sanitizedHtml);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String attributes = m.group(1);
+            String replacement = m.group();
+            Matcher hrefMatcher = HREF_ATTRIBUTE_PATTERN.matcher(attributes);
+            if (hrefMatcher.find() && isPublishLink(hrefMatcher.group(1)) && !attributes.contains("class=")) {
+                replacement = "<a class=\"" + PUBLISH_BUTTON_CLASSES + "\"" + attributes + ">";
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /**
+     * Whether the given value is a link to the publish form, i.e. the app-internal
+     * {@code /publish} path, with or without query parameters. Only the path is
+     * checked, so the sanitizer's escaping inside the parameters (it writes "=" as
+     * "&#61;") makes no difference.
+     *
+     * @param value the value to check, or null
+     * @return true if the value is a publish link
+     */
+    public static boolean isPublishLink(String value) {
+        if (value == null) return false;
+        return value.split("[?#]", 2)[0].equals(PublishPage.MOUNT_PATH);
+    }
+
+    /**
+     * The content for a publish link that comes as a plain cell value: a button
+     * carrying the label from the sibling label column where there is one, and a
+     * generic label otherwise.
+     *
+     * @param url   the publish link
+     * @param label the label from the sibling label column, or null
+     * @return the HTML for the button
+     */
+    protected String publishButtonHtml(String url, String label) {
+        String text = (label == null || label.isBlank() || label.equals(url)) ? "publish…" : label;
+        String inner = Utils.looksLikeHtml(text) ? text : Strings.escapeMarkup(text).toString();
+        return cellHtml("<a href=\"" + Strings.escapeMarkup(url) + "\">" + inner + "</a>");
     }
 
     /**

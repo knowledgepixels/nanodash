@@ -165,7 +165,9 @@ public class QueryResultList extends QueryResult {
                             for (int i = 0; i < parts.length; i++) {
                                 String part = parts[i];
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                                if (part.matches("https?://.+")) {
+                                if (isPublishLink(part)) {
+                                    multiComponents.add(new Label("component", publishButtonHtml(part, label)).setEscapeModelStrings(false));
+                                } else if (part.matches("https?://.+")) {
                                     if (label != null && label.equals(part)) {
                                         label = null;
                                     }
@@ -179,7 +181,7 @@ public class QueryResultList extends QueryResult {
                                         String display = label != null ? label : unescaped;
                                         boolean isHtml = Utils.looksLikeHtml(display);
                                         if (isHtml) {
-                                            display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
+                                            display = cellHtml(display);
                                         }
                                         multiComponents.add(new Label("component", display).setEscapeModelStrings(!isHtml));
                                     }
@@ -203,6 +205,10 @@ public class QueryResultList extends QueryResult {
                                 }
                             }
                             components.add(new ComponentSequence("component", ", ", multiComponents));
+                        } else if (isPublishLink(entryValue)) {
+                            // A ready-made link to the publish form: an action the view offers,
+                            // shown as a button rather than as a link to content.
+                            components.add(new Label("component", publishButtonHtml(entryValue, entry.get(key + "_label"))).setEscapeModelStrings(false));
                         } else if (entryValue.matches("https?://.+")) {
                             String entryLabel = entry.get(key + "_label");
                             if ("^".equals(entryLabel)) {
@@ -220,7 +226,7 @@ public class QueryResultList extends QueryResult {
                             } else {
                                 String display = hasLabel ? entryLabel : entryValue;
                                 if (Utils.looksLikeHtml(display)) {
-                                    display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
+                                    display = cellHtml(display);
                                 } else if (hasLabel) {
                                     display = Strings.escapeMarkup(display).toString();
                                 }
