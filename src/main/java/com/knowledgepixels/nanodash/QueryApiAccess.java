@@ -52,7 +52,10 @@ public class QueryApiAccess {
     public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
     public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
     public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
-    public static final String GET_PARTS = "RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts";
+    // Reads the part-of relation as (dct:partOf|dct:isPartOf), so that terms published with
+    // the legacy spelling keep being found alongside correctly written ones; derived from
+    // RAJmZoM0, which matched dct:partOf alone (#511).
+    public static final String GET_PARTS = "RAaJUR8YijcD0BnYQkIvjmA2EJxWTeQNzTke9quasmj-8/get-parts";
     // Node-anchored variants (label/tag/unlisted read off the typed template node, so
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
