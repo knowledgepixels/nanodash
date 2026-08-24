@@ -69,6 +69,10 @@ class QueryPageTest {
             assertEquals(ErrorPage.class, TestUtils.forwardedPageClass(ex));
             String message = TestUtils.forwardedPageParameters(ex).get(ErrorPage.MESSAGE_PARAM).toString();
             assertTrue(message.contains("NO-BREAK SPACE"), message);
+            // Only the query's author can publish a corrected version, and the error page
+            // is told as much so it can say so (#616).
+            assertEquals(ErrorPage.Kind.CONTENT.getParamValue(),
+                    TestUtils.forwardedPageParameters(ex).get(ErrorPage.KIND_PARAM).toString());
         }
     }
 
@@ -79,6 +83,9 @@ class QueryPageTest {
         RestartResponseException ex = assertThrows(RestartResponseException.class,
                 () -> new QueryPage(new PageParameters()));
         assertEquals(ErrorPage.class, TestUtils.forwardedPageClass(ex));
+        // Nothing was published wrongly here; the request itself is what can be corrected (#616).
+        assertEquals(ErrorPage.Kind.REQUEST.getParamValue(),
+                TestUtils.forwardedPageParameters(ex).get(ErrorPage.KIND_PARAM).toString());
     }
 
 }

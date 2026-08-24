@@ -60,8 +60,11 @@ public class NanopubNotFoundPage extends NanodashPage {
     public static void forwardFor(NanopubLookup lookup) {
         switch (lookup.getStatus()) {
             case FOUND -> throw new IllegalArgumentException("Nanopublication was found, nothing to forward to");
-            case INVALID_ID -> throw new RestartResponseException(ErrorPage.class,
-                    new PageParameters().set(ErrorPage.MESSAGE_PARAM, lookup.getErrorMessage()));
+            // A malformed identifier is the asking user's to correct, so the error page is
+            // told as much and says so (#616).
+            case INVALID_ID -> throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                    .set(ErrorPage.MESSAGE_PARAM, lookup.getErrorMessage())
+                    .set(ErrorPage.KIND_PARAM, ErrorPage.Kind.REQUEST.getParamValue()));
             default -> {
                 PageParameters params = new PageParameters().set(ID_PARAM, lookup.getId());
                 if (lookup.getStatus() == NanopubLookup.Status.TIMEOUT) {

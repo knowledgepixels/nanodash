@@ -92,8 +92,9 @@ public class QueryPage extends NanodashPage {
         try {
             q = GrlcQuery.load(id);
         } catch (QueryLoadException ex) {
-            throw new RestartResponseException(ErrorPage.class,
-                    new PageParameters().set(ErrorPage.MESSAGE_PARAM, ex.getMessage()));
+            throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                    .set(ErrorPage.MESSAGE_PARAM, ex.getMessage())
+                    .set(ErrorPage.KIND_PARAM, ex.getKind().getParamValue()));
         }
         if (!q.getQueryId().equals(id)) {
             throw new RestartResponseException(getClass(), parameters.set("id", q.getQueryId()));

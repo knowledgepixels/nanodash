@@ -85,6 +85,9 @@ class NanopubNotFoundPageTest {
         RestartResponseException ex = assertThrows(RestartResponseException.class, () -> NanopubNotFoundPage.forwardFor(lookup));
         assertEquals(ErrorPage.class, TestUtils.forwardedPageClass(ex));
         assertTrue(TestUtils.forwardedPageParameters(ex).get(ErrorPage.MESSAGE_PARAM).toString().contains(malformedId));
+        // It is the asking user's to correct, which the error page needs to be told (#616).
+        assertEquals(ErrorPage.Kind.REQUEST.getParamValue(),
+                TestUtils.forwardedPageParameters(ex).get(ErrorPage.KIND_PARAM).toString());
     }
 
     @Test
