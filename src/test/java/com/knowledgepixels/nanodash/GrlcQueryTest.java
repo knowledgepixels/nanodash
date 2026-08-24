@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.page.ErrorPage;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -107,6 +108,8 @@ class GrlcQueryTest {
 
             QueryLoadException ex = assertThrows(QueryLoadException.class, () -> GrlcQuery.load(NANOPUB_URI));
             assertTrue(ex.getMessage().contains("SPARQL code"), ex.getMessage());
+            // Only the query's author can put this right, and the error page says so (#616).
+            assertEquals(ErrorPage.Kind.CONTENT, ex.getKind());
             // The offending character is invisible, so naming it is the only way the author of
             // the query can find it.
             assertTrue(ex.getMessage().contains("U+00A0"), ex.getMessage());
@@ -139,15 +142,18 @@ class GrlcQueryTest {
         }
     }
 
+    // Asking without saying for what, or with an ID that holds no artifact code, is a
+    // request the asker can correct — unlike a query that is there but unusable (#616).
     @Test
     void loadThrowsForMissingId() {
-        assertThrows(QueryLoadException.class, () -> GrlcQuery.load(null));
-        assertThrows(QueryLoadException.class, () -> GrlcQuery.load("  "));
+        assertEquals(ErrorPage.Kind.REQUEST, assertThrows(QueryLoadException.class, () -> GrlcQuery.load(null)).getKind());
+        assertEquals(ErrorPage.Kind.REQUEST, assertThrows(QueryLoadException.class, () -> GrlcQuery.load("  ")).getKind());
     }
 
     @Test
     void loadThrowsForIdThatIsNotAQueryId() {
-        assertThrows(QueryLoadException.class, () -> GrlcQuery.load("https://example.com/not-a-query"));
+        QueryLoadException ex = assertThrows(QueryLoadException.class, () -> GrlcQuery.load("https://example.com/not-a-query"));
+        assertEquals(ErrorPage.Kind.REQUEST, ex.getKind());
     }
 
     /**

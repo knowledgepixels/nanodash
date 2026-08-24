@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.page.ErrorPage;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
@@ -76,7 +77,7 @@ public class GrlcQuery extends QueryTemplate {
      */
     public static GrlcQuery load(String id) {
         if (id == null || id.isBlank()) {
-            throw new QueryLoadException("No query was given to show or run.");
+            throw new QueryLoadException("No query was given to show or run.", ErrorPage.Kind.REQUEST);
         }
         GrlcQuery cached = instanceMap.getIfPresent(id);
         if (cached != null) return cached;
@@ -86,7 +87,7 @@ public class GrlcQuery extends QueryTemplate {
         } catch (Exception ex) {
             // Logged in full here, because what is shown to the user is only the gist of it.
             logger.warn("Could not load query: {}", id, ex);
-            throw new QueryLoadException(explainLoadFailure(id, ex), ex);
+            throw new QueryLoadException(explainLoadFailure(id, ex), kindOfLoadFailure(id), ex);
         }
         // Cached under the normalized ID, so that the different ways of referring to the same
         // query (URI, ID, containing nanopublication) share one instance.
@@ -114,14 +115,28 @@ public class GrlcQuery extends QueryTemplate {
         if (sparqlFailure != null) {
             String detail = SparqlSyntax.summarize(sparqlFailure.getMessage());
             String characterHint = SparqlSyntax.explainOffendingCharacter(sparqlFailure.getMessage());
+            // Who can fix this — the query's author, not the reader — is left to the error
+            // page, which says that for every error of this kind (#616).
             return "The SPARQL code of the query '" + id + "' is not valid, so the query can't be shown or run."
                     + (detail == null ? "" : " The SPARQL parser reports: " + detail)
-                    + (characterHint == null ? "" : " " + characterHint)
-                    + " This is a problem with the published query itself, which only a corrected version of it can fix.";
+                    + (characterHint == null ? "" : " " + characterHint);
         }
         String detail = ex.getMessage();
         if (detail == null || detail.isBlank()) detail = ex.getClass().getSimpleName();
         return "The query '" + id + "' couldn't be loaded: " + detail;
+    }
+
+    /**
+     * Whose problem a failed load is: the asking user's when the ID doesn't hold an artifact
+     * code at all, so that nothing could have been fetched for it, and the query author's
+     * otherwise — the nanopublication that was asked for is then the thing at fault, whether
+     * its SPARQL doesn't parse, it holds no query, or it isn't to be had.
+     *
+     * @param id the query ID or URI that was asked for
+     * @return the kind of error to answer with
+     */
+    private static ErrorPage.Kind kindOfLoadFailure(String id) {
+        return ARTIFACT_CODE_PATTERN.matcher(id).find() ? ErrorPage.Kind.CONTENT : ErrorPage.Kind.REQUEST;
     }
 
     /**
