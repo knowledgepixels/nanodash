@@ -182,7 +182,8 @@ public class ResourcePartPage extends NanodashPage {
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {
-                contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
+                contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
+                        markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)));
             } else {
                 contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
 

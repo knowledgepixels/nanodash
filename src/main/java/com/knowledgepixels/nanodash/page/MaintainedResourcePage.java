@@ -101,7 +101,8 @@ public class MaintainedResourcePage extends NanodashPage {
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
-                    contentContainer.add(new ViewList("views", resource));
+                    contentContainer.add(RefreshingStructurePanel.of("views", resource,
+                            markupId -> new ViewList(markupId, resourceModel.getObject())));
                 }
                 addUnconfiguredFallback(contentContainer, resource, empty);
             } else {

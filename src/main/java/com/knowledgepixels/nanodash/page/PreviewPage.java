@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.PostPublishRefresh;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubItem;
@@ -106,9 +107,12 @@ public class PreviewPage extends NanodashPage {
                     String contextId = pageParams.get("context").toString("");
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data so the page we redirect to reflects the just-published change,
-                    // not only the specific view query that was acted on.
+                    // not only the specific view query that was acted on. Only for
+                    // publications that can change the page structure; see #622 and
+                    // PostPublishRefresh.
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)
+                            && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
                     if (confirmPageClass != null) {

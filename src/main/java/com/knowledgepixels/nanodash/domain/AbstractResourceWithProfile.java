@@ -37,10 +37,16 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     private final String id;
     private Space space;
-    private ResourceWithProfile data = new ResourceWithProfile();
+    // Volatile: replaced wholesale by the update task on a pool thread and read by the
+    // request threads rendering (and polling for) the structure it holds.
+    private volatile ResourceWithProfile data = new ResourceWithProfile();
     private volatile boolean dataInitialized = false;
     private volatile boolean dataNeedsUpdate = true;
     private volatile Long runUpdateAfter = null;
+    // A refresh of this resource's own data (its view displays, i.e. the page structure)
+    // requested after a publication, with the previously loaded structure kept on screen
+    // meanwhile. Cleared once the refreshed data has landed. See forceRefresh.
+    private volatile boolean structureRefreshPending = false;
 
     /**
      * Inner class to hold the data associated with a resource, including its view displays.
@@ -148,6 +154,10 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef()));
                     data = newData;
                     dataInitialized = true;
+                    // A forceRefresh that came in while this fetch was already running has
+                    // re-armed dataNeedsUpdate, so what just landed is not the refreshed
+                    // structure yet and the refresh stays pending for the next round.
+                    if (!dataNeedsUpdate) structureRefreshPending = false;
                 } catch (Exception ex) {
                     logger.error("Error while trying to update data for resource {}", id, ex);
                     runUpdateAfter = System.currentTimeMillis() + FAILED_UPDATE_BACKOFF_MS;
@@ -198,14 +208,56 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     /**
      * Forces a refresh of the resource data after a specified delay.
+     * <p>
+     * A structure that is already loaded is <b>kept</b>: the pages go on rendering it and
+     * swap in the rebuilt one once the refreshed data lands (see
+     * {@link com.knowledgepixels.nanodash.component.RefreshingStructurePanel}), rather
+     * than blanking out into a loading spinner for the whole ingest delay. Blanking out
+     * would also throw away the in-place refresh of the individual view the user just
+     * published from (issue #622), since the view panels would be rebuilt cold. Only an
+     * empty structure is invalidated outright, as there is nothing on screen to keep and
+     * the pages' lazy path is what makes a first view display appear.
      *
      * @param waitMillis the delay in milliseconds before the data refresh is triggered
      */
     public void forceRefresh(long waitMillis) {
         logger.info("Forcing refresh of resource {} after {} ms", id, waitMillis);
         dataNeedsUpdate = true;
-        dataInitialized = false;
+        if (dataInitialized && !data.viewDisplays.isEmpty()) {
+            structureRefreshPending = true;
+        } else {
+            dataInitialized = false;
+        }
         runUpdateAfter = System.currentTimeMillis() + waitMillis;
+    }
+
+    /**
+     * Whether a {@link #forceRefresh} of this resource's structure is still in flight while
+     * the previously loaded structure stays on screen. Triggers the pending update, so that
+     * polling this also drives it (once its delay has passed).
+     *
+     * @return true while the refreshed structure has not landed yet
+     */
+    public boolean isStructureRefreshPending() {
+        if (!structureRefreshPending) return false;
+        triggerDataUpdate();
+        return structureRefreshPending;
+    }
+
+    /**
+     * A fingerprint of the resource's view-display structure, to tell a refresh that
+     * changed the page structure from one that left it as it was.
+     *
+     * @return the fingerprint of the current structure
+     */
+    public String getStructureSignature() {
+        StringBuilder sb = new StringBuilder();
+        for (ViewDisplay vd : data.viewDisplays) {
+            sb.append(vd.getNanopubId()).append('\t')
+                    .append(vd.getViewIri()).append('\t')
+                    .append(vd.getStructuralPosition()).append('\n');
+        }
+        return sb.toString();
     }
 
     /**

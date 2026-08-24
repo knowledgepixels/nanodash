@@ -181,7 +181,8 @@ public class UserPage extends NanodashPage {
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
-                    contentContainer.add(new ViewList("views", individualAgent));
+                    contentContainer.add(RefreshingStructurePanel.of("views", individualAgent,
+                            markupId -> new ViewList(markupId, IndividualAgent.get(userIriString))));
                 }
                 contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
                 if (empty) {

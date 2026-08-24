@@ -557,9 +557,13 @@ public class PublishForm extends Panel {
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data (e.g. a space's roles/members) so the page we redirect to —
                     // typically its Content tab — reflects the just-published change, not
-                    // only the specific view query that was acted on.
+                    // only the specific view query that was acted on. Only for publications
+                    // that can change the page structure, though: for the rest, re-running
+                    // the resource's view-display query and rebuilding the page around the
+                    // view would only get in the way of the view's own refresh (#622).
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)
+                            && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
