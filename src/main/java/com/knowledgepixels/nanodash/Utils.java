@@ -742,6 +742,53 @@ public class Utils {
         return svgSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawSvg));
     }
 
+    // A whole inline SVG figure, dropped wherever HTML is reduced to text: its
+    // labels would come out as a run of disconnected words.
+    private static final Pattern SVG_FRAGMENT = Pattern.compile("<svg\\b.*?</svg\\s*>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static final Pattern NUMERIC_ENTITY = Pattern.compile("&#(?:([0-9]{1,7})|[xX]([0-9a-fA-F]{1,6}));");
+
+    /**
+     * Reduces an HTML fragment to plain text: SVG figures are dropped entirely, the
+     * remaining tags are stripped, the named and numeric entities are unescaped (the
+     * sanitizer emits quotes etc. as numeric entities like {@code &#34;}), and
+     * whitespace is collapsed.
+     *
+     * @param html the HTML fragment
+     * @return the plain text
+     */
+    public static String htmlToPlainText(String html) {
+        String text = SVG_FRAGMENT.matcher(html).replaceAll(" ");
+        text = text.replaceAll("<[^>]*>", " ");
+        text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+                .replace("&nbsp;", " ");
+        text = NUMERIC_ENTITY.matcher(text).replaceAll(m -> {
+            int codePoint = m.group(1) != null
+                    ? Integer.parseInt(m.group(1))
+                    : Integer.parseInt(m.group(2), 16);
+            return Matcher.quoteReplacement(new String(Character.toChars(codePoint)));
+        });
+        text = text.replace("&amp;", "&");
+        return text.replaceAll("\\s+", " ").trim();
+    }
+
+    /**
+     * Reduces a value to the text to use for it in a label. HTML is a rendering
+     * detail that has no place in a label, so an SVG figure is dropped wherever it
+     * occurs, and a value that is HTML is further reduced to its text.
+     *
+     * @param value the raw value
+     * @return the value as label text
+     */
+    public static String toLabelText(String value) {
+        if (value == null) return null;
+        if (looksLikeHtml(value)) {
+            return htmlToPlainText(value);
+        }
+        return SVG_FRAGMENT.matcher(value).replaceAll(" ").replaceAll("\\s+", " ").trim();
+    }
+
     /**
      * Checks if a given string is likely to be HTML content.
      *

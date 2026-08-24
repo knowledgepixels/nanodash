@@ -1177,7 +1177,9 @@ public class PublishForm extends Panel {
                     logger.error("Nanopub label placeholder IRI error: {}", ex.getMessage());
                 }
             }
-            placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
+            // HTML in a value is a rendering detail with no place in a label: SVG
+            // figures are dropped entirely and the remaining tags stripped.
+            placeholderLabel = Utils.toLabelText(placeholderLabel);
             if (placeholderLabel.length() > 100) {
                 placeholderLabel = placeholderLabel.substring(0, 97) + "...";
             }

@@ -175,6 +175,33 @@ class UtilsTest {
     }
 
     @Test
+    void toLabelTextDropsSvgAndTags() {
+        // The label of an HTML value with an inline figure, as published from a
+        // template whose nanopub label pattern includes that placeholder.
+        String value = "<div>\nImage Test:\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 8 8\" width=\"2cm\">\n"
+                + "<path d=\"M5,8H8L3,0H0M8,4.8V0H5M0,3.2V8H3\"/>\n</svg>\n</div>";
+        assertEquals("Image Test:", Utils.toLabelText(value));
+    }
+
+    @Test
+    void toLabelTextDropsSvgFromNonHtmlValue() {
+        // The value doesn't start with a tag, so it isn't HTML by our rule, but a
+        // figure is never label text either.
+        assertEquals("Image Test:", Utils.toLabelText("Image Test: <svg viewBox=\"0 0 8 8\"><rect/></svg>"));
+    }
+
+    @Test
+    void toLabelTextLeavesPlainTextAlone() {
+        assertEquals("a < b and c > d", Utils.toLabelText("  a < b and c > d "));
+    }
+
+    @Test
+    void htmlToPlainTextUnescapesEntities() {
+        assertEquals("a < b & c d", Utils.htmlToPlainText("<p>a &lt; b &amp; c</p> <b>d</b>"));
+        assertEquals("\"quoted\" and 'single' and é", Utils.htmlToPlainText("&#34;quoted&#34; and &#39;single&#39; and &#xe9;"));
+    }
+
+    @Test
     void looksLikeHtmlRecognizesInlineSvg() {
         assertTrue(Utils.looksLikeHtml("<svg viewBox=\"0 0 10 10\"><rect/></svg>"));
         assertFalse(Utils.looksLikeHtml("svg is a format"));
