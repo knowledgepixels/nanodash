@@ -57,7 +57,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         // The admin-declared profile picture (issue #632), fetched together with the view
         // displays so that rendering never waits on it and a publication's forced refresh
         // picks up a new picture along with the rest of the structure.
-        IRI profilePicture;
+        ProfilePicture profilePicture;
     }
 
     /**
@@ -477,9 +477,9 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * updated data, so this never blocks the render; a resource without a declared picture
      * simply shows none (there is no fallback icon).
      *
-     * @return the picture's IRI, or null if none is declared
+     * @return the picture, or null if none is declared
      */
-    public IRI getProfilePicture() {
+    public ProfilePicture getProfilePicture() {
         triggerDataUpdate();
         return data.profilePicture;
     }
@@ -488,24 +488,23 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         return new QueryRef(QueryApiAccess.GET_RESOURCE_PROFILE_PICTURE, "resource", id);
     }
 
-    private IRI fetchProfilePicture() {
+    private ProfilePicture fetchProfilePicture() {
         return firstPicture(ApiCache.retrieveResponseSync(profilePictureQueryRef(), true));
     }
 
     /**
-     * The newest usable picture of a get-resource-profile-picture response (the query
-     * orders newest first), skipping rows whose value is not a usable IRI — the declaring
-     * triple does not constrain the object, so a literal or a malformed URL is possible.
+     * The newest usable picture of a get-resource-profile-picture response (the query orders
+     * newest first), skipping values that are neither an image link nor usable SVG markup —
+     * the declaring triple is unconstrained, so anything can turn up there.
      */
-    private IRI firstPicture(ApiResponse response) {
+    private ProfilePicture firstPicture(ApiResponse response) {
         if (response == null) return null;
         for (ApiResponseEntry r : response.getData()) {
-            String url = r.get("imageUrl");
-            if (url == null || url.isEmpty()) continue;
-            try {
-                return Values.iri(url);
-            } catch (IllegalArgumentException ex) {
-                logger.warn("Ignoring malformed profile picture {} for resource {}", url, id);
+            ProfilePicture picture = ProfilePicture.of(r.get("imageUrl"));
+            if (picture != null) return picture;
+            String value = r.get("imageUrl");
+            if (value != null && !value.isEmpty()) {
+                logger.warn("Ignoring unusable profile picture value for resource {}", id);
             }
         }
         return null;

@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -111,9 +112,9 @@ public class SpacePage extends NanodashPage {
         // Optional profile picture, left of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the space declares none.
-        IRI profilePicture = space.getProfilePicture();
+        ProfilePicture profilePicture = space.getProfilePicture();
         add(profilePicture != null
-                ? new ExternalImage("profilepic", profilePicture.stringValue())
+                ? new ExternalImage("profilepic", profilePicture.getSrc())
                 : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

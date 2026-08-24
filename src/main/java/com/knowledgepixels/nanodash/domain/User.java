@@ -201,9 +201,9 @@ public class User {
      * Retrieves the profile picture IRI for a user based on their IRI.
      *
      * @param userIri The IRI of the user.
-     * @return The IRI of the user's profile picture, or null if not set.
+     * @return The user's profile picture, or null if not set.
      */
-    public static IRI getProfilePicture(IRI userIri) {
+    public static ProfilePicture getProfilePicture(IRI userIri) {
         return getUserData().getProfilePicture(userIri);
     }
 

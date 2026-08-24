@@ -119,7 +119,7 @@ public class IndividualAgent extends AbstractResourceWithProfile {
      * for spaces and maintained resources (issue #632).
      */
     @Override
-    public IRI getProfilePicture() {
+    public ProfilePicture getProfilePicture() {
         return User.getProfilePicture(Utils.vf.createIRI(getId()));
     }
 

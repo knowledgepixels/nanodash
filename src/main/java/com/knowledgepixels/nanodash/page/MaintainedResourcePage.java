@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -93,9 +94,9 @@ public class MaintainedResourcePage extends NanodashPage {
         // Optional profile picture, left of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the resource declares none.
-        IRI profilePicture = resource.getProfilePicture();
+        ProfilePicture profilePicture = resource.getProfilePicture();
         add(profilePicture != null
-                ? new ExternalImage("profilepic", profilePicture.stringValue())
+                ? new ExternalImage("profilepic", profilePicture.getSrc())
                 : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

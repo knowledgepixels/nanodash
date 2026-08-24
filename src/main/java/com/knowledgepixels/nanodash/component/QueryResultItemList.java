@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
@@ -126,11 +127,11 @@ public class QueryResultItemList extends QueryResult {
 
             if (key.endsWith("user_iri")) {
                 IRI userIri = Utils.vf.createIRI(value);
-                IRI profilePicIri = User.getProfilePicture(userIri);
+                ProfilePicture profilePicture = User.getProfilePicture(userIri);
                 String imgSrc;
                 String iconClass;
-                if (profilePicIri != null) {
-                    imgSrc = Strings.escapeMarkup(profilePicIri.stringValue()).toString();
+                if (profilePicture != null) {
+                    imgSrc = Strings.escapeMarkup(profilePicture.getSrc()).toString();
                     iconClass = "user-icon";
                 } else if (IndividualAgent.isSoftware(userIri)) {
                     imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString();

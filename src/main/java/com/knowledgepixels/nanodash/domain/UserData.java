@@ -45,7 +45,7 @@ public class UserData implements Serializable {
     private Set<IRI> approvedIntros = new HashSet<>();
     private HashMap<IRI, String> idNameMap = new HashMap<>();
     private HashMap<IRI, List<IntroNanopub>> introNanopubLists = new HashMap<>();
-    private final HashMap<IRI, IRI> profilePictures = new HashMap<>();
+    private final HashMap<IRI, ProfilePicture> profilePictures = new HashMap<>();
     private final HashMap<IRI, IRI> defaultLicense = new HashMap<>();
 
     /**
@@ -128,7 +128,11 @@ public class UserData implements Serializable {
         }
 
         for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_PROFILE_PICS), forced).getData()) {
-            profilePictures.put(Values.iri(entry.get("user")), Values.iri(entry.get("imageUrl")));
+            // The value can be a link or SVG markup (issue #634), and nothing stops a user
+            // from declaring something unusable as either — hence the null check rather
+            // than a bare parse, which would abort the whole user-data load.
+            ProfilePicture picture = ProfilePicture.of(entry.get("imageUrl"));
+            if (picture != null) profilePictures.put(Values.iri(entry.get("user")), picture);
         }
 
         for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_DEFAULT_LICENSE), forced).getData()) {
@@ -603,12 +607,16 @@ public class UserData implements Serializable {
     }
 
     /**
-     * Retrieves the profile picture IRI for a user based on their IRI.
+     * Retrieves the profile picture IRI for a user based on their IRI. Users declare their
+     * own picture, and the underlying query accepts any signer, so this is for user IRIs
+     * only: spaces and maintained resources go through the admin-gated per-resource query
+     * instead (issue #632, see
+     * {@link com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile#getProfilePicture()}).
      *
      * @param userIri the IRI of the user for whom to retrieve the profile picture
      * @return the IRI of the user's profile picture if found, or null if not found
      */
-    public IRI getProfilePicture(IRI userIri) {
+    public ProfilePicture getProfilePicture(IRI userIri) {
         return profilePictures.get(userIri);
     }
 

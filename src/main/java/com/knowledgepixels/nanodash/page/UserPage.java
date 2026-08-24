@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -82,9 +83,9 @@ public class UserPage extends NanodashPage {
         add(new TitleBar("titlebar", this)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
-        IRI profilePictureIri = User.getProfilePicture(userIri);
-        if (profilePictureIri != null) {
-            ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
+        ProfilePicture profilePicture = User.getProfilePicture(userIri);
+        if (profilePicture != null) {
+            ExternalImage userIcon = new ExternalImage("userIcon", profilePicture.getSrc());
             add(userIcon);
         } else {
             boolean isSoftware = IndividualAgent.isSoftware(userIri);
