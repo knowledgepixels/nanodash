@@ -752,7 +752,10 @@ class UtilsTest {
     void getEscapedLiteralStringEscapesQuotesCorrectly() {
         String input = "This is a \"quote\"";
         String result = Utils.getEscapedLiteralString(Utils.getUnescapedLiteralString(input));
-        assertEquals("This is a \"quote\"", result);
+        // Quotes must come back escaped, like the backslashes below: an unescaped inner
+        // quote ends the serialized literal early, so a value containing one (e.g. SVG
+        // markup, issue #634) could not be round-tripped through a value field.
+        assertEquals("This is a \\\"quote\\\"", result);
     }
 
     @Test

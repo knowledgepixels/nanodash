@@ -1286,9 +1286,40 @@ public class Utils {
         return s.isEmpty() ? null : s;
     }
 
-    private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
-    private static final String LANGTAG_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"@([0-9a-zA-Z-]{2,})$";
-    private static final String DATATYPE_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"\\^\\^<([^ ><\"^]+)>";
+    // The part after the quoted string: a language tag, or a datatype IRI. The quoted
+    // string itself is scanned rather than matched (see scanQuotedString): expressed as a
+    // regex it costs one stack frame per character, so a literal of a few thousand
+    // characters -- e.g. a profile picture given as SVG markup, issue #634 -- overflowed
+    // the stack and turned publish-form validation into a 500.
+    private static final Pattern LANGTAG_SUFFIX = Pattern.compile("^@([0-9a-zA-Z-]{2,})$");
+    private static final Pattern DATATYPE_SUFFIX = Pattern.compile("^\\^\\^<([^ ><\"^]+)>$");
+
+    /**
+     * Scans a leading quoted string, in which a backslash may escape a backslash or a
+     * quote, and returns the index just past its closing quote.
+     *
+     * @param s the string to scan
+     * @return the index just past the closing quote, or -1 if the string does not start
+     * with a well-formed quoted string
+     */
+    private static int scanQuotedString(String s) {
+        if (s.isEmpty() || s.charAt(0) != '"') return -1;
+        int i = 1;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == '\\') {
+                if (i + 1 >= s.length()) return -1;
+                char next = s.charAt(i + 1);
+                if (next != '\\' && next != '"') return -1;
+                i += 2;
+            } else if (c == '"') {
+                return i + 1;
+            } else {
+                i++;
+            }
+        }
+        return -1;
+    }
 
     /**
      * Checks whether string is valid literal serialization.
@@ -1297,14 +1328,12 @@ public class Utils {
      * @return true if valid
      */
     public static boolean isValidLiteralSerialization(String literalString) {
-        if (literalString.matches(PLAIN_LITERAL_PATTERN)) {
-            return true;
-        } else if (literalString.matches(LANGTAG_LITERAL_PATTERN)) {
-            return true;
-        } else if (literalString.matches(DATATYPE_LITERAL_PATTERN)) {
-            return true;
-        }
-        return false;
+        int end = scanQuotedString(literalString);
+        if (end < 0) return false;
+        String suffix = literalString.substring(end);
+        return suffix.isEmpty()
+                || LANGTAG_SUFFIX.matcher(suffix).matches()
+                || DATATYPE_SUFFIX.matcher(suffix).matches();
     }
 
     /**
@@ -1330,14 +1359,15 @@ public class Utils {
      * @return The parse Literal object
      */
     public static Literal getParsedLiteral(String serializedLiteral) {
-        if (serializedLiteral.matches(PLAIN_LITERAL_PATTERN)) {
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(PLAIN_LITERAL_PATTERN, "$1")));
-        } else if (serializedLiteral.matches(LANGTAG_LITERAL_PATTERN)) {
-            String langtag = serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$3");
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$1")), langtag);
-        } else if (serializedLiteral.matches(DATATYPE_LITERAL_PATTERN)) {
-            IRI datatype = vf.createIRI(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$3"));
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$1")), datatype);
+        int end = scanQuotedString(serializedLiteral);
+        if (end >= 0) {
+            String value = getUnescapedLiteralString(serializedLiteral.substring(1, end - 1));
+            String suffix = serializedLiteral.substring(end);
+            if (suffix.isEmpty()) return vf.createLiteral(value);
+            Matcher langtag = LANGTAG_SUFFIX.matcher(suffix);
+            if (langtag.matches()) return vf.createLiteral(value, langtag.group(1));
+            Matcher datatype = DATATYPE_SUFFIX.matcher(suffix);
+            if (datatype.matches()) return vf.createLiteral(value, vf.createIRI(datatype.group(1)));
         }
         throw new IllegalArgumentException("Not a valid literal serialization: " + serializedLiteral);
     }
@@ -1349,7 +1379,7 @@ public class Utils {
      * @return escaped string
      */
     public static String getEscapedLiteralString(String unescapedString) {
-        return unescapedString.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"");
+        return unescapedString.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     /**
