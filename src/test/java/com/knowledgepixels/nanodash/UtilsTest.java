@@ -138,6 +138,49 @@ class UtilsTest {
     }
 
     @Test
+    void sanitizeHtmlKeepsInlineSvg() {
+        String rawHtml = "<p>Chart:</p><svg viewBox=\"0 0 20 10\" width=\"20\" height=\"10\">"
+                + "<rect x=\"0\" y=\"0\" width=\"5\" height=\"5\" fill=\"#eee\"/>"
+                + "<text x=\"1\" y=\"9\" font-size=\"4\">hi</text></svg>";
+        String sanitized = Utils.sanitizeHtml(rawHtml);
+        for (String kept : new String[] {"<p>Chart:</p>", "<svg", "viewBox=\"0 0 20 10\"", "<rect",
+                "fill=\"#eee\"", "</rect><text", "font-size=\"4\"", "hi"}) {
+            assertTrue(sanitized.contains(kept), "expected to keep: " + kept + " in: " + sanitized);
+        }
+    }
+
+    @Test
+    void sanitizeHtmlRemovesScriptingFromInlineSvg() {
+        String rawHtml = "<div><svg width=\"10\" height=\"10\">"
+                + "<script>alert('XSS')</script>"
+                + "<rect width=\"10\" height=\"10\" onclick=\"alert('XSS')\" style=\"fill:red\"></rect>"
+                + "<foreignObject><body onload=\"alert('XSS')\">x</body></foreignObject>"
+                + "<use href=\"https://evil.example/x.svg#a\"></use>"
+                + "</svg></div>";
+        String sanitized = Utils.sanitizeHtml(rawHtml);
+        for (String dropped : new String[] {"<script", "alert", "onclick", "onload", "style", "<foreignObject",
+                "<use", "evil.example"}) {
+            assertFalse(sanitized.contains(dropped), "expected to drop: " + dropped + " but got: " + sanitized);
+        }
+        assertTrue(sanitized.contains("<rect width=\"10\" height=\"10\""));
+    }
+
+    @Test
+    void sanitizeHtmlLeavesHtmlSelfClosedElementsAlone() {
+        // Only SVG element names are expanded to explicit end tags; HTML void
+        // elements (and element names that merely start with an SVG one) are not.
+        String sanitized = Utils.sanitizeHtml("<p>a<br/>b</p><img src=\"x.png\"/>");
+        assertFalse(sanitized.contains("</br>"), "unexpected: " + sanitized);
+        assertEquals("<p>a<br />b</p><img src=\"x.png\" />", sanitized);
+    }
+
+    @Test
+    void looksLikeHtmlRecognizesInlineSvg() {
+        assertTrue(Utils.looksLikeHtml("<svg viewBox=\"0 0 10 10\"><rect/></svg>"));
+        assertFalse(Utils.looksLikeHtml("svg is a format"));
+    }
+
+    @Test
     void sanitizeSvgKeepsStaticSvgSubset() {
         String rawSvg = "<svg viewBox=\"0 0 504 900\" width=\"504\" height=\"900\" font-family=\"sans-serif\">"
                 + "<rect x=\"20\" y=\"8\" width=\"464\" height=\"34\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#93c5fd\"></rect>"

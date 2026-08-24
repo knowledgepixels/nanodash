@@ -76,7 +76,7 @@ public class Utils {
      */
     public static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
-    private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img|pre)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern LEADING_TAG = Pattern.compile("^\\s*<(p|div|span|img|pre|svg)(\\s|>|/).*", Pattern.CASE_INSENSITIVE);
     private static final String DEFAULT_MAIN_QUERY_URL = "https://query.knowledgepixels.com/";
     private static final String DEFAULT_MAIN_REGISTRY_URL = "https://registry.knowledgepixels.com/";
 
@@ -635,56 +635,100 @@ public class Utils {
         return null;
     }
 
-    private static final PolicyFactory htmlSanitizePolicy = new HtmlPolicyBuilder().allowCommonBlockElements().allowCommonInlineFormattingElements().allowUrlProtocols("https", "http", "mailto").allowElements("a").allowAttributes("href").onElements("a").allowElements("img").allowAttributes("src").onElements("img").allowElements("pre").requireRelNofollowOnLinks().toFactory();
+    // A conservative static-SVG subset: basic shapes, text, grouping, and links.
+    // Everything not allowed is dropped — in particular script/foreignObject/style
+    // and all event handlers, plus use/image, whose href would reach outside the
+    // sanitized document. Used by SVG views (QueryResultSvg) and, folded into the
+    // HTML policy below, by inline SVG in HTML snippets coming from queries.
+    // Attribute-name matching is case-sensitive and the matched spelling is emitted
+    // verbatim, so the camelCase SVG attributes are listed in both spellings
+    // (browsers also map the lowercase form back via the SVG attribute-adjustment
+    // table, but the camelCase form works everywhere, including XML contexts).
+    private static final String[] SVG_ELEMENTS = {"svg", "g", "defs", "marker", "title", "desc",
+            "rect", "circle", "ellipse", "line", "polyline", "polygon", "path", "text", "tspan"};
+
+    // The SVG elements plus the link element they can be wrapped in, which is
+    // shared with HTML and therefore allowed separately by each policy.
+    private static final String[] SVG_ELEMENTS_WITH_LINK = concat(SVG_ELEMENTS, "a");
+
+    private static final String[] SVG_ATTRIBUTES = {"viewbox", "viewBox", "width", "height",
+            "preserveaspectratio", "preserveAspectRatio", "xmlns",
+            "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry",
+            "d", "points", "dx", "dy", "transform",
+            "fill", "fill-opacity", "fill-rule",
+            "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
+            "stroke-linejoin", "stroke-dasharray", "opacity",
+            "font-family", "font-size", "font-weight", "font-style",
+            "text-anchor", "dominant-baseline", "text-decoration",
+            "marker-start", "marker-mid", "marker-end",
+            "markerwidth", "markerWidth", "markerheight", "markerHeight",
+            "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
+            "id"};
+
+    private static String[] concat(String[] values, String... more) {
+        String[] result = Arrays.copyOf(values, values.length + more.length);
+        System.arraycopy(more, 0, result, values.length, more.length);
+        return result;
+    }
 
     /**
-     * Sanitizes raw HTML input to ensure safe rendering.
+     * Adds the static-SVG subset (elements and presentation attributes, but not the
+     * {@code a} element itself, whose link handling differs per policy) to a policy
+     * builder.
+     *
+     * @param builder the policy builder to extend
+     * @return the given builder
+     */
+    private static HtmlPolicyBuilder allowSvgSubset(HtmlPolicyBuilder builder) {
+        return builder
+                .allowElements(SVG_ELEMENTS)
+                .allowWithoutAttributes("svg", "g", "defs", "title", "desc", "text", "tspan")
+                .allowAttributes(SVG_ATTRIBUTES).onElements(SVG_ELEMENTS_WITH_LINK);
+    }
+
+    private static final PolicyFactory htmlSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
+            .allowCommonBlockElements().allowCommonInlineFormattingElements()
+            .allowUrlProtocols("https", "http", "mailto")
+            .allowElements("a").allowAttributes("href").onElements("a")
+            .allowElements("img").allowAttributes("src").onElements("img")
+            .allowElements("pre")
+            .requireRelNofollowOnLinks()).toFactory();
+
+    /**
+     * Sanitizes raw HTML input to ensure safe rendering. Inline SVG is kept, reduced
+     * to the same static subset as in {@link #sanitizeSvg(String)}.
      *
      * @param rawHtml the raw HTML input to sanitize
      * @return sanitized HTML string
      */
     public static String sanitizeHtml(String rawHtml) {
-        return htmlSanitizePolicy.sanitize(rawHtml);
+        return htmlSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawHtml));
     }
 
-    // A conservative static-SVG subset for SVG views (QueryResultSvg): basic shapes,
-    // text, grouping, and links. Everything not allowed is dropped — in particular
-    // script/foreignObject/style and all event handlers, plus use/image, whose
-    // href would reach outside the sanitized document. Attribute-name matching is
-    // case-sensitive and the matched spelling is emitted verbatim, so the camelCase
-    // SVG attributes are listed in both spellings (browsers also map the lowercase
-    // form back via the SVG attribute-adjustment table, but the camelCase form
-    // works everywhere, including XML contexts).
-    private static final PolicyFactory svgSanitizePolicy = new HtmlPolicyBuilder()
+    private static final PolicyFactory svgSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
             .allowUrlProtocols("https", "http")
-            .allowElements("svg", "g", "defs", "marker", "title", "desc",
-                    "rect", "circle", "ellipse", "line", "polyline", "polygon", "path",
-                    "text", "tspan", "a")
-            .allowWithoutAttributes("svg", "g", "defs", "title", "desc", "text", "tspan", "a")
-            .allowAttributes("viewbox", "viewBox", "width", "height",
-                    "preserveaspectratio", "preserveAspectRatio", "xmlns",
-                    "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry",
-                    "d", "points", "dx", "dy", "transform",
-                    "fill", "fill-opacity", "fill-rule",
-                    "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
-                    "stroke-linejoin", "stroke-dasharray", "opacity",
-                    "font-family", "font-size", "font-weight", "font-style",
-                    "text-anchor", "dominant-baseline", "text-decoration",
-                    "marker-start", "marker-mid", "marker-end",
-                    "markerwidth", "markerWidth", "markerheight", "markerHeight",
-                    "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
-                    "id")
-            .globally()
-            .allowAttributes("href").onElements("a")
-            .toFactory();
+            .allowElements("a")
+            .allowWithoutAttributes("a")
+            .allowAttributes("href").onElements("a")).toFactory();
 
-    // XML-style self-closed tags (<rect .../>): the HTML-parsing sanitizer ignores
-    // the slash on non-void elements and would re-parent all following siblings as
-    // children of the "unclosed" element — which in SVG makes them invisible (shape
-    // elements don't render children). Expanded to explicit end tags before
-    // sanitizing. Quoted attribute values (which may contain ">") are matched as
-    // units so the tag end is found correctly.
-    private static final Pattern SELF_CLOSED_TAG = Pattern.compile("<([a-zA-Z][a-zA-Z0-9-]*)((?:[^<>\"']|\"[^\"]*\"|'[^']*')*)/>");
+    // XML-style self-closed SVG tags (<rect .../>): the HTML-parsing sanitizer
+    // ignores the slash on non-void elements and would re-parent all following
+    // siblings as children of the "unclosed" element — which in SVG makes them
+    // invisible (shape elements don't render children). Expanded to explicit end
+    // tags before sanitizing. Quoted attribute values (which may contain ">") are
+    // matched as units so the tag end is found correctly, and the attribute part
+    // must start with whitespace so that a longer element name is not matched as
+    // one of the listed ones plus attributes. Only SVG element names are expanded,
+    // so that HTML void elements (<br/>, <img/>) and self-closed links keep their
+    // HTML parsing.
+    private static final Pattern SELF_CLOSED_SVG_TAG = Pattern.compile(
+            "<(" + String.join("|", SVG_ELEMENTS) + ")((?:\\s(?:[^<>\"']|\"[^\"]*\"|'[^']*')*)?)/>",
+            Pattern.CASE_INSENSITIVE);
+
+    private static String normalizeSelfClosedSvgTags(String raw) {
+        if (raw == null) return null;
+        return SELF_CLOSED_SVG_TAG.matcher(raw).replaceAll("<$1$2></$1>");
+    }
 
     /**
      * Sanitizes SVG markup (as produced by an SVG view's query) down to a static
@@ -695,8 +739,7 @@ public class Utils {
      * @return sanitized SVG markup
      */
     public static String sanitizeSvg(String rawSvg) {
-        String normalized = SELF_CLOSED_TAG.matcher(rawSvg).replaceAll("<$1$2></$1>");
-        return svgSanitizePolicy.sanitize(normalized);
+        return svgSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawSvg));
     }
 
     /**

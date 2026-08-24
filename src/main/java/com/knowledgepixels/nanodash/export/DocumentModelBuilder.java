@@ -420,7 +420,10 @@ public final class DocumentModelBuilder {
      * @return the plain text
      */
     static String htmlToPlainText(String html) {
-        String text = html.replaceAll("<[^>]*>", " ");
+        // Inline SVG figures have no plain-text rendering: their labels would come
+        // out as a run of disconnected words, so the whole figure is dropped.
+        String text = SVG_FRAGMENT.matcher(html).replaceAll(" ");
+        text = text.replaceAll("<[^>]*>", " ");
         text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
                 .replace("&nbsp;", " ");
         text = NUMERIC_ENTITY.matcher(text).replaceAll(m -> {
@@ -434,6 +437,9 @@ public final class DocumentModelBuilder {
     }
 
     private static final Pattern NUMERIC_ENTITY = Pattern.compile("&#(?:([0-9]{1,7})|[xX]([0-9a-fA-F]{1,6}));");
+
+    private static final Pattern SVG_FRAGMENT = Pattern.compile("<svg\\b.*?</svg\\s*>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private static String orEmpty(String s) {
         return s == null ? "" : s;
