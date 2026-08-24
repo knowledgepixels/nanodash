@@ -109,7 +109,14 @@ public class QueryApiAccess {
     // amplifier of the rdf4j connection-pool deadlock behind the fleet-wide /api wedges
     // (nanopub-query, 2026-08-20 thread dump: 22 of 28 pool-blocked threads were this
     // query). Validated byte-identical across standalone/preset/governed/self-page cases.
-    public static final String GET_VIEW_DISPLAYS = "RAWlJqJ5afOTN0AIDP3rnSCysQer9B4pmSC6QbzssTAyc/get-view-displays";
+    // RA3ekD-2 (supersedes RAWlJqJ5) adds the pending-account self-arm (issue #625 /
+    // nanopub-query#195): the own-page branch of the authority gate additionally accepts
+    // npa:PendingAccountState rows (mirrored from authoritative introductions of users not
+    // trust-approved yet), so such a user's own page shows the view displays they signed
+    // themselves. Display-only: the pending class is distinct from npa:AccountState, so the
+    // admin/maintainer arm and the governed-version resolution keep requiring approved
+    // accounts. Validated byte-identical to RAWlJqJ5 across approved resources.
+    public static final String GET_VIEW_DISPLAYS = "RA3ekD-2utY7P0ZgAHSr4HRwugzNnYhxJbkeI-3EfYfww/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -228,8 +235,13 @@ public class QueryApiAccess {
     // scoped to the SAME role property ((npa:regularProperty|npa:inverseProperty) ?roleProp on
     // ?vriH), so a higher tier held through a different property no longer suppresses the observer
     // association, while the #498 tier-collision fix (same property validated at a higher tier)
-    // is preserved.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAQylZL4shGjfhxcBiqoanuY2-cUJcVeWvpZDkfjP9_ko/list-space-observers";
+    // is preserved. RARcL1s1 (supersedes RAQylZL4) distinguishes pending accounts (issue #625 /
+    // nanopub-query#195): an association validated only through a pending account — the
+    // materialized RoleInstantiation carries npa:trustStatus npa:seen, produced by the
+    // PendingAccountState self-arm for observer-tier self-signups of introduced-but-unapproved
+    // users — shows ⏳ in the headerless flag column (empty = approved-validated, ⏳ =
+    // pending-validated, ⚠️ = not validated at all).
+    public static final String LIST_SPACE_OBSERVERS_REF = "RARcL1s1A1FitiH8LSm7qtOH0JIAmKepMA9F_pTG3sVmo/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
