@@ -90,6 +90,7 @@ public class MaintainedResourcePage extends NanodashPage {
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", resource));
         add(new ExternalLinkWithActionsPanel("id", Model.of(resource.getId()), Model.of(resource.getLabel()), Values.iri(resource.getNanopubId())));
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");

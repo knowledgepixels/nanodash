@@ -2,8 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+  <span wicket:id="spinner" class="refresh-spinner" title="Updating this page..."></span>
   <span class="actionmenu title-menu">
-    <button type="button" class="actionmenu-button" aria-label="space actions"></button>
+    <button type="button" class="actionmenu-button" aria-label="page actions"></button>
     <span class="actionmenu-content">
       <span wicket:id="groups" class="actionmenu-subitem">
         <span wicket:id="sublabel" class="actionmenu-sublabel">add to calendar</span>
@@ -13,6 +14,8 @@
       </span>
       <hr wicket:id="separator" class="actionmenu-separator"/>
       <span wicket:id="extraEntries" class="actionmenu-item"><a wicket:id="link">entry</a></span>
+      <hr wicket:id="refreshSeparator" class="actionmenu-separator"/>
+      <a wicket:id="refreshNow"><span class="actionmenu-icon">↻</span>refresh now</a>
     </span>
   </span>
 </wicket:panel>

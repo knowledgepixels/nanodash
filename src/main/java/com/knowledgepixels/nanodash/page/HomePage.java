@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.LazyContentPanel;
 import com.knowledgepixels.nanodash.component.ResultComponent;
+import com.knowledgepixels.nanodash.component.PageTitleMenu;
 import com.knowledgepixels.nanodash.component.RefreshingStructurePanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
@@ -92,6 +93,9 @@ public class HomePage extends NanodashPage {
 
         final String homeResourceId = NanodashPreferences.get().getHomeResource();
         final MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
+
+        // Added before the branching below, which returns early on several paths.
+        add(PageTitleMenu.forResource("titlemenu", homeResource));
 
         // Rendered only for a genuine misconfiguration (see below): the resource
         // repository is warm but the configured id is not a known maintained resource.

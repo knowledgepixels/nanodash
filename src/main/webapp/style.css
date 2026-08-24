@@ -1249,6 +1249,14 @@ input[type=radio] + label strong {
   vertical-align: middle;
 }
 
+/* The page-structure spinner, immediately left of the title menu's chevron: a little
+   larger than the in-row one, since the heading beside it is larger too. */
+.title-actions .refresh-spinner {
+  width: 13px;
+  height: 13px;
+  margin-right: 8px;
+}
+
 /* Nested submenu inside a dropdown (e.g. the calendar menu): a group row whose entries
    open in a flyout to the right on hover (nanodash.js flips it leftward when the right
    edge lacks room). The flyout is deliberately NOT an .actionmenu-content, so the

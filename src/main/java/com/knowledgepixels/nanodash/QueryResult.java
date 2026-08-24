@@ -84,6 +84,15 @@ public abstract class QueryResult extends Panel {
      *
      * @param refreshing true while the view's results are being brought up to date
      */
+    /**
+     * The query reference this view's results come from.
+     *
+     * @return the query reference
+     */
+    public QueryRef getQueryRef() {
+        return queryRef;
+    }
+
     public void setRefreshing(boolean refreshing) {
         refreshIndicator.setVisible(refreshing);
     }
