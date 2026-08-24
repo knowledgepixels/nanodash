@@ -657,13 +657,63 @@ public class Utils {
             "d", "points", "dx", "dy", "transform",
             "fill", "fill-opacity", "fill-rule",
             "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
-            "stroke-linejoin", "stroke-dasharray", "opacity",
+            "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset",
+            "stroke-miterlimit", "clip-rule", "opacity",
             "font-family", "font-size", "font-weight", "font-style",
             "text-anchor", "dominant-baseline", "text-decoration",
             "marker-start", "marker-mid", "marker-end",
             "markerwidth", "markerWidth", "markerheight", "markerHeight",
             "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
             "id"};
+
+    // Drawing tools export SVG with the paint in a style attribute
+    // (style="fill:rgb(120,184,134);") rather than in presentation attributes. The
+    // sanitizer allows no style attribute -- it is the one attribute whose value can pull
+    // in external resources -- so those declarations used to be dropped, and every shape
+    // fell back to the SVG default fill: an all-black figure. They are therefore rewritten
+    // into the equivalent presentation attributes first, which the existing allow-list
+    // then validates like any other: nothing new is allowed through, and a declaration
+    // whose property is not on the list (or whose value could reference something, i.e.
+    // contains a function call other than a colour) is dropped as before.
+    private static final Set<String> STYLE_PROPERTIES_AS_ATTRIBUTES = Set.of(
+            "fill", "fill-opacity", "fill-rule",
+            "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
+            "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset",
+            "stroke-miterlimit", "clip-rule", "opacity",
+            "font-family", "font-size", "font-weight", "font-style",
+            "text-anchor", "dominant-baseline", "text-decoration");
+
+    // A style attribute on any element, with either quoting style.
+    private static final Pattern STYLE_ATTRIBUTE = Pattern.compile(
+            "\\sstyle\\s*=\\s*(\"[^\"]*\"|'[^']*')", Pattern.CASE_INSENSITIVE);
+
+    // A value safe to move into a presentation attribute: no function call other than the
+    // colour functions, so url(...) and expression(...) can never survive.
+    private static final Pattern SAFE_STYLE_VALUE = Pattern.compile(
+            "(?:[-#%.,0-9a-zA-Z_ ]|(?:rgb|rgba|hsl|hsla)\\([-0-9%.,\\s]*\\))+");
+
+    private static String styleToPresentationAttributes(String raw) {
+        if (raw == null || !raw.contains("style")) return raw;
+        Matcher m = STYLE_ATTRIBUTE.matcher(raw);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String quoted = m.group(1);
+            String declarations = quoted.substring(1, quoted.length() - 1);
+            StringBuilder attributes = new StringBuilder();
+            for (String declaration : declarations.split(";")) {
+                int colon = declaration.indexOf(':');
+                if (colon < 0) continue;
+                String property = declaration.substring(0, colon).trim().toLowerCase();
+                String value = declaration.substring(colon + 1).trim();
+                if (!STYLE_PROPERTIES_AS_ATTRIBUTES.contains(property)) continue;
+                if (value.isEmpty() || !SAFE_STYLE_VALUE.matcher(value).matches()) continue;
+                attributes.append(' ').append(property).append("=\"").append(value).append('"');
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(attributes.toString()));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 
     private static String[] concat(String[] values, String... more) {
         String[] result = Arrays.copyOf(values, values.length + more.length);
@@ -702,7 +752,7 @@ public class Utils {
      * @return sanitized HTML string
      */
     public static String sanitizeHtml(String rawHtml) {
-        return htmlSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawHtml));
+        return htmlSanitizePolicy.sanitize(styleToPresentationAttributes(normalizeSelfClosedSvgTags(rawHtml)));
     }
 
     private static final PolicyFactory svgSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
@@ -739,7 +789,7 @@ public class Utils {
      * @return sanitized SVG markup
      */
     public static String sanitizeSvg(String rawSvg) {
-        return svgSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawSvg));
+        return svgSanitizePolicy.sanitize(styleToPresentationAttributes(normalizeSelfClosedSvgTags(rawSvg)));
     }
 
     // A whole inline SVG figure, dropped wherever HTML is reduced to text: its
