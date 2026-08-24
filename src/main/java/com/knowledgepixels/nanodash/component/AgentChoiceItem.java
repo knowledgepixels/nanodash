@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -208,9 +209,9 @@ public class AgentChoiceItem extends AbstractContextComponent {
                 } else {
                     selectedIri = NanodashSession.get().getUserIri();
                 }
-                IRI profilePicIri = (selectedIri != null) ? User.getProfilePicture(selectedIri) : null;
-                if (profilePicIri != null) {
-                    tag.put("src", profilePicIri.stringValue());
+                ProfilePicture profilePicture = (selectedIri != null) ? User.getProfilePicture(selectedIri) : null;
+                if (profilePicture != null) {
+                    tag.put("src", profilePicture.getSrc());
                 } else if (selectedIri != null && IndividualAgent.isSoftware(selectedIri)) {
                     tag.put("src", urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString());
                 } else {

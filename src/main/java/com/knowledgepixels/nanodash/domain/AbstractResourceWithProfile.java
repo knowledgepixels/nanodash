@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
@@ -53,6 +54,10 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      */
     protected static class ResourceWithProfile implements Serializable {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
+        // The admin-declared profile picture (issue #632), fetched together with the view
+        // displays so that rendering never waits on it and a publication's forced refresh
+        // picks up a new picture along with the rest of the structure.
+        ProfilePicture profilePicture;
     }
 
     /**
@@ -152,6 +157,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     // standalone displays correctly, in either direction.
                     seedFromCacheIfPossible();
                     newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef()));
+                    newData.profilePicture = fetchProfilePicture();
                     data = newData;
                     dataInitialized = true;
                     // A forceRefresh that came in while this fetch was already running has
@@ -202,6 +208,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         if (cachedResponse == null) return;
         ResourceWithProfile seeded = new ResourceWithProfile();
         seeded.viewDisplays.addAll(buildViewDisplays(cachedResponse, vdQuery));
+        seeded.profilePicture = firstPicture(ApiCache.retrieveStaleResponse(profilePictureQueryRef()));
         data = seeded;
         dataInitialized = true;
     }
@@ -458,6 +465,48 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * @return the ref's root nanopub, or null
      */
     protected String getViewDisplayRefRoot() {
+        return null;
+    }
+
+    /**
+     * The profile picture of this resource, declared as {@code schema:image} with the
+     * resource IRI as subject (issue #632). Only declarations signed by a current admin of
+     * the governing space count — a space's picture is not something an unrelated agent can
+     * set, unlike a user's self-declared one (see
+     * {@link QueryApiAccess#GET_RESOURCE_PROFILE_PICTURE}). Read from the asynchronously
+     * updated data, so this never blocks the render; a resource without a declared picture
+     * simply shows none (there is no fallback icon).
+     *
+     * @return the picture, or null if none is declared
+     */
+    public ProfilePicture getProfilePicture() {
+        triggerDataUpdate();
+        return data.profilePicture;
+    }
+
+    private QueryRef profilePictureQueryRef() {
+        return new QueryRef(QueryApiAccess.GET_RESOURCE_PROFILE_PICTURE, "resource", id);
+    }
+
+    private ProfilePicture fetchProfilePicture() {
+        return firstPicture(ApiCache.retrieveResponseSync(profilePictureQueryRef(), true));
+    }
+
+    /**
+     * The newest usable picture of a get-resource-profile-picture response (the query orders
+     * newest first), skipping values that are neither an image link nor usable SVG markup —
+     * the declaring triple is unconstrained, so anything can turn up there.
+     */
+    private ProfilePicture firstPicture(ApiResponse response) {
+        if (response == null) return null;
+        for (ApiResponseEntry r : response.getData()) {
+            ProfilePicture picture = ProfilePicture.of(r.get("imageUrl"));
+            if (picture != null) return picture;
+            String value = r.get("imageUrl");
+            if (value != null && !value.isEmpty()) {
+                logger.warn("Ignoring unusable profile picture value for resource {}", id);
+            }
+        }
         return null;
     }
 

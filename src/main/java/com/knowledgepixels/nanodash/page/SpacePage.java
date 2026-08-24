@@ -10,17 +10,20 @@ import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +109,13 @@ public class SpacePage extends NanodashPage {
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
+        // Optional profile picture, left of the title/URI block (issue #632). Shown
+        // plainly, i.e. without the tilted-square mask that user icons get, and simply
+        // omitted when the space declares none.
+        ProfilePicture profilePicture = space.getProfilePicture();
+        add(profilePicture != null
+                ? new ExternalImage("profilepic", profilePicture.getSrc())
+                : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         // Calendar submenus for (event-containing) event spaces, plus configuration

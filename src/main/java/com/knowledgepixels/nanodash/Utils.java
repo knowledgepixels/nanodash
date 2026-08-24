@@ -657,13 +657,63 @@ public class Utils {
             "d", "points", "dx", "dy", "transform",
             "fill", "fill-opacity", "fill-rule",
             "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
-            "stroke-linejoin", "stroke-dasharray", "opacity",
+            "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset",
+            "stroke-miterlimit", "clip-rule", "opacity",
             "font-family", "font-size", "font-weight", "font-style",
             "text-anchor", "dominant-baseline", "text-decoration",
             "marker-start", "marker-mid", "marker-end",
             "markerwidth", "markerWidth", "markerheight", "markerHeight",
             "refx", "refX", "refy", "refY", "orient", "markerunits", "markerUnits",
             "id"};
+
+    // Drawing tools export SVG with the paint in a style attribute
+    // (style="fill:rgb(120,184,134);") rather than in presentation attributes. The
+    // sanitizer allows no style attribute -- it is the one attribute whose value can pull
+    // in external resources -- so those declarations used to be dropped, and every shape
+    // fell back to the SVG default fill: an all-black figure. They are therefore rewritten
+    // into the equivalent presentation attributes first, which the existing allow-list
+    // then validates like any other: nothing new is allowed through, and a declaration
+    // whose property is not on the list (or whose value could reference something, i.e.
+    // contains a function call other than a colour) is dropped as before.
+    private static final Set<String> STYLE_PROPERTIES_AS_ATTRIBUTES = Set.of(
+            "fill", "fill-opacity", "fill-rule",
+            "stroke", "stroke-width", "stroke-opacity", "stroke-linecap",
+            "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset",
+            "stroke-miterlimit", "clip-rule", "opacity",
+            "font-family", "font-size", "font-weight", "font-style",
+            "text-anchor", "dominant-baseline", "text-decoration");
+
+    // A style attribute on any element, with either quoting style.
+    private static final Pattern STYLE_ATTRIBUTE = Pattern.compile(
+            "\\sstyle\\s*=\\s*(\"[^\"]*\"|'[^']*')", Pattern.CASE_INSENSITIVE);
+
+    // A value safe to move into a presentation attribute: no function call other than the
+    // colour functions, so url(...) and expression(...) can never survive.
+    private static final Pattern SAFE_STYLE_VALUE = Pattern.compile(
+            "(?:[-#%.,0-9a-zA-Z_ ]|(?:rgb|rgba|hsl|hsla)\\([-0-9%.,\\s]*\\))+");
+
+    private static String styleToPresentationAttributes(String raw) {
+        if (raw == null || !raw.contains("style")) return raw;
+        Matcher m = STYLE_ATTRIBUTE.matcher(raw);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String quoted = m.group(1);
+            String declarations = quoted.substring(1, quoted.length() - 1);
+            StringBuilder attributes = new StringBuilder();
+            for (String declaration : declarations.split(";")) {
+                int colon = declaration.indexOf(':');
+                if (colon < 0) continue;
+                String property = declaration.substring(0, colon).trim().toLowerCase();
+                String value = declaration.substring(colon + 1).trim();
+                if (!STYLE_PROPERTIES_AS_ATTRIBUTES.contains(property)) continue;
+                if (value.isEmpty() || !SAFE_STYLE_VALUE.matcher(value).matches()) continue;
+                attributes.append(' ').append(property).append("=\"").append(value).append('"');
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(attributes.toString()));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 
     private static String[] concat(String[] values, String... more) {
         String[] result = Arrays.copyOf(values, values.length + more.length);
@@ -702,7 +752,7 @@ public class Utils {
      * @return sanitized HTML string
      */
     public static String sanitizeHtml(String rawHtml) {
-        return htmlSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawHtml));
+        return htmlSanitizePolicy.sanitize(styleToPresentationAttributes(normalizeSelfClosedSvgTags(rawHtml)));
     }
 
     private static final PolicyFactory svgSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
@@ -739,7 +789,7 @@ public class Utils {
      * @return sanitized SVG markup
      */
     public static String sanitizeSvg(String rawSvg) {
-        return svgSanitizePolicy.sanitize(normalizeSelfClosedSvgTags(rawSvg));
+        return svgSanitizePolicy.sanitize(styleToPresentationAttributes(normalizeSelfClosedSvgTags(rawSvg)));
     }
 
     // A whole inline SVG figure, dropped wherever HTML is reduced to text: its
@@ -1286,9 +1336,40 @@ public class Utils {
         return s.isEmpty() ? null : s;
     }
 
-    private static final String PLAIN_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"";
-    private static final String LANGTAG_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"@([0-9a-zA-Z-]{2,})$";
-    private static final String DATATYPE_LITERAL_PATTERN = "^\"(([^\\\\\\\"]|\\\\\\\\|\\\\\")*)\"\\^\\^<([^ ><\"^]+)>";
+    // The part after the quoted string: a language tag, or a datatype IRI. The quoted
+    // string itself is scanned rather than matched (see scanQuotedString): expressed as a
+    // regex it costs one stack frame per character, so a literal of a few thousand
+    // characters -- e.g. a profile picture given as SVG markup, issue #634 -- overflowed
+    // the stack and turned publish-form validation into a 500.
+    private static final Pattern LANGTAG_SUFFIX = Pattern.compile("^@([0-9a-zA-Z-]{2,})$");
+    private static final Pattern DATATYPE_SUFFIX = Pattern.compile("^\\^\\^<([^ ><\"^]+)>$");
+
+    /**
+     * Scans a leading quoted string, in which a backslash may escape a backslash or a
+     * quote, and returns the index just past its closing quote.
+     *
+     * @param s the string to scan
+     * @return the index just past the closing quote, or -1 if the string does not start
+     * with a well-formed quoted string
+     */
+    private static int scanQuotedString(String s) {
+        if (s.isEmpty() || s.charAt(0) != '"') return -1;
+        int i = 1;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == '\\') {
+                if (i + 1 >= s.length()) return -1;
+                char next = s.charAt(i + 1);
+                if (next != '\\' && next != '"') return -1;
+                i += 2;
+            } else if (c == '"') {
+                return i + 1;
+            } else {
+                i++;
+            }
+        }
+        return -1;
+    }
 
     /**
      * Checks whether string is valid literal serialization.
@@ -1297,14 +1378,12 @@ public class Utils {
      * @return true if valid
      */
     public static boolean isValidLiteralSerialization(String literalString) {
-        if (literalString.matches(PLAIN_LITERAL_PATTERN)) {
-            return true;
-        } else if (literalString.matches(LANGTAG_LITERAL_PATTERN)) {
-            return true;
-        } else if (literalString.matches(DATATYPE_LITERAL_PATTERN)) {
-            return true;
-        }
-        return false;
+        int end = scanQuotedString(literalString);
+        if (end < 0) return false;
+        String suffix = literalString.substring(end);
+        return suffix.isEmpty()
+                || LANGTAG_SUFFIX.matcher(suffix).matches()
+                || DATATYPE_SUFFIX.matcher(suffix).matches();
     }
 
     /**
@@ -1330,14 +1409,15 @@ public class Utils {
      * @return The parse Literal object
      */
     public static Literal getParsedLiteral(String serializedLiteral) {
-        if (serializedLiteral.matches(PLAIN_LITERAL_PATTERN)) {
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(PLAIN_LITERAL_PATTERN, "$1")));
-        } else if (serializedLiteral.matches(LANGTAG_LITERAL_PATTERN)) {
-            String langtag = serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$3");
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(LANGTAG_LITERAL_PATTERN, "$1")), langtag);
-        } else if (serializedLiteral.matches(DATATYPE_LITERAL_PATTERN)) {
-            IRI datatype = vf.createIRI(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$3"));
-            return vf.createLiteral(getUnescapedLiteralString(serializedLiteral.replaceFirst(DATATYPE_LITERAL_PATTERN, "$1")), datatype);
+        int end = scanQuotedString(serializedLiteral);
+        if (end >= 0) {
+            String value = getUnescapedLiteralString(serializedLiteral.substring(1, end - 1));
+            String suffix = serializedLiteral.substring(end);
+            if (suffix.isEmpty()) return vf.createLiteral(value);
+            Matcher langtag = LANGTAG_SUFFIX.matcher(suffix);
+            if (langtag.matches()) return vf.createLiteral(value, langtag.group(1));
+            Matcher datatype = DATATYPE_SUFFIX.matcher(suffix);
+            if (datatype.matches()) return vf.createLiteral(value, vf.createIRI(datatype.group(1)));
         }
         throw new IllegalArgumentException("Not a valid literal serialization: " + serializedLiteral);
     }
@@ -1349,7 +1429,7 @@ public class Utils {
      * @return escaped string
      */
     public static String getEscapedLiteralString(String unescapedString) {
-        return unescapedString.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"");
+        return unescapedString.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     /**
