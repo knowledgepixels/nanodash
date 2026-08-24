@@ -54,8 +54,8 @@ import java.util.Set;
  * calendar", "add events to calendar") and opens its entries in a submenu flyout on
  * hover; the configuration shortcuts are plain entries below them.
  *
- * <p>Beside the chevron sits the {@link StructureRefreshIndicator}: the spinner saying the
- * page structure is being recalculated (issue #622).</p>
+ * <p>Just right of the chevron sits the {@link StructureRefreshIndicator}: the spinner
+ * saying the page structure is being recalculated (issue #622).</p>
  *
  * <p>Each supplied link must use the markup id {@code "link"}; the links are rendered in
  * order as menu entries.</p>

@@ -9,11 +9,11 @@ import java.io.Serial;
 import java.time.Duration;
 
 /**
- * The spinner beside a page's title menu, shown while the page structure — which views the
- * resource shows — is being recalculated after a publication that can change it (issue
- * #622). The views themselves each show their own spinner while their query is re-run
- * ({@link RefreshingResultPanel}); this one is about the page as a whole, whose recalculation
- * is otherwise invisible now that it no longer blanks the content out.
+ * The spinner just right of a page's title menu, shown while the page structure — which
+ * views the resource shows — is being recalculated after a publication that can change it
+ * (issue #622). The views themselves each show their own spinner while their query is
+ * re-run ({@link RefreshingResultPanel}); this one is about the page as a whole, whose
+ * recalculation is otherwise invisible now that it no longer blanks the content out.
  * <p>
  * It polls on its own rather than being driven by {@link RefreshingStructurePanel}: the
  * structure is not always rendered through that panel (an empty one still goes down the
