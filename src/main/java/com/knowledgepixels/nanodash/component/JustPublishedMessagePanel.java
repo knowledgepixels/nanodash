@@ -21,15 +21,19 @@ import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 
 /**
- * Title-bar message panel rendering up to two stacked boxes:
+ * Title-bar message panel rendering up to three stacked boxes:
  * <ul>
  *   <li>a blue "successfully published" confirmation box, shown only right after
  *       publishing (i.e. when the page carries a "just-published" parameter) and
- *       dismissable via a close button; and</li>
+ *       dismissable via a close button;</li>
  *   <li>a red "you haven't published an introduction yet" warning box, shown on
  *       <em>every</em> page (no close button) whenever a logged-in user with a
  *       local key has not yet published an introduction linking that key to their
- *       ORCID. It disappears only once such an introduction is published.</li>
+ *       ORCID. It disappears only once such an introduction is published; and</li>
+ *   <li>an amber "your account is pending" notice box, shown on <em>every</em>
+ *       page whenever the user has an introduction but no approved key yet
+ *       (issue #625), asking them to share their introduction so an approved
+ *       user can approve it.</li>
  * </ul>
  */
 public class JustPublishedMessagePanel extends Panel {
@@ -88,6 +92,23 @@ public class JustPublishedMessagePanel extends Panel {
         introBox.add(new ExternalLink("profile-link", introProfileUrl));
         add(introBox);
 
-        setVisible(justPublished || showIntroWarning);
+        // --- Pending-approval notice: the user has published an introduction, but no
+        // approved user has approved it yet, and they hold no approved key elsewhere
+        // either (issue #625). Until approval, their self-signed contributions count
+        // as pending: they show up marked ⏳ in role listings (e.g. the observers
+        // table) and on their own page, but stay hidden where approval is required.
+        // Shown on every page, like the intro warning; it disappears once the
+        // introduction is approved (via the periodic user-data refresh). Users with
+        // an approved key elsewhere are not in this pending state — their local-key
+        // situation is covered by the About-page recommendations instead. ---
+        boolean anyApprovedKey = session.getUserIri() != null
+                && !User.getPubkeyhashes(session.getUserIri(), true).isEmpty();
+        boolean showPendingNotice = canPublishIntro && hasLocalIntro && !anyApprovedKey;
+        WebMarkupContainer pendingBox = new WebMarkupContainer("pendingBox");
+        pendingBox.setVisible(showPendingNotice);
+        pendingBox.add(new ExternalLink("about-link", introProfileUrl));
+        add(pendingBox);
+
+        setVisible(justPublished || showIntroWarning || showPendingNotice);
     }
 }
