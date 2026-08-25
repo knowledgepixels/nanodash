@@ -1,11 +1,14 @@
 package com.knowledgepixels.nanodash;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
 
 import com.google.common.cache.Cache;
 
@@ -18,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mockStatic;
 
 class ApiCachePersistenceTest {
 
@@ -41,6 +45,13 @@ class ApiCachePersistenceTest {
         Field f = Utils.class.getDeclaredField("nanopubs");
         f.setAccessible(true);
         ((Cache<?, ?>) f.get(null)).invalidateAll();
+        // The entry store is global too; tests that need it point it at their temp dir.
+        ApiCachePersistence.initEntryStore(null);
+    }
+
+    @AfterEach
+    void tearDown() {
+        ApiCachePersistence.initEntryStore(null);
     }
 
     private void resetMap(String fieldName) throws Exception {
@@ -214,6 +225,135 @@ class ApiCachePersistenceTest {
 
         ConcurrentMap<String, ApiResponse> cachedResponses = getMap("cachedResponses");
         assertSame(current, cachedResponses.get(RESPONSE_ID));
+    }
+
+    private File initEntryStore() {
+        File storeDir = new File(tempDir, "store");
+        ApiCachePersistence.initEntryStore(storeDir);
+        return storeDir;
+    }
+
+    @Test
+    @DisplayName("entry store should round-trip a response with its refresh timestamp")
+    void entryStoreRoundTrip() {
+        initEntryStore();
+        long refreshTime = System.currentTimeMillis() - 5000L;
+        ApiCachePersistence.storeEntry(RESPONSE_ID, makeResponse("stored"), refreshTime);
+
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(RESPONSE_ID);
+        assertNotNull(entry);
+        assertEquals(RESPONSE_ID, entry.cacheId);
+        assertEquals(refreshTime, entry.lastRefresh);
+        assertEquals("stored", ((ApiResponse) entry.value).getData().getFirst().get("thing"));
+    }
+
+    @Test
+    @DisplayName("entry store should be a no-op while not initialized")
+    void entryStoreDisabledWithoutInit() {
+        ApiCachePersistence.storeEntry(RESPONSE_ID, makeResponse("ignored"), System.currentTimeMillis());
+        assertNull(ApiCachePersistence.loadEntry(RESPONSE_ID));
+        assertFalse(new File(tempDir, "store").exists());
+    }
+
+    @Test
+    @DisplayName("retrieveStaleResponse should fall through to the entry store on a memory miss")
+    void staleResponseReadsThroughToStore() throws Exception {
+        initEntryStore();
+        QueryRef queryRef = new QueryRef(RESPONSE_ID);
+        String cacheId = queryRef.getAsUrlString();
+        long refreshTime = System.currentTimeMillis() - 3L * 24 * 60 * 60 * 1000; // way beyond memory expiry
+        ApiCachePersistence.storeEntry(cacheId, makeResponse("evicted-but-stored"), refreshTime);
+
+        ApiResponse result = ApiCache.retrieveStaleResponse(queryRef);
+
+        assertNotNull(result);
+        assertEquals("evicted-but-stored", result.getData().getFirst().get("thing"));
+        // The entry is back in memory with its original timestamp, so the normal
+        // staleness logic takes over from here.
+        assertNotNull(this.<String, ApiResponse>getMap("cachedResponses").get(cacheId));
+        assertEquals(refreshTime, this.<String, Long>getMap("lastRefresh").get(cacheId));
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should serve a stored entry without calling the API")
+    void syncReadsThroughToStoreWithoutApiCall() {
+        initEntryStore();
+        QueryRef queryRef = new QueryRef(RESPONSE_ID);
+        String cacheId = queryRef.getAsUrlString();
+        // Fresh enough that no background refresh is due, so the call is fully deterministic.
+        ApiCachePersistence.storeEntry(cacheId, makeResponse("from-store"), System.currentTimeMillis() - 5000L);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            ApiResponse result = ApiCache.retrieveResponseSync(queryRef, false);
+
+            assertNotNull(result);
+            assertEquals("from-store", result.getData().getFirst().get("thing"));
+            queryApiAccess.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveMap should serve a stored map without calling the API")
+    void mapReadsThroughToStoreWithoutApiCall() {
+        initEntryStore();
+        QueryRef queryRef = new QueryRef(MAP_ID);
+        String cacheId = queryRef.getAsUrlString();
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        ApiCachePersistence.storeEntry(cacheId, map, System.currentTimeMillis() - 5000L);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            Map<String, String> result = ApiCache.retrieveMap(queryRef);
+
+            assertEquals(map, result);
+            queryApiAccess.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    @DisplayName("storeEntryIfAbsent should not overwrite an existing entry")
+    void storeEntryIfAbsentKeepsExisting() {
+        initEntryStore();
+        ApiCachePersistence.storeEntry(RESPONSE_ID, makeResponse("existing"), 1000L);
+        ApiCachePersistence.storeEntryIfAbsent(RESPONSE_ID, makeResponse("newcomer"), 2000L);
+
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(RESPONSE_ID);
+        assertEquals("existing", ((ApiResponse) entry.value).getData().getFirst().get("thing"));
+    }
+
+    @Test
+    @DisplayName("loadEntry should delete an unreadable entry file and report a miss")
+    void corruptEntryFileIsDeletedOnRead() throws Exception {
+        File storeDir = initEntryStore();
+        ApiCachePersistence.storeEntry(RESPONSE_ID, makeResponse("soon-corrupt"), System.currentTimeMillis());
+        File[] files = storeDir.listFiles();
+        assertEquals(1, files.length);
+        Files.write(files[0].toPath(), new byte[] {1, 2, 3, 4, 5});
+
+        assertNull(ApiCachePersistence.loadEntry(RESPONSE_ID));
+        assertFalse(files[0].isFile(), "the useless file should be gone");
+    }
+
+    @Test
+    @DisplayName("load should backfill the entry store from the snapshot file")
+    void loadBackfillsEntryStore() throws Exception {
+        putCachedResponse(RESPONSE_ID, makeResponse("snapshot-only"), 5000L);
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        putCachedMap(MAP_ID, map, 5000L);
+        File file = new File(tempDir, "cache.ser");
+        ApiCachePersistence.save(file);
+
+        setUp();
+        initEntryStore();
+        ApiCachePersistence.load(file);
+
+        ApiCachePersistence.PersistedEntry responseEntry = ApiCachePersistence.loadEntry(RESPONSE_ID);
+        assertNotNull(responseEntry);
+        assertEquals("snapshot-only", ((ApiResponse) responseEntry.value).getData().getFirst().get("thing"));
+        ApiCachePersistence.PersistedEntry mapEntry = ApiCachePersistence.loadEntry(MAP_ID);
+        assertNotNull(mapEntry);
+        assertEquals(map, mapEntry.value);
     }
 
 }

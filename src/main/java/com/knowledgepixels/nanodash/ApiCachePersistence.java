@@ -12,9 +12,12 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +31,17 @@ import java.util.concurrent.TimeUnit;
  * restored ones are served — instead of starting cold and re-fetching everything from the
  * query API and the registry at once.
  *
- * <p>The snapshot is a cache, not a store of record: a missing, corrupt, or (after a library
+ * <p>Next to the snapshot file sits a per-entry store (a directory of one small file per
+ * query response or map), from which the persistent tier never evicts: every successful
+ * fetch overwrites its entry, and nothing is ever aged out. The in-memory caches keep their
+ * bounded size and idle expiry; when a request misses there, {@link ApiCache} reads the
+ * entry back from this store with its original timestamp, so the stored content is shown
+ * right away while the usual staleness logic re-queries in the background. Without this
+ * tier, memory eviction used to propagate into the snapshot (which only captured what was
+ * still in memory), so rarely visited pages came back from a restart with a blank loading
+ * state instead of their previous content.</p>
+ *
+ * <p>Both tiers are caches, not stores of record: a missing, corrupt, or (after a library
  * upgrade) unreadable file only means starting cold, never failing startup. The default file
  * location is inside {@code ~/.nanopub}, which the standard Docker setup already mounts as a
  * volume, so deployments get persistence without any configuration.</p>
@@ -53,6 +66,10 @@ public class ApiCachePersistence {
 
     private static ScheduledExecutorService scheduler;
     private static File snapshotFile;
+
+    // Directory of the per-entry store; null while persistence is not (yet) initialized,
+    // which makes all entry-store operations no-ops.
+    private static volatile File entryStoreDir;
 
     /**
      * The root object written to the snapshot file: the query cache content together with
@@ -94,6 +111,7 @@ public class ApiCachePersistence {
             return;
         }
         snapshotFile = new File(path);
+        entryStoreDir = new File(path + ".d");
         load(snapshotFile);
         scheduler = Executors.newSingleThreadScheduledExecutor((r) -> {
             Thread t = new Thread(r, "nanodash-cache-persistence");
@@ -134,10 +152,12 @@ public class ApiCachePersistence {
                 int viewCount = state.views == null ? 0 : View.importViews(state.views);
                 logger.info("Restored {} cached query results, {} cached nanopubs, {} views and {} view resolutions from {}",
                         queryCount, npCount, viewCount, resolvedCount, file);
+                ApiCache.backfillEntryStore(state.queryCache);
             } else if (obj instanceof ApiCache.Snapshot snapshot) {
                 // A file from before the snapshot also carried the nanopub cache.
                 int count = ApiCache.importSnapshot(snapshot, MAX_SNAPSHOT_AGE_MS);
                 logger.info("Restored {} cached query results from {}", count, file);
+                ApiCache.backfillEntryStore(snapshot);
             } else {
                 logger.warn("Ignoring cache snapshot file {} with unexpected content", file);
             }
@@ -175,6 +195,127 @@ public class ApiCachePersistence {
             logger.debug("Saved {} cached query results and {} cached nanopubs to {}", snapshot.size(), nanopubs.size(), file);
         } catch (Exception ex) {
             logger.warn("Could not write cache snapshot file {}: {}", file, ex.toString());
+        }
+    }
+
+    /**
+     * One entry of the per-entry store: a query response or map together with the cache id
+     * it belongs to and when it was last refreshed. The cache id is stored inside the file
+     * (whose name is only a hash of it) so a read can verify it got the entry it asked for.
+     */
+    static class PersistedEntry implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        final String cacheId;
+        final long lastRefresh;
+        final Serializable value;
+
+        private PersistedEntry(String cacheId, Serializable value, long lastRefresh) {
+            this.cacheId = cacheId;
+            this.value = value;
+            this.lastRefresh = lastRefresh;
+        }
+
+    }
+
+    /**
+     * Points the per-entry store at the given directory (null disables it). Normally set by
+     * {@link #init()}; exposed for tests.
+     *
+     * @param dir the store directory, or null to disable the store
+     */
+    static void initEntryStore(File dir) {
+        entryStoreDir = dir;
+    }
+
+    /**
+     * Writes one cache entry to the per-entry store, replacing any previous version of it.
+     * Called for every successfully fetched query response or map, so the store always holds
+     * the latest content that ever arrived for each query — this tier never evicts. Written
+     * atomically (unique temporary file, then move), so concurrent writers and a crash
+     * mid-write can at worst leave the previous version in place. A no-op while persistence
+     * is disabled; any failure is logged and otherwise ignored.
+     *
+     * @param cacheId         the cache id (the query's URL string)
+     * @param value           the response or map to store
+     * @param lastRefreshTime when the content was fetched
+     */
+    static void storeEntry(String cacheId, Serializable value, long lastRefreshTime) {
+        File dir = entryStoreDir;
+        if (dir == null) return;
+        try {
+            dir.mkdirs();
+            File file = new File(dir, entryFileName(cacheId));
+            File tmpFile = new File(dir, file.getName() + ".tmp." + Thread.currentThread().threadId() + "." + System.nanoTime());
+            try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile)))) {
+                out.writeObject(new PersistedEntry(cacheId, value, lastRefreshTime));
+            }
+            try {
+                Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception ex) {
+            logger.warn("Could not write cache entry for {}: {}", cacheId, ex.toString());
+        }
+    }
+
+    /**
+     * Writes one cache entry to the per-entry store only if the store has none for that id
+     * yet. Used to backfill the store from a snapshot file at startup without overwriting
+     * entries the store may hold in a newer version.
+     *
+     * @param cacheId         the cache id (the query's URL string)
+     * @param value           the response or map to store
+     * @param lastRefreshTime when the content was fetched
+     */
+    static void storeEntryIfAbsent(String cacheId, Serializable value, long lastRefreshTime) {
+        File dir = entryStoreDir;
+        if (dir == null) return;
+        if (new File(dir, entryFileName(cacheId)).isFile()) return;
+        storeEntry(cacheId, value, lastRefreshTime);
+    }
+
+    /**
+     * Reads one cache entry back from the per-entry store, however old it may be — age is
+     * the caller's concern, this tier never evicts. An unreadable file (corrupt, written by
+     * an incompatible earlier version, or a hash collision) is deleted, since it can never
+     * be read again and its slot is rewritten on the next successful fetch anyway.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     * @return the stored entry, or null if the store has none (or persistence is disabled)
+     */
+    static PersistedEntry loadEntry(String cacheId) {
+        File dir = entryStoreDir;
+        if (dir == null) return null;
+        File file = new File(dir, entryFileName(cacheId));
+        if (!file.isFile()) return null;
+        try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+            if (in.readObject() instanceof PersistedEntry entry && cacheId.equals(entry.cacheId)) {
+                return entry;
+            }
+        } catch (Exception ex) {
+            logger.warn("Could not read cache entry file {}: {}", file, ex.toString());
+        }
+        file.delete();
+        return null;
+    }
+
+    /**
+     * The store file name for a cache id: a hash, since cache ids are URL strings of
+     * arbitrary length and content.
+     */
+    private static String entryFileName(String cacheId) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(cacheId.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                sb.append(Character.forDigit((b >> 4) & 0xF, 16)).append(Character.forDigit(b & 0xF, 16));
+            }
+            return sb.append(".ser").toString();
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex); // SHA-256 is guaranteed to exist
         }
     }
 

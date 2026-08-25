@@ -296,6 +296,11 @@
         <version>3.5.5</version>
         <configuration>
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true</argLine>
+          <environmentVariables>
+            <!-- Tests that start a WicketApplication must not read or write the developer's
+                 real API cache persistence (snapshot file and entry store) in ~/.nanopub. -->
+            <NANODASH_API_CACHE_FILE>none</NANODASH_API_CACHE_FILE>
+          </environmentVariables>
         </configuration>
       </plugin>
       <plugin>

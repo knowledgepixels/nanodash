@@ -99,6 +99,44 @@ public class ApiCache {
     }
 
     /**
+     * Fills a memory miss from the per-entry store (see
+     * {@link ApiCachePersistence#loadEntry}): the stored response goes back into the
+     * in-memory cache with its <em>original</em> refresh timestamp, so the normal staleness
+     * logic takes over from there — the restored content is served while anything older than
+     * {@link #REFRESH_AGE_THRESHOLD_MS} re-fetches in the background. This is what makes
+     * memory eviction invisible to callers: the persistent tier never evicts, so content
+     * that once arrived stays available (however outdated) until a re-fetch replaces it.
+     * A timestamp from the future (a clock jump) is not adopted, leaving the entry to count
+     * as stale rather than as fresh indefinitely.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     * @return the restored response, or null if the store has none
+     */
+    private static ApiResponse loadResponseFromStore(String cacheId) {
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(cacheId);
+        if (entry == null || !(entry.value instanceof ApiResponse response)) return null;
+        cachedResponses.put(cacheId, response);
+        if (entry.lastRefresh <= System.currentTimeMillis()) {
+            lastRefresh.putIfAbsent(cacheId, entry.lastRefresh);
+        }
+        return response;
+    }
+
+    /**
+     * The map counterpart of {@link #loadResponseFromStore(String)}.
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> loadMapFromStore(String cacheId) {
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(cacheId);
+        if (entry == null || !(entry.value instanceof Map<?, ?> map)) return null;
+        cachedMaps.put(cacheId, (Map<String, String>) map);
+        if (entry.lastRefresh <= System.currentTimeMillis()) {
+            lastRefresh.putIfAbsent(cacheId, entry.lastRefresh);
+        }
+        return (Map<String, String>) map;
+    }
+
+    /**
      * Checks if a cache refresh is currently running for the given cache ID.
      *
      * @param cacheId The unique identifier for the cache.
@@ -168,14 +206,19 @@ public class ApiCache {
         }
         String cacheId = queryRef.getAsUrlString();
         logger.info("Updating cached API response for {}", cacheId);
+        long timeNow = System.currentTimeMillis();
         cachedResponses.put(cacheId, response);
-        lastRefresh.put(cacheId, System.currentTimeMillis());
+        lastRefresh.put(cacheId, timeNow);
+        ApiCachePersistence.storeEntry(cacheId, response, timeNow);
     }
 
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         logger.debug("Retrieving cached API response synchronously for {}", cacheId);
+        if (cachedResponses.getIfPresent(cacheId) == null) {
+            loadResponseFromStore(cacheId);
+        }
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             // lastRefresh can be missing for a cached entry (racing invalidation or
@@ -297,6 +340,9 @@ public class ApiCache {
             forcedRefresh.add(cacheId);
         }
         boolean forced = forcedRefresh.contains(cacheId);
+        if (cachedResponses.getIfPresent(cacheId) == null) {
+            loadResponseFromStore(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
@@ -366,8 +412,10 @@ public class ApiCache {
             map.put(resultEntry.get("key"), resultEntry.get("value"));
         }
         String cacheId = queryRef.getAsUrlString();
+        long timeNow = System.currentTimeMillis();
         cachedMaps.put(cacheId, map);
-        lastRefresh.put(cacheId, System.currentTimeMillis());
+        lastRefresh.put(cacheId, timeNow);
+        ApiCachePersistence.storeEntry(cacheId, (Serializable) map, timeNow);
     }
 
     /**
@@ -383,6 +431,9 @@ public class ApiCache {
         if (isForcedReload(cacheId)) {
             cachedMaps.invalidate(cacheId);
             lastRefresh.remove(cacheId);
+        }
+        if (cachedMaps.getIfPresent(cacheId) == null) {
+            loadMapFromStore(cacheId);
         }
         boolean isCached = false;
         boolean needsRefresh = true;
@@ -519,7 +570,9 @@ public class ApiCache {
 
     /**
      * Returns whatever response is cached for a query reference, however outdated, without
-     * triggering a refresh or any other side effect. Meant for showing the previous content
+     * triggering a refresh. A memory miss falls through to the per-entry store, which never
+     * evicts, so this finds any response that ever arrived for the query — restored quickly
+     * from a local file, never the network. Meant for showing the previous content
      * while a refresh is in flight (issue #599) — never as a substitute for the current data,
      * which is what {@link #retrieveResponseAsync(QueryRef)} and
      * {@link #retrieveResponseSync(QueryRef, boolean)} return.
@@ -528,7 +581,10 @@ public class ApiCache {
      * @return The cached response of any age, or null if nothing is cached.
      */
     public static ApiResponse retrieveStaleResponse(QueryRef queryRef) {
-        return cachedResponses.getIfPresent(queryRef.getAsUrlString());
+        String cacheId = queryRef.getAsUrlString();
+        ApiResponse response = cachedResponses.getIfPresent(cacheId);
+        if (response != null) return response;
+        return loadResponseFromStore(cacheId);
     }
 
     /**
@@ -621,6 +677,28 @@ public class ApiCache {
             count++;
         }
         return count;
+    }
+
+    /**
+     * Copies a restored snapshot's entries into the per-entry store, so content saved by a
+     * version from before the store existed is not lost to memory eviction again. Entries
+     * the store already has are left alone (its version is at least as new), and no age
+     * limit applies — unlike the in-memory import, the store keeps everything. Meant to run
+     * once at startup, right after the snapshot file is read.
+     *
+     * @param snapshot the restored snapshot
+     */
+    static void backfillEntryStore(Snapshot snapshot) {
+        for (Map.Entry<String, ApiResponse> e : snapshot.responses.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || e.getValue() == null) continue;
+            ApiCachePersistence.storeEntryIfAbsent(e.getKey(), e.getValue(), t);
+        }
+        for (Map.Entry<String, Map<String, String>> e : snapshot.maps.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || e.getValue() == null) continue;
+            ApiCachePersistence.storeEntryIfAbsent(e.getKey(), (Serializable) e.getValue(), t);
+        }
     }
 
     /**
