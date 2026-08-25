@@ -165,6 +165,14 @@ public class KPXL_TERMS {
     public static final IRI INVERSE_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "InverseRoleProperty");
     public static final IRI REGULAR_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "RegularRoleProperty");
 
+    // Role revocation (issue #639 / nanopub-query #129): key-level negatives resolved
+    // server-side by authorization-scoped latest-wins. A gen:RevokedRoleInstantiation
+    // nanopub revokes one (space, agent, role) assignment (admins keyed on
+    // gen:hasRole gen:AdminRole); a gen:detachedRole triple removes a role from a
+    // space altogether. See nanopub-query's doc/design-role-revocation.md.
+    public static final IRI REVOKED_ROLE_INSTANTIATION = VocabUtils.createIRI(NAMESPACE, "RevokedRoleInstantiation");
+    public static final IRI DETACHED_ROLE = VocabUtils.createIRI(NAMESPACE, "detachedRole");
+
     // Role tiers (subclasses of gen:SpaceMemberRole; materialized server-side by
     // nanopub-query as the npa:hasRoleType value). Ordered admin > maintainer >
     // member > observer; observer is the default when a role declares no tier.

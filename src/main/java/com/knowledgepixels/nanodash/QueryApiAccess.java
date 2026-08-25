@@ -235,13 +235,13 @@ public class QueryApiAccess {
     // scoped to the SAME role property ((npa:regularProperty|npa:inverseProperty) ?roleProp on
     // ?vriH), so a higher tier held through a different property no longer suppresses the observer
     // association, while the #498 tier-collision fix (same property validated at a higher tier)
-    // is preserved. RARcL1s1 (supersedes RAQylZL4) distinguishes pending accounts (issue #625 /
+    // is preserved. RAt8PKQ2 (supersedes RARcL1s1, adding the hidden revokeAgent action-mapping column; RARcL1s1 superseded RAQylZL4) distinguishes pending accounts (issue #625 /
     // nanopub-query#195): an association validated only through a pending account — the
     // materialized RoleInstantiation carries npa:trustStatus npa:seen, produced by the
     // PendingAccountState self-arm for observer-tier self-signups of introduced-but-unapproved
     // users — shows ⏳ in the headerless flag column (empty = approved-validated, ⏳ =
     // pending-validated, ⚠️ = not validated at all).
-    public static final String LIST_SPACE_OBSERVERS_REF = "RARcL1s1A1FitiH8LSm7qtOH0JIAmKepMA9F_pTG3sVmo/list-space-observers";
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAt8PKQ21Ppsf3EZTH-Th749ZF8bjaniYc0jDqLt6ixXg/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -289,10 +289,10 @@ public class QueryApiAccess {
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
     // RoleAssignment-scoping workaround and the global RoleDeclaration matching that leaked observer-tier
-    // members into the Approved listing. See nanodash#498. Latest (RA7E54m5, supersedes RApyKS9D)
+    // members into the Approved listing. See nanodash#498. Latest (RAJ15No3, supersedes RA7E54m5, adding the hidden revokeAgent action-mapping column; RA7E54m5 superseded RApyKS9D)
     // drops the role-label coalesce to read schema:name only.
-    public static final String LIST_SPACE_MEMBERS_REF = "RA7E54m5Hb413Ud-0T9HEiH9wnxlJXBkcUT701NDaUGQk/list-space-members";
-    public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
+    public static final String LIST_SPACE_MEMBERS_REF = "RAJ15No3ghODCXHgk71ix3ZHOWlrL_u6FhuIPffgkjA_Y/list-space-members";
+    public static final String LIST_SPACE_ROLES_REF = "RAYy3dC-N0ps7va0vZ8vQiD9cbU5XNOxmbfvhrImx7UMU/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
