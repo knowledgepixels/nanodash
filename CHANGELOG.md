@@ -1,3 +1,45 @@
+## [5.12.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.11.1...nanodash-5.12.0) (2026-08-25)
+
+### Features
+
+* allow inline SVG in HTML snippets from queries ([cd4bc31](https://github.com/knowledgepixels/nanodash/commit/cd4bc31dccb768a305739b1ad5162c61fe1a0385))
+* allow SVG markup as a profile picture ([#634](https://github.com/knowledgepixels/nanodash/issues/634)) ([e1234c2](https://github.com/knowledgepixels/nanodash/commit/e1234c207158c49e7557b382c5dcbfb1d0113dfe))
+* give the error page a way onward ([db22dc6](https://github.com/knowledgepixels/nanodash/commit/db22dc67e0184dfc222a43650d0039596951e2a1)), closes [#616](https://github.com/knowledgepixels/nanodash/issues/616)
+* never-evicting per-entry store behind the API cache ([7db90ca](https://github.com/knowledgepixels/nanodash/commit/7db90ca41778a679a675471e8fc4a02564f8d1e8)), closes [#570](https://github.com/knowledgepixels/nanodash/issues/570)
+* page-level refresh action and page-structure spinner ([#622](https://github.com/knowledgepixels/nanodash/issues/622)) ([cd9b690](https://github.com/knowledgepixels/nanodash/commit/cd9b6900863dfdbad1a4f1cf0b76d03bd133dd3f))
+* profile pictures for spaces and maintained resources ([#632](https://github.com/knowledgepixels/nanodash/issues/632)) ([fc48e39](https://github.com/knowledgepixels/nanodash/commit/fc48e39767eaf00b411f7a72014b972eb8a165f1))
+* show `/publish?...` links from views as buttons ([f80b6ea](https://github.com/knowledgepixels/nanodash/commit/f80b6ea1c08a3a3a5b9d46ee7d1e20d72c172e18)), closes [#628](https://github.com/knowledgepixels/nanodash/issues/628)
+* **SourceNanopub:** update nanopub element with additional data for RDFa parsers ([47d194b](https://github.com/knowledgepixels/nanodash/commit/47d194b53ed337aa63565ae1c28a4e689aee673b))
+* surface introduced-but-unapproved users as pending ([#625](https://github.com/knowledgepixels/nanodash/issues/625)) ([d48abac](https://github.com/knowledgepixels/nanodash/commit/d48abac7e532f9f83fe348335d233e2b45e93f69)), closes [nanopub-query#195](https://github.com/knowledgepixels/nanopub-query/issues/195)
+* **template:** check the SPARQL of a query before it is published ([b66a296](https://github.com/knowledgepixels/nanodash/commit/b66a29648532dc5e960db0f45a1a506469a5a162)), closes [#615](https://github.com/knowledgepixels/nanodash/issues/615)
+
+### Bug Fixes
+
+* borderless entry-action chevrons on item list views ([9afff08](https://github.com/knowledgepixels/nanodash/commit/9afff080a4318a618498631ff8967d135fbd09b7))
+* don't list a nanopublication as its own newer version ([4d871b7](https://github.com/knowledgepixels/nanodash/commit/4d871b7299ad82525d313199267039860e95252e))
+* **ExplorePage:** recognise terms published with the legacy part-of term ([be71dc0](https://github.com/knowledgepixels/nanodash/commit/be71dc0f03785ef6caf336ffbade07823721c24e)), closes [#511](https://github.com/knowledgepixels/nanodash/issues/511)
+* keep SVG paint that is declared in style attributes ([39a7339](https://github.com/knowledgepixels/nanodash/commit/39a7339fcf11188367b008fa1394c3ed45a52c95))
+* parse literal serializations without overflowing the stack ([a86360f](https://github.com/knowledgepixels/nanodash/commit/a86360f9868cb37c7b6b0bf2701766f4ccec0130))
+* **QueryApiAccess:** point get-parts at the version reading both part-of terms ([94aab6b](https://github.com/knowledgepixels/nanodash/commit/94aab6b58edb111bd56bbecb938679e8a2731c68)), closes [#511](https://github.com/knowledgepixels/nanodash/issues/511)
+* **QueryPage:** explain why a query can't be loaded instead of failing ([cfdb06e](https://github.com/knowledgepixels/nanodash/commit/cfdb06edd926c7d868259444b27f11328adf4883)), closes [#284](https://github.com/knowledgepixels/nanodash/issues/284)
+* refresh the acted-on view, not the whole page structure ([#622](https://github.com/knowledgepixels/nanodash/issues/622)) ([b5a44d7](https://github.com/knowledgepixels/nanodash/commit/b5a44d751636236a7f094c2aa30315fd2751b325))
+* right-align space/resource profile pictures in header row ([2864a36](https://github.com/knowledgepixels/nanodash/commit/2864a36456d25dc0542a057ad5c11d7fe0f7e8b3))
+* shorten pending-approval banner to one line ([956e19b](https://github.com/knowledgepixels/nanodash/commit/956e19bc639b5f68d50c2902005efa7a1227c635))
+* strip HTML and drop SVG from generated nanopublication labels ([51a1618](https://github.com/knowledgepixels/nanodash/commit/51a161845b50ed436a077e0de63dfe92cc801a7f))
+* URL-decode fallback term labels on /part page ([#621](https://github.com/knowledgepixels/nanodash/issues/621)) ([133cee8](https://github.com/knowledgepixels/nanodash/commit/133cee88c640e059a64616041d4c2d16200292ae))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([fade39d](https://github.com/knowledgepixels/nanodash/commit/fade39db66cbdd7796ce5edd3cddea82fffb49e6))
+
+### Style improvements
+
+* put the page-structure spinner right of the title dropdown ([05064ea](https://github.com/knowledgepixels/nanodash/commit/05064eaf83a2a592f394d5973f1c6b2f175a96a1))
+
+### Refactoring
+
+* **test:** take the query template fixture from the nanopub test suite ([944c286](https://github.com/knowledgepixels/nanodash/commit/944c2865a87ab1c46c91b337f80f0b6e0a110fe7)), closes [Nanopublication/nanopub-testsuite#5](https://github.com/Nanopublication/nanopub-testsuite/issues/5) [#615](https://github.com/knowledgepixels/nanodash/issues/615)
+
 ## [5.11.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.11.0...nanodash-5.11.1) (2026-08-20)
 
 ### Dependency updates
