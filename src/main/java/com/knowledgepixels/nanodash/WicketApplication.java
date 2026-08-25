@@ -362,7 +362,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 }
             } else {
                 QueryRef queryRef = QueryRef.parseString(target);
-                ApiCache.clearCache(queryRef, waitMs);
+                ApiCache.clearCache(queryRef, waitMs, nanopub.getUri().stringValue());
             }
         });
     }
