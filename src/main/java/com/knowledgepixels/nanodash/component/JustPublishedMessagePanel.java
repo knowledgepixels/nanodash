@@ -30,10 +30,10 @@ import com.knowledgepixels.nanodash.page.UserPage;
  *       <em>every</em> page (no close button) whenever a logged-in user with a
  *       local key has not yet published an introduction linking that key to their
  *       ORCID. It disappears only once such an introduction is published; and</li>
- *   <li>an amber "your account is pending approval" notice box, shown on
- *       <em>every</em> page whenever the user has an introduction but no approved
- *       key yet (issue #625): their self-signed contributions are marked as
- *       pending (⏳) until an approved user approves their introduction.</li>
+ *   <li>an amber "your account is pending" notice box, shown on <em>every</em>
+ *       page whenever the user has an introduction but no approved key yet
+ *       (issue #625), asking them to share their introduction so an approved
+ *       user can approve it.</li>
  * </ul>
  */
 public class JustPublishedMessagePanel extends Panel {
