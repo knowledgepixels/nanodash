@@ -48,6 +48,13 @@ public class Template implements Serializable {
      */
     public static final IRI POSSIBLE_LANGUAGE_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleLanguageTag");
 
+    /**
+     * Type of a template whose filled content applies only to the specific nanopublication
+     * it was published with, and is not carried over when that nanopublication is
+     * superseded, overridden, derived from, or otherwise used as a fill source.
+     */
+    public static final IRI TRANSIENT_TEMPLATE = vf.createIRI("https://w3id.org/np/o/ntemplate/TransientTemplate");
+
     private final Nanopub nanopub;
     private String label;
     private String description;
@@ -116,6 +123,18 @@ public class Template implements Serializable {
     public boolean isUnlisted() {
         List<IRI> types = typeMap.get(templateIri);
         return types != null && types.contains(NTEMPLATE.UNLISTED_TEMPLATE);
+    }
+
+    /**
+     * Checks if the template is transient, meaning its filled content applies only to the
+     * specific nanopublication it was published with and is not carried over when that
+     * nanopublication is superseded, overridden, derived from, or used as a fill source.
+     *
+     * @return true if the template is transient, false otherwise.
+     */
+    public boolean isTransient() {
+        List<IRI> types = typeMap.get(templateIri);
+        return types != null && types.contains(TRANSIENT_TEMPLATE);
     }
 
     /**

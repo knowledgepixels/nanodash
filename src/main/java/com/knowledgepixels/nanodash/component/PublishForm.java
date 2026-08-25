@@ -54,6 +54,7 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
+import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +80,7 @@ public class PublishForm extends Panel {
     public static final String DEFAULT_PROV_TEMPLATE = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
     private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
     private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
+    private static final String changeNotePubInfoTemplateId = "https://w3id.org/np/RAVXmu2rj-pkWoDjHH4n1oAHbseAf3RcUYpYiwI1WXDmY";
 
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
@@ -267,6 +269,17 @@ public class PublishForm extends Panel {
             pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
         }
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            // Offer a change-note field by default when a new version of a nanopub is
+            // made (removable, and its statement is optional in the template, so an
+            // empty note doesn't block publishing):
+            String changeNoteIdLatest = td.getLatestTemplateId(changeNotePubInfoTemplateId);
+            if (!pubInfoContextMap.containsKey(changeNoteIdLatest)) {
+                TemplateContext c = newContext(ContextType.PUBINFO, changeNoteIdLatest, "pi-statement");
+                pubInfoContexts.add(c);
+                pubInfoContextMap.put(c.getTemplateId(), c);
+            }
+        }
         for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
             String latestId = td.getLatestTemplateId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
@@ -293,10 +306,21 @@ public class PublishForm extends Panel {
             }
             piParamIdMap.put(i, c);
         }
+        // Pubinfo templates of the fill source that are marked transient: their content
+        // applies to the source nanopub only, so they get no form context; their
+        // statements are consumed and discarded below instead of carried over.
+        final List<String> transientPiTemplateIds = new ArrayList<>();
         if (fillNp != null && !fillOnlyAssertion) {
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
+                // The flag is checked on the latest template version, so flagging a
+                // template also stops carry-over from nanopubs created with older,
+                // unflagged versions of it:
                 String piTemplateIdLatest = td.getLatestTemplateId(piTemplateId.stringValue());
                 if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) {
+                    continue;
+                }
+                if (isTransientTemplate(piTemplateIdLatest)) {
+                    transientPiTemplateIds.add(piTemplateId.stringValue());
                     continue;
                 }
                 if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
@@ -409,18 +433,68 @@ public class PublishForm extends Panel {
                         }
                     }
                 }
+                // Consume the transient templates' statements first, so they neither
+                // fill into another template below nor end up as unused-statement
+                // warnings; the throwaway contexts are then simply discarded. One
+                // context consumes only one fill's worth, so repeat with fresh
+                // contexts until nothing more is consumed (e.g. several
+                // prov:wasDerivedFrom triples from a multi-source derivation):
+                for (String tid : transientPiTemplateIds) {
+                    int unusedBefore;
+                    do {
+                        unusedBefore = piFiller.getUnusedStatements().size();
+                        TemplateContext c = newContext(ContextType.PUBINFO, tid, "pi-statement");
+                        c.setFillSource(fillNp);
+                        // The creator slot is preset to the session user and then only
+                        // unifies with them; a throwaway must consume the template's
+                        // triples whoever they were about, so clear the preset:
+                        IModel<?> creatorModel = c.getComponentModels().get(NTEMPLATE.CREATOR_PLACEHOLDER);
+                        if (creatorModel instanceof Model) {
+                            ((Model<String>) creatorModel).setObject("");
+                        }
+                        c.initStatements();
+                        piFiller.fill(c);
+                    } while (piFiller.getUnusedStatements().size() < unusedBefore);
+                }
+                // The hand-coded catch-all (present already when the source was made with
+                // it) is filled last, after the cleanup below, so it only gets what no
+                // other template and no cleanup rule has claimed:
+                final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
+                final String handcodedIdLatest = td.getLatestTemplateId(handcodedStatementsTemplateId);
+                TemplateContext handcodedContext = null;
                 for (TemplateContext c : pubInfoContexts) {
+                    String latestId = td.getLatestTemplateId(c.getTemplateId());
+                    if (isTransientTemplate(latestId)) {
+                        // A transient template kept in the form (e.g. the fresh derivation
+                        // link in derive mode) starts from its parameters only; values from
+                        // the fill source must not leak into it.
+                        continue;
+                    }
+                    if (latestId.equals(handcodedIdLatest)) {
+                        handcodedContext = c;
+                        continue;
+                    }
                     piFiller.fill(c);
                 }
                 piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
+                // The name triples of the source's creators are auto-generated alongside
+                // the creator statements; with those discarded as transient, keeping the
+                // orphaned names would leak them into hand-coded statements:
+                for (IRI creator : SimpleCreatorPattern.getCreators(fillNp)) {
+                    piFiller.removeUnusedStatements(creator, FOAF.NAME, null);
+                }
                 if (piFiller.hasUnusedStatements()) {
-                    final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
-                    if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
-                        TemplateContext c = createPubInfoContext(handcodedStatementsTemplateId);
-                        c.setFillSource(fillNp);
-                        c.initStatements();
-                        piFiller.fill(c);
+                    if (handcodedContext == null) {
+                        handcodedContext = createPubInfoContext(handcodedStatementsTemplateId);
+                        handcodedContext.setFillSource(fillNp);
+                        handcodedContext.initStatements();
                     }
+                    piFiller.fill(handcodedContext);
+                } else if (handcodedContext != null && !requiredPubInfoContexts.contains(handcodedContext)) {
+                    // Everything was claimed or discarded: an empty catch-all would only
+                    // block publishing on its required statement, so drop it.
+                    pubInfoContexts.remove(handcodedContext);
+                    pubInfoContextMap.values().remove(handcodedContext);
                 }
                 unusedPiStatementList.addAll(piFiller.getUnusedStatements());
                 // TODO: Also use pubinfo templates stated in nanopub to be filled in?
@@ -1043,6 +1117,15 @@ public class PublishForm extends Panel {
         TemplateContext context = new TemplateContext(contextType, templateId, componentId, targetNamespace);
         context.setNavigationContextId(navigationContextId);
         return context;
+    }
+
+    /**
+     * Checks whether the given template is transient (see {@link Template#isTransient()}),
+     * i.e. its filled content is not carried over when the nanopub is used as fill source.
+     */
+    private static boolean isTransientTemplate(String templateId) {
+        Template t = TemplateData.get().getTemplate(templateId);
+        return t != null && t.isTransient();
     }
 
     private TemplateContext createPubInfoContext(String piTemplateId) {
