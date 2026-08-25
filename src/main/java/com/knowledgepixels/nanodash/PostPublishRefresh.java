@@ -44,6 +44,7 @@ public class PostPublishRefresh {
             KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT,
             KPXL_TERMS.VIEW_ENTITY,
             KPXL_TERMS.ROLE_INSTANTIATION,
+            KPXL_TERMS.REVOKED_ROLE_INSTANTIATION,
             KPXL_TERMS.SPACE,
             KPXL_TERMS.MAINTAINED_RESOURCE
     );
@@ -61,6 +62,7 @@ public class PostPublishRefresh {
             KPXL_TERMS.HAS_VIEW,
             KPXL_TERMS.HAS_ADMIN_PREDICATE,
             KPXL_TERMS.HAS_ROLE,
+            KPXL_TERMS.DETACHED_ROLE,
             KPXL_TERMS.IS_VISIBLE_TO,
             KPXL_TERMS.IS_MAINTAINED_BY,
             KPXL_TERMS.HAS_ROOT_DEFINITION,
