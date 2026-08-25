@@ -77,10 +77,12 @@ public class RefreshingStructurePanel extends Panel {
             return;
         }
         timer.stop(target);
-        if (Objects.equals(shownSignature, resource.getStructureSignature())) {
+        if (!resource.isViewRefreshRequested() && Objects.equals(shownSignature, resource.getStructureSignature())) {
             // The refresh left the page structure as it is, so there is nothing worth
             // rebuilding — and rebuilding anyway would throw away whatever the user is
             // doing in the views (a typed filter, an open menu, the current table page).
+            // A page-level "refresh now" is the exception: there the views themselves are
+            // to be brought up to date, which is what the rebuild below carries them.
             return;
         }
         addOrReplace(factory.create(CONTENT_ID));

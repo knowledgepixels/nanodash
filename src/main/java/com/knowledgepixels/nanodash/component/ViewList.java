@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +38,17 @@ public class ViewList extends Panel {
     // representative ref. Null = representative ref. Read at render time by the inner
     // ListView, so it may be set after the delegating constructor. See docs/space-ref-identity.md.
     private String refRoot;
+
+    // Set when this list is built to honour a page-level "refresh now" (see
+    // AbstractResourceWithProfile.isViewRefreshDue): each view's query is marked as
+    // outdated just before the view is built, so the view comes back through
+    // RefreshingResultPanel — what is on screen now, plus a spinner — and swaps in the new
+    // results once the query has run.
+    private final boolean refreshViews;
+
+    // The queries already marked, so that a re-render of this same list does not keep
+    // marking them: the inner ListView repopulates on every render.
+    private final Set<String> refreshMarked = new HashSet<>();
 
     public ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile) {
         this(markupId, resourceWithProfile, null, null, null, null, null, true, null);
@@ -73,6 +86,9 @@ public class ViewList extends Panel {
 
     private ViewList(String markupId, AbstractResourceWithProfile resourceWithProfile, String partId, String nanopubId, Set<IRI> partClasses, AbstractResourceWithProfile footerResource, List<AbstractLink> footerAdminButtons, boolean showEmptyNotice, List<ViewDisplay> explicitViewDisplays) {
         super(markupId);
+
+        this.refreshViews = resourceWithProfile != null
+                && resourceWithProfile.isViewRefreshDue(explicitViewDisplays == null);
 
         final String id = (partId == null ? resourceWithProfile.getId() : partId);
         final String npId = (nanopubId == null ? resourceWithProfile.getNanopubId() : nanopubId);
@@ -193,6 +209,9 @@ public class ViewList extends Panel {
                                 return;
                             }
                             QueryRef queryRef = new QueryRef(view.getQuery().getQueryId(), queryRefParams);
+                            if (refreshViews && refreshMarked.add(queryRef.getAsUrlString())) {
+                                ApiCache.clearCache(queryRef, 0);
+                            }
                             Component resultComponent = QueryResultComponentFactory.build("view", queryRef, item.getModelObject(),
                                     resourceWithProfile, id, resourceWithProfile.getId(), refRoot);
                             if (resultComponent != null) {
