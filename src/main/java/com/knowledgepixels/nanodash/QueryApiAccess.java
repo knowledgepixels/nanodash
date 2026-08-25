@@ -30,6 +30,9 @@ public class QueryApiAccess {
     public static final String GET_MOST_USED_TEMPLATES_LAST30D = "RAvL7pe2ppsfq4mVWTdJjssYGsjrmliNd_sZO2ytLvg1Y/get-most-used-templates-last30d";
     public static final String GET_LATEST_NANOPUBS_BY_TYPE = "RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type";
     public static final String GET_LATEST_VERSION_OF_NP = "RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np";
+    // Minimal single-lookup probe for whether a given nanopub has been loaded by the
+    // answering Nanopub Query instance; used to time post-publish refreshes (issue #629).
+    public static final String CHECK_NANOPUB_LOADED = "RAxqXyhP1fnjvDdX-K0z9TgnwoXf462FxV1wEAWRm_gos/check-nanopub-loaded";
     public static final String GET_ALL_USER_INTROS = "RAjHh6P11QFUaoPiMRBavdAnTq4YMJW4PB85oVFSBfYjU/get-all-user-intros";
     public static final String GET_ALL_USER_PROFILE_PICS = "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
     // Profile pictures of spaces and maintained resources (issue #632), declared as
@@ -398,6 +401,22 @@ public class QueryApiAccess {
         }
         Pair<Long, String> cached = latestVersionMap.get(nanopubId);
         return cached != null ? cached.getRight() : nanopubId;
+    }
+
+    /**
+     * Checks whether the given nanopublication has been loaded by the query services,
+     * with a single cheap indexed lookup. A negative answer only means the instance that
+     * happened to answer does not have the nanopub yet.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     * @return True if the answering query service instance has the nanopub.
+     * @throws org.nanopub.extra.services.FailedApiCallException         If the API call fails.
+     * @throws org.nanopub.extra.services.APINotReachableException       If the API is not reachable.
+     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException If there are not enough API instances.
+     */
+    public static boolean isNanopubLoaded(String nanopubId) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        ApiResponse r = get(new QueryRef(CHECK_NANOPUB_LOADED, "np", nanopubId));
+        return r != null && !r.getData().isEmpty();
     }
 
     /**
