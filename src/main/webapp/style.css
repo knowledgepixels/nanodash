@@ -1215,6 +1215,7 @@ input[type=radio] + label strong {
    chevron — the border only appears on hover (as an outline, not a filled button). */
 .result-table .actionmenu,
 .inline-list .actionmenu,
+.item-list .actionmenu,
 .paragraph-header .actionmenu,
 .graphsubheader .actionmenu {
   position: relative;
@@ -1223,6 +1224,7 @@ input[type=radio] + label strong {
 
 .result-table .actionmenu-button,
 .inline-list .actionmenu-button,
+.item-list .actionmenu-button,
 .paragraph-header .actionmenu-button,
 .graphsubheader .actionmenu-button {
   border-color: transparent;
@@ -1233,6 +1235,7 @@ input[type=radio] + label strong {
 
 .result-table .actionmenu:hover .actionmenu-button,
 .inline-list .actionmenu:hover .actionmenu-button,
+.item-list .actionmenu:hover .actionmenu-button,
 .paragraph-header .actionmenu:hover .actionmenu-button,
 .graphsubheader .actionmenu:hover .actionmenu-button {
   border-color: #0B73DA;
