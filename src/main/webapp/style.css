@@ -2942,12 +2942,29 @@ td div:has(.button-list) {
   width: 100% !important;
 }
 
+/* Date and time fields sized to their content: a date like "25 Aug 2026", and a time like
+   "14:30", wider when the field asks for seconds. The !important is needed because the Kendo
+   widgets put their default widths as inline styles on these boxes. */
+span.k-datepicker {
+  width: 140px !important;
+}
+
+span.k-timepicker {
+  width: 90px !important;
+}
+
+span.k-timepicker:has(input.with-seconds) {
+  width: 115px !important;
+}
+
 /* Time zone picker: the whole box opens the dropdown, the globe included. The select covers the
    box, and the globe is drawn on top of it without taking the clicks for itself; the select's own
    arrow is hidden, as the globe is the button this box shows. The tag is in the selector below to
-   outweigh Kendo's own .k-input {width: 100%} whichever way round the stylesheets are loaded. */
+   outweigh Kendo's own .k-input {width: 100%} whichever way round the stylesheets are loaded.
+   The box fits the "UTC+02:00" part of the selected label; the place names behind it are
+   clipped, and still shown in full in the opened dropdown. */
 span.timezone-picker {
-  width: 240px;
+  width: 150px;
   position: relative;
   cursor: pointer;
 }
