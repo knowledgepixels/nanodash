@@ -8,6 +8,8 @@ import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.MetaDataKey;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.nanopub.Nanopub;
@@ -48,6 +50,19 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     // requested after a publication, with the previously loaded structure kept on screen
     // meanwhile. Cleared once the refreshed data has landed. See forceRefresh.
     private volatile boolean structureRefreshPending = false;
+    // The page-level "refresh now" asks not only for a refreshed structure but for the
+    // views of that structure to be brought up to date with it. Kept apart from
+    // forceRefresh, which a publication triggers too — there only the view that was acted
+    // on is refreshed (issue #622). Taken away by the first view list built once the
+    // refreshed structure has landed. See isViewRefreshDue.
+    private volatile boolean viewRefreshRequested = false;
+
+    // Whether the view lists built during the current request are to refresh their views,
+    // answered once per resource and remembered for the rest of the render so that several
+    // view lists on one page all refresh together rather than the first one taking the
+    // request away from the others.
+    private static final MetaDataKey<HashMap<String, Boolean>> VIEW_REFRESH_DUE = new MetaDataKey<>() {
+    };
 
     /**
      * Inner class to hold the data associated with a resource, including its view displays.
@@ -230,6 +245,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     public void forceRefresh(long waitMillis) {
         logger.info("Forcing refresh of resource {} after {} ms", id, waitMillis);
         dataNeedsUpdate = true;
+        // Mark the view-display query itself as outdated, the way every other refresh does
+        // (see ApiCache.clearCache). Without it, a forced fetch that finds a refresh of the
+        // same query already in flight settles for whatever that one leaves behind — a
+        // response fetched before this refresh was asked for, so the structure would come
+        // back unchanged even though it was re-fetched.
+        ApiCache.clearCache(viewDisplaysQueryRef(), waitMillis);
         if (dataInitialized && !data.viewDisplays.isEmpty()) {
             structureRefreshPending = true;
         } else {
@@ -249,6 +270,64 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         if (!structureRefreshPending) return false;
         triggerDataUpdate();
         return structureRefreshPending;
+    }
+
+    /**
+     * Asks for the views of this resource's structure to be brought up to date along with
+     * the structure itself — the page-level "refresh now", which refreshes the list of view
+     * displays first and then the views that list turns out to contain. The request is
+     * honoured by the first view list built once the refreshed structure has landed (see
+     * {@link #isViewRefreshDue(boolean)}), so it is the refreshed list that gets refreshed, not
+     * the one that happened to be on screen when the user clicked.
+     */
+    public void requestViewRefresh() {
+        viewRefreshRequested = true;
+    }
+
+    /**
+     * Whether a {@link #requestViewRefresh()} is still waiting to be honoured. Read by
+     * {@link com.knowledgepixels.nanodash.component.RefreshingStructurePanel}, which has to
+     * rebuild its content for the request to reach the views even when the refreshed
+     * structure turned out to be the same one.
+     *
+     * @return true while the views have not been refreshed yet
+     */
+    public boolean isViewRefreshRequested() {
+        return viewRefreshRequested;
+    }
+
+    /**
+     * Whether the view lists built for this resource in the current request are to refresh
+     * their views, i.e. a {@link #requestViewRefresh()} is pending and the list being built
+     * is the refreshed one. Takes the request away, but answers the same for every view
+     * list of the same render, so that several lists on one page refresh together.
+     *
+     * @param waitsForStructure whether the list being built takes its view displays from
+     *                          this resource's asynchronously refreshed structure, as
+     *                          opposed to carrying its own (a {@code ?root=}-pinned space
+     *                          page fetches them itself, and so has nothing to wait for)
+     * @return true if this render's views are to be brought up to date
+     */
+    public boolean isViewRefreshDue(boolean waitsForStructure) {
+        // Off a request thread there is nothing to remember the answer in; the request is
+        // then simply taken by the caller.
+        HashMap<String, Boolean> answered = null;
+        RequestCycle requestCycle = RequestCycle.get();
+        if (requestCycle != null) {
+            answered = requestCycle.getMetaData(VIEW_REFRESH_DUE);
+            if (answered == null) {
+                answered = new HashMap<>();
+                requestCycle.setMetaData(VIEW_REFRESH_DUE, answered);
+            }
+            Boolean known = answered.get(id);
+            if (known != null) return known;
+        }
+        // Still waiting for the refreshed structure: the views to refresh are the ones that
+        // list will contain, so the request is left standing for the render that follows it.
+        boolean due = viewRefreshRequested && !(waitsForStructure && structureRefreshPending);
+        if (due) viewRefreshRequested = false;
+        if (answered != null) answered.put(id, due);
+        return due;
     }
 
     /**

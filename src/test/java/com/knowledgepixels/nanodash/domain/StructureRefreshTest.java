@@ -1,6 +1,10 @@
 package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.ViewDisplay;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.nanopub.Nanopub;
@@ -16,6 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The post-publish refresh of a resource's page structure (issue #622): a structure that
  * is already on screen is kept and swapped in place, and only an empty one is invalidated
  * outright so the pages' lazy path can make a first view display appear.
+ * <p>
+ * Also the page-level "refresh now", which goes one step further: the views are refreshed
+ * after the list of view displays, so that it is the refreshed list whose views are
+ * brought up to date rather than the one that was on screen when the user clicked.
  */
 class StructureRefreshTest {
 
@@ -45,6 +53,22 @@ class StructureRefreshTest {
             return getId();
         }
 
+    }
+
+    // isViewRefreshDue remembers its answer for the rest of the request cycle, so each
+    // call below has to stand on its own: whatever cycle another test left bound to this
+    // thread is taken away for the duration and put back afterwards.
+    private RequestCycle boundRequestCycle;
+
+    @BeforeEach
+    void detachRequestCycle() {
+        boundRequestCycle = RequestCycle.get();
+        ThreadContext.setRequestCycle(null);
+    }
+
+    @AfterEach
+    void reattachRequestCycle() {
+        ThreadContext.setRequestCycle(boundRequestCycle);
     }
 
     // The flags forceRefresh acts on are read directly: going through isDataInitialized()
@@ -120,6 +144,52 @@ class StructureRefreshTest {
         TestResource r = new TestResource("https://example.org/test/idle");
         setStructure(r, viewDisplay());
         assertFalse(r.isStructureRefreshPending());
+    }
+
+    @Test
+    @DisplayName("the views wait for the refreshed structure before they are refreshed")
+    void viewRefreshWaitsForTheStructure() throws Exception {
+        TestResource r = new TestResource("https://example.org/test/views-wait");
+        setStructure(r, viewDisplay());
+
+        r.forceRefresh(5000);
+        r.requestViewRefresh();
+
+        assertTrue(r.isViewRefreshRequested());
+        assertFalse(r.isViewRefreshDue(true), "the list on screen is the old one, so it must not refresh yet");
+        assertTrue(r.isViewRefreshRequested(), "the request must survive for the refreshed list");
+
+        // The refreshed structure lands.
+        setField(r, "structureRefreshPending", false);
+
+        assertTrue(r.isViewRefreshDue(true), "the refreshed list refreshes its views");
+        assertFalse(r.isViewRefreshRequested(), "and takes the request away");
+        assertFalse(r.isViewRefreshDue(true), "so a later list does not refresh again");
+    }
+
+    @Test
+    @DisplayName("a list carrying its own view displays has no structure to wait for")
+    void viewRefreshOnAnExplicitList() throws Exception {
+        TestResource r = new TestResource("https://example.org/test/views-explicit");
+        setStructure(r, viewDisplay());
+
+        r.forceRefresh(5000);
+        r.requestViewRefresh();
+
+        // A ?root=-pinned page fetches its view displays itself, so what it shows is
+        // already the refreshed list even while the singleton structure is still in flight.
+        assertTrue(r.isViewRefreshDue(false));
+        assertFalse(r.isViewRefreshRequested());
+    }
+
+    @Test
+    @DisplayName("no view refresh without a request")
+    void noViewRefreshByDefault() throws Exception {
+        TestResource r = new TestResource("https://example.org/test/views-idle");
+        setStructure(r, viewDisplay());
+        assertFalse(r.isViewRefreshRequested());
+        assertFalse(r.isViewRefreshDue(true));
+        assertFalse(r.isViewRefreshDue(false));
     }
 
 }

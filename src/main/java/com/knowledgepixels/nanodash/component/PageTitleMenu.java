@@ -104,11 +104,22 @@ public class PageTitleMenu extends Panel {
     }
 
     /**
-     * Brings the whole page up to date: the resource's own structure (which views it shows)
-     * and every view query rendered on it, then a re-render so each of them comes back
-     * through the refreshing panels — the page keeps what it has on screen and swaps in the
-     * parts that turn out to have changed. The page-level counterpart of a view display's
-     * "refresh now", which does the same for its one query.
+     * Brings the whole page up to date, in that order: first the resource's own structure —
+     * which views it shows — and then the views that refreshed structure turns out to
+     * contain. The two steps are deliberately sequential: refreshing the views that happen
+     * to be on screen at the moment of the click would refresh the <em>old</em> list, so a
+     * view display that has just been added would arrive with whatever the cache held for
+     * it, and one that has just been removed would be re-queried for nothing. The request
+     * is therefore left standing on the resource and honoured by the view list that is
+     * built once the refreshed structure has landed (see
+     * {@link AbstractResourceWithProfile#requestViewRefresh()} and
+     * {@link RefreshingStructurePanel}).
+     * <p>
+     * Views that are not part of that structure-driven list — the About and Explore tabs
+     * build their own — have no refreshed list to wait for and are marked right away.
+     * <p>
+     * The page-level counterpart of a view display's "refresh now", which does the same for
+     * its one query.
      *
      * @param resource the page's resource, or null if the page has none
      * @return the menu entry
@@ -120,10 +131,21 @@ public class PageTitleMenu extends Panel {
             @Override
             public void onClick(Optional<AjaxRequestTarget> target) {
                 AbstractResourceWithProfile r = resourceId == null ? null : AbstractResourceWithProfile.get(resourceId);
-                if (r != null) r.forceRefresh(0);
+                // Only a page that shows a view list has views to refresh once the
+                // refreshed structure lands. Asking for it on a page that has none (a
+                // tab that builds its own views) would leave the request standing on the
+                // process-wide resource for some later page to pick up.
+                boolean hasViewList = Boolean.TRUE.equals(getPage().visitChildren(ViewList.class,
+                        (IVisitor<ViewList, Boolean>) (list, visit) -> visit.stop(Boolean.TRUE)));
+                if (r != null) {
+                    r.forceRefresh(0);
+                    if (hasViewList) r.requestViewRefresh();
+                }
                 getPage().visitChildren(QueryResult.class, (IVisitor<QueryResult, Void>) (view, visit) -> {
                     QueryRef queryRef = view.getQueryRef();
-                    if (queryRef != null) ApiCache.clearCache(queryRef, 0);
+                    if (queryRef != null && view.findParent(ViewList.class) == null) {
+                        ApiCache.clearCache(queryRef, 0);
+                    }
                 });
                 setResponsePage(getPage().getClass(), getPage().getPageParameters());
             }
