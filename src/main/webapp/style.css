@@ -678,17 +678,27 @@ img.thirdparty {
 }
 
 /* Profile pictures of spaces and maintained resources (issue #632): unlike user
-   icons these are shown plainly, without the tilted-square mask, above the title and
-   main URI and flush with them on the left. object-fit: contain keeps wide logos
+   icons these are shown plainly, without the tilted-square mask, right-aligned in
+   the header row next to the title/URI block. object-fit: contain keeps wide logos
    uncropped; with no picture the header is exactly as it was before. */
+.resource-header {
+  display: flex;
+  align-items: center;
+  column-gap: 1.5em;
+}
+
+.resource-header > .resource-header-text {
+  min-width: 0;
+}
+
 .resource-profile-pic {
   display: block;
+  flex-shrink: 0;
+  margin-left: auto;
   height: 4.2em;
   width: auto;
   max-width: 12em;
   object-fit: contain;
-  object-position: left;
-  margin: 0 0 0.4em 0;
 }
 
 .api-icon {

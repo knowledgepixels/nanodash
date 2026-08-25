@@ -109,7 +109,7 @@ public class SpacePage extends NanodashPage {
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
-        // Optional profile picture, left of the title/URI block (issue #632). Shown
+        // Optional profile picture, right of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the space declares none.
         ProfilePicture profilePicture = space.getProfilePicture();
