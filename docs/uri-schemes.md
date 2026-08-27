@@ -34,9 +34,11 @@ make it work here.
 
 ## Following a link
 
-Nanodash has no page of its own to show for an `ipfs:`, `did:` or `at:` resource, so it hands the
-URI to an external web resolver rather than to the Explore page. The map is configurable, with
-`$uri` expanding to the whole URI and `$rest` to the part after the scheme:
+Nanodash has no page of its own to show for an `ipfs:`, `did:` or `at:` resource, so wherever such
+a URI is rendered as a link — in nanopublication and form display (`IriItem`, `ReadonlyItem`) and
+in query-result tables and lists (`NanodashLink`) — it points at an external web resolver rather
+than at the Explore page, which has nothing to look up for one of these. The map is configurable,
+with `$uri` expanding to the whole URI and `$rest` to the part after the scheme:
 
 ```yaml
 # ~/.nanopub/nanodash-preferences.yml

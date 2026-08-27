@@ -189,6 +189,14 @@ public class NanodashLink extends Panel {
     }
 
     private static Component createLinkComponent(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
+        // An ipfs:/did:/at: resource goes to its external resolver, the same as in
+        // getPageUrl (issue #655). Checked first because the lookups below all assume an
+        // http(s) identifier, and because the Explore page fallback at the end has nothing
+        // to show for one of these.
+        String resolverUrl = Utils.getExternalResolverUrl(uri);
+        if (resolverUrl != null) {
+            return new ExternalLink(markupId, resolverUrl, displayLabel(label, explicitLabel));
+        }
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
         if (contextId != null) params.set("context", contextId);

@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.component.NanodashLink;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -146,6 +150,26 @@ class UriSchemeSupportTest {
     void sanitizerStillDropsDangerousHrefs() {
         assertFalse(Utils.sanitizeHtml("<a href=\"javascript:alert(1)\">x</a>").contains("javascript:"));
         assertFalse(Utils.sanitizeHtml("<a href=\"ftp://example.org/\">x</a>").contains("ftp://"));
+    }
+
+    @Test
+    void queryResultLinksGoToTheResolverNotTheExplorePage() {
+        // NanodashLink is what query-result tables and lists build their links with; it does not
+        // go through getPageUrl, so it needs the resolver branch of its own.
+        WicketTester tester = new WicketTester();
+        try {
+            Component link = NanodashLink.createLink("link", "ipfs://" + CID, "a pinned file", null);
+            assertInstanceOf(ExternalLink.class, link);
+            assertEquals("https://ipfs.io/ipfs/" + CID,
+                    ((ExternalLink) link).getDefaultModelObjectAsString());
+
+            Component didLink = NanodashLink.createLink("link", DID, null, null);
+            assertInstanceOf(ExternalLink.class, didLink);
+            assertEquals("https://dev.uniresolver.io/1.0/identifiers/" + DID,
+                    ((ExternalLink) didLink).getDefaultModelObjectAsString());
+        } finally {
+            tester.destroy();
+        }
     }
 
     @Test
