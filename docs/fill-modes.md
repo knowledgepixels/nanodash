@@ -16,6 +16,7 @@ and — the subject of [#527](https://github.com/knowledgepixels/nanodash/issues
 | Mode | URL param | Provenance link | Introduced IRIs | Root definition |
 | --- | --- | --- | --- | --- |
 | **Use** | `use` / `use-a` | none | re-minted | new nanopub |
+| **Partial** | `partial` / `partial-a` | none | re-minted | new nanopub |
 | **Supersede** | `supersede` / `supersede-a` | `npx:supersedes` | **kept** | **kept** (same resource, new version) |
 | **Derive** | `derive` / `derive-a` | `prov:wasDerivedFrom` | re-minted (new resource) | **new nanopub** |
 | **Override** | `override` / `override-a` | `prov:wasDerivedFrom` | **kept** | **kept** |
@@ -33,6 +34,31 @@ the root-nanopub placeholder) live in the assertion.
 A fresh nanopub seeded from a source or example. Every identifier from the
 source is rewritten into the new nanopub's namespace, and no provenance link
 back to the source is recorded.
+
+### Partial
+
+Identical to **Use**, except that source content which does not match the
+template being filled is **discarded silently** instead of being listed under
+*"Some content from the existing nanopublication could not be filled in:"*.
+
+Use it when filling deliberately **across** templates, where the source is only
+a seed for the form and a mismatch is expected rather than a warning. The
+motivating case is a view action that opens one template's form seeded from a
+nanopub made with another: e.g. the Nanosuggestions "assign" action, whose
+source may be the nanopub that *reported* the issue — its title, description,
+status and space links have no counterpart in the assign template, so every
+such form would otherwise carry a warning listing them.
+
+Every other mode keeps reporting unmatched content, which is what you want when
+source and target template are meant to line up: there, leftovers mean content
+would be silently lost. The distinction is deliberately **explicit in the
+parameter** rather than inferred (e.g. from the source's
+`nt:wasCreatedFromTemplate` differing from the target): filling across templates
+is not by itself evidence that the author wants the difference hidden.
+
+Discarding also covers the pubinfo catch-all — unmatched pubinfo is dropped
+rather than swept into the hand-coded statements template, which would publish
+it after all.
 
 ### Supersede
 

@@ -98,6 +98,20 @@ public class PublishForm extends Panel {
          */
         USE,
         /**
+         * Partial fill mode: identical to {@link #USE} (no provenance link back to
+         * the source, introduced IRIs re-minted, the new nanopub is its own root),
+         * except that content of the source which does not match the template being
+         * filled is discarded <em>silently</em> instead of being reported.
+         * <p>
+         * Intended for filling deliberately <em>across</em> templates, where the
+         * source is only a seed for the form and a mismatch is expected rather than a
+         * warning: e.g. a view action that opens an "assign" form seeded from the
+         * nanopublication that reported the issue. The other modes keep reporting
+         * unmatched content, which is what you want when the source and the target
+         * template are meant to line up.
+         */
+        PARTIAL,
+        /**
          * Supersede fill mode
          */
         SUPERSEDE,
@@ -172,6 +186,13 @@ public class PublishForm extends Panel {
         } else if (!pageParams.get("use-a").isNull()) {
             fillNp = Utils.getNanopub(pageParams.get("use-a").toString());
             fillMode = FillMode.USE;
+            fillOnlyAssertion = true;
+        } else if (!pageParams.get("partial").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("partial").toString());
+            fillMode = FillMode.PARTIAL;
+        } else if (!pageParams.get("partial-a").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("partial-a").toString());
+            fillMode = FillMode.PARTIAL;
             fillOnlyAssertion = true;
         } else if (!pageParams.get("supersede").isNull()) {
             fillNp = Utils.getNanopub(pageParams.get("supersede").toString());
@@ -483,7 +504,9 @@ public class PublishForm extends Panel {
                 for (IRI creator : SimpleCreatorPattern.getCreators(fillNp)) {
                     piFiller.removeUnusedStatements(creator, FOAF.NAME, null);
                 }
-                if (piFiller.hasUnusedStatements()) {
+                if (piFiller.hasUnusedStatements() && fillMode != FillMode.PARTIAL) {
+                    // A partial fill discards what does not match rather than sweeping it into
+                    // the catch-all, which would publish it after all.
                     if (handcodedContext == null) {
                         handcodedContext = createPubInfoContext(handcodedStatementsTemplateId);
                         handcodedContext.setFillSource(fillNp);
@@ -512,6 +535,14 @@ public class PublishForm extends Panel {
             ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION, true);
             filler.fill(assertionContext);
             unusedStatementList.addAll(filler.getUnusedStatements());
+        }
+        if (fillMode == FillMode.PARTIAL) {
+            // A partial fill takes what matches and drops the rest without telling the user:
+            // the mismatch is intended, so reporting it would only be noise. Every other
+            // mode keeps reporting it.
+            unusedStatementList.clear();
+            unusedPrStatementList.clear();
+            unusedPiStatementList.clear();
         }
         if (!unusedStatementList.isEmpty()) {
             add(new Label("warnings", "Some content from the existing nanopublication could not be filled in:"));
