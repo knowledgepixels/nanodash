@@ -321,7 +321,7 @@ public class QueryResultTable extends QueryResult {
                             String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                             if (isPublishLink(part)) {
                                 components.add(new Label("component", publishButtonHtml(part, rawLabel)).setEscapeModelStrings(false));
-                            } else if (part.matches("https?://.+")) {
+                            } else if (Utils.isUriValue(part)) {
                                 if (rawLabel != null && rawLabel.equals(part)) {
                                     rawLabel = null;
                                 }
@@ -379,7 +379,7 @@ public class QueryResultTable extends QueryResult {
                         // shown as a button rather than as a link to content.
                         String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new Label(componentId, publishButtonHtml(value, label)).setEscapeModelStrings(false));
-                    } else if (value.matches("https?://.+")) {
+                    } else if (Utils.isUriValue(value)) {
                         String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {

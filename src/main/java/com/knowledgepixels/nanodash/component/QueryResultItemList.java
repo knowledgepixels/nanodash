@@ -149,7 +149,7 @@ public class QueryResultItemList extends QueryResult {
                 String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
                 String html = "<span class=\"form-icon\"></span> <a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                 return new Label("listItem", html).setEscapeModelStrings(false);
-            } else if (value.matches("https?://.*")) {
+            } else if (Utils.isUriValue(value)) {
                 return new NanodashLink("listItem", value, null, null, entryLabel, contextId);
             } else if (entryLabel != null && !entryLabel.isBlank() && !entryLabel.equals(value)) {
                 // Separate display label for a (non-IRI) literal value; the full

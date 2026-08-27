@@ -16,14 +16,12 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URISyntaxException;
 
 /**
  * A text field component for entering values in a template.
@@ -161,16 +159,11 @@ public class ValueTextfieldItem extends AbstractContextComponent {
             }
             String p = "";
             if (s.getValue().matches("[^:# ]+")) p = LocalUri.PREFIX;
-            try {
-                ParsedIRI piri = new ParsedIRI(p + s.getValue());
-                if (!piri.isAbsolute()) {
-                    s.error(new ValidationError("IRI not well-formed"));
-                }
-                if (p.isEmpty() && !Utils.isLocalURI(s.getValue()) && !(s.getValue()).matches("https?://.+")) {
-                    s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
-                }
-            } catch (URISyntaxException ex) {
+            if (!Utils.isWellFormedUri(p + s.getValue())) {
                 s.error(new ValidationError("IRI not well-formed"));
+            }
+            if (p.isEmpty() && !Utils.isLocalURI(s.getValue()) && !Utils.isUriValue(s.getValue())) {
+                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
             }
         }
 

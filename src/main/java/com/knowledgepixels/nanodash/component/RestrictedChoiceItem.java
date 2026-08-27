@@ -75,7 +75,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
-            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !Utils.isUriValue(prefixLabel)) {
                 // Capitalize first letter of label if at subject position:
                 prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
             }
@@ -88,7 +88,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
-                if (!choiceId.matches("https?://.+")) {
+                if (!Utils.isUriValue(choiceId)) {
                     return choiceId;
                 }
                 String label = "";

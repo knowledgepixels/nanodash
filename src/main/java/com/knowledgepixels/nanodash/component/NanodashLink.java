@@ -251,6 +251,11 @@ public class NanodashLink extends Panel {
      * falling back to the Explore page otherwise.
      */
     public static String getPageUrl(String uri) {
+        // An ipfs:/did:/at: resource has no Nanodash page to show and nothing to explore, so it
+        // goes to an external resolver instead of the Explore page (issue #655). Checked first
+        // because the lookups below all assume an http(s) identifier.
+        String resolverUrl = Utils.getExternalResolverUrl(uri);
+        if (resolverUrl != null) return resolverUrl;
         if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
             return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
         } else if (SpaceRepository.get().findById(uri) != null) {
