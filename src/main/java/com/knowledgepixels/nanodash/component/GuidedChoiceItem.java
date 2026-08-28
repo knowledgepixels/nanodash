@@ -144,6 +144,9 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
+                // A value that has no identifier yet is shown as the local URI it will be minted
+                // into rather than as a bare word (issue #652).
+                if (context.isToBeMinted(iri, choiceId)) return Utils.getToBeMintedLabel(choiceId);
                 String label = getChoiceLabel(choiceId);
                 if (label == null || label.isBlank()) {
                     return choiceId;

@@ -88,6 +88,10 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
+                // A value that has no identifier yet is shown as the local URI it will be minted
+                // into rather than as a bare word (issue #652). Values that stay literals (they
+                // contain a space, say) keep being shown as they are.
+                if (context.isToBeMinted(iri, choiceId)) return Utils.getToBeMintedLabel(choiceId);
                 if (!Utils.isUriValue(choiceId)) {
                     return choiceId;
                 }

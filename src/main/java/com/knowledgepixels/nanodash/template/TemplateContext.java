@@ -370,6 +370,29 @@ public class TemplateContext implements Serializable {
         return token != null && resolvePrefixBase(token) == null;
     }
 
+    /**
+     * Whether the given value, held for the given placeholder, will be minted as a new IRI under
+     * the namespace of the nanopublication being published, rather than referring to an existing
+     * one (issue #652). This mirrors what {@link #processValue(Value)} does with a plain name that
+     * has no prefix in front of it, and lets the form show such a value as what it is rather than
+     * as a bare word.
+     *
+     * @param iri   the placeholder IRI
+     * @param value the value currently held for that placeholder
+     * @return true if publishing would mint the value under the target namespace
+     */
+    public boolean isToBeMinted(IRI iri, String value) {
+        // The same rule processValue applies: a plain name (no colon, hash or space) gets the
+        // target namespace put in front of it. The colon also rules out anything that is a URI.
+        if (value == null || !value.matches("[^:# ]+")) return false;
+        // A space-/namespace-dependent prefix mints the resource under the space or maintained
+        // resource instead, so it is not a local identifier of this nanopublication.
+        if (hasDynamicPrefix(iri)) return false;
+        if (template.isLocalResource(iri)) return true;
+        String prefix = getPrefix(iri);
+        return prefix == null || prefix.isEmpty();
+    }
+
     private String resolvePrefixBase(String token) {
         String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
         if (base != null && !base.isEmpty()) return base;
