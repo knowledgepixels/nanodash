@@ -200,7 +200,7 @@ public class View implements Serializable {
      * @return the View object
      */
     public static View get(String id, boolean resolveLatest) {
-        String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+        String npId = toNanopubId(id);
         if (!resolveLatest) {
             View exact = getExactVersion(id, npId);
             if (exact == null || exact.getGoverningSpace() == null || exact.getViewKindIri() == null) {
@@ -221,6 +221,70 @@ public class View implements Serializable {
             latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
         }
         return resolved;
+    }
+
+    /**
+     * Re-resolves the latest version of a view, going back to the query API instead of
+     * trusting what is memoized. This is what lets a view display's "refresh now" bring the
+     * <em>view</em> up to date and not just its results (issue #654): a memoized resolution
+     * is only re-checked once a minute in the background, and a display whose view was
+     * resolved server-side by the {@code get-view-displays} query carries an exact version
+     * that is never re-checked at all, so a newly published version of the view would
+     * otherwise not show up until the page's structure happened to be refreshed.
+     * <p>
+     * Every memoized resolution leading to the given version is dropped along with the
+     * lookups behind it, so that pages reaching this view by another id — a built-in view is
+     * looked up by the id hard-coded for it, not by the version that id resolves to —
+     * re-resolve it on their next render too.
+     *
+     * @param id the id of the view version currently shown
+     * @return the view's current latest version, which is the given one when there is no
+     * newer version or the lookup fails, or null if the view cannot be loaded at all
+     */
+    public static View refreshLatestVersion(String id) {
+        // The ids whose lookups are to be forgotten: the given one, plus every memo key
+        // that leads to it.
+        Set<String> staleIds = new HashSet<>();
+        staleIds.add(id);
+        for (Map.Entry<String, Pair<Long, View>> memo : latestResolvedViews.asMap().entrySet()) {
+            View memoized = memo.getValue().getRight();
+            if (memo.getKey().equals(id) || (memoized != null && id.equals(memoized.getId()))) {
+                latestResolvedViews.invalidate(memo.getKey());
+                staleIds.add(memo.getKey());
+            }
+        }
+        for (String staleId : staleIds) forgetLatestVersionLookup(staleId);
+        View resolved = resolveLatestVersion(id, toNanopubId(id));
+        if (resolved != null) {
+            latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+        }
+        return resolved;
+    }
+
+    /**
+     * Marks the version lookup behind a view id as outdated, so that the next resolution
+     * asks the API instead of answering from what it holds: the governed-version query for
+     * a view that floats within its space, the supersedes-chain lookup (its memo and its
+     * cached response both) for one that does not.
+     */
+    private static void forgetLatestVersionLookup(String viewId) {
+        String npId = toNanopubId(viewId);
+        View pinned = getExactVersion(viewId, npId);
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
+            ApiCache.clearCache(GovernedVersions.getQueryRef(
+                    pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue()), 0);
+        } else {
+            QueryApiAccess.forgetLatestVersion(npId);
+            ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_LATEST_VERSION_OF_NP, "np", npId), 0);
+        }
+    }
+
+    /**
+     * The id of the nanopub a view id belongs to: the view id up to and including its
+     * artifact code. An id that is already a nanopub id is returned unchanged.
+     */
+    private static String toNanopubId(String viewId) {
+        return viewId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
     }
 
     /**
@@ -276,7 +340,7 @@ public class View implements Serializable {
             String latestId = GovernedVersions.getLatestVersionIriSync(
                     pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
             if (latestId != null && !latestId.equals(pinned.getId())) {
-                String latestNpId = latestId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+                String latestNpId = toNanopubId(latestId);
                 View resolved = getExactVersion(latestId, latestNpId);
                 if (resolved != null) return resolved;
             }
