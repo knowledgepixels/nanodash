@@ -183,8 +183,8 @@ public class PageTitleMenu extends Panel {
      * an event is later rescheduled. A space that is both gets both submenus.</p>
      *
      * <p>For viewers of maintainer tier or above, the menu additionally offers "configure"
-     * (leading to the space's About tab) and "add view display..." (the About tab's
-     * view-displays action, as a direct shortcut).</p>
+     * (leading to the space's About tab) and the About tab's view-displays actions
+     * ("add view display...", "add part-level view display...") as direct shortcuts.</p>
      *
      * @param id    the Wicket component id
      * @param space the space to build the menu for
@@ -218,23 +218,27 @@ public class PageTitleMenu extends Panel {
                     new PageParameters().set("id", space.getId()).set("tab", "about"));
             configure.setBody(Model.of("<span class=\"actionmenu-icon\">⚙</span>configure")).setEscapeModelStrings(false);
             extraEntries.add(configure);
-            AbstractLink addViewDisplay = addViewDisplayLink(space);
-            if (addViewDisplay != null) extraEntries.add(addViewDisplay);
+            extraEntries.addAll(addViewDisplayLinks(space));
         }
 
         return build(id, groups, extraEntries, space);
     }
 
     /**
-     * The "add view display..." shortcut: the result-level action of the About tab's
+     * The "add view display..." shortcuts: the result-level actions of the About tab's
      * view-displays view ({@link AboutSpacePanel#VIEW_DISPLAYS_VIEW}), rendered the same
-     * way the view itself renders it (template link with the space pre-filled as target),
-     * so the shortcut stays in sync with the view nanopub's action declaration.
+     * way the view itself renders them (template link with the space pre-filled as target),
+     * so the shortcuts stay in sync with the view nanopub's action declarations.
+     *
+     * <p>The view declares more than one such action (issue #641 added a part-level variant
+     * next to the plain one), and the menu offers all of them the viewer is entitled to, in
+     * the order the view nanopub lists them.</p>
      */
-    private static AbstractLink addViewDisplayLink(Space space) {
+    private static List<AbstractLink> addViewDisplayLinks(Space space) {
+        List<AbstractLink> links = new ArrayList<>();
         try {
             View view = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
-            if (view == null) return null;
+            if (view == null) return links;
             for (IRI actionIri : view.getViewResultActionList()) {
                 if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), space, null)) continue;
                 Template t = view.getTemplateForAction(actionIri);
@@ -256,12 +260,12 @@ public class PageTitleMenu extends Panel {
                 } else {
                     l.setBody(Model.of(label));
                 }
-                return l;
+                links.add(l);
             }
         } catch (Exception ex) {
-            logger.error("Couldn't build add-view-display shortcut for space {}", space.getId(), ex);
+            logger.error("Couldn't build add-view-display shortcuts for space {}", space.getId(), ex);
         }
-        return null;
+        return links;
     }
 
     /**
