@@ -95,6 +95,17 @@ public abstract class QueryResult extends Panel {
         return queryRef;
     }
 
+    /**
+     * The version of the view definition this view display is showing, as the id to hand to
+     * {@link View#refreshLatestVersion(String)} when checking for a newer one.
+     *
+     * @return the shown view's id, or null if this result has no view behind it
+     */
+    public String getShownViewId() {
+        View view = (viewDisplay == null ? null : viewDisplay.getView());
+        return view == null ? null : view.getId();
+    }
+
     public void setRefreshing(boolean refreshing) {
         refreshIndicator.setVisible(refreshing);
     }

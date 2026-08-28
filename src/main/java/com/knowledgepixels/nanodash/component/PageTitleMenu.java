@@ -138,14 +138,24 @@ public class PageTitleMenu extends Panel {
                 boolean hasViewList = Boolean.TRUE.equals(getPage().visitChildren(ViewList.class,
                         (IVisitor<ViewList, Boolean>) (list, visit) -> visit.stop(Boolean.TRUE)));
                 if (r != null) {
-                    r.forceRefresh(0);
+                    // Asked for before the structure refresh is set going, so that the
+                    // update it triggers is one that already knows to re-resolve the view
+                    // definitions along the way.
                     if (hasViewList) r.requestViewRefresh();
+                    r.forceRefresh(0);
                 }
                 getPage().visitChildren(QueryResult.class, (IVisitor<QueryResult, Void>) (view, visit) -> {
+                    if (view.findParent(ViewList.class) != null) return;
                     QueryRef queryRef = view.getQueryRef();
-                    if (queryRef != null && view.findParent(ViewList.class) == null) {
-                        ApiCache.clearCache(queryRef, 0);
-                    }
+                    if (queryRef != null) ApiCache.clearCache(queryRef, 0);
+                    // A view built outside the page's structure has no refreshed view list to
+                    // pick a newer definition up from, so its version is re-checked here, the
+                    // way a view display's own "refresh now" does it (issue #654). The
+                    // resolution is dropped rather than replaced in place: the panel looks the
+                    // view up by the id hard-coded for it, and finding nothing memoized under
+                    // that id is what makes the re-render resolve it afresh.
+                    String shownViewId = view.getShownViewId();
+                    if (shownViewId != null) View.refreshLatestVersion(shownViewId);
                 });
                 setResponsePage(getPage().getClass(), getPage().getPageParameters());
             }

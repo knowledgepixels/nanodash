@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -209,6 +210,14 @@ public class View implements Serializable {
             // fall through to the memoized latest path, which resolves a governed
             // version space-based (never supersedes-based) for this pin
         }
+        // Inside a fresh-resolution scope (a page-level "refresh now", see
+        // withFreshResolution) the memo is not to be trusted at all: go back to the API
+        // once per id, then let the re-memoized answer serve the rest of the build.
+        Set<String> freshScope = freshlyResolved.get();
+        if (freshScope != null && freshScope.add(id)) {
+            View refreshed = refreshLatestVersion(id);
+            if (refreshed != null) return refreshed;
+        }
         Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
         if (memo != null) {
             if (System.currentTimeMillis() - memo.getLeft() > REFRESH_RESOLUTION_AFTER_MS) {
@@ -221,6 +230,37 @@ public class View implements Serializable {
             latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
         }
         return resolved;
+    }
+
+    /**
+     * The ids already re-resolved in the current fresh-resolution scope, or null outside
+     * one. Thread-confined: a scope covers one build on one thread (see
+     * {@link #withFreshResolution}).
+     */
+    private static final ThreadLocal<Set<String>> freshlyResolved = new ThreadLocal<>();
+
+    /**
+     * Runs the given build with every latest-version resolution it makes going back to the
+     * query API instead of answering from the memo — what a page-level "refresh now" asks
+     * for (issue #654). Which id a view is looked up by is the caller's business (a display
+     * resolves the version its nanopub references, a built-in view the id hard-coded for
+     * it), so the scope covers the whole build rather than a list of ids guessed in advance;
+     * each id is re-resolved once, and what that leaves memoized serves the rest of it.
+     * <p>
+     * The lookups block, so this belongs on a background thread, never on a request thread.
+     *
+     * @param build the build to run
+     * @param <T>   what it returns
+     * @return what the build returns
+     */
+    public static <T> T withFreshResolution(Supplier<T> build) {
+        if (freshlyResolved.get() != null) return build.get();
+        freshlyResolved.set(new HashSet<>());
+        try {
+            return build.get();
+        } finally {
+            freshlyResolved.remove();
+        }
     }
 
     /**
