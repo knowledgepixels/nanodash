@@ -2517,15 +2517,17 @@ p.waiting {
 
 /* A header view's title row is built differently — an h3 above a rule, baseline-aligned,
    with no filter field — but the spinner means the same thing and goes to the same place.
-   Centred rather than baseline-aligned: an empty inline-block's baseline is its own bottom
-   edge, which would hang it below the title's. */
+   It rides the row's baseline: an empty inline-block has no line box of its own, so its
+   baseline is its bottom edge, which lands the circle on the title's baseline like a
+   capital letter. Centring it in the row instead would sit it 7px high, since the row is
+   taller than the text by the heading's top margin. */
 .view-header-titlerow > .refresh-spinner {
   width: 16px;
   height: 16px;
   border-width: 2px;
   margin-left: 10px;
   margin-right: auto;
-  align-self: center;
+  align-self: baseline;
   flex: none;
 }
 
