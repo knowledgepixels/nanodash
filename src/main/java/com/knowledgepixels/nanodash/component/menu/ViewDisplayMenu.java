@@ -53,7 +53,9 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
      * @param viewDisplay  the view display this menu acts on (must have a non-null nanopub)
      * @param queryRef     the query reference used by this view display, or null for a
      *                     query-less view (a header view), which hides the
-     *                     query-dependent entries (show query, full screen, refresh)
+     *                     query-dependent entries (show query, full screen). "refresh now"
+     *                     stays: since issue #654 it brings the view definition up to date
+     *                     too, which is the whole of what a header view has to refresh.
      * @param pageResource the page-level resource used to determine whether "adjust" is visible
      * @param viewActions  the view-level actions to show as top entries (may be empty)
      */
@@ -209,7 +211,9 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         AjaxFallbackLink<Void> refreshLink = new AjaxFallbackLink<>("refreshNow") {
             @Override
             public void onClick(Optional<AjaxRequestTarget> target) {
-                ApiCache.clearCache(queryRef, 0);
+                // A header view has no query, and so nothing to mark outdated here — its
+                // whole content comes from the view definition re-checked just below.
+                if (queryRef != null) ApiCache.clearCache(queryRef, 0);
                 // Bringing a view up to date is not only a matter of re-running its query:
                 // the view definition itself can have been superseded since this page was
                 // built, and neither the memoized resolution nor the version the page's
@@ -233,11 +237,12 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                 if (view == null && target.isPresent()) {
                     // Not every view display puts results in the page. A query-form view
                     // shows a form, and the results it leads to live on the page it submits
-                    // to, so there is nothing here to bring up to date: the query has just
-                    // been marked outdated for that next submit, and the view definition has
-                    // been re-checked above. Re-rendering the page on top of that would
-                    // repaint everything for no visible change — which is what made these
-                    // views, alone among the display types, flicker on every refresh.
+                    // to; a header view has no query at all. Either way there is nothing
+                    // here to bring up to date once the view definition has been re-checked
+                    // above (and, for the form, its query marked outdated for the next
+                    // submit). Re-rendering the page on top of that would repaint everything
+                    // for no visible change — which is what made query-form views, alone
+                    // among the display types then offering a refresh, flicker on every one.
                     return;
                 }
                 // A view is not always what stands in the page: while it waits for its first
@@ -269,7 +274,10 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
             }
 
         };
-        refreshLink.setVisible(session.getUserIri() != null && queryRef != null);
+        // Offered wherever there is something to bring up to date. That used to mean a query,
+        // but since issue #654 the refresh re-resolves the view definition as well, which is
+        // all a query-less header view consists of — so it is offered there too.
+        refreshLink.setVisible(session.getUserIri() != null && (queryRef != null || shownViewId != null));
         addEntry("refreshNow", refreshLink);
 
         BookmarkablePageLink<Void> viewDeclarationLink = new BookmarkablePageLink<>("viewDeclaration", ExplorePage.class,
