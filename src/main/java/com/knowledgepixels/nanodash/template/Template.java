@@ -1430,6 +1430,17 @@ public class Template implements Serializable {
         l.add(type);
     }
 
+    /**
+     * Maps a rendered IRI back to its template form, undoing the artifact-code expansion and the
+     * {@code __N} repetition suffix that are added while rendering a repeatable statement group.
+     *
+     * @param iri the rendered IRI.
+     * @return the corresponding template IRI, or the given IRI if no transformation is needed.
+     */
+    public IRI getTemplateIri(IRI iri) {
+        return transform(iri);
+    }
+
     private IRI transform(IRI iri) {
         // A template can leave a statement part undefined (see getStatementErrors()), in which
         // case the null propagates here through getSubject()/getPredicate(). Let the type and
