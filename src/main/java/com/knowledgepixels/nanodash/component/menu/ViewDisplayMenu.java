@@ -230,6 +230,16 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     return;
                 }
                 QueryResult view = findParent(QueryResult.class);
+                if (view == null && target.isPresent()) {
+                    // Not every view display puts results in the page. A query-form view
+                    // shows a form, and the results it leads to live on the page it submits
+                    // to, so there is nothing here to bring up to date: the query has just
+                    // been marked outdated for that next submit, and the view definition has
+                    // been re-checked above. Re-rendering the page on top of that would
+                    // repaint everything for no visible change — which is what made these
+                    // views, alone among the display types, flicker on every refresh.
+                    return;
+                }
                 // A view is not always what stands in the page: while it waits for its first
                 // results it is inside Wicket's lazy-loading panel, and while it is being
                 // brought up to date inside a RefreshingResultPanel. Either way the wrapper
