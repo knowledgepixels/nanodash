@@ -84,9 +84,12 @@ public class IriItem extends AbstractContextComponent {
         labelString = labelString.replaceAll("%I%", "" + rg.getRepeatIndex());
         // Auto-number repeated local resources so each expansion of a repeatable group is
         // distinguishable (e.g. "the context-specific alias 1", "… 2"). Skip when the label
-        // already injects the index via %I%. The index/count are read lazily at render time
-        // (see the link model below) because they change as repetitions are added/removed.
-        final boolean autoNumber = template.isLocalResource(iri) && !hadIndexPlaceholder;
+        // already injects the index via %I%. The index/count and the narrow-scope check are
+        // read lazily at render time (see the link model below): the count changes as
+        // repetitions are added/removed, and the narrow-scope map is only complete once all
+        // statement items have been initialized.
+        final boolean numberable = template.isLocalResource(iri) && !hadIndexPlaceholder;
+        final IRI templateIri = template.getTemplateIri(iri);
 
         String iriString = iri.stringValue();
         String description = "";
@@ -130,11 +133,16 @@ public class IriItem extends AbstractContextComponent {
         // the entity's own page (shown as its title).
         final String linkLabelBase = Utils.truncateLinkLabel(labelString.replaceFirst(" - .*$", ""));
         IModel<String> linkLabelModel;
-        if (autoNumber) {
+        if (numberable) {
             // Append the 1-based repetition index, but only once there is more than one
             // repetition. Read lazily so the number stays correct as groups are added/removed.
+            // Only a resource that is narrowly scoped to this statement gets a fresh instance
+            // per repetition (see StatementItem.RepetitionGroup#transform); one that also
+            // occurs in other statements — like an introduced resource that a repeatable
+            // statement merely refers to — is the same resource in every repetition and
+            // must not be numbered.
             linkLabelModel = (IModel<String>) () -> {
-                if (rg.getRepetitionCount() > 1) {
+                if (rg.getRepetitionCount() > 1 && rg.getContext().hasNarrowScope(templateIri)) {
                     return linkLabelBase + " " + (rg.getRepeatIndex() + 1);
                 }
                 return linkLabelBase;
