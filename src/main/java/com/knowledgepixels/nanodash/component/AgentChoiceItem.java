@@ -62,19 +62,14 @@ public class AgentChoiceItem extends AbstractContextComponent {
     }
 
     /**
-     * Whether a manually entered term can be minted as a local identifier, i.e. everything that
-     * is neither a URI nor an ORCID and that {@link IriTextfieldItem.Validator} accepts once the
-     * local prefix is put in front of it (issue #652).
+     * Whether a manually entered term can be minted as a local identifier: a plain name that is
+     * not an ORCID, which is offered as the ORCID URI instead (issue #652).
      *
      * @param term the term typed into the field
      * @return true if the term can be offered as a locally minted identifier
      */
     private static boolean isLocalName(String term) {
-        if (term == null || term.isBlank()) return false;
-        if (Utils.isUriValue(term) || term.matches(ProfilePage.ORCID_PATTERN)) return false;
-        // Same rule as the validator: no colon, hash or whitespace, and well-formed as a local URI.
-        if (!term.matches("[^:#\\s]+")) return false;
-        return Utils.isWellFormedUri(LocalUri.PREFIX + term);
+        return Utils.isPlainName(term) && !term.matches(ProfilePage.ORCID_PATTERN);
     }
 
     /**

@@ -1127,6 +1127,24 @@ public class Utils {
     }
 
     /**
+     * Whether a term typed into a choice field can be entered as a plain name for a resource that
+     * has no identifier yet (issue #652): it is not a URI already, and the IRI validator accepts
+     * it once a prefix is put in front of it -- the field's own, or the local one when it has
+     * none, in which case the nanopublication mints it under its own namespace.
+     *
+     * @param term the term typed into the field
+     * @return true if the term can be offered as a plain name
+     */
+    public static boolean isPlainName(String term) {
+        if (term == null || term.isBlank()) return false;
+        if (isUriValue(term)) return false;
+        // Same rule as the validator: no colon, hash or whitespace, and well-formed as a URI once
+        // prefixed.
+        if (!term.matches("[^:#\\s]+")) return false;
+        return isWellFormedUri(LocalUri.PREFIX + term);
+    }
+
+    /**
      * How a value that a nanopublication will mint under its own namespace is shown in a choice
      * field: with the local prefix in front of it and marked as not being an identifier yet, e.g.
      * "local:john (to be minted)" (issue #652). See

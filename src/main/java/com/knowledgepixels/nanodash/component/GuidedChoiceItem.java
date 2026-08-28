@@ -170,6 +170,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                     response.addAll(possibleValues);
                     return;
                 }
+                final String typedTerm = term;
                 if (Utils.isUriValue(term)) {
                     if (prefix == null || term.startsWith(prefix)) {
                         response.add(term);
@@ -185,6 +186,15 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 }
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
                     if (!alreadyAddedMap.containsKey(v)) response.add(v);
+                }
+
+                // A guided choice only suggests values, it doesn't limit them, so a plain name for
+                // a resource that has no identifier yet can be entered as well (issue #652): it is
+                // minted under the prefix of the field, or under the namespace of the
+                // nanopublication when the field has none. It comes last, so that the suggestions
+                // the term matches keep the top of the list.
+                if (Utils.isPlainName(typedTerm) && !response.getResults().contains(typedTerm)) {
+                    response.add(typedTerm);
                 }
             }
 
